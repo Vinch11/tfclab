@@ -112,6 +112,14 @@ export interface PlanValidationResult {
     lorangCategoriesScore: number;
     /** Conformité charge à impact élevé (CAP/vélo) vs risque blessure CRITIQUE (injuryRiskUnified.ts) */
     injuryRiskComplianceScore: number;
+    /** #18 lot 1 : titre H1 conforme à la RÈGLE #0 (BLOQUANTE) */
+    titleFormatScore: number;
+    /** #18 lot 1 : pas de "Bloc N" dupliqué ni de récap stratégique dont la numérotation redémarre */
+    strategicRecapUniquenessScore: number;
+    /** #18 lot 1 : jours "Repos" réellement complets (pas de récup active), ≥1/semaine */
+    restDayCoherenceScore: number;
+    /** #18 lot 1 : pas de séance identique au même jour 2 semaines consécutives */
+    antiRepetitionScore: number;
     overallComment: string;
   };
   /** Lot 4 : distribution A/B/C/D par semaine + par plan */
@@ -2134,9 +2142,222 @@ function validateLorangCategories(
   return { issues, score, distribution };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// #18 — RÈGLES INVIOLABLE/OBLIGATOIRE SANS CONTRÔLE POST-GÉNÉRATION (lot 1/2)
+// ═══════════════════════════════════════════════════════════════════════════════
+// Audit méthodologique : 10 règles marquées INVIOLABLE/OBLIGATOIRE/BLOQUANTE
+// dans systemPrompt.ts n'avaient aucun contrôle correspondant dans ce fichier
+// — un plan pouvait les violer sans jamais faire baisser son score QA. Lot 1 :
+// les 4 règles vérifiables sans paramètre supplémentaire (titre H1, unicité du
+// récap stratégique, cohérence jour de repos, anti-répétition). Lot 2 (PR
+// séparée) : back-to-back trail, ramp D+, composition séances clés trail,
+// renfo Start-to-Run, plancher séances/jour élite (nécessite l'ambition,
+// non disponible dans les paramètres actuels de validatePlan).
 
+/** Rule 14 : Titre H1 (systemPrompt.ts "RÈGLE #0 — BLOQUANTE").
+ *  Gabarit : "Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines" — le
+ *  "#" de tête est déjà retiré par le parser (aiPlanParser.ts). Le milieu doit
+ *  contenir au moins 2 tokens (format course + nom athlète) : un titre du
+ *  type "Plan TFCL™ — 70.3 — 12 semaines" (nom athlète omis, cf. exemple
+ *  INTERDIT explicite du prompt) ne doit pas passer.
+ */
+const H1_TITLE_PATTERN = /^Plan TFCL™ — \S+(?:\s+\S+)+ — \d+\s*semaines?$/u;
 
+function validateTitleFormat(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const title = (plan.title || "").trim();
+  if (!title) {
+    issues.push({
+      rule: "title_format",
+      severity: "warning",
+      message: `Titre H1 absent — attendu "Plan TFCL™ — <format course> <nom athlète> — <N> semaines"`,
+    });
+    return { issues, score: 50 };
+  }
+  if (!H1_TITLE_PATTERN.test(title)) {
+    issues.push({
+      rule: "title_format",
+      severity: "error",
+      message: `Titre H1 non conforme au gabarit RÈGLE #0 : "${title}"`,
+      detail: `Attendu "Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines" (nom athlète et nombre de semaines requis, jamais un slogan comme "Structure Qualifiable").`,
+    });
+    return { issues, score: 30 };
+  }
+  return { issues, score: 100 };
+}
 
+/** Rule 15 : Unicité du Récapitulatif Stratégique (systemPrompt.ts, "bloquante").
+ *  Deux signaux structurels d'une table dupliquée : (a) un même "Bloc N"
+ *  apparaît plusieurs fois parmi les phases parsées, (b) la numérotation "#"
+ *  du récap (StrategicLimiter.rank) n'est pas strictement croissante/continue
+ *  depuis 1 — signe classique d'un redémarrage à 1 en milieu de table. */
+function validateStrategicRecapUniqueness(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let score = 100;
+
+  const blocNumbers = plan.phases
+    .map((p) => p.name.match(/^Bloc\s+(\d+)/i)?.[1])
+    .filter((n): n is string => !!n);
+  const seen = new Set<string>();
+  const duplicated = new Set<string>();
+  for (const n of blocNumbers) {
+    if (seen.has(n)) duplicated.add(n);
+    seen.add(n);
+  }
+  if (duplicated.size > 0) {
+    issues.push({
+      rule: "strategic_recap",
+      severity: "error",
+      message: `Bloc ${[...duplicated].join(", ")} apparaît plusieurs fois dans le plan — signe de deux tables/sections dupliquées`,
+      detail: `Chaque "Bloc N" doit apparaître une seule fois (table ET corps du plan) — fusionner en une seule structure cohérente.`,
+    });
+    score -= 30;
+  }
+
+  const ranks = plan.strategicRecap?.limiters.map((l) => l.rank) ?? [];
+  for (let i = 0; i < ranks.length; i++) {
+    if (ranks[i] !== i + 1) {
+      issues.push({
+        rule: "strategic_recap",
+        severity: "warning",
+        message: `Numérotation du Récapitulatif Stratégique non continue (rang ${ranks[i]} en position ${i + 1}) — signe possible d'une deuxième table collée`,
+      });
+      score -= 15;
+      break;
+    }
+  }
+
+  return { issues, score: Math.max(0, score) };
+}
+
+/** Rule 16 : Cohérence jour de repos (systemPrompt.ts "RÈGLE REPOS — COHÉRENCE
+ *  ABSOLUE" : "Un jour Repos est COMPLET. Récupération active (vélo Z1 30min)
+ *  n'est pas un jour repos. 1 jour repos complet/semaine min.").
+ *  Note : le parser (isRestSession, aiPlanParser.ts) classe déjà "récupération"
+ *  comme isRest=true — ce contrôle rattrape donc aussi les séances de récup
+ *  active mal étiquetées "Repos" en amont, pas seulement une régression du
+ *  validateur. */
+const ACTIVE_CONTENT_IN_REST_PATTERN = /z[1-7]\b|vélo|natation|course\b|renfo|muscul|\d+\s*(?:min|km|w)\b|ftp/i;
+
+function validateRestDayCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let flaggedActive = 0;
+  let totalRestSessions = 0;
+  let weeksWithNoFullRestDay = 0;
+  let weeksChecked = 0;
+
+  for (const week of plan.weeks) {
+    // Semaines trop courtes (course, décharge minimaliste) exemptées du
+    // minimum 1 repos/semaine — pas assez de jours pour que ça soit un signal.
+    if (week.sessions.length < 4) continue;
+    weeksChecked++;
+
+    let hasFullRestDay = false;
+    for (const s of week.sessions) {
+      if (!s.isRest) continue;
+      totalRestSessions++;
+      const text = `${s.title} ${s.details}`.trim();
+      if (text && ACTIVE_CONTENT_IN_REST_PATTERN.test(text)) {
+        flaggedActive++;
+        issues.push({
+          rule: "rest_day_coherence",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber} ${s.dayName}: jour "Repos" contient du contenu actif ("${s.title}") — un jour repos complet n'a aucun contenu, la récupération active n'en est pas un`,
+        });
+      } else {
+        hasFullRestDay = true;
+      }
+    }
+    if (!hasFullRestDay) weeksWithNoFullRestDay++;
+  }
+
+  if (weeksWithNoFullRestDay > 0) {
+    issues.push({
+      rule: "rest_day_coherence",
+      severity: "warning",
+      message: `${weeksWithNoFullRestDay}/${weeksChecked} semaine(s) sans aucun jour repos complet réel — minimum 1/semaine attendu`,
+    });
+  }
+
+  const restDayScore = weeksChecked === 0 ? 100 : Math.max(0, 100 - Math.round((weeksWithNoFullRestDay / weeksChecked) * 60));
+  const activeContentScore = totalRestSessions === 0 ? 100 : Math.max(0, 100 - Math.round((flaggedActive / totalRestSessions) * 100));
+  const score = Math.round((restDayScore + activeContentScore) / 2);
+  return { issues, score };
+}
+
+/** Rule 17 : Anti-Répétition (systemPrompt.ts "DIVERSITÉ ET PROGRESSION DES
+ *  SÉANCES — CRITIQUE" : "Règle #1 : JAMAIS la même séance 2 semaines
+ *  consécutives."). Comparaison au même jour de la semaine, titre normalisé
+ *  (emoji/casse ignorés) — volontairement strict (titre identique) plutôt que
+ *  flou (similarité de contenu), pour éviter les faux positifs sur des
+ *  séances simplement du même TYPE. Semaines décharge/course exemptées : un
+ *  rappel identique y est attendu, pas une répétition non désirée. */
+function normalizeSessionTitleForRepetitionCheck(title: string): string {
+  return title.toLowerCase().replace(/[🔑🏁]/g, "").trim();
+}
+
+function validateAntiRepetition(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const weeksByNumber = new Map<number, ParsedWeek>();
+  for (const w of plan.weeks) weeksByNumber.set(w.weekNumber, w);
+
+  let repeated = 0;
+  let checked = 0;
+
+  for (const week of plan.weeks) {
+    const themeText = `${week.theme} ${week.phase}`.toLowerCase();
+    if (DELOAD_PATTERNS.test(themeText) || RACE_PATTERNS.test(themeText)) continue;
+    const prev = weeksByNumber.get(week.weekNumber - 1);
+    if (!prev) continue;
+    const prevThemeText = `${prev.theme} ${prev.phase}`.toLowerCase();
+    if (DELOAD_PATTERNS.test(prevThemeText) || RACE_PATTERNS.test(prevThemeText)) continue;
+
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      const prevSame = prev.sessions.find((p) => !p.isRest && p.dayIndex === s.dayIndex);
+      if (!prevSame) continue;
+      const norm = normalizeSessionTitleForRepetitionCheck(s.title);
+      checked++;
+      if (norm.length > 0 && norm === normalizeSessionTitleForRepetitionCheck(prevSame.title)) {
+        repeated++;
+        issues.push({
+          rule: "anti_repetition",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber} ${s.dayName}: "${s.title}" identique à la séance de S${week.weekNumber - 1} — varier format/durée/intensité (Règle #1 Anti-Répétition)`,
+        });
+      }
+    }
+  }
+
+  const score = checked === 0 ? 100 : Math.max(0, 100 - Math.round((repeated / checked) * 100));
+  return { issues, score };
+}
+
+/** Poids du score pondéré (17 rules) — module-level pour être testable
+ *  directement (somme attendue = 1.00, cf. __tests__/planValidator.test.ts
+ *  "la somme des poids reste 1.00") sans dépendre d'un plan fixture
+ *  "parfait" sur les 17 dimensions à la fois. */
+export const PLAN_VALIDATION_WEIGHTS = {
+  polarization: 0.09,
+  loadPattern: 0.07,
+  keySessions: 0.07,
+  progression: 0.04,
+  sportRatio: 0.04,
+  catalogRatio: 0.03,
+  prohibitionCompliance: 0.14,
+  phaseCoherence: 0.08,
+  raceDayPresence: 0.06,
+  limiterCoherence: 0.10,
+  wbalFeasibility: 0.10,
+  sessionDensity: 0.02,
+  lorangCategories: 0.03,
+  titleFormat: 0.03,
+  strategicRecapUniqueness: 0.03,
+  restDayCoherence: 0.03,
+  antiRepetition: 0.04,
+} as const;
 
 export function validatePlan(
   plan: ParsedPlan,
@@ -2187,6 +2408,11 @@ export function validatePlan(
   const lorang_ = validateLorangCategories(plan);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
+  // #18 lot 1 : règles INVIOLABLE/OBLIGATOIRE sans contrôle post-génération jusqu'ici
+  const titleFormat = validateTitleFormat(plan);
+  const strategicRecapUniqueness = validateStrategicRecapUniqueness(plan);
+  const restDayCoherence = validateRestDayCoherence(plan);
+  const antiRepetition = validateAntiRepetition(plan);
 
   // Combine all issues
   const allIssues = [
@@ -2205,26 +2431,22 @@ export function validatePlan(
     ...lorang_.issues,
     ...sportObjective.issues,
     ...injuryRiskCompliance.issues,
+    ...titleFormat.issues,
+    ...strategicRecapUniqueness.issues,
+    ...restDayCoherence.issues,
+    ...antiRepetition.issues,
   ];
 
-  // Weighted score (13 rules) — Lot 4 introduit lorangCategories (5%),
+  // Weighted score (17 rules) — Lot 4 introduit lorangCategories (5%),
   // rééquilibré depuis polarization (12→10) et sessionDensity (5→3) pour éviter double comptage
   // (polarization approximative sur classification texte vs Lorang tag-based).
-  const weights = {
-    polarization: 0.10,
-    loadPattern: 0.08,
-    keySessions: 0.08,
-    progression: 0.06,
-    sportRatio: 0.06,
-    catalogRatio: 0.05,
-    prohibitionCompliance: 0.14,
-    phaseCoherence: 0.09,
-    raceDayPresence: 0.07,
-    limiterCoherence: 0.10,
-    wbalFeasibility: 0.10,
-    sessionDensity: 0.03,
-    lorangCategories: 0.04,
-  };
+  // #18 lot 1 introduit 4 règles jusqu'ici sans contrôle (titre H1, unicité
+  // récap, cohérence repos, anti-répétition — 13% cumulé), rééquilibré par
+  // petites retenues sur les rules les moins critiques (jamais sur
+  // prohibitionCompliance/limiterCoherence/wbalFeasibility, les 3 gardes-fous
+  // sécurité/fidélité diagnostic) — somme totale inchangée à 1.00, vérifié par
+  // un test dédié sur PLAN_VALIDATION_WEIGHTS (garde-fou anti-drift).
+  const weights = PLAN_VALIDATION_WEIGHTS;
   const clamp100 = (n: number) => Math.max(0, Math.min(100, Number.isFinite(n) ? n : 0));
   const weightedScore = Math.round(
     clamp100(polarization.score) * weights.polarization +
@@ -2239,7 +2461,11 @@ export function validatePlan(
     clamp100(limiterCoherence.score) * weights.limiterCoherence +
     clamp100(wbalFeasibility.score) * weights.wbalFeasibility +
     clamp100(sessionDensity_.score) * weights.sessionDensity +
-    clamp100(lorang_.score) * weights.lorangCategories
+    clamp100(lorang_.score) * weights.lorangCategories +
+    clamp100(titleFormat.score) * weights.titleFormat +
+    clamp100(strategicRecapUniqueness.score) * weights.strategicRecapUniqueness +
+    clamp100(restDayCoherence.score) * weights.restDayCoherence +
+    clamp100(antiRepetition.score) * weights.antiRepetition
   );
 
 
@@ -2297,6 +2523,10 @@ export function validatePlan(
       sessionDensityScore: sessionDensity_.score,
       lorangCategoriesScore: lorang_.score,
       injuryRiskComplianceScore: injuryRiskCompliance.score,
+      titleFormatScore: clamp100(titleFormat.score),
+      strategicRecapUniquenessScore: clamp100(strategicRecapUniqueness.score),
+      restDayCoherenceScore: clamp100(restDayCoherence.score),
+      antiRepetitionScore: clamp100(antiRepetition.score),
       overallComment,
     },
   };
@@ -2326,6 +2556,10 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| ⚡ Faisabilité W'bal | ${result.summary.wbalFeasibilityScore}/100 | ${result.summary.wbalFeasibilityScore >= 90 ? "✅" : result.summary.wbalFeasibilityScore >= 70 ? "⚠️" : "❌"} |`);
   lines.push(`| 🎨 Catégories Lorang A-D | ${result.summary.lorangCategoriesScore}/100 | ${result.summary.lorangCategoriesScore >= 75 ? "✅" : result.summary.lorangCategoriesScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| 🛡️ Risque blessure (charge impact élevé) | ${result.summary.injuryRiskComplianceScore}/100 | ${result.summary.injuryRiskComplianceScore >= 75 ? "✅" : result.summary.injuryRiskComplianceScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 🔴 Titre H1 (RÈGLE #0) | ${result.summary.titleFormatScore}/100 | ${result.summary.titleFormatScore >= 75 ? "✅" : result.summary.titleFormatScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 📋 Unicité récap stratégique | ${result.summary.strategicRecapUniquenessScore}/100 | ${result.summary.strategicRecapUniquenessScore >= 75 ? "✅" : result.summary.strategicRecapUniquenessScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 😴 Cohérence jour de repos | ${result.summary.restDayCoherenceScore}/100 | ${result.summary.restDayCoherenceScore >= 75 ? "✅" : result.summary.restDayCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 🔄 Anti-répétition | ${result.summary.antiRepetitionScore}/100 | ${result.summary.antiRepetitionScore >= 75 ? "✅" : result.summary.antiRepetitionScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   {
     const d = result.lorangCategories;
