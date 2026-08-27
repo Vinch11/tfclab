@@ -868,7 +868,7 @@ ${buildFewShotExamples(profile)}
 \`\`\`
 
 ## SÉANCES CLÉS — MÉTHODOLOGIE DAN LORANG (CRITIQUE)
-Chaque semaine a 2-3 **séances clés (Key Sessions)**, les stimuli principaux. Les autres séances sont de support.
+Chaque semaine a 2-4 **séances clés (Key Sessions)**, les stimuli principaux (cf. § "Cible : 2-4 séances 🔑 par semaine" plus haut — même règle). Les autres séances sont de support.
 - **Marquage obligatoire**: préfixer la séance clé avec "🔑".
 - **Placement stratégique**: JAMAIS consécutives. 1-2 jours EF/récup entre.
 - **Priorité absolue**: Si l'athlète saute une séance, JAMAIS une séance clé.

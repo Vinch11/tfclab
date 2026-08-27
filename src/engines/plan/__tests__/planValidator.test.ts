@@ -254,6 +254,23 @@ describe("planValidator", () => {
 
     const keyIssues = result.issues.filter(i => i.rule === "key_sessions" && i.severity === "error");
     expect(keyIssues.length).toBeGreaterThan(0);
+    // Audit fix — le message annonçait "1-3" alors que le code (et le
+    // prompt) ciblent 2-4 ; 4 formulations différentes existaient pour la
+    // même règle avant ce fix.
+    expect(keyIssues[0].message).toContain("2-4");
+  });
+
+  it("4 séances clés/semaine ne déclenche pas l'avertissement de surcharge (cible 2-4, cohérente avec le prompt)", () => {
+    const week = makeWeek(1, [
+      { sport: "Course", title: "🔑 Seuil 4x8min", details: "Séance clé" },
+      { sport: "Course", title: "🔑 VO2max 5x3min", details: "Séance clé" },
+      { sport: "Vélo", title: "🔑 SST 3x20min", details: "Séance clé" },
+      { sport: "Course", title: "🔑 Sortie longue", details: "Séance clé" },
+      { sport: "Course", title: "EF Z2 30min", details: "Récup" },
+    ]);
+    const result = validatePlan(makePlan([week]));
+    const overloadWarnings = result.issues.filter(i => i.rule === "key_sessions" && i.message.includes("surcharge"));
+    expect(overloadWarnings).toHaveLength(0);
   });
 
   it("produces weekMetrics for each week", () => {

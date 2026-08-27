@@ -580,14 +580,19 @@ function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[
         rule: "key_sessions",
         severity: "error",
         week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Aucune séance clé détectée (attendu: 1-3 séances d'intensité/semaine)`,
+        // Audit fix — ce message annonçait "1-3" alors que le code plus bas
+        // (2-4 = pleinement conforme, >4 = avertissement) et le prompt
+        // (systemPrompt.ts, "Cible : 2-4 séances 🔑 par semaine") ciblent
+        // tous deux 2-4. 4 formulations différentes existaient pour la même
+        // règle avant ce fix — désormais toutes alignées sur 2-4.
+        message: `S${wm.weekNumber}: Aucune séance clé détectée (attendu: 2-4 séances d'intensité/semaine)`,
       });
     } else if (wm.keySessions === 1 && wm.activeSessions >= 5) {
       issues.push({
         rule: "key_sessions",
         severity: "warning",
         week: wm.weekNumber,
-        message: `S${wm.weekNumber}: Seulement 1 séance clé pour ${wm.activeSessions} séances actives (recommandé: 2-3)`,
+        message: `S${wm.weekNumber}: Seulement 1 séance clé pour ${wm.activeSessions} séances actives (recommandé: 2-4)`,
       });
       compliant += 0.5;
     } else if (wm.keySessions > 4) {
