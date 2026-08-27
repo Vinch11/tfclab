@@ -141,7 +141,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`  • Distance: ${tp.distanceKm} km · D+: ${tp.elevationGainM} m · Ratio: ${tp.dPlusPerKm} m/km → terrain "${tp.terrainLabel}"`);
     lines.push(`  • Durée estimée: ${durStr}${tp.needsNightSimulation ? " (≥6h → simulations nocturnes obligatoires)" : ""}`);
     lines.push(`  • D+ hebdo cible: base ${tp.weeklyDPlusBaseM}m → peak ${tp.weeklyDPlusPeakM}m`);
-    lines.push(`  • 🚦 RAMPE D+ MAX: +30%/sem (marge de sécurité inspirée de l'ACWR ≤1.3 — Gabbett ; recherche menée sur sport co/contact, pas endurance, extrapolée ici en marge prudente plutôt que comme preuve directe pour le trail). NE PAS sauter de base→peak en <4 sem. Décharge -40% D+ toutes les 3 sem.`);
+    lines.push(`  • 🚦 RAMPE D+ MAX: +30%/sem (marge de sécurité inspirée de l'ACWR ≤1.3 — Gabbett ; recherche menée sur sport co/contact, pas endurance, extrapolée ici en marge prudente plutôt que comme preuve directe pour le trail). NE PAS sauter de base→peak en <4 sem. Décharge -40-50% D+ toutes les 3-4 sem (cf. RÈGLES D+, cohérent avec la décharge volume générale).`);
     if (tp.descentTechnicalRequired) {
       lines.push(`  • ⚠️ Descente technique OBLIGATOIRE 1x/sem en Build/Peak (ratio ≥35 m/km)`);
     }
