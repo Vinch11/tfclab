@@ -16,6 +16,8 @@
  * - Zone élite : statistiquement improbable sans génétique/volume exceptionnels
  */
 
+import { getPerformanceAgeFactor, getTTEAgeFactor, getVo2maxAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
+
 // =============================================
 // TYPES CENTRAUX
 // =============================================
@@ -67,57 +69,26 @@ plutôt que la promesse irréaliste.`;
 // AJUSTEMENTS CONTEXTUELS
 // =============================================
 
-interface AgeAdjustment {
-  ftpKgDelta: number;
-  tteDelta: number;
-  vo2maxDelta: number;
-  note: string;
+// Note pédagogique par tranche d'âge. Les paliers (30/40/50/60 ans) et les
+// libellés reprennent volontairement ceux de getPerformanceAgeFactor /
+// getTTEAgeFactor / getVo2maxAgeFactor (unifiedLimiterDetection.ts) — ce
+// fichier calculait auparavant ses propres deltas d'âge avec des paliers
+// différents (40/45/50/55/60) et des magnitudes non alignées, produisant des
+// plages contradictoires entre ce module (Dashboard) et le moteur de
+// diagnostic pour un même âge. Les facteurs multiplicatifs canoniques sont
+// désormais l'unique source, convertis en delta additif via ageDeltaFromFactor.
+function getAgeAdjustmentNote(age: number | null): string {
+  if (!age || age < 30) return "";
+  if (age < 40) return `À ${age} ans, potentiel encore significatif.`;
+  if (age < 50) return `À ${age} ans, potentiel encore significatif avec récupération adaptée.`;
+  if (age < 60) return `À ${age} ans, progression possible mais modérée.`;
+  return `À ${age} ans, les adaptations sont plus lentes. Privilégier la régularité.`;
 }
 
-function getAgeAdjustment(age: number | null): AgeAdjustment {
-  if (!age) return { ftpKgDelta: 0, tteDelta: 0, vo2maxDelta: 0, note: "" };
-  
-  if (age >= 60) {
-    return {
-      ftpKgDelta: -0.4,
-      tteDelta: -5,
-      vo2maxDelta: -8,
-      note: `À ${age} ans, les adaptations sont plus lentes. Privilégier la régularité.`
-    };
-  }
-  if (age >= 55) {
-    return {
-      ftpKgDelta: -0.3,
-      tteDelta: -3,
-      vo2maxDelta: -5,
-      note: `À ${age} ans, les gains sont plus lents et les cibles ajustées.`
-    };
-  }
-  if (age >= 50) {
-    return {
-      ftpKgDelta: -0.2,
-      tteDelta: -2,
-      vo2maxDelta: -3,
-      note: `À ${age} ans, progression possible mais modérée.`
-    };
-  }
-  if (age >= 45) {
-    return {
-      ftpKgDelta: -0.1,
-      tteDelta: -1,
-      vo2maxDelta: -2,
-      note: `À ${age} ans, potentiel encore significatif avec récupération adaptée.`
-    };
-  }
-  if (age >= 40) {
-    return {
-      ftpKgDelta: -0.05,
-      tteDelta: 0,
-      vo2maxDelta: -1,
-      note: `À ${age} ans, potentiel encore significatif.`
-    };
-  }
-  return { ftpKgDelta: 0, tteDelta: 0, vo2maxDelta: 0, note: "" };
+// Convertit un facteur multiplicatif d'âge en delta additif sur une plage,
+// à partir du point médian de la zone réaliste comme valeur de référence.
+function ageDeltaFromFactor(referenceValue: number, factor: number): number {
+  return referenceValue * (factor - 1);
 }
 
 interface VLamaxAdjustment {
@@ -244,14 +215,17 @@ export function computeFtpKgRange(context: PerformanceRangeContext): Performance
   const base = FTP_KG_BASE_RANGES[discipline] || FTP_KG_BASE_RANGES.IM;
   
   // Calcul des ajustements
-  const ageAdj = getAgeAdjustment(context.age);
+  const ftpKgAgeDelta = ageDeltaFromFactor(
+    (base.realistic[0] + base.realistic[1]) / 2,
+    getPerformanceAgeFactor(context.age)
+  );
   const vlamaxAdj = getVLamaxAdjustment(context.vlamaxEffectif, discipline);
   const vo2Adj = getVO2maxAdjustment(context.vo2max);
-  
-  const totalDelta = ageAdj.ftpKgDelta + vlamaxAdj.ftpKgDelta + vo2Adj.ftpKgDelta;
-  
+
+  const totalDelta = ftpKgAgeDelta + vlamaxAdj.ftpKgDelta + vo2Adj.ftpKgDelta;
+
   // Construction des notes
-  const notes = [ageAdj.note, vlamaxAdj.note, vo2Adj.note].filter(Boolean);
+  const notes = [getAgeAdjustmentNote(context.age), vlamaxAdj.note, vo2Adj.note].filter(Boolean);
   const contextNote = notes.length > 0 
     ? notes.join(" ") 
     : "Plages standards pour le profil.";
@@ -299,12 +273,15 @@ export function computeTTERange(context: PerformanceRangeContext): PerformanceRa
   const discipline = context.discipline || "IM";
   const base = TTE_BASE_RANGES[discipline] || TTE_BASE_RANGES.IM;
   
-  const ageAdj = getAgeAdjustment(context.age);
+  const tteAgeDelta = ageDeltaFromFactor(
+    (base.realistic[0] + base.realistic[1]) / 2,
+    getTTEAgeFactor(context.age)
+  );
   const vlamaxAdj = getVLamaxAdjustment(context.vlamaxEffectif, discipline);
-  
-  const totalDelta = ageAdj.tteDelta + vlamaxAdj.tteDelta;
-  
-  const notes = [ageAdj.note, vlamaxAdj.note].filter(Boolean);
+
+  const totalDelta = tteAgeDelta + vlamaxAdj.tteDelta;
+
+  const notes = [getAgeAdjustmentNote(context.age), vlamaxAdj.note].filter(Boolean);
   const contextNote = notes.length > 0 
     ? notes.join(" ") 
     : "Plages TTE standards pour le profil.";
@@ -390,10 +367,12 @@ export function computeVO2maxRange(context: PerformanceRangeContext): Performanc
   const discipline = context.discipline || "IM";
   const base = VO2MAX_BASE_RANGES[discipline] || VO2MAX_BASE_RANGES.IM;
   
-  const ageAdj = getAgeAdjustment(context.age);
-  const totalDelta = ageAdj.vo2maxDelta;
-  
-  const contextNote = ageAdj.note || "Plages VO2max standards.";
+  const totalDelta = ageDeltaFromFactor(
+    (base.realistic[0] + base.realistic[1]) / 2,
+    getVo2maxAgeFactor(context.age)
+  );
+
+  const contextNote = getAgeAdjustmentNote(context.age) || "Plages VO2max standards.";
   
   return {
     metric: "VO2MAX",
