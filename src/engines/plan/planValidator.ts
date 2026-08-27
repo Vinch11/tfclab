@@ -691,6 +691,13 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [number, number]; run?: [number, number] }> = {
   IM:       { swim: [15, 20], bike: [45, 55], run: [25, 35] },
   "703":    { swim: [15, 20], bike: [40, 50], run: [30, 40] },
+  // Audit fix — absents jusqu'ici : le contrôle de ratio par sport retombait
+  // silencieusement sur un simple "3 sports présents ?" pour ces deux
+  // objectifs (cf. normalizeObjectiveKey.ts). Plages agrégées (min des mins,
+  // max des maxs) sur les 5 paliers d'ambition de sportRatioMatrix.ts
+  // (edge function — Bevegård/Millet 2011, ITU pathway 2020, Etxebarria 2019).
+  Sprint:   { swim: [18, 28], bike: [40, 50], run: [28, 34] },
+  Olympic:  { swim: [15, 24], bike: [45, 52], run: [28, 34] },
   Marathon: { run: [85, 100] },
   Semi:     { run: [85, 100] },
   "10K":    { run: [85, 100] },

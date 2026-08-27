@@ -605,5 +605,38 @@ describe("planValidator", () => {
       expect(warnings).toHaveLength(1);
     });
   });
+
+  describe("sport_ratio — Sprint/Olympic triathlon (angle mort corrigé)", () => {
+    // Audit fix — avant, normalizeObjectiveKey ne reconnaissait pas Sprint/
+    // Olympic : SPORT_RATIO_TARGETS ne trouvait jamais de cible pour ces
+    // objectifs, donc un plan 100% course sans natation ni vélo passait
+    // silencieusement (juste "3 sports présents ?" → faux → score 80, aucun
+    // avertissement) au lieu d'être signalé comme un plan mono-sport pour un
+    // objectif triathlon.
+    function runOnlyWeek(weekNumber: number): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 40min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 3x10min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Sortie longue", details: "SL 🔑" },
+      ], "Chantier");
+    }
+
+    it("signale un plan 100% course pour un objectif Sprint (natation/vélo absents)", () => {
+      const plan = makePlan([runOnlyWeek(1), runOnlyWeek(2), runOnlyWeek(3)]);
+      const result = validatePlan(plan, "Triathlon Sprint");
+      const ratioIssues = result.issues.filter(i => i.rule === "sport_ratio");
+      expect(ratioIssues.length).toBeGreaterThan(0);
+      expect(ratioIssues.some(i => i.message.includes("Natation"))).toBe(true);
+    });
+
+    it("signale un plan 100% course pour un objectif Olympique (natation/vélo absents)", () => {
+      const plan = makePlan([runOnlyWeek(1), runOnlyWeek(2), runOnlyWeek(3)]);
+      const result = validatePlan(plan, "Triathlon Olympique");
+      const ratioIssues = result.issues.filter(i => i.rule === "sport_ratio");
+      expect(ratioIssues.length).toBeGreaterThan(0);
+    });
+  });
 });
 
