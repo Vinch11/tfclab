@@ -547,10 +547,20 @@ export function computeCPWprime(data: any): { cpRound: number; effectiveCP: numb
 // Permet au coach de choisir le profil de récupération inter-séries qui sera
 // utilisé pour calculer les durées de repos via le modèle W'bal (Skiba 2012).
 //   - "passive"        : récupération à 0 W (debout/marche, pédalage <50W)
-//   - "active-light"   : récupération à 50% CP (Z1, "spinning" léger)
-//   - "active-tempo"   : récupération à 70% CP (haut Z2 / bas Z3, type over-under)
+//   - "active-light"   : récupération à 30% CP (Z1, "spinning" léger)
+//   - "active-tempo"   : récupération à 50% CP (haut Z1 / bas Z2)
 // Une récupération active augmente le tau de réplétion W' → repos prescrits
 // plus longs pour atteindre la même qualité de reconstitution.
+//
+// Audit fix — ces pourcentages (50%/70%) divergeaient de resolveRecoveryPower
+// (src/lib/v2/criticalPowerModel.ts) et recoveryPowerForStrategy
+// (src/lib/wbalLibraryRecalc.ts), qui appliquent 30%/50% pour les mêmes
+// libellés "active-light"/"active-tempo" — malgré le commentaire F-07
+// ci-dessous affirmant l'alignement. Un coach choisissant "active-light"
+// dans le simulateur (30% CP) voyait donc des repos calculés sur une base
+// différente de ceux prescrits par l'IA pour la même consigne nommée.
+// Valeurs realignées sur la source client (double confirmée par les 2
+// fichiers frontend qui s'accordent entre eux).
 export type RecoveryStrategy = "passive" | "active-light" | "active-tempo";
 
 export function resolveRecoveryPower(
@@ -559,9 +569,9 @@ export function resolveRecoveryPower(
 ): { recPow: number; label: string; pctCP: number } {
   switch (strategy) {
     case "active-light":
-      return { recPow: Math.round(effectiveCP * 0.50), label: "Active légère (50% CP — Z1, spinning)", pctCP: 50 };
+      return { recPow: Math.round(effectiveCP * 0.30), label: "Active légère (30% CP — Z1, spinning)", pctCP: 30 };
     case "active-tempo":
-      return { recPow: Math.round(effectiveCP * 0.70), label: "Active tempo (70% CP — haut Z2)", pctCP: 70 };
+      return { recPow: Math.round(effectiveCP * 0.50), label: "Active tempo (50% CP — haut Z1/bas Z2)", pctCP: 50 };
     case "passive":
     default:
       return { recPow: 0, label: "Passive (0 W — debout/marche)", pctCP: 0 };
@@ -712,7 +722,7 @@ export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrate
   } else if (recoveryStrategy === "active-light") {
     lines.push(`- Mode actif léger : prescris explicitement "spinning Z1 ~${baseRecovery.recPow}W" entre les reps.`);
   } else {
-    lines.push(`- Mode actif tempo : prescris explicitement "récup roulée ~${baseRecovery.recPow}W (haut Z2)" entre les reps — typique des séances over-under.`);
+    lines.push(`- Mode actif tempo : prescris explicitement "récup roulée ~${baseRecovery.recPow}W (haut Z1/bas Z2)" entre les reps — typique des séances over-under.`);
   }
   lines.push(`\n📝 OBLIGATION D'AFFICHAGE W'bal : Dans CHAQUE séance d'intervalles, mentionne explicitement dans la description :`);
   lines.push(`  1. La durée de repos prescrite ET sa justification W'bal (ex: "Repos 2min30 — calibré W'bal ${wEffKJ}kJ, récup ${baseRecovery.recPow}W")`);
