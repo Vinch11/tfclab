@@ -47,7 +47,10 @@ function buildSpecializedSections(profile?: SystemPromptProfile): string {
 - **FCmax**: diminue ~1 bpm/an après 30 ans (Tanaka: 208 − 0.7×âge). NE PAS utiliser 220−âge.
 - **Récupération**: +24-48h vs <40 ans après séance VO2max/seuil. Charge 2:1 STRICTE (jamais 3:1).
 - **Intensité**: MAX 1 séance VO2max/sem + 1 seuil/sem (jamais doublés <72h).
-- **Volume**: progression plafonnée à +3%/sem (vs +10% jeune). ACWR cible ≤1.1.
+- **Volume**: progression plafonnée à +3%/sem (vs +10% jeune). ACWR cible ≤1.1 (marge
+  de sécurité TFCL plus stricte que le seuil général ≤1.3 utilisé ailleurs pour ce
+  public à risque accru — pas un second chiffre Gabbett distinct ; cf. note ACWR
+  dans la section rampe de volume/D+).
 - **Force**: 3x/sem OBLIGATOIRE (sarcopénie). Pliométrie LÉGÈRE uniquement (sauts <30cm, contacts <100/sem).
 - **Sommeil**: 8-9h non négociable. Sieste 20min si disponible.
 - **Hormones**: si masculin, surveiller fatigue chronique = signal testostérone basse → décharge.
@@ -343,9 +346,15 @@ Ce n'est PAS un plan de performance. Aucune référence marathon/semi/10K ne s'a
    Pas de seuil, pas de VMA, pas de fractionné rapide, pas de côtes avant S9.
 5. Progression : la fraction COURUE augmente, pas la durée totale. Ex : S1 5×(3'marche
    + 2'course) → S6 4×(1'marche + 6'course) → S12 25-30' de course continue.
-6. Règle des +10 % : le temps de course cumulé hebdo ne progresse jamais de plus de
-   10 % d'une semaine sur l'autre ; toutes les 4 semaines = semaine palier (répétition
-   du volume, jamais d'augmentation).
+6. Règle des +10 % (plafond de prudence, PAS une règle validée anti-blessure —
+   le seul ECR ayant testé spécifiquement cette règle sur des coureurs débutants,
+   Buist et al. 2008, n'a trouvé aucun bénéfice protecteur, avec une tendance
+   non significative vers PLUS de blessures dans le groupe "règle des 10%" vs
+   progression libre ; gardée ici comme plafond de progression conservateur par
+   défaut, pas comme preuve qu'elle prévient la blessure) : le temps de course
+   cumulé hebdo ne progresse jamais de plus de 10 % d'une semaine sur l'autre ;
+   toutes les 4 semaines = semaine palier (répétition du volume, jamais
+   d'augmentation).
 7. Toute douleur articulaire/tendineuse ⇒ revenir au format de la semaine précédente.`;
 
 
@@ -664,7 +673,7 @@ Contrainte INVIOLABLE (sauf décharge = 100% Z1-Z2).
 | Ordre des blocs | Intensité courte → volume → spécifique | "Lorang 2018" — attribution non vérifiée, cf. point 1 |
 | Distribution intra-bloc | Polarisé 80/20 chaque semaine | Seiler 2010 |
 | Séquence blocs | Déterminée par limiteur #1 | Issurin 2008 |
-| Charge intra-bloc | Ondulée 3:1 ou 2:1 | Rhea |
+| Charge intra-bloc | Ondulée 3:1 ou 2:1 | "Rhea" — hors-domaine, cf. section MICRO-CYCLE UNDULATING |
 | Maintien acquis | 1 rappel/sem des qualités des blocs précédents | — |
 
 ### 🎯 CATÉGORIES D'INTENSITÉ LORANG A-D (OBLIGATOIRE)
@@ -720,6 +729,12 @@ Fréquence : 2 "double threshold days"/sem (élite). Sans lactate, utiliser FC s
 Utilisation : TTE < 50min, plateau VO2max, semi/marathon, triathlon.
 
 ### 🇰🇪 MÉTHODE CANOVA — Spécificité Inverse (Renato Canova)
+Note de sourcing : contrairement à Seiler/Issurin/Billat/Rønnestad ci-dessus,
+Canova n'a pas publié en littérature évaluée par les pairs — sa méthode est
+transmise par interviews et tradition d'entraîneurs, pas par des papers
+académiques. La description ci-dessous correspond à sa philosophie de coaching
+connue publiquement, mais n'a pas le même niveau de vérification qu'une
+citation d'étude.
 Principe : "Simulation de la course". Introduire allure course tôt, progresser en VOLUME, pas en vitesse.
 Special Block Training : 2 séances spécifiques même jour (ex: matin tempo, soir finish rapide).
 Séances signature : Fast Continuous Run, Progressive Long Run, Variation of Pace.
@@ -736,7 +751,11 @@ Séances optimales : 30/30 (ex: 2-3 séries de 8-12min), 3-5×3min@100-105% VMA 
 Application : 2 séances/sem si VO2max est limiteur, pendant 3-4 semaines.
 
 ### 🇳🇴 MÉTHODE RØNNESTAD — Force + Endurance (Bent Rønnestad, PhD)
-Prouvé : force max 2x/sem → +4.8% économie course, +3.5% puissance seuil.
+Direction bien établie (force max concurrente améliore l'économie de mouvement
+et la puissance au seuil) ; les deux chiffres précis "+4.8%"/"+3.5%" ne sont
+pas rattachés à une publication identifiée — à traiter comme des ordres de
+grandeur indicatifs, pas des résultats vérifiés d'une étude donnée.
+Force max 2x/sem → gains économie course + puissance seuil.
 Protocole : Phase Force Max (8-12 sem, 4×4@85% 1RM) → Phase Maintien (1x/sem).
 Timing : force AVANT endurance (ou jours séparés). Jamais post-intensité.
 Pliométrie : 2-3x/sem en base. 60-100 contacts/séance.
@@ -942,7 +961,13 @@ Pour 5K, 10K, Semi, Marathon, Trail : CAP 75-85% volume. Vélo = 5-10% max, Z1-Z
 - **Nutrition post**: 1.2g/kg carbs + 0.3g/kg prot dans 30min (Golden Window).
 - **Bain froid**: réduit DOMS mais inhibe adaptation → réserver aux phases compétitives.
 
-## MICRO-CYCLE UNDULATING (Rhea)
+## MICRO-CYCLE UNDULATING ("Rhea" — attribution hors-domaine)
+⚠️ Rhea (Rhea et al. 2002) a publié sur la périodisation ondulée EN MUSCULATION
+(gains de force 1RM, linéaire vs undulating), PAS sur les cycles charge/décharge
+hebdomadaires en endurance. Le principe ci-dessous est une heuristique
+d'entraînement d'endurance sans auteur unique identifié — l'attribution à Rhea
+est un emprunt de nom hors de son domaine réel, pas une citation vérifiée.
+Traiter comme une règle TFCL, pas comme une règle "Rhea" établie.
 - Variation quotidienne de charge pour éviter monotonie. RPE 2→9 dans la semaine.
 - Charge 3:1 (ou 2:1 si >45 ans).
 
@@ -951,6 +976,12 @@ Pour 5K, 10K, Semi, Marathon, Trail : CAP 75-85% volume. Vélo = 5-10% max, Z1-Z
 - Pacing Negative Split: prouvé supérieur. Départ conservateur, finish fort. Entraîner en SL.
 
 ## ATHLÈTE FÉMININE — PÉRIODISATION HORMONALE (McNulty, Elliott-Sale)
+⚠️ La revue systématique McNulty et al. 2020 (co-autrice citée ici) conclut que
+les preuves d'un effet de la phase du cycle sur la performance sont mixtes/peu
+cohérentes selon les études — elle appelle à la prudence sur les prescriptions
+fermes, pas à les affirmer comme établies. Les ajustements ci-dessous restent
+une heuristique TFCL raisonnable (prudence en lutéale n'est pas risquée), mais
+ne pas les présenter comme un effet prouvé.
 - **Folliculaire (J5-14)**: fenêtre haute tolérance. Placer séances clés haute intensité.
 - **Lutéale (J15-28)**: progestérone↑, RPE↑. Privilégier volume Z2, réduire intensité 5-10%.
 - Adapter micro-cycle à 28j si possible. Si contraception hormonale, plan standard.
