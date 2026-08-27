@@ -232,7 +232,7 @@ export function MetabolicZonesINSCYDChart({
     };
 
     const getZoneData = (midPct: number) => {
-      const lactate = findSteadyStateLactate(midPct, vo2max, vlamax);
+      const lactate = findSteadyStateLactate(midPct, vo2max, vlamax, weight);
       const fatGmin = calculateFatOxidation(midPct, vo2max, vlamax, weight);
       const carbGmin = calculateCarbOxidation(midPct, vo2max, vlamax, weight);
       const fatKcalH = fatGmin * 9 * 60;

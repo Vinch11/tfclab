@@ -152,46 +152,43 @@ export function calculateLactateClearance(
 }
 
 /**
- * Find steady-state lactate at a given intensity
- * Iteratively solves: dLa/dt = VLa_prod - VLa_ox = 0
+ * Find steady-state lactate at a given intensity — ancré sur le MLSS canonique
+ * (calculé plus bas par `computeMLSS`, la même formule α=1.98 calibrée sur
+ * N=44 profils de labo que `findMLSSPower`).
+ *
+ * Audit fix — l'ancien solveur itératif (dLa/dt = VLa_prod − VLa_ox = 0, via
+ * calculateLactateProduction/calculateLactateClearance) sature à la baseline
+ * pour la quasi-totalité des profils réalistes : la capacité d'élimination
+ * (calculateLactateClearance) croît avec VO2max plus vite que la production
+ * (calculateLactateProduction) ne croît avec VLamax, donc la production ne
+ * dépasse jamais la clairance pour un athlète bien entraîné (VO2max ≥ 55) —
+ * la boucle converge systématiquement vers 1.0 mmol/L (baseline) quelle que
+ * soit l'intensité, sur toute la plage VO2max/VLamax réaliste. Conséquence en
+ * cascade : `findLactateThresholds` (LT1/LT2, plus bas) ne trouvait jamais de
+ * croisement à 2/4 mmol et retombait en silence sur 60%/75% VO2max fixes,
+ * contredisant le MLSS calculé séparément par `findMLSSPower` pour le même
+ * profil — et la courbe affichée aux coachs (`generateMaderLactateCurve`)
+ * était plate. L'ancrage (formule exponentielle de Heck : 4 mmol/L au MLSS,
+ * 2 mmol/L à 0,85×MLSS) élimine la non-convergence par construction et
+ * garantit une courbe cohérente avec le seuil MLSS déjà calibré.
+ *
+ * `weight` optionnel (défaut 70 kg) pour compatibilité avec les appelants
+ * historiques qui ne le passaient pas — n'affecte que le calcul du MLSS
+ * (VO2max absolu), le ratio intensité/MLSS qui pilote la lactatémie ne
+ * dépend pas de l'efficience ni de la conversion en puissance.
  */
 export function findSteadyStateLactate(
   intensityPct: number,
   vo2max: number,
-  vlamax: number
+  vlamax: number,
+  weight: number = 70
 ): number {
   if (intensityPct <= 0) return LACTATE_BASELINE;
-  
-  // Iterative solver for steady state
-  let lactate = LACTATE_BASELINE;
-  const maxIterations = 100;
-  const tolerance = 0.01;
-  
-  for (let i = 0; i < maxIterations; i++) {
-    const production = calculateLactateProduction(intensityPct, vlamax);
-    const clearance = calculateLactateClearance(intensityPct, vo2max, lactate);
-    
-    // Net lactate accumulation rate
-    const netRate = production - clearance;
-    
-    // If production exceeds max clearance, lactate rises indefinitely
-    // This indicates we're above MLSS
-    if (netRate > clearance * 0.5 && lactate > 8) {
-      return 20; // Effectively unlimited accumulation
-    }
-    
-    // Update lactate estimate
-    const newLactate = Math.max(LACTATE_BASELINE, lactate + netRate * 0.5);
-    
-    // Check convergence
-    if (Math.abs(newLactate - lactate) < tolerance) {
-      return Math.min(20, newLactate);
-    }
-    
-    lactate = newLactate;
-  }
-  
-  return Math.min(20, Math.max(LACTATE_BASELINE, lactate));
+
+  const mlss = computeMLSS({ vo2max, vlamax, weight });
+  if (!mlss) return LACTATE_BASELINE;
+
+  return anchoredLactateAtRatio(intensityPct / mlss.intensityPct);
 }
 
 // =============================================
@@ -303,44 +300,83 @@ const MADER_ALPHA_LEGACY = 3.0;
 export const USE_CALIBRATED_MADER_ALPHA = true;
 
 /**
+ * Convertit une intensité (% VO2max) en puissance absolue (W), formule
+ * partagée par tout le module (MLSS, seuils, courbe, FatMax) — évite les
+ * ~6 recopies de la même conversion qui pouvaient diverger silencieusement.
+ */
+function intensityToPowerWatts(
+  intensityPct: number,
+  vo2max: number,
+  weight: number,
+  efficiency: number,
+): number {
+  const vo2AtIntensity = vo2max * intensityPct / 100; // ml/kg/min
+  const vo2LPerMin = vo2AtIntensity * weight / 1000;
+  const energyKJPerMin = vo2LPerMin * ENERGY_PER_O2;
+  return (energyKJPerMin * 1000 / 60) * efficiency;
+}
+
+/**
+ * Maximal Lactate Steady State — analytical Mader relationship:
+ *   MLSS_pct = 100 × (1 − α × VLamax / VO2max_abs)
+ *
+ * Reference: Mader (2003), Heck & Schulz (2002). Source unique pour
+ * `findMLSSPower`, `findLactateThresholds` et `findSteadyStateLactate` —
+ * garantit que LT2/MLSS/la courbe de lactate ne peuvent plus diverger entre
+ * eux pour un même profil (cf. audit : avant ce fix, `findLactateThresholds`
+ * retombait sur 60%/75% VO2max fixes et contredisait cette formule).
+ *
+ * `null` = non calculable (entrées absentes/invalides) — jamais une valeur
+ * inventée en repli.
+ */
+function computeMLSS(profile: MaderProfile): { intensityPct: number; power: number } | null {
+  const { vo2max, vlamax, weight } = profile;
+  const efficiency = profile.efficiency ?? 0.23;
+
+  if (!Number.isFinite(vo2max) || vo2max <= 0) return null;
+  if (!Number.isFinite(vlamax) || vlamax <= 0) return null;
+  if (!Number.isFinite(weight) || weight <= 0) return null;
+
+  // Absolute VO2max in L/min
+  const vo2maxAbs = vo2max * weight / 1000;
+
+  const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : MADER_ALPHA_LEGACY;
+  const mlssIntensityPct = 100 * (1 - ALPHA * vlamax / vo2maxAbs);
+
+  // Clamp to physiological range (45-95% VO2max)
+  const intensityPct = Math.max(45, Math.min(95, mlssIntensityPct));
+  const power = Math.round(intensityToPowerWatts(intensityPct, vo2max, weight, efficiency));
+
+  return { intensityPct, power };
+}
+
+/**
+ * Lactatémie stable pour un ratio intensité/MLSS donné — forme exponentielle
+ * de Heck, calibrée pour passer par (ratio=0.85 → 2 mmol/L, LT1) et
+ * (ratio=1.0 → 4 mmol/L, LT2/MLSS), baseline 1 mmol/L.
+ */
+function anchoredLactateAtRatio(ratio: number): number {
+  const k = Math.log(1 / 3) / Math.log(0.85); // ≈ 6.76
+  const clampedRatio = Math.max(0.2, ratio);
+  return Math.min(15, LACTATE_BASELINE + 3 * Math.pow(clampedRatio, k));
+}
+
+/**
  * Find Maximal Lactate Steady State (MLSS) power
- * 
+ *
  * Uses the analytical Mader relationship:
  *   MLSS_pct = 100 × (1 − α × VLamax / VO2max_abs)
- * 
+ *
  * Reference: Mader (2003), Heck & Schulz (2002)
  * Higher VLamax = more glycolytic flux = lower MLSS fraction
  * Higher VO2max (absolute) = better lactate clearance capacity
  */
 export function findMLSSPower(profile: MaderProfile): number {
-  const { vo2max, vlamax, weight } = profile;
-  const efficiency = profile.efficiency ?? 0.23;
-
   // Audit fix — MLSS unique source of truth.
   // NE JAMAIS poser MLSS = FTP comme hypothèse (circulaire).
   // Si les entrées Mader sont absentes/invalides → retourner 0 (sentinelle "non calculable").
   // L'UI doit afficher "MLSS non calculable" plutôt qu'une approximation.
-  if (!Number.isFinite(vo2max) || vo2max <= 0) return 0;
-  if (!Number.isFinite(vlamax) || vlamax <= 0) return 0;
-  if (!Number.isFinite(weight) || weight <= 0) return 0;
-
-  // Absolute VO2max in L/min
-  const vo2maxAbs = vo2max * weight / 1000;
-
-  // Mader analytical MLSS relationship
-  const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : MADER_ALPHA_LEGACY;
-  const mlssIntensityPct = 100 * (1 - ALPHA * vlamax / vo2maxAbs);
-
-  // Clamp to physiological range (45-95% VO2max)
-  const clampedIntensity = Math.max(45, Math.min(95, mlssIntensityPct));
-
-  // Convert intensity to power
-  const vo2AtMLSS = vo2max * clampedIntensity / 100; // ml/kg/min
-  const vo2LPerMin = vo2AtMLSS * weight / 1000;
-  const energyKJPerMin = vo2LPerMin * ENERGY_PER_O2;
-  const powerWatts = (energyKJPerMin * 1000 / 60) * efficiency;
-
-  return Math.round(powerWatts);
+  return computeMLSS(profile)?.power ?? 0;
 }
 
 /**
@@ -367,42 +403,39 @@ export function formatMLSSDisplay(profile: MaderProfile, unit: "W" | "W/kg" = "W
 
 /**
  * Find lactate threshold powers (LT1 and LT2)
+ *
+ * LT2 = MLSS canonique (`computeMLSS`, la même source que `findMLSSPower` —
+ * les deux ne peuvent plus diverger pour un même profil). LT1 = 0,85×MLSS,
+ * le même ratio que la formule de Heck ancrée dans `anchoredLactateAtRatio`
+ * (2 mmol/L à ratio=0,85), pour rester cohérent avec la courbe affichée.
+ *
+ * Audit fix — remplace l'ancienne recherche par balayage d'intensité
+ * (findSteadyStateLactate à chaque % jusqu'à croiser 2/4 mmol) qui ne
+ * trouvait jamais de croisement pour un VLamax/VO2max réaliste (solveur
+ * itératif saturé, cf. findSteadyStateLactate) et retombait en silence sur
+ * 60%/75% VO2max fixes, en contradiction avec le MLSS calculé séparément.
+ *
+ * `0` = non calculable (entrées absentes/invalides) — jamais un repli fictif.
  */
 export function findLactateThresholds(
   profile: MaderProfile
 ): { lt1Power: number; lt2Power: number; lt1Intensity: number; lt2Intensity: number } {
-  const { vo2max, vlamax, weight } = profile;
+  const { vo2max, weight } = profile;
   const efficiency = profile.efficiency ?? 0.23;
-  
-  let lt1Intensity = 0;
-  let lt2Intensity = 0;
-  
-  // Search for LT1 (2 mmol/L) and LT2 (4 mmol/L)
-  for (let intensity = 30; intensity < 100; intensity += 1) {
-    const lactate = findSteadyStateLactate(intensity, vo2max, vlamax);
-    
-    if (lt1Intensity === 0 && lactate >= 2.0) {
-      lt1Intensity = intensity;
-    }
-    if (lt2Intensity === 0 && lactate >= 4.0) {
-      lt2Intensity = intensity;
-      break;
-    }
+
+  const mlss = computeMLSS(profile);
+  if (!mlss) {
+    return { lt1Power: 0, lt2Power: 0, lt1Intensity: 0, lt2Intensity: 0 };
   }
-  
-  // Convert to power
-  const intensityToPower = (intensity: number): number => {
-    const vo2AtIntensity = (vo2max * intensity / 100);
-    const vo2LPerMin = vo2AtIntensity * weight / 1000;
-    const energyKJPerMin = vo2LPerMin * ENERGY_PER_O2;
-    return Math.round((energyKJPerMin * 1000 / 60) * efficiency);
-  };
-  
+
+  const lt1Intensity = mlss.intensityPct * 0.85;
+  const lt1Power = Math.round(intensityToPowerWatts(lt1Intensity, vo2max, weight, efficiency));
+
   return {
-    lt1Power: intensityToPower(lt1Intensity || 60),
-    lt2Power: intensityToPower(lt2Intensity || 75),
-    lt1Intensity: lt1Intensity || 60,
-    lt2Intensity: lt2Intensity || 75
+    lt1Power,
+    lt2Power: mlss.power,
+    lt1Intensity: Math.round(lt1Intensity),
+    lt2Intensity: Math.round(mlss.intensityPct),
   };
 }
 
@@ -810,7 +843,7 @@ export function generateMaderLactateCurve(
   }> = [];
   
   for (let intensity = 30; intensity <= 100; intensity += 5) {
-    const lactate = findSteadyStateLactate(intensity, vo2max, vlamax);
+    const lactate = findSteadyStateLactate(intensity, vo2max, vlamax, weight);
     const fatOx = calculateFatOxidation(intensity, vo2max, vlamax, weight);
     const carbOx = calculateCarbOxidation(intensity, vo2max, vlamax, weight);
     
