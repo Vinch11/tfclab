@@ -1067,7 +1067,7 @@ describe("planValidator", () => {
         peakWeek(3),
         makeWeek(4, [{ sport: "Course", title: "Rappel activation", details: "Taper" }], "Affûtage", "Affûtage"),
       ];
-      const result = validatePlan(makePlan(weeks));
+      const result = validatePlan(makePlan(weeks), "Trail Ultra");
       const regressionIssues = result.issues.filter(
         i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
       );
@@ -1079,14 +1079,14 @@ describe("planValidator", () => {
         peakWeek(1),
         makeWeek(2, [{ sport: "Course", title: "Chantier D+", details: "Build" }], "Chantier", "Chantier"),
       ];
-      const result = validatePlan(makePlan(weeks));
+      const result = validatePlan(makePlan(weeks), "Trail Ultra");
       const regressionIssues = result.issues.filter(
         i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
       );
       expect(regressionIssues.length).toBeGreaterThan(0);
     });
 
-    it("flague une phase Peak trop longue pour la fenêtre compressée (1-2 sem)", () => {
+    it("flague une phase Peak trop longue pour la fenêtre compressée (1-2 sem, objectif Trail Ultra ≤6 sem)", () => {
       const weeks = [
         makeWeek(1, [{ sport: "Course", title: "Force max", details: "Fondation" }], "Fondation", "Fondation"),
         peakWeek(2), peakWeek(3), peakWeek(4), peakWeek(5),
@@ -1099,7 +1099,7 @@ describe("planValidator", () => {
         { name: "Fondation", weeks: "1-1" },
         { name: "Peak", weeks: "2-5" },
       ];
-      const result = validatePlan(plan);
+      const result = validatePlan(plan, "Trail Ultra");
       const durationIssue = result.issues.find(
         i => i.rule === "phase_coherence" && /trop longue/i.test(i.message) && /Peak/i.test(i.message)
       );
@@ -1113,11 +1113,177 @@ describe("planValidator", () => {
           { sport: "Course", title: "VMA piste", details: "6x400m à VMA fractionné" },
         ]),
       ];
-      const result = validatePlan(makePlan(weeks));
+      const result = validatePlan(makePlan(weeks), "Trail Ultra");
       const contentIssue = result.issues.find(
         i => i.rule === "phase_coherence" && /inadapté en phase "Peak"/i.test(i.message)
       );
       expect(contentIssue).toBeDefined();
+    });
+
+    it("N'applique PAS la signature compressée au 'peak' JSON standard (Race-Specific normal, tout autre objectif)", () => {
+      // Audit — régression corrigée : "peak" est la valeur JSON UNIVERSELLE
+      // pour Race-Specific (cf. jsonPlanHandler.ts resolvePhaseCatalog), pas
+      // seulement le segment compressé Ultra-Trail. Un plan IM avec du
+      // contenu race-pace/simulation légitime en phase "peak" ne doit PAS
+      // être flagué comme "inadapté" — l'ancienne clé PHASE_ORDER["peak"]=3.5
+      // interceptait à tort ce cas pour TOUS les objectifs.
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "Fondation" }], "Fondation", "Fondation"),
+        makeWeek(2, [
+          { sport: "Course", title: "Simulation Ironman", details: "Race-pace + gut training" },
+          { sport: "Vélo", title: "Allure course", details: "Simulation bike leg" },
+        ], "Peak", "Peak"),
+      ];
+      const result = validatePlan(makePlan(weeks), "IM");
+      const contentIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /inadapté en phase "Peak"/i.test(i.message)
+      );
+      expect(contentIssue).toBeUndefined();
+    });
+  });
+
+  // Audit — chemin JSON (défaut prod) : `phase` ∈ {"base","build","peak","taper"}
+  // (planSchema.ts), pas les 5 noms français. "base" ne matchait aucune clé
+  // PHASE_ORDER, donc le contrôle de contenu Fondation ne s'exécutait jamais
+  // sur ce chemin.
+  describe("Audit — vocabulaire JSON des phases (base/build/peak/taper)", () => {
+    it("ne flague pas de régression pour la séquence JSON base→build→peak→taper", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "" }], "Fondation", "base"),
+        makeWeek(2, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(3, [{ sport: "Course", title: "Simulation course", details: "race-pace" }], "Race-Specific", "peak"),
+        makeWeek(4, [{ sport: "Course", title: "Rappel activation", details: "" }], "Affûtage", "taper"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues).toHaveLength(0);
+    });
+
+    it("applique désormais le contrôle de contenu Fondation à la valeur JSON \"base\" (avant : silencieusement sauté)", () => {
+      const weeks = [
+        makeWeek(1, [
+          { sport: "Course", title: "Simulation Ironman", details: "Race-pace + gut training" },
+        ], "Fondation", "base"),
+        makeWeek(2, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const contentIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /inadapté en phase "base"/i.test(i.message)
+      );
+      expect(contentIssue).toBeDefined();
+    });
+
+    it("\"build\" (Chantier ET Consolidation collapsées en JSON) accepte le contenu des deux sans flaguer à tort", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Rappel maintien", details: "Consolidation allure course, durabilité" },
+      ], "Consolidation", "build");
+      const result = validatePlan(makePlan([week, week]));
+      const contentIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /inadapté en phase "build"/i.test(i.message)
+      );
+      expect(contentIssue).toBeUndefined();
+    });
+
+    it("la regex de durée de phase matche désormais le format \"S1-S6\" (préfixe S sur les deux nombres)", () => {
+      // Aucun bloc "Phases" explicite ici (une seule entrée n'aurait pas été
+      // utilisée, le code exige ≥2 pour préférer l'explicite à la dérivation)
+      // — derivePhasesFromWeeks produit justement le format "S{n}-S{n}" via
+      // le champ `phase`, le même format que l'exemple JSON du prompt
+      // (systemPromptJSON.ts). Avant le fix, ce format n'était jamais parsé
+      // par la regex de durée, quel que soit le chemin (dérivé ou JSON).
+      const weeks = [
+        // Semaine Fondation isolée pour garantir ≥2 phases distinctes dérivées
+        // (sinon phases.length<2 déclenche le repli "structure incertaine" et
+        // le contrôle de durée ne s'exécute jamais — un piège séparé, hors
+        // scope ici, cf. derivePhasesFromWeeks).
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "" }], "Fondation", "base"),
+        makeWeek(2, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(3, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(4, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(5, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(6, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(7, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(8, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+      ];
+      const result = validatePlan(makePlan(weeks)); // "build" = 7 sem (S2-S8) > max 6 (PHASE_DURATION_RANGE[2])
+      const durationIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /trop longue/i.test(i.message)
+      );
+      expect(durationIssue).toBeDefined();
+    });
+  });
+
+  // Audit — RACE_DAY_PATTERNS (remplace l'ancien RACE_PATTERNS trop
+  // permissif, qui matchait n'importe quel thème mentionnant l'objectif —
+  // "Chantier Marathon", "Ironman Build" — et désexemptait silencieusement
+  // anti_repetition/daily_session_floor/session_density sur des semaines
+  // normales, pas la vraie semaine de course.
+  describe("Audit — exemption 'semaine de course' resserrée (RACE_DAY_PATTERNS)", () => {
+    it("un thème mentionnant l'objectif (\"Chantier Marathon\") n'exempte plus anti_repetition à tort", () => {
+      const sameSession = { sport: "Course", title: "Seuil 2x20min", details: "Z5 seuil" };
+      const weeks = [
+        makeWeek(1, [sameSession], "Chantier Marathon", "Chantier"),
+        makeWeek(2, [sameSession], "Chantier Marathon", "Chantier"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const repetitionIssue = result.issues.find(i => i.rule === "anti_repetition");
+      expect(repetitionIssue).toBeDefined();
+    });
+
+    it("un thème mentionnant l'objectif (\"Ironman Build\") n'exempte plus daily_session_floor à tort", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Footing seul", details: "", dayIndex: 2 },
+      ], "Ironman Build", "Chantier");
+      const result = validatePlan(makePlan([week]), "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "elite");
+      const issue = result.issues.find(i => i.rule === "daily_session_floor" && i.severity === "error");
+      expect(issue).toBeDefined();
+    });
+
+    it("la VRAIE semaine de course (marqueur 🏁/\"Jour J\") continue d'exempter anti_repetition", () => {
+      const sameSession = { sport: "Course", title: "Rappel allure course", details: "Séance courte" };
+      const weeks = [
+        makeWeek(1, [sameSession], "Chantier", "Chantier"),
+        makeWeek(2, [sameSession, { sport: "Course", title: "🏁 JOUR J", details: "Marathon" }], "Taper", "taper"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const repetitionIssue = result.issues.find(i => i.rule === "anti_repetition" && i.week === 2);
+      expect(repetitionIssue).toBeUndefined();
+    });
+  });
+
+  // Audit — strategic_recap : le préfixe "Bloc N" est une convention
+  // Markdown legacy, explicitement désactivée en mode JSON
+  // (systemPromptJSON.ts) — donc inerte sur le chemin de prod par défaut.
+  // Détection complémentaire par nom de phase dupliqué (indépendante du format).
+  describe("Audit — strategic_recap : détection de doublon indépendante du format Markdown", () => {
+    it("flague un nom de phase dupliqué même sans préfixe \"Bloc N\" (mode JSON)", () => {
+      const plan = makePlan([
+        makeWeek(1, [{ sport: "Course", title: "Chantier", details: "" }], "Chantier", "build"),
+      ]);
+      plan.phases = [
+        { name: "Fondation", weeks: "S1-S2" },
+        { name: "Chantier VLamax", weeks: "S3-S6" },
+        { name: "Chantier VLamax", weeks: "S7-S9" },
+      ];
+      const result = validatePlan(plan);
+      const dupIssue = result.issues.find(i => i.rule === "strategic_recap" && i.severity === "error");
+      expect(dupIssue).toBeDefined();
+      expect(dupIssue?.message).toContain("Chantier VLamax");
+    });
+
+    it("ne flague pas des noms de phase tous différents (mode JSON)", () => {
+      const plan = makePlan([
+        makeWeek(1, [{ sport: "Course", title: "Chantier", details: "" }], "Chantier", "build"),
+      ]);
+      plan.phases = [
+        { name: "Fondation", weeks: "S1-S2" },
+        { name: "Chantier VLamax", weeks: "S3-S6" },
+        { name: "Consolidation", weeks: "S7-S9" },
+      ];
+      const result = validatePlan(plan);
+      expect(result.issues.filter(i => i.rule === "strategic_recap")).toHaveLength(0);
     });
   });
 });
