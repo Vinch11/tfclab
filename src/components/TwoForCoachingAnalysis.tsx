@@ -18,7 +18,7 @@ import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 import { computeNutritionTiming, type DigestiveTolerance, getRiskBadgeIcon } from "@/lib/nutritionTiming";
 import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
-import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTargets";
+import { getTargetsForAmbition, getVLamaxRange, normalizeObjective } from "@/lib/physiologicalTargets";
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
@@ -250,11 +250,15 @@ export function TwoForCoachingAnalysis({
   const ambition: AmbitionLevel = getAthleteAmbition(athlete);
   const normalizedObj = normalizeObjective(athlete.objectif || "703");
   const targets = useMemo(() => getTargetsForAmbition(normalizedObj, ambition), [normalizedObj, ambition]);
-  
+  // Audit fix — targets.vlamax (AMBITION_TARGETS) est une ex-table obsolète,
+  // remplacée par getVLamaxRange (source unique) : jusqu'à 54% d'écart avec
+  // la cible réelle affichée ailleurs (Dashboard) pour le même objectif.
+  const vlamaxRange = useMemo(() => getVLamaxRange(normalizedObj), [normalizedObj]);
+
   const ftpTarget = targets.ftp_kg_min;
   const tteTarget = targets.tte_min;
-  const vlamaxMin = targets.vlamax.min;
-  const vlamaxMax = targets.vlamax.max;
+  const vlamaxMin = vlamaxRange.min;
+  const vlamaxMax = vlamaxRange.max;
 
   // =============================================
   // NUTRITION PRÉDICTIVE

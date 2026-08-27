@@ -599,14 +599,29 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
 // Maps to age_group (intermediaire) and elite (performance)
 // =============================================
 
+// Objectifs multi-sport (VLamax de référence = vélo, cohérent avec le défaut
+// de getVLamaxRange) — le reste est course à pied pure.
+const TRIATHLON_OBJECTIVE_KEYS = new Set(["IM", "703", "Sprint", "Olympic"]);
+
+// Audit fix — AMBITION_TARGETS[*].vlamax est l'ex-table remplacée par la
+// source unique getVLamaxRange (délègue à v2/vlamaxTargets.ts, cf. commentaire
+// sur getVLamaxRange plus bas). UNIFIED_TARGETS (Academy) affichait encore ces
+// valeurs obsolètes — écart jusqu'à 54% avec la cible réelle utilisée partout
+// ailleurs (Dashboard, etc.) pour un même objectif. Seule la VLamax est
+// remplacée ici : tte_min/ftp_kg_min/nutrition restent ceux d'AMBITION_TARGETS,
+// qui dépendent légitimement de l'ambition (contrairement à la VLamax).
 const UNIFIED_TARGETS: Record<string, LeveledTargets> = Object.fromEntries(
-  Object.entries(AMBITION_TARGETS).map(([key, val]) => [
-    key,
-    {
-      intermediaire: val.age_group,
-      performance: val.elite,
-    },
-  ])
+  Object.entries(AMBITION_TARGETS).map(([key, val]) => {
+    const sport = TRIATHLON_OBJECTIVE_KEYS.has(key) ? "bike" : "run";
+    const vlamax = getVLamaxRange(key, undefined, sport);
+    return [
+      key,
+      {
+        intermediaire: { ...val.age_group, vlamax },
+        performance: { ...val.elite, vlamax },
+      },
+    ];
+  })
 );
 
 // Aliases for common objective names

@@ -40,7 +40,7 @@ import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritio
 import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment, getAgeAdjustedVLamaxProfil, getVLamaxAgeStatus, type VLamaxProfil } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
-import { getTargetsForAmbition, AMBITION_TARGETS } from "@/lib/physiologicalTargets";
+import { getTargetsForAmbition, getVLamaxRange, AMBITION_TARGETS } from "@/lib/physiologicalTargets";
 import logoUrl from "@/assets/logo-2fc.png";
 import profileReportLogoAsset from "@/assets/logo-24c.png.asset.json";
 import { buildChartePageHTML } from "@/data/charteInterpretation";
@@ -331,13 +331,17 @@ function buildReportTargetsFromUnifiedLimiter(
   ftpKgTarget: number;
 } {
   const ambitionTargets = getTargetsForAmbition(objectif || "IM", ambition);
+  // Audit fix — VLamax n'est PAS ambition-dépendante (cible universelle par
+  // distance, source unique getVLamaxRange) : ambitionTargets.vlamax est une
+  // ex-table obsolète, jusqu'à 54% d'écart avec la cible réelle du Dashboard
+  // pour le même objectif.
+  const vlamaxRange = getVLamaxRange(objectif || "IM");
   const gapByMetric = new Map(unifiedLimiter.gapAnalysis.map((gap) => [gap.metric, gap]));
 
   return {
-    // VLamax reste définie par objectif + ambition
-    vlamaxMin: ambitionTargets.vlamax.min,
-    vlamaxMax: ambitionTargets.vlamax.max,
-    vlamaxIdeal: gapByMetric.get("VLamax")?.target ?? ambitionTargets.vlamax.optimal,
+    vlamaxMin: vlamaxRange.min,
+    vlamaxMax: vlamaxRange.max,
+    vlamaxIdeal: gapByMetric.get("VLamax")?.target ?? vlamaxRange.optimal,
     // TTE et FTP/kg proviennent de la cible effectivement utilisée par le moteur unifié (âge + ambition)
     tteTarget: gapByMetric.get("TTE")?.target ?? ambitionTargets.tte_min,
     ftpKgTarget: gapByMetric.get("FTP/kg")?.target ?? ambitionTargets.ftp_kg_min,
@@ -1827,23 +1831,29 @@ function buildExportPayload(
       const objectif = athlete.goal || "IM";
       const currentDef = getAmbitionDefinition(ambition);
       const currentTargets = getTargetsForAmbition(objectif, ambition);
-      
+      // Audit fix — la VLamax n'est PAS ambition-dépendante (cible universelle
+      // par distance, source unique getVLamaxRange) : *Targets.vlamax
+      // (AMBITION_TARGETS) est une ex-table obsolète, jusqu'à 54% d'écart avec
+      // la cible réelle du Dashboard. Un seul calcul, identique à tous les
+      // paliers d'ambition (contrairement à TTE/FTP qui en dépendent).
+      const vlamaxRange = getVLamaxRange(objectif);
+
       // Calculate progress for each ambition level
       const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
         ? effectiveRefs.ftp / effectiveRefs.weightKg
         : null;
-      
+
       const allTargets = AMBITION_LEVELS_ORDERED.map(amb => {
         const def = getAmbitionDefinition(amb);
         const targets = getTargetsForAmbition(objectif, amb);
-        
+
         // Calculate progress for each metric
         // VLamax: lower is better for endurance - progress = (optimal / current) * 100
         // If current <= optimal, progress = 100% (target reached)
         const vlamaxProgress = vlamax.value !== null && vlamax.value > 0
-          ? vlamax.value <= targets.vlamax.optimal 
-            ? 100 
-            : Math.min(100, Math.max(0, (targets.vlamax.optimal / vlamax.value) * 100))
+          ? vlamax.value <= vlamaxRange.optimal
+            ? 100
+            : Math.min(100, Math.max(0, (vlamaxRange.optimal / vlamax.value) * 100))
           : null;
         
         const tteProgress = tte.tte_min !== null 
@@ -1875,7 +1885,7 @@ function buildExportPayload(
           label: def.label,
           icon: def.icon,
           targets: {
-            vlamax: targets.vlamax,
+            vlamax: vlamaxRange,
             tte_min: targets.tte_min,
             ftp_kg_min: targets.ftp_kg_min,
           },
@@ -1895,7 +1905,7 @@ function buildExportPayload(
         label: currentDef.label,
         icon: currentDef.icon,
         targets: {
-          vlamax: currentTargets.vlamax,
+          vlamax: vlamaxRange,
           tte_min: currentTargets.tte_min,
           ftp_kg_min: currentTargets.ftp_kg_min,
         },

@@ -16,7 +16,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { getTargetsForAmbition, normalizeObjective as normalizePhysiologicalObjective, type ObjectiveTargets } from "@/lib/physiologicalTargets";
+import { getTargetsForAmbition, getVLamaxRange, normalizeObjective as normalizePhysiologicalObjective, type ObjectiveTargets } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { METHOD_VERSION_DISPLAY } from "./scientificGovernance";
 import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO, type AerobicWeaknessDetail, getVo2maxAgeFactor } from "./unifiedLimiterDetection";
@@ -353,6 +353,10 @@ function normalizeVO2max(
   return { raw: value, score, gap, weight, weightedImpact, target, status };
 }
 
+// Objectifs course à pied pure — le reste (IM/703/Sprint/Olympic) est multi-sport,
+// VLamax de référence = vélo (défaut de getVLamaxRange).
+const RUN_ONLY_OBJECTIVES = new Set<TFCLObjective>(["Marathon", "Semi", "10km", "Trail", "Ultra"]);
+
 function normalizeVLamax(
   value: number | null,
   objective: TFCLObjective,
@@ -360,9 +364,14 @@ function normalizeVLamax(
   weight: number,
   confidence: number
 ): NormalizedMetric {
-  const targets = getTargetsForAmbition(objective, ambition);
-  const target = targets.vlamax.optimal;
-  const max = targets.vlamax.max;
+  // Audit fix — targets.vlamax (AMBITION_TARGETS) est une ex-table obsolète :
+  // la VLamax est une cible universelle par distance (source unique
+  // getVLamaxRange), PAS ambition-dépendante — jusqu'à 54% d'écart avec la
+  // cible réelle du Dashboard pour le même objectif. Impact direct ici : le
+  // score du limiteur glycolytique dans la matrice de décision TFCL.
+  const vlamaxRange = getVLamaxRange(objective, undefined, RUN_ONLY_OBJECTIVES.has(objective) ? "run" : "bike");
+  const target = vlamaxRange.optimal;
+  const max = vlamaxRange.max;
   
   if (value === null) {
     return { raw: null, score: 50, gap: 0, weight, weightedImpact: 0, target, status: "acceptable" };
