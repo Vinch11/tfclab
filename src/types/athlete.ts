@@ -5,7 +5,7 @@
 import { SnapshotNolio } from "./snapshotNolio";
 import { AmbitionLevel } from "./ambitionLevel";
 
-export type ObjectifType = "IM" | "703" | "Marathon" | "Semi" | "5K" | "10K" | "StartToRun" | "Trail" | "TrailShort" | "TrailMountain" | "TrailUltra";
+export type ObjectifType = "IM" | "703" | "Sprint" | "Olympic" | "Marathon" | "Semi" | "5K" | "10K" | "StartToRun" | "Trail" | "TrailShort" | "TrailMountain" | "TrailUltra";
 export type SexeType = "M" | "F";
 
 // Re-export for convenience
@@ -70,6 +70,10 @@ export const getObjectifLabel = (objectif: ObjectifType): string => {
       return "Ironman";
     case "703":
       return "70.3 / Half Ironman";
+    case "Sprint":
+      return "Sprint";
+    case "Olympic":
+      return "Olympique";
     case "5K":
       return "5 km";
     case "10K":

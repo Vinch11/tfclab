@@ -86,6 +86,8 @@ const OBJECTIF_GROUPS = {
     options: [
       { value: "IM", label: "Ironman", distance: "3.8km / 180km / 42.2km" },
       { value: "703", label: "70.3 (Half Ironman)", distance: "1.9km / 90km / 21.1km" },
+      { value: "Olympic", label: "Olympique", distance: "1.5km / 40km / 10km" },
+      { value: "Sprint", label: "Sprint", distance: "750m / 20km / 5km" },
     ],
   },
   running: {

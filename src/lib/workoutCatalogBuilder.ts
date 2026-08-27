@@ -143,7 +143,7 @@ function recordAttribution(id: string, chunk: number, stage: CatalogDropStage, i
 
 
 /** Map objective strings to WorkoutGoal values */
-function normalizeGoal(objective: string): WorkoutGoal[] {
+export function normalizeGoal(objective: string): WorkoutGoal[] {
   const lower = objective.toLowerCase();
   // Order matters: check specific patterns before generic ones
   if (lower.includes("70.3") || lower === "703") return ["half"];
@@ -161,6 +161,15 @@ function normalizeGoal(objective: string): WorkoutGoal[] {
   // Start to run / débutant → catalogue dédié UNIQUEMENT (plus de repli sur 10k :
   // les fiches 10k supposent un athlète capable de courir 30-45min en continu).
   if (lower.includes("start") || lower.includes("débutant") || lower.includes("beginner")) return ["start_to_run"];
+  // Triathlon courts (Sprint/Olympique) — pas de tag WorkoutGoal dédié (grain
+  // trop fin dans le catalogue), alignés sur "half" (70.3), le référentiel
+  // structurel le plus proche en intensité/durée — pas "ironman" (volumes hors
+  // calibre pour un format 1-3.5h). Même choix que buildFewShotExamples
+  // (systemPrompt.ts, edge function) pour la même raison. Avant ce fix :
+  // aucune branche ne matchait "Sprint"/"Olympic" (valeurs UI littérales,
+  // audit Batch 2) → repli sur `return []` plus bas, cassant silencieusement
+  // le bonus de score goal-match pour ces plans.
+  if (lower.includes("sprint") || lower.includes("olymp")) return ["half"];
   // Triathlon generic
   if (lower.includes("triathlon") || lower.includes("tri")) return ["ironman", "half"];
   return [];

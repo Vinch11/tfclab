@@ -15,7 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 const OBJECTIF_GROUPS = {
   triathlon: {
     label: "Triathlon",
-    options: ["IM", "703"] as ObjectifType[],
+    options: ["IM", "703", "Olympic", "Sprint"] as ObjectifType[],
   },
   running: {
     label: "Course à pied",
