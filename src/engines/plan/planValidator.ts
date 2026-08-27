@@ -617,9 +617,23 @@ function validateLoadPattern(metrics: WeekMetrics[]): { issues: ValidationIssue[
 }
 
 /** Rule 3: Key sessions presence */
-function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+function validateKeySessions(
+  metrics: WeekMetrics[],
+  objective?: string,
+  ambition?: string,
+): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
   let compliant = 0;
+
+  // Batch 3 — même exemption que validateLorangCategories (Batch 2) : cette
+  // règle sœur ("≥1 séance clé/semaine") pénalisait à tort chaque semaine
+  // d'un plan Finisher/Start to Run conforme à sa propre doctrine "1-2"/"0"
+  // séance(s) clé(s) par semaine — cf. isFinisherOrStartToRunPlan. Retour
+  // anticipé (score neutre) plutôt qu'un ratio compliant/total dégénéré
+  // (numérateur à 0 sur un dénominateur non filtré aurait donné un score 0).
+  if (isFinisherOrStartToRunPlan(objective, ambition)) {
+    return { issues: [], score: 100 };
+  }
 
   for (const wm of metrics) {
     // Décharge / semaine de course : hors périmètre d'évaluation (num. ET dénom.)
@@ -2095,6 +2109,23 @@ function classifyLorang(session: ParsedSession): LorangCategory {
   return "unknown";
 }
 
+/**
+ * Vrai si le plan cible une population "quasi-exclusivement Z1-Z2, pas
+ * d'intensités max" (Finisher : 1-2 séances clés/semaine ; Start to Run : 0
+ * — cf. "Grille Volume/Intensité par Ambition", systemPrompt.ts). Facteur
+ * commun extrait ici après un oubli constaté en audit (Batch 3) :
+ * validateLorangCategories avait déjà cette exemption (Batch 2, règle 1
+ * "≥1 A/B par semaine") mais validateKeySessions — une règle sœur au même
+ * genre d'exigence ("≥1 séance clé par semaine") — ne l'avait pas reçue, et
+ * pénalisait donc à tort en erreur chaque semaine d'un plan Start to Run
+ * strictement conforme à sa propre doctrine "0 séance clé". Un helper
+ * partagé évite qu'une troisième règle du même genre soit oubliée à son tour.
+ */
+function isFinisherOrStartToRunPlan(objective?: string, ambition?: string): boolean {
+  const amb = (ambition || "").toLowerCase();
+  return amb === "finisher" || normalizeObjectiveKey(objective || "") === "StartToRun";
+}
+
 function validateLorangCategories(
   plan: ParsedPlan,
   objective?: string,
@@ -2114,8 +2145,7 @@ function validateLorangCategories(
   // pensée pour les niveaux Age Group+/objectifs intenses. Les règles 2/4
   // (polarisation, distribution globale) restent actives — seule la règle 1
   // (présence stricte d'A/B) est exemptée.
-  const amb = (ambition || "").toLowerCase();
-  const isFinisherOrStartToRun = amb === "finisher" || normalizeObjectiveKey(objective || "") === "StartToRun";
+  const isFinisherOrStartToRun = isFinisherOrStartToRunPlan(objective, ambition);
 
   for (const w of plan.weeks) {
     const active = w.sessions.filter((s) => !s.isRest);
@@ -2687,7 +2717,7 @@ export function validatePlan(
   // Run all validation rules
   const polarization = validatePolarization(weekMetrics);
   const loadPattern = validateLoadPattern(weekMetrics);
-  const keySessions = validateKeySessions(weekMetrics);
+  const keySessions = validateKeySessions(weekMetrics, objective, ambition);
   const progression = validateProgression(weekMetrics);
   const sportRatio = validateSportRatio(weekMetrics, objective);
   const catalogRatio = validateCatalogRatio(plan);

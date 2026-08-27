@@ -479,6 +479,62 @@ describe("planValidator", () => {
     expect(errs.length).toBe(0);
   });
 
+  // Batch 3 — validateKeySessions manquait la même exemption Finisher/Start
+  // to Run que sa règle sœur lorang_categories (Batch 2, ci-dessus) : un plan
+  // Start to Run conforme à sa propre doctrine "0 séance clé/semaine" se
+  // faisait pénaliser en erreur key_sessions chaque semaine.
+  it("Batch 3: n'émet pas d'erreur key_sessions pour une semaine sans séance clé en ambition Finisher", () => {
+    // Aucun titre ne doit matcher KEY_SESSION_PATTERNS, sinon le test ne
+    // discrimine pas (ex. "sortie longue" compte déjà comme séance clé).
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "Footing tranquille 40min", details: "Facile" },
+        { sport: "Vélo", title: "Vélo cool 60min", details: "Facile" },
+        { sport: "Natation", title: "Natation détente 30min", details: "Facile" },
+        { sport: "Course", title: "Marche active 50min", details: "Facile" },
+      ], "Chantier"),
+    ]);
+    const result = validatePlan(
+      plan, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+      "finisher"
+    );
+    const errs = result.issues.filter(i => i.rule === "key_sessions" && i.severity === "error");
+    expect(errs.length).toBe(0);
+  });
+
+  it("Batch 3: n'émet pas d'erreur key_sessions pour une semaine sans séance clé en objectif Start to Run", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "Footing tranquille 40min", details: "Facile" },
+        { sport: "Vélo", title: "Vélo cool 60min", details: "Facile" },
+        { sport: "Natation", title: "Natation détente 30min", details: "Facile" },
+        { sport: "Course", title: "Marche active 50min", details: "Facile" },
+      ], "Adaptation"),
+    ]);
+    const result = validatePlan(plan, "StartToRun");
+    const errs = result.issues.filter(i => i.rule === "key_sessions" && i.severity === "error");
+    expect(errs.length).toBe(0);
+  });
+
+  it("Batch 3: garde l'erreur key_sessions pour une semaine sans séance clé en ambition Age Group (non-exemptée)", () => {
+    // Aucun titre ne doit matcher KEY_SESSION_PATTERNS (donc pas "sortie
+    // longue"/"z2 long"/etc., qui compteraient comme séance clé à eux seuls).
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "Footing tranquille 40min", details: "Facile" },
+        { sport: "Vélo", title: "Vélo cool 60min", details: "Facile" },
+        { sport: "Natation", title: "Natation détente 30min", details: "Facile" },
+        { sport: "Course", title: "Marche active 50min", details: "Facile" },
+      ], "Chantier"),
+    ]);
+    const result = validatePlan(
+      plan, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+      "age_group"
+    );
+    const errs = result.issues.filter(i => i.rule === "key_sessions" && i.severity === "error");
+    expect(errs.length).toBeGreaterThan(0);
+  });
+
   it("Lot 4: classifies explicit [A]/[B]/[C]/[D] tags and catalog prefixes", () => {
     const plan = makePlan([
       makeWeek(1, [
