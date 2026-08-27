@@ -979,6 +979,15 @@ const PHASE_ORDER: Record<string, number> = {
   "fondation": 1, "adaptation": 1,
   "chantier": 2, "développement": 2, "build": 2,
   "consolidation": 3,
+  // "Peak" (anglais, tel quel) : nom de phase compressée imposé par
+  // promptHelpers.ts pour les plans Ultra-Trail ≤6 sem ("Fondation 2 sem ·
+  // Build 2 sem · Peak 1 sem · Taper 1 sem") — remplace Consolidation +
+  // Race-Specific dans ce scénario défensif, SANS le contenu race-pace/
+  // simulation de Race-Specific (le garde-fou interdit explicitement tout
+  // bloc VMA/seuil dur et toute phase Race-Specific longue ici). D'où un
+  // index entre Chantier(2) et Race-Specific(4), avec sa propre signature
+  // de contenu ci-dessous plutôt qu'un alias d'une phase existante.
+  "peak": 3.5,
   "race-specific": 4, "race specific": 4, "spécifique": 4, "specific": 4,
   "affûtage": 5, "taper": 5, "affutage": 5,
 };
@@ -996,6 +1005,11 @@ const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: Re
   3: { // Consolidation: Limiter #2, maintain #1, volume toward peak
     expected: /consolid|maintien|rappel|seuil|allure|durabilité/i,
     forbidden: /taper|affûtage|supercomp/i,
+  },
+  3.5: { // Peak (Ultra-Trail compressé) : volume Z2 + D+ progressif, JAMAIS de
+    // VMA/seuil dur ni de race-pace/simulation — garde-fou "finir sans blessure"
+    expected: /z2|endurance|d\+|dénivelé|volume|technique/i,
+    forbidden: /race.?pace|simulation|vma|seuil\s*(dur|long)|fractionn|force\s*max\s*3.?[45]/i,
   },
   4: { // Race-Specific: Race-pace, simulations, Gut Training
     expected: /race.?pace|simulation|brique|gut\s*train|allure\s*course|spécifique/i,
@@ -1020,6 +1034,7 @@ const PHASE_DURATION_RANGE: Record<number, [number, number]> = {
   1: [2, 6],   // Fondation
   2: [2, 6],   // Chantier
   3: [2, 6],   // Consolidation
+  3.5: [1, 2], // Peak (compressé Ultra-Trail ≤6 sem — "Peak 1 sem" dans promptHelpers.ts)
   4: [2, 6],   // Race-Specific
   5: [1, 3],   // Affûtage
 };
