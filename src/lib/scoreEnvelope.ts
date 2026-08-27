@@ -2,7 +2,7 @@
 // SCORE ENVELOPE — FORMAT UNIVERSEL STAFF-GRADE
 // Supprime l'illusion de précision, renforce la crédibilité scientifique
 // =============================================
-import { getVLamaxRange, normalizeObjective } from "@/lib/physiologicalTargets";
+import { getVLamaxRange, getTTETargetByAmbition, normalizeObjective } from "@/lib/physiologicalTargets";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 /**
@@ -137,18 +137,21 @@ export function getContextTargets(
     };
   }
 
-  // TTE targets (minutes)
+  // TTE targets (minutes) — délègue à la source unique (physiologicalTargets.ts),
+  // comme la branche VLamax ci-dessus. Avant ce fix : table locale figée
+  // (IM 55-70, 70.3 48-60, Marathon 45-60...) divergente de la cible
+  // canonique réellement utilisée pour le verdict TTE (tteEffectif.ts via
+  // ttePro.ts::getTTETarget) — pouvait afficher un verdict "cible atteinte"
+  // et une note de contexte "cible non atteinte" sur la même carte pour le
+  // même athlète (audit Batch 3).
   if (metricId === "tte") {
-    const targets: Record<string, ContextTarget> = {
-      IM: { min: 55, max: 70, ideal: 60, note: "IM: durabilité maximale requise" },
-      Ironman: { min: 55, max: 70, ideal: 60, note: "IM: durabilité maximale requise" },
-      "703": { min: 48, max: 60, ideal: 52, note: "70.3: durabilité élevée" },
-      Half: { min: 48, max: 60, ideal: 52, note: "Half: durabilité élevée" },
-      Marathon: { min: 45, max: 60, ideal: 50, note: "Marathon: endurance prolongée" },
-      Semi: { min: 40, max: 55, ideal: 45, note: "Semi: endurance modérée" },
-      Sprint: { min: 30, max: 45, ideal: 35, note: "Sprint: TTE moins critique" },
+    const ideal = getTTETargetByAmbition(objectif, ambition, age ?? null);
+    return {
+      min: ideal,
+      max: Math.round(ideal * 1.2),
+      ideal,
+      note: ambition ? `ambition ${ambition}` : "cible par défaut (age_group)",
     };
-    return targets[objectif] || targets.IM;
   }
 
   // FTP/kg targets avec ajustement âge
@@ -324,7 +327,7 @@ export function buildTTEEnvelope(
 ): ScoreEnvelope {
   const { margin, note: uncertaintyNote } = getUncertaintyRange("tte", confidence);
   const targets = getContextTargets("tte", objectif);
-  
+
   let range: { low: number; high: number } | null = null;
   if (value !== null) {
     range = {
@@ -332,10 +335,6 @@ export function buildTTEEnvelope(
       high: Math.min(90, value + margin),
     };
   }
-
-  const contextNote = targets 
-    ? `Cible ${objectif}: ${targets.min}–${targets.max} min — ${targets.note}`
-    : `Objectif ${objectif}`;
 
   const defaultWhy: string[] = [];
   const defaultRecommendations: string[] = [];
@@ -350,7 +349,17 @@ export function buildTTEEnvelope(
     defaultRecommendations.push("Renseigner TSS 7j ou réaliser un test TTE.");
   }
 
+  // Le `target` externe (déjà résolu ambition/âge par tteEffectif.ts) fait
+  // toujours autorité quand il est fourni — `targets.ideal` n'est qu'un
+  // repli. contextNote DOIT dériver de cette même valeur résolue (et non
+  // d'un second calcul séparé via `targets.min`/`targets.max`), sinon les
+  // deux peuvent diverger et se contredire sur la même carte quand le
+  // `target` externe et `getContextTargets` ne résolvent pas exactement au
+  // même chiffre (ex. ambition non transmise à ce niveau).
   const actualTarget = target ?? targets?.ideal ?? 50;
+  const contextNote = targets
+    ? `Cible ${objectif} : durabilité ≥ ${actualTarget} min${targets.note ? ` — ${targets.note}` : ""}`
+    : `Objectif ${objectif}`;
   if (value !== null) {
     if (value < actualTarget) {
       defaultWhy.push(`TTE insuffisant (${value} min) vs cible (${actualTarget} min).`);
