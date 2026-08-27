@@ -183,7 +183,24 @@ const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|sweet\s*spot|zone\s
 const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d/i;
 const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|threshold|vo2|vma|sortie\s*longue|\bsl\b|long\s*(?:run|ride)|brick|race(?:[\s_.-]*sim|[\s_.-]*pace|[\s_.-]*power)|test|compétition|🏁|\bsst\b|sweet[\s_-]*spot|over.?under|train[\s_-]*low|fat\s*(?:max|ox)|lipid|tempo|norv[ée]gi|norwegian|double[\s_-]*threshold|pma|sprint|c[ôo]te|sfr|r[øo]nnestad|plio|strides|drill|force\s*max|[àa]\s*jeun|fasted|mlss|ftp|durabilit|simulation|endurance[\s_-]*long|z2[\s_-]*long|30[\/_ -]?30|allure|gut[\s_-]*train|back[\s_-]*to[\s_-]*back|renfo|ppg|muscul|gainage|core\b|strength/i;
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
-const RACE_PATTERNS = /🏁|course\b|race|compétition|épreuve|objectif|marathon|ironman|triathlon|semi|trail|10k/i;
+// Audit — l'ancien RACE_PATTERNS (mots génériques "course"/"race"/"objectif"/
+// "marathon"/"ironman"/"triathlon"/"semi"/"trail"/"10k") matchait la quasi-
+// totalité des thèmes de semaine normaux (ex. "Chantier Trail Montagne",
+// "Consolidation — Allure Course") et désexemptait silencieusement plusieurs
+// règles (anti_repetition, daily_session_floor, session_density, Rule 1
+// Lorang) sur des semaines qui n'étaient PAS la semaine de course. Remplacé
+// par RACE_DAY_PATTERNS (déjà utilisé par validateRaceDayPresence, seul
+// signal fiable : marqueurs explicites de jour de course, pas juste une
+// mention de l'objectif). Testé au niveau SÉANCE (weekHasRaceDay), pas sur
+// le thème de la semaine — un thème peut mentionner l'objectif sans que la
+// semaine soit celle de la course.
+const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
+
+/** Vrai si la semaine contient une séance de jour de course réel (pas juste
+ *  un thème qui mentionne l'objectif) — cf. RACE_DAY_PATTERNS ci-dessus. */
+function weekHasRaceDay(week: ParsedWeek): boolean {
+  return week.sessions.some((s) => RACE_DAY_PATTERNS.test(`${s.title || ""} ${s.details || ""} ${s.sport || ""}`));
+}
 
 /** Blocs explicitement nommés comme seuil concentré (méthode norvégienne
  *  double-seuil, Sweet Spot étendu) — cf. audit méthodologique Niveau 2 :
@@ -423,7 +440,7 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
   const isDeload = DELOAD_PATTERNS.test(themeText) || activeSessions.length <= 3;
 
   // Race week detection
-  const isRaceWeek = week.sessions.some(s => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+  const isRaceWeek = weekHasRaceDay(week);
 
   // Threshold block detection (Niveau 2) — nommage explicite du bloc/thème
   const isThresholdBlock = THRESHOLD_BLOCK_PATTERNS.test(themeText);
@@ -990,21 +1007,33 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
  * Canonical phase ordering for TFCL™ Hybride Lorang periodization.
  * Higher index = later in the plan. Phases must not regress.
  */
+// Audit — chemin JSON (défaut prod, cf. isJsonBetaEnabled) : le schéma impose
+// `phase` ∈ {"base","build","peak","taper"} (planSchema.ts), un vocabulaire à
+// 4 valeurs strictement différent des 5 noms de bloc français ci-dessous.
+// "base" ne matchait aucune clé → tout contrôle de contenu Fondation était
+// silencieusement sauté sur la quasi-totalité des plans de prod. Alias
+// ajoutés ci-dessous pour les 4 valeurs JSON, alignés sur le mapping déjà
+// utilisé côté catalogue (jsonPlanHandler.ts, resolvePhaseCatalog) :
+// base→Fondation, build→Chantier/Consolidation (les deux collapsent sur la
+// même valeur JSON, PHASE_SESSION_SIGNATURES[2] élargie en conséquence),
+// peak→Race-Specific (PAS un "Peak compressé" séparé — cf. note historique
+// ci-dessous), taper→Affûtage (déjà aliasé).
+//
+// Ancienne régression corrigée ici : une clé "peak" séparée (index 3.5)
+// avait été ajoutée pour le scénario Ultra-Trail compressé (garde-fou
+// promptHelpers.ts, "Peak 1 sem"). Mais "peak" est la valeur JSON UNIVERSELLE
+// pour Race-Specific (tous objectifs confondus, cf. resolvePhaseCatalog) —
+// cette clé interceptait donc aussi le Race-Specific normal de tous les
+// autres plans (IM, 70.3, Marathon...) et flaguait à tort leur contenu
+// race-pace/simulation pourtant explicitement exigé. Le cas Ultra-Trail
+// compressé est maintenant traité par objectif dans validatePhaseCoherence
+// (isUltraCompressedTrail), pas par une clé PHASE_ORDER dédiée.
 const PHASE_ORDER: Record<string, number> = {
   // Metabolic naming (preferred)
-  "fondation": 1, "adaptation": 1,
+  "fondation": 1, "adaptation": 1, "base": 1,
   "chantier": 2, "développement": 2, "build": 2,
   "consolidation": 3,
-  // "Peak" (anglais, tel quel) : nom de phase compressée imposé par
-  // promptHelpers.ts pour les plans Ultra-Trail ≤6 sem ("Fondation 2 sem ·
-  // Build 2 sem · Peak 1 sem · Taper 1 sem") — remplace Consolidation +
-  // Race-Specific dans ce scénario défensif, SANS le contenu race-pace/
-  // simulation de Race-Specific (le garde-fou interdit explicitement tout
-  // bloc VMA/seuil dur et toute phase Race-Specific longue ici). D'où un
-  // index entre Chantier(2) et Race-Specific(4), avec sa propre signature
-  // de contenu ci-dessous plutôt qu'un alias d'une phase existante.
-  "peak": 3.5,
-  "race-specific": 4, "race specific": 4, "spécifique": 4, "specific": 4,
+  "race-specific": 4, "race specific": 4, "spécifique": 4, "specific": 4, "peak": 4,
   "affûtage": 5, "taper": 5, "affutage": 5,
 };
 
@@ -1014,18 +1043,17 @@ const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: Re
     expected: /force\s*max|z2|endurance|technique|drill|gammes|éducatif|VO2.{0,10}court|reverse/i,
     forbidden: /race.?pace|simulation\s*(ironman|marathon|70\.3|course)|gut\s*train|affûtage|taper/i,
   },
-  2: { // Chantier: Limiteur-specific concentrated work
-    expected: /chantier|limiteur|norvégi|billat|sweet\s*spot|train\s*low|sfr|seuil/i,
+  2: { // Chantier/Consolidation : la valeur JSON "build" collapse les deux
+    // (cf. resolvePhaseCatalog) — signature élargie pour couvrir le contenu
+    // attendu des deux, pas seulement Chantier, sinon un plan JSON dont le
+    // "build" recouvre en réalité une Consolidation se fait flaguer à tort.
+    expected: /chantier|limiteur|norvégi|billat|sweet\s*spot|train\s*low|sfr|seuil|consolid|maintien|rappel|allure|durabilité/i,
     forbidden: /taper|affûtage|supercomp|activation\s*j-?2/i,
   },
-  3: { // Consolidation: Limiter #2, maintain #1, volume toward peak
+  3: { // Consolidation (nommage Markdown explicite uniquement — le chemin JSON
+    // n'atteint jamais cet index, cf. "build" ci-dessus) : Limiter #2, maintain #1
     expected: /consolid|maintien|rappel|seuil|allure|durabilité/i,
     forbidden: /taper|affûtage|supercomp/i,
-  },
-  3.5: { // Peak (Ultra-Trail compressé) : volume Z2 + D+ progressif, JAMAIS de
-    // VMA/seuil dur ni de race-pace/simulation — garde-fou "finir sans blessure"
-    expected: /z2|endurance|d\+|dénivelé|volume|technique/i,
-    forbidden: /race.?pace|simulation|vma|seuil\s*(dur|long)|fractionn|force\s*max\s*3.?[45]/i,
   },
   4: { // Race-Specific: Race-pace, simulations, Gut Training
     expected: /race.?pace|simulation|brique|gut\s*train|allure\s*course|spécifique/i,
@@ -1035,6 +1063,19 @@ const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: Re
     expected: /taper|affûtage|rappel|activation|supercomp|-\d{2,3}%\s*vol|réduction/i,
     forbidden: /chantier|force\s*max|blocs?\s*concentré|build/i,
   },
+};
+
+/** Signature dédiée pour le segment "Peak" du garde-fou Ultra-Trail compressé
+ *  (promptHelpers.ts, "Fondation 2 sem · Build 2 sem · Peak 1 sem · Taper 1
+ *  sem") : volume Z2 + D+ progressif, JAMAIS de VMA/seuil dur ni de
+ *  race-pace/simulation — garde-fou "finir sans blessure". Remplace
+ *  PHASE_SESSION_SIGNATURES[4] uniquement quand isUltraCompressedTrail est
+ *  vrai (cf. validatePhaseCoherence) : sur tout autre plan, la valeur JSON
+ *  "peak" désigne le Race-Specific normal (PHASE_SESSION_SIGNATURES[4]),
+ *  qui EXIGE exactement le contenu interdit ici. */
+const ULTRA_COMPRESSED_PEAK_SESSION_SIGNATURE = {
+  expected: /z2|endurance|d\+|dénivelé|volume|technique/i,
+  forbidden: /race.?pace|simulation|vma|seuil\s*(dur|long)|fractionn|force\s*max\s*3.?[45]/i,
 };
 
 /** Contenu "spécificité de course" — race-pace, simulations, allure course, gut
@@ -1050,10 +1091,14 @@ const PHASE_DURATION_RANGE: Record<number, [number, number]> = {
   1: [2, 6],   // Fondation
   2: [2, 6],   // Chantier
   3: [2, 6],   // Consolidation
-  3.5: [1, 2], // Peak (compressé Ultra-Trail ≤6 sem — "Peak 1 sem" dans promptHelpers.ts)
-  4: [2, 6],   // Race-Specific
+  4: [2, 6],   // Race-Specific (sauf scénario Ultra-Trail compressé, cf. isUltraCompressedTrail)
   5: [1, 3],   // Affûtage
 };
+/** Plage dédiée pour le segment "Peak" du garde-fou Ultra-Trail compressé
+ *  (promptHelpers.ts, "Fondation 2 sem · Build 2 sem · Peak 1 sem · Taper 1
+ *  sem") — remplace PHASE_DURATION_RANGE[4] uniquement quand
+ *  isUltraCompressedTrail est vrai, cf. validatePhaseCoherence. */
+const ULTRA_COMPRESSED_PEAK_DURATION_RANGE: [number, number] = [1, 2];
 
 function getPhaseIndex(phaseName: string): number | null {
   const lower = phaseName.toLowerCase().trim();
@@ -1085,7 +1130,7 @@ export function derivePhasesFromWeeks(plan: ParsedPlan): ParsedPlan["phases"] {
   return derived;
 }
 
-function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
 
   // Source unique : bloc "Phases" déclaré, sinon reconstruction depuis les semaines.
@@ -1105,6 +1150,12 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   }
 
   let score = 100;
+
+  // Scénario Ultra-Trail compressé (garde-fou promptHelpers.ts, "DÉLAI
+  // SOUS-CRITIQUE" — même condition de déclenchement que ce garde-fou) : la
+  // valeur JSON "peak" y désigne le segment compressé "Peak 1 sem", pas le
+  // Race-Specific standard — cf. constantes ULTRA_COMPRESSED_PEAK_*.
+  const isUltraCompressedTrail = normalizeObjectiveKey(objective || "") === "TrailUltra" && plan.weeks.length <= 6;
 
   // 1. Phase ordering — no regression
   let lastPhaseIdx = 0;
@@ -1137,11 +1188,13 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   for (const phase of phases) {
     const idx = getPhaseIndex(phase.name);
     if (idx === null) continue;
-    const range = PHASE_DURATION_RANGE[idx];
+    const range = idx === 4 && isUltraCompressedTrail ? ULTRA_COMPRESSED_PEAK_DURATION_RANGE : PHASE_DURATION_RANGE[idx];
     if (!range) continue;
 
-    // Parse weeks range like "S1-S4" or "Semaines 1-4"
-    const weekMatch = phase.weeks.match(/(\d+)\s*[-–àto]\s*(\d+)/);
+    // Parse weeks range like "S1-S4", "S1-S6" (préfixe "S" sur les deux
+    // nombres, format produit par derivePhasesFromWeeks ET par l'exemple
+    // JSON du prompt lui-même, systemPromptJSON.ts) ou "Semaines 1-4".
+    const weekMatch = phase.weeks.match(/(\d+)\s*[-–àto]\s*S?(\d+)/i);
     if (weekMatch) {
       const duration = parseInt(weekMatch[2]) - parseInt(weekMatch[1]) + 1;
       if (duration < range[0]) {
@@ -1168,7 +1221,9 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   for (const week of plan.weeks) {
     const phaseIdx = getPhaseIndex(week.phase);
     if (phaseIdx === null) continue;
-    const signatures = PHASE_SESSION_SIGNATURES[phaseIdx];
+    const signatures = phaseIdx === 4 && isUltraCompressedTrail
+      ? ULTRA_COMPRESSED_PEAK_SESSION_SIGNATURE
+      : PHASE_SESSION_SIGNATURES[phaseIdx];
     if (!signatures) continue;
 
     for (const session of week.sessions) {
@@ -1738,7 +1793,9 @@ function validateLimiterCoherence(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // RACE DAY PRESENCE VALIDATION (Rule 9)
-const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
+// RACE_DAY_PATTERNS déplacé plus haut (ligne ~197, avec DELOAD_PATTERNS) —
+// désormais réutilisé aussi par weekHasRaceDay() pour toutes les exemptions
+// "semaine de course" du fichier, plus seulement cette règle.
 
 function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
@@ -1957,7 +2014,7 @@ function validateSessionDensity(
     if (target && target > 0) {
       scanned++;
       const isDeload = DELOAD_PATTERNS.test(`${w.theme} ${w.phase}`.toLowerCase());
-      const isRaceWeek = w.sessions.some((s) => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+      const isRaceWeek = weekHasRaceDay(w);
       if (isDeload || isRaceWeek) {
         compliant++;
         continue;
@@ -2070,7 +2127,7 @@ function validateLorangCategories(
     weeks.push(bd);
 
     // Règle 1 : hors décharge/race, ≥1 A ou B
-    const isRaceWeek = w.sessions.some((s) => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+    const isRaceWeek = weekHasRaceDay(w);
     if (!isDeload && !isRaceWeek && !bd.hasHighOrThreshold && bd.active >= 3) {
       issues.push({
         rule: "lorang_categories",
@@ -2319,7 +2376,7 @@ function validateDailySessionFloor(
   let daysViolating = 0;
   for (const week of plan.weeks) {
     const themeText = `${week.theme} ${week.phase}`.toLowerCase();
-    if (DELOAD_PATTERNS.test(themeText) || RACE_PATTERNS.test(themeText)) continue;
+    if (DELOAD_PATTERNS.test(themeText) || weekHasRaceDay(week)) continue;
 
     const byDay = new Map<number, ParsedSession[]>();
     for (const s of week.sessions) {
@@ -2401,6 +2458,31 @@ function validateStrategicRecapUniqueness(plan: ParsedPlan): { issues: Validatio
       severity: "error",
       message: `Bloc ${[...duplicated].join(", ")} apparaît plusieurs fois dans le plan — signe de deux tables/sections dupliquées`,
       detail: `Chaque "Bloc N" doit apparaître une seule fois (table ET corps du plan) — fusionner en une seule structure cohérente.`,
+    });
+    score -= 30;
+  }
+
+  // Audit — le préfixe "Bloc N" ci-dessus est une convention Markdown legacy
+  // (systemPromptJSON.ts:41 la liste explicitement parmi les règles de
+  // format ANNULÉES en mode JSON — chemin de prod par défaut) : sur ce
+  // chemin, `phases[].name` est un texte libre sans ce préfixe, donc le
+  // contrôle ci-dessus est inerte. Détection complémentaire, indépendante du
+  // format : un même nom de phase (normalisé) répété plusieurs fois est en
+  // soi un signe de doublon, quel que soit le vocabulaire utilisé.
+  const seenNames = new Set<string>();
+  const duplicatedNames = new Set<string>();
+  for (const p of plan.phases) {
+    const key = p.name.trim().toLowerCase();
+    if (!key) continue;
+    if (seenNames.has(key)) duplicatedNames.add(p.name);
+    seenNames.add(key);
+  }
+  if (duplicatedNames.size > 0) {
+    issues.push({
+      rule: "strategic_recap",
+      severity: "error",
+      message: `Phase "${[...duplicatedNames].join(", ")}" apparaît plusieurs fois dans le plan (bloc "Phases") — signe de doublon`,
+      detail: `Chaque phase doit apparaître une seule fois dans la structure du plan.`,
     });
     score -= 30;
   }
@@ -2498,11 +2580,11 @@ function validateAntiRepetition(plan: ParsedPlan): { issues: ValidationIssue[]; 
 
   for (const week of plan.weeks) {
     const themeText = `${week.theme} ${week.phase}`.toLowerCase();
-    if (DELOAD_PATTERNS.test(themeText) || RACE_PATTERNS.test(themeText)) continue;
+    if (DELOAD_PATTERNS.test(themeText) || weekHasRaceDay(week)) continue;
     const prev = weeksByNumber.get(week.weekNumber - 1);
     if (!prev) continue;
     const prevThemeText = `${prev.theme} ${prev.phase}`.toLowerCase();
-    if (DELOAD_PATTERNS.test(prevThemeText) || RACE_PATTERNS.test(prevThemeText)) continue;
+    if (DELOAD_PATTERNS.test(prevThemeText) || weekHasRaceDay(prev)) continue;
 
     for (const s of week.sessions) {
       if (s.isRest) continue;
@@ -2595,7 +2677,7 @@ export function validatePlan(
   const sportRatio = validateSportRatio(weekMetrics, objective);
   const catalogRatio = validateCatalogRatio(plan);
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
-  const phaseCoherence = validatePhaseCoherence(plan);
+  const phaseCoherence = validatePhaseCoherence(plan, objective);
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
