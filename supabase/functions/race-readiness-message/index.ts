@@ -1,6 +1,7 @@
 // Race Readiness — message personnalisé généré par Lovable AI (Gemini)
 // Reçoit le contexte athlète + objectif + score readiness et renvoie un message
 // chaleureux et factuel ("Vu tes données, tu es prêt à X%...").
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,6 +55,29 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Audit fix — endpoint accessible sans authentification : n'importe qui
+    // sur Internet pouvait consommer les crédits Lovable AI du projet (coût
+    // direct, cf. gestion 402 plus bas) et se servir de la route comme proxy
+    // LLM gratuit avec prompt attaquant-contrôlé. Même pattern d'auth que
+    // ai-coaching (la fonction IA sœur la plus proche).
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Token invalide" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const payload = (await req.json()) as ReqPayload;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");

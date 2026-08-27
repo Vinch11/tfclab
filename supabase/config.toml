@@ -1,7 +1,13 @@
 project_id = "wtwjkmawntybyehatkjo"
 
-[functions.race-readiness-message]
-verify_jwt = false
+# Audit fix — race-readiness-message n'a ni callback OAuth externe (nolio-oauth)
+# ni secret cron (nolio-training-load-daily) : c'est un endpoint utilisateur
+# classique ("génère mon message"), qui doit exiger une session valide comme
+# n'importe quelle autre fonction IA de l'app (ai-coaching, etc.). Sans ce
+# gate, n'importe qui pouvait consommer les crédits Lovable AI du projet.
+# Contrôle applicatif ajouté dans index.ts en défense en profondeur — mais le
+# vrai verrou est ce paramètre de plateforme, qui rejette la requête avant
+# même que le code de la fonction ne s'exécute.
 
 [functions.nolio-oauth]
 verify_jwt = false
