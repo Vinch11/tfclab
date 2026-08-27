@@ -507,7 +507,31 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
     [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, ambitionForRef]
   );
 
-  if (!metrics || !ref) return null;
+  if (!metrics) return null;
+
+  // eliteReferences.ts ne couvre que 5 objectifs (IM/703/Marathon/Semi/10K) ×
+  // 4 ambitions (Elite/Competitor/Age Group/Finisher) — 5K, StartToRun,
+  // Trail (toutes variantes), Sprint, Olympic, et l'ambition World Class ne
+  // sont dans aucune entrée. Avant ce fix, `ref === null` faisait disparaître
+  // toute la carte sans explication — un athlète sur un de ces
+  // objectifs/ambitions ne voyait jamais de benchmark, sans savoir pourquoi
+  // (lu comme un bug plutôt qu'une limite connue des données de référence).
+  if (!ref) {
+    return (
+      <CollapsibleCard
+        defaultOpen={false}
+        storageKey="ai_plan_benchmark"
+        icon={<Info className="h-4 w-4 text-muted-foreground" />}
+        title="Benchmark vs Référence"
+      >
+        <p className="text-xs text-muted-foreground">
+          Comparaison indisponible : aucune donnée de référence élite pour l'objectif «&nbsp;{objective}&nbsp;»
+          {ambitionForRef ? <> en ambition «&nbsp;{ambitionForRef}&nbsp;»</> : null}. Les standards ne couvrent
+          aujourd'hui que IM / 70.3 / Marathon / Semi / 10K, niveaux Elite à Finisher.
+        </p>
+      </CollapsibleCard>
+    );
+  }
   const elite = eliteRef || ref;
 
   // Source unique avec le validateur : semaines de décharge et pattern de charge
