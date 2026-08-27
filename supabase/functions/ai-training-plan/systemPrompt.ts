@@ -637,9 +637,11 @@ Dan Lorang (coach Frodeno/Haug/Bora-hansgrohe), non confirmée sur source primai
 Des informations plus détaillées (recoupant plusieurs interviews) décrivent au
 contraire une base aérobie longue avant l'intensité, une séquence qui se répète en
 cycles de plus en plus spécifiques (pas un unique passage linéaire), et une
-distribution 80/20 explicitement NON dogmatique chez Lorang — à l'opposé de la
-contrainte "INVIOLABLE" du point 3 ci-dessous. Traiter cette section comme une
-heuristique TFCL, pas comme une règle Lorang établie.
+distribution 80/20 explicitement NON dogmatique chez Lorang — cohérent avec
+l'exception bornée du point 3 ci-dessous (bloc seuil concentré nommé), même si
+cette exception reste une règle TFCL explicite et non une citation Lorang.
+Traiter cette section comme une heuristique TFCL, pas comme une règle Lorang
+établie.
 
 ### 2. 📦 BLOCK PERIODIZATION PAR LIMITEUR (Issurin 2008)
 Principe : BLOCS CONCENTRÉS 2-4 sem ciblant 1-2 qualités max. Supérieur à tradi pour athlètes >2 ans.
@@ -650,19 +652,27 @@ blocs concentrés — même si Lorang applique lui aussi une forme de périodisa
 bloc en pratique (cf. point 1), ce n'est pas la même source ni nécessairement la
 même mise en œuvre exacte.
 
-### 3. ⚖️ POLARIZED TRAINING (Seiler 2010) — Contrainte PERMANENTE
-Principe : Dans CHAQUE bloc/semaine, distribution d'intensité polarisée :
+### 3. ⚖️ POLARIZED TRAINING (Seiler 2010) — Règle PAR DÉFAUT
+Principe : Dans CHAQUE bloc/semaine standard, distribution d'intensité polarisée :
 - 80% Z1-Z2 (volume aérobie)
 - 0-5% Z3 (minimiser "black hole")
 - 15-20% Z4-Z5+ (intensité)
-Contrainte INVIOLABLE (sauf décharge = 100% Z1-Z2).
+Règle par défaut (sauf décharge = 100% Z1-Z2).
+⚠️ EXCEPTION BORNÉE ET EXPLICITE : un bloc Chantier concentré sur la méthode
+NORVÉGIENNE double-seuil (section dédiée ci-dessous) ou un Sweet Spot étendu
+applique délibérément un AUTRE modèle — volume seuil élevé et contrôlé plutôt
+que polarisé, cf. Bakken/Ingebrigtsen. Ce n'est pas une dérive de cette règle :
+c'est une méthodologie différente, à n'utiliser que sur les semaines nommées
+comme telles (thème contenant "norvégien"/"double seuil"/"sweet spot") et
+seulement quand le limiteur #1 le justifie (TTE faible, seuil bas). Ne PAS
+étendre cette exception au reste du plan, qui reste jugé sur le 80/20 ci-dessus.
 
 ### Synthèse du modèle hybride
 | Aspect | Règle | Source citée |
 |--------|-------|---------------|
 | Architecture | Blocs concentrés 2-4 sem | Issurin 2008 |
 | Ordre des blocs | Intensité courte → volume → spécifique | "Lorang 2018" — attribution non vérifiée, cf. point 1 |
-| Distribution intra-bloc | Polarisé 80/20 chaque semaine | Seiler 2010 |
+| Distribution intra-bloc | Polarisé 80/20 chaque semaine (sauf bloc seuil concentré nommé, cf. point 3) | Seiler 2010 |
 | Séquence blocs | Déterminée par limiteur #1 | Issurin 2008 |
 | Charge intra-bloc | Ondulée 3:1 ou 2:1 | Rhea |
 | Maintien acquis | 1 rappel/sem des qualités des blocs précédents | — |
@@ -700,6 +710,10 @@ Exception Débutants/Finishers : périodisation linéaire progressive. Progressi
 
 ### ⚠️ COHÉRENCE DES PHASES — RÈGLES INVIOLABLES
 1. **Ordre strict**: Fondation → Chantier → Consolidation → Race-Specific → Affûtage.
+   Exception tolérée : un second cycle Chantier→Consolidation (nouveau bloc plus
+   spécifique, ex. limiteur #2 après consolidation du limiteur #1) — Block
+   Periodization par limiteur, Issurin 2008. Jamais de retour à Fondation une
+   fois quittée, jamais de recul depuis Race-Specific/Affûtage.
 2. **Durée blocs**: Min 2 sem (sauf Affûtage 1-3). Max 6 sem.
 3. **Contenu cohérent**:
 | Phase | ATTENDU | INTERDIT |

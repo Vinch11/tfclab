@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveLimiterKeysFromGapAnalysis, validatePlan, type PlanValidationResult } from "../planValidator";
+import { deriveLimiterKeysFromGapAnalysis, validatePlan, PLAN_VALIDATION_WEIGHTS, type PlanValidationResult } from "../planValidator";
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 
 function makeSession(overrides: Partial<ParsedSession> = {}): ParsedSession {
@@ -53,7 +53,10 @@ function makePolarizedWeek(weekNumber: number, deload = false): ParsedWeek {
 
 function makePlan(weeks: ParsedWeek[]): ParsedPlan {
   return {
-    title: "Test Plan",
+    // Conforme à la RÈGLE #0 (titre H1) pour ne pas faire trébucher les tests
+    // qui ne portent pas sur ce point — les tests dédiés au titre (describe
+    // "#18 lot 1" plus bas) écrasent ce champ explicitement.
+    title: "Plan TFCL™ — Marathon Test Athlete — 8 semaines",
     phases: [],
     weeks,
     totalWeeks: weeks.length,
@@ -797,6 +800,324 @@ describe("planValidator", () => {
       ], "Chantier", "Chantier");
       const result = validatePlan(makePlan([week]), "Marathon", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "elite");
       expect(result.issues.filter(i => i.rule === "daily_session_floor")).toHaveLength(0);
+    });
+  });
+
+  // #18 lot 1 : 10 règles INVIOLABLE/OBLIGATOIRE de systemPrompt.ts n'avaient
+  // aucun contrôle post-génération correspondant. Ces 4 tests couvrent les
+  // règles vérifiables sans paramètre supplémentaire.
+  describe("#18 lot 1 — règles INVIOLABLE/OBLIGATOIRE sans contrôle jusqu'ici", () => {
+    it("accepte un titre H1 conforme à la RÈGLE #0", () => {
+      const plan = makePlan([makeWeek(1, [{ sport: "Course", title: "EF Z2", details: "45min" }])]);
+      plan.title = "Plan TFCL™ — 70.3 LCW Cath — 11 semaines";
+      const result = validatePlan(plan);
+      expect(result.issues.filter(i => i.rule === "title_format")).toHaveLength(0);
+    });
+
+    it("flague un titre H1 sans nom d'athlète (exemple INTERDIT explicite du prompt)", () => {
+      const plan = makePlan([makeWeek(1, [{ sport: "Course", title: "EF Z2", details: "45min" }])]);
+      plan.title = "Plan TFCL™ — 70.3 — 12 semaines";
+      const result = validatePlan(plan);
+      const titleIssue = result.issues.find(i => i.rule === "title_format" && i.severity === "error");
+      expect(titleIssue).toBeDefined();
+    });
+
+    it("flague un titre H1 réduit à un slogan (préfixe/suffixe du gabarit absents)", () => {
+      const plan = makePlan([makeWeek(1, [{ sport: "Course", title: "EF Z2", details: "45min" }])]);
+      plan.title = "Structure Qualifiable";
+      const result = validatePlan(plan);
+      const titleIssue = result.issues.find(i => i.rule === "title_format" && i.severity === "error");
+      expect(titleIssue).toBeDefined();
+    });
+
+    it("flague un Bloc N dupliqué (signe de deux tables collées)", () => {
+      const plan = makePlan([
+        makeWeek(1, [{ sport: "Course", title: "Chantier", details: "" }], "Chantier", "Chantier"),
+      ]);
+      plan.phases = [
+        { name: "Bloc 1 : Fondation", weeks: "1-2" },
+        { name: "Bloc 2 : Chantier VLamax", weeks: "3-6" },
+        { name: "Bloc 4 : Consolidation", weeks: "7-9" },
+        { name: "Bloc 4 : Race-Specific", weeks: "10-12" },
+      ];
+      const result = validatePlan(plan);
+      const dupIssue = result.issues.find(i => i.rule === "strategic_recap" && i.severity === "error");
+      expect(dupIssue).toBeDefined();
+      expect(dupIssue?.message).toContain("Bloc 4");
+    });
+
+    it("flague une numérotation de récap stratégique qui redémarre à 1", () => {
+      const plan = makePlan([
+        makeWeek(1, [{ sport: "Course", title: "Chantier", details: "" }], "Chantier", "Chantier"),
+      ]);
+      plan.strategicRecap = {
+        limiters: [
+          { rank: 1, name: "VLamax haute", status: "🔴", block: "Chantier VLamax↓", weeks: "S1-S4", keySessions: "Z2 long" },
+          { rank: 2, name: "TTE faible", status: "🟡", block: "Consolidation TTE↑", weeks: "S5-S8", keySessions: "Seuil" },
+          { rank: 1, name: "Économie", status: "🟢", block: "Chantier Économie", weeks: "S9-S12", keySessions: "SFR" },
+        ],
+        synergies: [],
+      };
+      const result = validatePlan(plan);
+      const recapIssue = result.issues.find(i => i.rule === "strategic_recap" && i.severity === "warning");
+      expect(recapIssue).toBeDefined();
+    });
+
+    it("ne flague pas un récap stratégique correctement numéroté", () => {
+      const plan = makePlan([
+        makeWeek(1, [{ sport: "Course", title: "Chantier", details: "" }], "Chantier", "Chantier"),
+      ]);
+      plan.strategicRecap = {
+        limiters: [
+          { rank: 1, name: "VLamax haute", status: "🔴", block: "Chantier VLamax↓", weeks: "S1-S4", keySessions: "Z2 long" },
+          { rank: 2, name: "TTE faible", status: "🟡", block: "Consolidation TTE↑", weeks: "S5-S8", keySessions: "Seuil" },
+        ],
+        synergies: [],
+      };
+      const result = validatePlan(plan);
+      expect(result.issues.filter(i => i.rule === "strategic_recap")).toHaveLength(0);
+    });
+
+    it("flague un jour \"Repos\" qui contient en réalité de la récupération active", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Vélo", title: "Récupération active", details: "Vélo Z1 30min", isRest: true },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      const restIssue = result.issues.find(i => i.rule === "rest_day_coherence" && /contenu actif/i.test(i.message));
+      expect(restIssue).toBeDefined();
+    });
+
+    it("flague une semaine sans aucun jour de repos complet réel", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2 40min", details: "Endurance" },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      const restIssue = result.issues.find(i => i.rule === "rest_day_coherence" && /sans aucun jour repos complet/i.test(i.message));
+      expect(restIssue).toBeDefined();
+    });
+
+    it("n'flague pas un jour \"Repos\" réellement complet", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Repos", title: "Repos complet", details: "", isRest: true },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      expect(result.issues.filter(i => i.rule === "rest_day_coherence")).toHaveLength(0);
+    });
+
+    it("flague une séance identique au même jour 2 semaines consécutives (Règle #1 Anti-Répétition)", () => {
+      const sameSession = { sport: "Course", title: "Seuil 2x20min", details: "Z5 seuil" };
+      const weeks = [
+        makeWeek(1, [sameSession, { sport: "Course", title: "EF Z2 45min", details: "" }], "Chantier", "Chantier"),
+        makeWeek(2, [sameSession, { sport: "Course", title: "EF Z2 50min", details: "" }], "Chantier", "Chantier"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const repetitionIssue = result.issues.find(i => i.rule === "anti_repetition");
+      expect(repetitionIssue).toBeDefined();
+    });
+
+    it("ne flague pas une progression de séance (durée/format variés) d'une semaine à l'autre", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Seuil 2x15min", details: "Z5 seuil" }], "Chantier", "Chantier"),
+        makeWeek(2, [{ sport: "Course", title: "Seuil 2x20min", details: "Z5 seuil" }], "Chantier", "Chantier"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      expect(result.issues.filter(i => i.rule === "anti_repetition")).toHaveLength(0);
+    });
+
+    it("n'flague pas un rappel identique en semaine de décharge/course (répétition attendue)", () => {
+      const sameSession = { sport: "Course", title: "Rappel allure course", details: "Séance courte" };
+      const weeks = [
+        makeWeek(1, [sameSession], "Chantier", "Chantier"),
+        makeWeek(2, [sameSession], "Taper", "taper"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      expect(result.issues.filter(i => i.rule === "anti_repetition")).toHaveLength(0);
+    });
+
+    it("la somme des poids du score pondéré reste 1.00 (garde-fou anti-drift)", () => {
+      // Rééquilibrage #18 lot 1 : 4 nouveaux poids financés par de petites
+      // retenues sur 10 poids existants — la somme totale ne doit pas avoir
+      // dérivé (sinon un plan "parfait" scorerait autre chose que 100/100).
+      const total = Object.values(PLAN_VALIDATION_WEIGHTS).reduce((a, b) => a + b, 0);
+      expect(total).toBeCloseTo(1.0, 5);
+    });
+  });
+
+  // Audit méthodologique — Niveau 2 : le prompt donne un exemple few-shot
+  // complet (méthode norvégienne double-seuil) qui, suivi à la lettre par
+  // l'IA, viole mécaniquement la règle 80/20 telle qu'appliquée par Rule 1 —
+  // le prompt et le validateur se contredisaient sur ces semaines précises.
+  describe("Niveau 2 — exception bloc seuil concentré (norvégien/sweet spot)", () => {
+    function norwegianDoubleThresholdWeek(weekNumber: number): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Course", title: "🔑 Double Seuil #1 — Bas", details: "5x6min seuil bas 30min" },
+        { sport: "Course", title: "🔑 Double Seuil #1 — Haut", details: "8x1000m seuil haut 25min" },
+        { sport: "Course", title: "EF récupération", details: "40min Z1 récupération" },
+        { sport: "Course", title: "🔑 Double Seuil #2 — Bas", details: "4x2000m seuil bas 27min" },
+        { sport: "Course", title: "🔑 Double Seuil #2 — Haut", details: "6x1200m seuil haut 23min" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ], "Chantier TTE↑ — Norvégienne", "Chantier");
+    }
+
+    it("exempte une semaine explicitement nommée bloc norvégien de Rule 1 (polarisation)", () => {
+      const plan = makePlan([norwegianDoubleThresholdWeek(1), norwegianDoubleThresholdWeek(2)]);
+      const result = validatePlan(plan);
+      const polarizationIssues = result.issues.filter(i => i.rule === "polarization" && i.week === 1);
+      expect(polarizationIssues).toHaveLength(0);
+    });
+
+    it("continue de flaguer la même distribution si la semaine n'est pas nommée comme un bloc seuil", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Seuil #1 — Bas", details: "5x6min seuil bas 30min" },
+        { sport: "Course", title: "Seuil #1 — Haut", details: "8x1000m seuil haut 25min" },
+        { sport: "Course", title: "EF récupération", details: "40min Z1 récupération" },
+        { sport: "Course", title: "Seuil #2 — Bas", details: "4x2000m seuil bas 27min" },
+        { sport: "Course", title: "Seuil #2 — Haut", details: "6x1200m seuil haut 23min" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ], "Chantier seuil", "Chantier");
+      const result = validatePlan(makePlan([week, week]));
+      const polarizationIssues = result.issues.filter(i => i.rule === "polarization" && i.week === 1);
+      expect(polarizationIssues.length).toBeGreaterThan(0);
+    });
+  });
+
+  // Audit méthodologique — Niveau 2 : Issurin (Block Periodization) prévoit un
+  // nouveau bloc concentré par limiteur — un plan à 2 limiteurs enchaîne donc
+  // légitimement Chantier→Consolidation→Chantier(#2)→Consolidation(#2). Le
+  // validateur bannissait jusqu'ici tout recul d'indice de phase, sans
+  // distinguer ce cycle voulu d'une vraie régression.
+  describe("Niveau 2 — cycle Chantier↔Consolidation toléré (Issurin)", () => {
+    function phaseWeek(weekNumber: number, phase: string): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+      ], phase, phase);
+    }
+
+    it("ne flague pas un second cycle Chantier→Consolidation pour un second limiteur", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Consolidation"),
+        phaseWeek(3, "Chantier 2"),
+        phaseWeek(4, "Consolidation"),
+        phaseWeek(5, "Race-Specific"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues).toHaveLength(0);
+    });
+
+    it("flague toujours un vrai retour à Fondation après le Chantier", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Consolidation"),
+        phaseWeek(3, "Fondation"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues.length).toBeGreaterThan(0);
+    });
+
+    it("flague toujours un recul depuis Race-Specific vers Chantier", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Race-Specific"),
+        phaseWeek(3, "Chantier 2"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues.length).toBeGreaterThan(0);
+    });
+  });
+
+  // Audit méthodologique — phase compressée "Peak" (promptHelpers.ts, garde-fou
+  // Ultra-Trail ≤6 sem : "Fondation 2 sem · Build 2 sem · Peak 1 sem · Taper 1
+  // sem") ne matchait aucune clé de PHASE_ORDER — getPhaseIndex("Peak") rendait
+  // null, donc validatePhaseCoherence ignorait silencieusement cette phase pour
+  // l'ordre, la durée ET le contenu, précisément sur le scénario défensif que le
+  // prompt identifie comme le plus à risque (taper ultra compressé).
+  describe("Phase compressée 'Peak' (Ultra-Trail ≤6 sem)", () => {
+    function peakWeek(weekNumber: number, sessions: Partial<ParsedSession>[] = [
+      { sport: "Course", title: "EF Z2 volume", details: "Volume D+ progressif, aisance respiratoire" },
+      { sport: "Course", title: "SL D+", details: "Sortie longue Z2 dénivelé progressif" },
+    ]): ParsedWeek {
+      return makeWeek(weekNumber, sessions, "Peak", "Peak");
+    }
+
+    it("ne flague pas de régression pour Fondation→Chantier→Peak→Affûtage", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "Fondation" }], "Fondation", "Fondation"),
+        makeWeek(2, [{ sport: "Course", title: "Chantier D+", details: "Build" }], "Chantier", "Chantier"),
+        peakWeek(3),
+        makeWeek(4, [{ sport: "Course", title: "Rappel activation", details: "Taper" }], "Affûtage", "Affûtage"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues).toHaveLength(0);
+    });
+
+    it("flague toujours une régression réelle depuis Peak vers Chantier", () => {
+      const weeks = [
+        peakWeek(1),
+        makeWeek(2, [{ sport: "Course", title: "Chantier D+", details: "Build" }], "Chantier", "Chantier"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues.length).toBeGreaterThan(0);
+    });
+
+    it("flague une phase Peak trop longue pour la fenêtre compressée (1-2 sem)", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "Fondation" }], "Fondation", "Fondation"),
+        peakWeek(2), peakWeek(3), peakWeek(4), peakWeek(5),
+      ];
+      // Bloc "Phases" fourni explicitement (format "2-5" parsable par la regex
+      // de durée) plutôt que dérivé des semaines ("S2-S5", format que cette
+      // regex ne parse pas — limitation préexistante et hors scope ici).
+      const plan = makePlan(weeks);
+      plan.phases = [
+        { name: "Fondation", weeks: "1-1" },
+        { name: "Peak", weeks: "2-5" },
+      ];
+      const result = validatePlan(plan);
+      const durationIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /trop longue/i.test(i.message) && /Peak/i.test(i.message)
+      );
+      expect(durationIssue).toBeDefined();
+    });
+
+    it("flague un contenu VMA/seuil dur en phase Peak (interdit par le garde-fou ultra-trail)", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "Fondation" }], "Fondation", "Fondation"),
+        peakWeek(2, [
+          { sport: "Course", title: "VMA piste", details: "6x400m à VMA fractionné" },
+        ]),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const contentIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /inadapté en phase "Peak"/i.test(i.message)
+      );
+      expect(contentIssue).toBeDefined();
     });
   });
 });
