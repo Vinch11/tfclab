@@ -174,13 +174,23 @@ function hydrationRange(sport: Sport, weightKg: number, heat: boolean): [number,
   const capLike = sport === "cap" || sport === "trail" || sport === "ultra";
   const lo = capLike ? 5 : 7;
   const hi = capLike ? 8 : 10;
-  const mul = heat ? 1.25 : 1.0;
+  // Miroir de nutritionUnified.ts::computeHydration (heatFactor). Les deux
+  // valeurs avaient divergé (1.25 ici vs 1.35 côté client) — le guardrail
+  // sous-corrigeait la chaleur de 10 points par rapport au module qu'il est
+  // censé refléter.
+  const mul = heat ? 1.35 : 1.0;
   return [Math.round(lo * weightKg * mul), Math.round(hi * weightKg * mul)];
 }
 
 function sodiumRange(heat: boolean, sport: Sport): [number, number] {
-  const long = sport === "ultra" || sport === "trail";
-  const base: [number, number] = long ? [500, 900] : [400, 700];
+  const ultra = sport === "ultra";
+  const trail = sport === "trail";
+  // Miroir de nutritionUnified.ts::computeHydration : ultra et trail ont des
+  // bases distinctes côté client (ultra plus haute — 800-1200 vs 600-900
+  // mg/h). Elles étaient auparavant regroupées ici sous un même "long" à
+  // base [500,900], ce qui plafonnait l'ultra sous le point réel calculé
+  // côté client (1000 mg/h hors chaleur, 1200 mg/h en chaleur).
+  const base: [number, number] = ultra ? [700, 1000] : trail ? [500, 900] : [400, 700];
   if (heat) return [base[0] + 200, base[1] + 300];
   return base;
 }
