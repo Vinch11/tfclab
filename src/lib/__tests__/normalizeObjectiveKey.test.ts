@@ -24,6 +24,18 @@ describe("normalizeObjectiveKey — Sprint/Olympic triathlon", () => {
     expect(normalizeObjectiveKey("Distance M")).toBe("Olympic");
   });
 
+  // Batch 2 — exposition UI Sprint/Olympic : la branche littérale "olymp"
+  // (sans "ic"/"ique") ne matchait JAMAIS en usage réel — le test ci-dessus
+  // ("Olympic" → "Olympic") passait pour la mauvaise raison, via le
+  // fallthrough accidentel `return obj` (qui préserve casse/espaces bruts).
+  // Ce test distingue les deux : le fallthrough renverrait la casse/espaces
+  // d'origine inchangés, alors que la branche canonique normalise toujours
+  // vers "Olympic" exact.
+  it("normalise réellement via la branche dédiée, pas par coïncidence du fallthrough (casse/espaces)", () => {
+    expect(normalizeObjectiveKey("OLYMPIC")).toBe("Olympic");
+    expect(normalizeObjectiveKey("  olympic  ")).toBe("Olympic");
+  });
+
   it("ne casse pas les objectifs déjà reconnus (IM/703/Marathon)", () => {
     expect(normalizeObjectiveKey("Ironman")).toBe("IM");
     expect(normalizeObjectiveKey("70.3")).toBe("703");

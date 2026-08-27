@@ -22,7 +22,11 @@ export function normalizeObjectiveKey(obj: string): string {
   if (/triath/.test(lower) && /sprint/.test(lower)) return "Sprint";
   if (/triath/.test(lower) && /(olymp|standard|distance ?m)/.test(lower)) return "Olympic";
   if (/^sprint( tri)?$/.test(lower.trim())) return "Sprint";
-  if (/^(olymp|olympique|distance ?m|standard)( tri)?$/.test(lower.trim())) return "Olympic";
+  // "olymp" seul (sans "ic"/"ique") ne matchait jamais rien en usage réel (input
+  // toujours "olympic"/"olympique"/"olympics") — branche morte compensée
+  // uniquement par le fallthrough accidentel de `return obj` en fin de
+  // fonction (audit Batch 2, exposition UI Sprint/Olympic).
+  if (/^(olymp|olympic|olympique|distance ?m|standard)( tri)?$/.test(lower.trim())) return "Olympic";
   if (lower.includes("semi")) return "Semi";
   if (lower.includes("marathon")) return "Marathon";
   // Famous trail races → canonical sub-classes (before generic trail/ultra)

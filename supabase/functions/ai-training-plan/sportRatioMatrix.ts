@@ -228,7 +228,11 @@ export function normalizeObjKey(obj: string): string {
   if (/triath/.test(lower) && /(olymp|standard|distance ?m)/.test(lower)) return "TriOlympique";
   // Sprint/Olympique nus (sans "triathlon" explicite) — fréquent dans les formulaires tri
   if (/^sprint( tri)?$/.test(lower.trim())) return "TriSprint";
-  if (/^(olymp|distance ?m|standard)( tri)?$/.test(lower.trim())) return "TriOlympique";
+  // "olymp" seul ne matchait ni "Olympic" (l'option UI réelle, cf. audit
+  // Batch 2 exposition Sprint/Olympic) ni "Olympique" — l'alternative
+  // "olympique" manquait ici alors qu'elle existe côté client
+  // (normalizeObjectiveKey.ts) : les deux copies avaient divergé.
+  if (/^(olymp|olympic|olympique|distance ?m|standard)( tri)?$/.test(lower.trim())) return "TriOlympique";
   if (lower.includes("semi")) return "Semi";
   if (lower.includes("marathon")) return "Marathon";
   // Famous trail races → map to canonical sub-classes (must come before generic trail/ultra checks)

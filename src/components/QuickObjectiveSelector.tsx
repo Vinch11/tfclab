@@ -43,6 +43,8 @@ const OBJECTIF_GROUPS = {
     options: [
       { value: "IM", label: "Ironman" },
       { value: "703", label: "70.3" },
+      { value: "Olympic", label: "Olympique" },
+      { value: "Sprint", label: "Sprint" },
     ],
   },
   running: {
@@ -69,6 +71,8 @@ const OBJECTIF_GROUPS = {
 const OBJECTIF_ICONS: Record<string, string> = {
   IM: "🏊",
   "703": "🏊",
+  Olympic: "🏊",
+  Sprint: "🏊",
   Marathon: "🏃",
   Semi: "🏃",
   "10K": "🏃",

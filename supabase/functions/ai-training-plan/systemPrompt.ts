@@ -123,7 +123,11 @@ function buildObjectiveSportLock(profile?: SystemPromptProfile): string {
   const isIM = /\bIM\b|IRONMAN/.test(obj) && !/70\.?3|HALF ?IRONMAN/.test(obj);
   const is703 = /70\.?3|HALF ?IRONMAN/.test(obj);
   const isTriSprint = /TRIATH.*SPRINT|^SPRINT( TRI)?$/.test(obj.trim());
-  const isTriOlympique = /TRIATH.*(OLYMP|STANDARD|DISTANCE ?M)|^(OLYMP|DISTANCE ?M|STANDARD)( TRI)?$/.test(obj.trim());
+  // "OLYMP" seul ne matchait ni la valeur littérale "OLYMPIC" (option UI
+  // réelle depuis l'audit Batch 2 exposition Sprint/Olympic) ni "OLYMPIQUE"
+  // — faute des suffixes "IC"/"IQUE" — corrigé en ajoutant les deux
+  // alternatives explicites.
+  const isTriOlympique = /TRIATH.*(OLYMP|STANDARD|DISTANCE ?M)|^(OLYMP|OLYMPIC|OLYMPIQUE|DISTANCE ?M|STANDARD)( TRI)?$/.test(obj.trim());
   const isTri = isIM || is703 || isTriSprint || isTriOlympique || /TRIATH/.test(obj);
   const isTrail = /TRAIL|UTMB|CCC|OCC|ULTRA/.test(obj);
   const isRouteRun = !isTri && !isTrail && /MARATHON|SEMI|\b10 ?K\b|\b5 ?K\b|START.?TO.?RUN/.test(obj);
@@ -415,7 +419,11 @@ function buildFewShotExamples(profile?: SystemPromptProfile): string {
   const isIM = /\bIM\b|IRONMAN/.test(obj);
   const is703 = /70\.?3|HALF ?IRONMAN/.test(obj);
   const isTriSprint = /TRIATH.*SPRINT|^SPRINT( TRI)?$/.test(obj.trim());
-  const isTriOlympique = /TRIATH.*(OLYMP|STANDARD|DISTANCE ?M)|^(OLYMP|DISTANCE ?M|STANDARD)( TRI)?$/.test(obj.trim());
+  // "OLYMP" seul ne matchait ni la valeur littérale "OLYMPIC" (option UI
+  // réelle depuis l'audit Batch 2 exposition Sprint/Olympic) ni "OLYMPIQUE"
+  // — faute des suffixes "IC"/"IQUE" — corrigé en ajoutant les deux
+  // alternatives explicites.
+  const isTriOlympique = /TRIATH.*(OLYMP|STANDARD|DISTANCE ?M)|^(OLYMP|OLYMPIC|OLYMPIQUE|DISTANCE ?M|STANDARD)( TRI)?$/.test(obj.trim());
   const isTri = isIM || is703 || isTriSprint || isTriOlympique || /TRIATH/.test(obj);
   const isTrail = /TRAIL|UTMB|CCC|OCC|UT4M/.test(obj);
   const isSemi = /SEMI|HALF(?!.?IRONMAN)/.test(obj);
