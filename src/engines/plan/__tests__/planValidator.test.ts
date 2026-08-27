@@ -655,5 +655,149 @@ describe("planValidator", () => {
       expect(ratioIssues.length).toBeGreaterThan(0);
     });
   });
+
+  // #18 lot 2 : 4 règles conditionnelles (objectif/ambition spécifiques) sans
+  // contrôle post-génération jusqu'ici. Composition séances clés trail
+  // délibérément différée (cf. commentaire dans planValidator.ts).
+  describe("#18 lot 2 — règles trail / Start-to-Run / plancher séances-jour Elite+", () => {
+    it("flague une semaine Start to Run sans 2 séances Renforcement fondation", () => {
+      // Plan à 2 semaines pour que S1 ne soit pas la "dernière semaine" (seuil
+      // allégé à 1 séance) — le seuil normal de 2 doit s'appliquer ici.
+      const weeks = [
+        makeWeek(1, [
+          { sport: "Course", title: "Footing découverte", details: "20min" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+        ]),
+        makeWeek(2, [
+          { sport: "Course", title: "Footing découverte", details: "20min" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+        ]),
+      ];
+      const result = validatePlan(makePlan(weeks), "Start to Run");
+      const issue = result.issues.find(i => i.rule === "start_to_run_strength" && i.severity === "error" && i.week === 1);
+      expect(issue).toBeDefined();
+    });
+
+    it("ne flague pas une semaine Start to Run avec 2 séances Renforcement fondation", () => {
+      const weeks = [
+        makeWeek(1, [
+          { sport: "Course", title: "Footing découverte", details: "20min" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+        ]),
+        makeWeek(2, [
+          { sport: "Course", title: "Footing découverte", details: "20min" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+        ]),
+      ];
+      const result = validatePlan(makePlan(weeks), "Start to Run");
+      expect(result.issues.filter(i => i.rule === "start_to_run_strength")).toHaveLength(0);
+    });
+
+    it("tolère 1 seule séance Renforcement fondation sur la DERNIÈRE semaine du plan Start to Run", () => {
+      const weeks = [
+        makeWeek(1, [
+          { sport: "Course", title: "Footing", details: "" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+        ]),
+        makeWeek(2, [
+          { sport: "Course", title: "Footing", details: "" },
+          { sport: "Renfo", title: "Renforcement fondation", details: "" },
+        ]),
+      ];
+      const result = validatePlan(makePlan(weeks), "Start to Run");
+      const week2Issue = result.issues.find(i => i.rule === "start_to_run_strength" && i.week === 2);
+      expect(week2Issue).toBeUndefined();
+    });
+
+    it("ne vérifie pas le renfo hebdomadaire pour un objectif autre que Start to Run", () => {
+      const week = makeWeek(1, [{ sport: "Course", title: "Footing", details: "" }]);
+      const result = validatePlan(makePlan([week]), "Marathon");
+      expect(result.issues.filter(i => i.rule === "start_to_run_strength")).toHaveLength(0);
+    });
+
+    it("flague l'absence de week-end back-to-back sur le bloc spécifique Trail Montagne", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Seuil montée", details: "D+800m", dayIndex: 1 },
+        { sport: "Course", title: "SL D+", details: "D+1200m", dayIndex: 5 }, // Samedi seul
+        { sport: "Repos", title: "Repos", details: "", isRest: true, dayIndex: 6 },
+      ], "Chantier", "Chantier");
+      const result = validatePlan(makePlan([week]), "Trail Montagne");
+      const issue = result.issues.find(i => i.rule === "trail_back_to_back");
+      expect(issue).toBeDefined();
+    });
+
+    it("ne flague pas quand un week-end Samedi+Dimanche actif existe sur le bloc spécifique", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Seuil montée", details: "D+800m", dayIndex: 1 },
+        { sport: "Course", title: "SL D+", details: "D+1200m", dayIndex: 5 },
+        { sport: "Course", title: "Technique descente", details: "D+600m", dayIndex: 6 },
+      ], "Chantier", "Chantier");
+      const result = validatePlan(makePlan([week]), "Trail Montagne");
+      expect(result.issues.filter(i => i.rule === "trail_back_to_back")).toHaveLength(0);
+    });
+
+    it("flague un déficit de D+ chiffré sur les séances CAP pour un objectif trail", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Seuil montée", details: "45min, sans dénivelé précisé" },
+        { sport: "Course", title: "SL", details: "2h" },
+        { sport: "Course", title: "Technique descente", details: "30min" },
+      ]);
+      const result = validatePlan(makePlan([week]), "Trail Ultra");
+      const issue = result.issues.find(i => i.rule === "trail_dplus_presence");
+      expect(issue).toBeDefined();
+    });
+
+    it("ne flague pas quand les séances CAP mentionnent systématiquement le D+", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Seuil montée", details: "D+800m" },
+        { sport: "Course", title: "SL D+ massive", details: "D+2500m" },
+        { sport: "Course", title: "Technique descente", details: "dénivelé -600m" },
+      ]);
+      const result = validatePlan(makePlan([week]), "Trail Ultra");
+      expect(result.issues.filter(i => i.rule === "trail_dplus_presence")).toHaveLength(0);
+    });
+
+    it("flague un jour à 1 séance pour IM ambition elite (ERREUR GRAVE)", () => {
+      const week = makeWeek(1, [
+        { sport: "Natation", title: "Nat technique", details: "", dayIndex: 1 },
+        { sport: "Vélo", title: "Vélo Z2", details: "", dayIndex: 1 },
+        { sport: "Course", title: "Footing seul", details: "", dayIndex: 2 }, // 1 seule séance ce jour
+      ], "Chantier", "Chantier");
+      const result = validatePlan(makePlan([week]), "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "elite");
+      const issue = result.issues.find(i => i.rule === "daily_session_floor" && i.severity === "error");
+      expect(issue).toBeDefined();
+    });
+
+    it("ne flague pas quand chaque jour actif a ≥2 séances pour IM ambition world_class", () => {
+      const week = makeWeek(1, [
+        { sport: "Natation", title: "Nat technique", details: "", dayIndex: 1 },
+        { sport: "Vélo", title: "Vélo Z2", details: "", dayIndex: 1 },
+        { sport: "Course", title: "Footing", details: "", dayIndex: 2 },
+        { sport: "Renfo", title: "Renfo", details: "", dayIndex: 2 },
+        { sport: "Repos", title: "Repos", details: "", isRest: true, dayIndex: 3 },
+      ], "Chantier", "Chantier");
+      const result = validatePlan(makePlan([week]), "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "world_class");
+      expect(result.issues.filter(i => i.rule === "daily_session_floor")).toHaveLength(0);
+    });
+
+    it("ne vérifie pas le plancher séances/jour pour une ambition age_group (règle non applicable)", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Footing seul", details: "", dayIndex: 2 },
+      ], "Chantier", "Chantier");
+      const result = validatePlan(makePlan([week]), "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "age_group");
+      expect(result.issues.filter(i => i.rule === "daily_session_floor")).toHaveLength(0);
+    });
+
+    it("ne vérifie pas le plancher séances/jour pour un objectif hors IM/70.3", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Footing seul", details: "", dayIndex: 2 },
+      ], "Chantier", "Chantier");
+      const result = validatePlan(makePlan([week]), "Marathon", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "elite");
+      expect(result.issues.filter(i => i.rule === "daily_session_floor")).toHaveLength(0);
+    });
+  });
 });
 

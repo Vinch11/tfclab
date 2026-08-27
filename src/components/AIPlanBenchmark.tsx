@@ -503,8 +503,8 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
   const ref = useMemo(() => getEliteReference(objective, ambitionForRef), [objective, ambitionForRef]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
   const validationResult = useMemo(
-    () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder),
-    [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder]
+    () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, undefined, undefined, ambitionForRef),
+    [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, ambitionForRef]
   );
 
   if (!metrics || !ref) return null;

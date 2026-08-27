@@ -1746,6 +1746,7 @@ export default function AITrainingPlanPage() {
             maxSessionsPerDay: (() => { const n = parseInt(maxSessionsPerDay); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
           },
           cfg?.injuryRisk,
+          ambition,
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;
@@ -1767,7 +1768,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     await doSave();
-  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion]);
+  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion, ambition]);
 
   const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
 

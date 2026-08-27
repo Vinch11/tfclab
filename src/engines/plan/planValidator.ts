@@ -108,6 +108,14 @@ export interface PlanValidationResult {
     lorangCategoriesScore: number;
     /** Conformité charge à impact élevé (CAP/vélo) vs risque blessure CRITIQUE (injuryRiskUnified.ts) */
     injuryRiskComplianceScore: number;
+    /** #18 lot 2 : Renfo Fondation présent chaque semaine (Start to Run uniquement — 100 sinon) */
+    startToRunStrengthScore: number;
+    /** #18 lot 2 : week-end back-to-back présent sur le bloc spécifique (Trail Montagne/Ultra uniquement — 100 sinon) */
+    trailBackToBackScore: number;
+    /** #18 lot 2 : D+ chiffré sur les séances CAP/Trail (objectifs trail uniquement — 100 sinon) */
+    trailDPlusPresenceScore: number;
+    /** #18 lot 2 : plancher 2-3 séances/jour (IM/70.3 World Class/Elite/Competitor uniquement — 100 sinon) */
+    dailySessionFloorScore: number;
     overallComment: string;
   };
   /** Lot 4 : distribution A/B/C/D par semaine + par plan */
@@ -2086,7 +2094,193 @@ function validateLorangCategories(
   return { issues, score, distribution };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// #18 — RÈGLES INVIOLABLE/OBLIGATOIRE SANS CONTRÔLE POST-GÉNÉRATION (lot 2/2)
+// ═══════════════════════════════════════════════════════════════════════════════
+// Suite du lot 1 (titre H1, unicité récap, cohérence repos, anti-répétition).
+// Ces 4 règles sont spécifiques à un objectif/une ambition — comme
+// sportObjective/injuryRiskCompliance déjà dans ce fichier, elles alimentent
+// `issues` et `summary` mais restent HORS du score pondéré (pas de nouveau
+// rééquilibrage de PLAN_VALIDATION_WEIGHTS ici) : elles ne s'appliquent qu'à
+// une minorité de plans (Start-to-Run, Trail Montagne/Ultra, IM/70.3 Elite+),
+// donc les inclure au score pondéré global pénaliserait à tort tous les
+// autres plans à poids constant, ou nécessiterait un rééquilibrage à chaque
+// fois qu'aucune de ces règles ne s'applique — pas justifié pour des règles
+// conditionnelles. Composition séances clés trail (5e règle du lot 2 prévu)
+// délibérément DIFFÉRÉE : matcher 3-5 catégories de contenu par objectif de
+// façon fiable en regex aurait un taux de faux positifs trop élevé pour la
+// confiance qu'on veut donner à ce score — laissé en note de suivi (cf. PR).
 
+/** Rule 18 : Renforcement Fondation OBLIGATOIRE chaque semaine (Start to Run,
+ *  systemPrompt.ts S2R_STRENGTH_PROGRESSION : "Chaque semaine DOIT contenir 2
+ *  séances 'Renforcement fondation' (1 seule en dernière semaine)" — limiteur
+ *  d'un débutant étant musculo-squelettique, ce bloc prévient la blessure. */
+const S2R_STRENGTH_PATTERN = /renforcement\s*fondation|S2R_STR_FOUNDATION/i;
+
+function validateStartToRunWeeklyStrength(
+  plan: ParsedPlan,
+  objective?: string,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (normalizeObjectiveKey(objective || "") !== "StartToRun") return { issues, score: 100 };
+
+  const lastWeekNumber = Math.max(...plan.weeks.map((w) => w.weekNumber));
+  let weeksChecked = 0;
+  let weeksOk = 0;
+  for (const week of plan.weeks) {
+    weeksChecked++;
+    const strengthCount = week.sessions.filter(
+      (s) => !s.isRest && S2R_STRENGTH_PATTERN.test(`${s.title} ${s.details} ${s.catalogId ?? ""}`),
+    ).length;
+    const minExpected = week.weekNumber === lastWeekNumber ? 1 : 2;
+    if (strengthCount < minExpected) {
+      issues.push({
+        rule: "start_to_run_strength",
+        severity: "error",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: ${strengthCount} séance(s) "Renforcement fondation" (attendu ≥${minExpected}) — OBLIGATOIRE chaque semaine pour Start to Run (prévention blessure musculo-squelettique)`,
+      });
+    } else {
+      weeksOk++;
+    }
+  }
+  const score = weeksChecked === 0 ? 100 : Math.round((weeksOk / weeksChecked) * 100);
+  return { issues, score };
+}
+
+/** Rule 19 : Back-to-back weekend OBLIGATOIRE (Trail Montagne/Ultra, Chantier/
+ *  Peak/Consolidation) — systemPrompt.ts : "Back-to-back OBLIGATOIRE en
+ *  Build/Peak" / "B2B OBLIGATOIRE" (Trail Ultra). Vérifie la PRÉSENCE d'au
+ *  moins un week-end Samedi+Dimanche actifs sur le bloc spécifique — pas
+ *  chaque semaine (le prompt ne le demande pas non plus), ce serait trop
+ *  strict pour un pattern qui revient périodiquement dans le bloc. */
+function validateTrailBackToBack(
+  plan: ParsedPlan,
+  objective?: string,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const objKey = normalizeObjectiveKey(objective || "");
+  if (objKey !== "TrailMountain" && objKey !== "TrailUltra") return { issues, score: 100 };
+
+  // Chantier(2)/Consolidation(3)/Peak compressé(3.5) — le bloc "spécifique"
+  // du plan trail, hors Fondation et Affûtage.
+  const specificWeeks = plan.weeks.filter((w) => {
+    const idx = getPhaseIndex(w.phase);
+    return idx !== null && idx >= 2 && idx <= 4;
+  });
+  if (specificWeeks.length === 0) return { issues, score: 100 };
+
+  const hasBackToBack = specificWeeks.some((w) => {
+    const saturdayActive = w.sessions.some((s) => !s.isRest && s.dayIndex === 5);
+    const sundayActive = w.sessions.some((s) => !s.isRest && s.dayIndex === 6);
+    return saturdayActive && sundayActive;
+  });
+
+  if (!hasBackToBack) {
+    issues.push({
+      rule: "trail_back_to_back",
+      severity: "warning",
+      message: `Aucun week-end back-to-back (SL J1 + sortie technique J2) détecté sur le bloc spécifique — OBLIGATOIRE pour ${objKey === "TrailUltra" ? "Trail Ultra" : "Trail Montagne"} (simule la fatigue cumulée trail, cf. systemPrompt.ts)`,
+    });
+    return { issues, score: 50 };
+  }
+  return { issues, score: 100 };
+}
+
+/** Rule 20 : D+ (dénivelé) chiffré OBLIGATOIRE pour trail (systemPrompt.ts,
+ *  "RÈGLES D+ — OBLIGATOIRE POUR TRAIL" : "CHAQUE séance trail doit
+ *  mentionner le D+ cible"). Vérifie la présence d'un D+ chiffré sur les
+ *  séances CAP/Trail — la progression hebdomadaire chiffrée n'est PAS
+ *  vérifiée ici (nécessiterait un seuil de tolérance arbitraire sur une
+ *  extraction texte forcément approximative — trop de faux positifs pour la
+ *  confiance qu'on veut donner à ce score). */
+const DPLUS_MENTION_PATTERN = /D\+|dénivelé|\bDplus\b/i;
+
+function validateTrailDPlusPresence(
+  plan: ParsedPlan,
+  objective?: string,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const objKey = normalizeObjectiveKey(objective || "");
+  const isTrailObjective = objKey === "TrailShort" || objKey === "TrailMountain" || objKey === "TrailUltra" || objKey === "Trail";
+  if (!isTrailObjective) return { issues, score: 100 };
+
+  let trailSessions = 0;
+  let missingDPlus = 0;
+  for (const week of plan.weeks) {
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      if (normalizeSport(s.sport) !== "Course") continue;
+      trailSessions++;
+      if (!DPLUS_MENTION_PATTERN.test(`${s.title} ${s.details}`)) {
+        missingDPlus++;
+      }
+    }
+  }
+  if (trailSessions === 0) return { issues, score: 100 };
+
+  const missingPct = missingDPlus / trailSessions;
+  if (missingPct > 0.3) {
+    issues.push({
+      rule: "trail_dplus_presence",
+      severity: missingPct > 0.6 ? "warning" : "info",
+      message: `${missingDPlus}/${trailSessions} séances CAP/Trail sans D+ chiffré — chaque séance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)`,
+    });
+  }
+  const score = Math.max(0, Math.round((1 - missingPct) * 100));
+  return { issues, score };
+}
+
+/** Rule 21 : Plancher séances/jour Elite+ (systemPrompt.ts "DOUBLES & TRIPLES
+ *  SÉANCES — OBLIGATOIRE" : "Si un jour n'a qu'1 séance pour Elite/Competitor
+ *  IM/70.3 (hors repos), c'est une ERREUR" / promptHelpers.ts:1769-1800 "Un
+ *  jour avec 1 seule séance (hors repos) est une ERREUR GRAVE pour World
+ *  Class/Elite/Competitor"). `ambition` utilise les clés internes en vigueur
+ *  dans promptHelpers.ts : "world_class"/"elite"/"competitor" — PAS "Elite"
+ *  au sens historique du label UI (relabellisé "Qualifiable", cf.
+ *  ambitionLevel.ts). Nécessite le nouveau paramètre `ambition` de
+ *  validatePlan (non disponible pour les autres règles de ce fichier). */
+function validateDailySessionFloor(
+  plan: ParsedPlan,
+  objective?: string,
+  ambition?: string,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const objKey = normalizeObjectiveKey(objective || "");
+  const isTriIMor703 = objKey === "IM" || objKey === "703";
+  const amb = (ambition || "").toLowerCase();
+  const isHighAmbition = amb === "world_class" || amb === "elite" || amb === "competitor";
+  if (!isTriIMor703 || !isHighAmbition) return { issues, score: 100 };
+
+  let daysChecked = 0;
+  let daysViolating = 0;
+  for (const week of plan.weeks) {
+    const themeText = `${week.theme} ${week.phase}`.toLowerCase();
+    if (DELOAD_PATTERNS.test(themeText) || RACE_PATTERNS.test(themeText)) continue;
+
+    const byDay = new Map<number, ParsedSession[]>();
+    for (const s of week.sessions) {
+      if (!byDay.has(s.dayIndex)) byDay.set(s.dayIndex, []);
+      byDay.get(s.dayIndex)!.push(s);
+    }
+    for (const sessions of byDay.values()) {
+      const active = sessions.filter((s) => !s.isRest);
+      if (active.length === 0) continue; // jour repos complet — 1/semaine autorisé
+      daysChecked++;
+      if (active.length < 2) {
+        daysViolating++;
+        issues.push({
+          rule: "daily_session_floor",
+          severity: "error",
+          week: week.weekNumber,
+          message: `S${week.weekNumber} ${active[0].dayName}: 1 seule séance ("${active[0].title}") — ERREUR GRAVE pour ambition ${amb} (World Class/Elite/Competitor IM/70.3 : 2-3 séances/jour, sauf 1 jour repos/semaine)`,
+        });
+      }
+    }
+  }
+  const score = daysChecked === 0 ? 100 : Math.max(0, 100 - Math.round((daysViolating / daysChecked) * 100));
+  return { issues, score };
+}
 
 
 
@@ -2101,6 +2295,10 @@ export function validatePlan(
   coachLimiterOrder?: string[],
   sessionDensity?: SessionDensityConfig,
   injuryRisk?: { run?: { level: string }; bike?: { level: string } },
+  /** #18 lot 2 : clé interne ("world_class"/"elite"/"competitor"/"age_group"/
+   *  "finisher", cf. ambitionLevel.ts) — nécessaire au plancher séances/jour
+   *  Elite+ (validateDailySessionFloor), absente des paramètres précédents. */
+  ambition?: string,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -2139,6 +2337,13 @@ export function validatePlan(
   const lorang_ = validateLorangCategories(plan);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
+  // #18 lot 2 : règles conditionnelles (objectif/ambition spécifiques) — hors
+  // score pondéré, cf. commentaire au-dessus des fonctions (même traitement
+  // que sportObjective/injuryRiskCompliance déjà hors PLAN_VALIDATION_WEIGHTS).
+  const startToRunStrength = validateStartToRunWeeklyStrength(plan, objective);
+  const trailBackToBack = validateTrailBackToBack(plan, objective);
+  const trailDPlusPresence = validateTrailDPlusPresence(plan, objective);
+  const dailySessionFloor = validateDailySessionFloor(plan, objective, ambition);
 
   // Combine all issues
   const allIssues = [
@@ -2155,6 +2360,10 @@ export function validatePlan(
     ...wbalFeasibility.issues,
     ...sessionDensity_.issues,
     ...lorang_.issues,
+    ...startToRunStrength.issues,
+    ...trailBackToBack.issues,
+    ...trailDPlusPresence.issues,
+    ...dailySessionFloor.issues,
     ...sportObjective.issues,
     ...injuryRiskCompliance.issues,
   ];
@@ -2249,6 +2458,10 @@ export function validatePlan(
       sessionDensityScore: sessionDensity_.score,
       lorangCategoriesScore: lorang_.score,
       injuryRiskComplianceScore: injuryRiskCompliance.score,
+      startToRunStrengthScore: startToRunStrength.score,
+      trailBackToBackScore: trailBackToBack.score,
+      trailDPlusPresenceScore: trailDPlusPresence.score,
+      dailySessionFloorScore: dailySessionFloor.score,
       overallComment,
     },
   };
@@ -2278,6 +2491,18 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| ⚡ Faisabilité W'bal | ${result.summary.wbalFeasibilityScore}/100 | ${result.summary.wbalFeasibilityScore >= 90 ? "✅" : result.summary.wbalFeasibilityScore >= 70 ? "⚠️" : "❌"} |`);
   lines.push(`| 🎨 Catégories Lorang A-D | ${result.summary.lorangCategoriesScore}/100 | ${result.summary.lorangCategoriesScore >= 75 ? "✅" : result.summary.lorangCategoriesScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| 🛡️ Risque blessure (charge impact élevé) | ${result.summary.injuryRiskComplianceScore}/100 | ${result.summary.injuryRiskComplianceScore >= 75 ? "✅" : result.summary.injuryRiskComplianceScore >= 50 ? "⚠️" : "❌"} |`);
+  if (result.summary.startToRunStrengthScore < 100) {
+    lines.push(`| 🏋️ Renfo Fondation hebdo (Start to Run) | ${result.summary.startToRunStrengthScore}/100 | ${result.summary.startToRunStrengthScore >= 75 ? "✅" : result.summary.startToRunStrengthScore >= 50 ? "⚠️" : "❌"} |`);
+  }
+  if (result.summary.trailBackToBackScore < 100) {
+    lines.push(`| ⛰️ Back-to-back trail | ${result.summary.trailBackToBackScore}/100 | ${result.summary.trailBackToBackScore >= 75 ? "✅" : "⚠️"} |`);
+  }
+  if (result.summary.trailDPlusPresenceScore < 100) {
+    lines.push(`| 📈 D+ chiffré (trail) | ${result.summary.trailDPlusPresenceScore}/100 | ${result.summary.trailDPlusPresenceScore >= 75 ? "✅" : result.summary.trailDPlusPresenceScore >= 50 ? "⚠️" : "❌"} |`);
+  }
+  if (result.summary.dailySessionFloorScore < 100) {
+    lines.push(`| 🔥 Plancher séances/jour (Elite+) | ${result.summary.dailySessionFloorScore}/100 | ${result.summary.dailySessionFloorScore >= 75 ? "✅" : result.summary.dailySessionFloorScore >= 50 ? "⚠️" : "❌"} |`);
+  }
   lines.push("");
   {
     const d = result.lorangCategories;
