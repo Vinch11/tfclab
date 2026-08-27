@@ -2216,7 +2216,9 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
     vo2max_run,
     threshold_pace,
     durability_index: tte?.tte_min ?? null,
-    race_readiness_state: "GREEN",
+    // Dérivé du score réel — auparavant "GREEN" en dur quel que soit le
+    // score ci-dessous, traitant tout athlète comme frais dans l'export PDF.
+    race_readiness_state: payload.potentielPhysiologique.score >= 80 ? "GREEN" : payload.potentielPhysiologique.score >= 60 ? "ORANGE" : "RED",
     race_readiness_score: payload.potentielPhysiologique.score ?? 70,
     athlete_experience: "MEDIUM",
     ambition: ambition?.current ?? null,
