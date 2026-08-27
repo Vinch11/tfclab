@@ -55,6 +55,10 @@ export interface WeekMetrics {
   isDeload: boolean;
   /** Whether this looks like a race week */
   isRaceWeek: boolean;
+  /** Whether this is an explicitly-named threshold block (norvégien double-seuil,
+   *  Sweet Spot étendu) — méthodologie différente et volontairement non polarisée,
+   *  cf. THRESHOLD_BLOCK_PATTERNS. */
+  isThresholdBlock: boolean;
   /** Key sessions count (🔑 or intensity sessions) */
   keySessions: number;
   /** F-23: Real total weekly duration extracted from session text (minutes) */
@@ -172,6 +176,16 @@ const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractio
 const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|threshold|vo2|vma|sortie\s*longue|\bsl\b|long\s*(?:run|ride)|brick|race(?:[\s_.-]*sim|[\s_.-]*pace|[\s_.-]*power)|test|compétition|🏁|\bsst\b|sweet[\s_-]*spot|over.?under|train[\s_-]*low|fat\s*(?:max|ox)|lipid|tempo|norv[ée]gi|norwegian|double[\s_-]*threshold|pma|sprint|c[ôo]te|sfr|r[øo]nnestad|plio|strides|drill|force\s*max|[àa]\s*jeun|fasted|mlss|ftp|durabilit|simulation|endurance[\s_-]*long|z2[\s_-]*long|30[\/_ -]?30|allure|gut[\s_-]*train|back[\s_-]*to[\s_-]*back|renfo|ppg|muscul|gainage|core\b|strength/i;
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
 const RACE_PATTERNS = /🏁|course\b|race|compétition|épreuve|objectif|marathon|ironman|triathlon|semi|trail|10k/i;
+
+/** Blocs explicitement nommés comme seuil concentré (méthode norvégienne
+ *  double-seuil, Sweet Spot étendu) — cf. audit méthodologique Niveau 2 :
+ *  ces semaines appliquent délibérément un modèle différent du polarisé
+ *  Seiler (volume seuil élevé et contrôlé plutôt que 80/20), documenté comme
+ *  tel dans systemPrompt.ts (FEWSHOT_NORVEGIENNE_SEMI, table Chantier). Ce
+ *  n'est pas un plan qui rate la polarisation — c'est un plan qui suit une
+ *  autre méthodologie sourcée sur CES semaines précisément nommées comme
+ *  telles, à exempter du Rule 1 comme isDeload/isRaceWeek. */
+const THRESHOLD_BLOCK_PATTERNS = /norvégien|double.?seuil|sweet.?spot/i;
 
 // Strides / accélérations progressives : accroche neuromusculaire courte
 // (10-30s × 4-10 répétitions) greffée en fin de séance EF — Seiler classe
@@ -403,6 +417,9 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
   // Race week detection
   const isRaceWeek = week.sessions.some(s => RACE_PATTERNS.test(`${s.title} ${s.details}`));
 
+  // Threshold block detection (Niveau 2) — nommage explicite du bloc/thème
+  const isThresholdBlock = THRESHOLD_BLOCK_PATTERNS.test(themeText);
+
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
 
@@ -440,6 +457,7 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     },
     isDeload,
     isRaceWeek,
+    isThresholdBlock,
     keySessions,
     totalDurationMin,
     keyDurationMin,
@@ -468,9 +486,11 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
   let compliant = 0;
 
   for (const wm of metrics) {
-    // Semaines exclues de l'évaluation (décharge / course / <3 séances) :
-    // elles ne comptent NI au numérateur NI au dénominateur (sinon score > 100).
-    if (wm.isDeload || wm.isRaceWeek || wm.activeSessions < 3) {
+    // Semaines exclues de l'évaluation (décharge / course / bloc seuil concentré
+    // explicitement nommé — norvégien double-seuil, Sweet Spot étendu, cf. audit
+    // Niveau 2 / <3 séances) : elles ne comptent NI au numérateur NI au
+    // dénominateur (sinon score > 100).
+    if (wm.isDeload || wm.isRaceWeek || wm.isThresholdBlock || wm.activeSessions < 3) {
       continue;
     }
 
@@ -967,6 +987,15 @@ const PHASE_ORDER: Record<string, number> = {
   "fondation": 1, "adaptation": 1,
   "chantier": 2, "développement": 2, "build": 2,
   "consolidation": 3,
+  // "Peak" (anglais, tel quel) : nom de phase compressée imposé par
+  // promptHelpers.ts pour les plans Ultra-Trail ≤6 sem ("Fondation 2 sem ·
+  // Build 2 sem · Peak 1 sem · Taper 1 sem") — remplace Consolidation +
+  // Race-Specific dans ce scénario défensif, SANS le contenu race-pace/
+  // simulation de Race-Specific (le garde-fou interdit explicitement tout
+  // bloc VMA/seuil dur et toute phase Race-Specific longue ici). D'où un
+  // index entre Chantier(2) et Race-Specific(4), avec sa propre signature
+  // de contenu ci-dessous plutôt qu'un alias d'une phase existante.
+  "peak": 3.5,
   "race-specific": 4, "race specific": 4, "spécifique": 4, "specific": 4,
   "affûtage": 5, "taper": 5, "affutage": 5,
 };
@@ -984,6 +1013,11 @@ const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: Re
   3: { // Consolidation: Limiter #2, maintain #1, volume toward peak
     expected: /consolid|maintien|rappel|seuil|allure|durabilité/i,
     forbidden: /taper|affûtage|supercomp/i,
+  },
+  3.5: { // Peak (Ultra-Trail compressé) : volume Z2 + D+ progressif, JAMAIS de
+    // VMA/seuil dur ni de race-pace/simulation — garde-fou "finir sans blessure"
+    expected: /z2|endurance|d\+|dénivelé|volume|technique/i,
+    forbidden: /race.?pace|simulation|vma|seuil\s*(dur|long)|fractionn|force\s*max\s*3.?[45]/i,
   },
   4: { // Race-Specific: Race-pace, simulations, Gut Training
     expected: /race.?pace|simulation|brique|gut\s*train|allure\s*course|spécifique/i,
@@ -1008,6 +1042,7 @@ const PHASE_DURATION_RANGE: Record<number, [number, number]> = {
   1: [2, 6],   // Fondation
   2: [2, 6],   // Chantier
   3: [2, 6],   // Consolidation
+  3.5: [1, 2], // Peak (compressé Ultra-Trail ≤6 sem — "Peak 1 sem" dans promptHelpers.ts)
   4: [2, 6],   // Race-Specific
   5: [1, 3],   // Affûtage
 };
@@ -1070,13 +1105,22 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
     const idx = getPhaseIndex(phase.name);
     if (idx === null) continue;
     if (idx < lastPhaseIdx) {
-      issues.push({
-        rule: "phase_coherence",
-        severity: "error",
-        message: `Régression de phase détectée : "${phase.name}" (${phase.weeks}) apparaît APRÈS une phase plus avancée`,
-        detail: `La périodisation doit progresser : Fondation → Chantier → Consolidation → Race-Specific → Affûtage. Pas de retour en arrière.`,
-      });
-      score -= 25;
+      // Niveau 2 : un cycle Chantier↔Consolidation explicitement répété (nouveau
+      // bloc plus spécifique après consolidation d'un premier limiteur) est une
+      // structure Issurin légitime, pas une régression — cf. Block Periodization
+      // par limiteur (systemPrompt.ts). On ne tolère ce recul QUE dans la fenêtre
+      // Chantier(2)/Consolidation(3) : un retour à Fondation(1), ou un recul
+      // depuis Race-Specific(4)/Affûtage(5) déjà atteint, reste une vraie erreur.
+      const isToleratedBlockCycle = idx >= 2 && idx <= 3 && lastPhaseIdx <= 3;
+      if (!isToleratedBlockCycle) {
+        issues.push({
+          rule: "phase_coherence",
+          severity: "error",
+          message: `Régression de phase détectée : "${phase.name}" (${phase.weeks}) apparaît APRÈS une phase plus avancée`,
+          detail: `La périodisation doit progresser : Fondation → Chantier → Consolidation → Race-Specific → Affûtage. Pas de retour en arrière (un nouveau cycle Chantier↔Consolidation reste toléré).`,
+        });
+        score -= 25;
+      }
     }
     lastPhaseIdx = idx;
   }
@@ -1995,7 +2039,11 @@ function validateLorangCategories(
 
   for (const w of plan.weeks) {
     const active = w.sessions.filter((s) => !s.isRest);
-    const isDeload = DELOAD_PATTERNS.test(`${w.theme} ${w.phase}`.toLowerCase()) || active.length <= 3;
+    const weekThemeText = `${w.theme} ${w.phase}`.toLowerCase();
+    const isDeload = DELOAD_PATTERNS.test(weekThemeText) || active.length <= 3;
+    // Niveau 2 : bloc seuil concentré explicitement nommé (norvégien double-seuil,
+    // Sweet Spot étendu) — même exemption que Rule 1, cf. THRESHOLD_BLOCK_PATTERNS.
+    const isThresholdBlock = THRESHOLD_BLOCK_PATTERNS.test(weekThemeText);
     const bd: LorangWeekBreakdown = {
       weekNumber: w.weekNumber, isDeload,
       A: 0, B: 0, C: 0, D: 0, unknown: 0,
@@ -2024,8 +2072,8 @@ function validateLorangCategories(
       });
     }
 
-    // Règle 2 : polarisation intra-semaine (hors décharge)
-    if (!isDeload && bd.active >= 4) {
+    // Règle 2 : polarisation intra-semaine (hors décharge / bloc seuil concentré)
+    if (!isDeload && !isThresholdBlock && bd.active >= 4) {
       const hiPct = ((bd.A + bd.B) / bd.active) * 100;
       if (hiPct > LORANG_HI_INTENSITY_MAX_PCT) {
         issues.push({

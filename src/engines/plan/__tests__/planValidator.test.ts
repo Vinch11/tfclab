@@ -807,5 +807,174 @@ describe("planValidator", () => {
       expect(total).toBeCloseTo(1.0, 5);
     });
   });
+
+  // Audit méthodologique — Niveau 2 : le prompt donne un exemple few-shot
+  // complet (méthode norvégienne double-seuil) qui, suivi à la lettre par
+  // l'IA, viole mécaniquement la règle 80/20 telle qu'appliquée par Rule 1 —
+  // le prompt et le validateur se contredisaient sur ces semaines précises.
+  describe("Niveau 2 — exception bloc seuil concentré (norvégien/sweet spot)", () => {
+    function norwegianDoubleThresholdWeek(weekNumber: number): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Course", title: "🔑 Double Seuil #1 — Bas", details: "5x6min seuil bas 30min" },
+        { sport: "Course", title: "🔑 Double Seuil #1 — Haut", details: "8x1000m seuil haut 25min" },
+        { sport: "Course", title: "EF récupération", details: "40min Z1 récupération" },
+        { sport: "Course", title: "🔑 Double Seuil #2 — Bas", details: "4x2000m seuil bas 27min" },
+        { sport: "Course", title: "🔑 Double Seuil #2 — Haut", details: "6x1200m seuil haut 23min" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ], "Chantier TTE↑ — Norvégienne", "Chantier");
+    }
+
+    it("exempte une semaine explicitement nommée bloc norvégien de Rule 1 (polarisation)", () => {
+      const plan = makePlan([norwegianDoubleThresholdWeek(1), norwegianDoubleThresholdWeek(2)]);
+      const result = validatePlan(plan);
+      const polarizationIssues = result.issues.filter(i => i.rule === "polarization" && i.week === 1);
+      expect(polarizationIssues).toHaveLength(0);
+    });
+
+    it("continue de flaguer la même distribution si la semaine n'est pas nommée comme un bloc seuil", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Seuil #1 — Bas", details: "5x6min seuil bas 30min" },
+        { sport: "Course", title: "Seuil #1 — Haut", details: "8x1000m seuil haut 25min" },
+        { sport: "Course", title: "EF récupération", details: "40min Z1 récupération" },
+        { sport: "Course", title: "Seuil #2 — Bas", details: "4x2000m seuil bas 27min" },
+        { sport: "Course", title: "Seuil #2 — Haut", details: "6x1200m seuil haut 23min" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ], "Chantier seuil", "Chantier");
+      const result = validatePlan(makePlan([week, week]));
+      const polarizationIssues = result.issues.filter(i => i.rule === "polarization" && i.week === 1);
+      expect(polarizationIssues.length).toBeGreaterThan(0);
+    });
+  });
+
+  // Audit méthodologique — Niveau 2 : Issurin (Block Periodization) prévoit un
+  // nouveau bloc concentré par limiteur — un plan à 2 limiteurs enchaîne donc
+  // légitimement Chantier→Consolidation→Chantier(#2)→Consolidation(#2). Le
+  // validateur bannissait jusqu'ici tout recul d'indice de phase, sans
+  // distinguer ce cycle voulu d'une vraie régression.
+  describe("Niveau 2 — cycle Chantier↔Consolidation toléré (Issurin)", () => {
+    function phaseWeek(weekNumber: number, phase: string): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+      ], phase, phase);
+    }
+
+    it("ne flague pas un second cycle Chantier→Consolidation pour un second limiteur", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Consolidation"),
+        phaseWeek(3, "Chantier 2"),
+        phaseWeek(4, "Consolidation"),
+        phaseWeek(5, "Race-Specific"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues).toHaveLength(0);
+    });
+
+    it("flague toujours un vrai retour à Fondation après le Chantier", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Consolidation"),
+        phaseWeek(3, "Fondation"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues.length).toBeGreaterThan(0);
+    });
+
+    it("flague toujours un recul depuis Race-Specific vers Chantier", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Race-Specific"),
+        phaseWeek(3, "Chantier 2"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues.length).toBeGreaterThan(0);
+    });
+  });
+
+  // Audit méthodologique — phase compressée "Peak" (promptHelpers.ts, garde-fou
+  // Ultra-Trail ≤6 sem : "Fondation 2 sem · Build 2 sem · Peak 1 sem · Taper 1
+  // sem") ne matchait aucune clé de PHASE_ORDER — getPhaseIndex("Peak") rendait
+  // null, donc validatePhaseCoherence ignorait silencieusement cette phase pour
+  // l'ordre, la durée ET le contenu, précisément sur le scénario défensif que le
+  // prompt identifie comme le plus à risque (taper ultra compressé).
+  describe("Phase compressée 'Peak' (Ultra-Trail ≤6 sem)", () => {
+    function peakWeek(weekNumber: number, sessions: Partial<ParsedSession>[] = [
+      { sport: "Course", title: "EF Z2 volume", details: "Volume D+ progressif, aisance respiratoire" },
+      { sport: "Course", title: "SL D+", details: "Sortie longue Z2 dénivelé progressif" },
+    ]): ParsedWeek {
+      return makeWeek(weekNumber, sessions, "Peak", "Peak");
+    }
+
+    it("ne flague pas de régression pour Fondation→Chantier→Peak→Affûtage", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "Fondation" }], "Fondation", "Fondation"),
+        makeWeek(2, [{ sport: "Course", title: "Chantier D+", details: "Build" }], "Chantier", "Chantier"),
+        peakWeek(3),
+        makeWeek(4, [{ sport: "Course", title: "Rappel activation", details: "Taper" }], "Affûtage", "Affûtage"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues).toHaveLength(0);
+    });
+
+    it("flague toujours une régression réelle depuis Peak vers Chantier", () => {
+      const weeks = [
+        peakWeek(1),
+        makeWeek(2, [{ sport: "Course", title: "Chantier D+", details: "Build" }], "Chantier", "Chantier"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues.length).toBeGreaterThan(0);
+    });
+
+    it("flague une phase Peak trop longue pour la fenêtre compressée (1-2 sem)", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "Fondation" }], "Fondation", "Fondation"),
+        peakWeek(2), peakWeek(3), peakWeek(4), peakWeek(5),
+      ];
+      // Bloc "Phases" fourni explicitement (format "2-5" parsable par la regex
+      // de durée) plutôt que dérivé des semaines ("S2-S5", format que cette
+      // regex ne parse pas — limitation préexistante et hors scope ici).
+      const plan = makePlan(weeks);
+      plan.phases = [
+        { name: "Fondation", weeks: "1-1" },
+        { name: "Peak", weeks: "2-5" },
+      ];
+      const result = validatePlan(plan);
+      const durationIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /trop longue/i.test(i.message) && /Peak/i.test(i.message)
+      );
+      expect(durationIssue).toBeDefined();
+    });
+
+    it("flague un contenu VMA/seuil dur en phase Peak (interdit par le garde-fou ultra-trail)", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Force max", details: "Fondation" }], "Fondation", "Fondation"),
+        peakWeek(2, [
+          { sport: "Course", title: "VMA piste", details: "6x400m à VMA fractionné" },
+        ]),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const contentIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /inadapté en phase "Peak"/i.test(i.message)
+      );
+      expect(contentIssue).toBeDefined();
+    });
+  });
 });
 
