@@ -513,5 +513,43 @@ describe("planValidator", () => {
       expect(result.summary.injuryRiskComplianceScore).toBe(100);
     });
   });
+
+  describe("race_day — minimum de séances Race Week", () => {
+    // Audit fix — le garde-fou exigeait 5 séances réelles, le prompt en
+    // exigeait 6, et l'exemple few-shot donné à l'IA comme référence
+    // (FEWSHOT_RACEWEEK_MARATHON) n'en démontre que 4 (2 rappels/activation +
+    // Jour J, le reste en repos) : un plan fidèle à cet exemple était donc
+    // rejeté par ce garde-fou. Les deux sont désormais alignés sur 4.
+
+    function raceWeekWith(realSessionsCount: number): ParsedWeek {
+      const sessions: Partial<ParsedSession>[] = [];
+      for (let i = 0; i < realSessionsCount; i++) {
+        sessions.push(
+          i === realSessionsCount - 1
+            ? { sport: "Course", title: "🏁 COURSE OBJECTIF", details: "Jour J — pacing + nutrition" }
+            : { sport: "Course", title: "Rappel allure course", details: "Séance courte" },
+        );
+      }
+      // Complète la semaine à 7 jours avec du repos.
+      while (sessions.length < 7) {
+        sessions.push({ sport: "Repos", title: "Repos complet", details: "", isRest: true });
+      }
+      return makeWeek(1, sessions, "Taper", "taper");
+    }
+
+    it("reproduit exactement l'exemple few-shot (4 séances réelles, dont Jour J) sans avertissement 'sous-peuplée'", () => {
+      const plan = makePlan([raceWeekWith(4)]);
+      const result = validatePlan(plan, undefined, undefined, [1]);
+      const warnings = result.issues.filter(i => i.rule === "race_day" && i.message.includes("sous-peuplée"));
+      expect(warnings).toHaveLength(0);
+    });
+
+    it("signale toujours une Race Week en dessous de 4 séances réelles", () => {
+      const plan = makePlan([raceWeekWith(3)]);
+      const result = validatePlan(plan, undefined, undefined, [1]);
+      const warnings = result.issues.filter(i => i.rule === "race_day" && i.message.includes("sous-peuplée"));
+      expect(warnings).toHaveLength(1);
+    });
+  });
 });
 
