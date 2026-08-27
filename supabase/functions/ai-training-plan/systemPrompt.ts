@@ -700,6 +700,11 @@ Règles : Sweet Spot → B. Z3 > 30min → B. Chaque semaine doit contenir 1 sé
 Noms des blocs : Fondation, Chantier [Limiteur], Consolidation, Race-Specific, Affûtage.
 Séquençage Standard (intensité précoce, attribution "Lorang" non vérifiée — cf. section précédente) pour IM/70.3/Marathon Competitor+ :
 1. Bloc Fondation + Intensité (3-4 sem) : VO2max courts + Force max + Z2 croissant + Train Low
+   ⚠️ EXCEPTION si Limiteur #1 = VO2max bas (cf. matrice ci-dessous) : NE PAS placer de VO2max
+   en Fondation. Le stimulus VO2max est réservé au Bloc Chantier dédié ("Chantier VO2max" :
+   Billat 2-3x/sem), pour concentrer l'effort sur le limiteur au lieu de le diluer en priming
+   précoce. Fondation se limite alors à Force max + Z2 croissant (cf. colonne "VO2max bas" de
+   la matrice, qui fait autorité sur ce texte général en cas de conflit).
 2. Bloc Chantier [Limiteur #1] (3-4 sem) : Concentration sur limiteur #1 (2-3 stimuli/sem)
 3. Bloc Consolidation + [Limiteur #2] (3-4 sem) : Limiteur #2 prio + rappels #1
 4. Bloc Race-Specific (2-4 sem) : Allure course, simulations, Gut Training

@@ -333,6 +333,11 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     const isVlamaxLimiter = /vlamax|glycoly|anaerob/i.test(L1);
     const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
     const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
+    // Cf. matrice "Séquençage par Limiteur Principal" du prompt statique : quand
+    // VO2max EST le limiteur #1, le stimulus VO2max est réservé au Bloc Chantier
+    // dédié (concentration Issurin), pas dilué en priming dès la Fondation — seul
+    // ce cas précis exclut VO2max de la Fondation (FTP/kg bas garde le priming).
+    const isVo2maxLimiter = /vo2max/i.test(L1);
 
     let fondationPct = 0.35;
     if (isEconomyLimiter) fondationPct = 0.42;
@@ -360,7 +365,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     } else {
       const chantierEnd = fondationWeeks + Math.max(1, Math.ceil(buildWeeks * (isVlamaxLimiter || isDurabilityLimiter ? 0.55 : 0.5)));
       const consolEnd = fondationWeeks + buildWeeks;
-      lines.push(`  Bloc Fondation + Intensité : S1-S${fondationWeeks}${isEconomyLimiter ? " (étendu: adaptation motrice L1)" : ""}`);
+      lines.push(`  Bloc Fondation${isVo2maxLimiter ? " (SANS VO2max — réservé au Bloc Chantier dédié)" : " + Intensité"} : S1-S${fondationWeeks}${isEconomyLimiter ? " (étendu: adaptation motrice L1)" : ""}`);
       lines.push(`  Bloc Chantier [${L1Short}↓] : S${fondationWeeks + 1}-S${chantierEnd}${isVlamaxLimiter ? " (étendu: chantier métabolique prioritaire)" : ""}`);
       if (consolEnd > chantierEnd) lines.push(`  Bloc Consolidation [${L2Short}] : S${chantierEnd + 1}-S${consolEnd}`);
       if (raceSpecificWeeks > 0) lines.push(`  Bloc Race-Specific : S${consolEnd + 1}-S${tw - taperWeeks}`);
