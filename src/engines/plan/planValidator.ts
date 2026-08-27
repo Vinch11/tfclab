@@ -2097,10 +2097,25 @@ function classifyLorang(session: ParsedSession): LorangCategory {
 
 function validateLorangCategories(
   plan: ParsedPlan,
+  objective?: string,
+  ambition?: string,
 ): { issues: ValidationIssue[]; score: number; distribution: LorangCategoryDistribution } {
   const issues: ValidationIssue[] = [];
   const weeks: LorangWeekBreakdown[] = [];
   let A = 0, B = 0, C = 0, D = 0, unknown = 0, totalActive = 0, tagged = 0;
+
+  // Batch 2 — Règle 1 (≥1 séance A/B par semaine) exemptée pour Finisher et
+  // Start to Run : la "Grille Volume/Intensité par Ambition" (systemPrompt.ts)
+  // prescrit explicitement 1-2 séances clés/semaine pour Finisher et 0 pour
+  // Start to Run — ces plans sont censés être quasi-exclusivement Z1-Z2
+  // (doctrine "pas d'intensités max", périodisation linéaire progressive).
+  // Sans cette exemption, un plan strictement conforme à cette doctrine se
+  // faisait pénaliser en erreur quasiment chaque semaine par une règle
+  // pensée pour les niveaux Age Group+/objectifs intenses. Les règles 2/4
+  // (polarisation, distribution globale) restent actives — seule la règle 1
+  // (présence stricte d'A/B) est exemptée.
+  const amb = (ambition || "").toLowerCase();
+  const isFinisherOrStartToRun = amb === "finisher" || normalizeObjectiveKey(objective || "") === "StartToRun";
 
   for (const w of plan.weeks) {
     const active = w.sessions.filter((s) => !s.isRest);
@@ -2126,9 +2141,9 @@ function validateLorangCategories(
     A += bd.A; B += bd.B; C += bd.C; D += bd.D; unknown += bd.unknown;
     weeks.push(bd);
 
-    // Règle 1 : hors décharge/race, ≥1 A ou B
+    // Règle 1 : hors décharge/race, ≥1 A ou B (exemptée Finisher/Start to Run, cf. commentaire ci-dessus)
     const isRaceWeek = weekHasRaceDay(w);
-    if (!isDeload && !isRaceWeek && !bd.hasHighOrThreshold && bd.active >= 3) {
+    if (!isDeload && !isRaceWeek && !isFinisherOrStartToRun && !bd.hasHighOrThreshold && bd.active >= 3) {
       issues.push({
         rule: "lorang_categories",
         severity: "error",
@@ -2682,7 +2697,7 @@ export function validatePlan(
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
-  const lorang_ = validateLorangCategories(plan);
+  const lorang_ = validateLorangCategories(plan, objective, ambition);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
   // #18 lot 1 : règles INVIOLABLE/OBLIGATOIRE sans contrôle post-génération jusqu'ici

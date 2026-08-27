@@ -444,6 +444,41 @@ describe("planValidator", () => {
     expect(result.lorangCategories.weeks[0].hasHighOrThreshold).toBe(false);
   });
 
+  // Batch 2 — exemption Finisher/Start to Run de la règle 1 (≥1 A/B par semaine) :
+  // la Grille Volume/Intensité par Ambition (systemPrompt.ts) prescrit 1-2
+  // séances clés/semaine pour Finisher et 0 pour Start to Run — une semaine
+  // tout-Z2 y est conforme à la doctrine, pas une violation.
+  it("Batch 2: n'émet pas d'erreur lorang_categories pour une semaine tout-Z2 en ambition Finisher", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 60min", details: "Endurance" },
+        { sport: "Vélo", title: "Z2 90min", details: "Endurance" },
+        { sport: "Course", title: "Sortie longue 20km Z2", details: "Long run" },
+      ], "Chantier"),
+    ]);
+    const result = validatePlan(
+      plan, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+      "finisher"
+    );
+    const errs = result.issues.filter(i => i.rule === "lorang_categories" && i.severity === "error");
+    expect(errs.length).toBe(0);
+  });
+
+  it("Batch 2: n'émet pas d'erreur lorang_categories pour une semaine tout-Z2 en objectif Start to Run", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 60min", details: "Endurance" },
+        { sport: "Vélo", title: "Z2 90min", details: "Endurance" },
+        { sport: "Course", title: "Sortie longue 20km Z2", details: "Long run" },
+      ], "Adaptation"),
+    ]);
+    const result = validatePlan(plan, "StartToRun");
+    const errs = result.issues.filter(i => i.rule === "lorang_categories" && i.severity === "error");
+    expect(errs.length).toBe(0);
+  });
+
   it("Lot 4: classifies explicit [A]/[B]/[C]/[D] tags and catalog prefixes", () => {
     const plan = makePlan([
       makeWeek(1, [
