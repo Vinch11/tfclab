@@ -145,29 +145,24 @@ function computeVlamaxComponent(vlamaxValue: number | null): { component: number
  * 3) TTE Component (20%)
  * TTE bas = moins de robustesse = risque accru
  */
-function computeTTEComponent(tteValue: number | null, objectif: string): { component: number; known: boolean } {
+function computeTTEComponent(tteValue: number | null, objectif: string, age: number | null): { component: number; known: boolean } {
   if (tteValue === null) {
     return { component: 50, known: false };
   }
-  
-  // Cibles CAP spécifiques
-  const targetMap: Record<string, number> = {
-    Marathon: 50,
-    Semi: 45,
-    Trail: 50,
-    TrailLong: 55,
-    TrailCourt: 42,
-    Course: 40,
-    IM: 55,
-    "703": 50,
-    Half: 50,
-  };
-  const target = targetMap[objectif] || 45;
-  
+
+  // Délègue à la source unique (physiologicalTargets.ts via tteEffectif.ts)
+  // au lieu d'une table locale figée. Avant ce fix : `getTTETarget` était
+  // importé (ligne 25) mais jamais appelé — la table locale ci-dessous avait
+  // divergé de la cible canonique de 5 à 8 min selon l'objectif (703: 50 au
+  // lieu de 45, TrailCourt: 42 au lieu de 50 via l'alias Trail...), biaisant
+  // ce composant du score de risque blessure (poids 20%) dans les deux sens
+  // selon l'objectif (audit Batch 3).
+  const target = getTTETarget(objectif, age);
+
   // Plus TTE est bas vs cible, plus le risque augmente
   const ratio = tteValue / target;
   const component = clamp(100 - ratio * 100, 0, 100);
-  
+
   return { component, known: true };
 }
 
@@ -234,7 +229,7 @@ export function computeRunInjuryRisk(params: ComputeRunInjuryRiskParams): RunInj
   // Calculer les composantes
   const fatigueComp = computeFatigueComponent(fatiguePct);
   const vlamaxResult = computeVlamaxComponent(vlamaxValue);
-  const tteResult = computeTTEComponent(tteValue, objectif);
+  const tteResult = computeTTEComponent(tteValue, objectif, age ?? null);
   const loadResult = computeLoadComponent(runLoad7d ?? null, tss7d ?? null);
   const ageResult = computeAgeComponent(age ?? null);
 

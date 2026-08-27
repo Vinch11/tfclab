@@ -17,6 +17,7 @@
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
 import type { VLamaxEffectif } from '../vlamaxEffectif';
 import type { TTEEffectif } from '../tteEffectif';
+import { getTTETarget } from '../tteEffectif';
 import type { FatigueEffectif } from '../fatigueEffectif';
 import type { IFSCResult } from './ifsc';
 import { getVlamaxTarget } from './vlamaxTargets';
@@ -231,16 +232,27 @@ function computeCAPVlamaxComponent(
 
 
 /**
- * TTE_factor TFCL™:
- * - >55 min → risque faible (10)
- * - 45–55 → neutre (30)
- * - <45 → risque élevé (60)
+ * TTE_factor TFCL™ (bandes RELATIVES à la cible SOURCE UNIQUE, ±10% —
+ * cf. computeCAPVlamaxComponent juste au-dessus pour le même principe) :
+ * - > target×1.1 → risque faible (10)
+ * - [target×0.9, target×1.1] → neutre (30)
+ * - < target×0.9 → risque élevé (60)
+ *
+ * Avant ce fix : `objectif` était reçu (`_objectif`, préfixé pour signaler
+ * qu'il était volontairement ignoré) et un seuil fixe 45/55 min s'appliquait
+ * à TOUS les objectifs — ~50 min de cible implicite. Ça sur-pénalisait un
+ * Semi (cible réelle 40 min : un TTE de 42 min passait "risque élevé" en
+ * étant pourtant au-dessus de sa vraie cible) et sous-pénalisait un Ultra
+ * (cible réelle 60 min : un TTE de 48 min passait "neutre" en étant pourtant
+ * nettement sous sa vraie cible). Les bornes ±10% ci-dessus reproduisent
+ * exactement l'ancien comportement pour une cible ≈50 min (audit Batch 3).
  */
-function computeCAPTTEComponent(tte: number | null, _objectif: string): { component: number; known: boolean } {
+function computeCAPTTEComponent(tte: number | null, objectif: string, age: number | null): { component: number; known: boolean } {
   if (tte === null) return { component: 30, known: false };
-  
-  if (tte > 55) return { component: 10, known: true };
-  if (tte >= 45) return { component: 30, known: true };
+
+  const target = getTTETarget(objectif, age);
+  if (tte > target * 1.1) return { component: 10, known: true };
+  if (tte >= target * 0.9) return { component: 30, known: true };
   return { component: 60, known: true };
 }
 
@@ -286,7 +298,7 @@ export function computeCAPInjuryRisk(input: CAPRiskInput): InjuryRiskEnvelope {
   // Calcul des composantes (4 piliers TFCL™)
   const fatigueComp = computeFatigueComponent(fatiguePct);
   const vlamaxResult = computeCAPVlamaxComponent(vlamaxValue, objectif);
-  const tteResult = computeCAPTTEComponent(tteMin, objectif);
+  const tteResult = computeCAPTTEComponent(tteMin, objectif, age ?? null);
   const economyResult = computeCAPEconomyComponent(economyLevel);
   const vlaBand = vlamaxResult.target;
   
@@ -509,11 +521,14 @@ function computeBikeVlamaxComponent(
  * - 45–55 → neutre (30)
  * - <45 → risque élevé (60)
  */
-function computeBikeTTEComponent(tte: number | null, _objectif: string): { component: number; known: boolean } {
+// TTE_factor TFCL™ Vélo : mêmes bandes relatives ±10% que le pilier CAP,
+// cf. computeCAPTTEComponent pour l'explication complète du fix (audit Batch 3).
+function computeBikeTTEComponent(tte: number | null, objectif: string, age: number | null): { component: number; known: boolean } {
   if (tte === null) return { component: 30, known: false };
-  
-  if (tte > 55) return { component: 10, known: true };
-  if (tte >= 45) return { component: 30, known: true };
+
+  const target = getTTETarget(objectif, age);
+  if (tte > target * 1.1) return { component: 10, known: true };
+  if (tte >= target * 0.9) return { component: 30, known: true };
   return { component: 60, known: true };
 }
 
@@ -530,7 +545,7 @@ export function computeBikeInjuryRisk(input: BikeRiskInput): InjuryRiskEnvelope 
   // Calcul des composantes (3 piliers TFCL™ Vélo)
   const fatigueComp = computeFatigueComponent(fatiguePct);
   const vlamaxResult = computeBikeVlamaxComponent(vlamaxValue, objectif);
-  const tteResult = computeBikeTTEComponent(tteMin, objectif);
+  const tteResult = computeBikeTTEComponent(tteMin, objectif, age ?? null);
   const vlaBand = vlamaxResult.target;
   
   // Construire les drivers (ordre TFCL™: Fatigue > VLamax > TTE)
