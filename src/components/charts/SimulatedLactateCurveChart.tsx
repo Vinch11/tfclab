@@ -308,7 +308,7 @@ export function SimulatedLactateCurveChart({
     const points: CurvePoint[] = [];
 
     for (let intensity = 25; intensity <= 110; intensity += 2) {
-      const lactate = findSteadyStateLactate(intensity, vo2max, vlamax);
+      const lactate = findSteadyStateLactate(intensity, vo2max, vlamax, weight);
       const vo2LMin = (vo2max * weight / 1000) * (intensity / 100);
       const energyKJPerMin = vo2LMin * 20.9;
       const watts = (energyKJPerMin * 1000 / 60) * efficiency;

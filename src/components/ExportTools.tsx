@@ -7775,7 +7775,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     // Generate discrete step points (lab-style paliers)
     const stepPoints: { x: number; y: number; lactate: number; intensity: number; watts: number }[] = [];
     for (let i = 30; i <= 100; i += 5) {
-      const lac = findSteadyStateLactate(i, v2max, vla);
+      const lac = findSteadyStateLactate(i, v2max, vla, weightKg);
       const watts = Math.round((i / 100) * pMax);
       const x = padL + ((i - 30) / 70) * plotW;
       const y = padT + plotH - Math.min(lac / 16, 1) * plotH;
@@ -7785,7 +7785,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     // Smooth curve (2% steps)
     const curvePoints: { x: number; y: number }[] = [];
     for (let i = 30; i <= 100; i += 2) {
-      const lac = findSteadyStateLactate(i, v2max, vla);
+      const lac = findSteadyStateLactate(i, v2max, vla, weightKg);
       const x = padL + ((i - 30) / 70) * plotW;
       const y = padT + plotH - Math.min(lac / 16, 1) * plotH;
       curvePoints.push({ x, y });
@@ -7797,7 +7797,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     // Threshold positions
     const lt1Y = padT + plotH - (2 / 16) * plotH;
     const lt2Y = padT + plotH - (4 / 16) * plotH;
-    const mlssY = padT + plotH - (findSteadyStateLactate(thresholds.lt2Intensity, v2max, vla) / 16) * plotH;
+    const mlssY = padT + plotH - (findSteadyStateLactate(thresholds.lt2Intensity, v2max, vla, weightKg) / 16) * plotH;
     
     // VO2 overlay curve
     const vo2Points: { x: number; y: number }[] = [];
