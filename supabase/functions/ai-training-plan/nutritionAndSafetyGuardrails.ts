@@ -90,15 +90,45 @@ function sportOfObjective(obj: string, sportMain?: string | null): Sport {
 }
 
 // -----------------------------------------------------------------------------
-// 1) CHO base rate (Mader-Heck compact)
+// 1) CHO base rate (Mader-Heck)
+//
+// Audit fix — cette fonction utilisait une approximation linéaire ad hoc
+// (cho_frac = f(intensité, VLamax)) totalement différente du modèle réel de
+// partition glucides/lipides utilisé côté client (calculateFatOxidation /
+// calculateCarbOxidation, src/lib/v2/maderMetabolicModel.ts — courbe FatMax
+// en cloche, ancrée sur VO2max/VLamax). Les deux formules divergeaient
+// jusqu'à 96% aux intensités de course courantes pour un profil élite bien
+// entraîné (VLamax basse) : l'approximation linéaire ne priorise pas assez
+// l'oxydation lipidique à intensité modérée, donc surestime largement les
+// glucides nécessaires par rapport au modèle physiologique réel. Remplacée
+// par un port fidèle de calculateFatOxidation/calculateCarbOxidation —
+// mêmes constantes, même courbe FatMax — pour que le bloc nutrition injecté
+// dans le prompt IA corresponde à ce qu'affiche le client pour le même
+// profil.
 // -----------------------------------------------------------------------------
+const ENERGY_PER_O2 = 20.9; // kJ per liter O2 (mixed substrate)
+const FAT_ENERGY_DENSITY = 38.9; // kJ per gram fat
+const CARB_ENERGY_DENSITY = 17.2; // kJ per gram carbohydrate
+
+function calculateFatOxidationGmin(intensity: number, vo2max: number, vlx: number): number {
+  if (intensity <= 0) return 0;
+  const maxFatOx = 0.5 + (vo2max - 40) * 0.02 - vlx * 0.15;
+  const peakFatOx = Math.max(0.3, Math.min(1.2, maxFatOx));
+  const fatMaxIntensity = 75 - vlx * 50;
+  const risePhase = intensity / fatMaxIntensity;
+  const fallPhase = Math.exp(-Math.pow((intensity - fatMaxIntensity) / 25, 2));
+  let fatOx = intensity <= fatMaxIntensity ? peakFatOx * Math.min(1, risePhase) : peakFatOx * fallPhase;
+  if (intensity > 85) fatOx *= Math.max(0, 1 - (intensity - 85) / 15);
+  return Math.max(0, fatOx);
+}
+
 function calculateCarbOxidationGmin(intensity: number, vo2: number, vlx: number, weightKg: number): number {
-  // Approx: fraction glucidique croit avec %VO2 et VLamax
-  const cho_frac = Math.min(1, 0.25 + 0.75 * (intensity / 100) + 0.4 * vlx);
-  const vo2_abs = (vo2 * weightKg * intensity / 100) / 1000; // L/min
-  // 1 L O2 (glucides) ≈ 5.05 kcal ; 4 kcal/g CHO
-  const kcal_min = vo2_abs * 5.05 * cho_frac;
-  return kcal_min / 4;
+  if (intensity <= 0) return 0;
+  const vo2_abs = (vo2 * weightKg / 1000) * (intensity / 100); // L/min
+  const totalEnergy = vo2_abs * ENERGY_PER_O2; // kJ/min
+  const fatEnergy = calculateFatOxidationGmin(intensity, vo2, vlx) * FAT_ENERGY_DENSITY;
+  const carbEnergy = Math.max(0, totalEnergy - fatEnergy);
+  return carbEnergy / CARB_ENERGY_DENSITY;
 }
 
 function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durationH: number, intensityPct: number): { rate: number; capMax: number; method: "mader" | "fallback" | "insufficient" } {
