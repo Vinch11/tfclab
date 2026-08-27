@@ -279,4 +279,65 @@ describe("computeDiagnostic", () => {
       expect(result.synthesis.headline).toBeTruthy();
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Audit — computeReadinessFromInput : conversion gapAnalysis → scores compass
+  // ═══════════════════════════════════════════════════════════════════════════
+  describe("Audit — cohérence des scores compass dérivés du gap analysis", () => {
+    it("score une VLamax basse (profil endurance favorable) plus haut qu'une VLamax haute (glycolytique)", () => {
+      // VLamax : plus bas est mieux. Avant fix, `100 + gap.gapPercent` traitait
+      // ce gap comme les autres métriques (positif = au-dessus cible = bon),
+      // ce qui inversait le score : une VLamax basse (bonne) était pénalisée,
+      // une VLamax haute (mauvaise) était survalorisée.
+      const lowVlamax: DiagnosticInput = { ...BASE_INPUT, vlamax: 0.20 };
+      const highVlamax: DiagnosticInput = { ...BASE_INPUT, vlamax: 0.95 };
+
+      const lowResult = computeDiagnostic(lowVlamax);
+      const highResult = computeDiagnostic(highVlamax);
+
+      const lowMetabolic = lowResult.readiness.potential.sources.metabolic.value;
+      const highMetabolic = highResult.readiness.potential.sources.metabolic.value;
+
+      expect(lowMetabolic).toBeGreaterThan(highMetabolic);
+    });
+
+    it("intègre le gap W' (clé 'W' (kJ)') dans le robustnessScore, pas seulement l'Économie", () => {
+      // La comparaison de chaîne utilisait "W'" alors que unifiedLimiterDetection.ts
+      // pousse la métrique sous la clé "W' (kJ)" → le gap W' était silencieusement
+      // ignoré, robustnessScore ne reflétant que l'Économie.
+      const goodEconomyBadWprime: DiagnosticInput = {
+        ...BASE_INPUT,
+        runEconomyScore: 90, // Économie excellente
+        wprimeKj: 8, // net sous la cible min (14 kJ pour 703/age_group)
+        cpDataQuality: "good",
+      };
+      const result = computeDiagnostic(goodEconomyBadWprime);
+      const robustness = result.readiness.potential.sources.robustness.value;
+
+      expect(robustness).toBeLessThan(90);
+    });
+
+    it("intègre le gap VMA dans l'aerobicScore en mode running, au lieu de l'ignorer", () => {
+      const lowVma: DiagnosticInput = {
+        ...BASE_INPUT,
+        objectif: "Marathon",
+        sportFocus: "run",
+        vma: 10, // largement sous la cible age_group (16 km/h)
+      };
+      const highVma: DiagnosticInput = {
+        ...BASE_INPUT,
+        objectif: "Marathon",
+        sportFocus: "run",
+        vma: 22, // au-dessus de la cible
+      };
+
+      const lowResult = computeDiagnostic(lowVma);
+      const highResult = computeDiagnostic(highVma);
+
+      const lowAerobic = lowResult.readiness.potential.sources.aerobic.value;
+      const highAerobic = highResult.readiness.potential.sources.aerobic.value;
+
+      expect(highAerobic).toBeGreaterThan(lowAerobic);
+    });
+  });
 });

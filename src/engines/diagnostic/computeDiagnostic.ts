@@ -261,14 +261,19 @@ function computeReadinessFromInput(
   let robustnessScore = 50;
 
   for (const gap of limiter.gapAnalysis) {
-    const score = Math.max(0, Math.min(100, 100 + gap.gapPercent));
-    if (gap.metric === "VO2max" || gap.metric === "FTP/kg") {
+    if (gap.metric === "VO2max" || gap.metric === "FTP/kg" || gap.metric === "VMA") {
+      const score = Math.max(0, Math.min(100, 100 + gap.gapPercent));
       aerobicScore = Math.min(aerobicScore === 50 ? score : aerobicScore, score);
     } else if (gap.metric === "VLamax") {
-      metabolicScore = score;
+      // VLamax : plus bas est mieux (profil endurance), donc gapPercent positif signifie
+      // une VLamax AU-DESSUS de la cible optimale = mauvais — l'inverse de la convention
+      // des autres métriques (VO2max/FTP/VMA/TTE), où gapPercent positif = au-dessus de
+      // la cible = bon. Le signe doit être inversé pour rester cohérent avec l'échelle 0-100.
+      metabolicScore = Math.max(0, Math.min(100, 100 - gap.gapPercent));
     } else if (gap.metric === "TTE") {
-      toleranceScore = score;
-    } else if (gap.metric === "Économie" || gap.metric === "W'") {
+      toleranceScore = Math.max(0, Math.min(100, 100 + gap.gapPercent));
+    } else if (gap.metric === "Économie" || gap.metric === "W' (kJ)") {
+      const score = Math.max(0, Math.min(100, 100 + gap.gapPercent));
       robustnessScore = Math.min(robustnessScore === 50 ? score : robustnessScore, score);
     }
   }
