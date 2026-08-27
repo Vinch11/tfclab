@@ -1694,6 +1694,31 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Vérifie que l'athlète appartient bien au coach appelant — le client
+    // `admin` (service_role) contourne RLS, donc sans ce contrôle explicite
+    // n'importe quel utilisateur authentifié pouvait passer un athlete_id
+    // arbitraire et lire/pousser les données physiologiques (snapshots,
+    // FTP/VMA/VLamax...) d'un athlète d'un autre coach vers SON compte Nolio.
+    // Même pattern que les autres fonctions Nolio (assistant-chat,
+    // nolio-sync, nolio-records, ...).
+    const { data: athleteRow, error: athleteErr } = await admin
+      .from("athletes")
+      .select("id, coach_id")
+      .eq("id", body.athlete_id)
+      .maybeSingle();
+    if (athleteErr || !athleteRow) {
+      return new Response(JSON.stringify({ error: "Athlète introuvable" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (athleteRow.coach_id !== userId) {
+      return new Response(JSON.stringify({ error: "Accès refusé" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Token
     const { data: tokenRow, error: tokErr } = await admin
       .from("nolio_tokens")

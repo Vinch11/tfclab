@@ -4,7 +4,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Trophy, Users } from "lucide-react";
+import { User, Trophy } from "lucide-react";
 import type { UserRole } from "@/types/profile";
 import logo from "@/assets/logo-2fc.png";
 
@@ -13,6 +13,12 @@ interface RoleSelectorProps {
   loading?: boolean;
 }
 
+// Le rôle "Staff / Coach" n'est plus auto-sélectionnable ici — la faille de
+// sécurité corrigée dans la migration 20260827065948 (n'importe quel compte
+// pouvait s'auto-attribuer STAFF_COACH via `profiles.role`) est désormais
+// bloquée côté base, et ce choix libre en était le point d'entrée principal.
+// L'attribution du rôle coach se fait pour l'instant manuellement par
+// l'équipe TFCL, en attendant un vrai flux d'approbation.
 const roles: { id: UserRole; label: string; description: string; icon: React.ElementType; color: string }[] = [
   {
     id: "ATHLETE_LOISIR",
@@ -27,13 +33,6 @@ const roles: { id: UserRole; label: string; description: string; icon: React.Ele
     description: "Je vise des objectifs chronométriques ambitieux",
     icon: Trophy,
     color: "text-blue-500",
-  },
-  {
-    id: "STAFF_COACH",
-    label: "Staff / Coach",
-    description: "Je gère et accompagne des athlètes",
-    icon: Users,
-    color: "text-purple-500",
   },
 ];
 
@@ -82,6 +81,10 @@ export function RoleSelector({ onSelect, loading }: RoleSelectorProps) {
           Chargement...
         </p>
       )}
+
+      <p className="text-xs text-muted-foreground mt-8 text-center max-w-sm">
+        Tu es coach ? Contacte l'équipe Two For Coaching Lab pour activer ton accès staff.
+      </p>
     </div>
   );
 }
