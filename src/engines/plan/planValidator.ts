@@ -1925,7 +1925,22 @@ function validateSessionDensity(
 // C = Endurance fondamentale (Z1-Z2) cible 75-85% vol
 // D = Récupération stricte
 // Règle : hors décharge, chaque semaine ≥ 1 séance A OU B.
+//
+// Audit fix — les seuils de ce garde-fou (35% A+B / 55% C au niveau hebdo,
+// 30% A+B / 60% C au niveau global) étaient nettement plus laxistes que ce
+// que le prompt demande explicitement (POLARIZED TRAINING, §3 : 80% Z1-Z2 /
+// 0-5% Z3 / 15-20% Z4-Z5+, soit A+B ≤ 25% max ; table A-D : C = 75-85%), ET
+// divergents entre eux (deux paires de chiffres différentes pour la même
+// règle). Un plan à 34% A+B passait le contrôle hebdo sans avertissement
+// alors que le prompt vise ≤25% — le garde-fou n'empêchait quasiment rien de
+// ce qu'il prétendait vérifier. Seuils unifiés ci-dessous, utilisés
+// identiquement aux deux niveaux (hebdo et global).
 // ═══════════════════════════════════════════════════════════════════════════════
+
+/** A+B combinés ne doivent pas dépasser 25% du volume (0-5% Z3 + 15-20% Z4-Z5+, cf. prompt §3). */
+const LORANG_HI_INTENSITY_MAX_PCT = 25;
+/** C (endurance fondamentale) doit représenter au moins 75% du volume (cf. table A-D, prompt). */
+const LORANG_ENDURANCE_MIN_PCT = 75;
 
 const LORANG_EXPLICIT_TAG_RX = /\[\s*([ABCD])\s*\]/i;
 const LORANG_CATALOG_PREFIX_RX = /\b([ABCD])_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE)/;
@@ -1992,21 +2007,21 @@ function validateLorangCategories(
     // Règle 2 : polarisation intra-semaine (hors décharge)
     if (!isDeload && bd.active >= 4) {
       const hiPct = ((bd.A + bd.B) / bd.active) * 100;
-      if (hiPct > 35) {
+      if (hiPct > LORANG_HI_INTENSITY_MAX_PCT) {
         issues.push({
           rule: "lorang_categories",
           severity: "warning",
           week: w.weekNumber,
-          message: `S${w.weekNumber} : ${Math.round(hiPct)}% A+B (cible ≤ 30-35%) — polarisation Seiler compromise`,
+          message: `S${w.weekNumber} : ${Math.round(hiPct)}% A+B (cible ≤ ${LORANG_HI_INTENSITY_MAX_PCT}%) — polarisation Seiler compromise`,
         });
       }
       const cPct = (bd.C / bd.active) * 100;
-      if (cPct < 55) {
+      if (cPct < LORANG_ENDURANCE_MIN_PCT) {
         issues.push({
           rule: "lorang_categories",
           severity: "warning",
           week: w.weekNumber,
-          message: `S${w.weekNumber} : ${Math.round(cPct)}% C (endurance fondamentale) — cible 75-85%`,
+          message: `S${w.weekNumber} : ${Math.round(cPct)}% C (endurance fondamentale) — cible ${LORANG_ENDURANCE_MIN_PCT}-85%`,
         });
       }
     }
@@ -2027,18 +2042,18 @@ function validateLorangCategories(
   // Règle 4 : distribution globale polarisée
   const APct = pct(A), BPct = pct(B), CPct = pct(C);
   if (totalActive >= 12) {
-    if (APct + BPct > 30) {
+    if (APct + BPct > LORANG_HI_INTENSITY_MAX_PCT) {
       issues.push({
         rule: "lorang_categories",
         severity: "warning",
-        message: `Distribution globale ${APct + BPct}% A+B / ${CPct}% C — dépasse la cible polarisée Seiler 20/80`,
+        message: `Distribution globale ${APct + BPct}% A+B / ${CPct}% C — dépasse la cible polarisée Seiler (≤${LORANG_HI_INTENSITY_MAX_PCT}% A+B)`,
       });
     }
-    if (CPct < 60) {
+    if (CPct < LORANG_ENDURANCE_MIN_PCT) {
       issues.push({
         rule: "lorang_categories",
         severity: "warning",
-        message: `Seulement ${CPct}% de séances C (endurance fondamentale) sur l'ensemble du plan — cible ≥ 70%`,
+        message: `Seulement ${CPct}% de séances C (endurance fondamentale) sur l'ensemble du plan — cible ≥ ${LORANG_ENDURANCE_MIN_PCT}%`,
       });
     }
   }

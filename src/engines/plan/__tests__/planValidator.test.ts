@@ -458,6 +458,60 @@ describe("planValidator", () => {
     expect(result.summary.lorangCategoriesScore).toBeLessThan(90);
   });
 
+  // Audit fix — les seuils hebdo (35% A+B / 55% C) et globaux (30% A+B / 60% C)
+  // étaient plus laxistes que ce que le prompt demande (A+B ≤ 25%, C ≥ 75% —
+  // POLARIZED TRAINING §3 : 80% Z1-Z2 / 0-5% Z3 / 15-20% Z4-Z5+). Une semaine
+  // à 30% A+B / 70% C passait ces deux garde-fous sans le moindre avertissement.
+  it("Lot 4: signale (hebdo) une semaine à 30% A+B / 70% C — passait silencieusement l'ancien seuil 35%/55%", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "[A] VMA 30/30", details: "Z6" },
+        { sport: "Course", title: "[A] VO2max 5x4min", details: "Z6" },
+        { sport: "Course", title: "[B] Seuil 3x12min", details: "Z4" },
+        { sport: "Course", title: "[C] EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "[C] EF Z2 40min", details: "Endurance" },
+        { sport: "Course", title: "[C] EF Z2 50min", details: "Endurance" },
+        { sport: "Vélo", title: "[C] Z2 90min", details: "Endurance" },
+        { sport: "Course", title: "[C] EF Z2 35min", details: "Endurance" },
+        { sport: "Course", title: "[C] Sortie longue Z2", details: "Long run" },
+        { sport: "Course", title: "[C] EF Z2 30min", details: "Endurance" },
+      ], "Chantier"),
+    ]);
+    const result = validatePlan(plan);
+    const hiWarn = result.issues.find(i => i.rule === "lorang_categories" && /A\+B/.test(i.message));
+    const cWarn = result.issues.find(i => i.rule === "lorang_categories" && /endurance fondamentale/.test(i.message));
+    expect(hiWarn).toBeDefined();
+    expect(cWarn).toBeDefined();
+  });
+
+  it("Lot 4: signale (global) une distribution à 30% A+B / 70% C sur l'ensemble du plan — passait silencieusement l'ancien seuil 30%/60%", () => {
+    // 2 semaines à 2 A+B / 3 C, 2 semaines à 1 A+B / 4 C → 20 actives,
+    // 6 A+B (30%) / 14 C (70%) au global.
+    const heavyWeek = (n: number) => makeWeek(n, [
+      { sport: "Course", title: "[A] VMA 30/30", details: "Z6" },
+      { sport: "Course", title: "[B] Seuil 3x12min", details: "Z4" },
+      { sport: "Course", title: "[C] EF Z2 45min", details: "Endurance" },
+      { sport: "Course", title: "[C] EF Z2 40min", details: "Endurance" },
+      { sport: "Vélo", title: "[C] Z2 60min", details: "Endurance" },
+    ], "Chantier");
+    const lightWeek = (n: number) => makeWeek(n, [
+      { sport: "Course", title: "[B] Seuil 3x12min", details: "Z4" },
+      { sport: "Course", title: "[C] EF Z2 45min", details: "Endurance" },
+      { sport: "Course", title: "[C] EF Z2 40min", details: "Endurance" },
+      { sport: "Vélo", title: "[C] Z2 60min", details: "Endurance" },
+      { sport: "Course", title: "[C] Sortie longue Z2", details: "Long run" },
+    ], "Chantier");
+    const plan = makePlan([heavyWeek(1), heavyWeek(2), lightWeek(3), lightWeek(4)]);
+    const result = validatePlan(plan);
+    expect(result.lorangCategories.totalActive).toBe(20);
+    expect(result.lorangCategories.APct + result.lorangCategories.BPct).toBe(30);
+    expect(result.lorangCategories.CPct).toBe(70);
+    const globalHiWarn = result.issues.find(i => i.rule === "lorang_categories" && /Distribution globale/.test(i.message));
+    const globalCWarn = result.issues.find(i => i.rule === "lorang_categories" && /ensemble du plan/.test(i.message));
+    expect(globalHiWarn).toBeDefined();
+    expect(globalCWarn).toBeDefined();
+  });
+
   describe("injury_risk_compliance", () => {
     function highImpactCapWeek(weekNumber: number, count: number): ParsedWeek {
       const highImpact: Partial<ParsedSession>[] = [
