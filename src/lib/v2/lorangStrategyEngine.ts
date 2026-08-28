@@ -827,7 +827,14 @@ function activateLevers(
       lever: 'threshold_work',
       label: LEVER_DEFINITIONS.threshold_work.label,
       icon: LEVER_DEFINITIONS.threshold_work.icon,
-      priority: (primaryLimiter === 'motor' && ftpKgLow) || isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") ? 1 : 2,
+      // Priorité 1 réservée au cas où FTP/kg/VMA EST le limiteur principal
+      // identifié (même règle que vo2_intervals ci-dessus). Un gap FTP/kg ou
+      // VMA simplement "limiting" mais secondaire (ex. limiteur principal =
+      // glycolytique) ne doit pas faire remonter ce levier devant celui qui
+      // cible réellement le limiteur principal (ex. z2_volume) — sinon
+      // l'Action Principale peut afficher "Travail au Seuil" alors que le
+      // limiteur principal est un excès de VLamax, que le seuil ne corrige pas.
+      priority: (primaryLimiter === 'motor' && ftpKgLow) ? 1 : 2,
       reason: ftpGap && ftpGap.gapPercent < 0
         ? `${ftpGap.metric} ${Math.abs(clampPct(ftpGap.gapPercent)).toFixed(0)}% sous la cible (${ftpGap.value?.toFixed(1)} vs ${ftpGap.target?.toFixed(1)}) — développer la puissance soutenue`
 
@@ -1310,10 +1317,16 @@ export function computeLorangStrategy(input: LorangStrategyInput): LorangStrateg
   // 6. Synthèse
   const primaryLever = activatedLevers[0];
   const summary = {
-    mainAction: primaryLever 
-      ? `Focus ${primaryLever.label}` 
+    mainAction: primaryLever
+      ? `Focus ${primaryLever.label}`
       : "Maintenir l'équilibre actuel",
-    whyThis: limiterResult.reasons[0] || "Profil équilibré",
+    // La justification doit décrire le levier réellement affiché en Action
+    // Principale (primaryLever.reason est calculé sur la métrique propre à
+    // ce levier), pas systématiquement le limiteur principal générique —
+    // sinon "Action Principale" peut afficher un levier et le justifier par
+    // le gap d'une métrique différente (ex. "Travail au Seuil" justifié par
+    // un excès de VLamax, que le seuil ne corrige pas).
+    whyThis: primaryLever?.reason || limiterResult.reasons[0] || "Profil équilibré",
     whyNotOthers: prohibitions.length > 0
       ? `Éviter: ${prohibitions.map(p => p.label).join(', ')}`
       : "Aucune contre-indication majeure",
