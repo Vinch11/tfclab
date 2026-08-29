@@ -28,7 +28,7 @@ import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplate
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
-import { computeCAPInjuryRisk, type CAPRiskLevel } from "@/lib/capInjuryRisk";
+import { computeCAPInjuryRiskIndex, type CAPRiskLevel } from "@/lib/capInjuryRisk";
 import { CSVTemplateImporter } from "@/components/CSVTemplateImporter";
 
 // =============================================
@@ -938,7 +938,7 @@ function GoalDateSuggester() {
     else if (fatigueState === "ok" || fatigueState === "moderate") fatigueIndex = 45;
     
     // Compute CAP injury risk
-    const injuryRisk = computeCAPInjuryRisk({
+    const injuryRisk = computeCAPInjuryRiskIndex({
       vlamaxValue: vlamax,
       tteValue: tte,
       objectif: currentAthlete.objectif || selectedGoal

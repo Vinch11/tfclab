@@ -50,7 +50,7 @@ import { SessionOptionsDisplay } from "@/components/SessionOptionsDisplay";
 import { processSessionOptions, type SessionContext, type OptionSport } from "@/lib/templates/optionValidator";
 import { parseDurationFromText } from "@/lib/templates/durationParser";
 import { 
-  computeCAPInjuryRisk, 
+  computeCAPInjuryRiskIndex, 
   shouldShowCAPInjuryRisk,
   type CAPInjuryRiskResult 
 } from "@/lib/capInjuryRisk";
@@ -1405,7 +1405,7 @@ export default function TemplatesPage() {
     }
 
     // Compute CAP injury risk locally (to avoid circular dependency)
-    const localInjuryRisk = computeCAPInjuryRisk({
+    const localInjuryRisk = computeCAPInjuryRiskIndex({
       vlamaxValue: athleteMetrics.vlamaxEffectif.value,
       tteValue: athleteMetrics.tteEffectif.value,
       objectif: selectedAthlete.goal || "marathon",
@@ -1451,7 +1451,7 @@ export default function TemplatesPage() {
   // Compute CAP Injury Risk
   const capInjuryRisk = useMemo(() => {
     if (!staffMode || !selectedAthlete) return null;
-    return computeCAPInjuryRisk({
+    return computeCAPInjuryRiskIndex({
       vlamaxValue: athleteMetrics.vlamaxEffectif.value,
       tteValue: athleteMetrics.tteEffectif.value,
       objectif: selectedAthlete.goal || "IM",
@@ -1483,7 +1483,7 @@ export default function TemplatesPage() {
     else if (fatigueState === "low" || fatigueState === "faible") fatigueStatus = "low";
 
     // Compute CAP injury risk locally to avoid TDZ issues
-    const localCapRisk = computeCAPInjuryRisk({
+    const localCapRisk = computeCAPInjuryRiskIndex({
       vlamaxValue: athleteMetrics.vlamaxEffectif.value,
       tteValue: athleteMetrics.tteEffectif.value,
       objectif: selectedAthlete.goal || "IM",

@@ -300,7 +300,11 @@ function generateStaffAnalysis(
 // FONCTION PRINCIPALE
 // =============================================
 
-export function computeCAPInjuryRisk(params: CAPRiskParams): CAPInjuryRiskResult {
+// Renommée depuis `computeCAPInjuryRisk` pour lever l'ambiguïté avec la
+// fonction homonyme de src/lib/v2/injuryRiskUnified.ts — même nom, formats
+// de résultat totalement différents (index discret 0-4 ici vs score continu
+// 0-100 là-bas). Aucun changement de logique/valeurs, renommage pur.
+export function computeCAPInjuryRiskIndex(params: CAPRiskParams): CAPInjuryRiskResult {
   const { vlamaxValue, tteValue, objectif, ambition, age } = params;
 
   const thresholds = getThresholdsForObjectif(objectif, ambition ?? "age_group", age ?? null);

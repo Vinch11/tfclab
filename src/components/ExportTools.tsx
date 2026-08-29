@@ -37,7 +37,7 @@ import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zo
 import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";
 import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
-import { computeCAPInjuryRisk, getCAPRiskIcon } from "@/lib/capInjuryRisk";
+import { computeCAPInjuryRiskIndex, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment, getAgeAdjustedVLamaxProfil, getVLamaxAgeStatus, type VLamaxProfil } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getTargetsForAmbition, getVLamaxRange, AMBITION_TARGETS } from "@/lib/physiologicalTargets";
@@ -47,7 +47,6 @@ import { buildChartePageHTML } from "@/data/charteInterpretation";
 // ✅ NEW: Import Compass Scoring et CRR
 import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
 import { computeCompassScores, type CompassScores, type CompassAxisScore } from "@/lib/compassScoring";
-import { computeCAPInjuryRisk as computeCAPInjuryRiskEngine } from "@/lib/capInjuryRisk";
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 // ✅ NEW: Import FatMax TFCL et Nutrition V2
 import { computeFatMaxTFCL, computeFatMaxAnchorPctFTP, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
@@ -1695,7 +1694,7 @@ function buildExportPayload(
   });
   
   // Calculer CAP Injury Risk
-  const capRiskResult = computeCAPInjuryRisk({
+  const capRiskResult = computeCAPInjuryRiskIndex({
     vlamaxValue: vlamax.value,
     tteValue: tte.tte_min,
     objectif: athlete.goal || "IM"

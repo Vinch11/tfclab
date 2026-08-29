@@ -268,12 +268,14 @@ function scoreWorkout(
   phases: PhaseTag[],
   limiterKeys?: { primary?: string; secondary?: string },
   /**
-   * Risque blessure calculé (injuryRiskUnified.ts, via PlanConfig.injuryRisk) —
-   * MALUS de score sur les séances à impact mécanique élevé quand ÉLEVÉ/CRITIQUE,
-   * jamais une exclusion dure (une sortie longue reste nécessaire à un objectif
-   * marathon même à risque élevé ; on la rend juste moins préférentielle face à
-   * des alternatives plus courtes). Le plafonnement explicite (durée, fréquence)
-   * est géré séparément par l'instruction texte injectée dans le prompt.
+   * Risque blessure calculé (via PlanConfig.injuryRisk — run vient de
+   * runInjuryRisk.ts, bike vient de injuryRiskUnified.ts, cf.
+   * computeDiagnostic.ts) — MALUS de score sur les séances à impact
+   * mécanique élevé quand ÉLEVÉ/CRITIQUE, jamais une exclusion dure (une
+   * sortie longue reste nécessaire à un objectif marathon même à risque
+   * élevé ; on la rend juste moins préférentielle face à des alternatives
+   * plus courtes). Le plafonnement explicite (durée, fréquence) est géré
+   * séparément par l'instruction texte injectée dans le prompt.
    */
   injuryRisk?: { run?: "ELEVE" | "CRITIQUE"; bike?: "ELEVE" | "CRITIQUE" }
 ): number {
