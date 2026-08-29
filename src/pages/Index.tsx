@@ -38,7 +38,6 @@ import { VLamaxCAPCard } from "@/components/VLamaxCAPCard";
 import { TTEGlycogenInsightsCard } from "@/components/TTEGlycogenInsightsCard";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { SaisonPhasesView } from "@/components/SaisonPhasesView";
-import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AssistantDrawer } from "@/components/AssistantDrawer";
 import { ExpressDashboard } from "@/components/ExpressDashboard";

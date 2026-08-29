@@ -693,81 +693,7 @@ function generateBikeCoachOptions(level: InjuryRiskLevelUnified): string[] {
 }
 
 // ============================================
-// 6️⃣ MATRICE PERFORMANCE / RISQUE
-// ============================================
-
-export interface PerformanceRiskPosition {
-  riskX: number;       // 0-100 (axe X)
-  performanceY: number; // 0-100 (axe Y)
-  quadrant: 'optimal' | 'risk-perf' | 'safe-dev' | 'danger';
-  quadrantLabel: string;
-  quadrantColor: string;
-  advice: string;
-}
-
-export function computePerformanceRiskPosition(
-  riskEnvelope: InjuryRiskEnvelope,
-  vlamaxValue: number | null,
-  tteMin: number | null,
-  objectif: string
-): PerformanceRiskPosition {
-  const riskX = riskEnvelope.score;
-  
-  // Calcul du potentiel performance
-  let performanceY = 50;
-  
-  if (vlamaxValue !== null) {
-    const vlamaxTarget = objectif.includes('IM') ? 0.35 : objectif.includes('703') ? 0.40 : 0.45;
-    if (vlamaxValue <= vlamaxTarget) performanceY += 20;
-    else if (vlamaxValue <= vlamaxTarget + 0.05) performanceY += 10;
-    else if (vlamaxValue > vlamaxTarget + 0.15) performanceY -= 10;
-  }
-  
-  if (tteMin !== null) {
-    const tteTarget = objectif.includes('IM') ? 55 : objectif.includes('703') ? 50 : 45;
-    if (tteMin >= tteTarget + 5) performanceY += 20;
-    else if (tteMin >= tteTarget) performanceY += 10;
-    else if (tteMin < tteTarget - 10) performanceY -= 10;
-  }
-  
-  performanceY = clamp(performanceY, 0, 100);
-  
-  // Déterminer le quadrant
-  const lowRisk = riskX < 45;
-  const highPerf = performanceY >= 50;
-  
-  let quadrant: PerformanceRiskPosition['quadrant'];
-  let quadrantLabel: string;
-  let quadrantColor: string;
-  let advice: string;
-  
-  if (lowRisk && highPerf) {
-    quadrant = 'optimal';
-    quadrantLabel = 'Zone Optimale';
-    quadrantColor = 'hsl(var(--success))';
-    advice = 'Profil idéal pour la performance. Maintenir l\'équilibre.';
-  } else if (!lowRisk && highPerf) {
-    quadrant = 'risk-perf';
-    quadrantLabel = 'Performance à Risque';
-    quadrantColor = 'hsl(var(--warning))';
-    advice = 'Potentiel élevé mais risque de blessure. Vigilance sur la charge.';
-  } else if (lowRisk && !highPerf) {
-    quadrant = 'safe-dev';
-    quadrantLabel = 'Développement Sécurisé';
-    quadrantColor = 'hsl(var(--primary))';
-    advice = 'Profil sûr. Focus sur l\'amélioration de la performance.';
-  } else {
-    quadrant = 'danger';
-    quadrantLabel = 'Zone de Danger';
-    quadrantColor = 'hsl(var(--destructive))';
-    advice = 'Réduire la charge avant de développer la performance.';
-  }
-  
-  return { riskX, performanceY, quadrant, quadrantLabel, quadrantColor, advice };
-}
-
-// ============================================
-// 7️⃣ IMPACT SUR RECOMMANDATIONS (ANNOTATIONS)
+// 6️⃣ IMPACT SUR RECOMMANDATIONS (ANNOTATIONS)
 // ============================================
 
 export function getInjuryRiskAnnotations(envelope: InjuryRiskEnvelope): string[] {
@@ -951,8 +877,11 @@ C'est pourquoi on recommande parfois de reporter la charge sur le vélo.`
     answer: `Formule CAP: 0.35×Fatigue + 0.25×VLamax_factor + 0.25×TTE_factor + 0.15×Économie_factor
 Formule Vélo: 0.40×Fatigue + 0.35×VLamax_factor + 0.25×TTE_factor
 
-Seuils VLamax: <0.35 → faible, 0.35-0.55 → neutre, >0.55 → élevé
-Seuils TTE: >55 min → faible, 45-55 → neutre, <45 → élevé
+Seuils VLamax et TTE : RELATIFS à la cible propre à l'objectif de course (pas
+un seuil fixe identique pour tout le monde) — cf. src/lib/v2/vlamaxTargets.ts
+et getTTETarget(). VLamax : dans la fourchette cible → neutre, au-dessus →
+élevé, en-dessous → faible. TTE : dans ±10% de la cible → neutre, au-dessus
+de +10% → faible, en-dessous de -10% → élevé.
 
 Interprétation: <30 faible, 30-50 vigilance, 50-70 élevé, >70 critique`
   }

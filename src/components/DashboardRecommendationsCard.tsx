@@ -47,7 +47,7 @@ import {
   LowCRRJustification,
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
-import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
+import { computeCAPInjuryRiskIndex } from "@/lib/capInjuryRisk";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 
 const AXIS_CONFIG: Record<string, { icon: typeof Zap; color: string; label: string }> = {
@@ -161,7 +161,7 @@ export function DashboardRecommendationsCard({
     // Compute injury risk for runners
     let injuryRiskRun = undefined;
     if (sportFocus === "run" || sportFocus === "tri") {
-      const capRisk = computeCAPInjuryRisk({
+      const capRisk = computeCAPInjuryRiskIndex({
         vlamaxValue: vlamaxEffectif.value,
         tteValue: tteEffectif.tte_min,
         objectif,

@@ -55,7 +55,7 @@ import {
   LOW_CRR_JUSTIFICATION_EFFECTS,
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeVLamaxEffectif, computeTTEEffectif, getTTETarget } from "@/engines/diagnostic";
-import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
+import { computeCAPInjuryRiskIndex } from "@/lib/capInjuryRisk";
 import { getRiskColor, getRiskLabel, findWahooWorkoutById } from "@/data/wahooMapping";
 import { 
   getVLamaxRange, 
@@ -384,7 +384,7 @@ export function WahooPersonalizedRecommendations() {
     // Compute injury risk for runners using the correct API
     let injuryRiskRun = undefined;
     if (sportFocus === "run" || sportFocus === "tri") {
-      const capRisk = computeCAPInjuryRisk({
+      const capRisk = computeCAPInjuryRiskIndex({
         vlamaxValue: vlamaxEffectif.value,
         tteValue: tteEffectif.tte_min,
         objectif,

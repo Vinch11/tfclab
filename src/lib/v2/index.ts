@@ -129,7 +129,6 @@ export {
   computeInjuryRiskTFCL,
   computeCAPInjuryRisk,
   computeBikeInjuryRisk,
-  computePerformanceRiskPosition,
   getInjuryRiskAnnotations,
   
   // UI Helpers
@@ -148,7 +147,6 @@ export {
   type InjuryRiskEnvelope,
   type CAPRiskInput,
   type BikeRiskInput,
-  type PerformanceRiskPosition,
   type InjuryRiskSport,
   type InjuryRiskTFCLInput
 } from './injuryRiskUnified';
