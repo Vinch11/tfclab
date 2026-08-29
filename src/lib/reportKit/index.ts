@@ -53,7 +53,21 @@ export const REPORT_KIT_CSS = `
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { margin:0; background:#EDEAE2; font-family:"Outfit",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:${RK.ink}; }
-  .page { width:210mm; min-height:297mm; padding:16mm 15mm 14mm; background:${RK.paper}; margin:0 auto 8px; position:relative; page-break-after:always; overflow:hidden; }
+  /* display:flex column (plutôt qu'un bloc + .foot en position:absolute) :
+     Safari/WebKit a un bug d'impression documenté où un élément positionné en
+     absolute à l'intérieur d'un conteneur dont la hauteur vient de min-height
+     (pas d'une height fixe), combiné à page-break-after:always, fait sauter
+     une page quasi-blanche après CHAQUE page — le pied de page absolu "fuit"
+     hors de la zone imprimable calculée par Safari et déclenche une 2e page
+     physique avant que le saut forcé n'en déclenche une 3e. Chrome ne
+     reproduit pas ce bug (d'où le fait qu'il ait pu passer inaperçu en test).
+     Avec flex column + .foot en margin-top:auto (flux normal, plus jamais en
+     position:absolute), le pied de page est ancré en bas du flux du document
+     plutôt que positionné par rapport à une hauteur potentiellement mal
+     recalculée par le moteur d'impression — élimine la cause déclenchante
+     plutôt que de compenser un symptôme dont l'ampleur exacte varie par
+     moteur de rendu. */
+  .page { width:210mm; min-height:297mm; padding:16mm 15mm 14mm; background:${RK.paper}; margin:0 auto 8px; position:relative; page-break-after:always; overflow:hidden; display:flex; flex-direction:column; }
   .page:last-child { page-break-after:auto; }
   .eyebrow { font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:${RK.faint}; font-weight:600; }
   h1 { font-size:27px; line-height:1.12; margin:6px 0 4px; font-weight:600; letter-spacing:-.02em; }
@@ -86,7 +100,7 @@ export const REPORT_KIT_CSS = `
   .note { background:${RK.primarySoft}; border-left:3px solid ${RK.primary}; border-radius:0 8px 8px 0; padding:9px 12px; font-size:11px; line-height:1.55; color:${RK.inkSoft}; }
   .note.warn { background:#FDF4E3; border-left-color:#C8860D; }
   .note.bad { background:${RK.dangerSoft}; border-left-color:${RK.danger}; }
-  .foot { position:absolute; left:15mm; right:15mm; bottom:8mm; display:flex; justify-content:space-between; font-size:9px; color:${RK.faint}; border-top:1px solid ${RK.line}; padding-top:5px; }
+  .foot { margin-top:auto; padding-top:5px; display:flex; justify-content:space-between; font-size:9px; color:${RK.faint}; border-top:1px solid ${RK.line}; }
   .bar { height:6px; background:${RK.surfaceAlt}; border-radius:3px; overflow:hidden; margin-top:5px; }
   .bar > span { display:block; height:100%; background:${RK.primary}; border-radius:3px; }
   /* Page de garde */
