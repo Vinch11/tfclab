@@ -291,15 +291,27 @@ const Index = () => {
   }, [contextCurrentAthlete]);
 
   // ✅ Race Goals - Gestion des objectifs de course (après currentAthlete)
-  const { 
-    raceGoals, 
-    addRaceGoal, 
-    deleteRaceGoal, 
-    updateAthleteGoal, 
+  const {
+    raceGoals,
+    addRaceGoal,
+    deleteRaceGoal,
+    updateAthleteGoal,
     restoreRaceGoal,
     updateRaceGoalDate,
     loading: raceGoalsLoading,
   } = useAthleteRaceGoals(currentAthlete?.id ?? null);
+
+  // Force un re-render horaire pour que le badge "Bilan pré-objectif" (J-X)
+  // reste à jour au fil des jours — sans ça, le compte à rebours calculé
+  // inline dans le JSX (cf. plus bas) ne se recalcule que si la page
+  // re-render pour une AUTRE raison, et peut donc rester figé sur un J-X
+  // périmé pendant des jours si le coach laisse l'onglet ouvert. Même
+  // mécanisme que NextRaceIndicator.tsx.
+  const [, setDailyBadgeTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setDailyBadgeTick((t) => t + 1), 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Tabs valides gérés par cette page
   const validTabs = ["dashboard", "profil", "strategie", "outils", "configuration"];
