@@ -178,6 +178,19 @@ async function buildRegenCatalog(
   endWeek: number,
   totalWeeksForPhase: number,
   athleteId: string,
+  /**
+   * IDs catalogue des séances ACTUELLES de la semaine qu'on régénère.
+   * `historicalUsage` (fetchHistoricalCatalogUsage) ne couvre que les plans
+   * déjà archivés en base — la semaine en cours de régénération, elle,
+   * n'existe qu'en mémoire côté client et n'y apparaît donc jamais. Sans
+   * cette exclusion explicite, le catalogue scoré renvoie le même
+   * top-classement à chaque régénération (même phase/limiteur/objectif),
+   * et l'IA — malgré l'instruction texte "ne pas recopier mot pour mot" —
+   * reproduit très souvent les mêmes fiches : régénérer ne change alors
+   * rien. buildWorkoutCatalog gère déjà excludeIds sans jamais vider une
+   * couverture sport×famille (bypass automatique si aucune alternative).
+   */
+  currentWeekCatalogIds: string[] = [],
 ): Promise<{ workoutCatalog: string; historyUsedIdCounts?: Record<string, number> }> {
   const catalogSportFilter = getCatalogSportFilter(cfg.objective || "");
   const { excludeIdPatterns, excludeTags } = getCatalogExclusions(cfg.objective || "", cfg.raceGoals);
@@ -194,7 +207,7 @@ async function buildRegenCatalog(
     {
       maxItems: 80,
       chunkIndex: 0,
-      excludeIds: new Set(),
+      excludeIds: new Set(currentWeekCatalogIds),
       limiters: limiterKeys,
       prohibitions: cfg.prohibitions,
       sportFilter: catalogSportFilter,
@@ -1862,10 +1875,14 @@ export default function AITrainingPlanPage() {
     const week = parsedPlan.weeks.find(w => w.weekNumber === weekNumber);
     if (!week) { setIsRegenerating(false); return; }
 
-    const requestedSessions = parseInt(sessionsPerWeek, 10);
-    const expectedRealSessions = Number.isFinite(requestedSessions) && requestedSessions > 0
-      ? requestedSessions
-      : Math.max(1, week.sessions.filter(session => !session.isRest).length);
+    // Toujours dérivé du nombre RÉEL de séances de CETTE semaine, jamais du
+    // champ de formulaire `sessionsPerWeek` — ce champ n'est pas réinitialisé
+    // au changement d'athlète (state React persistant entre montages) et
+    // peut donc porter une valeur d'un athlète précédent, sans rapport avec
+    // le plan réellement affiché. Symptôme observé : régénération refusée
+    // ("l'IA a produit 10 séances au lieu de 7") alors que 10 est le nombre
+    // réel de la semaine et 7 une valeur de formulaire périmée.
+    const expectedRealSessions = Math.max(1, week.sessions.filter(session => !session.isRest).length);
 
     // Conserver tout le contexte de la génération initiale (branche S2R,
     // renforcement, limiteurs, interdictions et quotas). Le payload minimal
@@ -1893,7 +1910,10 @@ export default function AITrainingPlanPage() {
     // chaîne vide et l'IA génère hors bibliothèque (cf. buildRegenCatalog).
     let catalogResult: { workoutCatalog: string; historyUsedIdCounts?: Record<string, number> } = { workoutCatalog: "" };
     try {
-      catalogResult = await buildRegenCatalog(fullPlanConfig, weekNumber, weekNumber, parsedPlan.totalWeeks, currentAthlete.id);
+      const currentWeekCatalogIds = week.sessions
+        .map((s) => s.catalogId)
+        .filter((id): id is string => !!id);
+      catalogResult = await buildRegenCatalog(fullPlanConfig, weekNumber, weekNumber, parsedPlan.totalWeeks, currentAthlete.id, currentWeekCatalogIds);
     } catch (catalogErr) {
       console.warn("[handleRegenerateWeek] échec construction catalogue, régénération sans catalogue:", catalogErr);
     }
@@ -2032,7 +2052,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsRegenerating(false);
     }
-  }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, sessionsPerWeek, buildConfigWithCoachOverrides, objective, currentAthlete]);
+  }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, buildConfigWithCoachOverrides, objective, currentAthlete]);
 
 
   /**
