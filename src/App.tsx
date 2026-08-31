@@ -11,6 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AthleteProviders } from "@/components/AthleteProviders";
 import { AuthGate } from "@/components/AuthGate";
 import { OnboardingGate } from "@/components/OnboardingGate";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 
 // Eager: bundled in initial chunk
 import AuthPage from "./pages/AuthPage";
@@ -92,6 +93,7 @@ export default function App() {
           <BrowserRouter>
             <ScrollToTop />
             <AuthProvider>
+              <AppErrorBoundary>
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   {/* Auth */}
@@ -179,6 +181,7 @@ export default function App() {
                   <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
                 </Routes>
               </Suspense>
+              </AppErrorBoundary>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
