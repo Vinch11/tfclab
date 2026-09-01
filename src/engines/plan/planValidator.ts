@@ -1075,7 +1075,13 @@ const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: Re
   },
   5: { // Affûtage/Taper: Volume reduction, activation, rappels courts
     expected: /taper|affûtage|rappel|activation|supercomp|-\d{2,3}%\s*vol|réduction/i,
-    forbidden: /chantier|force\s*max|blocs?\s*concentré|build/i,
+    // Audit "cohérence placement des séances" — constat n°3 : ce motif ne
+    // contenait aucun mot-clé VO2max/VMA/fractionné/seuil, alors que ce sont
+    // précisément les contenus qui n'ont rien à faire en semaine d'affûtage
+    // (charge neuro-métabolique trop élevée à quelques jours de la course).
+    // Mots-clés ajoutés ci-dessous, avec limite de mot (\b) pour rester
+    // spécifique (ex. ne pas matcher "vasoconstriction" sur "vma").
+    forbidden: /chantier|force\s*max|blocs?\s*concentré|build|\bvo2\s*max\b|\bvma\b|fractionn[eé]|\bseuil\b/i,
   },
 };
 
