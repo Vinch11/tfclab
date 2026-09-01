@@ -23,6 +23,7 @@
  */
 import type { MergedPlan, MergedSession } from "@/lib/plan/mergePlanChunks";
 import type { CheckResult } from "./checks";
+import type { ValidationIssue } from "@/engines/plan/planValidator";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 
@@ -619,4 +620,44 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
   }
 
   return { id: "B11" as CheckResult["id"], label: "Contraintes fiches (Quand/Éviter) et note hebdo", level: "critical", pass, details };
+}
+
+// ── Branchement dans la génération réelle (jusqu'ici B11 ne tournait que dans
+//    l'outil QA admin, PlanQAPage — jamais sur un plan sauvegardé par un vrai
+//    coach pour un vrai athlète, cf. audit "cohérence placement des séances",
+//    constat n°2) ──────────────────────────────────────────────────────────
+/**
+ * Convertit les lignes `details` de checkB11 en `ValidationIssue[]`
+ * exploitables par `validatePlan`/`pendingCriticalIssues` (confirmation
+ * explicite avant sauvegarde, jamais un blocage muet).
+ *
+ * Filtre les lignes qui ne sont pas des violations individuelles (l'en-tête
+ * récapitulatif "Contraintes fiches/plan : N FAIL.", le récap "📊 phase
+ * mismatch ...", l'info agrégée "ℹ variantes ...") — seules les lignes au
+ * format "S{n} {jour} · {ID} — ..." sont de vraies violations par séance.
+ *
+ * Sévérité : "error" pour les violations `avoid` (Éviter en race-week/
+ * récup), le cap zone hebdo, "gros vélo la veille" manquant, et un phase
+ * mismatch catégorisé "fuite_mapping" (vraie fuite de mapping catalogue↔
+ * plan). Downgradé à "warning" pour la catégorie "granularité_intra_chunk"
+ * — le code de checkB11 la catégorise déjà lui-même comme du bruit de
+ * découpage en chunks plutôt qu'une vraie erreur (la fiche EST compatible
+ * avec une des phases où elle apparaît ailleurs dans le plan).
+ */
+export function checkB11ToValidationIssues(result: CheckResult): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  for (const line of result.details) {
+    const m = line.match(/^S(\d+)\s/);
+    if (!m) continue; // en-tête/récap/info agrégée, pas une violation individuelle
+    const week = parseInt(m[1], 10);
+    const severity: ValidationIssue["severity"] = line.includes("[granularité_intra_chunk]") ? "warning" : "error";
+    issues.push({
+      rule: "catalog_placement_rules",
+      severity,
+      week: Number.isFinite(week) ? week : undefined,
+      message: line,
+      detail: "Règle de placement déclarée par la fiche catalogue (Quand/Éviter) non respectée par le plan généré.",
+    });
+  }
+  return issues;
 }

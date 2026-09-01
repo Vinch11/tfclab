@@ -37,6 +37,7 @@ import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/pla
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
+import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
@@ -285,7 +286,7 @@ export default function AITrainingPlanPage() {
   const location = useLocation();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlan, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlan, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -1814,6 +1815,21 @@ export default function AITrainingPlanPage() {
         validatorGrade = vr.grade;
         validatorSummary = vr.summary as unknown as Record<string, unknown>;
         criticalIssues = vr.issues.filter(i => i.severity === "error");
+
+        // Audit "cohérence placement des séances" — constat n°2 : B11 (règles
+        // de placement déclarées par chaque fiche catalogue, Quand/Éviter/
+        // phase/cap zone hebdo) ne tournait jusqu'ici que dans l'outil QA
+        // admin (PlanQAPage), jamais sur un plan sauvegardé par un vrai coach.
+        // `mergedPlan` est déjà calculé par la génération réelle (mergePlanChunks)
+        // — aucun nouveau merge nécessaire pour brancher B11 ici.
+        if (mergedPlan) {
+          try {
+            const b11 = checkB11(mergedPlan, objective);
+            criticalIssues = [...criticalIssues, ...checkB11ToValidationIssues(b11).filter(i => i.severity === "error")];
+          } catch (b11Err) {
+            console.warn("[B11] échec du contrôle placement catalogue, sauvegarde sans ce contrôle:", b11Err);
+          }
+        }
       }
     } catch (vErr) {
       console.warn("[F-16] validator failed, persisting plan without score:", vErr);
