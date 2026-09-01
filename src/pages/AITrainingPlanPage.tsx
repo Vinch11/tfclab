@@ -485,7 +485,16 @@ export default function AITrainingPlanPage() {
       if (savedState.objective) setObjective(savedState.objective);
       else if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       if (savedState.raceName) setRaceName(savedState.raceName);
+      // Contrairement aux autres champs restaurés "si présent", raceFormat a
+      // besoin d'un else explicite : c'est lui qui décide si le plan suit le
+      // paradigme LCW (bricks interdits, back-to-back obligatoire) ou 70.3/IM
+      // continu (bricks autorisés). Sans réinitialisation, la valeur du
+      // dernier athlète consulté (ex. "lcw_3day") reste affichée pour un
+      // athlète dont l'état sauvegardé ne précise pas raceFormat — un
+      // athlète LCW peut alors se voir régénérer un plan/une semaine en
+      // règles 70.3 continu (bricks) sans que rien ne le signale.
       if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
+      else setRaceFormat("continuous");
       if (savedState.raceDate) setRaceDate(savedState.raceDate);
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
       if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
