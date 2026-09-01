@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { computeWeeklySessionQuota } from "@/engines/plan/sessionSizingMatrix";
 import { buildWeeklySlotLayout, diffLayoutVsWeek, formatWeeklySlotLayoutLine } from "@/engines/plan/weeklySlotLayout";
 
-function build(objective: string, ambition: string, hours: number, weekType: "load"|"recovery"|"taper"|"race") {
-  const r = computeWeeklySessionQuota(objective, ambition, hours, weekType)!;
+function build(objective: string, ambition: string, hours: number, weekType: "load"|"recovery"|"taper"|"race", isLCW = false) {
+  const r = computeWeeklySessionQuota(objective, ambition, hours, weekType, isLCW)!;
   return buildWeeklySlotLayout(r.quota, r.floors, weekType);
 }
 
@@ -158,5 +158,43 @@ describe("plancher fréquence course taper/race", () => {
     const l = buildWeeklySlotLayout(quota, floors, "load");
     const runs = l.days.flatMap(d => d.slots).filter(s => s.sport === "run");
     expect(runs.every(s => !s.isActivation)).toBe(true);
+  });
+});
+
+// Régression : le squelette hebdo IMPOSÉ plaçait un brick samedi pour tout
+// 703/IM (age_group+), y compris en format LCW (course à étapes 3 jours) —
+// contredisant directement les instructions "bricks interdits, back-to-back
+// obligatoire" envoyées dans le même prompt (promptHelpers.ts). Signalé en
+// conditions réelles : un plan LCW régénéré contenait toujours des bricks.
+describe("weeklySlotLayout — format LCW (isLCW) : pas de brick, back-to-back samedi/dimanche", () => {
+  it("703 age_group LCW : aucun brick dans la semaine, SL vélo samedi + SL run dimanche séparés", () => {
+    const l = build("IRONMAN 70.3", "age_group", 10, "load", true);
+    expect(l.days.some(d => d.slots.some(s => s.sport === "brick"))).toBe(false);
+    const samedi = l.days.find(d => d.dayName === "samedi")!;
+    const dimanche = l.days.find(d => d.dayName === "dimanche")!;
+    expect(samedi.slots.some(s => s.sport === "bike" && s.isLongSession)).toBe(true);
+    expect(dimanche.slots.some(s => s.sport === "run" && s.isLongSession)).toBe(true);
+  });
+
+  it("IM competitor LCW : aucun brick, même structure back-to-back", () => {
+    const l = build("IRONMAN", "competitor", 13, "load", true);
+    expect(l.days.some(d => d.slots.some(s => s.sport === "brick"))).toBe(false);
+    const samedi = l.days.find(d => d.dayName === "samedi")!;
+    const dimanche = l.days.find(d => d.dayName === "dimanche")!;
+    expect(samedi.slots.some(s => s.sport === "bike" && s.isLongSession)).toBe(true);
+    expect(dimanche.slots.some(s => s.sport === "run" && s.isLongSession)).toBe(true);
+  });
+
+  it("703 age_group NON-LCW (isLCW=false) : comportement inchangé, brick toujours présent samedi", () => {
+    const l = build("IRONMAN 70.3", "age_group", 10, "load", false);
+    const samedi = l.days.find(d => d.dayName === "samedi")!;
+    expect(samedi.slots.some(s => s.sport === "brick")).toBe(true);
+  });
+
+  it("taper/race LCW : toujours aucun brick (le reset s'applique quel que soit weekType)", () => {
+    for (const weekType of ["recovery", "taper", "race"] as const) {
+      const l = build("IRONMAN 70.3", "age_group", 10, weekType, true);
+      expect(l.days.some(d => d.slots.some(s => s.sport === "brick"))).toBe(false);
+    }
   });
 });

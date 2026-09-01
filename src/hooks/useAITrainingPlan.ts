@@ -580,11 +580,16 @@ export function useAITrainingPlan() {
       const bannedSportsForQuota = parseAthleteConstraints(
         (planConfig as any)?.constraints ?? null,
       ).bannedSports;
+      // Format LCW 3 jours : brick banni du quota (cf. computeWeeklySessionQuota)
+      // et étape décisive (run) servie en premier dans le layout de la semaine
+      // de course. Calculé une fois hors boucle, identique pour tout le plan.
+      const isLCWFormat = Array.isArray((planConfig as any)?.raceGoals)
+        && (planConfig as any).raceGoals.some((g: any) => g?.raceFormat === "lcw_3day");
       for (let w = 1; w <= totalWeeks; w++) {
         // Position globale : quota/taper/recovery calculés sur la vraie place
         // de la semaine dans le plan (cf. PlanConfig.globalTotalWeeks).
         const weekType = inferWeekType(w + weekOffset, effTotalWeeks, objectiveForQuota);
-        const q0 = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType);
+        const q0 = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat);
         if (q0) {
           let adj = targetSpw
             ? applySessionsPerWeekTarget({ quota: q0.quota, floors: q0.floors }, targetSpw, weekType)
@@ -593,10 +598,6 @@ export function useAITrainingPlan() {
             const red = applyBannedSportsRedistribution(adj, bannedSportsForQuota);
             adj = { quota: red.quota, floors: red.floors };
           }
-          // Format LCW 3 jours : l'étape décisive est le run du dimanche →
-          // la CAP est servie en premier dans le layout de la semaine de course.
-          const isLCWFormat = Array.isArray((planConfig as any)?.raceGoals)
-            && (planConfig as any).raceGoals.some((g: any) => g?.raceFormat === "lcw_3day");
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(adj.quota, adj.floors, weekType, {
             finalStageSport: isLCWFormat ? "run" : undefined,
           });

@@ -271,12 +271,22 @@ function floorsFor(obj: SizingObjectiveKey): SizingFloors {
  * @param ambitionEffective Ambition effective déjà passée par computeAmbitionEffective (JAMAIS brute).
  * @param hoursAvailable    Heures/semaine dispo (garde-fou hoursMin, tous objectifs couverts).
  * @param weekType          "load" | "recovery" | "taper" | "race".
+ * @param isLCW             Format "Long Course Weekend" (course à étapes 3
+ *                           jours) : le brick (T2 immédiate) est banni au
+ *                           profit du back-to-back (vélo long samedi + run
+ *                           long dimanche séparés). cf. enrichedWorkoutsLCW.ts
+ *                           et promptHelpers.ts — sans ce paramètre, le
+ *                           squelette hebdo IMPOSÉ (buildWeeklySlotLayout)
+ *                           plaçait quand même un brick samedi pour 703/IM,
+ *                           contredisant directement les instructions LCW
+ *                           envoyées dans le même prompt.
  */
 export function computeWeeklySessionQuota(
   objective: string,
   ambitionEffective: string,
   hoursAvailable: number,
   weekType: WeekType,
+  isLCW: boolean = false,
 ): {
   quota: WeeklyQuota;
   floors: SizingFloors;
@@ -325,6 +335,17 @@ export function computeWeeklySessionQuota(
     minFullRestDays: row.minFullRestDays,
     source: src,
   };
+
+  // LCW (course à étapes 3 jours) : brick supprimé du quota, quel que soit
+  // weekType — les 3 branches ci-dessous (recovery/taper/race) et le cas
+  // "load" par défaut copient toutes `base.brick` sans le modifier, donc ce
+  // reset s'applique uniformément. buildWeeklySlotLayout bascule alors
+  // automatiquement sur son chemin "pas de brick requis" déjà existant :
+  // vélo long samedi + run long dimanche séparés (back-to-back), sans
+  // modification nécessaire côté layout.
+  if (isLCW && (objKey === "703" || objKey === "IM")) {
+    base.brick = { min: 0, max: 0 };
+  }
 
   // Modulateurs weekType
   let quota: WeeklyQuota = base;
