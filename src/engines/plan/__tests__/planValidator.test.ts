@@ -1277,6 +1277,35 @@ describe("planValidator", () => {
       expect(contentIssue).toBeUndefined();
     });
 
+    it("Reverse Periodization — flague un bloc Fondation sans intensité pour un objectif standard", () => {
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Footing facile", details: "Z1-Z2" }], "Fondation", "base"),
+        makeWeek(2, [{ sport: "Course", title: "Footing facile", details: "Z1-Z2" }], "Fondation", "base"),
+        makeWeek(3, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+      ];
+      const result = validatePlan(makePlan(weeks), "Marathon");
+      const revPerio = result.issues.find(
+        i => i.rule === "phase_coherence" && /Reverse Periodization/i.test(i.message)
+      );
+      expect(revPerio).toBeDefined();
+    });
+
+    it("Reverse Periodization — exempté pour Start to Run (audit non-triathlon) : par doctrine, Fondation reste Z1-Z2 pur pour un vrai débutant", () => {
+      // ≥2 phases déclarées nécessaires pour que le check s'exécute du tout
+      // (derivePhasesFromWeeks fusionne les semaines consécutives de même
+      // phase en une seule entrée — cf. `phases.length >= 2` plus haut).
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Marche-course", details: "Z1-Z2" }], "Fondation", "base"),
+        makeWeek(2, [{ sport: "Course", title: "Marche-course", details: "Z1-Z2" }], "Fondation", "base"),
+        makeWeek(3, [{ sport: "Course", title: "Continu 20min", details: "Z1-Z2" }], "Continu", "build"),
+      ];
+      const result = validatePlan(makePlan(weeks), "Start to Run");
+      const revPerio = result.issues.find(
+        i => i.rule === "phase_coherence" && /Reverse Periodization/i.test(i.message)
+      );
+      expect(revPerio).toBeUndefined();
+    });
+
     it("Audit #3 — flague désormais un contenu VO2max/VMA/fractionné/seuil placé en semaine d'affûtage", () => {
       // Avant le fix, le motif interdit de la phase Affûtage/Taper
       // (PHASE_SESSION_SIGNATURES[5].forbidden) ne contenait aucun mot-clé
