@@ -494,26 +494,46 @@ export default function AITrainingPlanPage() {
     if (!activeRestored) setLoadedFromCacheAt(null);
 
 
+    // Réinitialise TOUJOURS chaque champ du formulaire à sa valeur par
+    // défaut avant d'appliquer un éventuel `savedState` pour CET athlète.
+    // Avant ce fix, seuls `objective`, `raceFormat` et `ambition` avaient un
+    // else explicite (cf. le fix raceFormat, PR #63) — tous les autres
+    // champs ci-dessous n'étaient restaurés QUE "si présents dans
+    // savedState", et sinon gardaient silencieusement la valeur laissée par
+    // le dernier athlète consulté (state React, jamais démonté entre deux
+    // athlètes). Symptôme réel constaté : le plan 70.3 régénéré pour Cath
+    // s'est retrouvé sans une seule séance de natation ("Pas de Natation"
+    // dans le diagnostic généré) et truffé de séances "Semi-Marathon" —
+    // `constraints` et `raceGoals` d'un autre athlète, jamais réinitialisés,
+    // ont fuité dans sa régénération complète.
+    if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
+    setRaceName("");
+    setRaceFormat("continuous");
+    setRaceDate("");
+    setWeeklyHours("");
+    setSessionsPerWeek("");
+    { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
+    setConstraints("");
+    setMaxSessionsPerDay("3");
+    setStrengthSessionsPerWeek("2");
+    setTrainingLevel("auto");
+    setLockAmbition(false);
+    setRaceGoals([]);
+    setTrailDistanceKm("");
+    setTrailElevationM("");
+    setTrailTargetTimeH("");
+    setTrailMaxAltitudeM("");
+    setTerrainAvailability("auto");
+
     if (savedState) {
       if (!activeRestored && savedState.response) setResponse(savedState.response);
       if (savedState.objective) setObjective(savedState.objective);
-      else if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       if (savedState.raceName) setRaceName(savedState.raceName);
-      // Contrairement aux autres champs restaurés "si présent", raceFormat a
-      // besoin d'un else explicite : c'est lui qui décide si le plan suit le
-      // paradigme LCW (bricks interdits, back-to-back obligatoire) ou 70.3/IM
-      // continu (bricks autorisés). Sans réinitialisation, la valeur du
-      // dernier athlète consulté (ex. "lcw_3day") reste affichée pour un
-      // athlète dont l'état sauvegardé ne précise pas raceFormat — un
-      // athlète LCW peut alors se voir régénérer un plan/une semaine en
-      // règles 70.3 continu (bricks) sans que rien ne le signale.
       if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
-      else setRaceFormat("continuous");
       if (savedState.raceDate) setRaceDate(savedState.raceDate);
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
       if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
       if (savedState.ambition) setAmbition(savedState.ambition);
-      else { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
       if (savedState.constraints) setConstraints(savedState.constraints);
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
@@ -526,9 +546,6 @@ export default function AITrainingPlanPage() {
       if (savedState.trailTargetTimeH) setTrailTargetTimeH(savedState.trailTargetTimeH);
       if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
       if (savedState.terrainAvailability) setTerrainAvailability(savedState.terrainAvailability);
-    } else {
-      if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
-      { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
     }
 
     // Ancrage calendaire : restaure la date de début du plan persistée, sinon
