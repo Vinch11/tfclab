@@ -1296,6 +1296,39 @@ describe("planValidator", () => {
       expect(contentIssue).toBeDefined();
     });
 
+    it("Suite audit — un contenu inadapté en semaine d'affûtage est désormais bloquant (\"error\"), pas juste un avertissement", () => {
+      // Escalade volontairement limitée à la phase taper (index 5) : c'est la
+      // semaine où une erreur de placement coûte le plus cher (à quelques
+      // jours de la course) et où un simple "warning" pouvait passer
+      // totalement inaperçu à la sauvegarde. "error" déclenche la
+      // confirmation explicite (pendingCriticalIssues), pas un blocage muet.
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(2, [
+          { sport: "Course", title: "Rappel VMA", details: "3x3min VMA fractionné" },
+        ], "Affûtage", "taper"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const contentIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /inadapté en phase "taper"/i.test(i.message)
+      );
+      expect(contentIssue?.severity).toBe("error");
+    });
+
+    it("Suite audit — un contenu inadapté hors affûtage (ex. \"base\") reste un simple avertissement (escalade volontairement limitée au taper)", () => {
+      const weeks = [
+        makeWeek(1, [
+          { sport: "Course", title: "Simulation Ironman", details: "Race-pace + gut training" },
+        ], "Fondation", "base"),
+        makeWeek(2, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const contentIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /inadapté en phase "base"/i.test(i.message)
+      );
+      expect(contentIssue?.severity).toBe("warning");
+    });
+
     it("la regex de durée de phase matche désormais le format \"S1-S6\" (préfixe S sur les deux nombres)", () => {
       // Aucun bloc "Phases" explicite ici (une seule entrée n'aurait pas été
       // utilisée, le code exige ≥2 pour préférer l'explicite à la dérivation)
