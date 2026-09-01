@@ -84,6 +84,18 @@ function getVlamaxTarget(
   };
 }
 
+// Objectifs course à pied pure — la discipline n'y est PAS ambiguë. Miroir de
+// RUN_ONLY_VLAMAX_KEYS ajouté côté client (src/lib/physiologicalTargets.ts)
+// pour corriger EXACTEMENT le même bug ici : `getVLamaxRangeForPlan`
+// retombait sur 'bike' dès que `sport` n'était pas explicitement "cap"/"run",
+// y compris pour un Marathon/Semi/10K/5K/Trail — le caller (promptHelpers.ts)
+// avait bien une détection locale (`sportForVlamax`), mais incomplète
+// (Marathon/Semi/Trail seulement, ratait 10K/5K/TrailShort/TrailMountain/
+// TrailUltra/Start to Run) : ces objectifs recevaient une cible VLamax vélo
+// injectée DIRECTEMENT dans le prompt de génération de plan — pas juste un
+// affichage, une vraie donnée d'entrée pour l'IA.
+const RUN_ONLY_VLAMAX_KEYS = new Set(["5k", "10k", "semi", "marathon", "trail"]);
+
 /**
  * Signature conservée pour compat avec le point d'appel existant (promptHelpers.ts).
  * `ambition` n'est plus utilisé : la cible VLamax est universelle par distance (cf.
@@ -95,10 +107,13 @@ export function getVLamaxRangeForPlan(
   sport?: string | null,
 ): VLamaxRange {
   const s = (sport || "").toLowerCase();
-  const discipline: VlamaxDiscipline =
+  let discipline: VlamaxDiscipline =
     s === "cap" || s === "run" || s === "running" ? "run"
     : s === "swim" ? "swim"
     : "bike";
+  if (!sport && RUN_ONLY_VLAMAX_KEYS.has(normalizeVlamaxKey(objectif))) {
+    discipline = "run";
+  }
   const range = getVlamaxTarget(objectif, discipline);
   return { min: range.min, max: range.max, optimal: range.ideal };
 }
