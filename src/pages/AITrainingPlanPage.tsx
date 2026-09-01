@@ -403,6 +403,18 @@ export default function AITrainingPlanPage() {
    */
   const draftKey = currentAthlete ? `tfcl_ai_plan_draft_${currentAthlete.id}` : null;
   const [loadedFromCacheAt, setLoadedFromCacheAt] = useState<string | null>(null);
+  /**
+   * true si un plan était déjà présent dans activePlanKey AVANT la
+   * génération/régénération en cours — càd s'il y a quelque chose à
+   * protéger. Sans ce garde-fou, régénérer le plan entier d'un athlète qui
+   * en avait déjà un écrasait immédiatement activePlanKey (le cache lu au
+   * prochain chargement de page), avant même que le coach ait cliqué
+   * "Enregistrer" — contrairement au commentaire historique de
+   * activePlanKey ("never overwritten without explicit confirmation") que
+   * le code ne respectait en réalité que pour les régénérations ciblées
+   * (planOverride/draftKey), pas pour une régénération complète (response).
+   */
+  const hadExistingActivePlanRef = useRef(false);
 
 
   // Form state — restore from localStorage if available
@@ -463,12 +475,14 @@ export default function AITrainingPlanPage() {
     // Try plan_active_<id> first (full plan + timestamp)
     let activeRestored = false;
     let restoredStart: string | null = null;
+    hadExistingActivePlanRef.current = false;
     if (activePlanKey) {
       try {
         const rawActive = localStorage.getItem(activePlanKey);
         if (rawActive) {
           const parsed = JSON.parse(rawActive);
           if (parsed?.response) {
+            hadExistingActivePlanRef.current = true;
             setResponse(parsed.response);
             setLoadedFromCacheAt(parsed.generatedAt || null);
             if (parsed.planStartDate) restoredStart = parsed.planStartDate;
@@ -642,7 +656,16 @@ export default function AITrainingPlanPage() {
     // Persist active plan with generation timestamp.
     // Only write when this is a fresh generation (not when restored from cache),
     // to avoid overwriting a saved plan without explicit coach confirmation.
-    if (activePlanKey && !loadedFromCacheAt) {
+    // Garde-fou supplémentaire : si un plan était DÉJÀ actif pour cet athlète
+    // avant cette génération (hadExistingActivePlanRef), ne pas écraser le
+    // cache tant que la nouvelle version n'a pas été explicitement
+    // enregistrée (isSaved redevient true après handleSaveToPlan). Sans ce
+    // garde-fou, régénérer un plan déjà sauvegardé remplaçait immédiatement
+    // ce qui est restauré à la prochaine ouverture de page — avant même que
+    // le coach ait cliqué "Enregistrer" (comportement contraire au
+    // commentaire ci-dessus, qu'il ne respectait en pratique que pour les
+    // régénérations ciblées via draftKey, pas pour une génération complète).
+    if (activePlanKey && !loadedFromCacheAt && (!hadExistingActivePlanRef.current || isSaved)) {
       try {
         const existing = localStorage.getItem(activePlanKey);
         const existingParsed = existing ? JSON.parse(existing) : null;
@@ -659,7 +682,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, planStartDate]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
