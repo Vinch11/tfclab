@@ -1704,6 +1704,9 @@ function buildExportPayload(
     level: capRiskResult.level,
     label: capRiskResult.label,
     icon: getCAPRiskIcon(capRiskResult.level),
+    // Déjà sur une échelle 0-100 (level max=3 → 75) — ne PAS multiplier à
+    // nouveau par 100 à l'affichage (bug corrigé : "7500%" au lieu de "75%"
+    // pour le pire cas, double mise à l'échelle).
     globalIndex: capRiskResult.level * 25,
     factors: {
       vlamaxContribution: vlamax.value ? Math.min(100, (vlamax.value / 0.55) * 100) : 50,
@@ -6439,7 +6442,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <div>
             <div style="font-size:32px;margin-bottom:8px;">${capInjuryRisk.icon}</div>
             <div style="font-size:22px;font-weight:700;">${htmlEscape(capInjuryRisk.label)}</div>
-            <div class="muted">Indice global: ${Math.round(capInjuryRisk.globalIndex * 100)}%</div>
+            <div class="muted">Indice global: ${Math.round(capInjuryRisk.globalIndex)}%</div>
           </div>
           <div style="text-align:center;">
             <div class="big ${capInjuryRisk.level >= 3 ? 'error' : capInjuryRisk.level >= 2 ? 'warning' : 'success'}">${capInjuryRisk.level}/4</div>
