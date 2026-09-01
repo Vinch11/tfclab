@@ -42,7 +42,7 @@
 
 
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
-import { getVlamaxTarget as _getVlamaxTargetCanonical } from "./v2/vlamaxTargets";
+import { getVlamaxTarget as _getVlamaxTargetCanonical, normalizeVlamaxKey } from "./v2/vlamaxTargets";
 
 
 // =============================================
@@ -768,12 +768,31 @@ function applySportOffset(range: VLamaxTargets, sport?: string): VLamaxTargets {
  *    de l'ambition ni des ex-tables `AMBITION_TARGETS.vlamax`. Le paramètre
  *    `ambition` est conservé pour compat, mais ignoré pour la VLamax.
  */
+// Objectifs course à pied pure — la discipline n'y est PAS ambiguë (pas de
+// vélo/natation dans la course elle-même). `normalizeVlamaxKey` sert de
+// source unique de classification (déjà utilisée pour la table RUN_TARGETS
+// elle-même), plutôt qu'une 4e liste dupliquée d'objectifs "run-only" (une
+// existait déjà, correcte mais isolée, dans v2/tfclDecisionMatrix.ts).
+const RUN_ONLY_VLAMAX_KEYS = new Set(['5k', '10k', 'semi', 'marathon', 'trail']);
+
 export function getVLamaxRange(objectif: string, _ambition?: AmbitionLevel, sport?: string): VLamaxTargets {
   const s = (sport || '').toLowerCase();
-  const discipline: 'bike' | 'run' | 'swim' =
+  let discipline: 'bike' | 'run' | 'swim' =
     s === 'cap' || s === 'run' || s === 'running' ? 'run'
     : s === 'swim' ? 'swim'
     : 'bike';
+  // Bug corrigé (audit "cohérence cross-engine") : `sport` omis retombait
+  // TOUJOURS sur 'bike' — y compris pour un Marathon/Semi/10K/5K/Trail, où
+  // la discipline n'a rien d'ambigu. Un appelant qui oublie de passer `sport`
+  // pour un coureur pur (repéré ici via la même classification que la table
+  // canonique elle-même) recevait donc une cible VLamax vélo, ~0.06 mmol/L/s
+  // plus basse que sa vraie cible course — alertes/recommandations "VLamax
+  // trop haute" faussées, chiffre divergent entre pages pour le même
+  // athlète. Ne s'applique QUE quand `sport` n'a pas été fourni explicitement
+  // : un appelant qui demande 'bike' pour un triathlète reste inchangé.
+  if (!sport && RUN_ONLY_VLAMAX_KEYS.has(normalizeVlamaxKey(objectif))) {
+    discipline = 'run';
+  }
   const range = _getVlamaxTargetCanonical(objectif, discipline);
   return { min: range.min, max: range.max, optimal: range.ideal };
 }

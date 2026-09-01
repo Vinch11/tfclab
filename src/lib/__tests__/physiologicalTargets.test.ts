@@ -50,3 +50,44 @@ describe("UNIFIED_TARGETS.vlamax — aligné sur la source unique getVLamaxRange
     }
   });
 });
+
+/**
+ * Audit "cohérence cross-engine" — même pattern que le bug risque blessure
+ * (PR #70) et nutrition (PR #79), une 3e fois : `getVLamaxRange` retombait
+ * TOUJOURS sur la discipline 'bike' quand `sport` était omis — y compris
+ * pour un Marathon/Semi/10K/5K/Trail, où la discipline n'est pourtant pas
+ * ambiguë (pas de vélo dans la course). Une dizaine d'appelants à travers
+ * l'app (ExportTools.tsx, TemplatesPage.tsx wahooContext, workoutRecommen-
+ * dationEngine.ts, wahooSuggestionEngine.ts...) omettent `sport` pour ces
+ * objectifs et recevaient donc une cible VLamax vélo (~0.06 mmol/L/s plus
+ * basse) au lieu de la cible course — alertes "VLamax trop haute" faussées,
+ * chiffre divergent entre pages pour le même athlète (même rapport PDF que
+ * le bug nutrition dans certains cas).
+ */
+describe("getVLamaxRange — discipline par défaut quand `sport` est omis", () => {
+  it("un objectif course pure (Marathon/Semi/10K/5K/Trail) reçoit la cible RUN par défaut, pas vélo", () => {
+    for (const objectif of ["Marathon", "Semi-Marathon", "10K", "5K", "Trail"]) {
+      const withoutSport = getVLamaxRange(objectif);
+      const explicitRun = getVLamaxRange(objectif, undefined, "run");
+      const explicitBike = getVLamaxRange(objectif, undefined, "bike");
+      expect(withoutSport, objectif).toEqual(explicitRun);
+      expect(withoutSport, objectif).not.toEqual(explicitBike);
+    }
+  });
+
+  it("un objectif triathlon ambigu (IM/70.3/Sprint/Olympique) reste sur le défaut historique vélo quand `sport` est omis (comportement inchangé)", () => {
+    for (const objectif of ["IM", "703", "Sprint", "Olympic"]) {
+      const withoutSport = getVLamaxRange(objectif);
+      const explicitBike = getVLamaxRange(objectif, undefined, "bike");
+      expect(withoutSport, objectif).toEqual(explicitBike);
+    }
+  });
+
+  it("un `sport` explicite prime toujours sur la détection automatique, y compris pour un objectif course pure", () => {
+    // Un appelant qui demande explicitement 'bike' pour un marathonien
+    // (ex. carte FTP/puissance) doit continuer à recevoir la cible vélo.
+    const explicitBikeForRunner = getVLamaxRange("Marathon", undefined, "bike");
+    const runDefault = getVLamaxRange("Marathon");
+    expect(explicitBikeForRunner).not.toEqual(runDefault);
+  });
+});
