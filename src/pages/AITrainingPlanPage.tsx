@@ -1895,8 +1895,9 @@ export default function AITrainingPlanPage() {
       .filter(session => !session.isRest)
       .map(session => `${session.dayName || "Jour à définir"} — ${session.sport || "course"} — ${session.title || "Séance"}`)
       .join("\n");
-    const regenerationConstraint = [
-      `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine.`,
+    const buildRegenerationConstraint = (correctionNote?: string) => [
+      correctionNote || "",
+      `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine — ni plus, ni moins. Recompte tes séances avant de répondre.`,
       "Les autres jours peuvent être du repos, mais une semaine entièrement composée de repos est strictement interdite.",
       "Conserver le niveau de progression de cette semaine : ne pas revenir à une semaine d'introduction et ne pas sauter de palier.",
       extraConstraints?.trim() || "",
@@ -1918,13 +1919,14 @@ export default function AITrainingPlanPage() {
       console.warn("[handleRegenerateWeek] échec construction catalogue, régénération sans catalogue:", catalogErr);
     }
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) {
-        toast.error("Votre session a expiré. Reconnectez-vous avant de régénérer le plan.");
-        return;
-      }
+    // Une tentative complète : requête + parsing du flux SSE. Retourne la
+    // semaine parsée quel que soit son nombre de séances — le comptage est
+    // vérifié par l'appelant, pas ici, pour permettre une correction/retry
+    // au lieu d'un rejet immédiat (cf. boucle ci-dessous).
+    const requestRegeneratedWeek = async (
+      accessToken: string,
+      constraintText: string,
+    ): Promise<ParsedPlan["weeks"][number]> => {
       const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
       const resp = await fetch(PLAN_URL, {
         method: "POST",
@@ -1938,7 +1940,7 @@ export default function AITrainingPlanPage() {
             ...fullPlanConfig,
             constraints: [
               fullPlanConfig.constraints || "",
-              regenerationConstraint,
+              constraintText,
             ].filter(Boolean).join("\n"),
             _historyUsedIdCounts: catalogResult.historyUsedIdCounts,
           },
@@ -1973,61 +1975,85 @@ export default function AITrainingPlanPage() {
           let line = buf.slice(0, idx);
           buf = buf.slice(idx + 1);
           if (line.endsWith("\r")) line = line.slice(0, -1);
-           if (line.startsWith("event: ")) {
-             currentEvent = line.slice(7).trim();
-             continue;
-           }
-           if (!line.startsWith("data: ")) continue;
+          if (line.startsWith("event: ")) {
+            currentEvent = line.slice(7).trim();
+            continue;
+          }
+          if (!line.startsWith("data: ")) continue;
           const json = line.slice(6).trim();
           try {
             const p = JSON.parse(json);
-             if (currentEvent === "chunk-json") {
-               const parsedChunk = zPlanChunk.safeParse(p.chunk);
-               if (parsedChunk.success) regeneratedChunk = parsedChunk.data;
-               else streamError = "La semaine JSON reçue est invalide.";
-             } else if (currentEvent === "error") {
-               streamError = p.message || "Le service IA a refusé la régénération.";
-             }
+            if (currentEvent === "chunk-json") {
+              const parsedChunk = zPlanChunk.safeParse(p.chunk);
+              if (parsedChunk.success) regeneratedChunk = parsedChunk.data;
+              else streamError = "La semaine JSON reçue est invalide.";
+            } else if (currentEvent === "error") {
+              streamError = p.message || "Le service IA a refusé la régénération.";
+            }
           } catch {}
-           currentEvent = "message";
+          currentEvent = "message";
         }
       }
 
-       if (streamError) {
-         toast.error(`${streamError} La semaine ${weekNumber} précédente est conservée.`);
+      if (streamError) throw new Error(streamError);
+      if (!regeneratedChunk) throw new Error("Aucune semaine structurée reçue");
+
+      // Le mergeur client attend une séquence commençant à S1. On normalise
+      // temporairement l'unique semaine, puis on restaure son numéro réel.
+      const normalizedChunk: PlanChunk = {
+        ...regeneratedChunk,
+        weeks: regeneratedChunk.weeks.map((regeneratedWeek) => ({
+          ...regeneratedWeek,
+          weekNumber: 1,
+        })),
+      };
+      const regenPlan = jsonPlanToParsedPlan(mergePlanChunks([normalizedChunk], 1));
+      const newWeek = regenPlan.weeks[0];
+      if (!newWeek) throw new Error("Réponse IA illisible");
+      return newWeek;
+    };
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        toast.error("Votre session a expiré. Reconnectez-vous avant de régénérer le plan.");
         return;
       }
-       if (!regeneratedChunk) {
-         toast.error("Aucune semaine structurée reçue — semaine inchangée");
-         return;
-       }
 
-       // Le mergeur client attend une séquence commençant à S1. On normalise
-       // temporairement l'unique semaine, puis on restaure son numéro réel.
-       const normalizedChunk: PlanChunk = {
-         ...regeneratedChunk,
-         weeks: regeneratedChunk.weeks.map((regeneratedWeek) => ({
-           ...regeneratedWeek,
-           weekNumber: 1,
-         })),
-       };
-       const regenPlan = jsonPlanToParsedPlan(mergePlanChunks([normalizedChunk], 1));
-       const newWeek = regenPlan.weeks[0];
-      if (!newWeek) {
-        toast.error("Réponse IA illisible — semaine inchangée");
-        return;
-      }
-
-      const realSessions = newWeek.sessions.filter(session => !session.isRest);
-      if (realSessions.length !== expectedRealSessions) {
-        console.error("[week-regeneration] rejected invalid session count", {
+      // Jusqu'à 2 tentatives : l'IA ne respecte pas toujours du premier coup
+      // la contrainte de nombre exact de séances (surtout depuis qu'on lui
+      // demande explicitement d'éviter les fiches déjà utilisées cette
+      // semaine — varier la sélection ET tomber pile sur le compte sont deux
+      // consignes qui se contrarient légèrement). Avant, un seul écart
+      // rejetait la régénération entière et rendait la semaine bloquée en
+      // pratique. Ici, la 2e tentative rappelle explicitement l'écart commis
+      // pour donner à l'IA une vraie chance de corriger plutôt que de
+      // deviner à l'aveugle une 2e fois.
+      const MAX_ATTEMPTS = 2;
+      let newWeek: ParsedPlan["weeks"][number] | null = null;
+      let lastMismatchCount = 0;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const correctionNote = attempt > 1
+          ? `CORRECTION REQUISE : ta réponse précédente contenait ${lastMismatchCount} séances réelles au lieu des ${expectedRealSessions} demandées. Recompte précisément cette fois.`
+          : undefined;
+        const candidate = await requestRegeneratedWeek(accessToken, buildRegenerationConstraint(correctionNote));
+        const realSessions = candidate.sessions.filter(session => !session.isRest);
+        if (realSessions.length === expectedRealSessions) {
+          newWeek = candidate;
+          break;
+        }
+        lastMismatchCount = realSessions.length;
+        console.warn(`[week-regeneration] tentative ${attempt}/${MAX_ATTEMPTS} — nombre de séances incorrect`, {
           weekNumber,
           expectedRealSessions,
           receivedRealSessions: realSessions.length,
-          receivedSessions: newWeek.sessions.length,
         });
+      }
+
+      if (!newWeek) {
         toast.error(
-          `Régénération refusée : l’IA a produit ${realSessions.length} séance(s) réelle(s) au lieu de ${expectedRealSessions}. La semaine ${weekNumber} précédente est conservée.`
+          `Régénération refusée après ${MAX_ATTEMPTS} tentatives : l'IA a produit ${lastMismatchCount} séance(s) réelle(s) au lieu de ${expectedRealSessions}. La semaine ${weekNumber} précédente est conservée.`
         );
         return;
       }
@@ -2048,7 +2074,7 @@ export default function AITrainingPlanPage() {
       setIsSaved(false);
       toast.success(`Semaine ${weekNumber} régénérée — enregistre le plan pour la conserver.`);
     } catch (err: any) {
-      toast.error("Erreur régénération : " + (err.message || "Inconnu"));
+      toast.error(`${err.message || "Erreur inconnue"} — la semaine ${weekNumber} précédente est conservée.`);
     } finally {
       setIsRegenerating(false);
     }
