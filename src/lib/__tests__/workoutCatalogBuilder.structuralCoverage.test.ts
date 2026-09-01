@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildWorkoutCatalog, isStructuralSession } from "@/lib/workoutCatalogBuilder";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
+import { ficheCompatibleWithPhases } from "@/lib/plan/phaseNormalization";
 
 const NON_TRAIL_EXCLUDE_ID_PATTERNS = [
   /^HEDGEHOG_/i, /_HEDGEHOG_/i, /^URBAN_/i, /^TRAIL_/i, /_TRAIL_/i,
@@ -96,6 +97,46 @@ describe("buildWorkoutCatalog — F-CHUNK-STRUCT structural coverage", () => {
     const cat2Ids = new Set(cat2.map(e => e.id));
     for (const excludedId of excludedShort) {
       expect(cat2Ids.has(excludedId), `${excludedId} (court) ne doit pas réapparaître au chunk 2`).toBe(false);
+    }
+  });
+
+  it("semaine d'affûtage pure (taper) : le backfill structurel n'injecte PAS de vélo/course longs ou de brick incompatibles avec la phase", () => {
+    // Régression : Pass 5 (F-CHUNK-STRUCT) forçait ≥2 bike ≥120min, ≥2 run
+    // ≥90min et ≥1 brick dans CHAQUE chunk sans filtrer par phase — alors
+    // qu'aucune de ces fiches n'est taguée "taper" dans la bibliothèque.
+    // Semaine 10/10 d'un plan 70.3 : midPct=1.0 ⇒ phase taper pure (aucun
+    // chevauchement avec peak, cf. phasesForWeekRange).
+    const totalWeeks = 10;
+    const cat = buildWorkoutCatalog("70.3", totalWeeks, totalWeeks, totalWeeks, {
+      maxItems: 45,
+      chunkIndex: 2,
+      excludeIds: new Set(),
+      excludeIdPatterns: NON_TRAIL_EXCLUDE_ID_PATTERNS,
+      excludeTags: NON_TRAIL_EXCLUDE_TAGS,
+    });
+
+    const bikeLong = cat.filter(
+      e => (e.sport === "cyclisme" || e.sport === "bike") && median(e.durationMin) >= 120,
+    );
+    const runLong = cat.filter(
+      e => (e.sport === "course" || e.sport === "run") && median(e.durationMin) >= 90,
+    );
+    const brick = cat.filter(e => e.sport === "brick");
+
+    // Le backfill peut légitimement injecter une fiche longue si elle est
+    // elle-même déclarée compatible taper (ex. répétition générale dont le
+    // `when` mentionne explicitement "Affûtage (S19)") — l'invariant n'est
+    // pas "zéro fiche longue en taper" mais "aucune fiche incompatible avec
+    // la phase ne doit être forcée".
+    const byId = new Map(WorkoutLibrary.map(w => [w.id, w]));
+    for (const e of [...bikeLong, ...runLong, ...brick]) {
+      const fiche = byId.get(e.id);
+      expect(fiche, `fiche introuvable dans WorkoutLibrary: ${e.id}`).toBeDefined();
+      if (!fiche) continue;
+      expect(
+        ficheCompatibleWithPhases(fiche, new Set(["taper"])),
+        `${e.id} injectée en semaine taper mais incompatible avec la phase "taper"`,
+      ).toBe(true);
     }
   });
 

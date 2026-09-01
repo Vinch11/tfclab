@@ -1074,8 +1074,19 @@ export function buildWorkoutCatalog(
       if (currentCount >= req.minCount) continue;
 
       const need = req.minCount - currentCount;
+      // PHASE 2C.3 (même filtre que le pré-filtre principal plus haut) : ne
+      // réinjecte une fiche structurelle que si sa phase déclarée est
+      // compatible avec celle du chunk. Sans ce filtre, aucune des fiches
+      // vélo/course longues ou brick de la bibliothèque n'étant taguée
+      // "taper", ce backfill forçait quand même leur présence — signalées
+      // "OBLIGATOIRE" — dans le catalogue envoyé à l'IA pour la semaine
+      // d'affûtage, la plus sensible du plan (cf. audit placement séances).
       const candidates = backfillPool
-        .filter(({ workout }) => isSportBucket(workout, req.bucket) && median(workout) >= req.minDur && !selectedIds.has(workout.id))
+        .filter(({ workout }) =>
+          isSportBucket(workout, req.bucket)
+          && median(workout) >= req.minDur
+          && !selectedIds.has(workout.id)
+          && (!phaseFilterEnabled || ficheCompatibleWithPhases(workout, chunkPhaseSet)))
         .slice(0, need);
 
       if (candidates.length === 0) {
