@@ -1246,6 +1246,16 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
       : PHASE_SESSION_SIGNATURES[phaseIdx];
     if (!signatures) continue;
 
+    // Affûtage/Taper (index 5) : seule phase escaladée en "error" (bloque la
+    // sauvegarde via une confirmation explicite — cf. pendingCriticalIssues,
+    // usePlanAdaptation.ts / AITrainingPlanPage.tsx). C'est la semaine où une
+    // erreur de placement coûte le plus cher (à quelques jours de la course)
+    // et où un simple "warning" pouvait passer totalement inaperçu. Les 4
+    // autres phases restent "warning" : élargir l'escalade à toutes reviendrait
+    // à bloquer potentiellement des plans par ailleurs légitimes sans
+    // validation préalable sur données réelles (risque de faux positifs).
+    const severity: ValidationIssue["severity"] = phaseIdx === 5 ? "error" : "warning";
+
     for (const session of week.sessions) {
       if (session.isRest) continue;
       const text = `${session.title} ${session.details}`;
@@ -1253,12 +1263,12 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
       if (signatures.forbidden.test(text)) {
         issues.push({
           rule: "phase_coherence",
-          severity: "warning",
+          severity,
           week: week.weekNumber,
           message: `S${week.weekNumber}: "${session.title}" inadapté en phase "${week.phase}" — contenu typique d'une phase différente`,
           detail: `Vérifier la cohérence entre le contenu de séance et la phase déclarée.`,
         });
-        score -= 3;
+        score -= severity === "error" ? 15 : 3;
       }
     }
   }
