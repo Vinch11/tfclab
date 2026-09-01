@@ -49,10 +49,12 @@ import { PlanComparisonView } from "@/components/PlanComparisonView";
 import { SessionOptionsDisplay } from "@/components/SessionOptionsDisplay";
 import { processSessionOptions, type SessionContext, type OptionSport } from "@/lib/templates/optionValidator";
 import { parseDurationFromText } from "@/lib/templates/durationParser";
-import { 
-  computeCAPInjuryRiskIndex, 
+import {
+  computeCAPInjuryRiskIndex,
   shouldShowCAPInjuryRisk,
-  type CAPInjuryRiskResult 
+  capRiskToRunInjuryRiskShape,
+  capRiskToWahooVocabulary,
+  type CAPInjuryRiskResult
 } from "@/lib/capInjuryRisk";
 import { CAPInjuryRiskBadge } from "@/components/CAPInjuryRiskBadge";
 import { 
@@ -1424,10 +1426,12 @@ export default function TemplatesPage() {
       },
       fatigueIndex,
       fatigueLevel,
-      runInjuryRisk: {
-        score: localInjuryRisk.totalScore,
-        level: localInjuryRisk.label,
-      },
+      // Conversion obligatoire : `localInjuryRisk` est sur l'échelle discrète
+      // 0-4 de capInjuryRisk.ts (labels français), pas le score 0-100 /
+      // vocabulaire ASCII attendu ici — cf. capRiskToRunInjuryRiskShape.
+      // Avant ce fix, le badge de risque (WeekSelectorTFCL) affichait
+      // toujours vert et aucun consommateur ne pouvait jamais lire "CRITIQUE".
+      runInjuryRisk: capRiskToRunInjuryRiskShape(localInjuryRisk),
       economy_run: selectedSnapshot.run_economy_score ? {
         score: selectedSnapshot.run_economy_score,
         label: selectedSnapshot.run_economy_label || "Moyenne",
@@ -1496,7 +1500,11 @@ export default function TemplatesPage() {
       tteConfidence: athleteMetrics.tteEffectif.confidence,
       potentielPhysiologiqueScore: athleteMetrics.potentielScore,
       fatigueStatus,
-      capInjuryRisk: localCapRisk?.level as any,
+      // Avant ce fix : `localCapRisk?.level` (number 0|1|2|3) casté `as any`
+      // alors que ce champ attend une string "faible"|"modéré"|"élevé" — les
+      // comparaisons `injuryRiskRun?.level === "élevé"` qui réduisent
+      // l'intensité suggérée ne pouvaient donc jamais matcher.
+      capInjuryRisk: localCapRisk ? capRiskToWahooVocabulary(localCapRisk) : undefined,
       sport: "TRI",
       objectif: selectedAthlete.goal || "IM",
     };
