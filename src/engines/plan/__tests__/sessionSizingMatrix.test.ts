@@ -24,6 +24,24 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(r!.quota.strength.min).toBe(2); // competitor row
   });
 
+  it("recovery STARTTORUN finisher → totalSessions cohérent avec run+strength réellement atteignables (pas de faux positif quota_range_drift)", () => {
+    // Régression : le calcul générique (×0.7 du total load) ignorait que
+    // `strength` reste épinglé au plancher STARTTORUN (2, jamais réduit en
+    // récup) — le plancher run(2)+strength(2)=4 dépassait systématiquement
+    // `totalSessions.max` (2-3 avant le fix), déclenchant un faux positif
+    // quota_range_drift à CHAQUE semaine de récup S2R.
+    const r = computeWeeklySessionQuota("Start to Run", "finisher", 2, "recovery");
+    expect(r).not.toBeNull();
+    const q = r!.quota;
+    const achievableMin = q.swim.min + q.bike.min + q.run.min + q.brick.min + q.strength.min;
+    expect(
+      q.totalSessions.max,
+      `totalSessions.max=${q.totalSessions.max} < plancher réellement atteignable (${achievableMin}) — faux positif garanti`,
+    ).toBeGreaterThanOrEqual(achievableMin);
+    expect(q.strength.min).toBe(2);
+    expect(q.run.min).toBe(2);
+  });
+
   it("recovery 703 age_group → total ≤ 8, swim ≥ 2, strength ≥ 1", () => {
     const r = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "recovery");
     expect(r).not.toBeNull();

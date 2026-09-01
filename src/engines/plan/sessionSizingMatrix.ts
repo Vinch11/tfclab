@@ -372,6 +372,21 @@ export function computeWeeklySessionQuota(
       totalSessions: { min: Math.max(0, totMinR), max: Math.max(0, totMaxR) },
       source: { tier: "elite_practice", ref: "pratique standard cycles 3:1" },
     };
+    // Start to Run : le calcul générique ci-dessus (×0.7 du total load, form
+    // ne réduisant que bike/run) ignore que `strength` reste ÉPINGLÉ au
+    // plancher STARTTORUN (2, jamais réduit en récup, cf. floorsFor) — pour
+    // ce seul objectif, le plancher run+strength réellement atteignable
+    // (swim/bike/brick toujours à 0) dépassait `totalSessions.max`, ce qui
+    // déclenchait un faux positif `quota_range_drift` à CHAQUE semaine de
+    // récup S2R (cf. validateWeeklyQuotas.ts). Corrigé sur ce seul objectif
+    // pour ne pas toucher le calcul générique des autres objectifs, où le
+    // plancher strength (1) ne crée pas ce conflit et où la réduction de
+    // volume réelle en récup reste voulue (cf. test "recovery 703 age_group
+    // → total ≤ 8").
+    if (objKey === "STARTTORUN") {
+      const s2rTotal = quota.run.min + quota.strength.min; // swim/bike/brick toujours 0 en S2R
+      quota = { ...quota, totalSessions: { min: s2rTotal, max: s2rTotal } };
+    }
     // Recovery : SL maintenues mais durée plancher × 0.7 (arrondi 5min)
     const round5 = (v: number) => Math.round((v * 0.7) / 5) * 5;
     if (typeof localFloors.slLongRideMin === "number") localFloors.slLongRideMin = round5(localFloors.slLongRideMin);
