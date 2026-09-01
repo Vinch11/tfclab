@@ -560,6 +560,62 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
 
 }
 
+/** Rule 1bis : Densité de jours "qualité" dans la semaine — bug réel observé
+ *  (audit PDF, coach) : semaine "Développement TTE" avec Sweet Spot (mardi),
+ *  test durabilité Z2 2h30 (mercredi), Seuil Gimenez (jeudi), Tempo Marathon
+ *  Canova (vendredi), sortie longue avec blocs Z3 (samedi), negative split
+ *  race-pace (dimanche) — 6 jours sur 6 avec un stimulus modéré/dur quelque
+ *  part, aucun jour réellement protégé. La Règle #1 ci-dessus (ratio TEMPS
+ *  low/mid/high sur toute la semaine) peut très bien rester dans les clous
+ *  malgré ça : chaque bloc dur est individuellement court face au volume
+ *  Z1-Z2 du jour qui le porte. C'est un problème de RÉCUPÉRATION (espacement
+ *  des jours qualité) distinct du ratio temps agrégé — non couvert par
+ *  Rule 1. Alimente le même score "polarizationScore", pas de nouveau
+ *  poids. */
+function validateWeeklyHardDayDensity(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let compliant = 0;
+  let checked = 0;
+  const HARD_DAY_THRESHOLD_MIN = 15;
+  const DAYS_IN_WEEK = 7;
+
+  for (const week of plan.weeks) {
+    const themeText = `${week.theme} ${week.phase}`.toLowerCase();
+    const activeSessions = week.sessions.filter((s) => !s.isRest);
+    if (
+      DELOAD_PATTERNS.test(themeText) ||
+      weekHasRaceDay(week) ||
+      THRESHOLD_BLOCK_PATTERNS.test(themeText) ||
+      activeSessions.length < 5
+    ) {
+      continue;
+    }
+
+    const hardMinutesByDay = new Map<number, number>();
+    for (const s of activeSessions) {
+      const d = parseSessionDurationMin(s);
+      const zone = estimateSessionZoneMinutes(s, d);
+      hardMinutesByDay.set(s.dayIndex, (hardMinutesByDay.get(s.dayIndex) ?? 0) + zone.mid + zone.high);
+    }
+    const hardDays = [...hardMinutesByDay.values()].filter((min) => min > HARD_DAY_THRESHOLD_MIN).length;
+    const protectedDays = DAYS_IN_WEEK - hardDays;
+
+    checked++;
+    if (protectedDays <= 1) {
+      issues.push({
+        rule: "polarization",
+        severity: "warning",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: ${hardDays}/7 jours avec un stimulus modéré/dur (>${HARD_DAY_THRESHOLD_MIN}min) — seulement ${protectedDays} jour(s) réellement protégé(s) dans la semaine, risque de surcharge malgré un ratio temps low/mid/high polarisé`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+
+  return { issues, score: checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100))) };
+}
+
 /** Rule 2: Load/Deload pattern 3:1 or 2:1 */
 function validateLoadPattern(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
@@ -2735,6 +2791,78 @@ function validateIntraWeekFrequencyCaps(
   return { issues, repeated, checked };
 }
 
+/** Fiches catalogue documentant explicitement une progression D'UNE SEMAINE
+ *  À L'AUTRE (ex: LYDIARD_RUN_AEROBIC_BASE_LONG, `when` = "Volume progressif
+ *  sur 16-24 semaines") — distinct d'une progression INTRA-séance (ex: un
+ *  bloc SST "3x20' progressif" dont la puissance grimpe pendant LA séance
+ *  elle-même, sans rapport avec les semaines). Le motif exige "sur N
+ *  semaines" pour ne cibler que le premier type. */
+const WEEKLY_PROGRESSION_PATTERN = /progressi[fv]e?\s+sur\s+\d+/i;
+
+function isDeclaredWeeklyProgressivePillar(entry: LibraryWorkout): boolean {
+  return WEEKLY_PROGRESSION_PATTERN.test(entry.when || "");
+}
+
+/** Rule 4bis : Stagnation d'un pilier hebdomadaire déclaré progressif — bug
+ *  réel (audit PDF, coach) : la sortie longue Base aérobie Lydiard a été
+ *  générée avec EXACTEMENT la même durée (1h45) en S1 et S2, alors que sa
+ *  propre fiche affirme noir sur blanc "La DURÉE augmente, pas l'intensité"
+ *  et documente une table de progression explicite. La Règle #4 Progression
+ *  (validateProgression) ne voit que le VOLUME TOTAL de la semaine (toutes
+ *  séances confondues) — une fiche-pilier figée peut s'y noyer si d'autres
+ *  séances de la même semaine compensent en durée. Ce contrôle compare
+ *  directement les occurrences successives d'UNE MÊME fiche déclarée
+ *  progressive : si la durée ne progresse pas (stagne ou diminue) d'une
+ *  occurrence à l'autre, c'est un signal direct que l'IA n'a pas suivi sa
+ *  propre consigne de progression — indépendamment du volume hebdo global.
+ *  Alimente le même score "progression" (Rule 4), pas de nouveau poids. */
+function validatePillarProgressionStagnation(
+  plan: ParsedPlan,
+): { issues: ValidationIssue[]; stagnant: number; checked: number } {
+  const issues: ValidationIssue[] = [];
+  const catalogById = getCatalogById();
+  let stagnant = 0;
+  let checked = 0;
+
+  const occurrencesById = new Map<string, { week: number; durationMin: number | null }[]>();
+  for (const week of plan.weeks) {
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      const rawId = extractCatalogId(s.title, s.details, s.catalogId);
+      if (!rawId) continue;
+      const id = rawId.toUpperCase();
+      const entry = catalogById.get(id);
+      if (!entry || !isDeclaredWeeklyProgressivePillar(entry)) continue;
+      const list = occurrencesById.get(id) ?? [];
+      list.push({ week: week.weekNumber, durationMin: parseSessionDurationMin(s) });
+      occurrencesById.set(id, list);
+    }
+  }
+
+  for (const [id, occurrences] of occurrencesById) {
+    if (occurrences.length < 2) continue;
+    occurrences.sort((a, b) => a.week - b.week);
+    const entry = catalogById.get(id)!;
+    for (let i = 1; i < occurrences.length; i++) {
+      const prev = occurrences[i - 1];
+      const curr = occurrences[i];
+      if (prev.durationMin === null || curr.durationMin === null) continue;
+      checked++;
+      if (curr.durationMin <= prev.durationMin) {
+        stagnant++;
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: curr.week,
+          message: `S${curr.week}: "${entry.objectif}" (${id}) — fiche déclarée progressive d'une semaine à l'autre ("${entry.when}"), mais la durée n'a pas progressé depuis S${prev.week} (${prev.durationMin}min → ${curr.durationMin}min)`,
+        });
+      }
+    }
+  }
+
+  return { issues, stagnant, checked };
+}
+
 function validateAntiRepetition(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
   const weeksByNumber = new Map<number, ParsedWeek>();
@@ -2840,10 +2968,22 @@ export function validatePlan(
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
   // Run all validation rules
-  const polarization = validatePolarization(weekMetrics);
+  const polarizationBase = validatePolarization(weekMetrics);
+  const hardDayDensity = validateWeeklyHardDayDensity(plan);
+  const polarization = {
+    issues: [...polarizationBase.issues, ...hardDayDensity.issues],
+    score: Math.round((polarizationBase.score + hardDayDensity.score) / 2),
+  };
   const loadPattern = validateLoadPattern(weekMetrics);
   const keySessions = validateKeySessions(weekMetrics, objective, ambition);
-  const progression = validateProgression(weekMetrics);
+  const progressionBase = validateProgression(weekMetrics);
+  const pillarStagnation = validatePillarProgressionStagnation(plan);
+  const progression = {
+    issues: [...progressionBase.issues, ...pillarStagnation.issues],
+    score: pillarStagnation.stagnant > 0
+      ? Math.max(0, progressionBase.score - Math.min(30, pillarStagnation.stagnant * 15))
+      : progressionBase.score,
+  };
   const sportRatio = validateSportRatio(weekMetrics, objective);
   const catalogRatio = validateCatalogRatio(plan);
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
