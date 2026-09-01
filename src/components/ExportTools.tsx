@@ -1809,7 +1809,19 @@ function buildExportPayload(
       vlamaxConfidence: vlamax.confidence,
       vo2max: effectiveRefs.vo2max,
       tteMin: tte.tte_min,
-      sport: ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(athlete.goal || "") ? "cap" : "velo",
+      // Bug corrigé (audit nutrition) : IM/70.3/Ironman/Half tombaient dans
+      // le "else" ⇒ "velo" — traité comme du cyclisme pur (facteur 1.0, le
+      // plus généreux), alors que `nutritionEstimate` plus bas dans ce même
+      // rapport classe ces mêmes objectifs "triathlon" et applique le
+      // facteur de tolérance digestive dédié (0.90). Les deux moteurs
+      // affichaient donc deux chiffres g/h différents pour le même athlète
+      // dans le même document. `computeNutritionV2` sait maintenant traiter
+      // 'triathlon' nativement (cf. nutritionV2.ts).
+      sport: ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(athlete.goal || "")
+        ? "cap"
+        : ["IM", "Ironman", "70.3", "703", "Half"].includes(athlete.goal || "")
+          ? "triathlon"
+          : "velo",
       targetDurationHours: (() => {
         const goal = athlete.goal || "IM";
         const durationMap: Record<string, number> = {

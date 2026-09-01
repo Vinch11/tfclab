@@ -50,7 +50,7 @@ export interface NutritionPredictiveV2 {
   confidence: number;
   
   // Sport et contexte
-  sport: 'velo' | 'cap';
+  sport: 'velo' | 'cap' | 'triathlon';
   sportLabel: string;
   baseRate: number;  // Taux de base (g/h)
   
@@ -86,7 +86,12 @@ export interface NutritionV2Input {
   tteMin: number | null;
   
   // Sport
-  sport: 'velo' | 'cap';
+  // 'triathlon' : mappé sur 'cap' pour le calcul de base Mader (source
+  // canonique unique, cf. computeBaseRateMader) puis corrigé en interne par
+  // le facteur de tolérance digestive triathlon (0.90, entre vélo 1.0 et CAP
+  // 0.82) — même méthode que nutritionPredictive.ts::computeNutritionEstimate,
+  // pour que les deux moteurs affichent le même chiffre pour un même athlète.
+  sport: 'velo' | 'cap' | 'triathlon';
   
   // Durée cible (heures)
   targetDurationHours: number | null;
@@ -320,10 +325,21 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
   
   const warnings: string[] = [];
   const contributors: NutritionContributor[] = [];
-  
+
   // Étape A — Taux de base via modèle Mader
-  const maderResult = computeBaseRateMader(weightKg, sport, vo2max, vlamaxValue, targetIntensityPct, targetDurationHours);
-  const baseRate = maderResult.baseRate;
+  // `computeBaseRateMader` (source canonique unique) ne connaît que
+  // 'velo'|'cap' — 'triathlon' est mappé sur 'cap' pour ce calcul, puis
+  // corrigé juste en dessous (même méthode que nutritionPredictive.ts).
+  const unifiedSport: 'velo' | 'cap' = sport === 'velo' ? 'velo' : 'cap';
+  const maderResult = computeBaseRateMader(weightKg, unifiedSport, vo2max, vlamaxValue, targetIntensityPct, targetDurationHours);
+  // Ajustement triathlon : réintroduit le facteur 0.90 (vs 0.82 CAP, 1.0
+  // vélo) — annule le -18% CAP appliqué par computeBaseRateMader puis
+  // applique le -10% triathlon. Bug corrigé (audit nutrition/multi-objectifs) :
+  // avant ce fix, un athlète IM/70.3 recevait ici le taux vélo NON corrigé
+  // (facteur 1.0, le plus généreux) alors que nutritionPredictive.ts
+  // affichait pour le MÊME athlète, dans le MÊME rapport, un taux corrigé
+  // (0.90) — deux chiffres différents pour la même prescription.
+  const baseRate = sport === 'triathlon' ? Math.round(maderResult.baseRate / 0.82 * 0.90) : maderResult.baseRate;
   contributors.push({
     id: 'base',
     label: 'Taux de base (Mader)',
@@ -331,8 +347,8 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
     adjustment: baseRate,
     direction: 'neutral',
     explanation: maderResult.method === 'mader'
-      ? `Oxydation totale : ${maderResult.totalOxidation} g/h → apport exogène : ${baseRate} g/h`
-      : `Estimation (VO2max/VLamax estimés) → oxydation ${maderResult.totalOxidation} g/h → exogène ${baseRate} g/h`
+      ? `Oxydation totale : ${maderResult.totalOxidation} g/h → apport exogène : ${baseRate} g/h${sport === 'triathlon' ? ' (ajusté tolérance digestive triathlon)' : ''}`
+      : `Estimation (VO2max/VLamax estimés) → oxydation ${maderResult.totalOxidation} g/h → exogène ${baseRate} g/h${sport === 'triathlon' ? ' (ajusté tolérance digestive triathlon)' : ''}`
   });
   
   // VLamax: déjà intégrée dans le modèle Mader (calculateCarbOxidation)
@@ -443,7 +459,7 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
     glycogenRiskScore: riskScore,
     confidence,
     sport,
-    sportLabel: sport === 'cap' ? 'Course à Pied' : 'Vélo',
+    sportLabel: sport === 'cap' ? 'Course à Pied' : sport === 'triathlon' ? 'Triathlon' : 'Vélo',
     baseRate,
     targetDurationHours,
     targetIntensityPct,
@@ -489,7 +505,7 @@ function generateWhyThisNumber(
 
 function generateRecommendations(
   risk: NutritionRiskV2,
-  sport: 'velo' | 'cap',
+  sport: 'velo' | 'cap' | 'triathlon',
   duration: number | null
 ): string[] {
   const recs: string[] = [];
