@@ -909,6 +909,13 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setPlan(planProp); setReplacementCount(0); }, [planProp]);
 
+  // Reborne `selectedWeek` si le plan a moins de semaines qu'avant (ex.
+  // régénération partielle qui raccourcit le plan) — cf. currentWeek plus
+  // bas pour le garde-fou de rendu correspondant.
+  useEffect(() => {
+    setSelectedWeek((w) => Math.min(Math.max(w, 0), Math.max(0, plan.weeks.length - 1)));
+  }, [plan.weeks.length]);
+
   // Libellés de phase orientés limiteur (couche affichage uniquement).
   // Si le bloc "Phases" du plan est absent/incomplet, on le reconstruit depuis
   // les semaines — sinon la table reste vide et on retombe sur "Fondation" brut.
@@ -1352,7 +1359,15 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
   }
 
 
-  const currentWeek = plan.weeks[selectedWeek];
+  // `selectedWeek` est un index numérique restauré depuis localStorage
+  // (potentiellement laissé par un plan plus long avant régénération) et
+  // jamais borné ailleurs quand `plan.weeks.length` change — une
+  // régénération qui réduit le nombre de semaines peut donc laisser
+  // `selectedWeek` hors bornes, produisant `currentWeek === undefined` et
+  // un crash de rendu ("Cannot read properties of undefined (reading
+  // 'weekNumber')") sur les accès currentWeek.weekNumber plus bas. On
+  // retombe sur la dernière semaine valide plutôt que de planter.
+  const currentWeek = plan.weeks[selectedWeek] ?? plan.weeks[plan.weeks.length - 1];
   const sortedRaceGoals = useMemo(
     () => [...(raceGoals || [])].sort((a, b) => (a.raceDate || "").localeCompare(b.raceDate || "")),
     [raceGoals]
