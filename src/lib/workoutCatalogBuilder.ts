@@ -66,6 +66,12 @@ export interface CatalogEntry {
   structure: string; // Condensed single-line
   variants?: string;
   dPlusTargetM?: number | { min: number; max: number };
+  /**
+   * Contre-indication de placement déclarée par la fiche (ex. "Trop proche
+   * course", "Fatigue élevée", "Douleur genou"). Absent quand la fiche n'a
+   * aucune restriction ("—" / "aucun" dans la bibliothèque source).
+   */
+  avoid?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1130,6 +1136,8 @@ export function buildWorkoutCatalog(
   // Convert to compact entries
 
   const chunkPhase = dominantPhase(phases as PhaseTag[]);
+  const isMeaningfulAvoid = (a: string | undefined | null): a is string =>
+    !!a && !/^(—|aucun)$/i.test(a.trim());
 
   return selected.map(w => ({
     id: w.id,
@@ -1142,6 +1150,7 @@ export function buildWorkoutCatalog(
     structure: condenseStructure(w),
     variants: pickVariant(w, goals),
     ...(w.dPlusTargetM ? { dPlusTargetM: w.dPlusTargetM } : {}),
+    ...(isMeaningfulAvoid(w.avoid) ? { avoid: w.avoid } : {}),
   }));
 }
 
@@ -1241,6 +1250,7 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   lines.push("Les séances sont **groupées par sport**. Un slot d'un sport donné ne peut JAMAIS recevoir un ID d'un autre sport.\n");
 
   const hasTrailDPlus = catalog.some(e => e.dPlusTargetM);
+  const hasAvoid = catalog.some(e => e.avoid);
 
   const buckets = new Map<string, { info: ReturnType<typeof normalizeSportBucket>; entries: CatalogEntry[] }>();
   for (const e of catalog) {
@@ -1250,12 +1260,14 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   }
   const ordered = Array.from(buckets.values()).sort((a, b) => a.info.order - b.info.order);
 
+  const avoidCol = hasAvoid ? " Éviter |" : "";
+  const avoidSep = hasAvoid ? "------------|" : "";
   const header = hasTrailDPlus
-    ? "| ID | Cat | Objectif | Phases | Durée cible (min) | D+ cible (m) | Zone-cible | Structure |"
-    : "| ID | Cat | Objectif | Phases | Durée cible (min) | Zone-cible | Structure |";
+    ? `| ID | Cat | Objectif | Phases | Durée cible (min) | D+ cible (m) | Zone-cible | Structure |${avoidCol}`
+    : `| ID | Cat | Objectif | Phases | Durée cible (min) | Zone-cible | Structure |${avoidCol}`;
   const sep = hasTrailDPlus
-    ? "|-----|-----|----------|--------|-------------|--------------|------------|-----------|"
-    : "|-----|-----|----------|--------|-------------|------------|-----------|";
+    ? `|-----|-----|----------|--------|-------------|--------------|------------|-----------|${avoidSep}`
+    : `|-----|-----|----------|--------|-------------|------------|-----------|${avoidSep}`;
 
   for (const { info, entries } of ordered) {
     lines.push(`\n#### ${info.emoji} ${info.label} — ${entries.length} séance(s)`);
@@ -1275,10 +1287,11 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
       const dPlus = e.dPlusTargetM
         ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
         : "—";
+      const avoidCell = hasAvoid ? ` ${e.avoid || "—"} |` : "";
       if (hasTrailDPlus) {
-        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${dPlus} | ${zoneCible} | ${struct} |`);
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${dPlus} | ${zoneCible} | ${struct} |${avoidCell}`);
       } else {
-        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${zoneCible} | ${struct} |`);
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${zoneCible} | ${struct} |${avoidCell}`);
       }
     }
   }
@@ -1303,6 +1316,9 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   lines.push("5. Les séances de récupération et repos ne nécessitent pas d'ID catalogue (mais gardent une description : durée, zone, type).");
   lines.push("6. 🚫 **NON-CROSS-SPORT** : chaque ID vit dans UN SEUL groupe sport ci-dessus. Un slot vélo ne peut recevoir qu'un ID du groupe 🚴 VÉLO ; un slot course qu'un ID 🏃 COURSE (⛰️ TRAIL uniquement si l'objectif du plan est un trail) ; un slot natation qu'un ID 🏊 NATATION ; un slot renfo qu'un ID 💪 RENFO. Les IDs 🔁 BRICK sont réservés aux enchaînements planifiés comme tels. Toute violation = séance rejetée.");
   lines.push("7. 🚫 **Pas de watts dans une séance course**, pas d'allure /km dans une séance vélo, pas de puissance dans une séance natation. Chaque sport a sa métrique dédiée (Watts vélo, allure/VMA course, CSS/temps 100m natation).");
+  if (hasAvoid) {
+    lines.push("8. ⚠️ **Colonne Éviter = contre-indication de placement.** Une fiche portant \"Trop proche course\"/\"Veille compétition\" ne doit JAMAIS être placée dans les derniers jours avant J (taper/race week) ; une fiche portant \"Fatigue élevée/accumulée/chronique\" ne doit JAMAIS être placée juste après une séance clé ou en semaine de récupération/décharge. Respecte cette contrainte au même titre que la Phase.");
+  }
 
   return lines.join("\n");
 }
