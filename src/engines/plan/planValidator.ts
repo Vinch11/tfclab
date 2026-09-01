@@ -1288,7 +1288,14 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
   }
 
   // 5. Reverse Periodization check — Fondation should contain some intensity
-  if (phases.length >= 2) {
+  // Exempté pour Start to Run : par doctrine (grille Volume/Intensité par
+  // Ambition, systemPrompt.ts), ce format est quasi-exclusivement Z1-Z2, 0
+  // séance clé — un vrai débutant n'a rien à faire avec des blocs VO2max dès
+  // la phase 1. Sans cette exemption, un plan strictement conforme à cette
+  // doctrine recevait quand même une recommandation physiologiquement
+  // absurde pour cette population (audit non-triathlon).
+  const isStartToRun = normalizeObjectiveKey(objective || "") === "StartToRun";
+  if (phases.length >= 2 && !isStartToRun) {
     const fondationPhase = phases.find(p => getPhaseIndex(p.name) === 1);
     if (fondationPhase) {
       const fondationWeeks = plan.weeks.filter(w => getPhaseIndex(w.phase) === 1);
