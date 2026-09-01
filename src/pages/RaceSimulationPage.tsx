@@ -255,10 +255,20 @@ export default function RaceSimulationPage() {
   // Simulation, même si aucun race_goal LCW n'est persisté en base (cas Cath :
   // objectif 70.3 défini sans passer par le sélecteur de format).
   const lcwManualKey = athleteId ? `lcw-manual-${athleteId}` : null;
-  const [lcwManualEnabled, setLcwManualEnabled] = useState<boolean>(() => {
-    if (typeof window === 'undefined' || !lcwManualKey) return false;
-    return window.localStorage.getItem(lcwManualKey) === 'true';
-  });
+  // Initialisé à `false` puis TOUJOURS redérivé par l'effet ci-dessous (jamais
+  // seulement à l'initialisation paresseuse) : `RaceSimulationPage` ne démonte
+  // jamais entre deux athlètes (route statique `/race`, changement d'athlète
+  // via le contexte global) — un `useState(() => ...)` lu une seule fois au
+  // premier montage laissait ce booléen "collé" à la valeur du premier
+  // athlète consulté pour tous les suivants. Exactement le bug "cas Cath"
+  // (PR #66) que ce garde-fou existe pour éviter, réintroduit ici par un
+  // chemin différent (localStorage + lazy init, pas un `savedState` restauré
+  // "si présent").
+  const [lcwManualEnabled, setLcwManualEnabled] = useState<boolean>(false);
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !lcwManualKey) { setLcwManualEnabled(false); return; }
+    setLcwManualEnabled(window.localStorage.getItem(lcwManualKey) === 'true');
+  }, [lcwManualKey]);
   React.useEffect(() => {
     if (!lcwManualKey || typeof window === 'undefined') return;
     if (lcwManualEnabled) window.localStorage.setItem(lcwManualKey, 'true');
@@ -271,6 +281,11 @@ export default function RaceSimulationPage() {
   const lcwIsFullDistance = raceObjectiveRaw === 'IM';
   const lcwActive = lcwEligible && (lcwGoal !== null || lcwManualEnabled);
   const [lcwSegment, setLcwSegment] = useState<'swim' | 'bike' | 'run'>('bike');
+  // Sélection d'onglet UI, non persistée : sans reset, le segment affiché
+  // reste sélectionné pour l'athlète suivant. Même signal que ci-dessus.
+  React.useEffect(() => {
+    setLcwSegment('bike');
+  }, [athleteId]);
 
   const handleEnableLcwAndPersist = React.useCallback(async () => {
     setLcwManualEnabled(true);
