@@ -844,6 +844,16 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       return `${pm}:${String(ps).padStart(2, "0")}/km`;
     };
 
+    // Audit multi-objectifs : sert à identifier la course réellement DERNIÈRE
+    // chronologiquement (celle qui doit recevoir un taper complet de fin de
+    // plan) — sans ça, la ligne "DERNIÈRE semaine du plan" plus bas était
+    // émise pour CHAQUE objectif daté (A, B et C), contredisant directement
+    // les règles multi-objectifs qui suivent ("B/C = mini-taper 7-10j, ne
+    // pas sacrifier A"). Une course B en milieu de plan pouvait ainsi se
+    // voir prescrire un taper/pic complet de fin de plan à la place de A.
+    const lastRaceDate = sortedGoals.reduce((latest: string | null, g: any) =>
+      g.raceDate && (!latest || g.raceDate > latest) ? g.raceDate : latest, null as string | null);
+
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
       const goalWeek = computeGoalWeek(goal);
@@ -888,7 +898,16 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       if (goalWeek && goal.raceDate) {
         lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
         lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
-        lines.push(`→ La DERNIÈRE semaine du plan (S${goalWeek}) DOIT être la SEMAINE DE COURSE avec : mini-taper, activation J-2/J-1, et Jour de Course le jour exact de la compétition.`);
+        if (goal.raceDate === lastRaceDate) {
+          lines.push(`→ La DERNIÈRE semaine du plan (S${goalWeek}) DOIT être la SEMAINE DE COURSE avec : taper complet, activation J-2/J-1, et Jour de Course le jour exact de la compétition.`);
+        } else {
+          // Course B/C intermédiaire (pas la dernière chronologiquement) :
+          // NE PAS affirmer que c'est la dernière semaine du plan — ça
+          // contredirait directement les règles multi-objectifs ci-dessous
+          // (mini-taper, ne pas sacrifier la progression vers A). Le plan
+          // continue après cette semaine.
+          lines.push(`→ S${goalWeek} DOIT contenir : mini-taper (7-10j), activation J-2/J-1, et Jour de Course le jour exact de la compétition — CE N'EST PAS la dernière semaine du plan, qui continue ensuite vers l'objectif principal (cf. règles multi-objectifs ci-dessous).`);
+        }
         // Cartographie explicite J-N → jour calendaire, calculée déterministe.
         // BUG constaté sans ceci : le modèle place le shakeout "J-1" (catalogue)
         // sur le mauvais jour (ex: vendredi au lieu de samedi pour une course
