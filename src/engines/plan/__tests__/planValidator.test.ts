@@ -1277,6 +1277,25 @@ describe("planValidator", () => {
       expect(contentIssue).toBeUndefined();
     });
 
+    it("Audit #3 — flague désormais un contenu VO2max/VMA/fractionné/seuil placé en semaine d'affûtage", () => {
+      // Avant le fix, le motif interdit de la phase Affûtage/Taper
+      // (PHASE_SESSION_SIGNATURES[5].forbidden) ne contenait aucun mot-clé
+      // VO2max/VMA/fractionné/seuil — exactement le type de contenu qui n'a
+      // rien à faire à quelques jours de la course (charge neuro-métabolique
+      // trop élevée).
+      const weeks = [
+        makeWeek(1, [{ sport: "Course", title: "Chantier seuil", details: "" }], "Chantier", "build"),
+        makeWeek(2, [
+          { sport: "Course", title: "Rappel VMA", details: "3x3min VMA fractionné" },
+        ], "Affûtage", "taper"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const contentIssue = result.issues.find(
+        i => i.rule === "phase_coherence" && /inadapté en phase "taper"/i.test(i.message)
+      );
+      expect(contentIssue).toBeDefined();
+    });
+
     it("la regex de durée de phase matche désormais le format \"S1-S6\" (préfixe S sur les deux nombres)", () => {
       // Aucun bloc "Phases" explicite ici (une seule entrée n'aurait pas été
       // utilisée, le code exige ≥2 pour préférer l'explicite à la dérivation)
