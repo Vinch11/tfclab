@@ -14,6 +14,8 @@
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 import type { PlanAthleteData } from "./types";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
+import { WorkoutLibrary } from "@/lib/workoutLibrary";
+import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { HIGH_IMPACT_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
 import { detectInterval, detectAllIntervals, isCyclingSession } from "./wbalPostProcessor";
 import {
@@ -2638,6 +2640,101 @@ function normalizeSessionTitleForRepetitionCheck(title: string): string {
   return title.toLowerCase().replace(/[🔑🏁]/g, "").trim();
 }
 
+/** Catalogue plein (id → fiche), indexé une seule fois — utilisé par le
+ *  contrôle de duplication INTRA-semaine ci-dessous (cf. isOneTimeTestProtocol
+ *  / parseWeeklyFrequencyCap). */
+let catalogByIdCache: Map<string, LibraryWorkout> | null = null;
+function getCatalogById(): Map<string, LibraryWorkout> {
+  if (!catalogByIdCache) {
+    catalogByIdCache = new Map();
+    for (const w of WorkoutLibrary) catalogByIdCache.set(w.id.toUpperCase(), w);
+  }
+  return catalogByIdCache;
+}
+
+/** Une fiche tagguée "test" est un protocole de calibration/évaluation
+ *  (FTP, VMA, CSS, FatMax zone finder, lactate…) : par nature à usage unique,
+ *  jamais une séance d'entraînement répétable dans la même semaine. */
+function isOneTimeTestProtocol(entry: LibraryWorkout): boolean {
+  return (entry.tags || []).some((t) => String(t).toLowerCase() === "test");
+}
+
+/** Extrait un plafond hebdomadaire explicite du champ `when` de la fiche
+ *  (ex: "Base/Build, 1x/semaine max") — cf. bug réel : SFR (V3_BIKE_FORCE_SFR,
+ *  "1x/semaine max") généré 2x dans la même semaine, plafond jamais vérifié. */
+function parseWeeklyFrequencyCap(when: string | undefined | null): number | null {
+  if (!when) return null;
+  const match = /(\d+)\s*x\s*\/\s*semaine\s*max/i.exec(when);
+  if (!match) return null;
+  const n = parseInt(match[1], 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** Rule 17bis : Duplication INTRA-semaine (bug réel audit PDF — test FatMax
+ *  identique 3x dans S2, SFR "1x/semaine max" généré 2x dans S1). Distinct du
+ *  contrôle inter-semaines ci-dessus (Rule 17) : compare les occurrences d'une
+ *  même fiche catalogue AU SEIN d'une seule semaine, pas d'une semaine à
+ *  l'autre — un axe de répétition que Rule 17 ne couvre pas. Volontairement
+ *  restreint aux fiches dont le catalogue documente explicitement une
+ *  contrainte de fréquence (tag "test" = usage unique, ou `when` "Nx/semaine
+ *  max"), pour éviter les faux positifs sur des séances génériques (EF,
+ *  récupération) légitimement répétées plusieurs fois par semaine.
+ *  Alimente le même compteur repeated/checked que Rule 17 (même score
+ *  "antiRepetitionScore", pas de nouveau poids à financer). */
+function validateIntraWeekFrequencyCaps(
+  plan: ParsedPlan,
+): { issues: ValidationIssue[]; repeated: number; checked: number } {
+  const issues: ValidationIssue[] = [];
+  const catalogById = getCatalogById();
+  let repeated = 0;
+  let checked = 0;
+
+  for (const week of plan.weeks) {
+    const occurrences = new Map<string, ParsedSession[]>();
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      const rawId = extractCatalogId(s.title, s.details, s.catalogId);
+      if (!rawId) continue;
+      const id = rawId.toUpperCase();
+      if (!catalogById.has(id)) continue;
+      const list = occurrences.get(id) ?? [];
+      list.push(s);
+      occurrences.set(id, list);
+    }
+
+    for (const [id, sessions] of occurrences) {
+      if (sessions.length < 2) continue;
+      const entry = catalogById.get(id)!;
+      checked++;
+      const days = sessions.map((s) => s.dayName).join(", ");
+
+      if (isOneTimeTestProtocol(entry)) {
+        repeated++;
+        issues.push({
+          rule: "anti_repetition",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: "${entry.objectif}" (${id}) — protocole de test/calibration à usage unique, généré ${sessions.length}x dans la même semaine (${days})`,
+        });
+        continue;
+      }
+
+      const cap = parseWeeklyFrequencyCap(entry.when);
+      if (cap !== null && sessions.length > cap) {
+        repeated++;
+        issues.push({
+          rule: "anti_repetition",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: "${entry.objectif}" (${id}) — fiche limitée à ${cap}x/semaine max, générée ${sessions.length}x (${days})`,
+        });
+      }
+    }
+  }
+
+  return { issues, repeated, checked };
+}
+
 function validateAntiRepetition(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
   const weeksByNumber = new Map<number, ParsedWeek>();
@@ -2671,6 +2768,11 @@ function validateAntiRepetition(plan: ParsedPlan): { issues: ValidationIssue[]; 
       }
     }
   }
+
+  const intraWeek = validateIntraWeekFrequencyCaps(plan);
+  issues.push(...intraWeek.issues);
+  repeated += intraWeek.repeated;
+  checked += intraWeek.checked;
 
   const score = checked === 0 ? 100 : Math.max(0, 100 - Math.round((repeated / checked) * 100));
   return { issues, score };
