@@ -137,6 +137,26 @@ function getRecommendedRange(objective: string, ambition: string): { hours: stri
 }
 
 
+/**
+ * Date de départ à utiliser pour une génération complète ("Régénérer tout
+ * le plan"). Bug corrigé : un plan DÉJÀ ACTIF pour l'athlète (créé il y a
+ * plusieurs semaines) régénéré "en entier" repartait quand même du lundi de
+ * la semaine courante — un plan démarré le 3 août pour une course le
+ * 18-20 septembre, régénéré le 1er septembre, ne calculait alors le nombre
+ * de semaines QUE depuis le 1er septembre (~3 semaines) au lieu de
+ * reconstruire le plan complet 3 août → 20 septembre. "Régénérer tout"
+ * doit reconstruire le plan EXISTANT, pas en créer un nouveau plus court à
+ * partir d'aujourd'hui. Exportée (plutôt qu'un ternaire en ligne) pour être
+ * testée directement — ce composant page n'a pas de harnais de test complet.
+ */
+export function resolveFullRegenerationStartDate(
+  hadExistingActivePlan: boolean,
+  currentPlanStartDate: Date,
+  now: Date = new Date(),
+): Date {
+  return hadExistingActivePlan ? currentPlanStartDate : startOfWeek(now, { weekStartsOn: 1 });
+}
+
 function calculateAge(birthDate: string): number {
   const birth = new Date(birthDate);
   const today = new Date();
@@ -1260,16 +1280,18 @@ export default function AITrainingPlanPage() {
     // Une génération complète invalide toute régénération ciblée précédente.
     setPlanOverride(null);
 
-    // Une génération pleine ("Générer") repart TOUJOURS sur le lundi de la
-    // semaine courante, même si `planStartDate` porte encore la date d'un
-    // plan précédent restaurée automatiquement au chargement (cf. l.390+
-    // "Ancrage calendaire"). Sans ça, générer plusieurs fois de suite pour
-    // le même athlète (tests, ou simple nouvel essai) réutilisait
-    // silencieusement une vieille date de début. `setPlanStartDate` seul ne
-    // suffit pas ici : la mise à jour de state est asynchrone et
-    // `buildConfigFromDiag` ci-dessous lirait encore l'ancienne valeur dans
-    // le même tick — d'où l'override direct de `config.planStartDate`.
-    const freshStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+    // Une génération pleine ("Générer") repart sur le lundi de la semaine
+    // courante UNIQUEMENT quand il n'y a pas déjà de plan actif pour cet
+    // athlète (première génération, tests, nouvel essai) — sans ça, générer
+    // plusieurs fois de suite réutilisait silencieusement une vieille date
+    // de début. Quand un plan est déjà actif, la date de début originale
+    // (déjà restaurée depuis ce plan, cf. l.390+ "Ancrage calendaire") est
+    // préservée à la place — cf. resolveFullRegenerationStartDate ci-dessus.
+    // `setPlanStartDate` seul ne suffit pas ici : la mise à jour de state
+    // est asynchrone et `buildConfigFromDiag` ci-dessous lirait encore
+    // l'ancienne valeur dans le même tick — d'où l'override direct de
+    // `config.planStartDate`.
+    const freshStartDate = resolveFullRegenerationStartDate(hadExistingActivePlanRef.current, planStartDate);
     setPlanStartDate(freshStartDate);
 
     if (!athleteContext) {
