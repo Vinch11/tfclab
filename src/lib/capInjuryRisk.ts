@@ -333,6 +333,56 @@ export function computeCAPInjuryRiskIndex(params: CAPRiskParams): CAPInjuryRiskR
 }
 
 // =============================================
+// CONVERSION vers les vocabulaires "risque blessure" consommés ailleurs
+// =============================================
+// Bug constaté (audit risque blessure, TemplatesPage) : ce moteur (échelle
+// discrète 0-4, labels français "Très faible"/"Faible"/"Modéré"/"Élevé")
+// était utilisé pour peupler DEUX structures qui attendent un vocabulaire
+// différent, sans aucune conversion :
+//   1. `AthleteTruthRunning.runInjuryRisk` (types/runningTemplate.ts) attend
+//      `score: 0-100` et `level: "FAIBLE"|"MODERE"|"ELEVE"|"CRITIQUE"` — on y
+//      recopiait `totalScore` (0-4) tel quel et `label` (français accentué,
+//      jamais "CRITIQUE") tel quel. Conséquence concrète vérifiée : le badge
+//      de risque (WeekSelectorTFCL.tsx, seuils 30/60 sur un score 0-100)
+//      affichait TOUJOURS vert, quel que soit le risque réel (totalScore
+//      max=4 ≪ 30).
+//   2. `SuggestionEngineInput.capInjuryRisk` (wahooSuggestionEngine.ts)
+//      attend `"faible"|"modéré"|"élevé"` (string) — on y passait le niveau
+//      discret 0|1|2|3 (number) casté `as any`. Les comparaisons
+//      `injuryRiskRun?.level === "élevé"` qui réduisent l'intensité
+//      suggérée ne pouvaient donc jamais matcher.
+// Les deux fonctions ci-dessous centralisent la conversion, avec un mapping
+// ORDINAL qui préserve le pire cas : le niveau 3 ("Élevé", le pire que ce
+// moteur puisse produire — sa propre recommandation dit "déconseillé sans
+// supervision rapprochée") doit atteindre le palier le plus sévère de la
+// cible, sinon le garde-fou qui en dépend ne se déclenche jamais.
+
+/** Vers `AthleteTruthRunning.runInjuryRisk` (score 0-100, vocabulaire ASCII). */
+export function capRiskToRunInjuryRiskShape(
+  risk: Pick<CAPInjuryRiskResult, "level" | "totalScore">
+): { score: number; level: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" } {
+  const LEVEL_MAP: Record<CAPRiskLevel, "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE"> = {
+    0: "FAIBLE",
+    1: "MODERE",
+    2: "ELEVE",
+    3: "CRITIQUE",
+  };
+  return {
+    score: Math.round((risk.totalScore / 4) * 100),
+    level: LEVEL_MAP[risk.level],
+  };
+}
+
+/** Vers `SuggestionEngineInput.capInjuryRisk` (3 paliers français minuscules). */
+export function capRiskToWahooVocabulary(
+  risk: Pick<CAPInjuryRiskResult, "level">
+): "faible" | "modéré" | "élevé" {
+  if (risk.level >= 3) return "élevé";
+  if (risk.level >= 2) return "modéré";
+  return "faible";
+}
+
+// =============================================
 // HELPER: Doit-on afficher l'indice?
 // =============================================
 
