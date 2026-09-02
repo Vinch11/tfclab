@@ -55,6 +55,16 @@ export interface LcwSignatureReminderInput {
   totalChunks: number;
   chunkStartWeek: number;
   chunkEndWeek: number;
+  /**
+   * true si AUCUNE semaine après ce chunk n'est plus en phase Build/Peak
+   * (donc ce chunk est la DERNIÈRE occasion physiologiquement pertinente de
+   * placer ces séances signature — pas nécessairement le dernier chunk de la
+   * génération : sur un plan LCW court, un chunk final couvrant uniquement
+   * l'affûtage/la semaine de course peut suivre un chunk Peak encore éligible).
+   * Calculé par l'appelant via `inferPhaseFromWeek`, seule source de vérité
+   * des limites de phase dans ce fichier.
+   */
+  isLastBuildOrPeakChunk: boolean;
 }
 
 /**
@@ -63,21 +73,20 @@ export interface LcwSignatureReminderInput {
  * Retourne `null` si tous les quotas sont déjà atteints (rien à rappeler).
  */
 export function buildLcwSignatureReminder(input: LcwSignatureReminderInput): string | null {
-  const { consumedIdCounts, chunkIndex, totalChunks, chunkStartWeek, chunkEndWeek } = input;
+  const { consumedIdCounts, chunkIndex, totalChunks, chunkStartWeek, chunkEndWeek, isLastBuildOrPeakChunk } = input;
   const missing = LCW_SIGNATURE_REQUIREMENTS
     .map((req) => ({ ...req, have: consumedIdCounts.get(req.id) ?? 0 }))
     .filter((req) => req.have < req.min);
   if (missing.length === 0) return null;
 
   const chunksRemainingAfterThis = totalChunks - chunkIndex - 1;
-  const isLastChunk = chunksRemainingAfterThis === 0;
   const lines = [
     `\n🏴 SUIVI SIGNATURES LCW (calculé sur les ${chunkIndex} bloc(s) déjà générés dans CETTE requête) :`,
     ...missing.map((req) =>
       `- ⛔ \`${req.id}\` (${req.label}) : ${req.have}/${req.min} placé(s) jusqu'ici.`
     ),
-    isLastChunk
-      ? `🚨 DERNIER BLOC de cette génération : si ces quotas ne sont pas atteints APRÈS ce bloc, le plan sera INVALIDE (contrôle qualité bloquant côté app). Priorise ces séances signature dans les semaines ${chunkStartWeek}-${chunkEndWeek} MAINTENANT, quitte à ajuster le reste de la semaine autour.`
+    isLastBuildOrPeakChunk
+      ? `🚨 DERNIER BLOC Build/Peak de cette génération (les blocs suivants, s'il y en a, sont affûtage/course — trop tard pour ces séances) : si ces quotas ne sont pas atteints APRÈS ce bloc, le plan sera INVALIDE (contrôle qualité bloquant côté app). Priorise ces séances signature dans les semaines ${chunkStartWeek}-${chunkEndWeek} MAINTENANT, quitte à ajuster le reste de la semaine autour.`
       : `Il reste ${chunksRemainingAfterThis} bloc(s) après celui-ci pour combler ce manque — mais commence dès que la phase (Build/Peak) de ce bloc le permet, ne remets pas systématiquement à plus tard.`,
   ];
   return lines.join("\n");
