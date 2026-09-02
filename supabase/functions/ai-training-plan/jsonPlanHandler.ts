@@ -45,6 +45,7 @@ import {
 import { isTrailCatalogId } from "./trailMarkers.ts";
 import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
 import { applyValueCheck } from "./valueCheck.ts";
+import { detectLcwFromConfig, buildLcwSignatureReminder } from "./lcwSignatureReminder.ts";
 
 const PRIMARY_MODEL = "google/gemini-3-flash-preview";
 
@@ -1009,6 +1010,16 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         // de non-réemploi explicite (interdit ≥2 usages, à éviter à 1 usage).
         const consumedIdCounts = new Map<string, number>();
         const totalChunks = chunks.length;
+
+        // ─── Rappel dynamique signatures LCW — voir lcwSignatureReminder.ts.
+        // ⚠️ Uniquement pour une génération complète multi-chunk fraîche —
+        // PAS en régénération semaine seule (regenerateWeek, déjà couvert
+        // par son propre rappel client PR #86) ni en régénération de fenêtre
+        // (windowRegenPhase, idem) : consumedIdCounts ne verrait alors que
+        // les chunks de CETTE requête, pas le reste du plan déjà existant.
+        const isFullFreshLCWGeneration = !regenerateWeek
+          && typeof planConfig?.windowRegenPhase !== "string"
+          && detectLcwFromConfig(planConfig);
         console.log(`[trail_probe_path] jsonPlanHandler main loop reached, totalChunks=${totalChunks}, regenerateWeek=${regenerateWeek ? "yes" : "no"}`);
 
 
@@ -1127,6 +1138,17 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             }
           }
 
+          // ─── Rappel dynamique signatures LCW — voir lcwSignatureReminder.ts ───
+          const lcwSignatureBlock = isFullFreshLCWGeneration
+            ? buildLcwSignatureReminder({
+                consumedIdCounts,
+                chunkIndex: ci,
+                totalChunks,
+                chunkStartWeek: chunk.start,
+                chunkEndWeek: chunk.end,
+              })
+            : null;
+
           const userPrompt = [
             athleteConstraintsBlock || null,
             terrainHardBan || null,
@@ -1135,6 +1157,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             catalogDump ? `\n${catalogDump}\n` : null,
             historyBlock,
             diversityBlock,
+            lcwSignatureBlock,
             canonicalRaceCard,
             `\n📋 DIAGNOSTIC STRUCTURÉ (référence cohérence) :\n${structuredDiagnostic}`,
             `\n🎯 CIBLE CHUNK : ${chunkHeader}`,
