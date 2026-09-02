@@ -36,7 +36,7 @@ import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TT
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
 import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";
 import { SEANCES } from "@/types/seances";
-import { computeNutritionEstimate, type NutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeNutritionEstimateSimple, type NutritionEstimateSimpleResult } from "@/lib/v2/nutritionUnified";
 import { computeCAPInjuryRiskIndex, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment, getAgeAdjustedVLamaxProfil, getVLamaxAgeStatus, type VLamaxProfil } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
@@ -188,7 +188,7 @@ interface ExportPayload {
     manquants: string[];
   };
   reportDate: string;
-  nutritionEstimate: NutritionEstimate | null;
+  nutritionEstimate: NutritionEstimateSimpleResult | null;
   capInjuryRisk: {
     level: number;
     label: string;
@@ -1682,13 +1682,15 @@ function buildExportPayload(
   // Calculer complétude
   const completude = calculateCompletude(effectiveRefs, effectiveSnapshot, athleteTests, vlamax, tte);
   
-  // Calculer Nutrition Prédictive
-  const nutritionEstimate = computeNutritionEstimate({
+  // Calculer Nutrition Prédictive — moteur unifié (même calcul que /course
+  // NutritionUnifiedCard) au lieu de l'ancien moteur V1 (nutritionPredictive.ts),
+  // qui utilisait ses propres tables durée/intensité par objectif et son
+  // propre plafond digestif → chiffres g/h différents du PDF vs /course pour
+  // le même athlète (audit "simulations pas fiables").
+  const nutritionEstimate = computeNutritionEstimateSimple({
     vlamax: vlamax.value,
     objectif: athlete.goal || "IM",
     tteMin: tte.tte_min,
-    tteTarget: tte.target ?? diagnostic?.targets?.current?.tte_min ?? null,
-    potentielPhysiologique: potentielPhysiologique.score,
     vo2max: effectiveRefs.vo2max,
     weightKg: effectiveRefs.weightKg,
   });
@@ -1811,12 +1813,16 @@ function buildExportPayload(
       tteMin: tte.tte_min,
       // Bug corrigé (audit nutrition) : IM/70.3/Ironman/Half tombaient dans
       // le "else" ⇒ "velo" — traité comme du cyclisme pur (facteur 1.0, le
-      // plus généreux), alors que `nutritionEstimate` plus bas dans ce même
-      // rapport classe ces mêmes objectifs "triathlon" et applique le
-      // facteur de tolérance digestive dédié (0.90). Les deux moteurs
-      // affichaient donc deux chiffres g/h différents pour le même athlète
-      // dans le même document. `computeNutritionV2` sait maintenant traiter
+      // plus généreux). `computeNutritionV2` sait maintenant traiter
       // 'triathlon' nativement (cf. nutritionV2.ts).
+      // ⚠️ Depuis la migration de `nutritionEstimate` (plus bas) vers le
+      // moteur unifié (computeNutritionEstimateSimple), ce champ nutritionV2
+      // et le champ nutritionEstimate peuvent de nouveau diverger légèrement
+      // sur un objectif triathlon (approches différentes : facteur de
+      // blend 0.90 ici vs leg le plus exigeant côté nutritionEstimate) — les
+      // deux restent néanmoins bien plus proches qu'avant l'audit ambition/
+      // nutrition. Non résolu dans cette PR : migrer nutritionV2 lui-même
+      // vers le moteur unifié demanderait de porter son détail par phase.
       sport: ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(athlete.goal || "")
         ? "cap"
         : ["IM", "Ironman", "70.3", "703", "Half"].includes(athlete.goal || "")
@@ -3862,7 +3868,7 @@ function buildExecutiveSummaryHTML(payload: ExportPayload): string {
   // ─── Risque n°1 ───────────────────────────────────
   let riskBlock: string;
   const capLevel = capInjuryRisk?.level ?? 0;              // 0..4
-  const nutR = nutritionEstimate?.riskLevel ?? "low";
+  const nutR = nutritionEstimate?.risk ?? "low";
   const nutScore = nutR === "critical" ? 4 : nutR === "high" ? 3 : nutR === "moderate" ? 2 : 1;
   if (Math.max(capLevel, nutScore) >= 2) {
     const capWins = capLevel >= nutScore;
@@ -4537,7 +4543,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const risquesIdentifies = (() => {
     const risques: string[] = [];
     if (capInjuryRisk && capInjuryRisk.level >= 2) risques.push(`Risque blessure CAP (${capInjuryRisk.label})`);
-    if (nutritionEstimate && (nutritionEstimate.riskLevel === "high" || nutritionEstimate.riskLevel === "critical")) {
+    if (nutritionEstimate && (nutritionEstimate.risk === "high" || nutritionEstimate.risk === "critical")) {
       risques.push(`Risque nutritionnel (${nutritionEstimate.riskLabel})`);
     }
     return risques.length > 0 ? risques.join(", ") : "Aucun risque majeur identifié sur la base des données disponibles";

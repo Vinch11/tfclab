@@ -1933,6 +1933,8 @@ const Index = () => {
                 readiness={potentielPhysiologiqueEffectif}
                 onGoToSnapshots={() => setShowSnapshots(true)}
                 unifiedLimiterResult={alignedLimiterResult}
+                weightKg={effectiveRefs.weightKg ?? null}
+                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
               />
             ),
           },

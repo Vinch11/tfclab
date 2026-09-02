@@ -8,7 +8,7 @@ import { getAthleteAmbition } from "@/types/ambitionLevel";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
-import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeNutritionEstimateSimple, NutritionEstimateSimpleResult } from "@/lib/v2/nutritionUnified";
 import { 
   suggestWahooWorkouts, 
   computeWahooNeeds,
@@ -80,7 +80,7 @@ export interface AssistantContextPacket {
   };
   
   // Nutrition prédictive
-  nutritionPred: NutritionEstimate | null;
+  nutritionPred: NutritionEstimateSimpleResult | null;
   
   // Données dérivées
   derived: {
@@ -373,12 +373,18 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   const driftPct = effectiveSnapshot?.run_hr_drift_pct ?? null;
   const injuryRisk = computeInjuryRisk(driftPct, vlamaxEffectif, tteEffectif);
   
-  // Nutrition prédictive
-  const nutritionPred = vlamaxEffectif ? computeNutritionEstimate({
+  // Nutrition prédictive — moteur unifié (même calcul que /course
+  // NutritionUnifiedCard) au lieu de l'ancien moteur V1, qui utilisait ses
+  // propres tables durée/intensité par objectif et son propre plafond
+  // digestif → chiffres g/h différents de /course pour le même athlète
+  // (audit "simulations pas fiables"). Poids/VO2max désormais transmis
+  // (absents avant ce fix → toujours 70kg/50-48 ml/kg/min par défaut).
+  const nutritionPred = vlamaxEffectif ? computeNutritionEstimateSimple({
     vlamax: vlamaxEffectif.value,
     objectif: athlete?.goal || "IM",
     tteMin: tteEffectif?.tte_min ?? null,
-    tteTarget: tteEffectif?.target ?? null,
+    vo2max: effectiveSnapshot?.vo2max ?? null,
+    weightKg: effectiveRefs?.weightKg ?? null,
   }) : null;
   
   // Potentiel Physiologique Signature (nouveau système Potentiel × Disponibilité)
@@ -610,7 +616,7 @@ export function formatContextForPrompt(context: AssistantContextPacket): string 
   if (context.nutritionPred) {
     const n = context.nutritionPred;
     parts.push(`## Nutrition prédictive: ${n.carbsMin}-${n.carbsMax}g/h glucides`);
-    parts.push(`- Risque glycolytique: ${n.riskLevel}`);
+    parts.push(`- Risque glycolytique: ${n.risk}`);
   }
   
   // Données dérivées
