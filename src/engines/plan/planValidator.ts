@@ -133,6 +133,9 @@ export interface PlanValidationResult {
     /** Présence des séances signature LCW (Long Course Weekend) déclarées
      *  "bloquantes" par le prompt de génération (plans LCW uniquement — 100 sinon) */
     lcwSignaturePresenceScore: number;
+    /** Fiches "jour J uniquement" (activation/shakeout) utilisées hors de la
+     *  semaine de course — 100 si aucune mauvaise utilisation détectée */
+    raceDayOnlyFichePlacementScore: number;
     overallComment: string;
   };
   /** Lot 4 : distribution A/B/C/D par semaine + par plan */
@@ -2572,6 +2575,57 @@ function validateLcwSignaturePresence(plan: ParsedPlan): { issues: ValidationIss
   return { issues, score: 100 };
 }
 
+/** Fiches dont le catalogue restreint EXPLICITEMENT le placement au jour de
+ *  course lui-même ("Matin compétition (J)") ou à la veille de course
+ *  ("Veille de course") — des rituels de jour J, jamais du contenu hebdo
+ *  générique. */
+const RACE_DAY_ONLY_PATTERN = /matin\s*comp[ée]tition|jour\s*j\b|veille\s*de\s*course/i;
+
+/** Rule : Placement d'une fiche "jour J uniquement" hors semaine de course —
+ *  bug réel (audit PDF, coach : "à partir de S5, aucune intensité, aucun
+ *  travail spécifique"). Deux fiches conçues comme rituels de jour de course
+ *  se sont retrouvées utilisées comme contenu hebdomadaire ordinaire :
+ *  `D_PRE_RACE_ACTIVATION_RUN` (`when`="Matin compétition (J)") placée un
+ *  MARDI ordinaire de S5, 2 semaines avant la course, et
+ *  `ENR_TAPER_SHAKEOUT_RUN` (`when`="Veille de course") placée un JEUDI de
+ *  S6, 8 jours avant la course. Aucun contrôle existant ne détectait ce
+ *  sens-là : `checkB11`/`flagsFor` (checksB10B11.ts) vérifie uniquement
+ *  qu'une fiche N'EST PAS exclue de la race-week (ex: fiches interdites en
+ *  taper) — jamais qu'une fiche réservée au jour J y est CONFINÉE. Ces
+ *  fiches "jour J" étant très courtes et peu spécifiques par nature
+ *  (activation/shakeout — 10-25min, Z1), leur utilisation répétée comme
+ *  contenu de semaine ordinaire produit exactement le symptôme observé :
+ *  une semaine qui semble n'être que de la récupération/activation, sans
+ *  travail spécifique, alors que le vrai travail spécifique (LCW, Sweet
+ *  Spot…) est noyé au milieu de ce remplissage. */
+function validateRaceDayOnlyFichePlacement(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const catalogById = getCatalogById();
+  let misplaced = 0;
+
+  for (const week of plan.weeks) {
+    if (weekHasRaceDay(week)) continue; // semaine de course elle-même : placement légitime
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      const rawId = extractCatalogId(s.title, s.details, s.catalogId);
+      if (!rawId) continue;
+      const id = rawId.toUpperCase();
+      const entry = catalogById.get(id);
+      if (!entry || !RACE_DAY_ONLY_PATTERN.test(entry.when || "")) continue;
+      misplaced++;
+      issues.push({
+        rule: "race_day_only_fiche_misplaced",
+        severity: "error",
+        week: week.weekNumber,
+        message: `S${week.weekNumber} ${s.dayName}: "${entry.objectif}" (${id}) — fiche réservée au jour de course ou à la veille ("${entry.when}"), utilisée hors semaine de course`,
+      });
+    }
+  }
+
+  const score = misplaced === 0 ? 100 : Math.max(0, 100 - misplaced * 20);
+  return { issues, score };
+}
+
 /** Rule 20 : D+ (dénivelé) chiffré OBLIGATOIRE pour trail (systemPrompt.ts,
  *  "RÈGLES D+ — OBLIGATOIRE POUR TRAIL" : "CHAQUE séance trail doit
  *  mentionner le D+ cible"). Vérifie la présence d'un D+ chiffré sur les
@@ -3165,6 +3219,7 @@ export function validatePlan(
   const trailDPlusPresence = validateTrailDPlusPresence(plan, objective);
   const dailySessionFloor = validateDailySessionFloor(plan, objective, ambition);
   const lcwSignaturePresence = validateLcwSignaturePresence(plan);
+  const raceDayOnlyFichePlacement = validateRaceDayOnlyFichePlacement(plan);
 
   // Combine all issues
   const allIssues = [
@@ -3192,6 +3247,7 @@ export function validatePlan(
     ...restDayCoherence.issues,
     ...antiRepetition.issues,
     ...lcwSignaturePresence.issues,
+    ...raceDayOnlyFichePlacement.issues,
   ];
 
   // Weighted score (17 rules) — Lot 4 introduit lorangCategories (5%),
@@ -3289,6 +3345,7 @@ export function validatePlan(
       trailDPlusPresenceScore: trailDPlusPresence.score,
       dailySessionFloorScore: dailySessionFloor.score,
       lcwSignaturePresenceScore: lcwSignaturePresence.score,
+      raceDayOnlyFichePlacementScore: raceDayOnlyFichePlacement.score,
       overallComment,
     },
   };
@@ -3336,6 +3393,9 @@ export function formatValidationReport(result: PlanValidationResult): string {
   }
   if (result.summary.lcwSignaturePresenceScore < 100) {
     lines.push(`| 🏴 Week-ends signature LCW | ${result.summary.lcwSignaturePresenceScore}/100 | ${result.summary.lcwSignaturePresenceScore >= 75 ? "✅" : "❌"} |`);
+  }
+  if (result.summary.raceDayOnlyFichePlacementScore < 100) {
+    lines.push(`| 🎽 Fiches "jour J" mal placées | ${result.summary.raceDayOnlyFichePlacementScore}/100 | ${result.summary.raceDayOnlyFichePlacementScore >= 75 ? "✅" : "❌"} |`);
   }
   lines.push("");
   {
