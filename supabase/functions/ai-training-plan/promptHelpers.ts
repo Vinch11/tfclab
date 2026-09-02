@@ -84,7 +84,10 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     vmaKmh: typeof config?._athleteVma === "number" ? config._athleteVma : null,
     thresholdPaceSecPerKm: typeof config?._athletePaceThresholdSecPerKm === "number" ? config._athletePaceThresholdSecPerKm : null,
     objective: config?.objective || "",
-    ambition: config?.ambition || "",
+    // Cle canonique deja normalisee (ambKey), jamais le libelle brut config.ambition :
+    // deriveRaceTargets a son propre lookup exact "elite" -> ancien palier interne,
+    // qui collisionne avec le libelle "Elite" (actuel de world_class, voir normalizeAmbKey).
+    ambition: ambKey,
     literatureHintText: diagTimeTarget,
     sport: mapObjectiveToSport(config?.objective || ""),
   });
@@ -188,9 +191,12 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     }
 
     // Garde-fou #3 : Master 50+ × world_class (tous objectifs, pas seulement CAP)
+    // ⚠️ config.ambition est toujours le libelle UI ("Elite", jamais "world_class"
+    // litteralement) : passer par normalizeAmbKey, sinon ce garde-fou sante ne se
+    // declenche jamais pour un vrai athlete 50+ ambition Elite.
     const age = (config?.age as number | undefined) ?? null;
-    const amb = String(config?.ambition ?? "").toLowerCase();
-    if (age && age >= 50 && (amb === "world_class" || amb.includes("world"))) {
+    const amb = normalizeAmbKey(String(config?.ambition ?? ""));
+    if (age && age >= 50 && amb === "world_class") {
       lines.push(`\n🚨 MASTER 50+ × WORLD_CLASS — GARDE-FOU SANTÉ (tous objectifs)`);
       lines.push(`  • Combinaison à très haut risque cardio-vasculaire et musculo-squelettique.`);
       lines.push(`  • RÈGLES OBLIGATOIRES à intégrer explicitement dans le plan :`);
@@ -976,7 +982,8 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     vmaKmh: vmaForDerive,
     thresholdPaceSecPerKm: paceThrForDerive,
     objective: config.objective || "",
-    ambition: config.ambition || "",
+    // Cle canonique normalisee, jamais le libelle brut (voir diagDerived plus haut).
+    ambition: normalizeAmbKey(config.ambition || ""),
     literatureHintText: timeTarget,
     weeklyHours: weeklyHoursForDerive,
     trainingLevel: (config as any)?.ambitionMeta?.trainingLevel ?? null,
@@ -1224,10 +1231,13 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // alors que TTE=35' rend l'IF max soutenable ≈ 0.72-0.75.
   // ─────────────────────────────────────────────────────────────────────────────
   const rpcObjective = (config?.objective ?? "").toString();
-  const rpcAmbition = (config?.ambition ?? "age_group").toString().toLowerCase() as RaceBikeAmbition;
+  // ⚠️ config.ambition est le libelle UI ("Elite"), pas la cle canonique : passer
+  // par normalizeAmbKey (sinon "Elite" retombait sur le baseline IF "age_group"
+  // faute de match dans la liste littérale ci-dessous).
+  const rpcAmbition = normalizeAmbKey(String(config?.ambition ?? "age_group")) as RaceBikeAmbition;
   const rpcCap = capBikeRaceIF({
     objective: rpcObjective,
-    ambition: (["finisher", "age_group", "competitor", "elite", "world_class"].includes(rpcAmbition) ? rpcAmbition : "age_group") as RaceBikeAmbition,
+    ambition: rpcAmbition,
     tteMin: typeof data.tte === "number" ? data.tte : null,
   });
   if (rpcCap) {
@@ -1398,7 +1408,10 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   try {
     const nutriBlock = buildNutritionAndSafetyBlock({
       objective: config?.objective,
-      ambition: config?.ambition,
+      // Cle canonique normalisee : buildNutritionAndSafetyBlock compare l'ambition
+      // par egalite stricte ("elite"/"world_class") sans normaliser, donc le
+      // libelle brut "Elite" (config.ambition) ne matchait jamais "world_class".
+      ambition: normalizeAmbKey(String(config?.ambition ?? "")),
       age: data.age ?? null,
       weightKg: data.weightKg ?? null,
       vo2max: data.vo2max ?? null,
@@ -1796,7 +1809,12 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   // Double sessions reminder based on ambition
-  const ambition = (config.ambition || "").toLowerCase();
+  // ⚠️ config.ambition est le libelle UI ("Confirmé", "Compétiteur", "Elite"...),
+  // jamais litteralement une des cles ci-dessous : sans normalizeAmbKey, TOUTES
+  // les ambitions sauf "Découverte" retombaient silencieusement dans la branche
+  // FINISHER (else) faute de match — sous-prescription severe des doubles/triples
+  // IM/70.3 pour Confirmé/Compétiteur/Qualifiable/Elite.
+  const ambition = normalizeAmbKey(config.ambition || "");
   const objKeyForTriCheck = normalizeObjKey(config.objective || "");
   const isTriathlon = ["IM", "703"].includes(objKeyForTriCheck);
   if (isTriathlon) {
@@ -1930,7 +1948,9 @@ export function buildCanonicalRaceCard(athleteData: any, config: any): string {
   const data = athleteData ?? {};
   const objectiveStr = (config?.objective ?? "").toString();
   const objL = objectiveStr.toLowerCase();
-  const ambitionStr = (config?.ambition ?? "age_group").toString().toLowerCase();
+  // Cle canonique normalisee (config.ambition est le libelle UI, ex. "Elite" —
+  // voir normalizeAmbKey pour le detail de la collision "elite"/"Elite" corrigee).
+  const ambitionStr = normalizeAmbKey((config?.ambition ?? "age_group").toString());
 
   // 1) Allures CAP canoniques (deriveRaceTargets)
   const vmaForDerive = typeof data.vma === "number" ? Number(data.vma) : (data.vma ? Number(data.vma) : null);
