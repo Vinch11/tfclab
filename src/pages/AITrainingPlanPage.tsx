@@ -1982,11 +1982,31 @@ export default function AITrainingPlanPage() {
       .filter(session => !session.isRest)
       .map(session => `${session.dayName || "Jour à définir"} — ${session.sport || "course"} — ${session.title || "Séance"}`)
       .join("\n");
+    // Régénération LCW (Long Course Weekend) — bug réel (coach) : régénérer
+    // UNE semaine isolée ne change rien à la présence du week-end signature
+    // LCW. Cause racine : la checklist "bloquante" du prompt (promptHelpers.ts,
+    // "FORMAT LONG COURSE WEEKEND") porte sur un QUOTA multi-semaines (≥1
+    // week-end Build, ≥2 week-ends Peak) — mais une régénération semaine-par-
+    // semaine (`regenerateWeek`) ne montre à l'IA QUE cette semaine isolée,
+    // sans aucune visibilité sur ce que contiennent les autres semaines du
+    // plan. L'IA ne peut donc jamais vérifier si le quota est déjà satisfait
+    // ailleurs — elle retombe par défaut sur un choix générique plutôt que de
+    // prescrire les fiches signature. On lève l'ambiguïté explicitement pour
+    // CETTE semaine plutôt que de compter sur un raisonnement multi-semaines
+    // impossible depuis un contexte à une seule semaine.
+    const isLCWPlan = (fullPlanConfig.raceGoals || []).some((g) => g?.raceFormat === "lcw_3day");
+    const weekThemeText = `${week.theme || ""} ${week.phase || ""}`.toLowerCase();
+    const isRestOrTaperOrRaceWeek = /d[ée]charge|taper|aff[uû]tage|repos|fondation|semaine\s*de\s*course|race\s*week|🏁/i.test(weekThemeText)
+      || week.sessions.some((s) => /course objectif|🏁/i.test(`${s.title} ${s.details}`));
+    const lcwWeekendReminder = isLCWPlan && !isRestOrTaperOrRaceWeek
+      ? `🏴 FORMAT LCW (Long Course Weekend) — cette semaine DOIT inclure le week-end signature : SAMEDI = long ride race-pace (catalogue \`B_LCW_BIKE_LONG_RACE_SAT\`), DIMANCHE = long run sur jambes fatiguées post-vélo veille (catalogue \`B_LCW_RUN_OFF_LEGS_SUN\`). Utilise ces IDs catalogue EXACTS — ne les remplace pas par une fiche générique (brick T2 immédiat interdit).`
+      : "";
     const buildRegenerationConstraint = (correctionNote?: string) => [
       correctionNote || "",
       `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine — ni plus, ni moins. Recompte tes séances avant de répondre.`,
       "Les autres jours peuvent être du repos, mais une semaine entièrement composée de repos est strictement interdite.",
       "Conserver le niveau de progression de cette semaine : ne pas revenir à une semaine d'introduction et ne pas sauter de palier.",
+      lcwWeekendReminder,
       extraConstraints?.trim() || "",
       existingTrainingSessions
         ? `STRUCTURE ACTUELLE À AMÉLIORER (référence de charge et de répartition, ne pas recopier mot pour mot) :\n${existingTrainingSessions}`

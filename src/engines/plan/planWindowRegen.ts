@@ -18,6 +18,32 @@ import type { ParsedPlan, ParsedWeek } from "@/lib/aiPlanParser";
 import { summarizePastWeeks } from "./planPatcher";
 import type { PlanConfig, PlanAthleteData } from "@/hooks/useAITrainingPlan";
 import { inferWeekType } from "./sessionSizingMatrix";
+import { extractCatalogId } from "@/lib/catalogIdExtractor";
+
+/** IDs signature du bloc LCW (Long Course Weekend) — cf. promptHelpers.ts
+ *  "FORMAT LONG COURSE WEEKEND", checklist déclarée "bloquante". */
+const LCW_SIGNATURE_IDS = ["B_LCW_BIKE_LONG_RACE_SAT", "B_LCW_RUN_OFF_LEGS_SUN", "B_LCW_BACK_TO_BACK_PEAK"];
+
+/** Le plan entier (pas seulement la fenêtre régénérée) contient-il déjà au
+ *  moins une occurrence de chaque fiche signature LCW ? Bug réel (coach) :
+ *  régénérer une fenêtre ne changeait rien à l'absence du week-end LCW,
+ *  parce que rien ne rappelait explicitement à l'IA que cette checklist
+ *  multi-semaines n'était pas encore satisfaite ailleurs dans le plan. */
+function planHasLcwSignature(plan: ParsedPlan): { hasBikeSat: boolean; hasRunSun: boolean; hasBackToBack: boolean } {
+  const present = new Set<string>();
+  for (const week of plan.weeks) {
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      const id = extractCatalogId(s.title, s.details, s.catalogId)?.toUpperCase();
+      if (id) present.add(id);
+    }
+  }
+  return {
+    hasBikeSat: present.has("B_LCW_BIKE_LONG_RACE_SAT"),
+    hasRunSun: present.has("B_LCW_RUN_OFF_LEGS_SUN"),
+    hasBackToBack: present.has("B_LCW_BACK_TO_BACK_PEAK"),
+  };
+}
 
 /**
  * Phase catalogue ("base"|"build"|"peak"|"taper") pour une semaine GLOBALE
@@ -94,6 +120,27 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     if (count > dominantCount) { dominantPhase = phase; dominantCount = count; }
   }
 
+  // Rappel LCW explicite — bug réel (coach) : régénérer une fenêtre ne
+  // suffisait pas à faire apparaître le week-end signature LCW parce que rien
+  // ne signalait explicitement à l'IA que cette checklist multi-semaines
+  // (promptHelpers.ts, "FORMAT LONG COURSE WEEKEND") n'était pas déjà
+  // satisfaite ailleurs dans le plan. Ici on a la visibilité complète sur le
+  // plan (passé + fenêtre), donc on peut vérifier réellement — pas deviner.
+  const isLCWPlan = (req.baseConfig.raceGoals || []).some((g) => g?.raceFormat === "lcw_3day");
+  let lcwReminderLines: string[] = [];
+  if (isLCWPlan) {
+    const existing = planHasLcwSignature(req.currentPlan);
+    const missing: string[] = [];
+    if (!existing.hasBikeSat) missing.push("`B_LCW_BIKE_LONG_RACE_SAT` (long ride race-pace samedi)");
+    if (!existing.hasRunSun) missing.push("`B_LCW_RUN_OFF_LEGS_SUN` (long run jambes fatiguées dimanche)");
+    if (missing.length > 0) {
+      lcwReminderLines = [
+        "",
+        `🏴 FORMAT LCW — checklist "bloquante" ENCORE NON SATISFAITE sur le plan entier (passé + cette fenêtre) : ${missing.join(" et ")} n'apparaissent nulle part. Cette fenêtre DOIT inclure au moins un week-end SAMEDI+DIMANCHE consécutif avec ces deux IDs catalogue exacts — ne les remplace pas par des fiches génériques (brick T2 immédiat interdit).`,
+      ];
+    }
+  }
+
   const constraintsBlock = [
     req.baseConfig.constraints ?? "",
     "",
@@ -102,6 +149,7 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     "",
     `📅 PÉRIODISATION RÉELLE DE CHAQUE SEMAINE DE LA FENÊTRE (position dans le plan GLOBAL, pas un cycle isolé) :`,
     ...periodizationLines,
+    ...lcwReminderLines,
     "",
     `📚 CONTEXTE PASSÉ (4 dernières semaines réalisées) :`,
     pastSummary,
