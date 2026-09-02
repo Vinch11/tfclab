@@ -2651,6 +2651,23 @@ function validateDailySessionFloor(
     for (const sessions of byDay.values()) {
       const active = sessions.filter((s) => !s.isRest);
       if (active.length === 0) continue; // jour repos complet — 1/semaine autorisé
+      // Exemption bug réel (audit coach) : un "brick" (T1/T2, triple brick
+      // S/B/R…) ou une fiche signature LCW (long ride race-pace samedi, run
+      // jambes fatiguées dimanche, simulation back-to-back complète) combine
+      // DÉJÀ 2-3 disciplines dans une seule séance listée — le plancher
+      // "2-3 séances/jour" mesure le nombre de DISCIPLINES/stimuli du jour,
+      // pas le nombre de lignes dans le tableau. Sans cette exemption, le
+      // contrôle flaguait à tort les week-ends LCW comme des lacunes de
+      // volume alors qu'ils sont volontairement une séance unique, longue et
+      // spécifique (c'est tout le principe du format LCW).
+      if (active.length === 1) {
+        const only = active[0];
+        const text = `${only.title} ${only.details}`;
+        const catalogId = extractCatalogId(only.title, only.details, only.catalogId)?.toUpperCase() ?? "";
+        const isMultiDisciplineSingleSession =
+          /\bbrick\b/i.test(text) || catalogId.includes("BRICK") || catalogId.startsWith("B_LCW_");
+        if (isMultiDisciplineSingleSession) continue;
+      }
       daysChecked++;
       if (active.length < 2) {
         daysViolating++;
