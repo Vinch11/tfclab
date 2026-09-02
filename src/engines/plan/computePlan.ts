@@ -29,6 +29,7 @@ import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
 import { deriveRaceTargets, formatSecPerKm, formatSecToTime, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { postProcessSessionText } from "./sessionTextPostProcessor";
 import { parseSessionDurationMin } from "./planValidator";
+import { normalizeAmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
@@ -58,6 +59,21 @@ const JS_TO_PLAN_DAY: Record<number, number> = {
 };
 
 const PLAN_DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+/**
+ * Clé canonique d'ambition (ex. "world_class"), jamais le libellé UI
+ * (`config.ambition`, ex. "Elite") : deriveRaceTargets/deriveTriathlonZones
+ * font un lookup exact sur la clé interne historique "elite", qui collisionne
+ * avec le libellé actuel "Elite" (palier world_class depuis le relabeling —
+ * voir src/types/ambitionLevel.ts). `config.ambitionMeta.effective` porte
+ * déjà la clé résolue (buildPlanConfigFromDiagnostic) et est présent au
+ * runtime même si `PlanGenerationConfig` ne le déclare pas (spread depuis le
+ * PlanConfig complet chez tous les appelants réels).
+ */
+export function resolveAmbitionKey(config: PlanGenerationConfig): string {
+  const effective = (config as any)?.ambitionMeta?.effective;
+  return typeof effective === "string" && effective ? effective : normalizeAmbitionLevel(config.ambition);
+}
 
 /**
  * Calcule la semaine du plan (1-indexed) pour une date de course donnée
@@ -202,7 +218,7 @@ function anchorRaceDays(
 
     const priorityLabel = goal.priority === "A" ? "🅰️" : goal.priority === "B" ? "🅱️" : "🅲";
     const raceName = goal.raceName || goal.objective;
-    const stageHints = buildRaceStageHints(goal.objective, config.ambition, athlete);
+    const stageHints = buildRaceStageHints(goal.objective, resolveAmbitionKey(config), athlete);
 
     // ─── LCW (Long Course Weekend) — 3 jours éclatés (Ven nat / Sam vélo / Dim run) ───
     if ((goal as any).raceFormat === "lcw_3day") {
@@ -376,7 +392,7 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?:
             vmaKmh: athlete.vma ?? null,
             thresholdPaceSecPerKm: athlete.paceThresholdSecPerKm ?? null,
             objective: goal.objective || config.objective || "",
-            ambition: config.ambition || "",
+            ambition: resolveAmbitionKey(config),
             weeklyHours: config.weeklyHours ?? null,
             sport: mapObjectiveToSport(goal.objective || config.objective || ""),
           });

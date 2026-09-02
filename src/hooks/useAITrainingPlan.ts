@@ -647,7 +647,11 @@ export function useAITrainingPlan() {
           weightKg: athleteData.weightKg ?? null,
 
           objective: planConfig.objective ?? null,
-          ambition: planConfig.ambition ?? null,
+          // Clé canonique ("world_class"), jamais le libellé UI (planConfig.ambition,
+          // ex. "Elite") : buildTargetTable → deriveRaceTargets fait un lookup exact
+          // sur la clé interne historique "elite", qui collisionne avec ce libellé
+          // (palier world_class depuis le relabeling — src/types/ambitionLevel.ts).
+          ambition: planConfig.ambitionMeta?.effective ?? planConfig.ambition ?? null,
           weeklyHours: planConfig.weeklyHours ?? null,
           trainingLevel: planConfig.ambitionMeta?.trainingLevel ?? null,
         });
