@@ -1154,6 +1154,55 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
   return { issues, score, catalogPct, catalogStats: stats };
 }
 
+/** Rule 6bis : Ratio catalogue GLOBAL, TOUTES séances actives — bug réel
+ *  (audit PDF, coach : "à partir de S5, aucune intensité, aucun travail
+ *  spécifique"). La Règle #6 ci-dessus (validateCatalogRatio) ne mesure le
+ *  ratio catalogue QUE sur les séances "clés" (KEY_SESSION_PATTERNS) — les
+ *  séances de remplissage/faciles ("Endurance Z2" générique, "Activation
+ *  aéro"…) échappent totalement à ce contrôle. Sur S5 du plan audité : 5 des
+ *  12 séances (42%) sont custom (catalogId=null), bien au-delà du "≤20%
+ *  custom, dernier recours" que le prompt de génération impose explicitement
+ *  (invariant #8, systemPromptJSON.ts). Vérifié empiriquement (buildWorkoutCatalog
+ *  pour cette semaine précise) que le catalogue injecté contenait pourtant
+ *  des fiches génériques adaptées (A_RUN_Z2_EASY, D_10K_RECOVERY_30…) — ce
+ *  n'est pas un manque de couverture catalogue, l'IA a choisi le custom sans
+ *  nécessité. Sévérité warning (pas error) : une séance custom reste
+ *  autorisée par le schéma jusqu'à 20%, ce n'est pas en soi une violation de
+ *  méthodologie comme le sont les règles LCW. */
+function validateOverallCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let compliant = 0;
+  let checked = 0;
+  const CUSTOM_CEILING_PCT = 30; // marge au-dessus du 20% cible du prompt avant de flaguer
+
+  for (const week of plan.weeks) {
+    const themeText = `${week.theme} ${week.phase}`.toLowerCase();
+    if (DELOAD_PATTERNS.test(themeText) || weekHasRaceDay(week)) continue;
+    const active = week.sessions.filter((s) => !s.isRest);
+    if (active.length < 4) continue;
+
+    let customCount = 0;
+    for (const s of active) {
+      if (!extractCatalogId(s.title, s.details, s.catalogId)) customCount++;
+    }
+    checked++;
+    const customPct = Math.round((customCount / active.length) * 100);
+    if (customPct > CUSTOM_CEILING_PCT) {
+      issues.push({
+        rule: "overall_catalog_ratio",
+        severity: "warning",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: ${customCount}/${active.length} séances (${customPct}%) sans fiche catalogue identifiable — le prompt de génération cible ≤20% de séances custom (invariant #8), ce plan en a nettement plus`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+
+  const score = checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100)));
+  return { issues, score };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // PHASE COHERENCE VALIDATION (Rule 8)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3196,7 +3245,13 @@ export function validatePlan(
       : progressionBase.score,
   };
   const sportRatio = validateSportRatio(weekMetrics, objective);
-  const catalogRatio = validateCatalogRatio(plan);
+  const catalogRatioBase = validateCatalogRatio(plan);
+  const overallCatalogRatio = validateOverallCatalogRatio(plan);
+  const catalogRatio = {
+    ...catalogRatioBase,
+    issues: [...catalogRatioBase.issues, ...overallCatalogRatio.issues],
+    score: Math.round((catalogRatioBase.score + overallCatalogRatio.score) / 2),
+  };
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
   const phaseCoherence = validatePhaseCoherence(plan, objective);
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
