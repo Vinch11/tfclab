@@ -377,7 +377,14 @@ export const getTimeTargetHint = getReferenceStandard;
 export function normalizeAmbKey(amb: string): string {
   const lower = amb.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z_]/g, "");
   if (lower.includes("world") || lower.includes("monde") || lower.includes("mondial") || lower === "wc") return "world_class";
-  if (lower.includes("elite") || lower.includes("pro") || lower.includes("qualif")) return "elite";
+  // "Elite" (mot nu) est le libelle UI ACTUEL de world_class depuis le relabeling
+  // (voir src/types/ambitionLevel.ts) - l'ancien palier interne "elite" se libelle
+  // desormais "Qualifiable" (detecte via "qualif" seul, ci-dessous). Sans ce cas
+  // explicite, "elite" matchait la branche "qualif/pro" et retrogradait
+  // silencieusement tout athlete "Elite" (top 3%) vers les cibles "Qualifiable"
+  // (top 10%) - doubles/semaine, duree d'affutage, quotas IM/70.3.
+  if (lower === "elite") return "world_class";
+  if (lower.includes("pro") || lower.includes("qualif")) return "elite";
   if (lower.includes("compet") || lower.includes("comp")) return "competitor";
   if (lower.includes("age") || lower.includes("group") || lower.includes("intermediaire") || lower.includes("confirme") || lower.includes("confirmed")) return "age_group";
   if (lower.includes("finisher") || lower.includes("fin") || lower.includes("decouverte") || lower.includes("discovery")) return "finisher";

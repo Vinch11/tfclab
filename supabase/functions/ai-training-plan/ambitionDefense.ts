@@ -46,7 +46,11 @@ function ambitionRank(a: AmbitionKey): number {
 function normalizeAmbitionKey(raw: unknown): AmbitionKey {
   const s = String(raw ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   if (s.includes("world") || s.includes("mondial") || s === "wc") return "world_class";
-  if (s.includes("elite") || s.includes("pro") || s.includes("qualif")) return "elite";
+  // "Elite" (mot nu) = libelle UI actuel de world_class (voir sportRatioMatrix.ts
+  // normalizeAmbKey pour le detail du bug corrige ici) : sans ce cas explicite,
+  // un athlete "Elite" (top 3%) est retrograde vers le cap "Qualifiable" (top 10%).
+  if (s === "elite") return "world_class";
+  if (s.includes("pro") || s.includes("qualif")) return "elite";
   if (s.includes("compet")) return "competitor";
   if (s.includes("age") || s.includes("group") || s.includes("intermediaire") || s.includes("confirme")) return "age_group";
   if (s.includes("finisher") || s.includes("decouverte") || s.includes("discovery")) return "finisher";

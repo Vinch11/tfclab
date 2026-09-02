@@ -1198,7 +1198,14 @@ export default function AITrainingPlanPage() {
       })(),
       maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
       strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
-      ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
+      // ⚠️ NE PAS résoudre `amb` (clé canonique, ex. "world_class") vers son label
+      // AMBITION_OPTIONS ici : ce label inclut l'icône emoji ("👑 Elite"), et
+      // `normalizeAmbitionLevel` (appelé plus loin par computeAmbitionEffective)
+      // échoue silencieusement sur ce préfixe et retombe sur DEFAULT_AMBITION
+      // ("Confirmé") — bug réel : "Ambition visée" affichait Confirmé au lieu
+      // d'Elite malgré "Verrouiller l'ambition". `buildPlanConfigFromDiagnostic`
+      // re-dérive de toute façon un label propre depuis la clé résolue.
+      ambition: amb,
       constraints: constraints || undefined,
       trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
       terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
