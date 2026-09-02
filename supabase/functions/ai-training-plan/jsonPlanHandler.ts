@@ -47,7 +47,7 @@ import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
 import { applyValueCheck } from "./valueCheck.ts";
 import { detectLcwFromConfig, buildLcwSignatureReminder, computeLcwChunkSize } from "./lcwSignatureReminder.ts";
 
-const PRIMARY_MODEL = "google/gemini-3-flash-preview";
+const PRIMARY_MODEL = "google/gemini-3.7-flash";
 
 type NormalizedSport = "swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "rest" | "mixed" | "trail" | "unknown";
 

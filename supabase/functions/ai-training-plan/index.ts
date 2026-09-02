@@ -251,8 +251,8 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
     // AUDIT FIX #6: Model fallback chain — primary fast, fallback robust for long plans
-    const PRIMARY_MODEL = "google/gemini-3-flash-preview";
-    const FALLBACK_MODEL = "google/gemini-2.5-pro";
+    const PRIMARY_MODEL = "google/gemini-3.7-flash";
+    const FALLBACK_MODEL = "google/gemini-3.1-pro-preview";
 
     // AUDIT FIX #1: Track finish_reason to detect truncation (max_tokens reached)
     // generateAndStream returns text + truncation flag for caller-side handling
@@ -1528,7 +1528,7 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-3.7-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: singleGenPrompt },
