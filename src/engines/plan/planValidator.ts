@@ -130,6 +130,9 @@ export interface PlanValidationResult {
     trailDPlusPresenceScore: number;
     /** #18 lot 2 : plancher 2-3 séances/jour (IM/70.3 World Class/Elite/Competitor uniquement — 100 sinon) */
     dailySessionFloorScore: number;
+    /** Présence des séances signature LCW (Long Course Weekend) déclarées
+     *  "bloquantes" par le prompt de génération (plans LCW uniquement — 100 sinon) */
+    lcwSignaturePresenceScore: number;
     overallComment: string;
   };
   /** Lot 4 : distribution A/B/C/D par semaine + par plan */
@@ -607,6 +610,83 @@ function validateWeeklyHardDayDensity(plan: ParsedPlan): { issues: ValidationIss
         severity: "warning",
         week: week.weekNumber,
         message: `S${week.weekNumber}: ${hardDays}/7 jours avec un stimulus modéré/dur (>${HARD_DAY_THRESHOLD_MIN}min) — seulement ${protectedDays} jour(s) réellement protégé(s) dans la semaine, risque de surcharge malgré un ratio temps low/mid/high polarisé`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+
+  return { issues, score: checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100))) };
+}
+
+/** Nom de bloc/thème identifiant une semaine "Race-Specific" (bloc LCW,
+ *  cf. plan TFCL — "Bloc 3 · Race-Specific LCW", thème "Spécifique LCW &
+ *  Race Power"). */
+const RACE_SPECIFIC_BLOCK_PATTERNS = /race[\s-]*specific|sp[ée]cifique.*(?:race|course)|race[\s-]*power/i;
+
+/** Rule 1ter : Écart d'intensité entre sports dans une semaine "Race-Specific"
+ *  — bug réel (audit PDF, coach) : la semaine "Spécifique LCW & Race Power"
+ *  (Bloc 3) porte TOUT le travail modéré/dur sur le vélo (Sweet Spot Hills,
+ *  TT Position Aéro, TT Race Pace LCW), tandis que les 4 séances de course de
+ *  la même semaine sont EXACTEMENT la même fiche générique de récupération Z2
+ *  (A_RUN_Z2_EASY) — zéro contenu qualité/spécifique course dans une semaine
+ *  dont le nom même promet "Race Power". Ni la Règle #1 (ratio temps
+ *  agrégé TOUS sports confondus) ni la Règle #1bis (densité de jours durs)
+ *  ne voient cet écart : chacune raisonne all-sports-confondus, pas par
+ *  sport. Détecte spécifiquement le cas où un sport porte du contenu
+ *  modéré/dur pendant qu'un autre sport, présent plusieurs fois la même
+ *  semaine, reste strictement bas-régime — alors que la semaine se déclare
+ *  elle-même "spécifique course". */
+function validateRaceSpecificSportGap(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let compliant = 0;
+  let checked = 0;
+  const MIN_QUALITY_MIN = 20;
+
+  for (const week of plan.weeks) {
+    const themeText = `${week.theme} ${week.phase}`.toLowerCase();
+    if (
+      !RACE_SPECIFIC_BLOCK_PATTERNS.test(themeText) ||
+      DELOAD_PATTERNS.test(themeText) ||
+      weekHasRaceDay(week)
+    ) {
+      continue;
+    }
+
+    const activeSessions = week.sessions.filter((s) => !s.isRest);
+    const bySport = new Map<string, { qualityMin: number; count: number }>();
+    for (const s of activeSessions) {
+      const sport = normalizeSport(s.sport);
+      if (sport !== "Course" && sport !== "Vélo") continue;
+      const d = parseSessionDurationMin(s);
+      const zone = estimateSessionZoneMinutes(s, d);
+      const rec = bySport.get(sport) ?? { qualityMin: 0, count: 0 };
+      rec.qualityMin += zone.mid + zone.high;
+      rec.count += 1;
+      bySport.set(sport, rec);
+    }
+
+    const course = bySport.get("Course");
+    const velo = bySport.get("Vélo");
+    if (!course || !velo || course.count < 2 || velo.count < 2) continue;
+
+    checked++;
+    let starvedSport: string | null = null;
+    let loadedSport: string | null = null;
+    let loadedMin = 0;
+    if (course.qualityMin === 0 && velo.qualityMin >= MIN_QUALITY_MIN) {
+      starvedSport = "Course"; loadedSport = "Vélo"; loadedMin = velo.qualityMin;
+    } else if (velo.qualityMin === 0 && course.qualityMin >= MIN_QUALITY_MIN) {
+      starvedSport = "Vélo"; loadedSport = "Course"; loadedMin = course.qualityMin;
+    }
+
+    if (starvedSport) {
+      const starvedCount = starvedSport === "Course" ? course.count : velo.count;
+      issues.push({
+        rule: "polarization",
+        severity: "warning",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: semaine "${week.theme}" déclarée race-specific — ${loadedSport} porte ${Math.round(loadedMin)}min de travail modéré/dur, ${starvedSport} reste 100% bas-régime (0min) sur ${starvedCount} séance(s), incohérent avec la spécificité annoncée`,
       });
     } else {
       compliant++;
@@ -2433,6 +2513,65 @@ function validateTrailBackToBack(
   return { issues, score: 100 };
 }
 
+/** Détection d'un plan format LCW (Long Course Weekend) — dérivée du contenu
+ *  du plan (titre H1, thème/bloc de semaine), pas d'un paramètre séparé :
+ *  `validatePlan` ne reçoit pas le `raceFormat` brut, et le thème de bloc
+ *  ("Bloc 3 · Race-Specific LCW") est un signal fiable même quand le titre
+ *  H1 lui-même omet `LCW` (cas constaté sur un vrai plan généré — RÈGLE #0
+ *  du prompt l'exige pourtant explicitement). */
+const LCW_FORMAT_PATTERN = /\bLCW\b|long\s*course\s*weekend/i;
+
+function isLCWFormatPlan(plan: ParsedPlan): boolean {
+  if (LCW_FORMAT_PATTERN.test(plan.title || "")) return true;
+  return plan.weeks.some((w) => LCW_FORMAT_PATTERN.test(`${w.theme} ${w.phase}`));
+}
+
+/** Rule : Présence des séances signature LCW — bug réel (audit PDF, coach :
+ *  "la partie course à pied est très timide... ça ne correspond pas à la
+ *  phase du plan"). Le prompt de génération (promptHelpers.ts, "FORMAT LONG
+ *  COURSE WEEKEND (LCW)") déclare une checklist explicitement "bloquante"
+ *  avant de finaliser un plan LCW : `B_LCW_BIKE_LONG_RACE_SAT` +
+ *  `B_LCW_RUN_OFF_LEGS_SUN` consécutifs (≥1 weekend Build, ≥2 weekends Peak)
+ *  et `B_LCW_BACK_TO_BACK_PEAK` (1x, Peak J-21 à J-28) — mais RIEN en aval ne
+ *  vérifie réellement cette checklist, elle n'est que DEMANDÉE au LLM. Sur un
+ *  plan LCW confirmé réellement généré (diagnostic "athlète confirmé
+ *  préparant un format LCW 3 jours", bloc "Race-Specific LCW"), aucune de ces
+ *  trois fiches n'apparaît nulle part dans les 7 semaines — c'est la cause
+ *  racine du symptôme observé : `B_LCW_RUN_OFF_LEGS_SUN` (course sur jambes
+ *  fatiguées post-vélo veille) est justement LE stimulus spécifique course du
+ *  bloc LCW, et son absence pure et simple se lit comme "course timide",
+ *  pas comme un manque de variété. */
+function validateLcwSignaturePresence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (!isLCWFormatPlan(plan)) return { issues, score: 100 };
+
+  const REQUIRED_IDS: Array<{ id: string; label: string }> = [
+    { id: "B_LCW_BIKE_LONG_RACE_SAT", label: "long ride race-pace samedi (B_LCW_BIKE_LONG_RACE_SAT)" },
+    { id: "B_LCW_RUN_OFF_LEGS_SUN", label: "long run sur jambes fatiguées dimanche (B_LCW_RUN_OFF_LEGS_SUN)" },
+    { id: "B_LCW_BACK_TO_BACK_PEAK", label: "simulation complète week-end Peak (B_LCW_BACK_TO_BACK_PEAK)" },
+  ];
+
+  const presentIds = new Set<string>();
+  for (const week of plan.weeks) {
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      const id = extractCatalogId(s.title, s.details, s.catalogId)?.toUpperCase();
+      if (id) presentIds.add(id);
+    }
+  }
+
+  const missing = REQUIRED_IDS.filter((r) => !presentIds.has(r.id));
+  if (missing.length > 0) {
+    issues.push({
+      rule: "lcw_signature_missing",
+      severity: "error",
+      message: `Plan LCW (Long Course Weekend) sans le(s) week-end(s) signature déclaré(s) "bloquant(s)" par le prompt de génération : ${missing.map((m) => m.label).join(", ")} — absent(s) des ${plan.weeks.length} semaines du plan.`,
+    });
+    return { issues, score: 0 };
+  }
+  return { issues, score: 100 };
+}
+
 /** Rule 20 : D+ (dénivelé) chiffré OBLIGATOIRE pour trail (systemPrompt.ts,
  *  "RÈGLES D+ — OBLIGATOIRE POUR TRAIL" : "CHAQUE séance trail doit
  *  mentionner le D+ cible"). Vérifie la présence d'un D+ chiffré sur les
@@ -2970,9 +3109,10 @@ export function validatePlan(
   // Run all validation rules
   const polarizationBase = validatePolarization(weekMetrics);
   const hardDayDensity = validateWeeklyHardDayDensity(plan);
+  const raceSpecificSportGap = validateRaceSpecificSportGap(plan);
   const polarization = {
-    issues: [...polarizationBase.issues, ...hardDayDensity.issues],
-    score: Math.round((polarizationBase.score + hardDayDensity.score) / 2),
+    issues: [...polarizationBase.issues, ...hardDayDensity.issues, ...raceSpecificSportGap.issues],
+    score: Math.round((polarizationBase.score + hardDayDensity.score + raceSpecificSportGap.score) / 3),
   };
   const loadPattern = validateLoadPattern(weekMetrics);
   const keySessions = validateKeySessions(weekMetrics, objective, ambition);
@@ -3007,6 +3147,7 @@ export function validatePlan(
   const trailBackToBack = validateTrailBackToBack(plan, objective);
   const trailDPlusPresence = validateTrailDPlusPresence(plan, objective);
   const dailySessionFloor = validateDailySessionFloor(plan, objective, ambition);
+  const lcwSignaturePresence = validateLcwSignaturePresence(plan);
 
   // Combine all issues
   const allIssues = [
@@ -3033,6 +3174,7 @@ export function validatePlan(
     ...strategicRecapUniqueness.issues,
     ...restDayCoherence.issues,
     ...antiRepetition.issues,
+    ...lcwSignaturePresence.issues,
   ];
 
   // Weighted score (17 rules) — Lot 4 introduit lorangCategories (5%),
@@ -3129,6 +3271,7 @@ export function validatePlan(
       trailBackToBackScore: trailBackToBack.score,
       trailDPlusPresenceScore: trailDPlusPresence.score,
       dailySessionFloorScore: dailySessionFloor.score,
+      lcwSignaturePresenceScore: lcwSignaturePresence.score,
       overallComment,
     },
   };
@@ -3173,6 +3316,9 @@ export function formatValidationReport(result: PlanValidationResult): string {
   }
   if (result.summary.dailySessionFloorScore < 100) {
     lines.push(`| 🔥 Plancher séances/jour (Elite+) | ${result.summary.dailySessionFloorScore}/100 | ${result.summary.dailySessionFloorScore >= 75 ? "✅" : result.summary.dailySessionFloorScore >= 50 ? "⚠️" : "❌"} |`);
+  }
+  if (result.summary.lcwSignaturePresenceScore < 100) {
+    lines.push(`| 🏴 Week-ends signature LCW | ${result.summary.lcwSignaturePresenceScore}/100 | ${result.summary.lcwSignaturePresenceScore >= 75 ? "✅" : "❌"} |`);
   }
   lines.push("");
   {
