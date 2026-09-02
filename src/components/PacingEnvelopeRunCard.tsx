@@ -231,7 +231,11 @@ export function PacingEnvelopeRunCard({ result, isStaffMode = false, className, 
         threshold_pace_sec_km: result.threshold_pace_sec_km,
         ...simulationInputs,
       });
-    } catch { return null; }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("⚠️ [PacingEnvelopeRunCard] computeRaceSimulation a échoué — section simulation masquée", e);
+      return null;
+    }
   }, [result, simulationInputs]);
 
   if (!result) {

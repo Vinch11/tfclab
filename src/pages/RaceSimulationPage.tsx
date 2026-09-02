@@ -54,6 +54,20 @@ import { openPrintableHTML } from '@/lib/openPrintableHTML';
 import { buildRaceSimulationHTML } from '@/lib/raceSimulation/buildRaceSimulationHTML';
 import { computeBaseRateMader } from '@/lib/v2/nutritionUnified';
 
+/**
+ * Distance réelle (km) simulée pour un objectif × discipline donnés — mêmes
+ * distances canoniques que segmentDurationMin/bikeSplitInfo/targetKm dans ce
+ * fichier (180.2/90.1 vélo, 42.195/21.0975 run). `discipline` ne désambiguïse
+ * que IM/70.3 (vélo vs course) ; les objectifs course pure sont sans ambiguïté.
+ */
+export function resolveRaceDistanceKm(raceObjective: RaceObjective, discipline: 'bike' | 'run'): number {
+  if (raceObjective === 'IM') return discipline === 'bike' ? 180.2 : 42.195;
+  if (raceObjective === '70.3') return discipline === 'bike' ? 90.1 : 21.0975;
+  if (raceObjective === 'Marathon') return 42.195;
+  if (raceObjective === 'Semi') return 21.0975;
+  if (raceObjective === '10km') return 10;
+  return 42.195;
+}
 
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
@@ -617,6 +631,18 @@ export default function RaceSimulationPage() {
     });
   }, [envelope, vlamaxEffectif, vlamaxRunEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete, tteEffectif, activeSnapshot, latestCheckin]);
   
+  // Distance réelle simulée — reprend les mêmes distances canoniques que
+  // segmentDurationMin/bikeSplitInfo/targetKm plus haut (180.2/90.1 vélo,
+  // 42.195/21.0975 run). Bug corrigé : cette valeur était figée à 90 (distance
+  // vélo 70.3) pour TOUTE combinaison objectif×discipline, ce qui rendait les
+  // km de décrochage des scénarios ("Décrochage ~ km X", visible dans le
+  // rapport exporté) absurdes pour un marathon, un semi, un 10km ou même le
+  // segment course d'un IM/70.3 (ex: "km 63" sur un marathon de 42.2 km).
+  const raceDistanceKm = React.useMemo(
+    () => resolveRaceDistanceKm(raceObjective, discipline),
+    [raceObjective, discipline],
+  );
+
   const scenarios = React.useMemo(() => {
     if (!envelope) return null;
     // P1 — VLamax discipline-aware (run du tri = vlamax_run, pas vlamax bike).
@@ -626,10 +652,10 @@ export default function RaceSimulationPage() {
       raceObjective,
       vlamaxValue: vlamaxForSport?.value ?? null,
       tteMin: (discipline === 'run' ? (tteEffectifRun?.tte_min ?? tteEffectif?.tte_min) : tteEffectif?.tte_min) ?? null,
-      raceDistanceKm: 90,
+      raceDistanceKm,
       raceDurationMin,
     });
-  }, [envelope, raceObjective, vlamaxEffectif, vlamaxRunEffectif, discipline, tteEffectif, tteEffectifRun, raceDurationMin]);
+  }, [envelope, raceObjective, vlamaxEffectif, vlamaxRunEffectif, discipline, tteEffectif, tteEffectifRun, raceDistanceKm, raceDurationMin]);
 
   const handleExportReport = React.useCallback(() => {
     const html = buildRaceSimulationHTML({
