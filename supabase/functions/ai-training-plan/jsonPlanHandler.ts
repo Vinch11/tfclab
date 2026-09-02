@@ -964,12 +964,30 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
   const structuredDiagnostic = buildStructuredDiagnosticBlock(planConfig, totalWeeks);
   const baseUserPrompt = buildUserPrompt(athleteData, planConfig, catalogDurationStats);
 
+  // ─── Rappel dynamique signatures LCW — voir lcwSignatureReminder.ts.
+  // ⚠️ Uniquement pour une génération complète multi-chunk fraîche —
+  // PAS en régénération semaine seule (regenerateWeek, déjà couvert par son
+  // propre rappel client PR #86) ni en régénération de fenêtre
+  // (windowRegenPhase, idem) : consumedIdCounts ne verrait alors que les
+  // chunks de CETTE requête, pas le reste du plan déjà existant.
+  const isFullFreshLCWGeneration = !regenerateWeek
+    && typeof planConfig?.windowRegenPhase !== "string"
+    && detectLcwFromConfig(planConfig);
+
   // Chunking : même heuristique que le chemin Markdown
   const obj = (planConfig?.objective || "").toUpperCase();
   const isTriVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
   const isTrailVerbose = /TRAIL\s*(ULTRA|MOUNTAIN|MONT|UTMB|CCC|OCC|LONG)/i.test(obj)
     || (/TRAIL/i.test(obj) && totalWeeks >= 12);
-  const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
+  // LCW : chunk plus petit que le CHUNK_SIZE triathlon standard (5). Bug réel
+  // (audit "plan Vince") : sur un plan LCW de 7 semaines, CHUNK_SIZE=5 place
+  // TOUTES les semaines Build+Peak (1-5) dans un SEUL chunk sans aucun
+  // checkpoint intermédiaire — le rappel dynamique de lcwSignatureReminder.ts
+  // (PR précédente) ne peut alors se déclencher qu'AVANT ce chunk unique
+  // ("il reste du temps", pas urgent) ou sur le chunk suivant, qui ne couvre
+  // plus que l'affûtage/la course (trop tard). Un chunk plus petit garantit
+  // au moins un checkpoint intermédiaire À L'INTÉRIEUR de la fenêtre Build/Peak.
+  const CHUNK_SIZE = isFullFreshLCWGeneration ? 3 : isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
   const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 6;
   const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
 
@@ -1010,16 +1028,6 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         // de non-réemploi explicite (interdit ≥2 usages, à éviter à 1 usage).
         const consumedIdCounts = new Map<string, number>();
         const totalChunks = chunks.length;
-
-        // ─── Rappel dynamique signatures LCW — voir lcwSignatureReminder.ts.
-        // ⚠️ Uniquement pour une génération complète multi-chunk fraîche —
-        // PAS en régénération semaine seule (regenerateWeek, déjà couvert
-        // par son propre rappel client PR #86) ni en régénération de fenêtre
-        // (windowRegenPhase, idem) : consumedIdCounts ne verrait alors que
-        // les chunks de CETTE requête, pas le reste du plan déjà existant.
-        const isFullFreshLCWGeneration = !regenerateWeek
-          && typeof planConfig?.windowRegenPhase !== "string"
-          && detectLcwFromConfig(planConfig);
         console.log(`[trail_probe_path] jsonPlanHandler main loop reached, totalChunks=${totalChunks}, regenerateWeek=${regenerateWeek ? "yes" : "no"}`);
 
 
@@ -1139,6 +1147,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           }
 
           // ─── Rappel dynamique signatures LCW — voir lcwSignatureReminder.ts ───
+          // "Dernière chance" = aucune semaine APRÈS ce chunk n'est encore en
+          // phase Build/Peak (donc plus aucun chunk suivant, s'il y en a, ne
+          // pourra accueillir ces séances sans casser l'affûtage/la course).
           const lcwSignatureBlock = isFullFreshLCWGeneration
             ? buildLcwSignatureReminder({
                 consumedIdCounts,
@@ -1146,6 +1157,10 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
                 totalChunks,
                 chunkStartWeek: chunk.start,
                 chunkEndWeek: chunk.end,
+                isLastBuildOrPeakChunk: !Array.from(
+                  { length: Math.max(0, totalWeeks - chunk.end) },
+                  (_, i) => chunk.end + 1 + i,
+                ).some((wk) => ["build", "peak"].includes(inferPhaseFromWeek(wk, totalWeeks))),
               })
             : null;
 
