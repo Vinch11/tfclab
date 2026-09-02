@@ -881,3 +881,131 @@ export function getNutritionUnifiedRiskColor(risk: NutritionRisk): string {
     case 'critical': return 'text-destructive';
   }
 }
+
+// =============================================
+// ESTIMATION SIMPLE (migration V1 → moteur unifié)
+// =============================================
+// Remplace nutritionPredictive.computeNutritionEstimate pour les consommateurs
+// qui n'ont besoin que d'un chiffre unique (carbsMin/Max + risque), sans le
+// détail par phase de NutritionUnifiedCard. Avant ce fix : ces consommateurs
+// (ExportTools, TwoForCoachingAnalysis, l'assistant IA) utilisaient un moteur
+// V1 séparé avec ses propres tables durée/intensité par objectif et son
+// propre plafond digestif — divergent de celui affiché sur /course (moteur
+// unifié, durée réelle de l'athlète) pour le même athlète.
+
+/**
+ * Objectif brut (clé canonique "70.3"/"IM" OU libellé "Ironman 70.3") →
+ * clé attendue par DURATION_BY_OBJECTIF (fallback durée générique).
+ */
+function normalizeNutritionObjectif(objectif: string): string {
+  const s = (objectif || "").toLowerCase();
+  if (s.includes("70.3") || s === "703") return "70.3";
+  if (s.includes("ironman") || s === "im") return "IM";
+  if (s.includes("ultra")) return "TrailUltra";
+  if (s.includes("trail")) return "TrailLong";
+  if (s.includes("marathon")) return "Marathon";
+  if (s.includes("semi") || s.includes("half")) return "Semi";
+  if (s.includes("10k")) return "10K";
+  if (s.includes("5k")) return "5K";
+  return objectif;
+}
+
+type NutritionSimpleSport = NutritionSport | "triathlon";
+
+/** IM/70.3/triathlon → traité en 2 legs (vélo + course) et combiné, voir plus bas. */
+function mapNutritionSimpleSport(objectif: string): NutritionSimpleSport {
+  const s = (objectif || "").toLowerCase();
+  if (s.includes("ultra")) return "ultra";
+  if (s.includes("trail")) return "trail";
+  if (s.includes("70.3") || s === "703" || s.includes("ironman") || s === "im" || s.includes("triathlon")) return "triathlon";
+  return "cap";
+}
+
+export interface NutritionEstimateSimpleInput {
+  vlamax: number | null;
+  /** VLamax course (leg run d'un triathlon) si distincte de `vlamax` (vélo). */
+  vlamaxRun?: number | null;
+  objectif: string;
+  tteMin: number | null;
+  /** TTE course (leg run d'un triathlon) si distinct de `tteMin` (vélo). */
+  tteRunMin?: number | null;
+  vo2max?: number | null;
+  weightKg: number | null;
+  /** Durée réelle de course si connue (sinon fallback table générique par objectif). */
+  targetDurationHours?: number | null;
+}
+
+export interface NutritionEstimateSimpleResult {
+  carbsMin: number;
+  carbsMax: number;
+  risk: NutritionRisk;
+  riskLabel: string;
+  riskIcon: string;
+  /** Message pédagogique athlète (résumé en langage simple, cf. NutritionUnifiedCard). */
+  summaryAthlete: string;
+  /** Message pédagogique staff (résumé technique, cf. NutritionUnifiedCard). */
+  summaryStaff: string;
+  /** Sport dont les carbsMin/Max/risk sont issus — pour triathlon, le leg le plus exigeant. */
+  sport: NutritionSport;
+}
+
+export function computeNutritionEstimateSimple(input: NutritionEstimateSimpleInput): NutritionEstimateSimpleResult | null {
+  if (input.weightKg == null || input.weightKg <= 0) return null;
+  if (input.vlamax == null && input.tteMin == null) return null;
+
+  const objNorm = normalizeNutritionObjectif(input.objectif);
+  const mapped = mapNutritionSimpleSport(input.objectif);
+
+  const call = (sport: NutritionSport, vlamaxValue: number | null, tteMin: number | null, durationHours: number | null) =>
+    computeNutritionUnified({
+      vlamaxValue,
+      vo2max: input.vo2max ?? null,
+      tteMin,
+      sport,
+      objectif: objNorm,
+      targetDurationHours: durationHours,
+      targetIntensityPct: null,
+      weightKg: input.weightKg,
+    });
+
+  if (mapped === "triathlon") {
+    // Sans durée réelle par leg connue (ces consommateurs n'ont pas le split
+    // physio vélo/course), on laisse chaque leg utiliser sa propre table
+    // générique — le caller peut fournir targetDurationHours pour le leg
+    // vélo uniquement (usage le plus fréquent : durée totale approx.).
+    const bike = call("velo", input.vlamax, input.tteMin, input.targetDurationHours ?? null);
+    const run = call("cap", input.vlamaxRun ?? input.vlamax, input.tteRunMin ?? input.tteMin, null);
+    const legs: Array<{ sport: NutritionSport; result: NutritionUnifiedResult }> = [];
+    if (bike) legs.push({ sport: "velo", result: bike });
+    if (run) legs.push({ sport: "cap", result: run });
+    if (legs.length === 0) return null;
+
+    const dominant = legs.reduce((a, b) => (b.result.carbsCentral > a.result.carbsCentral ? b : a));
+    const riskRank: Record<NutritionRisk, number> = { low: 0, moderate: 1, high: 2, critical: 3 };
+    const worst = legs.reduce((a, b) => (riskRank[b.result.risk] > riskRank[a.result.risk] ? b : a));
+    return {
+      carbsMin: dominant.result.carbsMin,
+      carbsMax: dominant.result.carbsMax,
+      risk: worst.result.risk,
+      riskLabel: worst.result.riskLabel,
+      riskIcon: worst.result.riskIcon,
+      summaryAthlete: worst.result.summaryAthlete,
+      summaryStaff: worst.result.summaryStaff,
+      sport: dominant.sport,
+    };
+  }
+
+  const sport: NutritionSport = mapped;
+  const result = call(sport, input.vlamax, input.tteMin, input.targetDurationHours ?? null);
+  if (!result) return null;
+  return {
+    carbsMin: result.carbsMin,
+    carbsMax: result.carbsMax,
+    risk: result.risk,
+    riskLabel: result.riskLabel,
+    riskIcon: result.riskIcon,
+    summaryAthlete: result.summaryAthlete,
+    summaryStaff: result.summaryStaff,
+    sport,
+  };
+}

@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/popover";
 import { type VLamaxEffectif, getSourceColor as getVLamaxSourceColor, getConfidenceLabel, type TTEEffectif, getTTESourceColor, getSourceLabel } from "@/engines/diagnostic";
 import { TTEGuard, isTTEUnavailable } from "@/components/TTEGuard";
-import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeNutritionEstimateSimple } from "@/lib/v2/nutritionUnified";
+import { getVLamaxCategory, getVLamaxLabel } from "@/lib/nutritionPredictive";
 import { computeNutritionTiming, type DigestiveTolerance, getRiskBadgeIcon } from "@/lib/nutritionTiming";
 import { computeEnergyDrift, type EnergyDriftResult } from "@/lib/energyDrift";
 import { getTargetsForAmbition, getVLamaxRange, normalizeObjective } from "@/lib/physiologicalTargets";
@@ -31,6 +32,10 @@ interface TwoForCoachingAnalysisProps {
   readiness?: PotentielPhysiologiqueEffectif;
   onGoToSnapshots?: () => void;
   unifiedLimiterResult?: UnifiedLimiterResult | null;
+  /** Poids/VO2max effectifs (mêmes refs que le reste du dashboard) — utilisés
+   * pour le calcul nutrition (moteur unifié, cf. computeNutritionEstimateSimple). */
+  weightKg?: number | null;
+  vo2max?: number | null;
 }
 const prioriteIcons: Record<PrioriteType, typeof TrendingDown> = {
   VLAMAX_DOWN: TrendingDown,
@@ -184,7 +189,9 @@ export function TwoForCoachingAnalysis({
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
   onGoToSnapshots,
-  unifiedLimiterResult
+  unifiedLimiterResult,
+  weightKg = null,
+  vo2max = null,
 }: TwoForCoachingAnalysisProps) {
   const snapshot = getDernierSnapshot(athlete) as any;
   const [inputs, setInputs] = useState<PotentielInputs>({
@@ -263,14 +270,18 @@ export function TwoForCoachingAnalysis({
   // =============================================
   // NUTRITION PRÉDICTIVE
   // =============================================
+  // Moteur unifié (même calcul que /course NutritionUnifiedCard) au lieu de
+  // l'ancien moteur V1 — audit "simulations pas fiables" (chiffres g/h
+  // différents entre ce dashboard et /course pour le même athlète).
   const nutritionEstimate = useMemo(() => {
-    return computeNutritionEstimate({
+    return computeNutritionEstimateSimple({
       vlamax: vlamaxEffectif.value,
       objectif: athlete.objectif || "IM",
       tteMin: tteEffectif.tte_min,
-      tteTarget,
+      vo2max,
+      weightKg,
     });
-  }, [vlamaxEffectif.value, athlete.objectif, tteEffectif.tte_min, tteTarget]);
+  }, [vlamaxEffectif.value, athlete.objectif, tteEffectif.tte_min, vo2max, weightKg]);
 
   // =============================================
   // ÉNERGIE DRIFT + NUTRITION TIMING
@@ -616,8 +627,8 @@ export function TwoForCoachingAnalysis({
       {nutritionEstimate && (
         <div className={cn(
           "mt-6 p-4 rounded-xl border-2",
-          nutritionEstimate.nutritionalRiskIndex.level === 'low' ? 'bg-success/5 border-success/30' :
-          nutritionEstimate.nutritionalRiskIndex.level === 'moderate' ? 'bg-warning/5 border-warning/30' :
+          nutritionEstimate.risk === 'low' ? 'bg-success/5 border-success/30' :
+          nutritionEstimate.risk === 'moderate' ? 'bg-warning/5 border-warning/30' :
           'bg-destructive/5 border-destructive/30'
         )}>
           <div className="flex items-center justify-between mb-3">
@@ -627,12 +638,12 @@ export function TwoForCoachingAnalysis({
             </div>
             <div className={cn(
               "flex items-center gap-1 px-3 py-1 rounded-full text-sm",
-              nutritionEstimate.nutritionalRiskIndex.level === 'low' ? 'bg-success/10 text-success' :
-              nutritionEstimate.nutritionalRiskIndex.level === 'moderate' ? 'bg-warning/10 text-warning' :
+              nutritionEstimate.risk === 'low' ? 'bg-success/10 text-success' :
+              nutritionEstimate.risk === 'moderate' ? 'bg-warning/10 text-warning' :
               'bg-destructive/10 text-destructive'
             )}>
-              <span>{nutritionEstimate.nutritionalRiskIndex.icon}</span>
-              <span className="font-medium">{nutritionEstimate.nutritionalRiskIndex.label}</span>
+              <span>{nutritionEstimate.riskIcon}</span>
+              <span className="font-medium">{nutritionEstimate.riskLabel}</span>
             </div>
           </div>
 
@@ -646,23 +657,16 @@ export function TwoForCoachingAnalysis({
                 </p>
               </div>
             </div>
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground mb-1">VLamax: <span className="font-medium text-foreground">{nutritionEstimate.vlamaxLabel}</span></p>
-              <p className="text-xs text-muted-foreground">Zone de tolérance: <span className="font-medium text-foreground">{nutritionEstimate.nutritionalRiskIndex.toleranceZone} g/h</span></p>
-            </div>
+            {vlamaxEffectif.value != null && (
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground mb-1">VLamax: <span className="font-medium text-foreground">{getVLamaxLabel(getVLamaxCategory(vlamaxEffectif.value))}</span></p>
+              </div>
+            )}
           </div>
 
           <p className="text-xs text-muted-foreground">
-            {nutritionEstimate.nutritionalRiskIndex.messagePedagogique}
+            {nutritionEstimate.summaryStaff}
           </p>
-
-          {nutritionEstimate.nutritionalRiskIndex.potentielPhysiologiqueCap && (
-            <div className="mt-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
-              <p className="text-xs text-destructive">
-                ⚠️ Potentiel Physiologique plafonné à {nutritionEstimate.nutritionalRiskIndex.potentielPhysiologiqueCap}% – {nutritionEstimate.nutritionalRiskIndex.mainRiskFactor}
-              </p>
-            </div>
-          )}
 
           {/* Timing par phases (résumé compact) */}
           {!nutritionTiming.isDataInsufficient && nutritionTiming.phases.length > 0 && (
