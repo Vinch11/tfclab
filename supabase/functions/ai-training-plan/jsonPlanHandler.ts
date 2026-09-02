@@ -45,7 +45,7 @@ import {
 import { isTrailCatalogId } from "./trailMarkers.ts";
 import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
 import { applyValueCheck } from "./valueCheck.ts";
-import { detectLcwFromConfig, buildLcwSignatureReminder } from "./lcwSignatureReminder.ts";
+import { detectLcwFromConfig, buildLcwSignatureReminder, computeLcwChunkSize } from "./lcwSignatureReminder.ts";
 
 const PRIMARY_MODEL = "google/gemini-3-flash-preview";
 
@@ -934,7 +934,7 @@ function resolvePhaseCatalog(
 }
 
 /** Heuristique de phase basée sur la position dans le plan (fallback si pas de phaseCatalog). */
-function inferPhaseFromWeek(weekStart: number, totalWeeks: number): string {
+export function inferPhaseFromWeek(weekStart: number, totalWeeks: number): string {
   const pct = weekStart / Math.max(totalWeeks, 1);
   if (pct <= 0.30) return "base";
   if (pct <= 0.70) return "build";
@@ -979,15 +979,19 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
   const isTriVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
   const isTrailVerbose = /TRAIL\s*(ULTRA|MOUNTAIN|MONT|UTMB|CCC|OCC|LONG)/i.test(obj)
     || (/TRAIL/i.test(obj) && totalWeeks >= 12);
-  // LCW : chunk plus petit que le CHUNK_SIZE triathlon standard (5). Bug réel
-  // (audit "plan Vince") : sur un plan LCW de 7 semaines, CHUNK_SIZE=5 place
-  // TOUTES les semaines Build+Peak (1-5) dans un SEUL chunk sans aucun
-  // checkpoint intermédiaire — le rappel dynamique de lcwSignatureReminder.ts
-  // (PR précédente) ne peut alors se déclencher qu'AVANT ce chunk unique
-  // ("il reste du temps", pas urgent) ou sur le chunk suivant, qui ne couvre
-  // plus que l'affûtage/la course (trop tard). Un chunk plus petit garantit
-  // au moins un checkpoint intermédiaire À L'INTÉRIEUR de la fenêtre Build/Peak.
-  const CHUNK_SIZE = isFullFreshLCWGeneration ? 3 : isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
+  // LCW : chunk plus petit QUE SI NÉCESSAIRE (voir computeLcwChunkSize).
+  // Bug réel (audit "plan Vince", 7 semaines) : CHUNK_SIZE=5 standard plaçait
+  // TOUTES les semaines Build+Peak dans un SEUL chunk sans aucun checkpoint
+  // intermédiaire — le rappel dynamique (PR précédente) ne pouvait alors se
+  // déclencher qu'AVANT ce chunk unique ("il reste du temps", pas urgent) ou
+  // sur le chunk suivant, qui ne couvre plus que l'affûtage/la course (trop
+  // tard). Sur un plan LONG, Build+Peak dépasse déjà la taille d'un chunk
+  // standard et se répartit naturellement — rétrécir systématiquement
+  // multiplierait les appels LLM sans bénéfice, d'où le calcul conditionnel.
+  const standardChunkSize = isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
+  const CHUNK_SIZE = isFullFreshLCWGeneration
+    ? computeLcwChunkSize(totalWeeks, standardChunkSize, inferPhaseFromWeek)
+    : standardChunkSize;
   const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 6;
   const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
 

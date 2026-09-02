@@ -1,6 +1,17 @@
 import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { detectLcwFromConfig, buildLcwSignatureReminder } from "./lcwSignatureReminder.ts";
+import { detectLcwFromConfig, buildLcwSignatureReminder, computeLcwChunkSize } from "./lcwSignatureReminder.ts";
+
+/** Même formule que jsonPlanHandler.ts::inferPhaseFromWeek — dupliquée ici
+ * pour tester computeLcwChunkSize sans dépendance circulaire (ce module ne
+ * peut pas importer depuis jsonPlanHandler.ts, qui importe déjà de lui). */
+function inferPhaseFromWeek(weekStart: number, totalWeeks: number): string {
+  const pct = weekStart / Math.max(totalWeeks, 1);
+  if (pct <= 0.30) return "base";
+  if (pct <= 0.70) return "build";
+  if (pct <= 0.92) return "peak";
+  return "taper";
+}
 
 /**
  * Bug réel signalé par le coach (plan LCW "Vince", régénération complète) :
@@ -104,4 +115,33 @@ Deno.test("buildLcwSignatureReminder — dernier chunk Build/Peak avec manque pe
   assert(block !== null);
   assertStringIncludes(block!, "DERNIER BLOC");
   assertStringIncludes(block!, "4-6");
+});
+
+/**
+ * computeLcwChunkSize — répond à la question du coach : "si le plan est
+ * long, est-ce nécessaire de rétrécir les chunks ?" Réponse : non. Le
+ * rétrécissement ne se déclenche QUE si le dernier chunk (taille standard)
+ * touchant encore Build/Peak contiendrait moins de 2 semaines Build/Peak —
+ * seuil physique (2 week-ends Peak distincts requis, pas arbitraire).
+ */
+Deno.test("computeLcwChunkSize — plan 7 semaines (cas réel Vince) : rétrécit (dernier chunk touché = 1 seule semaine Build/Peak)", () => {
+  // Phases 7 sem : base,base,build,build,peak,peak,taper. Standard size=5 →
+  // chunks [1-5][6-7] : dernier chunk touchant Build/Peak = [6-7], 1 seule
+  // semaine Build/Peak (S6) → insuffisant pour 2 week-ends Peak distincts.
+  const size = computeLcwChunkSize(7, 5, inferPhaseFromWeek);
+  assertEquals(size, 3);
+});
+
+Deno.test("computeLcwChunkSize — plan long (16, 20, 24 semaines) : ne rétrécit PAS", () => {
+  // Sur un plan long, Build+Peak s'étend sur plusieurs chunks standard AVANT
+  // le dernier, qui reste assez large pour caser 2 semaines Build/Peak —
+  // rétrécir systématiquement multiplierait les appels LLM sans bénéfice.
+  assertEquals(computeLcwChunkSize(16, 5, inferPhaseFromWeek), 5);
+  assertEquals(computeLcwChunkSize(20, 5, inferPhaseFromWeek), 5);
+  assertEquals(computeLcwChunkSize(24, 5, inferPhaseFromWeek), 5);
+});
+
+Deno.test("computeLcwChunkSize — plan sans phase Build/Peak détectée : taille standard inchangée", () => {
+  const size = computeLcwChunkSize(4, 5, () => "base");
+  assertEquals(size, 5);
 });

@@ -1674,6 +1674,27 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     ].filter(Boolean);
     const isLCW = hasLCWFlag || raceNamesLCW.some((n) => /long\s*course\s*weekend|\blcw\b/i.test(n));
     if (isLCW) {
+      // ⚠️ Cible ABSOLUE (J-21 à J-28 avant la course) calculée pour CE plan,
+      // plutôt que de laisser le LLM réconcilier lui-même "Peak" (déduit du
+      // % de progression dans le plan) et "3-4 semaines avant la course".
+      // Sur un plan LCW COURT (ex. 7 semaines), ces deux critères se
+      // contredisent : la phase "Peak" (calculée en %) tombe à J-7/J-14,
+      // pas J-21/J-28, qui lui-même retombe en phase "Build". Un plan
+      // généré en respectant "Peak ET J-21/28" à la lettre ne peut alors
+      // PAS satisfaire la checklist — cause probable (en plus du bug de
+      // chunking déjà corrigé) de l'absence totale de B_LCW_BACK_TO_BACK_PEAK
+      // observée sur un plan réel de ce type.
+      const lcwTotalWeeks = typeof config.weeksAvailable === "number" && config.weeksAvailable > 0
+        ? config.weeksAvailable
+        : null;
+      const lcwSimWeekLate = lcwTotalWeeks ? Math.max(1, lcwTotalWeeks - 3) : null;
+      const lcwSimWeekEarly = lcwTotalWeeks ? Math.max(1, lcwTotalWeeks - 4) : null;
+      const lcwSimWeekInstruction = lcwTotalWeeks && lcwSimWeekEarly && lcwSimWeekLate
+        ? (lcwSimWeekEarly === lcwSimWeekLate
+            ? `Pour CE plan de ${lcwTotalWeeks} semaines, cela correspond très précisément à la **semaine ${lcwSimWeekLate}**.`
+            : `Pour CE plan de ${lcwTotalWeeks} semaines, cela correspond très précisément aux **semaines ${lcwSimWeekEarly} ou ${lcwSimWeekLate}**.`)
+          + ` Utilise ce numéro de semaine directement — ne recalcule pas "Peak" toi-même à partir d'un pourcentage de progression dans le plan. Sur un plan LCW COURT, la semaine J-21/J-28 peut être nominalement labellée "Build" par le découpage automatique en phases : ce n'est PAS une erreur, la distance réelle en jours avant la course prime TOUJOURS sur le nom de la phase pour cette règle précise (le but est de laisser 2-3 semaines de récupération/surcompensation après la simulation, peu importe l'étiquette de phase de la semaine qui la porte).`
+        : null;
       lines.push("");
       lines.push("### 🏴 FORMAT LONG COURSE WEEKEND (LCW) — COURSE À ÉTAPES 3 JOURS");
       lines.push("⚠️ **TITRE DU PLAN — OBLIGATOIRE POUR LCW** : le H1 DOIT contenir explicitement le sigle **`LCW`** (et non seulement `70.3`). Format imposé : `# Plan TFCL™ — 70.3 LCW [Nom course] — N semaines`. Un titre du type `703 — Structure Qualifiable` sans mention `LCW` est INVALIDE et doit être corrigé avant rendu.");
@@ -1688,7 +1709,8 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("   - `B_LCW_SWIM_FRI_EVENING` — Natation continue rythmée **VENDREDI soir OBLIGATOIREMENT** (2.5-3.8km, allure race, timing course). Jamais Jeudi ni Samedi : le suffixe `_FRI_EVENING` de l'ID impose le jour.");
       lines.push("   - `B_LCW_BIKE_LONG_RACE_SAT` — Long ride race-pace samedi 2h30-3h @ IF 0.82-0.85 (SANS run derrière — puissance plus haute autorisée).");
       lines.push("   - `B_LCW_RUN_OFF_LEGS_SUN` — Long run race-pace dimanche 60-90min sur jambes fatiguées vélo veille (angle mort absolu des plans 70.3 continus).");
-      lines.push("2. **Répétition générale Peak** : prescris **`B_LCW_BACK_TO_BACK_PEAK`** UNE FOIS, 3-4 sem avant course (SIMULATION complète Ven+Sam+Dim, reproduction exacte du paradigme LCW).");
+      lines.push("2. **Répétition générale** : prescris **`B_LCW_BACK_TO_BACK_PEAK`** UNE FOIS, 3-4 sem avant course (SIMULATION complète Ven+Sam+Dim, reproduction exacte du paradigme LCW)."
+        + (lcwSimWeekInstruction ? ` ${lcwSimWeekInstruction}` : ""));
       lines.push("3. **Pacing plus agressif autorisé** : sans contrainte de courir immédiatement après le vélo, la cible vélo peut glisser de 80-85% FTP → **85-88% FTP** (IF ~0.85). La course peut viser allure semi/marathon **proche du vrai potentiel** (pas de pénalité fatigue centrale vélo-fraîche).");
       lines.push("4. **Nutrition INTER-ÉTAPES = arme absolue** : prescris **`B_LCW_NUTRITION_RECHARGE`** ≥3× dans le plan (associé à chaque back-to-back weekend en Build/Peak). Protocole détaillé Burke 2018 / Costa 2019.");
       lines.push("5. **Fatigue résiduelle ENTRE jours** : conserve les séances 'CAP Z2 Fatigued' / lendemain de grosse charge — elles préparent EXACTEMENT le dimanche LCW (courir sur jambes raides post-vélo veille).");
@@ -1700,7 +1722,9 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("");
       lines.push("**✅ CHECKLIST DE SORTIE LCW (bloquante — vérifie AVANT de finaliser le plan) :**");
       lines.push("Avant de rendre le plan final, tu DOIS pouvoir cocher chacune de ces cases. Si une case manque, RÉÉCRIS la semaine concernée.");
-      lines.push("- [ ] `B_LCW_BACK_TO_BACK_PEAK` **présent exactement 1 fois** dans le plan, positionné en **Peak, semaine J-3 ou J-4** avant la course (ni plus tôt, ni plus tard, ni en Build). Cette séance-pivot occupe le weekend entier (Ven soir + Sam matin + Dim matin) et NE PEUT PAS être remplacée par la simple juxtaposition de `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` — c'est la SIMULATION COURSE COMPLÈTE avec bilan écrit obligatoire.");
+      lines.push("- [ ] `B_LCW_BACK_TO_BACK_PEAK` **présent exactement 1 fois** dans le plan, positionné à **J-21/J-28 avant la course** (ni plus tôt, ni plus tard — la phase nominale de cette semaine, Build ou Peak selon le découpage automatique, N'A PAS D'IMPORTANCE pour cette règle précise)."
+        + (lcwSimWeekInstruction ? ` ${lcwSimWeekInstruction}` : "")
+        + " Cette séance-pivot occupe le weekend entier (Ven soir + Sam matin + Dim matin) et NE PEUT PAS être remplacée par la simple juxtaposition de `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` — c'est la SIMULATION COURSE COMPLÈTE avec bilan écrit obligatoire.");
       lines.push("- [ ] Au moins **2 weekends Peak** contiennent `B_LCW_BIKE_LONG_RACE_SAT` (Sam) + `B_LCW_RUN_OFF_LEGS_SUN` (Dim) consécutifs.");
       lines.push("- [ ] Au moins **1 weekend Build** contient `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
       lines.push("- [ ] `B_LCW_NUTRITION_RECHARGE` apparaît **≥3 fois** dans le plan, associé à chaque back-to-back weekend.");
