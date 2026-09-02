@@ -157,6 +157,42 @@ export function resolveFullRegenerationStartDate(
   return hadExistingActivePlan ? currentPlanStartDate : startOfWeek(now, { weekStartsOn: 1 });
 }
 
+/**
+ * Reconstruit une représentation markdown (tableau) d'un ParsedPlan —
+ * utilisée comme source de vérité pour `_markdown` à la sauvegarde. Bug réel
+ * (coach) : "quand je sauvegarde une semaine régénérée c'est l'ancien
+ * programme qui est sauvegardé". Cause : `persistPlanVersion` écrivait
+ * `_markdown: response` — la réponse IA BRUTE de la DERNIÈRE génération
+ * COMPLÈTE, jamais mise à jour par une régénération semaine-par-semaine ou
+ * de fenêtre (qui ne touchent que `planOverride`/`parsedPlan`, jamais
+ * `response`). Au rechargement d'une version sauvegardée
+ * (`applyLoadedVersion`), `_markdown` est prioritaire sur `plan_json.weeks`
+ * — donc une semaine régénérée puis sauvegardée "disparaissait" au
+ * rechargement : le tableau `weeks` en base était pourtant correct
+ * (`plan_json` spread depuis `parsedPlan`), mais `_markdown` (périmé)
+ * reprenait le dessus à l'affichage. Exportée pour être testée directement —
+ * ce composant page n'a pas de harnais de test complet.
+ */
+export function buildMarkdownFromPlan(plan: ParsedPlan): string {
+  const lines: string[] = [];
+  if (plan.title) lines.push(`# ${plan.title}`, "");
+  for (const w of plan.weeks) {
+    const theme = w.theme ? ` — ${w.theme}` : "";
+    lines.push(`### Semaine ${w.weekNumber}${theme}`, "");
+    if (w.coachNotes) lines.push(`**Consignes coach :** ${w.coachNotes}`, "");
+    lines.push("| Jour | Sport | Séance | Détails |", "|---|---|---|---|");
+    for (const s of w.sessions || []) {
+      const day = s.dayName || "";
+      const sport = (s.sport || "").replace(/\|/g, "/");
+      const title = (s.title || "").replace(/\|/g, "/");
+      const details = (s.details || "").replace(/\|/g, "/").replace(/\n/g, " ");
+      lines.push(`| ${day} | ${sport} | ${title} | ${details} |`);
+    }
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
 function calculateAge(birthDate: string): number {
   const birth = new Date(birthDate);
   const today = new Date();
@@ -1766,7 +1802,7 @@ export default function AITrainingPlanPage() {
         coach_id: user.id,
         plan_json: {
           ...(parsedPlan as any),
-          _markdown: response,
+          _markdown: buildMarkdownFromPlan(parsedPlan),
           _planStartDate: format(planStartDate, "yyyy-MM-dd"),
           _objective: objective,
           _raceName: raceName,
