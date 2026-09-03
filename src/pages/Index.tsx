@@ -307,10 +307,23 @@ const Index = () => {
   // re-render pour une AUTRE raison, et peut donc rester figé sur un J-X
   // périmé pendant des jours si le coach laisse l'onglet ouvert. Même
   // mécanisme que NextRaceIndicator.tsx.
+  // Audit fiabilité UI (retour terrain coach) : un setInterval seul ne suffit
+  // pas — un onglet en arrière-plan plusieurs jours se fait throttle/suspendre
+  // par le navigateur, l'intervalle horaire peut ne jamais refirer tant que
+  // l'onglet n'est pas réactivé. Ajout d'un recalcul immédiat au retour au
+  // premier plan (visibilitychange), qui rattrape le retard sans attendre
+  // la prochaine heure pleine.
   const [, setDailyBadgeTick] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => setDailyBadgeTick((t) => t + 1), 60 * 60 * 1000);
-    return () => clearInterval(interval);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") setDailyBadgeTick((t) => t + 1);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   // Tabs valides gérés par cette page

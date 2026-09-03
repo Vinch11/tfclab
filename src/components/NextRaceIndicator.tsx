@@ -34,11 +34,24 @@ export function NextRaceIndicator({
   compact = false,
   onClick,
 }: NextRaceIndicatorProps) {
-  // Force re-render every hour to keep countdown fresh
+  // Force re-render every hour to keep countdown fresh.
+  // Audit fiabilité UI (retour terrain coach : badge "figé" plusieurs jours) —
+  // un setInterval seul ne suffit pas : un onglet laissé en arrière-plan
+  // pendant plusieurs jours se fait throttle/suspendre par le navigateur,
+  // l'intervalle horaire peut ne jamais refirer tant que l'onglet n'est pas
+  // réactivé. Recalcul immédiat au retour au premier plan (visibilitychange)
+  // pour rattraper le retard sans attendre la prochaine heure pleine.
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 60 * 60 * 1000);
-    return () => clearInterval(interval);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") setTick(t => t + 1);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   // Trouver la prochaine course (future, triée par date)
