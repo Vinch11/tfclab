@@ -45,6 +45,10 @@ interface AIPlanBenchmarkProps {
   identifiedLimiterKeys?: string[];
   athleteData?: import("@/engines/plan/types").PlanAthleteData;
   coachLimiterOrder?: string[];
+  /** Champ libre "Contraintes" (PlanConfig.constraints) — détecte une
+   *  discipline bannie par le coach (ex: natation) pour que le contrôle de
+   *  ratio par sport ne la traite pas comme un défaut de génération. */
+  constraintsText?: string;
 }
 
 interface MetricGauge {
@@ -495,7 +499,7 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
   );
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, ambitionEffectiveLabel, ambitionSaisieLabel, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, ambitionEffectiveLabel, ambitionSaisieLabel, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, constraintsText }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   // Ambition utilisée pour les standards : effective si déclassement, sinon saisie.
   const ambitionForRef = ambitionEffective || ambition;
@@ -503,8 +507,8 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
   const ref = useMemo(() => getEliteReference(objective, ambitionForRef), [objective, ambitionForRef]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
   const validationResult = useMemo(
-    () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, undefined, undefined, ambitionForRef),
-    [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, ambitionForRef]
+    () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, undefined, undefined, ambitionForRef, constraintsText),
+    [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, ambitionForRef, constraintsText]
   );
 
   if (!metrics) return null;
