@@ -289,16 +289,30 @@ export function parseAIPlan(markdown: string): ParsedPlan {
       };
 
       // === DEDUPLICATION: If this week number already exists, keep the one with more real sessions ===
+      // Sur égalité, la SECONDE occurrence l'emporte (audit fiabilité génération de
+      // plan IA) : côté edge (index.ts), deux mécanismes de correction régénèrent et
+      // RESTREAMENT intégralement une semaine déjà émise pour la remplacer — recap
+      // manquant chunk 1 (AUDIT FIX #3) et nettoyage contamination trail (assertion
+      // post-génération) — sans jamais retirer la version originale déjà streamée au
+      // client (le protocole SSE ne relaie que des deltas ajoutés, aucun "retrait").
+      // La règle précédente ("garder l'existant à nombre de séances égal ou supérieur")
+      // gardait donc systématiquement la PREMIÈRE version — la version contaminée/
+      // sans-recap — chaque fois que la correction avait le MÊME nombre de séances
+      // réelles que l'original (cas courant : nettoyer une contamination ne change
+      // généralement pas le nombre de séances, juste leur contenu). Le correctif
+      // server-side "réussissait" silencieusement sans jamais atteindre le plan final.
       const existingIdx = weeks.findIndex(w => w.weekNumber === currentWeekNumber);
       if (existingIdx !== -1) {
         const existing = weeks[existingIdx];
         const existingRealSessions = existing.sessions.filter(s => !s.isRest).length;
         const newRealSessions = newWeek.sessions.filter(s => !s.isRest).length;
-        if (newRealSessions > existingRealSessions) {
-          // New version is better — replace
+        if (newRealSessions >= existingRealSessions) {
+          // Nouvelle version au moins aussi complète — remplace (correction intentionnelle
+          // la plus probable en cas d'égalité, cf. note ci-dessus).
           weeks[existingIdx] = newWeek;
         }
-        // Otherwise keep existing (it has more or equal real sessions)
+        // Sinon (strictement moins de séances réelles) : garder l'existant, la nouvelle
+        // occurrence est probablement une régénération partielle/tronquée.
       } else {
         weeks.push(newWeek);
       }
