@@ -13,6 +13,7 @@
 
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 import type { PlanAthleteData } from "./types";
+import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
@@ -924,9 +925,52 @@ const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [num
 // Use shared normalizer — keep edge function's copy in sync manually
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 
+/** Bug réel (audit PDF, plan "Vince" 70.3 LCW, natation bannie volontairement
+ *  par le coach — champ "Contraintes") : les cibles SPORT_RATIO_TARGETS
+ *  supposent toujours les 3 disciplines présentes (natation 15-20% etc.).
+ *  Quand le coach bannit une discipline via le champ libre "Contraintes",
+ *  `sessionSizingMatrix.ts::applyBannedSportsToQuota` redistribue déjà
+ *  CORRECTEMENT son quota vers les disciplines restantes en génération —
+ *  mais ce validateur, lui, continuait de comparer le plan résultant (0%
+ *  natation, par construction) aux cibles génériques 3-disciplines, ce qui
+ *  produit un faux-positif "ERREUR GRAVE" sur un plan qui respecte
+ *  exactement la contrainte demandée. On redistribue ici la plage cible de
+ *  la discipline bannie vers les disciplines restantes, au prorata de leurs
+ *  cibles respectives — même logique que la redistribution de quota, sans
+ *  dupliquer son code (celui-ci vit côté edge function / hors de portée de
+ *  ce module frontend).
+ */
+function redistributeTargetsForBannedSports(
+  target: { swim?: [number, number]; bike?: [number, number]; run?: [number, number] },
+  bannedSports: Set<string>,
+): { swim?: [number, number]; bike?: [number, number]; run?: [number, number] } {
+  const sports: Array<"swim" | "bike" | "run"> = ["swim", "bike", "run"];
+  const banned = sports.filter((s) => bannedSports.has(s) && target[s]);
+  if (banned.length === 0) return target;
+  const remaining = sports.filter((s) => !banned.includes(s) && target[s]);
+  if (remaining.length === 0) return target;
+
+  const freedMin = banned.reduce((sum, s) => sum + target[s]![0], 0);
+  const freedMax = banned.reduce((sum, s) => sum + target[s]![1], 0);
+  const remainingMidSum = remaining.reduce((sum, s) => sum + (target[s]![0] + target[s]![1]) / 2, 0);
+
+  const adjusted: { swim?: [number, number]; bike?: [number, number]; run?: [number, number] } = {};
+  for (const s of banned) adjusted[s] = [0, 0]; // discipline bannie : 0% EST la cible correcte.
+  for (const s of remaining) {
+    const mid = (target[s]![0] + target[s]![1]) / 2;
+    const share = remainingMidSum > 0 ? mid / remainingMidSum : 1 / remaining.length;
+    adjusted[s] = [
+      Math.round(target[s]![0] + freedMin * share),
+      Math.round(target[s]![1] + freedMax * share),
+    ];
+  }
+  return adjusted;
+}
+
 function validateSportRatio(
   metrics: WeekMetrics[],
-  objective?: string
+  objective?: string,
+  constraintsText?: string,
 ): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
 
@@ -956,11 +1000,15 @@ function validateSportRatio(
 
   // Find target ratios using proper normalization
   const objKey = normalizeObjectiveKey(objective || "");
-  const target = SPORT_RATIO_TARGETS[objKey];
+  const rawTarget = SPORT_RATIO_TARGETS[objKey];
+  const bannedSports = new Set(parseAthleteConstraints(constraintsText).bannedSports);
+  const target = rawTarget ? redistributeTargetsForBannedSports(rawTarget, bannedSports) : rawTarget;
 
   if (!target) {
-    // No specific target — just check basic diversity for triathlon-like plans
-    if (swim > 0 && bike > 0 && run > 0) {
+    // No specific target — just check basic diversity for triathlon-like plans.
+    // Une discipline explicitement bannie par le coach est retirée de l'exigence
+    // de diversité : son absence est voulue, pas un défaut de génération.
+    if ((swim > 0 || bannedSports.has("swim")) && (bike > 0 || bannedSports.has("bike")) && (run > 0 || bannedSports.has("run"))) {
       return { issues: [], score: 90 };
     }
     return { issues: [], score: 80 };
@@ -3204,6 +3252,11 @@ export function validatePlan(
    *  "finisher", cf. ambitionLevel.ts) — nécessaire au plancher séances/jour
    *  Elite+ (validateDailySessionFloor), absente des paramètres précédents. */
   ambition?: string,
+  /** Champ libre "Contraintes" de l'athlète (PlanConfig.constraints) — permet
+   *  à validateSportRatio de détecter une discipline bannie par le coach et
+   *  de ne pas la traiter comme un défaut de génération (voir
+   *  redistributeTargetsForBannedSports ci-dessus). */
+  constraintsText?: string,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -3244,7 +3297,7 @@ export function validatePlan(
       ? Math.max(0, progressionBase.score - Math.min(30, pillarStagnation.stagnant * 15))
       : progressionBase.score,
   };
-  const sportRatio = validateSportRatio(weekMetrics, objective);
+  const sportRatio = validateSportRatio(weekMetrics, objective, constraintsText);
   const catalogRatioBase = validateCatalogRatio(plan);
   const overallCatalogRatio = validateOverallCatalogRatio(plan);
   const catalogRatio = {

@@ -1875,6 +1875,7 @@ export default function AITrainingPlanPage() {
           },
           cfg?.injuryRisk,
           ambition,
+          cfg?.constraints,
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;
@@ -3304,6 +3305,7 @@ export default function AITrainingPlanPage() {
                         identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined) : undefined}
                         coachLimiterOrder={coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined}
                         athleteData={athleteContext?.data}
+                        constraintsText={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.constraints : undefined}
                         raceWeekNumbers={(() => {
                           const allGoals = [
                             { raceDate: raceDate, priority: "A" as const },

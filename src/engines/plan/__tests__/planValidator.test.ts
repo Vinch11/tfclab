@@ -750,6 +750,45 @@ describe("planValidator", () => {
     });
   });
 
+  describe("sport_ratio — discipline bannie par le coach (faux-positif corrigé)", () => {
+    // Bug réel (audit PDF, plan "Vince" 70.3 LCW) : le coach a explicitement
+    // banni la natation via le champ "Contraintes" ("l'interdiction de
+    // natation était voulue"). sessionSizingMatrix.ts redistribue déjà
+    // correctement son quota vers vélo/course en génération — mais le
+    // validateur comparait toujours le résultat (0% natation) aux cibles
+    // génériques 3-disciplines (15-20% pour 703), produisant un faux
+    // "ERREUR GRAVE" sur un plan qui respecte exactement la contrainte
+    // demandée. Avec redistribution des cibles vers les disciplines
+    // restantes (bike/run), ce même plan ne doit plus lever aucune alerte.
+    function bikeRunWeek(weekNumber: number): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Vélo", title: "Z2 progressif", details: "Endurance" },
+        { sport: "Vélo", title: "Sweet Spot", details: "Séance clé 🔑" },
+        { sport: "Vélo", title: "Force SFR", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2", details: "Endurance" },
+        { sport: "Course", title: "Tempo seuil", details: "Séance clé 🔑" },
+      ], "Build");
+    }
+
+    it("sans contrainte connue : signale natation 0% comme une erreur", () => {
+      const plan = makePlan([bikeRunWeek(1), bikeRunWeek(2), bikeRunWeek(3)]);
+      const result = validatePlan(plan, "703");
+      const ratioIssues = result.issues.filter(i => i.rule === "sport_ratio");
+      expect(ratioIssues.some(i => i.message.includes("Natation"))).toBe(true);
+    });
+
+    it("avec natation bannie (champ Contraintes) : plus aucune alerte de ratio sport", () => {
+      const plan = makePlan([bikeRunWeek(1), bikeRunWeek(2), bikeRunWeek(3)]);
+      const result = validatePlan(
+        plan, "703", undefined, undefined, undefined, undefined, undefined,
+        undefined, undefined, undefined, undefined,
+        "Pas de natation (épaule)",
+      );
+      const ratioIssues = result.issues.filter(i => i.rule === "sport_ratio");
+      expect(ratioIssues).toHaveLength(0);
+    });
+  });
+
   // #18 lot 2 : 4 règles conditionnelles (objectif/ambition spécifiques) sans
   // contrôle post-génération jusqu'ici. Composition séances clés trail
   // délibérément différée (cf. commentaire dans planValidator.ts).
