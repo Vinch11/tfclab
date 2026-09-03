@@ -577,8 +577,78 @@ Si ton H1 ne matche pas ce gabarit, RÉÉCRIS-LE avant d'émettre la suite du pl
 - Cible : 2-4 séances 🔑 par semaine selon objectif et phase. JAMAIS 0 sur une semaine active.`;
 }
 
+/**
+ * Deuxième foyer de contradiction Markdown/JSON trouvé en poursuivant l'audit
+ * après le premier correctif (RÈGLE #0 + 3 règles CRITIQUE/NON NÉGOCIABLE,
+ * cf. buildFormatRulesBlock) : un gabarit LITTÉRAL de sortie Markdown
+ * complet (titre H1, tableaux `| Jour | Sport | ... |`, code fence), sous le
+ * header "## Format de Sortie OBLIGATOIRE" — un ancrage few-shot encore plus
+ * fort qu'une règle textuelle puisque c'est un exemple à imiter
+ * structurellement — plus deux restatements indépendants de la règle
+ * marqueur 🔑 ("Marquage obligatoire" et "Règles de Contenu"), aucun des
+ * trois conditionné sur isJsonMode par le premier correctif.
+ */
+function buildOutputFormatTemplateBlock(isJsonMode: boolean): string {
+  if (isJsonMode) {
+    return `## Format de Sortie OBLIGATOIRE
+Mode JSON structuré : voir la section "MODE SORTIE JSON STRUCTURÉ" plus bas
+dans ce prompt pour le schéma exact, les champs et l'exemple minimal valide —
+c'est la seule source de vérité pour la SYNTAXE de sortie de ce mode. Le
+contenu physiologique (diagnostic, limiteurs, blocs, séances) reste organisé
+selon les mêmes principes que dans le reste de ce prompt ; seule la syntaxe
+change (JSON, pas de titre H1, pas de tableau Markdown, pas de code fence).`;
+  }
+  return `## Format de Sortie OBLIGATOIRE
+\`\`\`
+# Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines
+(voir RÈGLE #0 en tête du prompt — gabarit strict, non négociable)
+
+## Diagnostic TFCL™
+**Limiteur prioritaire :** [limiteur]
+**Levier activé :** [levier]
+**Modèle de périodisation :** [Hybride TFCL (Issurin/Seiler) / Linéaire Progressive]
+**Stratégie globale :** [1-2 phrases séquençage blocs]
+**Répartition sport :** [ex: Vélo 48% | CAP 25% | Natation 18% | Renfo 9%]
+
+## Récapitulatif Stratégique
+### Limiteurs → Blocs → Séances Clés
+| # | Limiteur Détecté | Statut | Bloc Prescrit | Semaines | Séances Clés 🔑 |
+|---|-----------------|--------|---------------|----------|-----------------|
+| 1 | [ex: VLamax haute] | 🔴 | Chantier VLamax↓ | S5-S8 | Z2 long Train Low, SS 2×20min |
+| 2 | [ex: TTE faible] | 🟡 | Consolidation TTE↑ | S9-S12 | Seuil Norvégienne 2×20min→1×35min |
+
+⛔ **RÈGLE D'UNICITÉ DU RÉCAPITULATIF (bloquante)** :
+- Le Récapitulatif Stratégique n'apparaît **qu'UNE SEULE FOIS** dans le plan, avant les blocs.
+- Chaque **Bloc N** (Bloc 1, Bloc 2, …) n'apparaît **qu'UNE SEULE FOIS** dans la table ET dans le corps du plan. Il est INTERDIT d'avoir deux lignes ou deux sections "Bloc 4" (ou tout autre numéro dupliqué).
+- La numérotation "#" de la table est **strictement croissante et continue** (1, 2, 3, …) sur toute la table — JAMAIS de redémarrage à 1 en milieu de table (signe d'une deuxième table collée).
+- Si tu détectes en relecture deux tables juxtaposées ou deux blocs de même numéro, tu DOIS fusionner en une seule table cohérente avant de rendre le plan.
+
+
+### Bloc 1 : [Nom Métabolique] (Semaines 1-X)
+**Objectif physiologique :** [objectif du bloc]
+**Volume cible :** [heures/semaine]
+
+### Semaine 1 (du JJ/MM au JJ/MM) — [Thème]
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | ... | ... | ... |
+[...]
+\`\`\``;
+}
+
 export function getSystemPrompt(profile?: SystemPromptProfile): string {
-  const formatRulesBlock = buildFormatRulesBlock(profile?.isJsonMode === true);
+  const isJsonMode = profile?.isJsonMode === true;
+  const formatRulesBlock = buildFormatRulesBlock(isJsonMode);
+  const outputFormatTemplateBlock = buildOutputFormatTemplateBlock(isJsonMode);
+  const keySessionMarkerLine = isJsonMode
+    ? `- **Marquage obligatoire**: \`isKeySession: true\` sur la session JSON (pas d'emoji).`
+    : `- **Marquage obligatoire**: préfixer la séance clé avec "🔑".`;
+  const keySessionContentLine = isJsonMode
+    ? `- Séances clés : \`isKeySession: true\`.`
+    : `- Séances clés marquées 🔑.`;
+  const keySessionTitleExampleLine = isJsonMode
+    ? `- Titre descriptif ("CSS Dégressif", pas "Natation").`
+    : `- Titre descriptif ("🔑 CSS Dégressif", pas "Natation").`;
   const base = `Tu es le moteur TFCL™ Plan Generator, un système expert en périodisation d'entraînement. Ta méthodologie est inspirée de Dan Lorang et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks, Joel Filliol, Mikal Iden).
 
 ## Ta Mission
@@ -918,46 +988,11 @@ ${buildFewShotExamples(profile)}
 - **Core**: planche, pallof press, dead bug
 - **Excentrique trail**: descentes contrôlées, squats excentriques 4s
 
-## Format de Sortie OBLIGATOIRE
-\`\`\`
-# Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines
-(voir RÈGLE #0 en tête du prompt — gabarit strict, non négociable)
-
-## Diagnostic TFCL™
-**Limiteur prioritaire :** [limiteur]
-**Levier activé :** [levier]
-**Modèle de périodisation :** [Hybride TFCL (Issurin/Seiler) / Linéaire Progressive]
-**Stratégie globale :** [1-2 phrases séquençage blocs]
-**Répartition sport :** [ex: Vélo 48% | CAP 25% | Natation 18% | Renfo 9%]
-
-## Récapitulatif Stratégique
-### Limiteurs → Blocs → Séances Clés
-| # | Limiteur Détecté | Statut | Bloc Prescrit | Semaines | Séances Clés 🔑 |
-|---|-----------------|--------|---------------|----------|-----------------|
-| 1 | [ex: VLamax haute] | 🔴 | Chantier VLamax↓ | S5-S8 | Z2 long Train Low, SS 2×20min |
-| 2 | [ex: TTE faible] | 🟡 | Consolidation TTE↑ | S9-S12 | Seuil Norvégienne 2×20min→1×35min |
-
-⛔ **RÈGLE D'UNICITÉ DU RÉCAPITULATIF (bloquante)** :
-- Le Récapitulatif Stratégique n'apparaît **qu'UNE SEULE FOIS** dans le plan, avant les blocs.
-- Chaque **Bloc N** (Bloc 1, Bloc 2, …) n'apparaît **qu'UNE SEULE FOIS** dans la table ET dans le corps du plan. Il est INTERDIT d'avoir deux lignes ou deux sections "Bloc 4" (ou tout autre numéro dupliqué).
-- La numérotation "#" de la table est **strictement croissante et continue** (1, 2, 3, …) sur toute la table — JAMAIS de redémarrage à 1 en milieu de table (signe d'une deuxième table collée).
-- Si tu détectes en relecture deux tables juxtaposées ou deux blocs de même numéro, tu DOIS fusionner en une seule table cohérente avant de rendre le plan.
-
-
-### Bloc 1 : [Nom Métabolique] (Semaines 1-X)
-**Objectif physiologique :** [objectif du bloc]
-**Volume cible :** [heures/semaine]
-
-### Semaine 1 (du JJ/MM au JJ/MM) — [Thème]
-| Jour | Sport | Séance | Détails |
-|------|-------|--------|---------|
-| Lundi | ... | ... | ... |
-[...]
-\`\`\`
+${outputFormatTemplateBlock}
 
 ## SÉANCES CLÉS — MÉTHODOLOGIE DAN LORANG (CRITIQUE)
-Chaque semaine a 2-4 **séances clés (Key Sessions)**, les stimuli principaux (cf. § "Cible : 2-4 séances 🔑 par semaine" plus haut — même règle). Les autres séances sont de support.
-- **Marquage obligatoire**: préfixer la séance clé avec "🔑".
+Chaque semaine a 2-4 **séances clés (Key Sessions)**, les stimuli principaux. JAMAIS 0 séance clé sur une semaine active. Les autres séances sont de support.
+${keySessionMarkerLine}
 - **Placement stratégique**: JAMAIS consécutives. 1-2 jours EF/récup entre.
 - **Priorité absolue**: Si l'athlète saute une séance, JAMAIS une séance clé.
 
@@ -973,9 +1008,9 @@ Chaque semaine a 2-4 **séances clés (Key Sessions)**, les stimuli principaux (
 
 ## Règles de Contenu (CRITIQUE)
 - Chaque séance = contenu COMPLET ACTIONNABLE.
-- Séances clés marquées 🔑.
+${keySessionContentLine}
 - Détails natation, vélo, CAP, renfo complets (durée, zone, allure, %FTP/VMA, reps, etc.).
-- Titre descriptif ("🔑 CSS Dégressif", pas "Natation").
+${keySessionTitleExampleLine}
 - Varier d'une semaine à l'autre — PAS DE COPIER-COLLER.
 
 ## ⛔ UNITÉS D'ALLURE — RÈGLE ABSOLUE
