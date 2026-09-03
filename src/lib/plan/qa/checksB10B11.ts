@@ -262,7 +262,24 @@ function flagsFor(w: LibraryWorkout): FicheFlags {
         avoid.match(/(?:tapering|taper|affûtage|affutage|pr[ée]-?comp[ée]tition)[^.]*?\(?\s*j\s*-\s*(\d+)\s*\)?/i) ||
         avoid.match(/course\s+a\s*\(\s*j\s*-\s*(\d+)\s*\)/i);
       if (mExcl) flags.excludeTaperDays = Number(mExcl[1]);
-      else if (/taper|affûtage|affutage|tapering|semaine de course/i.test(avoid)) flags.excludeTaperDays = 7;
+      else if (/taper|affûtage|affutage|tapering|semaine de course/i.test(avoid)) {
+        // Bug réel confirmé sur 2 plans "Vince" réels successifs, même fiche
+        // à chaque fois (D_ACTIVATION_CORE_TAPER) : Éviter="Charge lourde en
+        // semaine taper" est une MISE EN GARDE SUR LE CONTENU pendant le
+        // taper (reste léger PENDANT le taper), pas une EXCLUSION DE
+        // PLACEMENT — mais le catch-all ci-dessus ne distingue pas les deux
+        // et flague la fiche comme "utilisée hors race-week alors qu'elle
+        // devrait l'être" en semaine taper, alors qu'elle EST la semaine
+        // taper. Le champ structuré `phase` est la source de vérité : si la
+        // fiche déclare elle-même phase=["taper"] (comme
+        // D_ACTIVATION_CORE_TAPER), le "taper" mentionné dans Éviter ne peut
+        // PAS être une exclusion de semaine taper — ce serait contradictoire
+        // avec sa propre fiche. Vérifié sur les 13 autres fiches réelles
+        // partageant ce motif catch-all : aucune n'a "taper" dans `phase`,
+        // ce garde-fou ne change donc rien pour elles (toujours exclues).
+        const ficheAllowsTaperPhase = (w.phase || []).includes("taper");
+        if (!ficheAllowsTaperPhase) flags.excludeTaperDays = 7;
+      }
     }
   }
 

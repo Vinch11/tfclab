@@ -37,6 +37,32 @@ vi.mock("@/lib/workoutLibrary", () => {
       structure: [{ part: "Main", text: "45' Z2 test nutrition", zones: ["Z2"] }],
       variants: {},
     },
+    // Bug réel confirmé (2 plans "Vince" réels) : fiche CONÇUE pour le taper
+    // (phase=["taper"], when="Semaine taper...") mais dont Éviter mentionne
+    // "taper" comme mise en garde sur le CONTENU ("reste léger"), pas comme
+    // exclusion de placement. Le catch-all sans J-N ne doit PAS la flaguer.
+    {
+      id: "D_ACTIVATION_CORE_TAPER",
+      cat: "D", sport: "mixed", objectif: "Gainage léger taper", necessite: "Recommandé",
+      when: "Semaine taper, maintien tonus sans charge",
+      avoid: "Charge lourde en semaine taper",
+      phase: ["taper"],
+      durationMin: [10, 15], metricKey: "cardiaque", sportKey: "tout sport",
+      structure: [{ part: "Main", text: "gainage léger", zones: [] }],
+      variants: {},
+    },
+    // Fiche réellement interdite en taper via le catch-all SANS J-N (motif
+    // réel du catalogue, ex: C_STR_MAX_LOWER_HEAVY) — ne doit PAS régresser.
+    {
+      id: "HEAVY_STRENGTH_NO_TAPER_TAG",
+      cat: "C", sport: "strength", objectif: "force max", necessite: "Recommandé",
+      when: "Base/Build",
+      avoid: "Tapering · Fatigue >7/10",
+      phase: ["base", "build"],
+      durationMin: [45, 60], metricKey: "force", sportKey: "strength",
+      structure: [{ part: "Main", text: "squat lourd", zones: [] }],
+      variants: {},
+    },
   ];
   return { WorkoutLibrary: fiches };
 });
@@ -83,5 +109,19 @@ describe("B11 — sémantique des exclusions J-N en race-week", () => {
     const r = checkB11(plan, "semi");
     const flagged = r.details.some(d => /NUTRITION_TEST.*race-week/i.test(d));
     expect(flagged).toBe(false);
+  });
+
+  it("Fiche conçue pour le taper (phase=['taper']) avec Éviter='Charge lourde en semaine taper' → NE flagge PAS (bug réel 'D_ACTIVATION_CORE_TAPER')", () => {
+    const plan = makePlan([makeSession({ catalogId: "D_ACTIVATION_CORE_TAPER" })]);
+    const r = checkB11(plan, "70.3");
+    const flagged = r.details.some(d => /D_ACTIVATION_CORE_TAPER.*race-week/i.test(d));
+    expect(flagged).toBe(false);
+  });
+
+  it("Fiche sans phase=['taper'] avec Éviter='Tapering · Fatigue >7/10' → FAIL toujours en race-week (pas de régression)", () => {
+    const plan = makePlan([makeSession({ catalogId: "HEAVY_STRENGTH_NO_TAPER_TAG" })]);
+    const r = checkB11(plan, "70.3");
+    const flagged = r.details.some(d => /HEAVY_STRENGTH_NO_TAPER_TAG.*race-week/i.test(d));
+    expect(flagged).toBe(true);
   });
 });
