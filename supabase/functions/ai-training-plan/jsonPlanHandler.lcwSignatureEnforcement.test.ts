@@ -83,6 +83,36 @@ Deno.test("applyLcwSignatureEnforcement — plan déjà conforme (3 occurrences 
   assertEquals(repairs.length, 0);
 });
 
+Deno.test("applyLcwSignatureEnforcement — fiche absente du dump du chunk : contenu de repli livré (pas juste un catalogId muet)", () => {
+  // Bug réel (2e itération du correctif, audit plans "Vince") : sans dump
+  // pour ce chunk, l'ancienne version forçait catalogId mais laissait
+  // title/details inchangés — le validateur passait, mais l'athlète ne
+  // voyait jamais le vrai contenu de la séance signature (aucun tag
+  // [ID: ...] visible, aucune fiche "FICHE COMPLÈTE BIBLIOTHÈQUE" au rendu).
+  const chunks = [
+    {
+      weeks: [
+        mkWeek(1, "build", [mkSess("samedi", "bike", "OTHER_BIKE"), mkSess("dimanche", "run", "OTHER_RUN")]),
+        mkWeek(2, "peak", [mkSess("samedi", "bike", "OTHER_BIKE2"), mkSess("dimanche", "run", "OTHER_RUN2")]),
+        mkWeek(3, "peak", [mkSess("samedi", "bike", "OTHER_BIKE3"), mkSess("dimanche", "run", "OTHER_RUN3")]),
+      ],
+    },
+  ] as any;
+  // Dump vide (fiches non présentes dans le catalogue de CE chunk).
+  const { chunks: out } = applyLcwSignatureEnforcement(chunks, [""], LCW_PLAN_CONFIG);
+  const sessions = out[0].weeks.flatMap((w: any) => w.sessions);
+  const bikeSession = sessions.find((s: any) => s.catalogId === "B_LCW_BIKE_LONG_RACE_SAT");
+  const runSession = sessions.find((s: any) => s.catalogId === "B_LCW_RUN_OFF_LEGS_SUN");
+  assert(bikeSession, "B_LCW_BIKE_LONG_RACE_SAT attendu");
+  assert(runSession, "B_LCW_RUN_OFF_LEGS_SUN attendu");
+  // Le contenu livré doit porter le tag [ID: ...] exploitable par le même
+  // extracteur que le validateur ET le rendu PDF (extractCatalogId), pas
+  // juste un catalogId interne invisible pour l'athlète.
+  assert(bikeSession.details.includes("[ID: B_LCW_BIKE_LONG_RACE_SAT]"), "détails bike doivent contenir le tag ID");
+  assert(runSession.details.includes("[ID: B_LCW_RUN_OFF_LEGS_SUN]"), "détails run doivent contenir le tag ID");
+  assert(bikeSession.title !== "OTHER_BIKE", "le titre générique ne doit plus rester tel quel");
+});
+
 Deno.test("applyLcwSignatureEnforcement — substitution préfère le même jour/sport quand disponible (pas de déplacement inutile)", () => {
   const chunks = [
     {

@@ -988,6 +988,36 @@ const LCW_HARD_ENFORCED_TARGETS: Array<{ id: string; sport: "bike" | "run"; day:
   { id: "B_LCW_RUN_OFF_LEGS_SUN", sport: "run", day: "dimanche", min: 3 },
 ];
 
+/**
+ * Contenu de repli — bug réel (audit PDF, plans "Vince" successifs) : quand
+ * la fiche n'est PAS présente dans le dump catalogue du chunk courant (elle
+ * a pu être exclue par la rotation inter-chunk), l'ancienne version de ce
+ * correctif forçait le `catalogId` mais laissait `title`/`details`
+ * inchangés — le validateur passait au vert (il lit `catalogId` en
+ * priorité), mais le plan livré à l'athlète ne montrait jamais le vrai
+ * contenu de la séance signature (ni tag `[ID: ...]` visible, ni fiche
+ * "FICHE COMPLÈTE BIBLIOTHÈQUE", puisque ce rendu réextrait l'ID depuis le
+ * texte). On vérifiait la checklist sans jamais livrer la séance réelle.
+ * Contenu ci-dessous = résumé fidèle de enrichedWorkoutsLCW.ts (source de
+ * vérité de ces 2 fiches), utilisé UNIQUEMENT si le dump ne les contient pas.
+ */
+const LCW_HARD_ENFORCED_FALLBACK_CONTENT: Record<string, {
+  title: string; details: string; durationMin: number; zones: string[];
+}> = {
+  B_LCW_BIKE_LONG_RACE_SAT: {
+    title: "Long ride race-pace samedi (LCW)",
+    details: "Warm-up 20' Z1→Z2 progressif + 3x2min @90% FTP r=2min. Main : 2h-2h30 continu à IF 0.82-0.85 (85-88% FTP autorisé — PAS de course immédiate derrière, spécificité LCW vs brick 70.3 classique). Position aéro tenue ≥80% du temps. Nutrition race 80-100g CHO/h + 500-750mL/h. Cool-down 10' Z1 + spin-out. [ID: B_LCW_BIKE_LONG_RACE_SAT]",
+    durationMin: 165,
+    zones: ["Z3", "Z4"],
+  },
+  B_LCW_RUN_OFF_LEGS_SUN: {
+    title: "Long run jambes fatiguées dimanche (LCW)",
+    details: "Warm-up 15' Z1→Z2 très progressif (jambes lourdes normales) + 4 lignes droites relance. Main : 45-90min à allure race cible 70.3 sur jambes fatiguées du vélo de la veille — angle mort absolu des plans 70.3 continus, JAMAIS sans B_LCW_BIKE_LONG_RACE_SAT la veille. Cadence stable 178-184spm. Nutrition 60-80g CHO/h. Cool-down 10-15' Z1 + mobilité mollets/quadriceps. [ID: B_LCW_RUN_OFF_LEGS_SUN]",
+    durationMin: 75,
+    zones: ["Z3", "Z4"],
+  },
+};
+
 export function applyLcwSignatureEnforcement(
   chunks: PlanChunk[],
   catalogDumpsByChunk: Array<string | null | undefined>,
@@ -1058,11 +1088,20 @@ export function applyLcwSignatureEnforcement(
         mutable.zones = fiche.zones;
         if (!sameDaySameSport) mutable.day = target.day;
       } else {
-        // Fiche absente du dump de CE chunk (rotation catalogue) — on force
-        // quand même l'ID + le jour cible : titre/structure gardent leur
-        // contenu existant plutôt que d'inventer une description.
+        // Fiche absente du dump de CE chunk (rotation catalogue) — on utilise
+        // le contenu de repli connu (voir LCW_HARD_ENFORCED_FALLBACK_CONTENT)
+        // plutôt que de forcer un catalogId "muet" : garantit que la séance
+        // livrée à l'athlète correspond réellement à sa signature LCW, pas
+        // seulement que le validateur la voit.
+        const fallback = LCW_HARD_ENFORCED_FALLBACK_CONTENT[target.id];
         mutable.catalogId = target.id;
         mutable.custom = false;
+        if (fallback) {
+          mutable.title = fallback.title;
+          mutable.details = fallback.details;
+          mutable.durationMin = fallback.durationMin;
+          mutable.zones = fallback.zones;
+        }
         if (!sameDaySameSport) mutable.day = target.day;
       }
       have++;
