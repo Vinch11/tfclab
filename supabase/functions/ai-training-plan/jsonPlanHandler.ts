@@ -27,7 +27,7 @@ import {
   buildStructuredDiagnosticBlock,
 } from "./promptHelpers.ts";
 import { getSystemPromptJSON } from "./systemPromptJSON.ts";
-import { extractLimiterKeywords } from "./sportRatioMatrix.ts";
+import { extractLimiterKeywords, normalizeObjKey } from "./sportRatioMatrix.ts";
 import { buildAthleteConstraintsBlock } from "./constraintsBlock.ts";
 import {
   generateChunkJSON,
@@ -1125,6 +1125,136 @@ export function applyLcwSignatureEnforcement(
   return { chunks, repairs, traces };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PLANCHER SÉANCES/JOUR ELITE+ — filet déterministe (post-reconciler)
+// ─────────────────────────────────────────────────────────────────────────────
+// Bug réel confirmé sur PLUSIEURS plans "Vince" réels successifs (70.3,
+// ambition élevée) : systemPrompt.ts / promptHelpers.ts ("DOUBLES & TRIPLES
+// SÉANCES — OBLIGATOIRE") demandent 2-3 séances/jour pour World Class/Elite/
+// Competitor sur IM/70.3 (sauf 1 jour de repos/semaine) — mais rien en aval
+// ne le fait respecter, exactement le même schéma que le bug signatures LCW
+// (PR précédent) : planValidator.ts::validateDailySessionFloor le DÉTECTE
+// après coup ("ERREUR GRAVE") mais ne corrige jamais rien. Sur chaque plan
+// réel audité, plusieurs lundis/jours se retrouvent avec une unique séance
+// de renfo (30-50min) alors que l'ambition exige un vrai double.
+interface DailyFloorRepair {
+  code: "daily_floor_enforced" | "daily_floor_unresolved";
+  severity: "warning" | "critical";
+  weekNumber: number;
+  day: DayLower;
+  reason: string;
+}
+
+const DAILY_FLOOR_ELIGIBLE_AMBITIONS = new Set(["world_class", "elite", "competitor"]);
+const DAILY_FLOOR_SPORT_PRIORITY: Array<"run" | "bike" | "swim" | "strength"> = ["run", "bike", "swim", "strength"];
+
+/** Même exemption que planValidator.ts::validateDailySessionFloor : un brick
+ *  ou une séance signature LCW combine déjà 2-3 disciplines en une ligne. */
+function isMultiDisciplineSingleSession(s: { sport?: string; title?: string; details?: string; catalogId?: string | null }): boolean {
+  const catalogId = String(s.catalogId ?? "").toUpperCase();
+  const text = `${s.title ?? ""} ${s.details ?? ""}`;
+  return s.sport === "brick" || /\bbrick\b/i.test(text) || catalogId.includes("BRICK") || catalogId.startsWith("B_LCW_");
+}
+
+export function applyDailySessionFloorEnforcement(
+  chunks: PlanChunk[],
+  weeklyQuotas: Record<number, WeeklyQuotaEntry> | null | undefined,
+  catalogDumpsByChunk: Array<string | null | undefined>,
+  objective: string | null | undefined,
+  ambition: string | null | undefined,
+): { chunks: PlanChunk[]; repairs: DailyFloorRepair[]; traces: string[] } {
+  const repairs: DailyFloorRepair[] = [];
+  const traces: string[] = [];
+
+  const objKey = normalizeObjKey(String(objective ?? ""));
+  const isTriIMor703 = objKey === "IM" || objKey === "703";
+  const amb = String(ambition ?? "").toLowerCase();
+  if (!isTriIMor703 || !DAILY_FLOOR_ELIGIBLE_AMBITIONS.has(amb)) {
+    traces.push(`[DAILY_FLOOR] skipped_reason=not_eligible (objective=${objKey}, ambition=${amb || "none"})`);
+    return { chunks, repairs, traces };
+  }
+  if (!weeklyQuotas || typeof weeklyQuotas !== "object") {
+    traces.push("[DAILY_FLOOR] skipped_reason=no_weekly_quotas");
+    return { chunks, repairs, traces };
+  }
+  const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+
+  chunks.forEach((chunk, ci) => {
+    const candidates = candidatesByChunk[ci] ?? [];
+    for (const week of chunk.weeks ?? []) {
+      const entry = weeklyQuotas[week.weekNumber];
+      if (!entry) { traces.push(`[DAILY_FLOOR] S${week.weekNumber} action=skipped_reason=no_quota`); continue; }
+      if (entry.weekType === "recovery" || entry.weekType === "taper" || entry.weekType === "race") {
+        traces.push(`[DAILY_FLOOR] S${week.weekNumber} action=skipped_reason=weekType_${entry.weekType}`);
+        continue;
+      }
+      const maxPerDay = entry.quota?.maxSessionsPerDay ?? 2;
+
+      const byDay = new Map<DayLower, PlanSession[]>();
+      for (const d of DAY_ORDER_FR) byDay.set(d, []);
+      for (const s of week.sessions ?? []) {
+        const c = canonDay(s.day);
+        if (c) byDay.get(c)!.push(s);
+      }
+
+      for (const [day, sessions] of byDay) {
+        const active = sessions.filter(s => s.sport !== "rest");
+        if (active.length === 0) continue; // jour repos complet — autorisé (1x/sem)
+        if (active.length !== 1) continue;
+        const only = active[0];
+        if (isMultiDisciplineSingleSession(only)) continue;
+        if (maxPerDay < 2) continue; // quota du plan ne permet pas de doubler ce jour
+
+        // Sport complémentaire : le premier de la liste de priorité qui n'est
+        // pas déjà présent ce jour-là ET que le quota hebdo autorise (max > 0).
+        const onlySport = normalizeSport(only.sport);
+        const complementSport = DAILY_FLOOR_SPORT_PRIORITY.find(sp => {
+          if (sp === onlySport) return false;
+          const q = (entry.quota as any)[sp];
+          return q && q.max > 0;
+        });
+        if (!complementSport) {
+          traces.push(`[DAILY_FLOOR] S${week.weekNumber} ${day} action=unresolved_no_complement_sport (only=${onlySport})`);
+          repairs.push({
+            code: "daily_floor_unresolved", severity: "critical", weekNumber: week.weekNumber, day,
+            reason: `1 seule séance (${only.title}) mais aucun sport complémentaire autorisé par le quota hebdo pour doubler ce jour`,
+          });
+          continue;
+        }
+        const targetDur = complementSport === "strength" ? 40 : 45;
+        const pool = candidates
+          .filter(c => c.sport === complementSport)
+          .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
+          .filter(x => x.cls === "endurance" || x.cls === "recovery" || (complementSport === "strength" && x.cls === "unknown"))
+          .sort((a, b) => Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur));
+        const picked = pool[0]?.c ?? null;
+        if (!picked) {
+          traces.push(`[DAILY_FLOOR] S${week.weekNumber} ${day} action=unresolved_no_candidate (complement=${complementSport})`);
+          repairs.push({
+            code: "daily_floor_unresolved", severity: "critical", weekNumber: week.weekNumber, day,
+            reason: `1 seule séance (${only.title}) — aucune fiche catalogue ${complementSport} disponible pour compléter ce jour`,
+          });
+          continue;
+        }
+        const dur = Math.max(picked.durationMin[0], Math.min(picked.durationMin[1], targetDur));
+        const newSess: any = {
+          day, title: picked.title,
+          details: `${picked.structure || picked.title}. [ID: ${picked.id}]`,
+          isKeySession: false, durationMin: dur, zones: picked.zones,
+          sport: complementSport, custom: false, catalogId: picked.id,
+        };
+        (week.sessions as any[]).push(newSess);
+        traces.push(`[DAILY_FLOOR] S${week.weekNumber} ${day} enforced +${complementSport}=${picked.id} (was 1×${onlySport} only)`);
+        repairs.push({
+          code: "daily_floor_enforced", severity: "warning", weekNumber: week.weekNumber, day,
+          reason: `1 seule séance ("${only.title}") non conforme à l'ambition ${amb} (IM/70.3 : 2-3 séances/jour) — ${picked.id} ajouté`,
+        });
+      }
+    }
+  });
+
+  return { chunks, repairs, traces };
+}
 
 
 
@@ -1626,9 +1756,38 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             });
           }
 
+          // Filet déterministe plancher séances/jour Elite+ (post-LCW, avant
+          // value-check) — voir applyDailySessionFloorEnforcement ci-dessus.
+          // No-op si l'objectif n'est pas IM/70.3 ou l'ambition < competitor.
+          const dailyFloorEnforced = regenerateWeek
+            ? { chunks: lcwEnforced.chunks, repairs: [] as ReturnType<typeof applyDailySessionFloorEnforcement>["repairs"], traces: [] as string[] }
+            : applyDailySessionFloorEnforcement(
+                lcwEnforced.chunks,
+                planConfig?._weeklyQuotas ?? null,
+                catalogDumpsByChunk,
+                planConfig?.objective ?? null,
+                planConfig?.ambitionMeta?.effective ?? planConfig?.ambition ?? null,
+              );
+          for (const line of dailyFloorEnforced.traces) {
+            console.log(line);
+            enqueue("warning", { code: "daily_floor_trace", severity: "info", message: line });
+          }
+          for (const repair of dailyFloorEnforced.repairs) {
+            const msg = repair.code === "daily_floor_enforced"
+              ? `S${repair.weekNumber} ${repair.day}: séance ajoutée (plancher 2-3/jour ambition élevée non respecté par la génération)`
+              : `S${repair.weekNumber} ${repair.day}: plancher séances/jour non résolu (${repair.reason})`;
+            console.warn(`[Daily floor enforce] ${repair.code}: ${msg}`, repair);
+            enqueue("warning", {
+              code: repair.code,
+              severity: repair.severity,
+              message: msg,
+              repair,
+            });
+          }
+
           // PHASE 2B — Validateur de valeurs (post-reconciler, avant merge final)
           const valueChecked = applyValueCheck(
-            lcwEnforced.chunks,
+            dailyFloorEnforced.chunks,
             planConfig?._targetTable ?? null,
           );
           for (const line of valueChecked.traces) {
