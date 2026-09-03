@@ -340,7 +340,7 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
             )}
 
             <p className="text-[10px] text-muted-foreground">
-              Modèle : google/gemini-2.5-pro · chunks de 8-10 séances · erreurs loggées sans bloquer le batch.
+              Modèle : google/gemini-3.1-pro-preview · chunks de 8-10 séances · erreurs loggées sans bloquer le batch.
             </p>
           </CardContent>
         </CollapsibleContent>

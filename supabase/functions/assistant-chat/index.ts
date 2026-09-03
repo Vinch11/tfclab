@@ -442,7 +442,7 @@ serve(async (req) => {
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       const callBody: Record<string, unknown> = {
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3.7-flash",
         messages: conversation,
         tools: TOOLS,
       };
@@ -526,7 +526,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3.7-flash",
         messages: conversation,
         stream: true,
       }),

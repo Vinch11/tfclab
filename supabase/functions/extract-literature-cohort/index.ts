@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const focus: string = body.focus ?? "endurance général (cyclisme + course + triathlon, tous niveaux)";
     const targetCount: number = Math.min(Math.max(body.targetCount ?? 30, 10), 60);
-    const model: string = body.model ?? "google/gemini-2.5-pro";
+    const model: string = body.model ?? "google/gemini-3.1-pro-preview";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY manquant");
