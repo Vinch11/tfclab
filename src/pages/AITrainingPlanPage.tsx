@@ -69,6 +69,7 @@ import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { PlanHistoryCard } from "@/components/PlanHistoryCard";
 import { PlanAdaptationDialog } from "@/components/plan/PlanAdaptationDialog";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
+import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -341,6 +342,11 @@ export default function AITrainingPlanPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
+  // Audit fiabilité génération LCW — voir formulaire "Format de course" plus
+  // bas : lecture seule de la fiche athlète pour avertir sans jamais écraser
+  // le bouton local (celui-ci reste volontairement remis à "continuous" à
+  // chaque changement d'athlète, cf. PR #63 anti-fuite cross-athlète).
+  const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot } = useCloudDataContext();
   const { response, isLoading, chunkProgress, generatePlan, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
@@ -486,6 +492,21 @@ export default function AITrainingPlanPage() {
   const [objective, setObjective] = useState(currentAthlete?.objectif || "703");
   const [raceName, setRaceName] = useState("");
   const [raceFormat, setRaceFormat] = useState<"continuous" | "lcw_3day">("continuous");
+  // Bug réel (audit fiabilité génération plan IA, plan "Vince" 70.3 LCW) : ce
+  // bouton repart TOUJOURS sur "continuous" au changement d'athlète (cf. plus
+  // bas, PR #63) et n'a jamais lu le format enregistré sur la fiche athlète —
+  // rien ne prévenait le coach qu'une régénération partait silencieusement en
+  // format standard pour un athlète pourtant inscrit sur un Long Course
+  // Weekend. On avertit sans jamais écraser automatiquement le bouton (cf.
+  // discussion PR #63 : un auto-sync introduirait le même risque de fuite
+  // cross-athlète que ce correctif visait à éliminer).
+  const savedRaceFormatMismatch = useMemo(() => {
+    if (raceFormat === "lcw_3day") return false;
+    if (objective !== "703" && objective !== "70.3") return false;
+    return savedAthleteRaceGoals.some(
+      (g) => (g.race_type === "703" || g.race_type === "70.3") && g.race_format === "lcw_3day",
+    );
+  }, [raceFormat, objective, savedAthleteRaceGoals]);
   const [raceDate, setRaceDate] = useState("");
   const [weeklyHours, setWeeklyHours] = useState("");
   const [sessionsPerWeek, setSessionsPerWeek] = useState("");
@@ -2665,6 +2686,14 @@ export default function AITrainingPlanPage() {
                       <p className="text-[11px] text-muted-foreground">
                         LCW Wales/Belgium → back-to-back overnight au lieu de bricks T2, pacing vélo +3% (85-88% FTP), recharge glycogénique inter-étapes.
                       </p>
+                    )}
+                    {savedRaceFormatMismatch && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-2.5">
+                        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                          Cet athlète a un objectif <strong>Long Course Weekend</strong> enregistré sur sa fiche, mais ce bouton est sur "Standard" — ce champ se réinitialise à chaque changement d'athlète. Sélectionne "Long Course Weekend" ci-dessus avant de générer, sinon le plan sera généré au format continu (pas de séances signature LCW).
+                        </p>
+                      </div>
                     )}
                   </div>
                 )}
