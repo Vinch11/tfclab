@@ -15,6 +15,12 @@ import {
   validateChunk1HasRecap,
   buildCanonicalRaceCard,
 } from "./promptHelpers.ts";
+import {
+  detectLcwFromConfig,
+  computeLcwChunkSize,
+  buildLcwSignatureReminder,
+  LCW_SIGNATURE_REQUIREMENTS,
+} from "./lcwSignatureReminder.ts";
 
 // Boot marker — bump on refactors qui doivent être visibles en logs
 const BUILD_TAG = "ai-training-plan@2026-07-14.b10-phase2B-per-token-safety";
@@ -232,7 +238,29 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     // les plans "non-verbose" (semi/marathon/CAP) restaient monolithiques jusqu'à 12 sem →
     // truncation silencieuse au-delà de ~S6, complétée en placeholders côté parser.
     // On chunk dès 6 semaines (4 sem / chunk) pour garantir une couverture complète.
-    const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
+    const standardChunkSize = isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
+    // ─── Rappel dynamique signatures LCW — voir lcwSignatureReminder.ts. ───
+    // Port du correctif jsonPlanHandler.ts (audit fiabilité génération de plan
+    // IA, suite du bug réel "plan Vince" 7 semaines) : ce chemin Markdown
+    // legacy est désormais un FALLBACK automatique quand la génération JSON
+    // échoue (cf. useAITrainingPlan.ts) — il exposait exactement le même bug
+    // (CHUNK_SIZE standard piégeant toute la fenêtre Build+Peak dans un seul
+    // chunk sans checkpoint), non corrigé jusqu'ici car ce fichier n'importait
+    // pas lcwSignatureReminder.ts. Pas de garde windowRegenPhase ici (contrairement
+    // à jsonPlanHandler.ts) : ce mode n'existe pas sur ce chemin — un
+    // regenerateWeek passe déjà par sa propre branche dédiée plus haut,
+    // jamais par ce calcul de CHUNK_SIZE.
+    const isFullFreshLCWGeneration = !regenerateWeek && detectLcwFromConfig(planConfig);
+    function inferPhaseFromWeek(weekStart: number, totalWeeksForPhase: number): string {
+      const pct = weekStart / Math.max(totalWeeksForPhase, 1);
+      if (pct <= 0.30) return "base";
+      if (pct <= 0.70) return "build";
+      if (pct <= 0.92) return "peak";
+      return "taper";
+    }
+    const CHUNK_SIZE = isFullFreshLCWGeneration
+      ? computeLcwChunkSize(totalWeeks, standardChunkSize, inferPhaseFromWeek)
+      : standardChunkSize;
     const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 6;
     const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
     console.log(`🔎 Chunk decision: totalWeeks=${totalWeeks} threshold=${chunkThreshold} regenerateWeek=${!!regenerateWeek} isTriVerbose=${isTriVerbose} isTrailVerbose=${isTrailVerbose} → needsChunking=${needsChunking}`);
@@ -445,6 +473,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             console.log(`🎯 CARTE COURSE canonique seed (${canonicalRaceCard.length} chars) — inter-chunks anchor.`);
             // AUDIT FIX #5: Anti-redundancy — track key sessions used across all previous chunks
             const usedKeySessions: Set<string> = new Set();
+            // Compteur signatures LCW déjà placées (voir lcwSignatureReminder.ts) — alimenté
+            // par grep `[ID: ...]` sur le texte final de chaque chunk, avant de bâtir le
+            // prompt du chunk suivant. Vide tant qu'aucun chunk n'a encore été généré.
+            const consumedIdCounts: Map<string, number> = new Map();
             // FIX C1 (audit): Initialize activePhase from ambition — finisher starts in "Adaptation", not "Fondation"
             const ambKeyForPhase = normalizeAmbKey(planConfig?.ambition || "");
             let activePhase = (ambKeyForPhase === "finisher") ? "Adaptation" : "Fondation";
@@ -658,6 +690,25 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
                 (_, i) => chunk.start + i
               );
 
+              // Rappel dynamique signatures LCW pour CE chunk (voir lcwSignatureReminder.ts
+              // + le port CHUNK_SIZE ci-dessus). `isLastBuildOrPeakChunk` = aucune semaine
+              // après ce chunk n'est plus en phase Build/Peak (pas nécessairement le
+              // dernier chunk de la génération — un plan LCW court peut finir sur un
+              // chunk pur affûtage/course après le dernier chunk Build/Peak éligible).
+              const lcwSignatureBlock = isFullFreshLCWGeneration
+                ? buildLcwSignatureReminder({
+                    consumedIdCounts,
+                    chunkIndex: ci,
+                    totalChunks: chunks.length,
+                    chunkStartWeek: chunk.start,
+                    chunkEndWeek: chunk.end,
+                    isLastBuildOrPeakChunk: !Array.from(
+                      { length: Math.max(0, totalWeeks - chunk.end) },
+                      (_, i) => chunk.end + 1 + i,
+                    ).some((wk) => ["build", "peak"].includes(inferPhaseFromWeek(wk, totalWeeks))),
+                  })
+                : null;
+
               // Sliding window summary — only last N chunks
               const slidingSummary = chunkSummaries.slice(-MAX_SUMMARY_CHUNKS).join("\n");
 
@@ -699,7 +750,7 @@ Pour ce premier bloc, inclus :
    - ⚠️ Les bornes de phase estimées ci-dessus servent de GUIDE. Tu peux ajuster ±1 semaine si les limiteurs le justifient.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
-IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}${_athleteConstraintsTop ? `\n\n${_athleteConstraintsTop}` : ""}`;
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}${_athleteConstraintsTop ? `\n\n${_athleteConstraintsTop}` : ""}${lcwSignatureBlock ? `\n${lcwSignatureBlock}` : ""}`;
 
               } else {
                 // FIX #2 (audit recap): Re-inject BOTH diagnostic AND strategic recap
@@ -798,7 +849,7 @@ ${slidingSummary || "Premier bloc de continuation."}
 ${usedKeySessions.size > 0 ? Array.from(usedKeySessions).slice(-25).join(" • ") : "(aucune)"}
 → Tu peux REPRENDRE des familles de séances pour la progression, mais évite de copier le titre exact d'une séance déjà programmée. Varie les durées, intensités, ou structures.
 ${pendingGuardrails.length > 0 ? `\n🛟 GARDE-FOUS DYNAMIQUES (signaux objectifs du bloc précédent — tu restes maître, confirme ou ajuste) :\n${pendingGuardrails.map(g => `• ${g}`).join("\n")}\n→ Ces signaux sont INFORMATIFS. Tu peux les justifier (adaptation contextuelle valide) ou les corriger dans ce bloc. Ne les ignore pas silencieusement.\n` : ""}
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}${_athleteConstraintsTop ? `\n\n${_athleteConstraintsTop}` : ""}`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}${_athleteConstraintsTop ? `\n\n${_athleteConstraintsTop}` : ""}${lcwSignatureBlock ? `\n${lcwSignatureBlock}` : ""}`;
                 // Reset pending guardrails — they've been delivered
                 pendingGuardrails = [];
               }
@@ -1265,6 +1316,17 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
               }
               // Accumule pour les assertions plan-complet post-génération
               fullPlanText += `\n${combinedChunkText}`;
+
+              // Alimente consumedIdCounts pour le rappel LCW du chunk SUIVANT (voir
+              // lcwSignatureBlock ci-dessus) — compte les occurrences `[ID: ...]` des
+              // 3 signatures LCW dans le texte final de CE chunk uniquement.
+              if (isFullFreshLCWGeneration) {
+                for (const req of LCW_SIGNATURE_REQUIREMENTS) {
+                  const idRe = new RegExp(`\\[ID:\\s*${req.id}\\]`, "g");
+                  const matches = combinedChunkText.match(idRe);
+                  if (matches) consumedIdCounts.set(req.id, (consumedIdCounts.get(req.id) ?? 0) + matches.length);
+                }
+              }
             }
 
             // ─── ASSERTION POST-GÉNÉRATION : contamination triathlon dans plan running ───
