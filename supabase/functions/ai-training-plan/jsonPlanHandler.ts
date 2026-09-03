@@ -546,7 +546,8 @@ function applySLFloorEnforcement(
 // ─────────────────────────────────────────────────────────────────────────────
 // PHASE 2A.3 — Réconciliateur post-merge (rebalance + insert)
 // ─────────────────────────────────────────────────────────────────────────────
-type ReconcilerRepairCode = "day_rebalanced" | "session_inserted" | "insert_unresolved" | "rest_floor_breached";
+type ReconcilerRepairCode = "day_rebalanced" | "session_inserted" | "insert_unresolved" | "rest_floor_breached"
+  | "duplicate_catalog_id_replaced" | "duplicate_catalog_id_unresolved";
 interface ReconcilerRepair {
   code: ReconcilerRepairCode;
   severity: "warning" | "critical";
@@ -691,7 +692,7 @@ function findInsertDay(
   return findTargetDay(sport, "lundi", week, entry);
 }
 
-function applyReconciler(
+export function applyReconciler(
   chunks: PlanChunk[],
   weeklyQuotas: Record<number, any> | null | undefined,
   catalogDumpsByChunk: Array<string | null | undefined>,
@@ -859,7 +860,74 @@ function applyReconciler(
         }
       }
 
-      // ────────── (c) VÉRIFICATION plancher de jours de repos complets ──────────
+      // ────────── (c) DÉDOUBLONNAGE catalogId réutilisé dans LA MÊME semaine ──────────
+      // Audit qualité plans IA (test réel, 2 régénérations indépendantes du plan
+      // "Vince") : le LLM réutilise parfois verbatim le même catalogId 2× dans la
+      // même semaine (ex : V3_BIKE_FORCE_SFR jeudi ET vendredi — alors que sa PROPRE
+      // fiche dit "1x/semaine max" — ou une même séance de récupération/gut-training
+      // répétée 2-3 jours de suite). Conséquence observée : des semaines entières où
+      // un sport ne reçoit plus AUCUNE variété, parfois plus aucune séance qualité
+      // du tout (toutes les occurrences restantes de ce sport = la même récup
+      // copiée-collée). Rien ne détectait ni ne corrigeait cela avant ce correctif :
+      // le réconciliateur ne vérifiait que les min/max par sport et par jour, jamais
+      // la répétition d'un même ID au sein d'une semaine. Tourne APRÈS (b) : une
+      // séance insérée par (b) peut elle-même dupliquer un ID déjà présent.
+      const idOccurrencesThisWeek = new Map<string, PlanSession[]>();
+      for (const s of week.sessions ?? []) {
+        const id = (s as any).catalogId as string | null;
+        if (!id || (s as any).custom === true || s.sport === "rest") continue;
+        if (!idOccurrencesThisWeek.has(id)) idOccurrencesThisWeek.set(id, []);
+        idOccurrencesThisWeek.get(id)!.push(s);
+      }
+      const usedIdsThisWeek = new Set(idOccurrencesThisWeek.keys());
+      for (const [dupId, occurrences] of idOccurrencesThisWeek) {
+        if (occurrences.length < 2) continue;
+        // Garde la 1re occurrence intacte (probablement la mieux placée / la plus
+        // intentionnelle), remplace les suivantes par une alternative du catalogue
+        // du même sport et de la même classe d'intensité, non déjà utilisée cette semaine.
+        for (let i = 1; i < occurrences.length; i++) {
+          const victim = occurrences[i];
+          const sport = victim.sport;
+          const victimClass = classifyIntensity(victim.zones, `${victim.title} ${victim.details ?? ""}`);
+          const alt = candidates
+            .filter(c => c.sport === sport && !usedIdsThisWeek.has(c.id))
+            .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
+            .filter(x => x.cls === victimClass || x.cls === "unknown" || victimClass === "unknown")
+            .sort((a, b) => Math.abs(a.c.durationMedian - (victim.durationMin ?? 0)) - Math.abs(b.c.durationMedian - (victim.durationMin ?? 0)))[0]?.c
+            ?? null;
+          if (alt) {
+            const beforeTitle = victim.title ?? "";
+            (victim as any).catalogId = alt.id;
+            (victim as any).title = alt.title;
+            (victim as any).details = `${alt.structure || alt.title}. [ID: ${alt.id}]`;
+            (victim as any).zones = alt.zones;
+            usedIdsThisWeek.add(alt.id);
+            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupId}(x${occurrences.length}) → occurrence #${i + 1} remplacée par ${alt.id}`);
+            repairs.push({
+              code: "duplicate_catalog_id_replaced",
+              severity: "warning",
+              chunkIndex: ci,
+              weekNumber: week.weekNumber,
+              sport,
+              session: { title: alt.title, catalogId: alt.id, durationMin: victim.durationMin ?? 0 },
+              reason: `catalogId ${dupId} utilisé ${occurrences.length}× dans S${week.weekNumber} — occurrence "${beforeTitle}" remplacée par ${alt.id}`,
+            });
+          } else {
+            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupId}(x${occurrences.length}) → action=unresolved_no_alternative`);
+            repairs.push({
+              code: "duplicate_catalog_id_unresolved",
+              severity: "warning",
+              chunkIndex: ci,
+              weekNumber: week.weekNumber,
+              sport,
+              session: { title: victim.title ?? "", catalogId: dupId, durationMin: victim.durationMin ?? 0 },
+              reason: `catalogId ${dupId} utilisé ${occurrences.length}× dans S${week.weekNumber}, aucune alternative catalogue disponible (sport=${sport}, classe=${victimClass})`,
+            });
+          }
+        }
+      }
+
+      // ────────── (d) VÉRIFICATION plancher de jours de repos complets ──────────
       // findTargetDay essaie de respecter minFullRestDays, mais peut devoir l'enfreindre
       // en dernier recours (case 3, repli). On le détecte ici a posteriori et on le
       // trace explicitement — avant ce correctif, minFullRestDays n'était lu nulle part
