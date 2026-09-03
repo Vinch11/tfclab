@@ -185,9 +185,9 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-// Gemini 2.5 Pro pricing (Lovable AI Gateway) : ~$1.25/M in, ~$10/M out
+// Gemini 3.1 Pro Preview pricing (Lovable AI Gateway) : $2/M in, $12/M out
 function estimateCost(tokensIn: number, tokensOut: number) {
-  return (tokensIn / 1_000_000) * 1.25 + (tokensOut / 1_000_000) * 10;
+  return (tokensIn / 1_000_000) * 2 + (tokensOut / 1_000_000) * 12;
 }
 
 Deno.serve(async (req) => {
@@ -292,7 +292,7 @@ Retourne UNIQUEMENT le JSON valide { "sport_id": number, "structured_workout": a
               "Authorization": `Bearer ${LOVABLE_API_KEY}`,
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-pro",
+              model: "google/gemini-3.1-pro-preview",
               messages: [
                 { role: "system", content: SYSTEM_PROMPT },
                 { role: "user", content: userPrompt },
@@ -344,7 +344,7 @@ Retourne UNIQUEMENT le JSON valide { "sport_id": number, "structured_workout": a
           source_text_hash: hash,
           status: "ok",
           error_message: null,
-          model: "google/gemini-2.5-pro",
+          model: "google/gemini-3.1-pro-preview",
           tokens_in: tokIn,
           tokens_out: tokOut,
           cost_usd: cost,
@@ -361,7 +361,7 @@ Retourne UNIQUEMENT le JSON valide { "sport_id": number, "structured_workout": a
           source_text_hash: hash,
           status: "error",
           error_message: msg.slice(0, 1000),
-          model: "google/gemini-2.5-pro",
+          model: "google/gemini-3.1-pro-preview",
         }, { onConflict: "workout_id" });
         error += 1;
         results.push({ workout_id: w.workout_id, status: "error", error: msg });

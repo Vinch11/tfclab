@@ -1,4 +1,4 @@
-// Literature search via Lovable AI Gateway (Gemini 2.5 Pro + google_search grounding).
+// Literature search via Lovable AI Gateway (Gemini 3.1 Pro Preview + google_search grounding).
 // Free alternative to Perplexity API. Returns synthesis + citations.
 
 const corsHeaders = {
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-3.1-pro-preview",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: query },

@@ -126,7 +126,7 @@ Soumets toutes les cohortes via l'outil submit_cohort.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-3.1-pro-preview",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
@@ -174,7 +174,7 @@ Soumets toutes les cohortes via l'outil submit_cohort.`;
       .insert({
         version: versionStr,
         description: `Auto-extraction web — ${focus}`,
-        model: "google/gemini-2.5-pro+grounding",
+        model: "google/gemini-3.1-pro-preview+grounding",
         total_profiles: profiles.length,
         total_studies: studies.size,
         created_by: userId, // null si cron

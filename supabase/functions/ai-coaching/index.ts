@@ -156,7 +156,7 @@ Les niveaux de confiance de la VLamax dépendent de :
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-3.7-flash",
         messages: aiMessages,
         stream: true,
       }),

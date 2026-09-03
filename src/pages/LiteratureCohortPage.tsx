@@ -51,7 +51,7 @@ export default function LiteratureCohortPage() {
   const [extracting, setExtracting] = useState(false);
   const [focus, setFocus] = useState("endurance général : cyclisme + course + triathlon, tous niveaux");
   const [targetCount, setTargetCount] = useState(30);
-  const [model, setModel] = useState("google/gemini-2.5-pro");
+  const [model, setModel] = useState("google/gemini-3.1-pro-preview");
 
   const loadVersions = async () => {
     const { data, error } = await supabase
@@ -191,9 +191,9 @@ export default function LiteratureCohortPage() {
               <Select value={model} onValueChange={setModel}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="google/gemini-2.5-pro">Gemini 2.5 Pro (recommandé, précision)</SelectItem>
-                  <SelectItem value="google/gemini-2.5-flash">Gemini 2.5 Flash (rapide, moins précis)</SelectItem>
-                  <SelectItem value="openai/gpt-5">GPT-5 (alternatif)</SelectItem>
+                  <SelectItem value="google/gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (recommandé, précision)</SelectItem>
+                  <SelectItem value="google/gemini-3.7-flash">Gemini 3.7 Flash (rapide, moins précis)</SelectItem>
+                  <SelectItem value="openai/gpt-5.6-terra">GPT-5.6 Terra (alternatif)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
