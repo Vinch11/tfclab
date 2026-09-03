@@ -68,8 +68,15 @@ export interface ValueCheckResult {
 const WATTS_RX = /(?<![\d.-])(\d{2,4})\s*W\b/gi;
 const WATTS_RANGE_RX = /(?<![\d.-])(\d{2,4})\s*[-–]\s*(\d{2,4})\s*W\b/gi;
 const PACE_KM_RX = /(\d)[:'](\d{2})\s*\/?\s*km\b/gi;
+// Ranges "3:45-4:00/km" : DOIT être testé AVANT PACE_KM_RX — sinon seule la
+// borne haute matche (immédiatement suivie de "/km"), la borne basse reste un
+// absolu résiduel invisible (aucun repair, aucun unresolved compté) [audit
+// qualité plans IA]. Même raisonnement pour CSS_RANGE_RX et BPM_RANGE_RX.
+const PACE_KM_RANGE_RX = /(\d)[:'](\d{2})\s*[-–]\s*(\d)[:'](\d{2})\s*\/?\s*km\b/gi;
 const CSS_RX = /(\d)[:'](\d{2})\s*\/\s*100\s*m/gi;
+const CSS_RANGE_RX = /(\d)[:'](\d{2})\s*[-–]\s*(\d)[:'](\d{2})\s*\/\s*100\s*m/gi;
 const BPM_RX = /(\d{2,3})\s*bpm\b/gi;
+const BPM_RANGE_RX = /(\d{2,3})\s*[-–]\s*(\d{2,3})\s*bpm\b/gi;
 
 const PCT_FTP_RX = /\b(\d{1,3})\s*%\s*FTP\b/gi;
 const PCT_VMA_RX = /\b(\d{1,3})\s*%\s*VMA\b/gi;
@@ -221,6 +228,45 @@ function checkSessionText(
     });
   }
 
+  // ─── 1c-range) PACE RANGE "3:45-4:00/km" → "Zx-Zy" (avant le singulier) ─
+  if (isRun) {
+    text = text.replace(PACE_KM_RANGE_RX, (match, m1, s1, m2, s2) => {
+      tokens += 2;
+      if (!t.vmaKmh) {
+        unresolved += 2; residualAbsolute += 2;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} : VMA absente → impossible de relativiser [absolu_ambigu]`,
+          token: match,
+        });
+        return match;
+      }
+      const secA = paceStrToSec(m1, s1);
+      const secB = paceStrToSec(m2, s2);
+      const pctA = Math.round((3600 / secA / t.vmaKmh) * 100);
+      const pctB = Math.round((3600 / secB / t.vmaKmh) * 100);
+      const rA = resolveZone(pctA, "vma"); const rB = resolveZone(pctB, "vma");
+      if (!rA || !rB) {
+        unresolved += 2; residualAbsolute += 2;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} → ${pctA}-${pctB}% VMA hors grille [pourcent_hors_grille]`,
+          token: match,
+        });
+        return match;
+      }
+      relativized += 2;
+      const after = rA.zone === rB.zone ? rA.zone : `${rA.zone}-${rB.zone}`;
+      const gapNote = (rA.gap > 0 || rB.gap > 0) ? ` [gap_mapped Δ=${Math.max(rA.gap, rB.gap)}pts]` : "";
+      repairs.push({
+        code: "value_relativized", severity: "warning",
+        reason: `${match} traduit en ${after} (${pctA}-${pctB}% VMA)${gapNote}`,
+        before: match, after, token: match,
+      });
+      return after;
+    });
+  }
+
   // ─── 1c) PACE /km → "@ allure course" ou Zone (semi-ouvert + gap_mapped) ─
   if (isRun) {
     text = text.replace(PACE_KM_RX, (match, mm, ss) => {
@@ -269,6 +315,35 @@ function checkSessionText(
     });
   }
 
+  // ─── 1d-range) /100m RANGE "1:30-1:35/100m" → "CSS±Xs-CSS±Ys" ──────
+  if (isSwim) {
+    text = text.replace(CSS_RANGE_RX, (match, m1, s1, m2, s2) => {
+      tokens += 2;
+      if (!t.cssSecPer100m) {
+        unresolved += 2; residualAbsolute += 2;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} : CSS athlète absent, impossible de relativiser [absolu_ambigu]`,
+          token: match,
+        });
+        return match;
+      }
+      const secA = paceStrToSec(m1, s1);
+      const secB = paceStrToSec(m2, s2);
+      const deltaA = secA - t.cssSecPer100m;
+      const deltaB = secB - t.cssSecPer100m;
+      const fmt = (d: number) => d === 0 ? "CSS" : `CSS${d > 0 ? "+" : ""}${d}s`;
+      relativized += 2;
+      const after = `${fmt(deltaA)}-${fmt(deltaB)}`;
+      repairs.push({
+        code: "value_relativized", severity: "warning",
+        reason: `${match} traduit en ${after} (CSS=${secToPace(t.cssSecPer100m)}/100m)`,
+        before: match, after, token: match,
+      });
+      return after;
+    });
+  }
+
   // ─── 1d) /100m → CSS±Xs (toujours si CSS dérivé disponible) ─────────
   if (isSwim) {
     text = text.replace(CSS_RX, (match, mm, ss) => {
@@ -289,6 +364,35 @@ function checkSessionText(
       repairs.push({
         code: "value_relativized", severity: "warning",
         reason: `${match} traduit en ${after} (CSS=${secToPace(t.cssSecPer100m)}/100m)`,
+        before: match, after, token: match,
+      });
+      return after;
+    });
+  }
+
+  // ─── 1e-range) FC RANGE "140-150bpm" → "Zx-Zy" ──────────────────────
+  if (t.fcMax) {
+    text = text.replace(BPM_RANGE_RX, (match, b1, b2) => {
+      tokens += 2;
+      const bA = Number(b1); const bB = Number(b2);
+      const pctA = Math.round((bA / t.fcMax!) * 100);
+      const pctB = Math.round((bB / t.fcMax!) * 100);
+      const rA = resolveZone(pctA, "fcMax"); const rB = resolveZone(pctB, "fcMax");
+      if (!rA || !rB) {
+        unresolved += 2; residualAbsolute += 2;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} → ${pctA}-${pctB}% FCmax hors grille [pourcent_hors_grille]`,
+          token: match,
+        });
+        return match;
+      }
+      relativized += 2;
+      const after = rA.zone === rB.zone ? rA.zone : `${rA.zone}-${rB.zone}`;
+      const gapNote = (rA.gap > 0 || rB.gap > 0) ? ` [gap_mapped Δ=${Math.max(rA.gap, rB.gap)}pts]` : "";
+      repairs.push({
+        code: "value_relativized", severity: "warning",
+        reason: `${match} traduit en ${after} (${pctA}-${pctB}% FCmax)${gapNote}`,
         before: match, after, token: match,
       });
       return after;
