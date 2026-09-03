@@ -13,7 +13,7 @@ const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const NOLIO_TRAINING_URL = "https://www.nolio.io/api/get/training/";
 
-type SupabaseAdmin = ReturnType<typeof createClient>;
+type SupabaseAdmin = ReturnType<typeof createClient<any>>;
 type SportBucket = "swim" | "bike" | "run" | "other" | "global";
 
 function nolioSportIdToBucket(sportId: number | null | undefined): SportBucket {
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
   } catch { /* noop */ }
 
   const startedAt = new Date().toISOString();
-  const admin = createClient(
+  const admin = createClient<any>(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
