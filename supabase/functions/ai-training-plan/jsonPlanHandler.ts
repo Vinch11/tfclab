@@ -953,6 +953,138 @@ export function applyReconciler(
   return { chunks, repairs, traces };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LCW SIGNATURE ENFORCEMENT — filet déterministe (post-reconciler)
+// ─────────────────────────────────────────────────────────────────────────────
+// Bug réel confirmé sur un plan LCW 7 semaines réellement livré ("Vince") :
+// AUCUNE occurrence de B_LCW_BIKE_LONG_RACE_SAT / B_LCW_RUN_OFF_LEGS_SUN sur
+// l'ensemble du plan, malgré : la checklist statique de sortie LCW
+// (promptHelpers.ts), ET le rappel dynamique numérique par chunk
+// (lcwSignatureReminder.ts, "X/Y placé(s) jusqu'ici"). Les deux mécanismes
+// existants sont uniquement DEMANDÉS au LLM dans le prompt — rien en aval ne
+// les fait respecter. Comme pour la déduplication de catalogId (PR précédent)
+// et l'enforcement SL, on ajoute ici un filet 100% déterministe : après le
+// réconciliateur, on COMPTE les occurrences réelles sur le plan complet
+// (toutes les semaines de tous les chunks fusionnés) et, si le quota
+// checklist n'est pas atteint, on FORCE une substitution sur une séance déjà
+// existante du bon sport dans une semaine Build/Peak éligible.
+//
+// `B_LCW_BACK_TO_BACK_PEAK` (simulation Ven+Sam+Dim, durée 360-480min) n'est
+// PAS forcé ici : c'est un événement composite sur 3 jours consécutifs, pas
+// représentable par un remplacement de séance unique sans risquer de casser
+// la structure du planning (jour unique, durée bornée) — reste un rappel
+// prompt (lcwSignatureReminder.ts) + un signalement validateur, pas un
+// enforcement dur.
+interface LcwSignatureRepair {
+  code: "lcw_signature_enforced" | "lcw_signature_unresolved";
+  severity: "warning" | "critical";
+  weekNumber: number;
+  catalogId: string;
+  reason: string;
+}
+
+const LCW_HARD_ENFORCED_TARGETS: Array<{ id: string; sport: "bike" | "run"; day: DayLower; min: number }> = [
+  { id: "B_LCW_BIKE_LONG_RACE_SAT", sport: "bike", day: "samedi", min: 3 },
+  { id: "B_LCW_RUN_OFF_LEGS_SUN", sport: "run", day: "dimanche", min: 3 },
+];
+
+export function applyLcwSignatureEnforcement(
+  chunks: PlanChunk[],
+  catalogDumpsByChunk: Array<string | null | undefined>,
+  planConfig: unknown,
+): { chunks: PlanChunk[]; repairs: LcwSignatureRepair[]; traces: string[] } {
+  const repairs: LcwSignatureRepair[] = [];
+  const traces: string[] = [];
+  if (!detectLcwFromConfig(planConfig)) {
+    traces.push("[LCW_SIGNATURE] skipped_reason=not_lcw_format");
+    return { chunks, repairs, traces };
+  }
+
+  const allWeeks: Array<{ ci: number; week: PlanChunk["weeks"][number] }> = [];
+  chunks.forEach((chunk, ci) => {
+    for (const week of chunk.weeks ?? []) allWeeks.push({ ci, week });
+  });
+  const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+
+  for (const target of LCW_HARD_ENFORCED_TARGETS) {
+    const hasId = (week: PlanChunk["weeks"][number]) =>
+      (week.sessions ?? []).some(s => String((s as any).catalogId ?? "").toUpperCase() === target.id);
+    let have = allWeeks.filter(({ week }) => hasId(week)).length;
+    if (have >= target.min) {
+      traces.push(`[LCW_SIGNATURE] ${target.id} have=${have}/${target.min} action=skipped_reason=quota_met`);
+      continue;
+    }
+
+    // Semaines Build/Peak sans déjà cette signature, dans l'ordre chronologique.
+    const eligible = allWeeks
+      .filter(({ week }) => {
+        const phase = String((week as any).phase ?? "").toLowerCase();
+        return (phase === "build" || phase === "peak") && !hasId(week);
+      })
+      .sort((a, b) => a.week.weekNumber - b.week.weekNumber);
+
+    for (const { ci, week } of eligible) {
+      if (have >= target.min) break;
+      // Substitution la moins disruptive : une séance DÉJÀ du bon sport,
+      // idéalement déjà le bon jour — jamais d'insertion d'un jour
+      // supplémentaire (respecte le quota séances/jour déjà réconcilié).
+      const sameDaySameSport = (week.sessions ?? []).find(
+        s => canonDay(s.day) === target.day && normalizeSport(s.sport) === target.sport,
+      );
+      const anySameSport = (week.sessions ?? []).find(s => normalizeSport(s.sport) === target.sport);
+      const slot = sameDaySameSport ?? anySameSport;
+      if (!slot) {
+        traces.push(`[LCW_SIGNATURE] S${week.weekNumber} ${target.id} action=unresolved_no_slot`);
+        repairs.push({
+          code: "lcw_signature_unresolved",
+          severity: "critical",
+          weekNumber: week.weekNumber,
+          catalogId: target.id,
+          reason: `aucune séance ${target.sport} disponible en S${week.weekNumber} (phase Build/Peak) pour substitution`,
+        });
+        continue;
+      }
+
+      const fiche = (candidatesByChunk[ci] ?? []).find(c => c.id.toUpperCase() === target.id);
+      const mutable = slot as any;
+      const beforeId = mutable.catalogId ?? null;
+      const beforeDay = mutable.day;
+      if (fiche) {
+        mutable.title = fiche.title;
+        mutable.details = `${fiche.structure || fiche.title}. [ID: ${fiche.id}]`;
+        mutable.catalogId = fiche.id;
+        mutable.custom = false;
+        mutable.durationMin = Math.round(fiche.durationMedian) || mutable.durationMin;
+        mutable.zones = fiche.zones;
+        if (!sameDaySameSport) mutable.day = target.day;
+      } else {
+        // Fiche absente du dump de CE chunk (rotation catalogue) — on force
+        // quand même l'ID + le jour cible : titre/structure gardent leur
+        // contenu existant plutôt que d'inventer une description.
+        mutable.catalogId = target.id;
+        mutable.custom = false;
+        if (!sameDaySameSport) mutable.day = target.day;
+      }
+      have++;
+      traces.push(
+        `[LCW_SIGNATURE] S${week.weekNumber} enforced ${target.id} (was day=${beforeDay} catalogId=${beforeId ?? "null"}, fiche_in_dump=${!!fiche})`,
+      );
+      repairs.push({
+        code: "lcw_signature_enforced",
+        severity: "warning",
+        weekNumber: week.weekNumber,
+        catalogId: target.id,
+        reason: `checklist LCW bloquante non respectée par la génération (have=${have - 1}/${target.min} avant ce correctif) — séance day=${beforeDay} catalogId=${beforeId ?? "null"} substituée`,
+      });
+    }
+
+    if (have < target.min) {
+      traces.push(`[LCW_SIGNATURE] ${target.id} still missing ${target.min - have} after enforcement pass`);
+    }
+  }
+
+  return { chunks, repairs, traces };
+}
 
 
 
@@ -1433,9 +1565,31 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             });
           }
 
+          // Filet déterministe signatures LCW (post-reconciler, avant value-check) —
+          // voir applyLcwSignatureEnforcement ci-dessus. No-op si le plan n'est pas LCW.
+          const lcwEnforced = regenerateWeek
+            ? { chunks: reconciled.chunks, repairs: [] as ReturnType<typeof applyLcwSignatureEnforcement>["repairs"], traces: [] as string[] }
+            : applyLcwSignatureEnforcement(reconciled.chunks, catalogDumpsByChunk, planConfig);
+          for (const line of lcwEnforced.traces) {
+            console.log(line);
+            enqueue("warning", { code: "lcw_signature_trace", severity: "info", message: line });
+          }
+          for (const repair of lcwEnforced.repairs) {
+            const msg = repair.code === "lcw_signature_enforced"
+              ? `S${repair.weekNumber}: signature LCW ${repair.catalogId} forcée (checklist bloquante non respectée par la génération)`
+              : `S${repair.weekNumber}: signature LCW ${repair.catalogId} non résolue (${repair.reason})`;
+            console.warn(`[LCW signature enforce] ${repair.code}: ${msg}`, repair);
+            enqueue("warning", {
+              code: repair.code,
+              severity: repair.severity,
+              message: msg,
+              repair,
+            });
+          }
+
           // PHASE 2B — Validateur de valeurs (post-reconciler, avant merge final)
           const valueChecked = applyValueCheck(
-            reconciled.chunks,
+            lcwEnforced.chunks,
             planConfig?._targetTable ?? null,
           );
           for (const line of valueChecked.traces) {
