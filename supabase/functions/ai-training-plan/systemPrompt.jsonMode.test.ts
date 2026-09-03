@@ -50,3 +50,33 @@ Deno.test("getSystemPrompt() par défaut (sans profile) : reste en mode Markdown
   const prompt = getSystemPrompt();
   assertStringIncludes(prompt, "RÈGLE #0 — TITRE H1 DU PLAN (BLOQUANTE, À LIRE EN PREMIER)");
 });
+
+/**
+ * Deuxième foyer de contradiction trouvé en poursuivant l'audit (même
+ * session) : le premier correctif ne couvrait que le bloc RÈGLE #0 + 3
+ * règles CRITIQUE/NON NÉGOCIABLE. Un gabarit Markdown littéral complet
+ * ("## Format de Sortie OBLIGATOIRE", titre H1 + tableaux dans un code
+ * fence) et DEUX restatements indépendants de la règle marqueur 🔑
+ * ("Marquage obligatoire", "Règles de Contenu") existaient plus loin dans
+ * le prompt, non conditionnés sur isJsonMode.
+ */
+Deno.test("getSystemPrompt({isJsonMode:true}) : le gabarit Markdown complet et les 2 restatements 🔑 supplémentaires ne sont plus émis", () => {
+  const prompt = getSystemPrompt({ objective: "IM", isJsonMode: true });
+  assert(!prompt.includes("# Plan TFCL™ — <FORMAT_COURSE>"), "gabarit Markdown littéral ne doit plus apparaître en mode JSON");
+  assert(!prompt.includes('préfixer la séance clé avec "🔑"'), "restatement 'Marquage obligatoire' ne doit plus apparaître en mode JSON");
+  assert(!prompt.includes("Séances clés marquées 🔑"), "restatement 'Règles de Contenu' ne doit plus apparaître en mode JSON");
+  assert(!prompt.includes('"🔑 CSS Dégressif"'), "exemple de titre avec emoji ne doit plus apparaître en mode JSON");
+  assert(!prompt.includes('cf. § "Cible : 2-4 séances 🔑 par semaine"'), "référence arrière vers un texte qui n'existe plus en mode JSON (référence pendante) ne doit plus apparaître");
+  assertStringIncludes(prompt, "isKeySession: true` sur la session JSON");
+  assertStringIncludes(prompt, "Séances clés : `isKeySession: true`.");
+  assertStringIncludes(prompt, '"CSS Dégressif"');
+  assertStringIncludes(prompt, "MODE SORTIE JSON STRUCTURÉ");
+});
+
+Deno.test("getSystemPrompt() sans isJsonMode : le gabarit Markdown complet et les 2 restatements 🔑 restent identiques (chemin index.ts)", () => {
+  const prompt = getSystemPrompt({ objective: "IM" });
+  assertStringIncludes(prompt, "# Plan TFCL™ — <FORMAT_COURSE>");
+  assertStringIncludes(prompt, 'préfixer la séance clé avec "🔑"');
+  assertStringIncludes(prompt, "Séances clés marquées 🔑");
+  assertStringIncludes(prompt, '"🔑 CSS Dégressif"');
+});
