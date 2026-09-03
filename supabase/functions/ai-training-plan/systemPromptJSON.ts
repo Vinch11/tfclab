@@ -32,9 +32,10 @@ Toutes les défenses sémantiques ci-dessus (verrous sport, ratios, Lorang, W'ba
 guardrails, hard-ban, master/RED-S, trail, etc.) restent EN VIGUEUR.
 Seules les règles de FORMAT Markdown sont désactivées.
 
-## RÈGLES DE FORMAT — DÉSACTIVÉES DANS CE MODE
+## RÈGLES DE FORMAT — HORS SUJET DANS CE MODE
 
-Les instructions suivantes présentes plus haut dans ce prompt sont ANNULÉES :
+Rappel : aucune des conventions de format Markdown suivantes ne s'applique ici
+(le prompt de base ne les contient d'ailleurs pas en mode JSON) :
 - ❌ Titre H1 \`# Plan TFCL™ — …\` (le \`title\` du JSON le remplace)
 - ❌ Format tableau Markdown \`| Jour | Type | Sport | ... |\` et sa colonne "Détails"
 - ❌ Marqueur emoji 🔑 pour séance clé (utiliser le booléen \`isKeySession\`)
@@ -155,5 +156,12 @@ Exemple minimal valide (chunk 1, une semaine) :
 `;
 
 export function getSystemPromptJSON(profile?: SystemPromptProfile): string {
-  return `${getSystemPrompt(profile)}\n${JSON_MODE_APPENDIX}`;
+  // isJsonMode:true — évite que getSystemPrompt émette les 4 règles de
+  // format Markdown les plus emphatiques du prompt (H1 "BLOQUANTE, À LIRE
+  // EN PREMIER", tableau/colonne Détails, marqueur 🔑 — toutes "CRITIQUE"
+  // ou "NON NÉGOCIABLE") pour ensuite les annuler ici, ~1000 lignes plus
+  // loin. La contradiction est supprimée à la source (cf. doc du flag dans
+  // systemPrompt.ts) ; cet appendix reste comme rappel/renfort du format
+  // JSON attendu, plus comme neutralisation d'instructions contraires.
+  return `${getSystemPrompt({ ...profile, isJsonMode: true })}\n${JSON_MODE_APPENDIX}`;
 }

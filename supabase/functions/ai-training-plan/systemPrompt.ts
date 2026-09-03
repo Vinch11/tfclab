@@ -9,6 +9,24 @@ export interface SystemPromptProfile {
   expressFinisher?: boolean;
   /** Start to Run — dose de renforcement choisie par le coach ("full" par défaut). */
   s2rStrength?: "full" | "light" | "none" | null;
+  /**
+   * Mode JSON structuré (Phase 1A, cf. systemPromptJSON.ts) — audit fiabilité
+   * génération de plan IA.
+   *
+   * Avant ce correctif, `getSystemPrompt` émettait TOUJOURS 4 règles de format
+   * Markdown formulées avec l'emphase la plus forte du prompt (🔴 RÈGLE #0 —
+   * BLOQUANTE, À LIRE EN PREMIER ; RÈGLE ANTI-SEMAINE VIDE — CRITIQUE ;
+   * RÈGLE COLONNE DÉTAILS — CRITIQUE, NON NÉGOCIABLE ; RÈGLE MARQUEUR 🔑 —
+   * OBLIGATOIRE, NON NÉGOCIABLE), et systemPromptJSON.ts les annulait
+   * ensuite dans un appendix ajouté ~1000 lignes plus loin. Cette séquence
+   * (instruction très emphatique en tête de prompt, contredite bien plus
+   * tard) est un facteur de risque de contamination de format connu —
+   * exactement le type de conflit déjà identifié cette session (contradiction
+   * Peak/J-21 LCW). Plutôt que de compter sur l'annulation tardive, ce flag
+   * fait que ces 4 règles ne sont JAMAIS émises pour le mode JSON : la
+   * contradiction est supprimée à la source, pas neutralisée après coup.
+   */
+  isJsonMode?: boolean;
 }
 
 /**
@@ -490,17 +508,27 @@ Le coach a explicitement choisi un plan SANS renforcement musculaire.
   return parts.join("\n\n");
 }
 
-export function getSystemPrompt(profile?: SystemPromptProfile): string {
-  const base = `Tu es le moteur TFCL™ Plan Generator, un système expert en périodisation d'entraînement. Ta méthodologie est inspirée de Dan Lorang et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks, Joel Filliol, Mikal Iden).
+/**
+ * Bloc de règles de FORMAT — dépend du mode de sortie (Markdown legacy vs
+ * JSON structuré, cf. `SystemPromptProfile.isJsonMode`). Voir la doc du flag
+ * pour le pourquoi (supprimer la contradiction à la source plutôt que de
+ * l'annuler dans un appendix ajouté ~1000 lignes plus loin).
+ */
+function buildFormatRulesBlock(isJsonMode: boolean): string {
+  if (isJsonMode) {
+    return `## 🔴 RÈGLE #0 — FORMAT DE SORTIE (BLOQUANTE, À LIRE EN PREMIER)
+Tu produis un objet JSON structuré, PAS du Markdown. Le titre du plan est porté
+par le champ \`title\` (chunk 1 uniquement, gabarit \`Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines\`),
+la séance clé par le booléen \`isKeySession\` (pas d'emoji 🔑), la structure
+hebdo par \`weeks[].sessions[]\` (pas de tableau Markdown). Le format exact,
+les enums et les invariants de validation sont décrits dans la section
+"MODE SORTIE JSON STRUCTURÉ" plus bas dans ce prompt — c'est la seule
+source de vérité pour le format de sortie de ce mode.
 
-## Ta Mission
-Générer un plan d'entraînement COMPLET ET INTÉGRAL, semaine par semaine, séance par séance, individualisé selon :
-- Le profil physiologique de l'athlète (limiteurs TFCL).
-- L'objectif course et le temps restant.
-- La méthodologie TFCL™ / Dan Lorang.
-${buildObjectiveSportLock(profile)}
-
-## 🔴 RÈGLE #0 — TITRE H1 DU PLAN (BLOQUANTE, À LIRE EN PREMIER)
+## RÈGLE CRITIQUE : PLAN COMPLET OBLIGATOIRE
+⚠️ Tu DOIS générer TOUTES les semaines demandées. NE JAMAIS résumer, abréger, ou t'arrêter avant la fin. Chaque semaine DOIT contenir toutes ses séances (repos inclus, via \`sport: "rest"\`).`;
+  }
+  return `## 🔴 RÈGLE #0 — TITRE H1 DU PLAN (BLOQUANTE, À LIRE EN PREMIER)
 Le tout premier caractère du plan DOIT être \`#\` suivi d'un titre H1 respectant EXACTEMENT ce gabarit :
 
 \`# Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines\`
@@ -546,7 +574,21 @@ Si ton H1 ne matche pas ce gabarit, RÉÉCRIS-LE avant d'émettre la suite du pl
 - ✅ CORRECT : \`| Mardi | CAP | 🔑 Seuil 4×6min | ... |\`
 - ❌ INTERDIT : \`| Mardi | CAP | Seuil 4×6min | ... |\` (pas de 🔑 → le coach ne voit pas les séances structurantes de la semaine).
 - Les séances de récup, EF Z2 souple, repos, technique pure (drills nat) ne portent **pas** le 🔑.
-- Cible : 2-4 séances 🔑 par semaine selon objectif et phase. JAMAIS 0 sur une semaine active.
+- Cible : 2-4 séances 🔑 par semaine selon objectif et phase. JAMAIS 0 sur une semaine active.`;
+}
+
+export function getSystemPrompt(profile?: SystemPromptProfile): string {
+  const formatRulesBlock = buildFormatRulesBlock(profile?.isJsonMode === true);
+  const base = `Tu es le moteur TFCL™ Plan Generator, un système expert en périodisation d'entraînement. Ta méthodologie est inspirée de Dan Lorang et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks, Joel Filliol, Mikal Iden).
+
+## Ta Mission
+Générer un plan d'entraînement COMPLET ET INTÉGRAL, semaine par semaine, séance par séance, individualisé selon :
+- Le profil physiologique de l'athlète (limiteurs TFCL).
+- L'objectif course et le temps restant.
+- La méthodologie TFCL™ / Dan Lorang.
+${buildObjectiveSportLock(profile)}
+
+${formatRulesBlock}
 
 ## RATIOS SPORT/VOLUME PAR OBJECTIF (Méthodologie Dan Lorang / Élite Mondial)
 
