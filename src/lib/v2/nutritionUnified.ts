@@ -162,6 +162,33 @@ const DEFAULT_DURATION_BY_SPORT: Partial<Record<NutritionSport, number>> = {
   ultra: 14,
 };
 
+/**
+ * Intensité course (% VO₂max) par défaut quand `targetIntensityPct` absent.
+ *
+ * Bug réel (audit fiabilité génération de plan IA) : contrairement à
+ * `DURATION_BY_OBJECTIF`, aucune table équivalente n'existait pour
+ * l'intensité — `computeBaseRateMader` retombait tout droit sur un flat
+ * 70% VO₂max quel que soit l'objectif dès que `targetIntensityPct` était
+ * absent. Aucun appelant réel de `NutritionUnifiedCard` (Index.tsx,
+ * RaceSimulationPage.tsx bike/run) ne fournissait ce champ : un marathon
+ * (≈78% VO₂max) et un Ironman (≈68%) recevaient donc la même prescription
+ * glucides/hydratation/sodium sur le Dashboard. Valeurs alignées sur
+ * `supabase/functions/ai-training-plan/nutritionAndSafetyGuardrails.ts`
+ * (même contexte physiologique, injecté dans le prompt de génération IA)
+ * pour que plan généré et fiche nutrition affichée convergent.
+ */
+const INTENSITY_BY_OBJECTIF: Record<string, number> = {
+  IM: 68, Ironman: 68,
+  '70.3': 75,
+  Marathon: 78,
+  Semi: 85,
+  Trail: 72,
+  TrailLong: 65,
+  TrailUltra: 60,
+  '10K': 90,
+  '5K': 95,
+};
+
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
 // =============================================
@@ -770,8 +797,13 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
     ?? DEFAULT_DURATION_BY_SPORT[sport]
     ?? null;
 
+  // Intensité estimée (% VO₂max) — même principe de fallback que la durée.
+  const intensityPct = input.targetIntensityPct
+    ?? INTENSITY_BY_OBJECTIF[input.objectif]
+    ?? null;
+
   // Calcul glucides
-  const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, input.targetIntensityPct, durationH, input.heatCondition);
+  const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, intensityPct, durationH, input.heatCondition);
   const base = maderResult.baseRate;
   // VLamax et Intensité : déjà dans Mader, pas de double-comptage
   const ta = tteAdj(input.tteMin);
