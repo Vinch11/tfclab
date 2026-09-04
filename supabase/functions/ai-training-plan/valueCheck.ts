@@ -67,16 +67,24 @@ export interface ValueCheckResult {
 // ═══ REGEX ═══════════════════════════════════════════════════════════════════
 const WATTS_RX = /(?<![\d.-])(\d{2,4})\s*W\b/gi;
 const WATTS_RANGE_RX = /(?<![\d.-])(\d{2,4})\s*[-–]\s*(\d{2,4})\s*W\b/gi;
-const PACE_KM_RX = /(\d)[:'](\d{2})\s*\/?\s*km\b/gi;
 // Ranges "3:45-4:00/km" : DOIT être testé AVANT PACE_KM_RX — sinon seule la
 // borne haute matche (immédiatement suivie de "/km"), la borne basse reste un
 // absolu résiduel invisible (aucun repair, aucun unresolved compté) [audit
 // qualité plans IA]. Même raisonnement pour CSS_RANGE_RX et BPM_RANGE_RX.
+//
+// Bug réel #2 (trouvé via le premier run CI réel de ce dépôt, jamais exécuté
+// avant) : même quand PACE_KM_RANGE_RX tourne AVANT, si la relativisation de
+// la plage échoue (VMA absente) le texte reste inchangé — et PACE_KM_RX,
+// SANS garde, rematche alors la borne haute toute seule ("3:42/km" dans
+// "5:08-3:42/km"), comptant à tort 3 tokens unresolved au lieu de 2. Le garde
+// négatif ci-dessous (même principe que WATTS_RX depuis le début) empêche
+// PACE_KM_RX de matcher la queue d'une plage déjà traitée (résolue ou non).
+const PACE_KM_RX = /(?<!\d[:']\d{2}\s*[-–]\s*)(\d)[:'](\d{2})\s*\/?\s*km\b/gi;
 const PACE_KM_RANGE_RX = /(\d)[:'](\d{2})\s*[-–]\s*(\d)[:'](\d{2})\s*\/?\s*km\b/gi;
-const CSS_RX = /(\d)[:'](\d{2})\s*\/\s*100\s*m/gi;
+const CSS_RX = /(?<!\d[:']\d{2}\s*[-–]\s*)(\d)[:'](\d{2})\s*\/\s*100\s*m/gi;
 const CSS_RANGE_RX = /(\d)[:'](\d{2})\s*[-–]\s*(\d)[:'](\d{2})\s*\/\s*100\s*m/gi;
-const BPM_RX = /(\d{2,3})\s*bpm\b/gi;
-const BPM_RANGE_RX = /(\d{2,3})\s*[-–]\s*(\d{2,3})\s*bpm\b/gi;
+const BPM_RX = /(?<![\d.-])(\d{2,3})\s*bpm\b/gi;
+const BPM_RANGE_RX = /(?<![\d.-])(\d{2,3})\s*[-–]\s*(\d{2,3})\s*bpm\b/gi;
 
 const PCT_FTP_RX = /\b(\d{1,3})\s*%\s*FTP\b/gi;
 const PCT_VMA_RX = /\b(\d{1,3})\s*%\s*VMA\b/gi;
@@ -144,6 +152,34 @@ function checkSessionText(
   // toujours fausse, jamais atteignable, détectée par le type-checker Deno.
   const isRun = sport === "run" || sport === "brick";
   const isSwim = sport === "swim";
+
+  // ─── 2) TOKENS RELATIFS : plausibilité ──────────────────────────────
+  // Canonicalise les zones (Z4A → Z4a) en place et vérifie appartenance.
+  // Bug réel #3 (premier run CI réel de ce dépôt) : ce bloc tournait APRÈS
+  // toutes les relativisations absolu→zone (1a-1e ci-dessous), qui insèrent
+  // elles-mêmes du texte "Z2-Z5" / "Z1-Z3" etc. dans `text`. Ce bloc
+  // re-scannait alors ce texte fraîchement inséré et recomptait "Z2" et "Z5"
+  // comme deux NOUVELLES mentions de zone — doublant totalTokens/
+  // conformantTokens pour chaque plage relativisée avec succès (le contenu
+  // livré à l'athlète restait correct, seules les métriques QA gonflaient).
+  // Déplacé en premier : ne canonicalise que les zones écrites directement
+  // par le LLM dans le texte ORIGINAL, jamais celles produites par nos
+  // propres relativisations ci-dessous.
+  text = text.replace(ZONE_RX, (m) => {
+    tokens++;
+    const canon = canonicalizeZoneLabel(m);
+    if (!canon) {
+      unresolved++;
+      repairs.push({
+        code: "value_unresolved", severity: "critical",
+        reason: `Zone "${m}" inconnue`,
+        token: m,
+      });
+      return m;
+    }
+    conformant++;
+    return canon; // corrige la casse
+  });
 
   // ─── 1a) WATTS RANGE "200-220W" → "P1-P2% FTP" (avec fallback gap_mapped) ─
   if (isBike) {
@@ -428,24 +464,6 @@ function checkSessionText(
       return r.zone;
     });
   }
-
-  // ─── 2) TOKENS RELATIFS : plausibilité ──────────────────────────────
-  // Canonicalise les zones (Z4A → Z4a) en place et vérifie appartenance
-  text = text.replace(ZONE_RX, (m) => {
-    tokens++;
-    const canon = canonicalizeZoneLabel(m);
-    if (!canon) {
-      unresolved++;
-      repairs.push({
-        code: "value_unresolved", severity: "critical",
-        reason: `Zone "${m}" inconnue`,
-        token: m,
-      });
-      return m;
-    }
-    conformant++;
-    return canon; // corrige la casse
-  });
 
   const checkPct = (rx: RegExp, label: string, lo: number, hi: number) => {
     text = text.replace(rx, (match, pStr) => {
