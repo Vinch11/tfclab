@@ -59,7 +59,7 @@ vi.mock("@/lib/workoutLibrary", () => {
       when: "Base/Build",
       avoid: "Tapering · Fatigue >7/10",
       phase: ["base", "build"],
-      durationMin: [45, 60], metricKey: "force", sportKey: "strength",
+      durationMin: [45, 60], metricKey: "cardiaque", sportKey: "strength",
       structure: [{ part: "Main", text: "squat lourd", zones: [] }],
       variants: {},
     },
