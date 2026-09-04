@@ -1,6 +1,6 @@
 import { assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { buildUserPrompt } from "./promptHelpers.ts";
+import { buildUserPrompt, buildStructuredDiagnosticBlock } from "./promptHelpers.ts";
 
 /**
  * Bug reel (audit ambition "Elite") : `config.ambition` transmis au prompt
@@ -42,9 +42,15 @@ Deno.test("buildUserPrompt — ambition 'Qualifiable' (ancien palier elite) decl
   assert(!prompt.includes("Ambition WORLD CLASS (top 3% AG)"));
 });
 
-Deno.test("buildUserPrompt — garde-fou Master 50+ x world_class se declenche pour un athlete 'Elite' de 55 ans", () => {
-  const prompt = buildUserPrompt({}, minimalConfig({ objective: "Marathon", age: 55 }));
-  assertStringIncludes(prompt, "MASTER 50+ × WORLD_CLASS");
+Deno.test("buildStructuredDiagnosticBlock — garde-fou Master 50+ x world_class se declenche pour un athlete 'Elite' de 55 ans", () => {
+  // Ce garde-fou vit dans buildStructuredDiagnosticBlock (AUDIT LOT #2), pas
+  // buildUserPrompt — les deux sont concaténés dans le prompt réel envoyé au
+  // LLM (jsonPlanHandler.ts : baseUserPrompt + structuredDiagnostic). Le test
+  // visait la mauvaise fonction depuis un refactor antérieur (jamais détecté
+  // faute de CI exécutant réellement ce fichier) : corrigé sans changer
+  // l'intention du test (vérifier que ce garde-fou santé se déclenche bien).
+  const diag = buildStructuredDiagnosticBlock(minimalConfig({ objective: "Marathon", age: 55 }), 12);
+  assertStringIncludes(diag, "MASTER 50+ × WORLD_CLASS");
 });
 
 Deno.test("buildUserPrompt — ambition 'Confirme' (age_group) declenche bien la branche AGE GROUP, pas FINISHER", () => {
