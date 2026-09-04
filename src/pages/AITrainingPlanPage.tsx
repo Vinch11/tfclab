@@ -7,6 +7,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, getCatalogSportFilter, getCatalogExclusions, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
+import { evaluateDurationCoherence } from "@/lib/plan/recommendedPlanDuration";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
@@ -508,6 +510,17 @@ export default function AITrainingPlanPage() {
     );
   }, [raceFormat, objective, savedAthleteRaceGoals]);
   const [raceDate, setRaceDate] = useState("");
+  // Mode alternatif "durée en semaines" (demande coach) : pour un bloc de
+  // préparation sans date de course fixée (reprise, base hors-saison, objectif
+  // pas encore calé), le coach fixe directement le nombre de semaines plutôt
+  // qu'une date. La dernière semaine du plan reste traitée comme semaine de
+  // course/taper (comportement demandé explicitement, cf. discussion) — on ne
+  // touche donc PAS à inferWeekType. Implémentation : `raceDate` reste la
+  // source de vérité unique pour tout le pipeline en aval (weeksAvailable,
+  // génération, sauvegarde) ; en mode "weeks" on la calcule automatiquement à
+  // partir de planStartDate + N semaines, le coach voit la date résultante.
+  const [planDurationMode, setPlanDurationMode] = useState<"date" | "weeks">("date");
+  const [planWeeksInput, setPlanWeeksInput] = useState("");
   const [weeklyHours, setWeeklyHours] = useState("");
   const [sessionsPerWeek, setSessionsPerWeek] = useState("");
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
@@ -588,6 +601,8 @@ export default function AITrainingPlanPage() {
     setRaceName("");
     setRaceFormat("continuous");
     setRaceDate("");
+    setPlanDurationMode("date");
+    setPlanWeeksInput("");
     setWeeklyHours("");
     setSessionsPerWeek("");
     { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
@@ -609,6 +624,8 @@ export default function AITrainingPlanPage() {
       if (savedState.raceName) setRaceName(savedState.raceName);
       if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
       if (savedState.raceDate) setRaceDate(savedState.raceDate);
+      if (savedState.planDurationMode) setPlanDurationMode(savedState.planDurationMode);
+      if (savedState.planWeeksInput) setPlanWeeksInput(savedState.planWeeksInput);
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
       if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
       if (savedState.ambition) setAmbition(savedState.ambition);
@@ -728,6 +745,8 @@ export default function AITrainingPlanPage() {
       raceName,
       raceFormat,
       raceDate,
+      planDurationMode,
+      planWeeksInput,
       weeklyHours,
       sessionsPerWeek,
       ambition,
@@ -777,7 +796,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -974,6 +993,29 @@ export default function AITrainingPlanPage() {
       return days >= 0 ? Math.floor(days / 7) + 1 : null;
     } catch { return null; }
   }, [raceDate, raceGoals, planStartDate]);
+
+  // Mode "durée en semaines" : dérive automatiquement raceDate depuis
+  // planStartDate + N semaines dès que le coach tape un nombre — raceDate
+  // reste la seule source de vérité en aval (weeksAvailable ci-dessus,
+  // génération, sauvegarde), donc tout le pipeline existant continue de
+  // fonctionner sans modification. La dernière semaine calculée reste
+  // traitée comme semaine de course/taper (comportement voulu).
+  useEffect(() => {
+    if (planDurationMode !== "weeks") return;
+    const n = parseInt(planWeeksInput, 10);
+    if (!Number.isFinite(n) || n <= 0) return;
+    const computed = addDays(planStartDate, n * 7 - 1);
+    const formatted = format(computed, "yyyy-MM-dd");
+    if (formatted !== raceDate) setRaceDate(formatted);
+  }, [planDurationMode, planWeeksInput, planStartDate, raceDate]);
+
+  // Message non-bloquant : la durée choisie (weeksAvailable) est-elle
+  // cohérente avec l'objectif + l'ambition de l'athlète ? Demande coach —
+  // signale sans jamais bloquer la génération.
+  const durationCoherence = useMemo(
+    () => (weeksAvailable ? evaluateDurationCoherence(weeksAvailable, objective, ambition) : null),
+    [weeksAvailable, objective, ambition],
+  );
 
   // Parse AI response into structured plan + apply taper volume override + validate paces.
   // Chantier 3 — taper/validation appliqués UNE SEULE FOIS après assemblage complet de tous les chunks
@@ -2699,14 +2741,72 @@ export default function AITrainingPlanPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Calendar className="h-3.5 w-3.5" />
-                    Date de course (objectif A)
-                  </Label>
-                  <Input type="date" value={raceDate} onChange={e => setRaceDate(e.target.value)} />
-                  {weeksAvailable && (
-                    <p className="text-xs text-muted-foreground">
-                      ≈ <span className="font-semibold text-primary">{weeksAvailable}</span> semaines de préparation
+                  <div className="flex items-center justify-between gap-2">
+                    <Label className="flex items-center gap-2">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {planDurationMode === "date" ? "Date de course (objectif A)" : "Durée du plan (objectif A)"}
+                    </Label>
+                    <div className="flex gap-1">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={planDurationMode === "date" ? "default" : "outline"}
+                        className="h-6 px-2 text-[11px]"
+                        onClick={() => setPlanDurationMode("date")}
+                      >
+                        Date
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={planDurationMode === "weeks" ? "default" : "outline"}
+                        className="h-6 px-2 text-[11px]"
+                        onClick={() => setPlanDurationMode("weeks")}
+                      >
+                        Durée
+                      </Button>
+                    </div>
+                  </div>
+
+                  {planDurationMode === "date" ? (
+                    <>
+                      <Input type="date" value={raceDate} onChange={e => setRaceDate(e.target.value)} />
+                      {weeksAvailable && (
+                        <p className="text-xs text-muted-foreground">
+                          ≈ <span className="font-semibold text-primary">{weeksAvailable}</span> semaines de préparation
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="1"
+                          placeholder="Ex: 8"
+                          value={planWeeksInput}
+                          onChange={e => setPlanWeeksInput(e.target.value)}
+                          className="w-24"
+                        />
+                        <span className="text-xs text-muted-foreground">semaines</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Pas de course précise — bloc de préparation. La dernière semaine reste traitée comme semaine de course/taper.
+                        {raceDate && (
+                          <> Date estimée retenue : <span className="font-medium text-foreground">{raceDate}</span>.</>
+                        )}
+                      </p>
+                    </>
+                  )}
+
+                  {durationCoherence && durationCoherence.coherence !== "ok" && (
+                    <p className={cn(
+                      "text-[11px] rounded px-2 py-1",
+                      durationCoherence.coherence === "too_short" || durationCoherence.coherence === "short_for_ambition"
+                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                        : "bg-muted text-muted-foreground",
+                    )}>
+                      {durationCoherence.message}
                     </p>
                   )}
                 </div>
