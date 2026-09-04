@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { calibrateBillat3030FromTlim, formatBillat3030Summary } from "@/lib/tlimVolumeCalibration";
+import {
+  calibrateBillat3030FromTlim,
+  formatBillat3030Summary,
+  calibrateBillat3030RangeFromTlim,
+  formatBillat3030RangeSummary,
+} from "@/lib/tlimVolumeCalibration";
 
 describe("calibrateBillat3030FromTlim", () => {
   it("données absentes ou invalides → null (repli calibrage classique)", () => {
@@ -67,5 +72,47 @@ describe("formatBillat3030Summary", () => {
     const summary = formatBillat3030Summary(calib);
     expect(summary).toContain("plafond");
     expect(summary).toContain("rendements décroissants");
+  });
+});
+
+describe("calibrateBillat3030RangeFromTlim — fourchette CV≈25% (Billat & Koralsztein 1996)", () => {
+  it("données absentes ou invalides → null", () => {
+    expect(calibrateBillat3030RangeFromTlim(null)).toBeNull();
+    expect(calibrateBillat3030RangeFromTlim(undefined)).toBeNull();
+    expect(calibrateBillat3030RangeFromTlim(0)).toBeNull();
+  });
+
+  it("tlim=6 : mid=2×8, low/high dérivés de tlim×(1∓0.25) = 4.5/7.5min", () => {
+    const r = calibrateBillat3030RangeFromTlim(6)!;
+    expect(r.mid).toMatchObject({ seriesCount: 2, repsPerSeries: 8, totalReps: 16 });
+    expect(r.low.tlimMinUsed).toBe(4.5);
+    expect(r.high.tlimMinUsed).toBe(7.5);
+    expect(r.cvUsed).toBe(0.25);
+    // low/high doivent différer du mid pour ce cas (pas plafonné/planché)
+    expect(r.low.totalReps).toBeLessThan(r.mid.totalReps);
+    expect(r.high.totalReps).toBeGreaterThan(r.mid.totalReps);
+  });
+
+  it("tlim très bas (3min, sous le plancher) : low/mid/high tous plafonnés identiques → pas de fausse fourchette", () => {
+    const r = calibrateBillat3030RangeFromTlim(3)!;
+    expect(r.low.totalReps).toBe(r.mid.totalReps);
+    expect(r.mid.totalReps).toBe(r.high.totalReps);
+  });
+});
+
+describe("formatBillat3030RangeSummary", () => {
+  it("inclut le chiffre recommandé (mid) et la mention de fourchette avec la référence Billat & Koralsztein", () => {
+    const r = calibrateBillat3030RangeFromTlim(6)!;
+    const summary = formatBillat3030RangeSummary(r);
+    expect(summary).toContain("2×8");
+    expect(summary).toContain("fourchette");
+    expect(summary).toContain("Billat & Koralsztein 1996");
+    expect(summary).toContain("±25%");
+  });
+
+  it("aucune mention de fourchette quand low et high sont identiques (cas plafonné/planché)", () => {
+    const r = calibrateBillat3030RangeFromTlim(3)!;
+    const summary = formatBillat3030RangeSummary(r);
+    expect(summary).not.toContain("fourchette");
   });
 });

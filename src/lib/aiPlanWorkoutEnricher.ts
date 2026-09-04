@@ -13,7 +13,7 @@ import type { ParsedSession } from "@/lib/aiPlanParser";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { recalcWorkoutRest, type WbalAthleteRefs } from "@/lib/wbalLibraryRecalc";
-import { calibrateBillat3030FromTlim, formatBillat3030Summary } from "@/lib/tlimVolumeCalibration";
+import { calibrateBillat3030RangeFromTlim, formatBillat3030RangeSummary } from "@/lib/tlimVolumeCalibration";
 
 const byId: Map<string, LibraryWorkout> = (() => {
   const m = new Map<string, LibraryWorkout>();
@@ -159,8 +159,8 @@ export function toFiche(w: LibraryWorkout, wbalRefs?: WbalAthleteRefs | null): E
   // affichée telle quelle (palier fixe Intro/Pro existant), sans annotation.
   let tlim3030Summary: string | undefined;
   if (TLIM_3030_ELIGIBLE_IDS.has(w.id.toUpperCase())) {
-    const calib = calibrateBillat3030FromTlim(wbalRefs?.tlimMin ?? null);
-    if (calib) tlim3030Summary = formatBillat3030Summary(calib);
+    const range = calibrateBillat3030RangeFromTlim(wbalRefs?.tlimMin ?? null);
+    if (range) tlim3030Summary = formatBillat3030RangeSummary(range);
   }
 
   return {
