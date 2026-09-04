@@ -44,4 +44,14 @@ jobs:
         # du code non fiable — certains imports transitifs peuvent lire des
         # variables d'env au chargement du module. À resserrer plus tard si
         # besoin (--allow-env --allow-read suffiraient probablement).
-        run: deno test -A
+        #
+        # --node-modules-dir=none : premier run réel de cette CI (jamais
+        # exécutée avant) révélait "Failed resolving types... npm:zod@3.23.8"
+        # sur generateChunkJSON.ts — Deno 2 remonte l'arborescence et trouve
+        # le package.json RACINE du repo (frontend Vite/bun, sans rapport)
+        # et bascule en résolution npm "node_modules local", qui n'existe
+        # pas ici (ce dossier n'a ni deno.json ni node_modules propres). Ce
+        # flag force le mode cache npm global de Deno (celui réellement
+        # utilisé par Supabase Edge Functions en production), sans dépendre
+        # du package.json racine.
+        run: deno test -A --node-modules-dir=none
