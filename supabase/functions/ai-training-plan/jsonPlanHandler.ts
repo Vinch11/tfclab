@@ -705,6 +705,16 @@ export function applyReconciler(
     return { chunks, repairs, traces };
   }
   const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  // Bug réel (audit "Test_Vince", plan 703 LCW 8 semaines) : V3_BIKE_FORCE_SFR
+  // dupliqué mardi ET jeudi de S1, jamais corrigé malgré le dédoublonnage (c)
+  // ci-dessous — root cause : la recherche d'alternative ne regardait QUE
+  // candidatesByChunk[ci], le dump catalogue rotationné de CE chunk précis,
+  // qui peut ne contenir AUCUNE autre fiche vélo Z3-Z4 (le catalogue complet
+  // en a pourtant plusieurs : V3_BIKE_CLIMBING_TEMPO, V3_BIKE_THRESHOLD_2x20,
+  // V3_BIKE_OVER_UNDER_ADV...). allCandidatesAllChunks sert de repli global
+  // pour ce dédoublonnage déterministe post-génération, où la fiche de repli
+  // n'a pas besoin d'avoir figuré dans le prompt du chunk courant.
+  const allCandidatesAllChunks = candidatesByChunk.flat();
   // Mots-clés du limiteur prioritaire (L1) — utilisés pour préférer, à l'insertion
   // d'une séance manquante, une fiche du catalogue qui cible réellement ce limiteur
   // plutôt qu'une séance générique la plus proche en durée (audit qualité plans IA :
@@ -889,12 +899,15 @@ export function applyReconciler(
           const victim = occurrences[i];
           const sport = victim.sport;
           const victimClass = classifyIntensity(victim.zones, `${victim.title} ${victim.details ?? ""}`);
-          const alt = candidates
+          const findAlt = (pool: typeof candidates) => pool
             .filter(c => c.sport === sport && !usedIdsThisWeek.has(c.id))
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
             .filter(x => x.cls === victimClass || x.cls === "unknown" || victimClass === "unknown")
             .sort((a, b) => Math.abs(a.c.durationMedian - (victim.durationMin ?? 0)) - Math.abs(b.c.durationMedian - (victim.durationMin ?? 0)))[0]?.c
             ?? null;
+          // Repli catalogue complet (tous chunks) si le dump rotationné de CE
+          // chunk ne propose aucune alternative — cf. commentaire allCandidatesAllChunks.
+          const alt = findAlt(candidates) ?? findAlt(allCandidatesAllChunks);
           if (alt) {
             const beforeTitle = victim.title ?? "";
             (victim as any).catalogId = alt.id;
