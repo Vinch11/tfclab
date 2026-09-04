@@ -1400,6 +1400,7 @@ export type Database = {
           time_half_sec: number | null
           time_marathon_date: string | null
           time_marathon_sec: number | null
+          tlim_vvo2max_min: number | null
           tss_7d: number | null
           tte_mode: string | null
           tte_observed_min: number | null
@@ -1472,6 +1473,7 @@ export type Database = {
           time_half_sec?: number | null
           time_marathon_date?: string | null
           time_marathon_sec?: number | null
+          tlim_vvo2max_min?: number | null
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
@@ -1544,6 +1546,7 @@ export type Database = {
           time_half_sec?: number | null
           time_marathon_date?: string | null
           time_marathon_sec?: number | null
+          tlim_vvo2max_min?: number | null
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
