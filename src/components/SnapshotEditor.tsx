@@ -231,6 +231,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [vlamax, setVlamax] = useState(snapshot.vlamax != null ? String(snapshot.vlamax) : "");
   const [vlamaxRun, setVlamaxRun] = useState(snapshot.vlamax_run != null ? String(snapshot.vlamax_run) : "");
   const [vma, setVma] = useState(snapshot.vma != null ? String(snapshot.vma) : "");
+  const [tlimVvo2max, setTlimVvo2max] = useState(snapshot.tlim_vvo2max_min != null ? String(snapshot.tlim_vvo2max_min) : "");
   const [fcmax, setFcmax] = useState(snapshot.fc_max != null ? String(snapshot.fc_max) : "");
   const [css, setCss] = useState(snapshot.css != null ? String(snapshot.css) : "");
   const [fat, setFat] = useState(snapshot.fat_pct != null ? String(snapshot.fat_pct) : "");
@@ -284,6 +285,8 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       vlamax: staffMode ? numOrNull(vlamax) : snapshot.vlamax,
       vlamax_run: staffMode ? numOrNull(vlamaxRun) : snapshot.vlamax_run,
       vma: numOrNull(vma),
+      // ✅ Tlim@vVO2max (Billat 1996) — calibrage volume 30/30
+      tlim_vvo2max_min: numOrNull(tlimVvo2max),
       fc_max: numOrNull(fcmax) != null ? Math.round(numOrNull(fcmax)!) : null,
       css: numOrNull(css),
       fat_pct: numOrNull(fat),
@@ -318,6 +321,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       setVlamax(snapshot.vlamax != null ? String(snapshot.vlamax) : "");
       setVlamaxRun(snapshot.vlamax_run != null ? String(snapshot.vlamax_run) : "");
       setVma(snapshot.vma != null ? String(snapshot.vma) : "");
+      setTlimVvo2max(snapshot.tlim_vvo2max_min != null ? String(snapshot.tlim_vvo2max_min) : "");
       setFcmax(snapshot.fc_max != null ? String(snapshot.fc_max) : "");
       setCss(snapshot.css != null ? String(snapshot.css) : "");
       setFat(snapshot.fat_pct != null ? String(snapshot.fat_pct) : "");
@@ -515,6 +519,15 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">VMA (km/h)</Label>
               <Input className="col-span-3" type="number" step="0.1" value={vma} onChange={(e) => setVma(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <LabelWithHelp
+                label="Tlim@vVO2max (min)"
+                help="Temps limite maintenu à vVO2max (100% VMA) jusqu'à épuisement — protocole Billat 1996 (fiche bibliothèque BILLAT_RUN_TLIM_TEST). Si renseigné, calibre automatiquement le volume (nb de répétitions) des séances 30/30 Billat pour cet athlète au lieu du palier fixe générique."
+                example="6.5 (bon niveau, entre 6 et 8 min)"
+              />
+              <Input className="col-span-3" type="number" step="0.1" min="0" placeholder="Ex: 6.5" value={tlimVvo2max} onChange={(e) => setTlimVvo2max(e.target.value)} />
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">

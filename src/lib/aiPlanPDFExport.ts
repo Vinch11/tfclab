@@ -223,6 +223,12 @@ function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999):
       )}</span></div>`
     : "";
 
+  const tlim3030 = f.tlim3030Summary
+    ? `<div style="margin-top:3px;"><strong>🎯 Calibrage Tlim@vVO2max :</strong> <span style="color:#555;">${escapeHTML(
+        f.tlim3030Summary
+      )}</span></div>`
+    : "";
+
   const dplus = f.dPlusTargetM
     ? `<div style="margin-top:3px;"><strong>⛰ D+ cible :</strong> ${
         typeof f.dPlusTargetM === "number"
@@ -269,6 +275,7 @@ function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999):
     <div style="font-style:italic;color:#444;margin-bottom:3px;">🎯 ${escapeHTML(f.objectif)}</div>
     ${structure}
     ${wbal}
+    ${tlim3030}
     ${variants}
     ${dplus}
     ${whenAvoid}

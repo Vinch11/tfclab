@@ -32,6 +32,16 @@ export interface WbalAthleteRefs {
   p30s?: number | null;
   p60s?: number | null;
   map5min?: number | null;
+  /**
+   * Tlim@vVO2max mesuré (min, protocole Billat 1996) — PAS consommé par le
+   * moteur W'bal CP/W' ci-dessous (course à pied, pas vélo). Transporté ici
+   * uniquement pour réutiliser le bundle de refs athlète déjà câblé jusqu'à
+   * `toFiche()` (aiPlanWorkoutEnricher.ts) plutôt que dupliquer tout un
+   * contexte React pour une seule valeur scalaire. Consommé par
+   * tlimVolumeCalibration.ts pour personnaliser le volume des fiches 30/30
+   * Billat (BILLAT_RUN_30_30_INTRO/PRO).
+   */
+  tlimMin?: number | null;
   ftp?: number | null;
   weightKg?: number | null;
 }
