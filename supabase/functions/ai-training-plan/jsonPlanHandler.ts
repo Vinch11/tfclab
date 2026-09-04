@@ -258,9 +258,13 @@ function applyOffsportTrailGuardToChunks(
         if ("__offsportTrail" in sess) delete sess.__offsportTrail;
         if (!matchedMarker) continue;
         // Force custom pour la substitution (un catalogId trail survivant devient custom).
+        // PlanSession est une union discriminée par `custom` (planSchema.ts) —
+        // basculer le discriminant par mutation directe n'est pas type-safe
+        // (TS2322), d'où le passage par `sess` (déjà utilisé juste au-dessus
+        // pour le même contournement ciblé, pas un `as any` généralisé).
         if (survivingTrailId) {
-          session.custom = true;
-          session.catalogId = null;
+          sess.custom = true;
+          sess.catalogId = null;
         }
         const targetDur = session.durationMin ?? 0;
         const sessionSport = normalizeSport(session.sport);

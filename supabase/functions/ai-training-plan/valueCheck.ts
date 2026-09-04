@@ -139,7 +139,10 @@ function checkSessionText(
 
   const sport = session.sport;
   const isBike = sport === "bike" || sport === "brick";
-  const isRun = sport === "run" || sport === "brick" || sport === "trail";
+  // "trail" retiré : PlanSession.sport (planSchema.ts) n'inclut pas cette
+  // valeur (enum swim/bike/run/brick/strength/recovery/rest) — comparaison
+  // toujours fausse, jamais atteignable, détectée par le type-checker Deno.
+  const isRun = sport === "run" || sport === "brick";
   const isSwim = sport === "swim";
 
   // ─── 1a) WATTS RANGE "200-220W" → "P1-P2% FTP" (avec fallback gap_mapped) ─
