@@ -549,6 +549,13 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
             </div>
           )}
 
+          {fiche.tlim3030Summary && (
+            <div className="text-[10.5px] leading-snug">
+              <span className="font-semibold text-foreground/80">🎯 Calibrage Tlim@vVO2max : </span>
+              <span className="text-muted-foreground">{fiche.tlim3030Summary}</span>
+            </div>
+          )}
+
           {fiche.variants.length > 0 && (
             <div className="text-[10.5px] leading-snug">
               <span className="font-semibold text-foreground/80">🎯 Variantes par objectif :</span>
@@ -1005,7 +1012,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
   const nolioRefs = useMemo(() => {
     if (!athleteId) {
-      return { ftp: null, vma: null, css: null, fcMax: null, fcRest: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null, pmax5s: null, p30s: null, p60s: null, map5min: null };
+      return { ftp: null, vma: null, css: null, fcMax: null, fcRest: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null, pmax5s: null, p30s: null, p60s: null, map5min: null, tlimMin: null };
     }
     const athlete = athletes.find((a) => a.id === athleteId) ?? null;
     const r = getEffectiveRefs(athlete, snapshots);
@@ -1025,6 +1032,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       p30s: snap?.p30s_w ?? null,
       p60s: snap?.p60s_w ?? null,
       map5min: snap?.map5min_w ?? null,
+      tlimMin: snap?.tlim_vvo2max_min ?? null,
     };
   }, [athletes, snapshots, athleteId]);
 
@@ -1037,6 +1045,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     map5min: nolioRefs.map5min,
     ftp: nolioRefs.ftp,
     weightKg: nolioRefs.weightKg,
+    tlimMin: nolioRefs.tlimMin,
   }), [nolioRefs]);
 
   // PHASE 2B v2 — TargetTable pour annoter les intensités relatives à l'affichage

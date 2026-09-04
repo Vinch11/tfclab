@@ -13,6 +13,7 @@ import type { ParsedSession } from "@/lib/aiPlanParser";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { recalcWorkoutRest, type WbalAthleteRefs } from "@/lib/wbalLibraryRecalc";
+import { calibrateBillat3030RangeFromTlim, formatBillat3030RangeSummary } from "@/lib/tlimVolumeCalibration";
 
 const byId: Map<string, LibraryWorkout> = (() => {
   const m = new Map<string, LibraryWorkout>();
@@ -109,7 +110,17 @@ export interface EnrichedSessionFiche {
   phase: string[];
   dPlusTargetM?: number | { min: number; max: number };
   wbalSummary?: string;
+  tlim3030Summary?: string;
 }
+
+/**
+ * Fiches Billat 30/30 course (vVO2max) éligibles au calibrage volume par
+ * Tlim — cf. tlimVolumeCalibration.ts. Scope volontairement restreint à ces
+ * deux ID précis (pas "toute fiche taguée Billat") : les autres formats du
+ * même auteur (60/60, 3min/3min, MLSS...) ont des durées d'intervalle et
+ * des ancres de dosage différentes, non couvertes par cette règle.
+ */
+const TLIM_3030_ELIGIBLE_IDS = new Set(["BILLAT_RUN_30_30_INTRO", "BILLAT_RUN_30_30_PRO"]);
 
 export function toFiche(w: LibraryWorkout, wbalRefs?: WbalAthleteRefs | null): EnrichedSessionFiche {
   const variants = w.variants
@@ -143,6 +154,15 @@ export function toFiche(w: LibraryWorkout, wbalRefs?: WbalAthleteRefs | null): E
       .join(" → ");
   }
 
+  // Volume 30/30 Billat : personnalisé via Tlim@vVO2max mesuré si disponible
+  // (tlimVolumeCalibration.ts), sinon repli silencieux — la fiche reste
+  // affichée telle quelle (palier fixe Intro/Pro existant), sans annotation.
+  let tlim3030Summary: string | undefined;
+  if (TLIM_3030_ELIGIBLE_IDS.has(w.id.toUpperCase())) {
+    const range = calibrateBillat3030RangeFromTlim(wbalRefs?.tlimMin ?? null);
+    if (range) tlim3030Summary = formatBillat3030RangeSummary(range);
+  }
+
   return {
     id: w.id,
     cat: w.cat,
@@ -159,6 +179,7 @@ export function toFiche(w: LibraryWorkout, wbalRefs?: WbalAthleteRefs | null): E
     phase: w.phase || [],
     dPlusTargetM: w.dPlusTargetM,
     wbalSummary,
+    tlim3030Summary,
   };
 }
 

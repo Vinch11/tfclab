@@ -97,6 +97,8 @@ export interface DbSnapshot {
   running_power_30s?: number | null;         // Best 30s running power (W)
   running_power_60s?: number | null;         // Best 60s running power (W)
   running_power_5min?: number | null;        // Best 5min running power (W)
+  // Tlim@vVO2max (Billat 1996) — calibrage volume 30/30 (cf. tlimVolumeCalibration.ts)
+  tlim_vvo2max_min?: number | null;
   created_at?: string;
   updated_at?: string;
 }
