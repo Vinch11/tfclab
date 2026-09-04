@@ -418,7 +418,7 @@ function resolveSLFloor(entry: SLWeekFloor | undefined | null): {
   };
 }
 
-function applySLFloorEnforcement(
+export function applySLFloorEnforcement(
   chunks: PlanChunk[],
   weeklyQuotas: Record<number, SLWeekFloor> | undefined | null,
   catalogDumpsByChunk: Array<string | null | undefined>,
@@ -430,6 +430,13 @@ function applySLFloorEnforcement(
     return { chunks, repairs, traces };
   }
   const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  // Repli catalogue global — cf. commentaire équivalent dans applyReconciler
+  // (bug réel "Test_Vince" : le dump rotationné d'un chunk peut ne contenir
+  // AUCUNE fiche endurance/recovery du sport concerné, alors que le catalogue
+  // complet en a systématiquement — sans ce repli, ce upgrade abandonnait
+  // silencieusement (sl_upgrade_unresolved, critical) faute de candidate
+  // locale, alors qu'une fiche valide existait hors du dump de ce chunk).
+  const allCandidatesAllChunks = candidatesByChunk.flat();
 
   chunks.forEach((chunk, ci) => {
     const candidates = candidatesByChunk[ci] ?? [];
@@ -481,12 +488,16 @@ function applySLFloorEnforcement(
 
         const target = sameSport.reduce((a, b) => (a.durationMin ?? 0) >= (b.durationMin ?? 0) ? a : b);
 
-        const endurance = candidates
+        const buildEndurancePool = (pool: typeof candidates) => pool
           .filter(c => c.sport === spec.sport)
           .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
           .filter(x => x.cls === "endurance" || x.cls === "recovery")
           .filter(x => x.c.durationMin[1] >= spec.floor || x.c.durationMedian >= spec.floor)
           .sort((a, b) => a.c.durationMedian - b.c.durationMedian);
+        // Repli catalogue global si le dump local du chunk n'a rien (cf.
+        // commentaire allCandidatesAllChunks ci-dessus).
+        const enduranceLocal = buildEndurancePool(candidates);
+        const endurance = enduranceLocal.length > 0 ? enduranceLocal : buildEndurancePool(allCandidatesAllChunks);
 
         const picked = endurance.find(x => x.c.durationMedian >= spec.floor) ?? endurance[0];
 
@@ -796,7 +807,7 @@ export function applyReconciler(
             const text = `${c.title} ${c.structure}`.toLowerCase();
             return primaryLimiterKeywords.some(kw => text.includes(kw.toLowerCase()));
           };
-          const pool = candidates
+          const buildInsertPool = (src: typeof candidates) => src
             .filter(c => c.sport === sport)
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
             .filter(x => x.cls === "endurance" || x.cls === "recovery" || (sport === "strength" && x.cls === "unknown"))
@@ -810,6 +821,10 @@ export function applyReconciler(
               if (limA !== limB) return limA - limB;
               return Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur);
             });
+          // Repli catalogue global si le dump local du chunk n'a rien (cf.
+          // commentaire allCandidatesAllChunks en tête de fonction).
+          const poolLocal = buildInsertPool(candidates);
+          const pool = poolLocal.length > 0 ? poolLocal : buildInsertPool(allCandidatesAllChunks);
           const picked = pool[0]?.c ?? null;
           const pickedMatchesLimiter = picked ? matchesLimiter(picked) : false;
           if (!picked) {
@@ -1191,6 +1206,11 @@ export function applyDailySessionFloorEnforcement(
     return { chunks, repairs, traces };
   }
   const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  // Repli catalogue global — cf. commentaire équivalent dans applyReconciler
+  // (le dump rotationné d'un chunk peut ne contenir aucune fiche du sport
+  // complémentaire requis, sans que ça reflète une vraie absence côté
+  // catalogue).
+  const allCandidatesAllChunks = candidatesByChunk.flat();
 
   chunks.forEach((chunk, ci) => {
     const candidates = candidatesByChunk[ci] ?? [];
@@ -1235,11 +1255,15 @@ export function applyDailySessionFloorEnforcement(
           continue;
         }
         const targetDur = complementSport === "strength" ? 40 : 45;
-        const pool = candidates
+        const buildComplementPool = (src: typeof candidates) => src
           .filter(c => c.sport === complementSport)
           .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
           .filter(x => x.cls === "endurance" || x.cls === "recovery" || (complementSport === "strength" && x.cls === "unknown"))
           .sort((a, b) => Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur));
+        // Repli catalogue global si le dump local du chunk n'a rien (cf.
+        // commentaire allCandidatesAllChunks ci-dessus).
+        const poolLocal = buildComplementPool(candidates);
+        const pool = poolLocal.length > 0 ? poolLocal : buildComplementPool(allCandidatesAllChunks);
         const picked = pool[0]?.c ?? null;
         if (!picked) {
           traces.push(`[DAILY_FLOOR] S${week.weekNumber} ${day} action=unresolved_no_candidate (complement=${complementSport})`);

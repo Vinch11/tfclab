@@ -1,0 +1,47 @@
+name: CI
+
+# Aucune CI n'existait avant ce fichier (aucun workflow, aucun script "test"
+# dans package.json) — trouvé en auditant la génération de plan (sept. 2026).
+# Conséquence concrète : chaque fichier *.test.ts Deno de ce dépôt (edge
+# functions, supabase/functions/ai-training-plan/) a été écrit et "vérifié"
+# uniquement par lecture/raisonnement manuel ou reproduction isolée dans un
+# autre runtime (Deno indisponible dans les environnements de dev utilisés),
+# jamais par une exécution réelle automatisée. Un bug de fixture réel a été
+# trouvé de cette façon (jsonPlanHandler.dailySessionFloorEnforcement.test.ts
+# aurait échoué s'il avait tourné). Ce workflow fait tourner pour de vrai,
+# sur chaque push/PR, la suite vitest (frontend) ET la suite Deno (edge
+# functions) — sans lui, ces fichiers restent des tests seulement sur le
+# papier.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  vitest:
+    name: Vitest (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bunx tsc --noEmit -p tsconfig.json
+      - run: bun run vitest run
+
+  deno-test:
+    name: Deno test (edge functions)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Run Deno tests (ai-training-plan)
+        working-directory: supabase/functions/ai-training-plan
+        # -A (toutes permissions) : ces fichiers sont notre propre code, pas
+        # du code non fiable — certains imports transitifs peuvent lire des
+        # variables d'env au chargement du module. À resserrer plus tard si
+        # besoin (--allow-env --allow-read suffiraient probablement).
+        run: deno test -A

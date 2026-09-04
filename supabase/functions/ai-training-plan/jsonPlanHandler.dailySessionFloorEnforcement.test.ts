@@ -12,9 +12,23 @@ import { applyDailySessionFloorEnforcement } from "./jsonPlanHandler.ts";
  * exactement le même schéma que le bug signatures LCW déjà corrigé.
  */
 
-const CATALOG_DUMP = `| ID | Sport | Titre | Phase | Durée | Structure |
-| A_RUN_EASY_STRIDES_PRO | run | EF + lignes droites | Base | 45-75 | endurance Z2 stable |
-| V2_RECUP_VELO_REGENERATION | bike | Récupération vélo | Base | 30-50 | récup Z1 |
+// Bug de fixture réel trouvé en creusant l'absence de couverture pour le
+// repli catalogue global (cf. test ci-dessous) : parseCatalogCandidatesFromDump
+// (jsonPlanHandler.ts) déduit `sport` UNIQUEMENT depuis un en-tête markdown
+// "#### <section>" précédant les lignes — la colonne "Sport" du tableau
+// elle-même est ignorée par le parseur réel. Sans en-tête, TOUTES les
+// candidates ci-dessous ressortaient avec sport="unknown", ce qui aurait dû
+// faire échouer le tout premier test de ce fichier (le filtre
+// `c.sport === complementSport` ne matche jamais "unknown") — vérifié via
+// une reproduction fidèle du parseur en dehors de cet environnement (Deno
+// indisponible ici). Corrigé avec de vrais en-têtes de section.
+const CATALOG_DUMP = `#### Course
+| ID | Cat | Titre | Phase | Durée | Structure |
+| A_RUN_EASY_STRIDES_PRO | A | EF + lignes droites | Base | 45-75 | endurance Z2 stable |
+
+#### Vélo
+| ID | Cat | Titre | Phase | Durée | Structure |
+| V2_RECUP_VELO_REGENERATION | D | Récupération vélo | Base | 30-50 | récup Z1 |
 `;
 
 function mkSess(day: string, sport: string, catalogId: string | null, title?: string): any {
@@ -86,4 +100,27 @@ Deno.test("applyDailySessionFloorEnforcement — semaine taper/recovery/race jam
   const quotas = { 4: { ...BASE_QUOTA_LOAD, weekType: "taper" } };
   const { repairs } = applyDailySessionFloorEnforcement(chunks, quotas, [CATALOG_DUMP], "703", "competitor");
   assertEquals(repairs.length, 0);
+});
+
+Deno.test("applyDailySessionFloorEnforcement — dump du chunk courant sans candidate, mais disponible dans un AUTRE chunk : repli catalogue global (même bug que le dédoublonnage 'Test_Vince')", () => {
+  // Chunk 0 (S1) : dump SANS aucune fiche run/bike endurance — reproduit la
+  // rotation catalogue réelle qui peut exclure ces fiches de ce chunk précis.
+  const CATALOG_DUMP_EMPTY = `| ID | Sport | Titre | Phase | Durée | Structure |
+| C_STR_GLUTE_REACTIVATION | strength | Réactivation fessiers | Base | 20-30 | gainage léger |
+`;
+  const chunk0 = { weeks: [mkWeek(1, [mkSess("lundi", "strength", null, "Circuit Endurance Musculaire Général")])] };
+  const chunk1 = { weeks: [mkWeek(2, [])] };
+
+  const { chunks: out, repairs } = applyDailySessionFloorEnforcement(
+    [chunk0, chunk1] as any,
+    { 1: BASE_QUOTA_LOAD, 2: BASE_QUOTA_LOAD },
+    [CATALOG_DUMP_EMPTY, CATALOG_DUMP],
+    "Ironman 70.3",
+    "competitor",
+  );
+
+  const lundiSessions = out[0].weeks[0].sessions.filter((s: any) => s.day === "lundi");
+  assertEquals(lundiSessions.length, 2, "repli catalogue global doit résoudre l'insertion malgré un dump local vide");
+  assert(repairs.some(r => r.code === "daily_floor_enforced"), "doit réussir via le repli, pas rester unresolved");
+  assert(!repairs.some(r => r.code === "daily_floor_unresolved"));
 });
