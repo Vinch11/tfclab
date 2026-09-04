@@ -27,7 +27,7 @@ import {
   buildStructuredDiagnosticBlock,
 } from "./promptHelpers.ts";
 import { getSystemPromptJSON } from "./systemPromptJSON.ts";
-import { extractLimiterKeywords, normalizeObjKey } from "./sportRatioMatrix.ts";
+import { extractLimiterKeywords, normalizeObjKey, taperWeeksForObjectiveServer } from "./sportRatioMatrix.ts";
 import { buildAthleteConstraintsBlock } from "./constraintsBlock.ts";
 import {
   generateChunkJSON,
@@ -1313,24 +1313,6 @@ function resolvePhaseCatalog(
     }
   }
   return (workoutCatalog && typeof workoutCatalog === "string") ? workoutCatalog : "";
-}
-
-/**
- * Semaines de taper par objectif — MIROIR de TAPER_WEEKS_BY_OBJECTIVE
- * (sessionSizingMatrix.ts, edge function ne peut pas importer depuis src/) —
- * garder synchronisé manuellement. Nécessaire pour inferPhaseFromWeek
- * ci-dessous : un cutoff `pct > 0.92` fixe ne capture QUE la toute dernière
- * semaine sur un plan court, quel que soit l'objectif — alors que le moteur
- * de quotas côté client sait déjà qu'un 703 a besoin de 2 semaines de taper
- * et un IM de 3.
- */
-const TAPER_WEEKS_BY_OBJECTIVE_SERVER: Record<string, number> = {
-  IM: 3, "703": 2, Marathon: 2, Sprint: 1, Olympic: 1, Semi: 1, "10K": 1, "5K": 1, StartToRun: 1,
-};
-function taperWeeksForObjectiveServer(objective?: string | null): number {
-  if (!objective) return 1;
-  const key = normalizeObjKey(String(objective));
-  return TAPER_WEEKS_BY_OBJECTIVE_SERVER[key] ?? 1;
 }
 
 /**

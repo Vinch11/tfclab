@@ -2,7 +2,7 @@
 // PROMPT HELPERS — User prompt builder, CP/W' model, diagnostics
 // ═══════════════════════════════════════════════════════════════
 
-import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, SPORT_RATIO_REFS, type CatalogDurationStats } from "./sportRatioMatrix.ts";
+import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, taperWeeksForObjectiveServer, SPORT_RATIO_REFS, type CatalogDurationStats } from "./sportRatioMatrix.ts";
 import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
 import { buildNutritionAndSafetyBlock } from "./nutritionAndSafetyGuardrails.ts";
 import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
@@ -325,10 +325,17 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     const L1 = (rawList[0] || "").toLowerCase();
     const L2 = (rawList[1] || "").toLowerCase();
 
-    // Taper duration adapté à la durée du plan (max 3 sem, min 1 sem)
-    const fullTaper = ["IM", "TrailUltra"].includes(objKey) ? 3 : ["703", "Marathon"].includes(objKey) ? 2 : ["Semi", "Trail", "TrailMountain"].includes(objKey) ? 2 : 1;
-    // Plan court: on rogne le taper plutôt que les phases (mais on garde ≥1 sem)
-    const taperWeeks = Math.max(1, Math.min(fullTaper, Math.floor(tw * 0.2)));
+    // Bug réel confirmé (audit "Test_Vince", 703 8 semaines) : cette table
+    // locale (Semi=2, Trail générique=2) ET son plafond `floor(tw*0.2)`
+    // divergeaient de taperWeeksForObjectiveServer (source de vérité, elle-
+    // même miroir du moteur de quotas client qui NE plafonne JAMAIS le taper
+    // pour un plan court — cf. inferWeekType/sessionSizingMatrix.ts). Sur ce
+    // plan précis, cette table disait au LLM "taper = 1 semaine (S8)" pendant
+    // que le moteur de quotas traitait déjà S7 ET S8 comme taper — la
+    // consigne donnée au LLM contredisait directement ce que le reconciliateur
+    // allait ensuite imposer. Remplacé par l'appel direct à la fonction
+    // partagée, sans plafond proportionnel (aucun équivalent côté quotas).
+    const taperWeeks = Math.max(1, taperWeeksForObjectiveServer(objKey));
 
     // Race-specific: rogné aussi pour plans courts
     const targetRaceSpecific = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));

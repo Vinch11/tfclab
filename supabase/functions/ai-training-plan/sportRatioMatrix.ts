@@ -251,6 +251,35 @@ export function normalizeObjKey(obj: string): string {
   return obj;
 }
 
+/**
+ * Semaines de taper par objectif — MIROIR de TAPER_WEEKS_BY_OBJECTIVE
+ * (sessionSizingMatrix.ts, source de vérité côté client ; l'edge function ne
+ * peut pas importer depuis src/) — garder synchronisé manuellement.
+ *
+ * Point d'entrée UNIQUE côté edge function pour ce calcul : avant ce
+ * regroupement, jsonPlanHandler.ts (inferPhaseFromWeek) ET promptHelpers.ts
+ * (bornes de phase envoyées au LLM) maintenaient chacun leur propre table —
+ * elles avaient divergé (promptHelpers donnait Semi=2 et Trail générique=2,
+ * contre 1 côté client/inferPhaseFromWeek) ET promptHelpers appliquait en
+ * plus un plafond `floor(totalWeeks * 0.2)` inexistant côté quotas — sur un
+ * plan 703 8 semaines, ça faisait dire au LLM "taper = 1 semaine (S8)"
+ * pendant que le moteur de quotas (et inferPhaseFromWeek) traitaient déjà S7
+ * ET S8 comme taper (2 semaines, cf. audit "Test_Vince"). Exactement la même
+ * classe de split-brain que le bug déjà corrigé sur inferPhaseFromWeek, mais
+ * une étape plus en amont : la CONSIGNE donnée au LLM elle-même, pas
+ * seulement le repli catalogue post-génération.
+ */
+const TAPER_WEEKS_BY_OBJECTIVE_SERVER: Record<string, number> = {
+  IM: 3, "703": 2, Marathon: 2, TriSprint: 1, TriOlympique: 1, Semi: 1,
+  TrailUltra: 3, TrailMountain: 2, TrailShort: 1, Trail: 1,
+  "10K": 1, "5K": 1, StartToRun: 1,
+};
+export function taperWeeksForObjectiveServer(objective?: string | null): number {
+  if (!objective) return 1;
+  const key = normalizeObjKey(String(objective));
+  return TAPER_WEEKS_BY_OBJECTIVE_SERVER[key] ?? 1;
+}
+
 // === REFERENCE STANDARDS BY OBJECTIVE × AMBITION × SEX ===
 // ⚠️ Standards populationnels (littérature / cohortes AG). Usage EXCLUSIF :
 //    • GapAmbitionPanel (comparaison snapshot vs standard populationnel).
