@@ -1302,13 +1302,46 @@ function resolvePhaseCatalog(
   return (workoutCatalog && typeof workoutCatalog === "string") ? workoutCatalog : "";
 }
 
-/** Heuristique de phase basée sur la position dans le plan (fallback si pas de phaseCatalog). */
-export function inferPhaseFromWeek(weekStart: number, totalWeeks: number): string {
+/**
+ * Semaines de taper par objectif — MIROIR de TAPER_WEEKS_BY_OBJECTIVE
+ * (sessionSizingMatrix.ts, edge function ne peut pas importer depuis src/) —
+ * garder synchronisé manuellement. Nécessaire pour inferPhaseFromWeek
+ * ci-dessous : un cutoff `pct > 0.92` fixe ne capture QUE la toute dernière
+ * semaine sur un plan court, quel que soit l'objectif — alors que le moteur
+ * de quotas côté client sait déjà qu'un 703 a besoin de 2 semaines de taper
+ * et un IM de 3.
+ */
+const TAPER_WEEKS_BY_OBJECTIVE_SERVER: Record<string, number> = {
+  IM: 3, "703": 2, Marathon: 2, Sprint: 1, Olympic: 1, Semi: 1, "10K": 1, "5K": 1, StartToRun: 1,
+};
+function taperWeeksForObjectiveServer(objective?: string | null): number {
+  if (!objective) return 1;
+  const key = normalizeObjKey(String(objective));
+  return TAPER_WEEKS_BY_OBJECTIVE_SERVER[key] ?? 1;
+}
+
+/**
+ * Heuristique de phase basée sur la position dans le plan (fallback si pas
+ * de phaseCatalog). Bug réel confirmé (audit plan "Vince" 70.3 LCW 8
+ * semaines) : sans awareness de l'objectif, le cutoff `pct > 0.92` ne
+ * capture que la dernière semaine d'un plan court — sur un 703 (taper
+ * attendu = 2 semaines), la semaine S-1 avant la course retombait "peak" au
+ * lieu de "taper", alors que le moteur de quotas (weeklyQuotas côté client,
+ * lui conscient de taperWeeksForObjective) traitait déjà correctement cette
+ * même semaine comme taper (volume réduit). Le LLM recevait deux consignes
+ * contradictoires (quota=taper vs phase-guidance=peak) et produisait du
+ * contenu taper (openers/shakeouts J-1) sous une étiquette de phase "peak"
+ * — exactement le symptôme détecté par checkB11 (fuite_mapping) côté
+ * client, jamais corrigé jusqu'ici puisque la source du problème est cette
+ * heuristique, pas le contenu généré en lui-même.
+ */
+export function inferPhaseFromWeek(weekStart: number, totalWeeks: number, objective?: string | null): string {
+  const taperWeeks = Math.max(1, taperWeeksForObjectiveServer(objective));
+  if (weekStart > totalWeeks - taperWeeks) return "taper";
   const pct = weekStart / Math.max(totalWeeks, 1);
   if (pct <= 0.30) return "base";
   if (pct <= 0.70) return "build";
-  if (pct <= 0.92) return "peak";
-  return "taper";
+  return "peak";
 }
 
 export function handleJSONPlanRequest(input: HandlerInput): Response {
@@ -1359,7 +1392,11 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
   // multiplierait les appels LLM sans bénéfice, d'où le calcul conditionnel.
   const standardChunkSize = isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
   const CHUNK_SIZE = isFullFreshLCWGeneration
-    ? computeLcwChunkSize(totalWeeks, standardChunkSize, inferPhaseFromWeek)
+    ? computeLcwChunkSize(
+        totalWeeks,
+        standardChunkSize,
+        (w, tw) => inferPhaseFromWeek(w, tw, planConfig?.objective),
+      )
     : standardChunkSize;
   const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 6;
   const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
@@ -1430,7 +1467,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             ?? (typeof planConfig?.windowRegenPhase === "string" && planConfig.windowRegenPhase
               ? planConfig.windowRegenPhase
               : null)
-            ?? inferPhaseFromWeek(chunk.start, totalWeeks);
+            ?? inferPhaseFromWeek(chunk.start, totalWeeks, planConfig?.objective);
           const catalogDump = chunkSpecificCatalog
             ?? resolvePhaseCatalog(activePhase, phaseCatalogs, workoutCatalog);
           catalogDumpsByChunk[ci] = catalogDump;
@@ -1533,7 +1570,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
                 isLastBuildOrPeakChunk: !Array.from(
                   { length: Math.max(0, totalWeeks - chunk.end) },
                   (_, i) => chunk.end + 1 + i,
-                ).some((wk) => ["build", "peak"].includes(inferPhaseFromWeek(wk, totalWeeks))),
+                ).some((wk) => ["build", "peak"].includes(inferPhaseFromWeek(wk, totalWeeks, planConfig?.objective))),
               })
             : null;
 
