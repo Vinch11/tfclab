@@ -96,6 +96,31 @@ Deno.test("applyReconciler — pas de duplicata : aucun repair de déduplication
   assert(!repairs.some((r) => r.code === "duplicate_catalog_id_replaced" || r.code === "duplicate_catalog_id_unresolved"));
 });
 
+Deno.test("applyReconciler — aucune alternative dans le dump du chunk courant, mais disponible dans un AUTRE chunk : repli catalogue global (bug réel 'Test_Vince', S1 mardi+jeudi jamais corrigé)", () => {
+  // Chunk 0 (S1) : dump rotationné ne contient QUE V3_BIKE_FORCE_SFR — aucune
+  // alternative locale, exactement le cas réel observé (rotation catalogue
+  // par chunk peut exclure les fiches concurrentes de la même classe).
+  const chunk0 = mkChunk([mkSfrSession("mardi"), mkSfrSession("jeudi")]);
+  // Chunk 1 (S2, autre semaine) : dump différent, contient une alternative.
+  const chunk1 = mkChunk([]);
+  chunk1.weeks[0].weekNumber = 2;
+
+  const { chunks, repairs } = applyReconciler(
+    [chunk0, chunk1],
+    { ...BASE_QUOTA, 2: BASE_QUOTA[1] },
+    [CATALOG_DUMP_NO_ALTERNATIVE, CATALOG_DUMP_WITH_ALTERNATIVE],
+    null,
+  );
+
+  const ids = chunks[0].weeks[0].sessions.map((s: any) => s.catalogId);
+  assertEquals(ids[0], "V3_BIKE_FORCE_SFR", "1re occurrence intacte");
+  assertEquals(ids[1], "V3_BIKE_THRESHOLD_HILLS", "2e occurrence corrigée via le catalogue de l'AUTRE chunk");
+  assertEquals(new Set(ids).size, ids.length, "plus aucun doublon dans S1");
+
+  const repair = repairs.find((r) => r.code === "duplicate_catalog_id_replaced");
+  assert(repair, "repair duplicate_catalog_id_replaced attendu (repli global réussi)");
+});
+
 Deno.test("applyReconciler — 3 occurrences du même catalogId : les 2 dernières remplacées, la 1re intacte", () => {
   const dump = `#### Vélo
 | ID | Cat | Titre | Phase | Durée | Structure |
