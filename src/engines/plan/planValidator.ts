@@ -1604,8 +1604,28 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
 // PROHIBITION VIOLATION DETECTION (Rule 7)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/** Patterns that indicate Sprint Ban violations */
-const SPRINT_BAN_VIOLATION_PATTERNS = /tabata|sprint\s*(all[- ]out|neuro|max)|(\d+\s*[×x]\s*\d{1,2}s\s*(sprint|all[- ]out))|micro[- ]interv|drop\s*jump|hurdle\s*rebound|band\s*sprint|plyo\s*explo/i;
+/**
+ * Patterns that indicate Sprint Ban violations.
+ *
+ * Bug réel (audit "génération solide ?", passe 2) : le catalogue TFCL réel
+ * note quasi-systématiquement les secondes avec un guillemet ("10\"", "10''")
+ * plutôt qu'un "s" littéral, et écrit les reps/durées en plage ("10-15",
+ * "6-8"). L'ancien pattern numérique (`\d+...\d{1,2}s...`) ne matchait aucune
+ * de ces deux notations réelles — des fiches côte explicitement taguées
+ * "neuromusculaire pur"/"puissance" (ex. 12×8" sprint côte raide, 10-15x10-15"
+ * sprint en côte) passaient totalement inaperçues sous Sprint Ban. Élargi
+ * pour couvrir "|guillemet(s)|sec" et les plages sur les deux nombres.
+ * Négation ajoutée sur "plyo explo" (pré-existant, même passe) : "pas de
+ * plyo explosive" — une séance qui RESPECTE l'interdiction — était comptée
+ * comme violation faute de gérer la négation française la plus commune.
+ * Limite connue, non résolue : un "sprint" hors plage numérique adjacente
+ * (ex. "10×10s pente ... 60m sprint en fin de série", où "sprint" n'est ni
+ * dans la plage-secondes ni suivi d'un qualificatif all-out/max/neuro à
+ * proximité) reste un angle mort — distinguer fiabilement par regex un
+ * effort contrôlé ("rapide mais pas max") d'un sprint all-out nécessiterait
+ * une analyse sémantique, pas seulement lexicale.
+ */
+const SPRINT_BAN_VIOLATION_PATTERNS = /tabata|sprint\s*(all[- ]out|neuro|max)|(\d{1,3}(?:[-–]\d{1,3})?\s*[×x]\s*\d{1,3}(?:[-–]\d{1,3})?\s*(?:s\b|''|"|sec)\s*(sprint|all[- ]out))|micro[- ]interv|drop\s*jump|hurdle\s*rebound|band\s*sprint|(?<!pas de |sans |aucun(?:e)? )plyo\s*explo/i;
 /** Patterns that indicate heavy VO2max violations (≥5min @>110% FTP) */
 const VO2MAX_HEAVY_VIOLATION_PATTERNS = /[5-9]\s*[×x]\s*5\s*(?:min|')\s*@?\s*(?:1[1-9]\d|115|120)\s*%\s*FTP|tabata\s*vo2|30\/30\s*(?:long|×\s*[2-9]\d)/i;
 
@@ -1651,7 +1671,11 @@ function validateProhibitionCompliance(
       if (hasSprintBan && !SPRINT_BAN_VIOLATION_PATTERNS.test(text)) {
         const catalogId = extractCatalogId(session.title, session.details);
         const isCustom = /\[custom\]/i.test(text) || !catalogId;
-        const mentionsSprintFamily = /\b(sprint|pmax|neuromuscul|all[- ]out|explosif|plyo|pliom[ée]tri|force[\s-]*vitesse)\b/i.test(text);
+        // Même négation que SPRINT_BAN_VIOLATION_PATTERNS (audit "génération
+        // solide ?", passe 2) : sans elle, "pas de plyo explosive" (une
+        // séance qui RESPECTE l'interdiction) déclenchait quand même cette
+        // 2e détection, la 1re ayant été corrigée pour ne plus la matcher.
+        const mentionsSprintFamily = /(?<!pas de |sans |aucun(?:e)? )\b(sprint|pmax|neuromuscul|all[- ]out|explosif|plyo|pliom[ée]tri|force[\s-]*vitesse)\b/i.test(text);
         if (isCustom && mentionsSprintFamily) {
           violations++;
           issues.push({
