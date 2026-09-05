@@ -2405,7 +2405,23 @@ const LORANG_HI_INTENSITY_MAX_PCT = 25;
 const LORANG_ENDURANCE_MIN_PCT = 75;
 
 const LORANG_EXPLICIT_TAG_RX = /\[\s*([ABCD])\s*\]/i;
-const LORANG_CATALOG_PREFIX_RX = /\b([ABCD])_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE)/;
+/**
+ * Bug réel (audit "génération solide ?", passe 4) : sur les 61 préfixes
+ * distincts réellement utilisés dans le catalogue (enrichedWorkouts*.ts,
+ * workoutLibrary.ts), 8 échappaient à ce pattern — B_LCW et 7 fiches "D"
+ * (D_ACTIVATION*, D_COLD*, D_DELOAD*, D_FOAM*, D_MOBILITY*, D_VISUALIZATION*,
+ * D_YOGA*). Ces fiches retombaient sur le fallback mot-clé (LORANG_D_RX /
+ * LOW_INTENSITY_PATTERNS) qui ne les couvre pas toutes non plus (ex. "foam
+ * rolling", "activation pré-course" n'ont pas de mot-clé dédié) — ces
+ * fiches, pourtant explicitement catégorisées dans leur propre catalogId,
+ * n'étaient comptées ni dans le bon bucket A/B/C/D ni dans le taux
+ * d'étiquetage "tagged" (ce pattern alimente directement `tagged` dans
+ * validateLorangCategories, pas seulement `classifyLorang`), faussant à la
+ * fois la distribution Lorang et la traçabilité méthodologique affichées au
+ * coach. Élargi pour couvrir les 61 préfixes réels (vérifié : 0 miss après
+ * ce correctif).
+ */
+const LORANG_CATALOG_PREFIX_RX = /\b([ABCD])_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE|LCW|ACTIVATION|COLD|DELOAD|FOAM|MOBILITY|VISUALIZATION|YOGA)/;
 const LORANG_A_RX = /vo2|vma|billat|30[\/_ -]?30|15[\/_ -]?15|pma|tabata|z\s*[56]|zone\s*[56]|hiit|sprint\s*(?:max|all.?out)|neuro\s*muscul/i;
 const LORANG_B_RX = /seuil|threshold|mlss|sweet[\s_-]*spot|\bsst\b|over.?under|ftp|cruise|norvégi|norwegian|double[\s_-]*threshold|race[\s_-]*pace|allure\s*(?:course|semi|marathon|10k|5k|70\.?3|im\b|ironman|spécifiq)|tempo\s*(?:long|\d{2,3}\s*min|\d+\s*x\s*\d+)|z\s*4/i;
 const LORANG_D_RX = /décharge|recovery\s*ride|spin\s*facile|yoga|marche|mobilit|souplesse|activation\s*courte|régénér/i;
