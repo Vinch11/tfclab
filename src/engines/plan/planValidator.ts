@@ -1626,8 +1626,42 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
  * une analyse sémantique, pas seulement lexicale.
  */
 const SPRINT_BAN_VIOLATION_PATTERNS = /tabata|sprint\s*(all[- ]out|neuro|max)|(\d{1,3}(?:[-–]\d{1,3})?\s*[×x]\s*\d{1,3}(?:[-–]\d{1,3})?\s*(?:s\b|''|"|sec)\s*(sprint|all[- ]out))|micro[- ]interv|drop\s*jump|hurdle\s*rebound|band\s*sprint|(?<!pas de |sans |aucun(?:e)? )plyo\s*explo/i;
-/** Patterns that indicate heavy VO2max violations (≥5min @>110% FTP) */
-const VO2MAX_HEAVY_VIOLATION_PATTERNS = /[5-9]\s*[×x]\s*5\s*(?:min|')\s*@?\s*(?:1[1-9]\d|115|120)\s*%\s*FTP|tabata\s*vo2|30\/30\s*(?:long|×\s*[2-9]\d)/i;
+/** Signaux non-numériques (indépendants de la durée/%FTP) de violation VO2max lourde. */
+const VO2MAX_HEAVY_VIOLATION_TEXT_PATTERNS = /tabata\s*vo2|30\/30\s*(?:long|×\s*[2-9]\d)/i;
+
+/**
+ * Bug réel (audit "génération solide ?", passe 3) : l'ancien pattern
+ * numérique (`[5-9]×5(min|')@?(1[1-9]\d|115|120)%FTP`) exigeait un "@"
+ * littéral (ou rien) ET une durée d'EXACTEMENT "5" min ET 5-9 répétitions —
+ * or le catalogue réel écrit systématiquement "à" (pas "@"), des durées
+ * variées (4, 6, 8, 10-12 min...) et des reps hors [5-9] (3, 4, 4-5...), et
+ * sépare parfois durée et %FTP par un label de zone ("6' Z5 à 108-115%
+ * FTP"). Sur un échantillon de 10 fiches catalogue réelles ≥5min à >110%
+ * FTP (dont l'exemple "5×5' à 110-115% FTP" que le commentaire d'origine
+ * citait lui-même comme cas cible), AUCUNE n'était détectée — le contrôle
+ * était un no-op de fait sous restriction VO2max. Remplacé par une
+ * extraction numérique (durée, %FTP) tolérante aux plages des deux côtés et
+ * à un court texte intercalé (ex. un label de zone), avec comparaison
+ * explicite au seuil de la règle (≥5min ET >110% FTP, borne haute de chaque
+ * plage utilisée — lecture pire cas) plutôt qu'un pattern figé sur un seul
+ * format d'écriture.
+ */
+function extractFtpIntervalBlocks(text: string): Array<{ durationMinHigh: number; ftpPctHigh: number }> {
+  const blocks: Array<{ durationMinHigh: number; ftpPctHigh: number }> = [];
+  const RX = /(\d{1,3})(?:[-–](\d{1,3}))?\s*(?:min|')[\s\S]{0,20}?(\d{1,3})(?:[-–](\d{1,3}))?\s*%\s*FTP/gi;
+  let m: RegExpExecArray | null;
+  while ((m = RX.exec(text))) {
+    const durationMinHigh = m[2] ? parseInt(m[2], 10) : parseInt(m[1], 10);
+    const ftpPctHigh = m[4] ? parseInt(m[4], 10) : parseInt(m[3], 10);
+    blocks.push({ durationMinHigh, ftpPctHigh });
+  }
+  return blocks;
+}
+
+function hasVo2maxHeavyViolation(text: string): boolean {
+  if (VO2MAX_HEAVY_VIOLATION_TEXT_PATTERNS.test(text)) return true;
+  return extractFtpIntervalBlocks(text).some((b) => b.durationMinHigh >= 5 && b.ftpPctHigh > 110);
+}
 
 function validateProhibitionCompliance(
   plan: ParsedPlan,
@@ -1688,7 +1722,7 @@ function validateProhibitionCompliance(
         }
       }
 
-      if (hasVO2Restriction && VO2MAX_HEAVY_VIOLATION_PATTERNS.test(text)) {
+      if (hasVO2Restriction && hasVo2maxHeavyViolation(text)) {
         violations++;
         issues.push({
           rule: "prohibition_compliance",
