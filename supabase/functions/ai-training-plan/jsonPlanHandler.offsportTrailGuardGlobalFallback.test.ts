@@ -82,8 +82,18 @@ Deno.test("applyOffsportTrailGuardToChunks — aucune fiche run nulle part (mêm
   );
 
   const sess = out[0].weeks[0].sessions[0];
-  assertEquals(sess.catalogId, "TRAIL_HILL_RUN", "pas de fausse correction sans candidate disponible");
-  assert(repairs.some((r: any) => r.code === "offsport_unresolved"));
+  // Un catalogId trail survivant est TOUJOURS basculé en custom (invariant
+  // custom=true ⇒ catalogId=null, planSchema.ts), avant même la tentative de
+  // substitution — donc catalogId=null que la substitution réussisse ou non.
+  // "Pas de fausse correction" porte sur le CONTENU (title/details), qui doit
+  // rester inchangé quand aucun remplaçant n'existe (ni localement, ni via le
+  // repli global) : la traçabilité de l'ID d'origine reste dans matchedMarker.
+  assertEquals(sess.catalogId, null);
+  assertEquals(sess.custom, true);
+  assertEquals(sess.title, "Sortie trail", "contenu original préservé, pas de fausse correction sans candidate disponible");
+  const repair = repairs.find((r: any) => r.code === "offsport_unresolved");
+  assert(repair, "doit être signalé unresolved");
+  assertEquals(repair.matchedMarker, "TRAIL_HILL_RUN", "l'ID trail d'origine reste traçable dans le repair malgré le catalogId nullifié");
 });
 
 Deno.test("applyOffsportTrailGuardToChunks — objectif trail : guard désactivé, aucun repair", () => {
