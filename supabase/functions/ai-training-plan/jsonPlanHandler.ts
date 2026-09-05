@@ -226,7 +226,7 @@ function findCatalogCandidateForSport(
 // ce guard devra consommer le profil pour relâcher les règles vocabulaire D+ vélo
 // (et éventuellement run/brick) pour ces athlètes : ne pas substituer une séance
 // custom "4h vélo en massif" si l'athlète a un terrain vallonné confirmé.
-function applyOffsportTrailGuardToChunks(
+export function applyOffsportTrailGuardToChunks(
   chunks: PlanChunk[],
   objective: string | null | undefined,
   catalogDumpsByChunk: Array<string | null | undefined>,
@@ -234,6 +234,13 @@ function applyOffsportTrailGuardToChunks(
   if (isTrailObjective(objective)) return { chunks, repairs: [] };
   const repairs: OffsportTrailRepair[] = [];
   const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  // Repli catalogue global — même bug/même correctif que applyReconciler /
+  // applySLFloorEnforcement / applyDailySessionFloorEnforcement (audit
+  // "Test_Vince" puis audit systématique du reste du pipeline) : le dump
+  // rotationné d'un chunk peut ne contenir aucune fiche de remplacement pour
+  // le sport/classe requis, sans que ça reflète une vraie absence côté
+  // catalogue complet.
+  const allCandidatesAllChunks = candidatesByChunk.flat();
   chunks.forEach((chunk, ci) => {
     const candidates = candidatesByChunk[ci] ?? [];
     for (const week of chunk.weeks ?? []) {
@@ -274,27 +281,48 @@ function applyOffsportTrailGuardToChunks(
           `${session.title ?? ""} ${session.details ?? ""}`,
         );
 
-        // Substitution primaire same-sport + same intensity class
-        let result = findCatalogCandidateForSport(candidates, sessionSport, targetDur, requiredClass);
-        let attemptedSport = sessionSport;
-        let brickFallback = false;
+        // Substitution primaire same-sport + same intensity class — chunk
+        // local d'abord, puis repli catalogue global si rien trouvé (cf.
+        // commentaire allCandidatesAllChunks ci-dessus).
+        const attemptSubstitution = (pool: typeof candidates) => {
+          let res = findCatalogCandidateForSport(pool, sessionSport, targetDur, requiredClass);
+          let sport = sessionSport;
+          let viaBrick = false;
+          // Brick → fallback bike si aucun candidat brick (même classe)
+          if (!res.candidate && sessionSport === "brick") {
+            res = findCatalogCandidateForSport(pool, "bike", targetDur, requiredClass);
+            if (res.candidate) { sport = "bike"; viaBrick = true; }
+          }
+          return { res, sport, viaBrick };
+        };
 
-        // Brick → fallback bike si aucun candidat brick (même classe)
-        if (!result.candidate && sessionSport === "brick") {
-          result = findCatalogCandidateForSport(candidates, "bike", targetDur, requiredClass);
-          if (result.candidate) {
-            attemptedSport = "bike";
-            brickFallback = true;
+        let attempt = attemptSubstitution(candidates);
+        let searchPool = candidates;
+        if (!attempt.res.candidate) {
+          const globalAttempt = attemptSubstitution(allCandidatesAllChunks);
+          if (globalAttempt.res.candidate) {
+            attempt = globalAttempt;
+            searchPool = allCandidatesAllChunks;
           }
         }
+        let result = attempt.res;
+        let attemptedSport = attempt.sport;
+        let brickFallback = attempt.viaBrick;
 
-        const { ranked, sameSport } = rankCandidatesBySport(candidates, attemptedSport, targetDur);
+        // Diagnostic (nearest candidates) : classé sur allCandidatesAllChunks
+        // — un sur-ensemble de searchPool — pour rester informatif même
+        // quand ni le chunk local ni le repli global n'ont abouti. Les
+        // champs "...InChunk" ci-dessous restent, eux, spécifiquement des
+        // comptes LOCAUX (cf. leur nom) : ils mesurent la rotation catalogue
+        // de CE chunk, indépendamment du repli.
+        const { ranked } = rankCandidatesBySport(allCandidatesAllChunks, attemptedSport, targetDur);
         const nearest3: OffsportNearestCandidate[] = ranked.slice(0, 3).map(x => ({
           id: x.c.id,
           durationMedian: x.c.durationMedian,
           durationMin: x.c.durationMin,
           deltaMin: x.delta,
         }));
+        const sameSportInChunk = rankCandidatesBySport(candidates, attemptedSport, targetDur).sameSport;
         const before = {
           title: session.title ?? "",
           details: session.details ?? "",
@@ -305,8 +333,8 @@ function applyOffsportTrailGuardToChunks(
           const nearestStr = nearest3.length > 0
             ? nearest3.map(n => {
                 const cls = classifyIntensity(
-                  candidates.find(c => c.id === n.id)?.zones,
-                  `${candidates.find(c => c.id === n.id)?.title ?? ""} ${candidates.find(c => c.id === n.id)?.structure ?? ""}`,
+                  allCandidatesAllChunks.find(c => c.id === n.id)?.zones,
+                  `${allCandidatesAllChunks.find(c => c.id === n.id)?.title ?? ""} ${allCandidatesAllChunks.find(c => c.id === n.id)?.structure ?? ""}`,
                 );
                 return `${n.id}(median=${n.durationMedian}min,Δ=${n.deltaMin}min,class=${cls})`;
               }).join(", ")
@@ -319,9 +347,9 @@ function applyOffsportTrailGuardToChunks(
             day: session.day,
             sport: session.sport,
             before,
-            reason: `no catalog candidate within ±${tolerance}min AND same intensity class="${requiredClass}" (sport=${sessionSport}, target=${targetDur}min, sameSportCandidates=${sameSport.length}/${candidates.length}, nearest=[${nearestStr}], matchedMarker=${matchedMarker})`,
+            reason: `no catalog candidate within ±${tolerance}min AND same intensity class="${requiredClass}" (sport=${sessionSport}, target=${targetDur}min, sameSportCandidatesInChunk=${sameSportInChunk.length}/${candidates.length}, nearest_global=[${nearestStr}], matchedMarker=${matchedMarker}) — recherché dans le chunk courant ET l'ensemble du catalogue (repli global), aucun match dans les deux`,
             matchedMarker,
-            sameSportCandidatesInChunk: sameSport.length,
+            sameSportCandidatesInChunk: sameSportInChunk.length,
             totalCandidatesInChunk: candidates.length,
             nearestCandidates: nearest3,
             targetDurationMin: targetDur,
@@ -342,6 +370,7 @@ function applyOffsportTrailGuardToChunks(
         }
         mutable.durationMin = nextDuration;
         mutable.zones = candidate.zones;
+        const viaGlobalFallback = searchPool === allCandidatesAllChunks;
         repairs.push({
           code: "substituted_offsport",
           severity: "warning",
@@ -351,9 +380,9 @@ function applyOffsportTrailGuardToChunks(
           sport: session.sport,
           before,
           after: { title: mutable.title, catalogId: candidate.id, durationMin: nextDuration, deltaMin: delta },
-          reason: `custom trail vocabulary → ${brickFallback ? "brick→bike fallback" : "same-sport"} catalog substitution (sport=${sessionSport}${brickFallback ? "→bike" : ""}, target=${targetDur}min, tolerance=±${tolerance}min, Δ=${delta}min, sameSportCandidates=${sameSport.length}/${candidates.length}, matchedMarker=${matchedMarker})`,
+          reason: `custom trail vocabulary → ${brickFallback ? "brick→bike fallback" : "same-sport"} catalog substitution (sport=${sessionSport}${brickFallback ? "→bike" : ""}, target=${targetDur}min, tolerance=±${tolerance}min, Δ=${delta}min, sameSportCandidatesInChunk=${sameSportInChunk.length}/${candidates.length}, matchedMarker=${matchedMarker}${viaGlobalFallback ? ", via repli catalogue global (absent du dump local)" : ""})`,
           matchedMarker,
-          sameSportCandidatesInChunk: sameSport.length,
+          sameSportCandidatesInChunk: sameSportInChunk.length,
           totalCandidatesInChunk: candidates.length,
           nearestCandidates: nearest3,
           targetDurationMin: targetDur,
