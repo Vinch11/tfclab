@@ -836,12 +836,28 @@ export function computeLongDistanceEnvelope(input: LongDistanceInput): LongDista
 
   // ─── CHANTIER D — STEP 3b: Modèles physiologiques étendus ──────────────────
   const carbStrategy = computeCarbStrategy(input);
-  const glycogenBudget = computeGlycogenBudget(input, baseEnvelope.boundary.highPct, effectiveFatmax);
   const thermalStress = computeThermalStress(input);
+  const thermalPenaltyPct = thermalStress?.intensityPenaltyPct ?? 0;
+
+  // Bug réel corrigé (audit "simulation course/nutrition", passe 4) :
+  // computeGlycogenBudget() recevait `baseEnvelope.boundary.highPct` — l'intensité
+  // BRUTE, avant l'application de durationPenaltyPct/glycogenPenaltyPct/
+  // thermalPenaltyPct — pour estimer le taux de combustion glucidique via
+  // estimateCarbBurnRate(). Le budget glycogène (et donc carbDeficitPenaltyPct,
+  // dérivé de son statut) était systématiquement calculé sur une intensité
+  // plus haute que celle réellement retenue in fine (adjustedHighPct),
+  // surestimant le risque de bonk. On calcule ici une intensité intermédiaire
+  // qui reflète déjà les pénalités connues à ce stade
+  // (durée + glycogène heuristique + thermique) — la seule inconnue restante,
+  // carbDeficitPenaltyPct, ne peut pas être incluse sans dépendance circulaire
+  // complète (elle dépend du résultat de ce calcul), mais son poids (2-6 pts
+  // sur ~65-90% d'intensité) est marginal comparé au biais corrigé.
+  const intensityBeforeCarbDeficitPct = Math.round(
+    baseEnvelope.boundary.highPct - (durationPenaltyPct + glycogenPenaltyPct + thermalPenaltyPct)
+  );
+  const glycogenBudget = computeGlycogenBudget(input, intensityBeforeCarbDeficitPct, effectiveFatmax);
 
   // ─── CHANTIER D — STEP 3c: Pénalités physiologiques additionnelles ─────────
-  let thermalPenaltyPct = thermalStress?.intensityPenaltyPct ?? 0;
-  
   let carbDeficitPenaltyPct = 0;
   if (glycogenBudget) {
     if (glycogenBudget.status === "critical") carbDeficitPenaltyPct = 6;
