@@ -181,7 +181,13 @@ export function ScientificChartsDashboard({
           className="md:col-span-2 xl:col-span-3"
         />
 
-        {/* Performance Prediction */}
+        {/*
+          Performance Prediction
+          Bug réel corrigé (audit "dashboard/plan/export", passe 6) : vlamaxConfidence
+          et tteConfidence sont déjà sur une échelle 0-1 (comme VLamaxEffectif.confidence
+          et TTEEffectif.confidence partout ailleurs) — diviser par 200 au lieu de 2
+          ramenait la confiance affichée à ~1% au lieu de ~80%.
+        */}
         <PerformancePredictionChart
           vo2max={vo2max ?? null}
           vlamax={vlamaxValue}
@@ -189,7 +195,7 @@ export function ScientificChartsDashboard({
           weight={weight}
           vma={vma}
           css={css}
-          confidence={(vlamaxConfidence + tteConfidence) / 200}
+          confidence={(vlamaxConfidence + tteConfidence) / 2}
           staffMode={staffMode}
           className="md:col-span-2 xl:col-span-3"
         />

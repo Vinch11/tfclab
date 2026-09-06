@@ -3840,7 +3840,10 @@ function buildExecutiveSummaryHTML(payload: ExportPayload): string {
         ftp: effectiveRefs.ftp ?? null,
         vma: effectiveSnapshot?.vma ?? null,
         css: effectiveSnapshot?.css ?? null,
-        confidence: (vlamax?.confidence ?? 0) / 100,
+        // vlamax.confidence est déjà sur une échelle 0-1 — cf. bug réel corrigé
+        // (audit "dashboard/plan/export", passe 6) sur le même /100 en double
+        // à la ligne buildPerformancePredictionHTML plus bas dans ce fichier.
+        confidence: vlamax?.confidence ?? 0,
         raceRecords: raceRecords ?? null,
       });
       const optimal = output.scenarios.find((s: any) => s.scenario === "optimal") ?? output.scenarios[0];
@@ -8117,7 +8120,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       ftp: ftpVal,
       vma: vmaVal,
       css: cssVal,
-      confidence: p.vlamax.confidence / 100,
+      // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : p.vlamax.confidence
+      // est déjà sur une échelle 0-1 (comme VLamaxEffectif.confidence partout ailleurs) —
+      // diviser par 100 ramenait "Confiance du modèle" affichée dans le PDF à ~1%
+      // au lieu de ~80-90%, sapant la confiance dans une prédiction pourtant fiable.
+      confidence: p.vlamax.confidence,
       raceRecords: p.raceRecords ?? null,
     });
     
