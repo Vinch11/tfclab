@@ -20,9 +20,10 @@ import {
   ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
+import { computeCoachingCompass, getDurabilityTargetMinutes, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
 import { LimiterImpactCard } from "@/components/LimiterImpactCard";
 import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
+import { getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -406,12 +407,17 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
     undefined;
   const vlamaxRange = getVLamaxRange(objectif, ambition, sportForTargets);
   const vmaTarget = getVmaTargetByAmbition(objectif, ambition);
-  const isLong = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong"].includes(objectif);
-  const vo2Targets: Record<string, number> = { finisher: 45, age_group: 52, competitor: 58, elite: 65 };
-  const vo2Target = (vo2Targets[ambition] || 52) + (isLong ? 3 : 0);
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : cette
+  // grille avait sa propre table VO2max (sans ajustement par âge) et sa
+  // propre table TTE (indexée par ambition, ignorant l'objectif) —
+  // divergentes du radar principal juste au-dessus, qui utilise
+  // getVo2maxTarget (age-adjusted) et le diviseur objectif-dépendant de
+  // deriveDurabilityFromTTE. Pour un même athlète, le radar pouvait dire
+  // "cible atteinte" pendant que cette grille disait "X points manquants"
+  // sur la même carte. Les deux utilisent désormais la même source.
+  const vo2Target = getVo2maxTarget(objectif, ambition, input.athleteAge ?? null);
   const durabilityTargets: Record<string, number> = { finisher: 60, age_group: 70, competitor: 80, elite: 90 };
   const economyTargets: Record<string, number> = { finisher: 55, age_group: 65, competitor: 75, elite: 85 };
-  const tteTargets: Record<string, number> = { finisher: 35, age_group: 45, competitor: 55, elite: 65 };
   const fatmaxTargets: Record<string, number> = { finisher: 120, age_group: 160, competitor: 200, elite: 240 };
   const wprimeTargets: Record<string, number> = { finisher: 15, age_group: 20, competitor: 25, elite: 30 };
 
@@ -421,7 +427,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
     "FTP": { target: input.poids && targets.ftp_kg_min ? Math.round(targets.ftp_kg_min * input.poids) : null },
     "FTP/kg": { target: targets.ftp_kg_min },
     "VMA": { target: vmaTarget },
-    "TTE": { target: tteTargets[ambition] || 45 },
+    "TTE": { target: getDurabilityTargetMinutes(objectif) },
     "FatMax": { target: fatmaxTargets[ambition] || 160 },
     "LT1": { target: null },
     "LT2": { target: null },

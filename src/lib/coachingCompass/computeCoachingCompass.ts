@@ -41,6 +41,7 @@ import {
 } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
+import { calibrateVO2maxFromFTP } from "@/lib/v2/metabolicSimulator";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 export const COACHING_COMPASS_VERSION = "1.0.0";
@@ -101,21 +102,61 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
  * Estime la FatMax en **% FTP/seuil** (échelle 0-100).
  * Délègue à l'ancre canonique unifiée `computeFatMaxAnchorPctFTP` (fatmaxTFCL.ts).
  *
- * Formule canonique TFCL (source unique — Audit 2D F29, mem `fatmax-unified-formula`):
- *   FatMax_%FTP = CLAMP(78 − 52·(VLa − 0.25) + 0.15·(VO2 − 50), 48, 82)
+ * Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : ce
+ * docblock décrivait encore l'ANCIENNE formule (régression linéaire isolée,
+ * remplacée depuis par l'ancrage MLSS calibré α=1.98 — voir fatmaxTFCL.ts)
+ * avec des exemples chiffrés qui ne correspondaient plus au comportement
+ * réel de la fonction (jusqu'à ~12 points d'écart pour les VLamax élevées).
+ * Ne pas dupliquer la formule ici : se référer à fatmaxTFCL.ts pour le
+ * détail du calcul (MLSS → LT1 → FatMax) — ce commentaire ne donne que des
+ * exemples de sortie, recalculés sur le comportement actuel.
  *
  * ⚠️ IMPORTANT : retourne un % (0-100), PAS des watts. Indépendant du FTP,
- * fonctionne en mode running (pas de FTP vélo nécessaire).
+ * fonctionne en mode running (pas de FTP vélo nécessaire) — via le ratio de
+ * repli quand `ftp`/`weightKg` réels ne sont pas fournis.
  *
- * Exemples (VO2max=50) :
- *   VLamax 0.30 → 75.4%  (profil lipidique)
- *   VLamax 0.40 → 70.2%  (équilibré)
- *   VLamax 0.55 → 62.4%  (cible IM/Marathon)
- *   VLamax 0.70 → 54.6%  (glycolytique dominant)
+ * Exemples (VO2max=50, poids par défaut 70kg, sans FTP réel) :
+ *   VLamax 0.30 → 76%  (profil lipidique)
+ *   VLamax 0.40 → 68%  (équilibré)
+ *   VLamax 0.55 → 56%  (cible IM/Marathon)
+ *   VLamax 0.70 → 43%  (glycolytique dominant)
  */
-function estimateFatMaxFromProfile(_ftp: number | null, vlamax: number | null, vo2max: number | null = null): number | null {
-  // Audit #7 : source unique — pas de duplication de formule ici.
-  return computeFatMaxAnchorPctFTP(vlamax, vo2max);
+function estimateFatMaxFromProfile(
+  ftp: number | null,
+  vlamax: number | null,
+  vo2max: number | null = null,
+  weightKg: number | null = null,
+): number | null {
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : ftp
+  // et weightKg n'étaient jamais transmis à computeFatMaxAnchorPctFTP, qui
+  // retombait alors sur le poids par défaut (70kg) et le ratio de repli
+  // FTP≈76%×puissance-VO2max au lieu de la conversion réelle — un écart de
+  // ~12 points de %FTP par rapport au FatMax calculé correctement ailleurs
+  // (ExportTools.tsx, fatmaxTFCL.ts) pour le même athlète dans le même
+  // export. Audit #7 : source unique — pas de duplication de formule ici,
+  // juste les inputs réels qui manquaient.
+  return computeFatMaxAnchorPctFTP(vlamax, vo2max, weightKg, ftp);
+}
+
+/**
+ * TTE (minutes) correspondant à une durabilité de 100/100 pour un objectif
+ * donné. Source unique pour deriveDurabilityFromTTE (radar) ET pour toute
+ * UI affichant une cible TTE brute (ex: CoachingCompassCard StaffMetricsGrid).
+ *
+ * Bug réel corrigé (audit "estimations physiologiques", Cluster 2) :
+ * CoachingCompassCard.tsx avait sa propre table de cibles TTE, indexée par
+ * AMBITION et ignorant l'OBJECTIF (ex: IM et 10K partageaient la même
+ * cible pour une même ambition) — alors que le radar "Durabilité" utilise
+ * ce diviseur objectif-dépendant. Pour TTE=50min/IM/age_group, le radar
+ * disait "42/100, 28 points à combler" pendant que la ligne "TTE" du
+ * tableau staff disait "✓ +5 d'avance" — deux verdicts opposés pour la
+ * même mesure, sur le même écran.
+ */
+export function getDurabilityTargetMinutes(objectif?: string): number {
+  return objectif === "IM" ? 120        // IM : TTE 120min → 100 (besoin durabilité forte)
+    : objectif === "70.3" ? 95          // 70.3 : 95min → 100
+    : objectif === "Marathon" ? 75      // Marathon : 75min → 100
+    : 65;                               // 10K, semi, défaut
 }
 
 /**
@@ -143,11 +184,7 @@ function deriveDurabilityFromTTE(
   }
   if (!effectiveTte || effectiveTte <= 0) return null;
 
-  const divisor =
-    objectif === "IM" ? 120 :        // IM : TTE 120min → 100 (besoin durabilité forte)
-    objectif === "70.3" ? 95 :       // 70.3 : 95min → 100
-    objectif === "Marathon" ? 75 :   // Marathon : 75min → 100
-    65;                              // 10K, semi, défaut
+  const divisor = getDurabilityTargetMinutes(objectif);
   return Math.max(0, Math.min(100, Math.round((effectiveTte / divisor) * 100)));
 }
 
@@ -158,8 +195,12 @@ function deriveDurabilityFromTTE(
 function deriveEconomyFromBike(ftp: number | null, map5min: number | null, poids: number | null): number | null {
   if (!ftp || !poids || poids <= 0) return null;
   const ftpKg = ftp / poids;
-  // FTP/kg comme proxy : 2.0 → 30, 3.0 → 50, 4.0 → 70, 5.0 → 90
-  const baseScore = Math.max(0, Math.min(100, Math.round((ftpKg - 1.0) * 20)));
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : le
+  // code soustrayait 1.0 alors que les points de calibration documentés
+  // ci-dessous (2.0→30, 3.0→50, 4.0→70, 5.0→90) correspondent à -0.5, pas
+  // -1.0 — sous-estimation systématique de 10 points à chaque palier
+  // (ex: FTP/kg=4.0 donnait 60 au lieu des 70 documentés/attendus).
+  const baseScore = Math.max(0, Math.min(100, Math.round((ftpKg - 0.5) * 20)));
   // Bonus efficience si MAP disponible : ratio FTP/MAP > 0.78 = bon
   if (map5min && map5min > 0) {
     const ratio = ftp / map5min;
@@ -177,7 +218,7 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
     : null;
 
   // FatMax : donnée directe > estimation VLamax+FTP
-  const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value, input.vo2max);
+  const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value, input.vo2max, input.poids);
   const fatmaxSource = input.fatmax ? "snapshot" : (fatmaxValue ? "estimation" : "unknown");
 
   // Durabilité = expression directe du TTE, calibrée selon l'objectif
@@ -590,10 +631,21 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   const economyTarget = economyTargets[ambition] || 65;
 
   // AXE 1 : VO2max — score relatif à la cible
+  //
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 1 puis
+  // Cluster 2) : le fallback FTP→VO2max ici (ftpKg×12+5, non cité) ignorait
+  // le VLamax et divergeait de la conversion VLamax-aware déjà utilisée
+  // ailleurs dans le codebase (metabolicSimulator.ts, performancePrediction.ts,
+  // MetabolicPowerCurve.tsx). Ni l'une ni l'autre n'est calibrée sur une
+  // cohorte réelle (aucune des deux ne cite de source empirique) — mais
+  // consolider sur une seule formule élimine au moins la divergence
+  // silencieuse entre les deux pour le même athlète.
   let vo2Value = profile.vo2max.value;
   if (!vo2Value) {
     if (isRunning && input.vma) {
       vo2Value = Math.round(input.vma * 3.5 * 10) / 10;
+    } else if (input.ftp && input.poids && input.poids > 0) {
+      vo2Value = calibrateVO2maxFromFTP(input.ftp, input.vlamaxEffectif.value ?? 0.35, input.poids);
     } else if (profile.ftpKg.value) {
       vo2Value = Math.round((profile.ftpKg.value * 12 + 5) * 10) / 10;
     }

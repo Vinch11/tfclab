@@ -4970,14 +4970,18 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   
   // Calculer les scores normalisés (0-100) pour le radar
-  const normalizeVlamax = (value: number | null, objectif: string): number => {
+  //
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : cette
+  // section ("Profil Métabolique Complet") avait sa propre table VLamax
+  // idéale hardcodée, ignorant l'ambition et divergeant de la table
+  // canonique getVLamaxRange déjà utilisée par la section "TFCL Coaching
+  // Compass™" quelques centaines de lignes plus haut dans le MÊME document —
+  // ex: VLamax=0.35/IM/age_group donnait 100/100 côté Compass (optimal=0.40)
+  // et 80/100 ici (ideal hardcodé à 0.25), pour le même athlète.
+  const normalizeVlamax = (value: number | null, objectif: string, ambition: AmbitionLevel): number => {
     if (value === null) return 0;
-    // VLamax idéale selon objectif (plus basse = mieux pour longue distance)
-    const idealValues: Record<string, number> = {
-      IM: 0.25, Ironman: 0.25, "703": 0.30, Half: 0.30,
-      Marathon: 0.28, Semi: 0.32, Trail: 0.30, Ultra: 0.25
-    };
-    const ideal = idealValues[objectif] || 0.30;
+    const range = getVLamaxRange(objectif, ambition);
+    const ideal = range.optimal;
     // Plus on est proche de l'idéal, plus le score est élevé
     const deviation = Math.abs(value - ideal);
     const maxDeviation = 0.5;
@@ -4996,7 +5000,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     return Math.max(0, Math.round((value / target) * 100));
   };
   
-  const currentVlamaxScore = normalizeVlamax(vlamax.value, athlete.goal || "703");
+  const currentVlamaxScore = normalizeVlamax(vlamax.value, athlete.goal || "703", ambition?.current ?? DEFAULT_AMBITION);
   const currentTTEScore = normalizeTTE(tte.tte_min, targets.tteTarget);
   const currentFtpKgScore = normalizeFtpKg(ftpKg, targets.ftpKgTarget);
   
