@@ -117,7 +117,15 @@ export function TTEGlycogenInsightsCard({
     });
 
     // ── Glycogène ──
-    // Vitesse moyenne pour mapper bonkRiskMin → km
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) :
+    // sans avgSpeedKmh réel (jamais transmis par Index.tsx en production),
+    // la vitesse était toujours devinée (32 km/h vélo, VMA×0.78 course) — un
+    // chiffre "au km X" en trompe-l'œil, précis en apparence mais construit
+    // sur une hypothèse non vérifiée. On distingue désormais vitesse réelle
+    // et vitesse estimée : le risque en MINUTES (issu directement de la
+    // simulation) reste toujours affiché ; la conversion en km est marquée
+    // "estimée" quand elle repose sur une vitesse devinée.
+    const speedIsReal = avgSpeedKmh != null && avgSpeedKmh > 0;
     let speedKmh = avgSpeedKmh ?? null;
     if (!speedKmh) {
       if (sport === "run" && vma) {
@@ -133,8 +141,13 @@ export function TTEGlycogenInsightsCard({
       ? targetRaceDurationMin
       : Math.min(360, Math.max(60, mechanisms.tteFinal));
 
-    // Intensité estimée à FTP/MLSS = ~75% VO2max (zone soutenable longue distance)
-    const intensityPct = 75;
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) :
+    // cette carte affichait mechanisms.tteGlycogen (calculé à l'intensité
+    // réelle déduite de FTP/MLSS) ET une alerte "risque fringale" calculée
+    // à une intensité FIXE de 75% — deux nombres contradictoires pour le
+    // même mécanisme sur la même carte. Réutilise désormais la même
+    // intensité que calculateTTEMechanisms.
+    const intensityPct = mechanisms.intensityPct;
     const depletion = calculateGlycogenDepletion(
       profile,
       intensityPct,
@@ -156,6 +169,7 @@ export function TTEGlycogenInsightsCard({
       depletion,
       recommendedCarbs,
       speedKmh,
+      speedIsReal,
       durationMin,
       bonkInRace,
       totalKm,
@@ -192,7 +206,7 @@ export function TTEGlycogenInsightsCard({
     );
   }
 
-  const { mechanisms, power, depletion, recommendedCarbs, bonkInRace, totalKm } = insights;
+  const { mechanisms, power, depletion, recommendedCarbs, bonkInRace, totalKm, speedIsReal } = insights;
   const meta = MECHANISM_META[mechanisms.limitingMechanism];
   const Icon = meta.icon;
 
@@ -270,10 +284,11 @@ export function TTEGlycogenInsightsCard({
               <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <AlertDescription className="text-xs">
                 <span className="font-semibold">
-                  ⚠️ Risque fringale estimé au km {depletion.bonkRiskKm}
+                  ⚠️ Risque fringale estimé après {depletion.bonkRiskMin} min
+                  {speedIsReal ? ` (~km ${depletion.bonkRiskKm})` : ` (~km ${depletion.bonkRiskKm}, vitesse estimée — non mesurée)`}
                 </span>
                 {" "}
-                (sur ~{Math.round(totalKm)} km projetés) — augmenter à <strong>{recommendedCarbs} g/h</strong> de glucides pour sécuriser.
+                (sur ~{Math.round(insights.durationMin)} min{speedIsReal ? ` / ${Math.round(totalKm)} km` : ""} projetées) — augmenter à <strong>{recommendedCarbs} g/h</strong> de glucides pour sécuriser.
               </AlertDescription>
             </Alert>
           ) : (
