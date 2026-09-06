@@ -79,6 +79,7 @@ import {
 } from "@/lib/v2/maderMetabolicModel";
 import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 import { useAthleteRaceRecords } from "@/hooks/useAthleteRaceRecords";
+import { useAthleteRaceGoals, type RaceGoal } from "@/hooks/useAthleteRaceGoals";
 // ✅ NEW: Coaching Compass (5 axes)
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
@@ -1256,6 +1257,31 @@ export function determineNutritionV2Sport(goal: string | null | undefined): "cap
   return "velo";
 }
 
+/**
+ * Bug réel corrigé (audit "dashboard/plan/export", passe 6) : le contexte
+ * envoyé au moteur de stratégie Lorang dans l'export avait `daysToRace`
+ * codé en dur à `null`, ce qui se résout en interne à "999 jours avant la
+ * course" (lorangStrategyEngine.ts) — désactivant de fait le garde-fou qui
+ * interdit de recommander le "Train Low" (jeûne glycogénique) dans les 14
+ * jours avant course, et empêchant `isRaceWeek` de bloquer VO2max/seuil/Z2
+ * volume pendant la semaine de course elle-même. Cette fonction dérive la
+ * vraie prochaine course (même logique que "Bilan pré-objectif"/
+ * NextRaceIndicator dans Index.tsx) à partir des race goals réels de
+ * l'athlète, déjà présents dans l'app mais jamais transmis jusqu'à l'export.
+ */
+export function computeExportRaceContext(
+  raceGoals: Pick<RaceGoal, "race_date">[] | null | undefined,
+  now: Date = new Date()
+): { daysToRace: number | null; isRaceWeek: boolean } {
+  const future = (raceGoals || [])
+    .filter((g) => new Date(g.race_date) >= now)
+    .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
+  const next = future[0];
+  if (!next) return { daysToRace: null, isRaceWeek: false };
+  const daysToRace = Math.ceil((new Date(next.race_date).getTime() - now.getTime()) / 86400000);
+  return { daysToRace, isRaceWeek: daysToRace <= 7 };
+}
+
 function buildGlycogenChartSVG(segments: { segmentIndex: number; glycogenRemaining: number; depletionRisk: string }[]): string {
   if (segments.length < 2) return '<p class="muted">Pas assez de segments pour afficher le graphique.</p>';
   
@@ -1405,7 +1431,8 @@ function buildExportPayload(
   snapshots: DbSnapshot[],
   tests: DbTest[],
   checkins: DbCheckin[] = [],
-  ambition: AmbitionLevel = DEFAULT_AMBITION
+  ambition: AmbitionLevel = DEFAULT_AMBITION,
+  raceContext: { daysToRace: number | null; isRaceWeek: boolean } = { daysToRace: null, isRaceWeek: false }
 ): ExportPayload {
   const effectiveSnapshot = getEffectiveSnapshot(athlete, snapshots);
   const effectiveRefs = getEffectiveRefs(athlete, snapshots);
@@ -1693,8 +1720,15 @@ function buildExportPayload(
         hrvOutOfRange2Days: false,
       },
       context: {
-        daysToRace: null,
-        isRaceWeek: false,
+        // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : voir
+        // computeExportRaceContext() pour le détail — daysToRace/isRaceWeek
+        // reflètent maintenant la vraie prochaine course de l'athlète au lieu
+        // d'être codés en dur à "jamais en semaine de course". currentPhase
+        // reste 'build' : dériver la vraie phase de périodisation demanderait
+        // les données du plan d'entraînement, pas seulement la date de course
+        // (hors scope de ce correctif).
+        daysToRace: raceContext.daysToRace,
+        isRaceWeek: raceContext.isRaceWeek,
         currentPhase: 'build',
       },
       load: {
@@ -9740,7 +9774,15 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
   const raceRecordsWindow = windowMonthsRefs === null ? null : (windowMonthsRefs ?? 12);
   const raceRecords = useAthleteRaceRecords(athlete.id, vmaForRecords, raceRecordsWindow);
 
-  const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition);
+  // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : voir
+  // computeExportRaceContext() — la vraie prochaine course de l'athlète,
+  // déjà chargée ailleurs dans l'app (Index.tsx, "Bilan pré-objectif"), n'a
+  // jamais été transmise jusqu'ici, désactivant de fait le garde-fou
+  // "Train Low interdit <14j avant course" du moteur Lorang.
+  const { raceGoals: exportRaceGoals } = useAthleteRaceGoals(athlete?.id ?? null);
+  const raceContext = computeExportRaceContext(exportRaceGoals);
+
+  const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition, raceContext);
   payload.raceRecords = raceRecords;
   const exportCheck = canExport(payload);
 
