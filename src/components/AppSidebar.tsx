@@ -214,6 +214,25 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                     {!collapsed && <span className="text-sm truncate">Cohorte Run MLSS</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/diagnostic/cohort-vlamax-cap")}
+                    isActive={location.pathname === "/diagnostic/cohort-vlamax-cap"}
+                    tooltip={collapsed ? "Cohorte VLamax CAP" : undefined}
+                    className={cn(
+                      "relative h-10 sm:h-11 rounded-lg transition-all duration-200",
+                        location.pathname === "/diagnostic/cohort-vlamax-cap"
+                          ? "text-sidebar-primary font-semibold"
+                        : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
+                    )}
+                  >
+                    <FlaskConical className={cn(
+                      "h-[18px] w-[18px] shrink-0 transition-colors",
+                      location.pathname === "/diagnostic/cohort-vlamax-cap" ? "text-sidebar-primary" : "text-sidebar-foreground/60"
+                    )} />
+                    {!collapsed && <span className="text-sm truncate">Cohorte VLamax CAP</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

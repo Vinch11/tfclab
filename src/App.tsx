@@ -47,6 +47,7 @@ const WorkoutLibraryBrowserPage = lazy(() => import("./pages/WorkoutLibraryBrows
 const PlanLibraryPage = lazy(() => import("./pages/PlanLibraryPage"));
 const VLamaxDiagnosticPage = lazy(() => import("./pages/VLamaxDiagnosticPage"));
 const RunMLSSCohortPage = lazy(() => import("./pages/RunMLSSCohortPage"));
+const VlamaxCapCohortPage = lazy(() => import("./pages/VlamaxCapCohortPage"));
 const LiteratureCohortPage = lazy(() => import("./pages/LiteratureCohortPage"));
 const MiniReportPage = lazy(() => import("./pages/MiniReportPage"));
 const EssentielsPage = lazy(() => import("./pages/EssentielsPage"));
@@ -127,6 +128,7 @@ export default function App() {
                   <Route path="/diagnostic/vlamax" element={<ProtectedRoute><VLamaxDiagnosticPage /></ProtectedRoute>} />
                   <Route path="/diagnostic/vlamax/:athleteId" element={<ProtectedRoute><VLamaxDiagnosticPage /></ProtectedRoute>} />
                   <Route path="/diagnostic/cohort-run-mlss" element={<ProtectedRoute><RunMLSSCohortPage /></ProtectedRoute>} />
+                  <Route path="/diagnostic/cohort-vlamax-cap" element={<ProtectedRoute><VlamaxCapCohortPage /></ProtectedRoute>} />
                   <Route path="/diagnostic/cohort-literature" element={<ProtectedRoute><LiteratureCohortPage /></ProtectedRoute>} />
                   <Route path="/diagnostic/coach-checklist" element={<ProtectedRoute><CoachChecklistPage /></ProtectedRoute>} />
                   <Route path="/diagnostic/track-day" element={<ProtectedRoute><TrackDayPage /></ProtectedRoute>} />
