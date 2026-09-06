@@ -110,12 +110,12 @@ export function computeHydrationProtocol(input: HydrationInput): HydrationProtoc
 
   // Replacement target: longer race → closer to 100% of losses
   const replacementRatio = durationMin >= 180 ? 0.85 : durationMin >= 90 ? 0.75 : 0.65;
-  let fluidTargetMlH = Math.round(sweatRateMlH * replacementRatio);
+  const fluidTargetMlHRaw = Math.round(sweatRateMlH * replacementRatio);
 
   // Safety cap (Hew-Butler 2015): avoid >800 mL/h sustained for most athletes
   const fluidCap = 900;
-  const fluidCapWarning = fluidTargetMlH > fluidCap;
-  if (fluidCapWarning) fluidTargetMlH = fluidCap;
+  const fluidCapWarning = fluidTargetMlHRaw > fluidCap;
+  let fluidTargetMlH = fluidCapWarning ? fluidCap : fluidTargetMlHRaw;
 
   const sodiumMgPerL = SODIUM_CONCENTRATION[sodiumPhenotype];
   // Sodium replacement: 50–80% of sweat sodium concentration applied to fluid intake
@@ -142,7 +142,14 @@ export function computeHydrationProtocol(input: HydrationInput): HydrationProtoc
 
   const warnings: string[] = [];
   if (fluidCapWarning) {
-    warnings.push(`Sueur estimée >1000 mL/h: l'apport est plafonné à ${fluidCap} mL/h pour éviter hyponatrémie/GI`);
+    // Bug réel (audit "simulation course/nutrition") : le texte annonçait un
+    // seuil fixe ">1000 mL/h" alors que le déclencheur réel est
+    // fluidTargetMlH (sueur × ratio de remplacement 0.65-0.85 selon durée)
+    // > 900 — le seuil de sueur réel qui déclenche l'alerte varie donc entre
+    // ~1060 et ~1385 mL/h selon la durée de course, jamais exactement 1000.
+    // On décrit maintenant le besoin réellement calculé, pas un seuil de
+    // sueur reconstitué à l'envers et souvent faux.
+    warnings.push(`Apport nécessaire estimé à ${fluidTargetMlHRaw} mL/h : plafonné à ${fluidCap} mL/h pour éviter hyponatrémie/GI`);
   }
   if (heatMultiplier >= 1.3) {
     warnings.push("Conditions chaudes/humides: pré-refroidissement (slushie 7 mL/kg) recommandé");

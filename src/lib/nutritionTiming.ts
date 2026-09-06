@@ -475,6 +475,12 @@ export function computeNutritionTiming(params: ComputeNutritionTimingParams): Nu
   // source canonique unique (`nutritionUnified.computeBaseRateMader`).
   // Sinon fallback heuristique legacy (constantes par sport).
   const useCanonical = params.vo2max != null && params.weightKg != null && params.weightKg > 0;
+  // capMultiplier dérivé du niveau gut training (GUT_CAP_BIKE[niveau]/90) :
+  // sans lui, le plafond interne (90 g/h vélo) de computeBaseRateMader
+  // empêchait le résultat d'approcher les plafonds "trained" (120) ou
+  // "elite" (150) promis par getCarbCap() plus bas — y compris pour le
+  // niveau PAR DÉFAUT ("trained"), jamais atteignable en pratique avant ce
+  // correctif (audit "simulation course/nutrition").
   const baseCarbs = useCanonical
     ? computeBaseRateMader(
         params.weightKg!,
@@ -483,6 +489,8 @@ export function computeNutritionTiming(params: ComputeNutritionTimingParams): Nu
         vlamax,
         params.targetIntensityPct ?? null,
         params.targetDurationHours ?? null,
+        undefined,
+        GUT_CAP_BIKE[gutTrainingLevel] / 90,
       ).baseRate
     : (sport === "velo" ? 70 : 55);
   const vlamaxAdj = useCanonical ? 0 : getVLamaxCarbFactor(vlamax!);

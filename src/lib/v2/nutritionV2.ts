@@ -126,10 +126,16 @@ export interface NutritionV2Input {
 export const NUTRITION_BOUNDS = {
   // Athlètes standards (pas de gut training spécifique)
   STANDARD: { min: 40, max: 90 },
-  
-  // Athlètes avec gut training avancé validé
-  ADVANCED: { min: 50, max: 120 },
-  
+
+  // Athlètes avec gut training avancé validé — le gut training relève le
+  // PLAFOND de tolérance digestive, pas le PLANCHER de besoin physiologique.
+  // Bug réel (audit "simulation course/nutrition") : min était fixé à 50 ici
+  // (vs 40 en standard), donc activer le switch pour une séance dont le
+  // besoin réel calculé est bas (ex. 32 g/h, effort court/facile) forçait
+  // artificiellement +25% de glucides sans rapport avec l'effort — le
+  // plancher doit rester identique au standard, seul le plafond change.
+  ADVANCED: { min: 40, max: 120 },
+
   // Seuil à partir duquel un warning est affiché
   GUT_TRAINING_THRESHOLD: 90,
 };
@@ -331,7 +337,12 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
   // 'velo'|'cap' — 'triathlon' est mappé sur 'cap' pour ce calcul, puis
   // corrigé juste en dessous (même méthode que nutritionPredictive.ts).
   const unifiedSport: 'velo' | 'cap' = sport === 'velo' ? 'velo' : 'cap';
-  const maderResult = computeBaseRateMader(weightKg, unifiedSport, vo2max, vlamaxValue, targetIntensityPct, targetDurationHours);
+  // capMultiplier 120/90 en gut training avancé : sans lui, le plafond interne
+  // (90 g/h vélo / 75 CAP) de computeBaseRateMader empêchait le résultat
+  // d'approcher 120 g/h même une fois les bonus TTE/durée ajoutés — le
+  // plafond "avancé" (NUTRITION_BOUNDS.ADVANCED.max=120) n'était donc jamais
+  // atteignable en pratique (audit "simulation course/nutrition").
+  const maderResult = computeBaseRateMader(weightKg, unifiedSport, vo2max, vlamaxValue, targetIntensityPct, targetDurationHours, undefined, input.advancedGutTraining ? 120 / 90 : 1);
   // Ajustement triathlon : réintroduit le facteur 0.90 (vs 0.82 CAP, 1.0
   // vélo) — annule le -18% CAP appliqué par computeBaseRateMader puis
   // applique le -10% triathlon. Bug corrigé (audit nutrition/multi-objectifs) :
@@ -406,7 +417,7 @@ export function computeNutritionV2(input: NutritionV2Input): NutritionPredictive
       value: 'Activé',
       adjustment: 0,
       direction: 'up',
-      explanation: 'Bornes étendues (50-120 g/h) — entraînement digestif validé'
+      explanation: 'Plafond étendu jusqu\'à 120 g/h — entraînement digestif validé'
     });
   }
   
@@ -622,7 +633,7 @@ MODULATIONS SECONDAIRES
 • Durée > 3h : +5 à +10 g/h
 • Intensité ≥ 85% : +10 g/h
 
-BORNAGE : 30-90 g/h (standard) | 50-120 g/h (gut training avancé)`
+BORNAGE : 40-90 g/h (standard) | 40-120 g/h (gut training avancé)`
     },
     {
       id: 'risk',
