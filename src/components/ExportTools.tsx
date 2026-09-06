@@ -1869,6 +1869,7 @@ function buildExportPayload(
       fatigueIndex: fatigueScore ?? null,
       objectif: (athlete.goal || "IM") as "IM" | "70.3" | "Marathon" | "Semi" | "10km" | "Ironman",
       ftp: effectiveRefs.ftp,
+      weightKg: effectiveRefs.weightKg,
     }),
     // ✅ NEW: Nutrition V2
     nutritionV2: computeNutritionV2({

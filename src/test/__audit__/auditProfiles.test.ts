@@ -18,7 +18,8 @@
  *  - TTE : âge propagé à la cible (masters)
  *  - Fatigue : mapping 1-10 ×10 = 0-100 canonique
  *  - W' : clamp [10 ; 35] kJ tracé via WprimeClampMeta
- *  - FatMax : formule canonique 78 − 52·(VLa−0.25) + 0.15·(VO2−50)
+ *  - FatMax : ancrée sur le MLSS calibré (audit "estimations physiologiques") —
+ *    MLSS_%VO2max (α=1.98, N=44 profils) → LT1 (×0.85) → FatMax (LT1 − (8+15×VLa))
  *  - Nutrition : Mader-Heck source unique, plancher dynamique, heat ×1.10 unique
  *  - Insufficient data policy : pas de fake 0.45 / 50 / 45
  * ═════════════════════════════════════════════════════════════════════════════
@@ -300,19 +301,18 @@ describe("PASSE 3 — W' clamp [10 ; 35] kJ (F39)", () => {
 
 // ─── 5. FatMax canonique (F23/F24/F25/F29) ──────────────────────────────────
 
-describe("PASSE 3 — FatMax canonical formula", () => {
-  it("VLa=0.25, VO2=50 → 78% FTP (anchor base)", () => {
-    expect(computeFatMaxAnchorPctFTP(0.25, 50)).toBe(78);
+describe("PASSE 3 — FatMax canonical formula (ancrée MLSS/LT1 — audit \"estimations physiologiques\")", () => {
+  it("VLa=0.25, VO2=50 (poids défaut 70kg) → 81% FTP (anchor base)", () => {
+    expect(computeFatMaxAnchorPctFTP(0.25, 50)).toBe(81);
   });
-  it("VLa basse 0.20 + VO2 élevé 70 → anchor proche du plafond 82", () => {
+  it("VLa basse 0.20 + VO2 élevé 70 → anchor élevée, proche du nouveau plafond 90", () => {
     const v = computeFatMaxAnchorPctFTP(0.20, 70)!;
-    expect(v).toBeGreaterThanOrEqual(78);
-    expect(v).toBeLessThanOrEqual(82);
+    expect(v).toBeGreaterThanOrEqual(80);
+    expect(v).toBeLessThanOrEqual(90);
   });
-  it("VLa très élevée 0.80 → anchor proche du plancher 48", () => {
+  it("VLa très élevée 0.80 → anchor basse, au plancher 40 (nouvelle borne)", () => {
     const v = computeFatMaxAnchorPctFTP(0.80, 50)!;
-    expect(v).toBeGreaterThanOrEqual(48);
-    expect(v).toBeLessThanOrEqual(60);
+    expect(v).toBe(40);
   });
   it("VLa null → null (pas de fake default)", () => {
     expect(computeFatMaxAnchorPctFTP(null, 50)).toBeNull();

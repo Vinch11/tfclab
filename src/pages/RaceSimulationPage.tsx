@@ -209,6 +209,8 @@ export default function RaceSimulationPage() {
       tteConfidence: tteEffectif?.confidence ?? 0.5,
       fatigueIndex: null,
       objectif: objectif as any,
+      ftp: activeSnapshot?.ftp ?? null,
+      weightKg: activeSnapshot?.weight_kg ?? null,
     });
   }, [vlamaxEffectif, tteEffectif, activeSnapshot, objectif]);
   
