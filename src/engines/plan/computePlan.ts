@@ -338,7 +338,17 @@ function anchorRaceDays(
  * Corrige aussi les incohérences d'allure (ex: "allure marathon cible" pour un semi)
  * en réalignant sur `buildPacingHint(objective)` de l'objectif rattaché.
  */
-const RACE_OBJECTIVE_TIME_PATTERN = /Objectif\s*:?\s*(\d{1,2}h\d{2}(?:\d{2})?|\d{1,3}[:'′]\d{2}(?:['′"]\d{2})?)/i;
+// Bug réel corrigé (audit "dashboard/plan/export", passe 6) : le groupe optionnel
+// final `(?:['′"]\d{2})?` exigeait 2 chiffres après le guillemet de secondes, alors
+// que formatSecToTime() (deriveRaceTargets.ts) produit un guillemet de fin NU sans
+// rien après (ex: "38'41\""). Le guillemet n'était donc jamais capturé par le
+// match, et le .replace() qui suit laissait l'ancien guillemet en place tout en
+// ajoutant le nouveau temps (déjà terminé par son propre guillemet) — un
+// guillemet en trop à chaque correction, qui s'accumule (`38'41"` → `38'41""` →
+// `38'41"""`…) puisque dedupRaceDays est rappelée sur tout le plan à chaque
+// patch/regen ultérieur (usePlanAdaptation.ts). Le groupe accepte maintenant un
+// guillemet seul (0 chiffre après) en plus du cas à 2 chiffres.
+const RACE_OBJECTIVE_TIME_PATTERN = /Objectif\s*:?\s*(\d{1,2}h\d{2}(?:\d{2})?|\d{1,3}[:'′]\d{2}(?:['′"](?:\d{2})?)?)/i;
 
 function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?: PlanAthleteData): void {
   const goals = config.raceGoals ?? [];

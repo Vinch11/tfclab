@@ -84,4 +84,28 @@ describe("dedupRaceDays — correction déterministe du temps objectif du jour d
     const raceSession = plan.weeks[0].sessions.find((s) => s.title.includes("COURSE"));
     expect(raceSession!.details).toContain("43:17");
   });
+
+  /**
+   * Bug réel corrigé (audit "dashboard/plan/export", passe 6). RACE_OBJECTIVE_TIME_PATTERN
+   * n'absorbait pas le guillemet de fin nu produit par formatSecToTime() pour le format
+   * "M'SS\"" (ex: "38'41\""). Un plan déjà corrigé une première fois (donc déjà au format
+   * mm'ss") accumulait un guillemet supplémentaire à CHAQUE nouveau passage de
+   * postProcessParsedPlan — et ce passage est rappelé sur le plan entier à chaque patch
+   * coach (déload, reprogrammation, régénération de fenêtre — usePlanAdaptation.ts).
+   */
+  it("est idempotent : un temps déjà au format mm'ss\" ne se corrompt pas en repassant par postProcessParsedPlan", () => {
+    const alreadyCorrected = makeSession({
+      details: "Échauffement 15' Z1. Course 10km : Objectif 38'41\" (Allure @ allure course).",
+    });
+    const plan1 = { ...makePlan(), weeks: [{ ...makePlan().weeks[0], sessions: [alreadyCorrected] }] };
+    const { plan: afterPass1 } = postProcessParsedPlan(plan1, baseConfig, athleteData);
+    const raceSession1 = afterPass1.weeks[0].sessions.find((s) => s.title.includes("COURSE"))!;
+    expect(raceSession1.details).not.toContain('""');
+
+    // Deuxième passage (simule un 2e patch coach sur le même plan déjà traité)
+    const { plan: afterPass2 } = postProcessParsedPlan(afterPass1, baseConfig, athleteData);
+    const raceSession2 = afterPass2.weeks[0].sessions.find((s) => s.title.includes("COURSE"))!;
+    expect(raceSession2.details).not.toContain('""');
+    expect(raceSession2.details).toBe(raceSession1.details);
+  });
 });
