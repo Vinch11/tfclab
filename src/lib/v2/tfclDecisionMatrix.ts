@@ -19,7 +19,7 @@
 import { getTargetsForAmbition, getVLamaxRange, normalizeObjective as normalizePhysiologicalObjective, type ObjectiveTargets } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { METHOD_VERSION_DISPLAY } from "./scientificGovernance";
-import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO, type AerobicWeaknessDetail, getVo2maxAgeFactor } from "./unifiedLimiterDetection";
+import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO, type AerobicWeaknessDetail, getVo2maxTarget } from "./unifiedLimiterDetection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -325,15 +325,13 @@ function normalizeVO2max(
   confidence: number,
   age: number | null = null
 ): NormalizedMetric {
-  // VO2max normalization now derived from FTP/kg targets (FTP/kg × ~12-14 ≈ VO2max)
-  // Uses physiologicalTargets as single source of truth
-  const targets = getTargetsForAmbition(objective, ambition);
-  // Approximate VO2max target from FTP/kg (typical ratio for endurance athletes)
-  const baseVo2max = targets.ftp_kg_min * 13;
-  
-  // Apply age adjustment factor
-  const ageFactor = getVo2maxAgeFactor(age);
-  const target = Math.round(baseVo2max * ageFactor * 10) / 10;
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : ce fichier
+  // recalculait sa propre cible VO2max à partir de FTP/kg × 13 (coefficient non cité),
+  // divergeant jusqu'à 24% de la table canonique VO2MAX_TARGETS (unifiedLimiterDetection.ts)
+  // utilisée par CoachingCompassCard sur le même écran — deux cartes pouvaient afficher
+  // des verdicts pass/fail opposés pour le même athlète. Utilise désormais la même
+  // source unique de vérité que le reste de l'app.
+  const target = getVo2maxTarget(objective, ambition, age);
   const minTarget = target * 0.85;
   
   if (value === null) {

@@ -4,6 +4,8 @@
  * Does NOT modify anything - just provides insights
  */
 
+import { getTTETarget as getCentralTTETarget } from "@/lib/physiologicalTargets";
+
 export type AnnotationSeverity = 0 | 1 | 2 | 3;
 export type AnnotationScope = "WEEK" | "SESSION" | "PLAN";
 
@@ -50,15 +52,14 @@ export interface AnnotationParams {
   stressCheckin?: number | null;
 }
 
-// Target values per objective
+// Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : ce fichier
+// avait sa propre table de cibles TTE hardcodée (IM=55, 703=50, Marathon=45, Semi=40),
+// divergeant de la source canonique (Marathon: 45 vs 50, dans le mauvais sens),
+// alors que tous les moteurs siblings (annotationEngine.ts, wahooWorkoutInterpreter.ts,
+// wahooSuggestionEngine.ts, workoutRecommendationEngine.ts) aliasent déjà cette même
+// source unique de vérité. Utilise désormais physiologicalTargets.ts directement.
 function getTTETarget(goal: string): number {
-  switch (goal) {
-    case "IM": return 55;
-    case "703": return 50;
-    case "Marathon": return 45;
-    case "Semi": return 40;
-    default: return 45;
-  }
+  return getCentralTTETarget(goal);
 }
 
 function getVLamaxMax(goal: string): number {

@@ -44,6 +44,7 @@ import { getPeerReference, peerVerdict } from "@/lib/raceReadiness/peerReference
 import { getReadinessVerdict } from "@/lib/raceReadiness/readinessVerdict";
 import { buildStrategyHtml, type ExportSections } from "@/components/ObjectiveStrategyCard";
 import { computePacingEnvelope, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
+import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 
 interface NextRace {
@@ -112,10 +113,32 @@ export function RaceReadinessReportDialog({
     return { bike: 0, run: 0 };
   }, [raceObjective]);
 
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : ce dialog
+  // recalculait CP via un ad-hoc "CP = 0.95×FTP" (non cité) et laissait wPrimeJkg
+  // toujours à null, désactivant silencieusement la largeur d'enveloppe individualisée
+  // W'/CP (Skiba 2024) ici tout en la calculant correctement dans le PDF exporté
+  // (ExportTools.tsx) pour le même athlète. Utilise désormais le même modèle de
+  // régression CP/W' partout.
+  const cpAnalysis = useMemo(() => {
+    if (!compassInput?.ftp || !compassInput?.poids) return null;
+    try {
+      return analyzeCriticalPower({
+        pmax_5s: compassInput.pmax5s ?? null,
+        p30s_w: compassInput.p30sW ?? null,
+        p60s_w: compassInput.p60sW ?? null,
+        map5min_w: compassInput.map5minW ?? null,
+        ftp: compassInput.ftp,
+        weight_kg: compassInput.poids,
+      });
+    } catch {
+      return null;
+    }
+  }, [compassInput]);
+  const cpWkgUnified = cpAnalysis?.cpWkg ?? null;
+  const wPrimeJkgUnified = cpAnalysis?.wprimeJkg ?? null;
+
   const envelopeBike = useMemo(() => {
     if (!compassInput || !raceObjective || !isTri) return null;
-    const cpWkg = compassInput.ftp && compassInput.poids
-      ? (compassInput.ftp * 0.95) / compassInput.poids : null;
     return computePacingEnvelope({
       vlamaxEffectif: compassInput.vlamaxEffectif as any,
       tteEffectif: compassInput.tteEffectif as any,
@@ -126,17 +149,15 @@ export function RaceReadinessReportDialog({
       ftp: compassInput.ftp, vma: compassInput.vma,
       paceThreshold: compassInput.paceThresholdSecPerKm,
       weight: compassInput.poids,
-      ambition: ambition as any, cpWkg, wPrimeJkg: null,
+      ambition: ambition as any, cpWkg: cpWkgUnified, wPrimeJkg: wPrimeJkgUnified,
       predictedDurationMin: segmentDurationMin.bike || 180,
       raceChronos,
       vmaKmh: vmaKmh ?? compassInput.vma ?? null,
     });
-  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, raceChronos, vmaKmh]);
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, raceChronos, vmaKmh, cpWkgUnified, wPrimeJkgUnified]);
 
   const envelopeRun = useMemo(() => {
     if (!compassInput || !raceObjective || (!isTri && !isRunObj)) return null;
-    const cpWkg = compassInput.ftp && compassInput.poids
-      ? (compassInput.ftp * 0.95) / compassInput.poids : null;
     return computePacingEnvelope({
       vlamaxEffectif: compassInput.vlamaxEffectif as any,
       tteEffectif: (compassInput.tteEffectifRun ?? compassInput.tteEffectif) as any,
@@ -147,12 +168,12 @@ export function RaceReadinessReportDialog({
       ftp: compassInput.ftp, vma: compassInput.vma,
       paceThreshold: compassInput.paceThresholdSecPerKm,
       weight: compassInput.poids,
-      ambition: ambition as any, cpWkg, wPrimeJkg: null,
+      ambition: ambition as any, cpWkg: cpWkgUnified, wPrimeJkg: wPrimeJkgUnified,
       predictedDurationMin: segmentDurationMin.run || 180,
       raceChronos,
       vmaKmh: vmaKmh ?? compassInput.vma ?? null,
     });
-  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, isRunObj, raceChronos, vmaKmh]);
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, isRunObj, raceChronos, vmaKmh, cpWkgUnified, wPrimeJkgUnified]);
 
   const hasBikeEnv = !!envelopeBike && !!compassInput?.ftp;
   const hasRunEnv = !!envelopeRun && !!compassInput?.paceThresholdSecPerKm;
