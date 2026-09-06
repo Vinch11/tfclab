@@ -3,6 +3,8 @@
  * Module supprimé. Ce fichier fournit des stubs pour la rétrocompatibilité.
  */
 
+import type { PotentielV2Result } from "./v2/potentielTypes";
+
 export interface RunningEconomyData {
   [key: string]: any;
   label: string;
@@ -98,6 +100,96 @@ export function computePotentielEffectif(params: ComputePotentielPhysiologiqueEf
     reasonsMissing, nutritionalRiskIndex: 0,
     runningEconomy: undefined,
     details: { vlamax: vlamaxScore, endurance: tteScore, puissance: score, fraicheur: TTE_UNKNOWN && VLA_UNKNOWN ? 0 : 80 },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADAPTATEUR — Moteur riche (PotentielV2Result) → forme legacy PotentielPhysiologiqueEffectif
+//
+// Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : deux
+// moteurs de "Potentiel Physiologique" totalement indépendants coexistaient.
+// computePotentielEffectif ci-dessus (2 facteurs, VLamax+TTE en 3 paliers
+// chacun) alimentait le Dashboard, RaceSimulationPage, l'assistant IA et les
+// recommandations Wahoo — pendant que le moteur riche à 4 piliers
+// (computeDecisionTFCL, dérivé du gap-analysis unifié VO2max/FTP-kg/VLamax/
+// TTE/Économie/W′, ajusté par âge) n'alimentait QUE l'export PDF. Pour un
+// même athlète (VO2max=55, FTP/kg=3.5, VLamax=0.45, TTE=40min, 40 ans,
+// IM/age_group) : 70 "En progression" (stub) vs 91 "Prêt" (moteur riche) —
+// verdicts opposés selon l'écran.
+//
+// Cet adaptateur permet aux consommateurs historiques de la forme
+// PotentielPhysiologiqueEffectif de recevoir le résultat du moteur riche
+// sans réécrire leur code : ils lisent toujours .score/.label/.color/etc.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function colorForCategory(category: PotentielV2Result["readiness"]["category"]): string {
+  switch (category) {
+    case "ready":
+    case "solid":
+      return "success";
+    case "in_progress":
+      return "warning";
+    case "preparation_required":
+    default:
+      return "destructive";
+  }
+}
+
+export function adaptPotentielV2ToLegacyShape(v2: PotentielV2Result): PotentielPhysiologiqueEffectif {
+  const { readiness, potential, availability, flags } = v2;
+  const isInsufficient = flags.dataIncomplete;
+  const label = isInsufficient ? "Données insuffisantes" : readiness.categoryLabel;
+  const color = isInsufficient ? "muted" : colorForCategory(readiness.category);
+
+  return {
+    score: readiness.score,
+    rawScore: readiness.rawScore,
+    label,
+    color,
+    confidence: readiness.confidenceGlobal,
+    isInsufficient,
+    messageStaff: isInsufficient
+      ? "Score non calculable : données insuffisantes pour le diagnostic complet"
+      : `Score physiologique: ${readiness.score}/100 (${readiness.categoryLabel})`,
+    wasCappedByNutrition: false,
+    wasCappedByEconomy: false,
+    reasonsMissing: isInsufficient ? ["Données insuffisantes pour le diagnostic complet"] : [],
+    nutritionalRiskIndex: 0,
+    runningEconomy: undefined,
+    details: {
+      vlamax: potential.sources.metabolic.value,
+      endurance: potential.sources.tolerance.value,
+      puissance: potential.sources.aerobic.value,
+      fraicheur: availability.score,
+    },
+    // Champs consommés via cast `as any` par certains appelants historiques
+    // (ex: Index.tsx compassInputMemo) — désormais des valeurs réelles du
+    // moteur riche plutôt que des fallbacks silencieux.
+    potential: potential.score,
+    availability: availability.score,
+    governingFactor: "potential",
+  };
+}
+
+/** Résultat "données insuffisantes" cohérent avec l'adaptateur ci-dessus, pour les cas où le diagnostic complet n'a pas pu être calculé (pas de snapshot, pas d'athlète). */
+export function insufficientPotentielResult(): PotentielPhysiologiqueEffectif {
+  return {
+    score: 0,
+    rawScore: 0,
+    label: "Données insuffisantes",
+    color: "muted",
+    confidence: 0,
+    isInsufficient: true,
+    messageStaff: "Score non calculable : données insuffisantes pour le diagnostic complet",
+    wasCappedByNutrition: false,
+    wasCappedByEconomy: false,
+    reasonsMissing: ["Données insuffisantes pour le diagnostic complet"],
+    nutritionalRiskIndex: 0,
+    runningEconomy: undefined,
+    details: { vlamax: 0, endurance: 0, puissance: 0, fraicheur: 0 },
+    potential: 0,
+    availability: 0,
+    governingFactor: "potential",
   };
 }
 
