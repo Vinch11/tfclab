@@ -21,6 +21,7 @@ import {
 import { computeVLamaxBikeV2Enhanced, VLamaxBikeV2EnhancedResult, getVLamaxV2EnhancedCategory } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import { computeVLamaxRunV2Enhanced, VLamaxRunV2EnhancedResult, getRunVLamaxCategory, getRunGlycolyticCategoryColor } from "@/lib/v2/vlamaxRunV2Enhanced";
 import { generateMaderPowerDurationCurve, buildOverlayData } from "@/lib/v2/maderPowerDurationCurve";
+import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import type { MaderProfile } from "@/lib/v2/maderMetabolicModel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -180,7 +181,25 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
     const durations = [5, 10, 15, 30, 45, 60, 120, 180, 300, 600, 1200, 1800, 3600];
     const profile: MaderProfile = { vo2max, vlamax: bikeV2Result.value, weight };
     try {
-      const maderCurve = generateMaderPowerDurationCurve(profile, durations);
+      // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) :
+      // cet overlay utilisait toujours l'heuristique non citée de
+      // generateMaderPowerDurationCurve (W' ≈ 320×VLamax×poids) même quand
+      // l'athlète a des données de puissance courte réelles (P30s/P60s/MAP5')
+      // permettant une vraie régression CP/W' — contrairement à
+      // PowerDurationUnifiedChart.tsx qui câble déjà cpOverride/wPrimeJOverride
+      // depuis analyzeCriticalPower(). Même câblage ici.
+      const cpResult = analyzeCriticalPower({
+        pmax_5s: localValues.pmax_5s ?? null,
+        p30s_w: localValues.p30s_w ?? null,
+        p60s_w: localValues.p60s_w ?? null,
+        map5min_w: localValues.map5min_w ?? null,
+        ftp: localValues.ftp ?? null,
+        weight_kg: weight,
+      });
+      const maderCurve = generateMaderPowerDurationCurve(profile, durations, {
+        cpOverride: cpResult?.effectiveCP ?? cpResult?.cp,
+        wPrimeJOverride: cpResult?.wprime,
+      });
       const data = maderCurve.points.map(p => ({
         label: p.durationSec < 60 ? `${p.durationSec}s` : p.durationSec < 3600 ? `${Math.round(p.durationSec / 60)}'` : `${(p.durationSec / 3600).toFixed(1)}h`,
         mader: Math.round(p.powerWatts),
@@ -188,7 +207,7 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
       }));
       return { data, cp: maderCurve.cp, wPrime: maderCurve.wPrime };
     } catch { return null; }
-  }, [bikeV2Result, vo2max, weight]);
+  }, [bikeV2Result, vo2max, weight, localValues]);
 
   const formatPace = (secKm: number | null) => {
     if (!secKm) return "—";

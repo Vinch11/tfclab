@@ -218,6 +218,19 @@ export function applyWbalRecoveryRecalc(
   const wClampNote = wprimeMeta.clamped
     ? ` ⚠ ${wprimeMeta.bound === "floor" ? "W' plancher 10kJ appliqué" : "W' plafond 35kJ appliqué"} (brut ${(wprimeMeta.rawJ / 1000).toFixed(1)}kJ)`
     : "";
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : ce
+  // post-traitement ne vérifiait jamais cpResult.dataQuality avant de
+  // prescrire des temps de repos — un CP/W' "implausible" (courbe de
+  // puissance trop plate, W' hors plage physiologique, écart CP-FTP
+  // extrême) était utilisé avec confiance, sans aucun avertissement visible
+  // pour le coach, alors qu'unifiedLimiterDetection.ts exclut déjà les
+  // données "implausible" de son propre scoring. CP/W' restent bornés
+  // (effectiveCP, clamp [10;35]kJ) donc la prescription reste sûre — mais
+  // un avertissement est désormais ajouté à l'annotation pour que le coach
+  // sache que les données source (P30s/P60s/MAP5') sont suspectes.
+  const dataQualityNote = cpResult.dataQuality === "implausible"
+    ? ` ⚠ Données CP/W' peu fiables (${cpResult.diagnostics.filter(d => d.severity === "critical").map(d => d.code).join(", ")}) — vérifier P30s/P60s/MAP5'`
+    : "";
 
   // 2) Parcourir toutes les sessions
   for (const week of plan.weeks) {
@@ -343,8 +356,8 @@ export function applyWbalRecoveryRecalc(
       });
       const annotation =
         rewrites.length === 1
-          ? ` *[W'bal recalc: IA ${rewrites[0].originalRestStr} → ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W${wClampNote}]*`
-          : ` *[W'bal multi-blocs (W'=${wKJ}kJ, CP=${cp}W${wClampNote}): ${annotationLines.join(" | ")}]*`;
+          ? ` *[W'bal recalc: IA ${rewrites[0].originalRestStr} → ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W${wClampNote}${dataQualityNote}]*`
+          : ` *[W'bal multi-blocs (W'=${wKJ}kJ, CP=${cp}W${wClampNote}${dataQualityNote}): ${annotationLines.join(" | ")}]*`;
 
       session.details = newDetails + annotation;
       stats.rewritten++;

@@ -28,6 +28,7 @@ import { refineVlamaxWithGlycolyticProfile, GlycolyticRefinementResult, getConve
 import { toast } from "sonner";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ReferenceLine, Legend } from "recharts";
 import { generateMaderPowerDurationCurve, buildOverlayData } from "@/lib/v2/maderPowerDurationCurve";
+import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import type { MaderProfile } from "@/lib/v2/maderMetabolicModel";
 
 export interface NolioImportResult {
@@ -188,10 +189,29 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
     );
     if (nolioWattsCurve.length < 3) return null;
     const profile: MaderProfile = { vo2max: vo2, vlamax: vla, weight: wt };
-    const maderCurve = generateMaderPowerDurationCurve(profile, nolioWattsCurve.map(p => p.durationSec));
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) :
+    // cet overlay utilisait toujours l'heuristique non citée de
+    // generateMaderPowerDurationCurve (W' ≈ 320×VLamax×poids) même quand
+    // l'athlète a des données de puissance courte réelles (P30s/P60s/MAP5')
+    // permettant une vraie régression CP/W' — contrairement à
+    // PowerDurationUnifiedChart.tsx qui câble déjà cpOverride/wPrimeJOverride
+    // depuis analyzeCriticalPower(). Même câblage ici.
+    const { extracted: bikeExtracted } = bikeData;
+    const cpResult = analyzeCriticalPower({
+      pmax_5s: bikeExtracted.pmax_5s ?? null,
+      p30s_w: bikeExtracted.p30s_w ?? null,
+      p60s_w: bikeExtracted.p60s_w ?? null,
+      map5min_w: bikeExtracted.map5min_w ?? null,
+      ftp: bikeExtracted.ftp_estimated || (currentFtp ?? null),
+      weight_kg: wt,
+    });
+    const maderCurve = generateMaderPowerDurationCurve(profile, nolioWattsCurve.map(p => p.durationSec), {
+      cpOverride: cpResult?.effectiveCP ?? cpResult?.cp,
+      wPrimeJOverride: cpResult?.wprime,
+    });
     const data = buildOverlayData(nolioWattsCurve, maderCurve.points);
     return { data, cp: maderCurve.cp, wPrime: maderCurve.wPrime, pMax: maderCurve.pMax };
-  }, [bikeResult, merged, currentVo2max, currentVlamax, currentWeight, vlamaxResult]);
+  }, [bikeResult, merged, currentVo2max, currentVlamax, currentWeight, currentFtp, vlamaxResult]);
 
   // Mader overlay (run)
   const runOverlayData = useMemo(() => {

@@ -63,6 +63,8 @@ export interface RecalcedWorkout {
   cpUsed?: number;
   wprimeUsedJ?: number;
   recalculatedAny: boolean;
+  /** Présent quand cpResult.dataQuality === "implausible" — CP/W' restent bornés/sûrs mais les données source sont suspectes. */
+  dataQualityWarning?: string;
 }
 
 // Puissance de récupération par défaut selon stratégie (cohérent avec Edge function)
@@ -154,6 +156,18 @@ export function recalcWorkoutRest(
     };
   }
 
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : un
+  // CP/W' calculé mais "implausible" (courbe de puissance trop plate, W'
+  // hors plage physiologique, écart CP-FTP extrême) était utilisé sans
+  // aucun avertissement. CP/W' restent bornés (effectiveCP, clamp
+  // [10;35]kJ via effectiveWprime) donc la prescription reste sûre — on
+  // expose désormais dataQualityWarning pour que l'UI puisse afficher un
+  // avertissement, comme unifiedLimiterDetection.ts le fait déjà pour son
+  // propre scoring.
+  const dataQualityWarning = cpResult.dataQuality === "implausible"
+    ? `Données CP/W' peu fiables (${cpResult.diagnostics.filter(d => d.severity === "critical").map(d => d.code).join(", ")}) — vérifier P30s/P60s/MAP5'`
+    : undefined;
+
   const cp = cpResult.effectiveCP;
   const wprime = effectiveWprime(cpResult.wprime);
   const ftp = athleteRefs.ftp ?? cp;
@@ -204,6 +218,7 @@ export function recalcWorkoutRest(
     cpUsed: cp,
     wprimeUsedJ: wprime,
     recalculatedAny,
+    dataQualityWarning,
   };
 }
 
