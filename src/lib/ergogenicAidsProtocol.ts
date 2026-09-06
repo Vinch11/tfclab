@@ -9,11 +9,23 @@
  *  - Grgic et al. 2021 — Sodium bicarbonate meta-analysis
  *
  * Aides retenues (preuves A/B uniquement) :
- *  - Nitrates (jus de betterave) — 6–12 mmol NO₃⁻, 2–3h pré-effort, efforts 4–30 min
- *  - Beta-alanine — 3.2–6.4 g/j chronique (4–12 sem), efforts 1–10 min
+ *  - Nitrates (jus de betterave) — 6–12 mmol NO₃⁻, 2–3h pré-effort, efforts 4–40 min
+ *  - Beta-alanine — 3.2–6.4 g/j chronique (4–12 sem), efforts 0.5–10 min
  *  - Créatine monohydrate — 3–5 g/j chronique, sprints répétés / force
- *  - Bicarbonate de sodium — 0.2–0.3 g/kg, 60–180 min pré-effort, efforts 1–7 min
+ *  - Bicarbonate de sodium — 0.2–0.3 g/kg, 60–180 min pré-effort, efforts 1–8 min
  *  - Caféine traitée séparément (F3)
+ *
+ * Bug réel corrigé (audit "simulation course/nutrition", passe 5) : les
+ * fonctions buildNitrates/buildBetaAlanine/buildBicarbonate décidaient de
+ * `recommended` à partir du "profil de course" (classifyRace, calibré pour
+ * la stratégie glucidique — sprint/short/middle/long/ultra), sans rapport
+ * avec la fenêtre de preuve propre à chaque substance citée ci-dessus. Les
+ * nitrates étaient ainsi recommandés jusqu'au profil "long" (240 min = 4h)
+ * — soit la quasi-totalité des courses longue distance de l'app — alors
+ * que la littérature (recherche WebSearch, synthèses 2021-2023) ne
+ * documente un bénéfice ergogénique que pour des contre-la-montre <40 min.
+ * Chaque substance vérifie maintenant sa propre fenêtre de preuve
+ * directement sur `durationMin`, indépendamment du profil de course.
  */
 
 export type RaceProfile = "sprint" | "short" | "middle" | "long" | "ultra";
@@ -83,17 +95,17 @@ function classifyRace(durationMin: number): RaceProfile {
 // LOGIQUE PAR SUPPLÉMENT
 // =============================================
 
-function buildNitrates(profile: RaceProfile): AidProtocol {
-  const recommended = profile === "short" || profile === "middle" || profile === "long";
+function buildNitrates(durationMin: number): AidProtocol {
+  const recommended = durationMin >= 4 && durationMin <= 40;
   return {
     name: "Nitrates (jus de betterave)",
     evidenceLevel: "A",
     recommended,
     reason: recommended
       ? "Réduit coût en O₂ de 3–5 % et améliore TT 1–3 %"
-      : profile === "ultra"
-      ? "Bénéfice limité au-delà de 4h — pas prioritaire"
-      : "Sprint <2 min : pas d'effet ergogénique démontré",
+      : durationMin < 4
+      ? "Effort trop court (<4 min) : pas d'effet ergogénique démontré"
+      : "Bénéfice non démontré au-delà de 40 min (contre-la-montre) — pas prioritaire pour cette distance",
     dose: recommended ? "6–12 mmol NO₃⁻ (≈ 2 shots de 70 mL ou 500 mL jus)" : null,
     timing: recommended ? "T-150 min (pic plasma à 2–3h)" : null,
     loadingPhase: recommended ? "Optionnel : 3–6 jours à 6 mmol/j pour potentialisation" : null,
@@ -130,15 +142,15 @@ function buildNitrates(profile: RaceProfile): AidProtocol {
   };
 }
 
-function buildBetaAlanine(profile: RaceProfile, hasRepeated: boolean): AidProtocol {
-  const recommended = profile === "short" || profile === "middle" || hasRepeated;
+function buildBetaAlanine(durationMin: number, hasRepeated: boolean): AidProtocol {
+  const recommended = (durationMin >= 0.5 && durationMin <= 10) || hasRepeated;
   return {
     name: "Beta-alanine",
     evidenceLevel: "A",
     recommended,
     reason: recommended
-      ? "Augmente carnosine musculaire → tampon H⁺, +2–3 % sur 1–10 min"
-      : "Bénéfice marginal hors zone glycolytique soutenue",
+      ? "Augmente carnosine musculaire → tampon H⁺, +2–3 % sur 0.5–10 min"
+      : "Bénéfice marginal hors zone glycolytique soutenue (efforts continus >10 min sans relances)",
     dose: recommended ? "3.2–6.4 g/j fractionnés en 2–4 prises de 0.8–1.6 g" : null,
     timing: recommended ? "Chronique uniquement — pas de dose pré-effort utile" : null,
     loadingPhase: recommended
@@ -226,16 +238,17 @@ function buildCreatine(hasRepeated: boolean, vegetarian: boolean): AidProtocol {
   };
 }
 
-function buildBicarbonate(profile: RaceProfile, weightKg: number | null, tested: boolean): AidProtocol {
-  const recommended = (profile === "short" || profile === "middle") && tested;
+function buildBicarbonate(durationMin: number, weightKg: number | null, tested: boolean): AidProtocol {
+  const inEvidenceWindow = durationMin >= 1 && durationMin <= 8;
+  const recommended = inEvidenceWindow && tested;
   const dose = weightKg && recommended ? `${(0.2 * weightKg).toFixed(0)}–${(0.3 * weightKg).toFixed(0)} g (0.2–0.3 g/kg)` : null;
   return {
     name: "Bicarbonate de sodium (NaHCO₃)",
     evidenceLevel: "B",
     recommended,
     reason: recommended
-      ? "Tampon extracellulaire H⁺, +2 % sur efforts 1–7 min"
-      : !tested && (profile === "short" || profile === "middle")
+      ? "Tampon extracellulaire H⁺, +2 % sur efforts 1–8 min"
+      : inEvidenceWindow && !tested
       ? "À tester d'abord à l'entraînement (risque GI majeur)"
       : "Hors fenêtre d'efficacité (efforts trop courts ou trop longs)",
     dose,
@@ -306,10 +319,10 @@ export function computeErgogenicAids(input: ErgogenicAidsInput): ErgogenicAidsRe
   const raceProfile = classifyRace(durationMin);
 
   const aids: AidProtocol[] = [
-    buildNitrates(raceProfile),
-    buildBetaAlanine(raceProfile, hasRepeatedEfforts),
+    buildNitrates(durationMin),
+    buildBetaAlanine(durationMin, hasRepeatedEfforts),
     buildCreatine(hasRepeatedEfforts, vegetarian),
-    buildBicarbonate(raceProfile, weightKg, bicarbTested),
+    buildBicarbonate(durationMin, weightKg, bicarbTested),
   ];
 
   const globalNotes: string[] = [
