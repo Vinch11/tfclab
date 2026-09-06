@@ -122,10 +122,24 @@ export function checkPacingRulesParity(
   const byId = new Map(allRules.map((r) => [r.id, r]));
 
   // 1. Vérifier que toute règle critique de l'UI interactive est dans le rapport staff
+  //
+  // Bug réel (audit "simulation course/nutrition") : `snapshotSurface("staff_report", ...)`
+  // n'inclut PAR CONCEPTION que nonNegotiables + tacticals (cf. la fonction
+  // ci-dessus) — coachPhrases ET prohibitions en sont exclus, exclusion déjà
+  // documentée par le message "category_dropped" (info) plus bas. Or cette
+  // vérification ne l'excluait pas : `generateDisciplineRules()` pousse
+  // TOUJOURS une règle `drift_prohibition` en priorité critique (category
+  // "prohibition"), donc ce contrôle levait une alerte "critique" à CHAQUE
+  // simulation, même quand rien n'est réellement manquant — un faux positif
+  // systématique qui dévalue le signal `checkPacingRulesParity(...).passed`.
+  // Vérifie l'APPARTENANCE aux catégories effectivement incluses dans staff
+  // (plutôt que d'exclure "prohibition" seule) pour rester correct même si
+  // une future règle "coach_phrase" devenait un jour critique.
+  const STAFF_REPORT_CATEGORIES: ReadonlySet<DisciplineRule["category"]> = new Set(["non_negotiable", "tactical"]);
   for (const id of interactive.ruleIds) {
     const r = byId.get(id);
     if (!r) continue;
-    if (r.priority === "critical" && !staff.ruleIds.includes(id)) {
+    if (r.priority === "critical" && STAFF_REPORT_CATEGORIES.has(r.category) && !staff.ruleIds.includes(id)) {
       issues.push({
         severity: "critical",
         surface: "staff_report",
