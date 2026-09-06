@@ -134,10 +134,11 @@ export function useDecisionReliability(
       const extSnapshot = snapshot as ExtendedSnapshot;
 
       // ✅ VLamax adaptée à l'objectif (run/trail → vlamax_run, sinon vlamax vélo)
-      const goalVlamax = resolveVlamaxForGoal(
+      const goalVlamaxResolution = resolveVlamaxForGoal(
         snapshot as any,
         { goal: extSnapshot.objectif ?? null }
-      ).value;
+      );
+      const goalVlamax = goalVlamaxResolution.value;
 
       // Build full DRE input
       const dreInput: FullDREInput = {
@@ -146,7 +147,11 @@ export function useDecisionReliability(
         coachId: user.id,
         objective: extSnapshot.objectif ?? "IM",
         vlamax: goalVlamax,
-        vlamaxConfidence: 0.7, // Default confidence
+        // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) :
+        // hardcodé à 0.7 pour tout athlète, alors que la vraie confiance
+        // varie de 0.15 (inconnue) à 0.92 (mesure labo verrouillée) — ce
+        // terme pèse 20% dans le Decision Reliability Score global.
+        vlamaxConfidence: goalVlamaxResolution.confidence ?? 0.7,
         tteMin: snapshot.tte_observed_min ?? null,
         tteConfidence: 0.7, // Default confidence
         fatmaxPct: null, // Non disponible dans le snapshot standard
