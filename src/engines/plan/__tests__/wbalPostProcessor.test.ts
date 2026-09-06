@@ -465,3 +465,65 @@ describe("applyWbalRecoveryRecalc — traçabilité IA → W'bal", () => {
     expect(session.details).toMatch(/R\s*=\s*\d+(min|s)\s*\(IA:\s*2min\)/i);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 6) IDEMPOTENCE — pas de duplication sur un plan déjà réécrit
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Bug réel corrigé (audit "dashboard/plan/export", passe 6). applyWbalRecoveryRecalc
+ * est rappelée sur le plan ENTIER à chaque patch coach ultérieur
+ * (usePlanAdaptation.ts — déload, reprogrammation, régénération de fenêtre),
+ * pas seulement à la génération initiale. Sans garde, une session déjà réécrite
+ * était détectée à nouveau (son "R=3min30" recalculé matchait le pattern
+ * d'intervalle comme un nouveau bloc), ajoutant un 2e tag "(IA: ...)" avec la
+ * mauvaise valeur de provenance et un 2e bloc d'annotation "*[W'bal recalc:...]*"
+ * en double — dupliqués à nouveau à chaque passage suivant.
+ */
+describe("applyWbalRecoveryRecalc — idempotence sur repasses successives (patchs coach)", () => {
+  it("un 2e appel sur un plan déjà réécrit (bloc simple) ne duplique ni le tag (IA: ...) ni l'annotation", () => {
+    const session = makeSession({ details: "5×4min @ 110%FTP, R=3min" });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+    const afterFirstPass = session.details;
+
+    const statsPass2 = applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect(session.details).toBe(afterFirstPass);
+    expect(statsPass2.rewritten).toBe(0);
+    expect(statsPass2.scanned).toBe(0);
+    // Un seul tag de provenance, pas de doublon "(IA: ...) (IA: ...)"
+    expect((session.details.match(/\(IA:/g) ?? []).length).toBe(1);
+    // Une seule annotation, pas deux blocs "*[W'bal recalc: ...]*" à la suite
+    expect((session.details.match(/\*\[W'bal recalc:/g) ?? []).length).toBe(1);
+  });
+
+  it("un 2e appel sur un plan déjà réécrit (multi-blocs) ne duplique pas l'annotation multi-blocs", () => {
+    const session = makeSession({
+      details:
+        "Bloc 1: 5×4min @ 110%FTP, R=3min. Bloc 2: 6×2min @ 120%FTP, R=2min.",
+    });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+    const afterFirstPass = session.details;
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect(session.details).toBe(afterFirstPass);
+    expect((session.details.match(/W'bal multi-blocs/g) ?? []).length).toBe(1);
+  });
+
+  it("un 3e appel consécutif reste stable (pas d'accumulation progressive)", () => {
+    const session = makeSession({ details: "8 x 3 min à 105% FTP — repos 2min" });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect((session.details.match(/\(IA:/g) ?? []).length).toBe(1);
+    expect((session.details.match(/\*\[W'bal recalc:/g) ?? []).length).toBe(1);
+  });
+});

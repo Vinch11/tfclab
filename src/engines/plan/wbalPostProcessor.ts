@@ -225,6 +225,23 @@ export function applyWbalRecoveryRecalc(
       if (session.isRest) continue;
       if (!isCyclingSession(session)) continue;
 
+      // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : cette
+      // fonction n'était pas idempotente. applyWbalRecoveryRecalc est
+      // rappelée sur le plan ENTIER à chaque patch coach ultérieur
+      // (usePlanAdaptation.ts), donc une session déjà réécrite était
+      // détectée à nouveau — detectAllIntervals matchait le "R=3min30"
+      // déjà recalculé comme s'il s'agissait d'un intervalle IA d'origine,
+      // ajoutant un 2e tag "(IA: ...)" (avec la mauvaise valeur de
+      // provenance, la valeur déjà recalculée au lieu de la vraie
+      // proposition IA d'origine) et un 2e bloc d'annotation "*[W'bal
+      // recalc: ...]*" en double, dupliqués à nouveau à chaque passage
+      // suivant. Garde explicite ajoutée, sur le même principe que le
+      // helper `annotate()` de planPatcher.ts dans ce même dossier.
+      if (session.details.includes("W'bal recalc") || session.details.includes("W'bal multi-blocs")) {
+        stats.skipped++;
+        continue;
+      }
+
       stats.scanned++;
 
       const detectedBlocks = detectAllIntervals(session.details);
