@@ -597,7 +597,12 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     fatigueCurve.push({
       distance_pct: i,
       fatigue_index: Math.round(fatigue),
-      central_fatigue_risk: fatigue >= FATIGUE_PARAMS.central_threshold ? Math.round((fatigue - 60) * 2) : 0,
+      // Bug réel (audit "simulation course/nutrition") : l'offset était figé
+      // à 60 alors que le seuil de déclenchement est `central_threshold`
+      // (70) — à fatigue=69.999 le risque valait 0, à fatigue=70 il
+      // sautait à 20 ((70-60)×2), une discontinuité pour un score censé
+      // progresser SANS à-coup. Offset aligné sur le seuil réel.
+      central_fatigue_risk: fatigue >= FATIGUE_PARAMS.central_threshold ? Math.round((fatigue - FATIGUE_PARAMS.central_threshold) * 2) : 0,
     });
   }
 

@@ -644,12 +644,17 @@ function computeGlycogenRemaining(
   // Référence: 12-15 g/kg de masse corporelle (musculaire + hépatique)
   // - Sans carb-loading: ~12 g/kg
   // - Avec carb-loading (>8 g/kg/j x 2-3j): ~15 g/kg
-  // Fallback à 450g si poids inconnu (athlète ~65 kg non chargé)
+  // Fallback à un poids par défaut de 65 kg si poids inconnu, PUIS
+  // application de la même formule ci-dessous (pas une constante séparée).
+  // Bug réel (audit "simulation course/nutrition") : le fallback était
+  // auparavant une constante figée à 450g commentée "athlète ~65kg non
+  // chargé" — or 65 × 12 = 780g, pas 450 (450/12 = 37.5kg). Le fallback
+  // était ~42% trop bas, surestimant silencieusement le risque de panne
+  // glycogène pour tout calcul sans poids athlète connu.
   // ─────────────────────────────────────────────────────────────────
+  const DEFAULT_WEIGHT_KG = 65;
   const baseGlycogenPerKg = carbLoaded ? 15 : 12;
-  const totalGlycogenG = weightKg && weightKg > 0
-    ? weightKg * baseGlycogenPerKg
-    : 450;
+  const totalGlycogenG = (weightKg && weightKg > 0 ? weightKg : DEFAULT_WEIGHT_KG) * baseGlycogenPerKg;
   
   // Appliquer le décalage FatMax si modificateurs présents
   // F38-bis: si fatmaxCenter manquant → skip contribution FatMax (pas de valeur fantôme 70).
@@ -699,7 +704,23 @@ function computeGlycogenRemaining(
   // FIX P2: Fatigue progressive MODULÉE PAR DURABILITÉ (TTE)
   // Référence: Maunder 2021, Clark 2022 — la durabilité (TTE long)
   // atténue la dérive du coût glucidique en fin de course.
-  //   TTE 60min+ : +8%   |   TTE 45min : +15%   |   TTE 25min : +30%
+  //
+  // Bug de documentation réel (audit "simulation course/nutrition") : ce
+  // commentaire annonçait TTE 60min+ → +8% | 45min → +15% | 25min → +30%,
+  // mais la formule ci-dessous (linéaire à pente unique) ne peut PAS
+  // satisfaire ces 3 points de référence simultanément — la relation
+  // documentée est courbe, pas linéaire. Valeurs RÉELLEMENT produites par la
+  // formule actuelle (vérifiées par calcul direct) :
+  //   TTE 25min → 35% (plafond)  |  TTE 45min → 22.2%  |  TTE 60min → 8.85%
+  // Un athlète à TTE moyen (~45min) reçoit donc une pénalité de dérive
+  // glucidique en fin de course sensiblement plus élevée (22.2% vs 15%
+  // documenté, soit +48% relatif) que ce que le commentaire d'origine
+  // annonçait. Non corrigé côté formule : changer les coefficients
+  // changerait les prédictions de course réelles pour tous les athlètes à
+  // TTE intermédiaire sans confirmation qu'un des deux jeux de chiffres
+  // (formule vs commentaire) est le calibrage réellement voulu — décision
+  // de coaching/physiologie, pas un bug mécanique. Documentation alignée sur
+  // le comportement réel en attendant cette décision.
   // ─────────────────────────────────────────────────────────────────
   // F38: si TTE manquant, on choisit le facteur médian (≈ TTE 45) sans prétendre l'avoir mesuré
   const tteRef = tteMin != null && tteMin > 0 ? tteMin : 45;
@@ -821,6 +842,7 @@ function generateScenario(
   const segments: SegmentResult[] = [];
   let breakpointKm: number | null = null;
   let breakpointRisk: string | null = null;
+  let breakpointFound = false;
   
   for (let i = 0; i < numSegments; i++) {
     // Intensité légèrement variable (fatigue progression)
@@ -841,9 +863,15 @@ function generateScenario(
     }
     
     const gutTraining = input.gutTraining ?? false;
-    
+
+    // Bug réel (audit "simulation course/nutrition") : le risque de panne et
+    // le glycogène restant utilisaient la constante `targetIntensity` au lieu
+    // de `segmentIntensity` (calculée juste au-dessus avec dérive/negative
+    // split/boost final) — les segments censés être les plus risqués (ceux
+    // où l'athlète accélère) étaient modélisés comme s'il n'avait jamais
+    // accéléré.
     const fuelRisk = computeSegmentFuelRisk(
-      targetIntensity,
+      segmentIntensity,
       input.fatmaxCenterPct,
       input.fatmaxRange?.[1] ?? null,
       input.vlamaxEffectif,
@@ -855,11 +883,11 @@ function generateScenario(
       type,
       readinessModifiers
     );
-    
+
     const glycogenRemaining = computeGlycogenRemaining(
       i,
       numSegments,
-      targetIntensity,
+      segmentIntensity,
       input.fatmaxCenterPct,
       input.vlamaxEffectif,
       input.plannedCarbsGH,
@@ -871,12 +899,12 @@ function generateScenario(
       input.gutTraining, // proxy carb-loading (préparation nutritionnelle)
       input.tteMin
     );
-    
+
     // Courbe sans nutrition pour comparaison
     const glycogenWithoutNutrition = computeGlycogenRemaining(
       i,
       numSegments,
-      targetIntensity,
+      segmentIntensity,
       input.fatmaxCenterPct,
       input.vlamaxEffectif,
       0, // pas d'apport
@@ -888,9 +916,14 @@ function generateScenario(
       false,
       input.tteMin
     );
-    
-    // Détecter point de bascule
-    if (!breakpointKm && fuelRisk >= 60) {
+
+    // Détecter point de bascule. Bug réel (audit) : `!breakpointKm` traite
+    // km 0 (segment i=0, fuelRisk déjà ≥60 dès le départ) comme "aucune
+    // valeur" (0 est falsy en JS) — chaque segment suivant ≥60 écrasait donc
+    // breakpointKm/breakpointRisk, affichant le DERNIER segment à risque au
+    // lieu du PREMIER. `breakpointFound` lève l'ambiguïté explicitement.
+    if (!breakpointFound && fuelRisk >= 60) {
+      breakpointFound = true;
       breakpointKm = segmentDistance * i;
       breakpointRisk = `Risque glycogène élevé à partir du km ${Math.round(breakpointKm)}`;
     }

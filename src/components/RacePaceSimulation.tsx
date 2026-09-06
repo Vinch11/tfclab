@@ -308,6 +308,21 @@ export function RacePaceSimulation({
     return computeSegments(normalizedObj, thresholdPace, vlamaxRun, ambition, intensityCenterPct ?? null);
   }, [normalizedObj, thresholdPace, vlamaxRun, ambition, intensityCenterPct]);
 
+  // Bug réel (audit "simulation course/nutrition") : le texte d'intro plus
+  // bas affichait toujours BASE_INTENSITY[objectif].low (valeur par défaut),
+  // jamais la borne basse RÉELLEMENT utilisée par computeSegments quand un
+  // intensityCenterPct personnalisé (Plan IA) ou une ambition non-neutre
+  // déplace le centre — le tableau pouvait afficher des allures très
+  // différentes de ce que dit cette phrase. Même calcul que dans
+  // computeSegments (centre effectif, borne basse) pour rester cohérent.
+  const effectiveBaseLow = useMemo(() => {
+    if (!normalizedObj) return null;
+    const baseRaw = BASE_INTENSITY[normalizedObj] || BASE_INTENSITY.Semi;
+    const center = intensityCenterPct != null ? intensityCenterPct : baseRaw.center + ambitionCenterDelta(ambition);
+    const halfWidth = (baseRaw.high - baseRaw.low) / 2;
+    return Math.round(center - halfWidth);
+  }, [normalizedObj, ambition, intensityCenterPct]);
+
   // Don't render for non-running objectives
   if (!normalizedObj || !segments || !thresholdPace) return null;
 
@@ -390,7 +405,7 @@ export function RacePaceSimulation({
             Stratégie Negative Split TFCL™
           </p>
           <p className="text-muted-foreground">
-            Départ conservateur ({BASE_INTENSITY[normalizedObj].low}% seuil), installation progressive,
+            Départ conservateur ({effectiveBaseLow}% seuil), installation progressive,
             poussée contrôlée dans le dernier tiers si glycogène &gt; 25%.
           </p>
         </div>
