@@ -425,6 +425,34 @@ function ScenariosSection({ scenarios }: { scenarios: ScenarioSimulationResult }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// GUARD — DONNÉES INSUFFISANTES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Bug réel corrigé (audit "simulation course/nutrition", passe 4). L'ancien
+ * garde comparait `input.vlamaxEffectif?.value === null` et
+ * `input.tteEffectif?.tte_min === 0` : quand `vlamaxEffectif`/`tteEffectif`
+ * sont eux-mêmes `null` (l'état normal "jamais calculé" — le cas le plus
+ * fréquent pour un athlète tout juste créé), l'optional chaining renvoie
+ * `undefined`, jamais égal à `null` ni à `0`. Le garde ne se déclenchait
+ * donc JAMAIS dans le cas pourtant le plus courant d'absence totale de
+ * données, et affichait une enveloppe de pacing sans base physiologique
+ * plutôt que le message "données insuffisantes".
+ */
+export function isPacingEnvelopeDataInsufficient(
+  input: PacingEnvelopeInput,
+  envelope: PacingEnvelopeResult | null
+): boolean {
+  if (!envelope) return true;
+  const vlamaxMissing = input.vlamaxEffectif == null || input.vlamaxEffectif.value == null;
+  const tteMissing =
+    input.tteEffectif == null ||
+    input.tteEffectif.source === "unknown" ||
+    input.tteEffectif.tte_min === 0;
+  return vlamaxMissing && tteMissing && input.ftp == null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // COMPOSANT PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -470,11 +498,7 @@ export function PacingEnvelopeCard({
   }, [envelope, input, raceDistanceKm, raceDurationMin]);
   
   // Guard: données insuffisantes si aucune donnée métabolique
-  const isInsufficient = !envelope || (
-    input.vlamaxEffectif?.value === null && 
-    input.tteEffectif?.tte_min === 0 && 
-    input.ftp === null
-  );
+  const isInsufficient = isPacingEnvelopeDataInsufficient(input, envelope);
 
   if (isInsufficient) {
     return (
