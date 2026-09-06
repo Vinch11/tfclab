@@ -216,7 +216,7 @@ import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, type PotentielInput } from "@/lib/potentielPhysiologiqueEffectif";
+import { adaptPotentielV2ToLegacyShape, insufficientPotentielResult, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
 
 // ✅ Ambition (modulateur des cibles)
@@ -608,22 +608,6 @@ const Index = () => {
     return tteEffectif?.tte_min ?? 0;
   }, [tteEffectif]);
 
-  // Potentiel Physiologique stub (module removed)
-  const potentielPhysiologiqueEffectif = useMemo(() => {
-    return computePotentielEffectif({
-      objectif: currentAthlete?.goal || "IM",
-      vlamaxEffectif,
-      tteEffectif,
-      ftp,
-      poids: poids ?? undefined,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-      ambition: currentAmbition,
-      tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
-    });
-  }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveCloudSnapshot, currentAmbition]);
-
-
   // ✅ DECISION RELIABILITY ENGINE - Score de confiance décisionnelle
   const decisionReliability = useMemo<DecisionReliabilityResult>(() => {
     return computeFullDRE({
@@ -820,6 +804,18 @@ const Index = () => {
 
     return { dashDiagnostic: diagnostic, dashPrescription: prescription };
   }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin, runDurabilityProxy]);
+
+  // ✅ Potentiel Physiologique — Bug réel corrigé (audit "estimations
+  // physiologiques", Cluster 2) : dérivait auparavant d'un stub 2 facteurs
+  // (computePotentielEffectif, VLamax+TTE en 3 paliers) totalement
+  // indépendant du moteur riche à 4 piliers (dashDiagnostic.readiness) déjà
+  // calculé ci-dessus — divergence jusqu'à 21 points et verdict opposé
+  // ("En progression" vs "Prêt") pour le même athlète entre le Dashboard et
+  // le PDF exporté. Le Dashboard utilise désormais le même moteur riche.
+  const potentielPhysiologiqueEffectif = useMemo(() => {
+    if (!dashDiagnostic) return insufficientPotentielResult();
+    return adaptPotentielV2ToLegacyShape(dashDiagnostic.readiness);
+  }, [dashDiagnostic]);
 
   // ✅ VLamax & TTE alignés sur le diagnostic unifié.
   // Avec vlamaxEffectifPrecomputed injecté plus haut, la valeur retournée par
