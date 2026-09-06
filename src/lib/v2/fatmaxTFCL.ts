@@ -153,10 +153,15 @@ export function computeFatMaxAnchorPctFTP(
 
 /**
  * Calcule la FatMax TFCL™ selon la formule officielle V2
- * 
- * Formule:
- * FatMax_center_%FTP = CLAMP(78 - 45 × (vlamaxEffectif − 0.25), 52, 82)
- * 
+ *
+ * Formule (bug réel corrigé — audit "dashboard/plan/export", passe 6 : ce
+ * commentaire citait encore le coefficient 45 et la borne basse 52, alors
+ * que l'implémentation ci-dessous, comme computeFatMaxAnchorPctFTP() plus
+ * haut dans ce fichier — la fonction canonique, "Ne PAS dupliquer ailleurs"
+ * — utilisent déjà 52 et [48, 82]. Code inchangé, seul le commentaire était
+ * périmé) :
+ * FatMax_center_%FTP = CLAMP(78 - 52 × (vlamaxEffectif − 0.25) + 0.15 × (VO2max − 50), 48, 82)
+ *
  * Règle physiologique:
  * - VLamax basse → dépendance lipidique élevée → FatMax plus haute
  * - VLamax élevée → glycolyse dominante → FatMax plus basse
