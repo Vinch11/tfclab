@@ -968,8 +968,23 @@ export function calculateGlycogenDepletion(
     const totalBloodDemand = muscleGlucoseUptake + extraSanguin;
 
     // Déficit que le foie doit combler (après apport exogène)
+    //
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) :
+    // LIVER_GLUCOSE_RELEASE_MAX (0.5 g/min, Coyle 1986) est un débit MOYEN
+    // observé sur des heures d'effort continu — pas un plafond instantané.
+    // L'ancien code le traitait comme un plafond dur : dès que la demande
+    // dépassait 0.5 g/min, le surplus non couvert faisait chuter la glycémie
+    // CE MÊME MINUTE, même si le foie avait encore la quasi-totalité de ses
+    // 100g de réserve. Pour un cycliste bien fourni (60 g/h), ça produisait
+    // une "hypoglycémie critique" en 3 minutes — physiologiquement absurde
+    // (erreur de catégorie : moyenne soutenue confondue avec plafond
+    // instantané). Le foie peut désormais couvrir la demande tant qu'il a
+    // du glycogène (contrainte de RÉSERVE, pas de débit) — la glycémie ne
+    // chute que lorsque le foie est réellement vide, cohérent avec la
+    // logique déjà utilisée pour le glycogène musculaire quelques lignes
+    // plus haut ("Si muscle vide → bascule sur sang").
     const liverDemand = Math.max(0, totalBloodDemand - carbIntakeGMin);
-    const liverRelease = Math.min(LIVER_GLUCOSE_RELEASE_MAX, liverDemand, liverG);
+    const liverRelease = Math.min(liverDemand, liverG);
     liverG = Math.max(0, liverG - liverRelease);
 
     // Si la demande dépasse l'apport + relâche hépatique → glycémie chute
@@ -1058,6 +1073,16 @@ export interface TTEMechanismsResult {
   mechanismConfidence: number; // 0-1
   /** Reco pédagogique courte. */
   recommendation: string;
+  /**
+   * Intensité relative réelle (%VO2max) déduite de `power` — exposée pour que
+   * les appelants (ex: calculateGlycogenDepletion) réutilisent la MÊME
+   * intensité au lieu d'en hardcoder une différente (bug réel corrigé, audit
+   * "estimations physiologiques" Cluster 2 : TTEGlycogenInsightsCard.tsx
+   * affichait tteGlycogen calculé à l'intensité réelle et une alerte
+   * "risque fringale" calculée à une intensité fixe de 75%, contradictoires
+   * sur la même carte pour le même athlète).
+   */
+  intensityPct: number;
 }
 
 /** Capacité tampon musculaire typique (mmol/L). Hultman & Sahlin 1980. */
@@ -1165,6 +1190,7 @@ export function calculateTTEMechanisms(
     limitingMechanism,
     mechanismConfidence: Number(mechanismConfidence.toFixed(2)),
     recommendation: RECO[limitingMechanism],
+    intensityPct: Math.round(intensityPct * 10) / 10,
   };
 }
 
