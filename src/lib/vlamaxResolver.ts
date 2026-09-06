@@ -18,6 +18,7 @@
 
 import { resolveSportMain, type CanonicalSport } from "./sportMainDeduction";
 import { estimateVLamaxCap } from "./v2/vlamaxCapEstimator";
+import { clampVLamax, computeConfidenceScore } from "./v2/vlamaxV2Engine";
 
 export type VlamaxSource = "run" | "bike";
 
@@ -35,6 +36,18 @@ export interface VlamaxResolution {
     | "missing_vlamax_bike"
     | "no_sport_resolved"
     | "no_snapshot";
+  /**
+   * Confiance réelle (0-1) de la valeur résolue, quand elle est connue.
+   * Bug réel corrigé (audit "estimations physiologiques", Cluster 1) :
+   * useDecisionReliability.ts et cycleIntelligence.ts hardcodaient
+   * vlamaxConfidence à 0.7 pour TOUT athlète, alors que la vraie confiance
+   * varie de 0.15 (inconnue) à 0.92 (mesure labo verrouillée) — ce champ
+   * expose la confiance réellement calculée pour que ces consommateurs
+   * arrêtent d'inventer une valeur constante. `undefined` uniquement pour
+   * le pivot vélo/tri, où aucune information de qualité n'est disponible
+   * dans `SnapshotLike` aujourd'hui.
+   */
+  confidence?: number;
 }
 
 interface SnapshotLike {
@@ -91,6 +104,24 @@ export function resolveVlamaxForGoal(
     const rawRun = snapshot.vlamax_run ?? null;
     const isLab = rawRun != null && isLabMeasuredVlamaxRun(snapshot);
 
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : une
+    // mesure labo passait ici par estimateVLamaxCap comme une simple entrée
+    // pondérée à 0.70 parmi d'autres (ex: ratio pace/VMA à 0.15), diluant une
+    // valeur mesurée de ~10% (0.70 → 0.63 dans un cas tracé) alors que
+    // vlamaxEffectif.ts (dashboard, PDF, plan) verrouille la même mesure telle
+    // quelle. Les deux surfaces affichaient donc des VLamax différentes pour
+    // le même test labo. On verrouille désormais ici aussi, avant tout appel
+    // à l'estimateur CAP.
+    if (isLab && rawRun != null && rawRun > 0) {
+      return {
+        value: clampVLamax(rawRun, "cap"),
+        source: "run",
+        sport,
+        reason: "ok",
+        confidence: computeConfidenceScore("test_labo"),
+      };
+    }
+
     const capEst = estimateVLamaxCap({
       vma: snapshot.vma ?? null,
       paceThresholdSecPerKm: snapshot.pace_threshold_sec_per_km ?? null,
@@ -99,16 +130,19 @@ export function resolveVlamaxForGoal(
       runningPowerMax: snapshot.running_power_max ?? null,
       runningPowerThreshold: snapshot.running_power_threshold ?? null,
       weightKg: snapshot.weight_kg ?? null,
-      vlamaxRunMeasured: isLab ? rawRun : null,
+      vlamaxRunMeasured: null,
       vo2max: snapshot.vo2max ?? null,
     });
 
     if (capEst.method !== "insufficient" && capEst.value > 0) {
-      return { value: capEst.value, source: "run", sport, reason: "ok" };
+      return { value: capEst.value, source: "run", sport, reason: "ok", confidence: capEst.confidence };
     }
 
     if (rawRun != null && rawRun > 0) {
-      return { value: rawRun, source: "run", sport, reason: "ok" };
+      // Fallback brut (dernier recours) : valeur terrain non validée par
+      // l'estimateur CAP unifié — traitée comme "estimation" (0.50), pas une
+      // valeur mesurée/validée.
+      return { value: rawRun, source: "run", sport, reason: "ok", confidence: computeConfidenceScore("estimation") };
     }
 
     if (typeof console !== "undefined" && import.meta.env?.DEV) {

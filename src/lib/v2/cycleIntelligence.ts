@@ -508,11 +508,30 @@ export function snapshotToEngineData(snapshot: Record<string, unknown>): Snapsho
   // Résolution VLamax sport-aware : pour un athlète CAP/Trail, le champ
   // `snapshot.vlamax` représente la VLamax vélo et n'est PAS représentatif
   // de la glycolyse en course. On utilise le resolver unifié.
+  //
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : cet
+  // appel ne transmettait que vlamax/vlamax_run/sport_main, privant
+  // l'estimateur CAP unifié (estimateVLamaxCap) des champs dont il a besoin
+  // (vma, pace_threshold_sec_per_km, sprint_15s_distance, running_power_*,
+  // weight_kg, vlamax_source/protocol, vo2max). Sans eux, l'estimateur
+  // renvoyait toujours "insufficient" et le resolver retombait sur le champ
+  // brut vlamax_run non validé — au lieu du chemin sport-aware multi-source
+  // que le reste de l'app utilise.
   const vlamaxResolved = resolveVlamaxForGoal(
     {
       vlamax: snapshot.vlamax as number | null,
       vlamax_run: snapshot.vlamax_run as number | null,
       sport_main: snapshot.sport_main as string | null,
+      vma: (snapshot.vma as number) ?? null,
+      pace_threshold_sec_per_km: (snapshot.pace_threshold_sec_per_km as number) ?? null,
+      tte_observed_min: (snapshot.tte_observed_min as number) ?? null,
+      sprint_15s_distance: (snapshot.sprint_15s_distance as number) ?? null,
+      running_power_max: (snapshot.running_power_max as number) ?? null,
+      running_power_threshold: (snapshot.running_power_threshold as number) ?? null,
+      weight_kg: (snapshot.weight_kg as number) ?? null,
+      vlamax_source: (snapshot.vlamax_source as string) ?? null,
+      vlamax_protocol: (snapshot.vlamax_protocol as string) ?? null,
+      vo2max: (snapshot.vo2max as number) ?? null,
     },
     { goal: snapshot.objectif as string | null, objectif: snapshot.objectif as string | null }
   );
