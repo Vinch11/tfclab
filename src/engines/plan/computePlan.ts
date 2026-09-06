@@ -28,7 +28,6 @@ import { normalizeWeeksAndPhases } from "./normalizeWeeksPhases";
 import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
 import { deriveRaceTargets, formatSecPerKm, formatSecToTime, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { postProcessSessionText } from "./sessionTextPostProcessor";
-import { parseSessionDurationMin } from "./planValidator";
 import { normalizeAmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -475,27 +474,20 @@ export function postProcessParsedPlan(
     );
   }
 
-  // Recale computedVolumeMin/computedVolumeStr sur le texte APRÈS résolution des
-  // plages de durée (ci-dessus) : sinon le volume affiché (graphiques de charge)
-  // restait basé sur le `durationMin` choisi librement par l'IA à la génération,
-  // potentiellement incohérent avec le texte de séance finalement affiché — deux
-  // sources de vérité non synchronisées (audit qualité plans IA). Ne touche pas aux
-  // semaines où aucune séance n'a de durée extractible du texte (garde la valeur
-  // précédente plutôt que d'écraser par 0).
-  for (const w of plan.weeks) {
-    let sum = 0;
-    let hasAny = false;
-    for (const s of w.sessions) {
-      if (s.isRest) continue;
-      const d = parseSessionDurationMin(s);
-      if (d != null) { sum += d; hasAny = true; }
-    }
-    if (hasAny) {
-      w.computedVolumeMin = sum;
-      w.computedVolumeStr = formatMinutesToHm(sum);
-    }
-  }
-
+  // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : ce fichier
+  // calculait computedVolumeMin/computedVolumeStr DEUX FOIS de suite, avec deux
+  // algorithmes différents (le premier sommait uniquement les durées explicites
+  // du texte via parseSessionDurationMin, en préservant la valeur précédente
+  // si rien n'était extractible ; le second, computeWeekVolumeMin — ajouté par
+  // un audit ultérieur, cf. commentaire ci-dessous — recalcule via lookup
+  // catalogue puis fallback par sport, sans jamais laisser de semaine sans
+  // valeur). Le second passage écrasait INCONDITIONNELLEMENT le résultat du
+  // premier pour chaque semaine, rendant le premier calcul (et sa garde
+  // "ne pas écraser si rien d'extractible") entièrement mort — le volume
+  // hebdo affiché au coach ne dépendait donc en réalité que du second calcul,
+  // jamais du premier. Premier passage supprimé (aucun changement de
+  // comportement : son résultat n'était de toute façon jamais lu).
+  //
   // #7 audit : calcul volume hebdo réel (remplace placeholder textuel identique)
   for (const w of plan.weeks) {
     const min = computeWeekVolumeMin(w);
