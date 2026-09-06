@@ -618,9 +618,47 @@ function computeAbsorbedCarbsGH(plannedCarbsGH: number, gutTraining: boolean = f
 }
 
 /**
+ * FIX P2: Fatigue progressive MODULÉE PAR DURABILITÉ (TTE)
+ * Référence: Maunder 2021, Clark 2022 — la durabilité (temps avant
+ * détérioration marquée des variables physiologiques à l'effort prolongé)
+ * atténue la dérive du coût glucidique en fin de course. Ni Maunder 2021 ni
+ * Clark 2022 ne publient de courbe TTE→%dérive chiffrée pour cette
+ * application précise (recherché, non trouvé) — les 3 points ci-dessous
+ * (TTE 25/45/60min → 30/15/8%) sont l'opérationnalisation TFCL du concept,
+ * pas une valeur extraite telle quelle d'un papier.
+ *
+ * Bug réel corrigé (audit "simulation course/nutrition") : l'ancienne
+ * formule était LINÉAIRE À PENTE UNIQUE (`0.40 - (tteRef-25)*0.0089`), qui
+ * ne peut mathématiquement pas passer par ces 3 points simultanément (les
+ * pentes 25→45 et 45→60 impliquées par les points cibles diffèrent d'un
+ * facteur ~1.6) — elle produisait 35%/22.2%/8.85% au lieu de 30/15/8%, soit
+ * +48% relatif au point médian (45min), le cas le plus fréquent.
+ *
+ * Remplacée par un ajustement exponentiel a·e^(−b·TTE), la forme standard
+ * pour une atténuation à rendements décroissants vers un plancher (plutôt
+ * qu'une décroissance linéaire non bornée) — régression des moindres carrés
+ * sur les 3 points de référence (a=0.7816, b=0.03760) :
+ *   TTE 25min → 30.5% (vs 30% cible, erreur +1.8%)
+ *   TTE 45min → 14.4% (vs 15% cible, erreur −4.0%)
+ *   TTE 60min → 8.19% (vs 8% cible, erreur +2.4%)
+ * Le plafond (0.35) ne s'applique plus qu'en dessous de TTE≈21min, le
+ * plancher (0.08) au-dessus de TTE≈61min — la formule seule couvre déjà
+ * fidèlement la plage 21-61min sans dépendre des clamps. Extraite en
+ * fonction nommée (exportée) pour être testable directement, sans devoir
+ * la vérifier indirectement à travers toute la chaîne de simulation.
+ */
+export function computeDurabilityFactor(tteMin: number | null): number {
+  // F38: si TTE manquant, on choisit le facteur médian (≈ TTE 45) sans prétendre l'avoir mesuré
+  const tteRef = tteMin != null && tteMin > 0 ? tteMin : 45;
+  const DURABILITY_DECAY_SCALE = 0.7815896582391826;
+  const DURABILITY_DECAY_RATE = 0.03759650156860308;
+  return clamp(DURABILITY_DECAY_SCALE * Math.exp(-DURABILITY_DECAY_RATE * tteRef), 0.08, 0.35);
+}
+
+/**
  * Calcule le glycogène restant (simulation)
  * Modèle basé sur la dépense glucidique brute vs absorption nette
- * 
+ *
  * Réserves musculaires typiques: ~400-500g glycogène (= 100%)
  * La courbe reflète: dépense brute - absorption réelle = déplétion nette
  */
@@ -700,31 +738,8 @@ function computeGlycogenRemaining(
   // Multiplicateur readiness
   const glycogenDepletionMultiplier = readinessModifiers?.glycogenDepletionRateMultiplier ?? 1.0;
   
-  // ─────────────────────────────────────────────────────────────────
-  // FIX P2: Fatigue progressive MODULÉE PAR DURABILITÉ (TTE)
-  // Référence: Maunder 2021, Clark 2022 — la durabilité (TTE long)
-  // atténue la dérive du coût glucidique en fin de course.
-  //
-  // Bug de documentation réel (audit "simulation course/nutrition") : ce
-  // commentaire annonçait TTE 60min+ → +8% | 45min → +15% | 25min → +30%,
-  // mais la formule ci-dessous (linéaire à pente unique) ne peut PAS
-  // satisfaire ces 3 points de référence simultanément — la relation
-  // documentée est courbe, pas linéaire. Valeurs RÉELLEMENT produites par la
-  // formule actuelle (vérifiées par calcul direct) :
-  //   TTE 25min → 35% (plafond)  |  TTE 45min → 22.2%  |  TTE 60min → 8.85%
-  // Un athlète à TTE moyen (~45min) reçoit donc une pénalité de dérive
-  // glucidique en fin de course sensiblement plus élevée (22.2% vs 15%
-  // documenté, soit +48% relatif) que ce que le commentaire d'origine
-  // annonçait. Non corrigé côté formule : changer les coefficients
-  // changerait les prédictions de course réelles pour tous les athlètes à
-  // TTE intermédiaire sans confirmation qu'un des deux jeux de chiffres
-  // (formule vs commentaire) est le calibrage réellement voulu — décision
-  // de coaching/physiologie, pas un bug mécanique. Documentation alignée sur
-  // le comportement réel en attendant cette décision.
-  // ─────────────────────────────────────────────────────────────────
-  // F38: si TTE manquant, on choisit le facteur médian (≈ TTE 45) sans prétendre l'avoir mesuré
-  const tteRef = tteMin != null && tteMin > 0 ? tteMin : 45;
-  const durabilityFactor = clamp(0.40 - (tteRef - 25) * 0.0089, 0.08, 0.35);
+  // Fatigue progressive modulée par durabilité (TTE) — voir computeDurabilityFactor().
+  const durabilityFactor = computeDurabilityFactor(tteMin);
   const progressionFactor = 1 + Math.pow(segmentIndex / totalSegments, 1.2) * durabilityFactor;
   
   // ─────────────────────────────────────────────────────────────────

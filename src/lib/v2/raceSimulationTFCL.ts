@@ -187,11 +187,49 @@ const NUTRITION_PARAMS = {
   glycogenSparingPctPerGram: 0.15,
 };
 
+// Bug réel corrigé (audit "simulation course/nutrition") : avec les
+// coefficients d'origine (0.8/0.6/0.5), `central_threshold` (70) était
+// structurellement inatteignable, dans tous les scénarios : le champ
+// `central_fatigue_risk` valait 0 à 100% du temps, sans exception.
+//
+// Première tentative écartée : calibrer sur un pire cas théorique "zone
+// RED sur 100% de la distance" surestimait le plafond réellement
+// atteignable — un balayage exhaustif de `computeRaceSimulation` (durabilité
+// 1-30min, VLamax 0.30-0.90, score de disponibilité 0-30, readiness RED,
+// ×3 distances ×3 scénarios) ne produit JAMAIS de point en zone RED : le
+// scénario "AGGRESSIVE" plafonne volontairement sa dernière ancre à
+// `toleratedPct` (cf. `aggressiveOver` ci-dessus dans ce fichier) — la zone
+// RED est une limite affichée à titre pédagogique, jamais une cible que les
+// 3 scénarios générés recommandent réellement. C'est un choix de conception
+// délibéré (l'outil ne recommande jamais un pacing qu'il qualifie lui-même
+// d'insoutenable), pas un bug — mais cela signifie que le pire cas RÉEL
+// (max sur tout le balayage, coefficients d'origine) est ~18 (10K) / ~14
+// (HM) / ~11 (MARATHON), pas les ~38/~29/~24 d'un pire cas RED à 100%
+// jamais atteint en pratique.
+//
+// Aucune référence n'existe (ni dans le code, ni trouvée dans la
+// littérature) pour la valeur absolue de ces coefficients — ce sont des
+// poids relatifs internes au modèle TFCL, pas des chiffres tirés d'un
+// papier. Mis à l'échelle uniformément (préserve le ratio 10K:HM:MARATHON)
+// par ×(95/18)≈5.28 pour que le pire cas RÉELLEMENT atteignable du 10K
+// approche la borne haute de l'échelle, avec une marge sous 100 pour
+// absorber l'arrondi cumulatif de la boucle (`Math.round` à chaque étape) :
+//   10K → 95 (pire cas)  |  HM → 71 (franchit le seuil)  |  MARATHON → 59 (seuil non franchi)
+// (valeurs vérifiées par balayage direct de `computeRaceSimulation`, pas
+// seulement calculées analytiquement — l'arrondi par étape fait dériver le
+// résultat réel de quelques points par rapport à un calcul continu.)
+// Que le marathon ne déclenche jamais cet indicateur, même au pire cas
+// réel, reste défendable : le "central fatigue" (fatigue nerveuse centrale
+// / régulation de l'effort par le RPE) est documenté comme davantage
+// associé aux efforts courts et intenses qu'aux ultra-distances, où la
+// fatigue est surtout périphérique/métabolique — déjà modélisée séparément
+// par `glycogenCurve` dans ce même fichier.
+const FATIGUE_SCALE = 95 / 18;
 const FATIGUE_PARAMS = {
   base_accumulation_per_pct: {
-    "10K": 0.8,
-    "HM": 0.6,
-    "MARATHON": 0.5,
+    "10K": 0.8 * FATIGUE_SCALE,
+    "HM": 0.6 * FATIGUE_SCALE,
+    "MARATHON": 0.5 * FATIGUE_SCALE,
   },
   zone_multiplier: {
     GREEN: 1.0,
