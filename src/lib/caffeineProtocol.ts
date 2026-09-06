@@ -151,21 +151,41 @@ export function computeCaffeineProtocol(input: CaffeineProtocolInput): CaffeineP
   };
 
   // Doses de relance intra-effort (uniquement si durée > 90 min)
+  //
+  // Bug réel corrigé (audit "simulation course/nutrition", passe 4) : la
+  // boucle générait une relance tant qu'il restait du temps, sans jamais
+  // regarder le cumul déjà atteint — avec les valeurs PAR DÉFAUT de l'app
+  // (sensibilité "unknown", habitualUser=true, jamais renseignées ailleurs
+  // dans l'UI faute de champ dédié), un Ironman (600min) générait 6 relances
+  // → 784mg / 70kg = 11.2 mg/kg, soit 25% AU-DESSUS du plafond de sécurité
+  // de 9 mg/kg cité par le module lui-même (Guest 2021) ; un Ultra (720min)
+  // dépassait de 40%. Le seul garde-fou existant ajoutait une note APRÈS
+  // coup, sans jamais empêcher le dépassement. Le plafond est maintenant
+  // respecté PAR CONSTRUCTION : la boucle s'arrête dès que la relance
+  // suivante ferait franchir 9 mg/kg, plutôt que de dépasser puis avertir.
+  const maxTotalMg = 9 * weightKg;
   const inRaceDoses: CaffeineDose[] = [];
+  let cappedBySafetyLimit = false;
   if (durationMin >= 90) {
     const freqMin = getInRaceFrequencyMin(sensitivity);
     const relanceMgKg = getInRaceDoseMgKg(sensitivity);
+    const relanceMg = Math.round(relanceMgKg * weightKg);
     // Première relance à freqMin, dernière au plus tard 60 min avant la fin
     let t = freqMin;
+    let runningTotalMg = preMg;
     while (t <= durationMin - 60) {
-      const mg = Math.round(relanceMgKg * weightKg);
+      if (runningTotalMg + relanceMg > maxTotalMg) {
+        cappedBySafetyLimit = true;
+        break;
+      }
       inRaceDoses.push({
         label: `Relance #${inRaceDoses.length + 1}`,
         timing: offsetTime(startTime, t),
         doseMgKg: Number(relanceMgKg.toFixed(1)),
-        doseMgAbsolute: mg,
-        source: describeSource(mg),
+        doseMgAbsolute: relanceMg,
+        source: describeSource(relanceMg),
       });
+      runningTotalMg += relanceMg;
       t += freqMin;
     }
   }
@@ -177,12 +197,19 @@ export function computeCaffeineProtocol(input: CaffeineProtocolInput): CaffeineP
   let safetyFlag: "ok" | "warning" | "exceeded" = "ok";
   const notes: string[] = [];
 
+  // Garde défensif conservé même si le plafonnement ci-dessus rend ce cas
+  // normalement inatteignable avec les formules actuelles — protège contre
+  // une future modif de getPreDoseMgKg/getInRaceDoseMgKg qui repousserait
+  // le calcul au-delà de 9 mg/kg sans qu'on y repense ici.
   if (totalMgKg > 9) {
     safetyFlag = "exceeded";
     notes.push("🚨 Cumul > 9 mg/kg : seuil de sécurité dépassé. Réduire ou espacer.");
   } else if (totalMgKg > 6) {
     safetyFlag = "warning";
     notes.push("⚠️ Cumul élevé (>6 mg/kg) : tester impérativement à l'entraînement.");
+  }
+  if (cappedBySafetyLimit) {
+    notes.push("Relances arrêtées avant la fin de course pour respecter le plafond de sécurité (9 mg/kg) — ne pas ajouter de café/gel caféiné supplémentaire non prévu ici.");
   }
 
   // Notes pédagogiques
