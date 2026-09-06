@@ -1215,11 +1215,45 @@ function buildProSimulationHTML(
   `;
 }
 
-function formatMinutesToTime(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
+export function formatMinutesToTime(minutes: number): string {
+  // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : arrondir h et m
+  // indépendamment pouvait produire un débordement non reporté sur les heures
+  // (ex: 119.6min → Math.floor(119.6/60)=1, Math.round(119.6%60)=Math.round(59.6)=60
+  // → "1h60" au lieu de "2h00"). On arrondit d'abord le total en minutes entières,
+  // puis on découpe — le report d'heure se fait naturellement.
+  const total = Math.round(minutes);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
   if (h === 0) return `${m}min`;
   return `${h}h${m.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Bug réel corrigé (audit "dashboard/plan/export", passe 6) : cette liste codée
+ * en dur utilisait des valeurs d'objectif Trail obsolètes ("Trail", "TrailLong",
+ * "TrailCourt") qui ne sont plus jamais produites par l'UI (AthleteEditPage.tsx /
+ * AthleteObjectiveManager.tsx utilisent "TrailShort"/"TrailMountain"/"TrailUltra"
+ * depuis le renommage) — tout objectif trail réel retombait silencieusement sur
+ * "bike", faisant calculer tout le diagnostic PDF (VLamax, FatMax, Lorang,
+ * Coaching Compass) sur les métriques VÉLO au lieu de course à pied.
+ */
+export function determineSportFocusForLimiter(objectif: string): "run" | "bike" | "tri" {
+  if (isRunningFocusModeActive(objectif)) return "run";
+  if (["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectif)) return "tri";
+  return "bike";
+}
+
+/**
+ * Bug réel corrigé (audit "dashboard/plan/export", passe 6) : même cause que
+ * determineSportFocusForLimiter — cette liste utilisait des valeurs Trail
+ * obsolètes ("Trail", "TrailLong", "TrailCourt") jamais produites par l'UI
+ * actuelle ("TrailShort"/"TrailMountain"/"TrailUltra"), donc tout objectif
+ * trail retombait sur "velo" au lieu de "cap".
+ */
+export function determineNutritionV2Sport(goal: string | null | undefined): "cap" | "triathlon" | "velo" {
+  if (isRunningFocusModeActive(goal)) return "cap";
+  if (["IM", "Ironman", "70.3", "703", "Half"].includes(goal || "")) return "triathlon";
+  return "velo";
 }
 
 function buildGlycogenChartSVG(segments: { segmentIndex: number; glycogenRemaining: number; depletionRisk: string }[]): string {
@@ -1409,10 +1443,7 @@ function buildExportPayload(
     objectif: athlete.goal || "IM",
     age: athleteAge,
   });
-  const sportFocusForLimiter: "run" | "bike" | "tri" = 
-    ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course", "10K", "5K", "StartToRun"].includes(objectifForLimiter) ? "run"
-    : ["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForLimiter) ? "tri"
-    : "bike";
+  const sportFocusForLimiter = determineSportFocusForLimiter(objectifForLimiter);
   const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
     ? effectiveRefs.ftp / effectiveRefs.weightKg
     : 4.0;
@@ -1823,11 +1854,7 @@ function buildExportPayload(
       // deux restent néanmoins bien plus proches qu'avant l'audit ambition/
       // nutrition. Non résolu dans cette PR : migrer nutritionV2 lui-même
       // vers le moteur unifié demanderait de porter son détail par phase.
-      sport: ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(athlete.goal || "")
-        ? "cap"
-        : ["IM", "Ironman", "70.3", "703", "Half"].includes(athlete.goal || "")
-          ? "triathlon"
-          : "velo",
+      sport: determineNutritionV2Sport(athlete.goal),
       targetDurationHours: (() => {
         const goal = athlete.goal || "IM";
         const durationMap: Record<string, number> = {
@@ -2038,7 +2065,14 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
   };
   
   const state = getStateColor(potentielScore);
-  const isRunningFocus = athlete.goal?.includes("Marathon") || athlete.goal?.includes("Semi") || athlete.goal?.includes("10K") || athlete.goal?.includes("Trail");
+  // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : cette détection
+  // "objectif course à pied ?" avait sa propre liste ad hoc, incomplète (pas de
+  // 5K/StartToRun/Ultra) et différente de celle de buildDoubleBoucleCAPHTML plus
+  // bas dans ce même fichier — les deux pouvaient rendre un verdict contradictoire
+  // pour le même athlète sur deux sections consécutives du même rapport PDF.
+  // Remplacé par la source de vérité canonique unique déjà utilisée ailleurs dans
+  // ce fichier (ligne ~599) et par le dashboard live.
+  const isRunningFocus = isRunningFocusModeActive(athlete.goal);
   const intensityCap = potentielScore >= 80 ? 100 : potentielScore >= 60 ? 90 : 80;
   const pacingDiscipline = potentielScore >= 80 ? "NORMAL" : potentielScore >= 60 ? "STRICT" : "VERY_STRICT";
   
@@ -2114,22 +2148,29 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
 // CHANTIER E — Helpers communs Pacing Envelope
 // =============================================
 
-const RACE_OBJECTIVE_MAP_E: Record<string, RaceObjective> = {
+// Bug réel corrigé (audit "dashboard/plan/export", passe 6) : la valeur
+// d'objectif réelle produite par l'UI pour un Half-Ironman est "703" (sans
+// point — cf. AthleteObjectiveManager.tsx: { value: "703", ... }), absente
+// des 3 tables ci-dessous qui n'avaient que "70.3"/"Ironman 70.3". Tout
+// objectif 70.3 réel retombait donc sur les fallbacks Marathon (`?? "Marathon"`,
+// `?? 180` min, `?? 3`h) — Pacing Envelope et LDRI calculés pour un Marathon de
+// 3h au lieu d'un 70.3 de 5h.
+export const RACE_OBJECTIVE_MAP_E: Record<string, RaceObjective> = {
   "Ironman": "IM", "IM": "IM",
-  "70.3": "70.3", "Ironman 70.3": "70.3",
+  "70.3": "70.3", "703": "70.3", "Ironman 70.3": "70.3",
   "Marathon": "Marathon",
   "Semi-Marathon": "Semi", "Semi": "Semi",
   "10km": "10km", "10K": "10km",
 };
 
-const RACE_DURATION_MIN_E: Record<string, number> = {
-  "Ironman": 600, "IM": 600, "70.3": 300, "Ironman 70.3": 300,
+export const RACE_DURATION_MIN_E: Record<string, number> = {
+  "Ironman": 600, "IM": 600, "70.3": 300, "703": 300, "Ironman 70.3": 300,
   "Marathon": 210, "Semi-Marathon": 105, "Semi": 105,
   "10km": 45, "10K": 45,
 };
 
-const RACE_DURATION_HOURS_E: Record<string, number> = {
-  "Ironman": 10, "IM": 10, "70.3": 5, "Ironman 70.3": 5,
+export const RACE_DURATION_HOURS_E: Record<string, number> = {
+  "Ironman": 10, "IM": 10, "70.3": 5, "703": 5, "Ironman 70.3": 5,
   "Marathon": 3.5, "Semi-Marathon": 1.75, "Semi": 1.75,
   "10km": 0.75, "10K": 0.75,
 };
@@ -2662,9 +2703,11 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
   const objectif = athlete.goal || "Marathon";
   
   // Déterminer si c'est un objectif CAP
-  const isRunningFocus = ["Marathon", "Semi-Marathon", "Semi", "10K", "Trail", "TrailCourt", "TrailLong", "Ultra"].some(
-    g => objectif.includes(g)
-  );
+  // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : cette liste ad hoc
+  // pouvait rendre un verdict différent de celle de buildPotentielPhysiologiqueRunningHTML
+  // plus haut dans ce fichier (5K/StartToRun absents ici) — remplacé par la même
+  // source de vérité canonique que le reste du fichier.
+  const isRunningFocus = isRunningFocusModeActive(objectif);
   
   if (!isRunningFocus) {
     return `
