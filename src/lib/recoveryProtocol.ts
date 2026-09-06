@@ -79,9 +79,12 @@ export function computeRecoveryProtocol(input: RecoveryInput): RecoveryProtocol 
   const { weightKg, durationMin, intensity, goal = "next_day_session", hotConditions } = input;
   const w = weightKg ?? 70;
 
-  // Acute window (0–60 min): 1.0–1.2 g/kg CHO + 0.3–0.4 g/kg protein
+  // Acute window (0–60 min) : dosage CHO dépendant de l'intensité — 1.0–1.2 g/kg
+  // (Ivy 2004) pour les efforts haute intensité/déplétants qui justifient une
+  // resynthèse glycogène accélérée, 0.8 g/kg pour les efforts bas/modérés (pas
+  // de déplétion sévère, une resynthèse aussi agressive n'est pas nécessaire).
   const acuteChoPerKg = intensity === "depleting" ? 1.2 : intensity === "high" ? 1.0 : 0.8;
-  const acuteProteinPerKg = 0.3;
+  const acuteProteinPerKg = 0.3; // borne basse de la fourchette 0.3–0.4 g/kg (acute window)
 
   // Fluid replacement: 150% of mass deficit (Shirreffs 2011)
   const massLossKg = input.bodyMassLossKg ?? (w * 0.02);
@@ -92,7 +95,12 @@ export function computeRecoveryProtocol(input: RecoveryInput): RecoveryProtocol 
   const refuelRate = CHO_REFUEL_RATE[intensity];
   const cho_total = Math.round(refuelRate * w * refuelHours);
 
-  const proteinPerMeal = Math.round(0.3 * w);
+  // Bug réel corrigé (audit "simulation course/nutrition", passe 5) : cette
+  // fenêtre de refuel/repair (repas répétés sur 4-6h) est précisément le cas
+  // d'usage cité en en-tête du module ("Moore et al. 2014 — 0.4 g/kg
+  // leucine-rich protein per meal × 4"), mais la formule utilisait 0.3 g/kg —
+  // 25 % sous la valeur que le module cite lui-même comme base scientifique.
+  const proteinPerMeal = Math.round(0.4 * w);
   const meals = Math.ceil(refuelHours / 1.5);
 
   const dailyChoPerKg = DAILY_CHO_PER_KG[intensity];
