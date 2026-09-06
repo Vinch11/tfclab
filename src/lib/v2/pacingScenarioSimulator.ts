@@ -422,10 +422,22 @@ export function getPhaseLabel(phase: RacePhase): string {
   return PHASE_LABELS[phase];
 }
 
+// Bug réel (audit "simulation course/nutrition") : le scénario
+// "controlled_negative_split" utilise des valeurs NÉGATIVES pour
+// glycogenImpactPct/performanceLossPct (épargne glycogène / gain de
+// performance, cf. commentaires "// épargne" / "// gain net" à sa
+// définition) — le "-" préfixé en dur produisait un double signe moins
+// ("Glycogène: --8% | Perf: --2%"), une chaîne cassée pour le seul
+// scénario censé la présenter positivement. Latent (non câblé dans un
+// composant à ce jour) mais réel et reproductible dès qu'il le sera.
+function formatSignedPct(value: number): string {
+  return value >= 0 ? `-${value}%` : `+${Math.abs(value)}%`;
+}
+
 /**
  * Formate l'impact pour affichage
  */
 export function formatConsequenceImpact(scenario: PacingScenario): string {
   const { glycogenImpactPct, performanceLossPct } = scenario.consequence;
-  return `Glycogène: -${glycogenImpactPct}% | Perf: -${performanceLossPct}%`;
+  return `Glycogène: ${formatSignedPct(glycogenImpactPct)} | Perf: ${formatSignedPct(performanceLossPct)}`;
 }
