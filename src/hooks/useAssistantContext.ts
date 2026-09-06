@@ -202,11 +202,19 @@ export function useAssistantContext(
     }
     
     // Nutrition estimate
+    // Bug réel (audit "simulation course/nutrition") : ni weightKg ni vo2max
+    // n'étaient transmis ici, donc computeNutritionEstimate retombait sur ses
+    // défauts internes (70kg, VO2max 48-50) au lieu du vrai profil de
+    // l'athlète — l'assistant IA citait un g/h de glucides différent de celui
+    // affiché sur la fiche NutritionUnifiedCard (qui reçoit, elle, le vrai
+    // poids/VO2max, cf. Index.tsx) pour tout athlète qui ne pèse pas ~70kg.
     const nutritionEstimate = computeNutritionEstimate({
       vlamax: vlamaxEffectif.value,
       objectif: athlete.goal || "IM",
       tteMin: tteEffectif?.tte_min ?? null,
       tteTarget: tteEffectif?.target ?? null,
+      weightKg: effectiveRefs.weightKg ?? null,
+      vo2max: effectiveSnapshot?.vo2max ?? null,
     });
     
     // ✅ FIX AUDIT V6 — Détection limiteurs (source unique partagée avec l'UI)

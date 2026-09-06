@@ -209,13 +209,31 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
  * Audit 2D F26 — élimine les divergences inter-modules de carbsCentral.
  */
 export function computeBaseRateMader(
-  weightKg: number, 
+  weightKg: number,
   sport: NutritionSport,
   vo2max: number | null | undefined,
   vlamaxValue: number | null,
   intensityPct: number | null,
   durationHours: number | null,
-  heatCondition?: boolean
+  heatCondition?: boolean,
+  /**
+   * Bug réel (audit "simulation course/nutrition") : les 4 callers de cette
+   * fonction (nutritionUnified, nutritionV2, nutritionTiming, et leurs UI)
+   * promettent chacun un plafond "gut training avancé" plus haut que le
+   * plafond standard (90→120 g/h vélo ici et dans nutritionV2 ;
+   * 60/90/120/150 selon niveau dans nutritionTiming) — mais aucun ne
+   * transmettait d'info gut training à CETTE fonction, dont le `capMax`
+   * interne (90/75/70/60 selon sport) s'appliquait tel quel AVANT même que
+   * l'appelant ajoute ses propres bonus TTE/durée puis reclamp en sortie.
+   * Le plafond avancé n'était donc jamais atteignable : au mieux 90+20=110
+   * g/h vélo, jamais 120, quel que soit le profil de l'athlète. `capMultiplier`
+   * (1 = comportement standard inchangé) laisse chaque appelant relever ce
+   * plafond interne proportionnellement à SA propre promesse de plafond
+   * (ex. 120/90 pour "avancé" dans nutritionUnified/V2 ; GUT_CAP_BIKE[niveau]/90
+   * dans nutritionTiming), sans que cette fonction partagée ait à connaître
+   * le vocabulaire gut-training propre à chaque module appelant.
+   */
+  capMultiplier: number = 1,
 ): { baseRate: number; totalOxidation: number; method: 'mader' | 'fallback' } {
   const capLike = isCAPLike(sport);
   const ultra = isUltra(sport);
@@ -257,7 +275,8 @@ export function computeBaseRateMader(
 
   // Caps GI selon sport
   // velo 90, cap 75, trail 70 (montée=GI↓), ultra 60 (Pfeiffer 2012)
-  const capMax = ultra ? 60 : sport === 'trail' ? 70 : capLike ? 75 : 90;
+  const capMaxStandard = ultra ? 60 : sport === 'trail' ? 70 : capLike ? 75 : 90;
+  const capMax = Math.round(capMaxStandard * capMultiplier);
   const minFloor = duration < 1 ? 0 : 30;
   const baseRate = clamp(Math.round(exogenousGh), minFloor, capMax);
   const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
@@ -526,6 +545,18 @@ function generatePhases(
   const midEndMin = Math.min(lateStartMin, durMin);
   const midDurMin = Math.max(0, midEndMin - startDurMin);
   const lateDurMin = Math.max(0, durMin - midEndMin);
+  // Bug réel (audit "simulation course/nutrition") : les timeRange affichés
+  // plus bas utilisaient les valeurs BRUTES (30, lateStartMin) au lieu des
+  // bornes déjà clampées ci-dessus. Pour toute course courte où lateStartMin
+  // (70% de la durée) tombe avant la fenêtre START (30min ou durée totale si
+  // plus courte) — cas réel : 5K (21min) → "30 → 15 min", 10K (40min) →
+  // "30 → 28 min" — le texte affichait une plage qui finit avant de
+  // commencer. Les totaux (grammes/kcal) étaient déjà corrects car
+  // `midDurMin`/`lateDurMin` ci-dessus utilisent déjà `Math.max(0, ...)` ;
+  // seul le TEXTE affiché au coach/athlète était cassé. `midEndMinDisplay`
+  // garantit une séquence de bornes monotone (0 ≤ startDurMin ≤
+  // midEndMinDisplay ≤ durMin) pour l'affichage, sans changer les totaux.
+  const midEndMinDisplay = Math.max(startDurMin, midEndMin);
 
   const buildPhaseTotals = (carbsGh: number, durationMin: number) => {
     const totalCarbsG = Math.round((carbsGh * durationMin) / 60);
@@ -580,7 +611,7 @@ function generatePhases(
   phases.push({
     name: 'START',
     label: 'Démarrage',
-    timeRange: `0 → 30 min`,
+    timeRange: `0 → ${startDurMin} min`,
     carbsGh: startCarbs,
     carbsGhRange: `${Math.max(0, startCarbs - 5)}–${Math.min(maxBound, startCarbs + 5)}`,
     ...buildPhaseTotals(startCarbs, startDurMin),
@@ -596,7 +627,7 @@ function generatePhases(
   phases.push({
     name: 'MID',
     label: 'Phase principale',
-    timeRange: `30 → ${lateStartMin} min`,
+    timeRange: `${startDurMin} → ${midEndMinDisplay} min`,
     carbsGh: midCarbs,
     carbsGhRange: `${Math.max(0, midCarbs - 5)}–${Math.min(maxBound, midCarbs + 5)}`,
     ...buildPhaseTotals(midCarbs, midDurMin),
@@ -613,7 +644,7 @@ function generatePhases(
     phases.push({
       name: 'LATE',
       label: 'Dernier tiers',
-      timeRange: `${lateStartMin} min → fin`,
+      timeRange: `${midEndMinDisplay} min → fin`,
       carbsGh: lateCarbs,
       carbsGhRange: `${Math.max(0, lateCarbs - 5)}–${Math.min(maxBound, lateCarbs + (isHeat ? 5 : 10))}`,
       ...buildPhaseTotals(lateCarbs, lateDurMin),
@@ -803,7 +834,12 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
     ?? null;
 
   // Calcul glucides
-  const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, intensityPct, durationH, input.heatCondition);
+  // capMultiplier 120/90 en gut training avancé : sans lui, le plafond interne
+  // (90 g/h vélo / 75 CAP) empêchait le résultat d'approcher 120 g/h même avec
+  // les bonus TTE/durée max (+20) — le plafond "avancé" affiché plus bas
+  // (maxBound=120) n'était donc jamais atteignable en pratique (audit "simulation
+  // course/nutrition").
+  const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, intensityPct, durationH, input.heatCondition, advancedGut ? 120 / 90 : 1);
   const base = maderResult.baseRate;
   // VLamax et Intensité : déjà dans Mader, pas de double-comptage
   const ta = tteAdj(input.tteMin);
