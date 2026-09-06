@@ -1,37 +1,47 @@
 /**
  * VLamax Run V2 Enhanced — Formule TFCL™ Course à Pied
  * Two For Coaching Lab Method™
- * 
- * ARCHITECTURE SCIENTIFIQUE (recalibrée):
+ *
+ * ⚠️ AVERTISSEMENT SCIENTIFIQUE (audit "estimations physiologiques", Cluster 1) :
+ * VLamax ne se mesure validement qu'en laboratoire (protocole lactate Mader/Heck :
+ * sprint 15s all-out + lactate sanguin pré/post — voir INSCYD whitepaper VLamax,
+ * Heck 1985). Il n'existe À CE JOUR AUCUNE formule publiée/peer-reviewed qui dérive
+ * VLamax d'un profil de puissance course (Score G ci-dessous) ou de temps de course
+ * (M3, calibrateVLamaxFromRaceRecords). Les deux méthodes M2/M3 sont des
+ * heuristiques internes TFCL, pas des formules calibrées sur cohorte réelle — leurs
+ * coefficients ont été fixés par raisonnement interne, PAS par régression sur des
+ * mesures labo. Contrairement au MLSS (maderMetabolicModel.ts, α=1.98, N=44 profils
+ * labo réels), il n'existe pas ici d'ancrage empirique équivalent. Traiter M2/M3
+ * comme des proxys de dernier recours quand aucune mesure labo n'est disponible, pas
+ * comme des estimations validées — d'où leur confiance/poids réduits en fusion et le
+ * chantier `vlamaxCapAnchorCalibration.ts` (page de cohorte à construire, sur le
+ * modèle de RunMLSSCohortPage.tsx) pour un jour les calibrer sur des données réelles.
+ *
+ * ARCHITECTURE:
  * ─────────────────────────────────────────
  * M1 (PRIMARY)    : Cross-validation VMA/Seuil → ratio allure seuil/VMA
  *                   Plus le seuil est proche de VMA, plus VLamax est basse.
- *                   Réf: Jones & Vanhatalo 2017, Billat 2001
- * 
- * M2 (POWER-BASED): Score G normalisé (puissance running)
+ *                   Réf: Jones & Vanhatalo 2017, Billat 2001 (concept de ratio
+ *                   allure-seuil/VMA — les coefficients numériques ci-dessous
+ *                   restent une adaptation interne, pas une reproduction exacte
+ *                   d'une formule publiée par ces auteurs)
+ *
+ * M2 (POWER-BASED, heuristique interne — voir avertissement ci-dessus) :
+ *                   Score G normalisé (puissance running)
  *                   Indices P1s, P5s, P30s, P60s, P5min, TTE
- *                   Normalisations recalibrées + TTE élargi (60-TTE)/30
- * 
- * FUSION           : VMA/seuil (40%) + Score G (60%) si les deux disponibles
+ *
+ * FUSION           : VMA/seuil (50%) + Score G (50%) si les deux disponibles
+ *                   (+ M3 à poids réduit si records de course disponibles)
  *                   Score G seul si pas de VMA
  *                   VMA/seuil seul en fallback
- * 
- * FORMULE Score G CAP RECALIBRÉE:
- * Normalisations :
- *   S1  = clamp((r1 - 2.0) / 1.5, 0, 1)       — Neuromuscular power
- *   S5  = clamp((r5 - 1.6) / 1.2, 0, 1)        — Anaerobic peak [recalibré]
- *   S30 = clamp((r30 - 1.20) / 0.80, 0, 1)     — Glycolytic capacity [recalibré]
- *   S60 = clamp((r60 - 1.08) / 0.55, 0, 1)     — Glycolytic endurance [recalibré]
- *   E   = clamp((0.92 - rfm) / 0.22, 0, 1)     — Aerobic efficiency gap [ajusté]
- *   D   = clamp((60 - TTE) / 30, 0, 1)          — Durability [élargi: moins agressif]
- * 
- * Poids Score G (recalibrés) :
- *   S1: 0.08, S5: 0.22, S30: 0.28, S60: 0.15, E: 0.15, D: 0.12
- * 
- * VLamax_raw = 0.20 + 0.70 * G   (cap range: 0.20 → 0.90)
- * VLamax_final = clamp(VLamax_raw, 0.20, 0.90)
- * 
- * CROSS-VALIDATION VMA/SEUIL (Billat 2001):
+ *
+ * FORMULE Score G CAP (voir le code pour les coefficients exacts — ce docblock
+ * ne les duplique plus pour éviter la dérive doc/code déjà constatée par l'audit) :
+ * Normalisations S1 (neuromuscular), S5 (anaerobic peak), S30 (glycolytic capacity),
+ * S60 (glycolytic endurance), E (aerobic efficiency gap), D (durability).
+ * VLamax_raw = 0.20 + 0.70 * G, clampé [0.20, 0.90].
+ *
+ * CROSS-VALIDATION VMA/SEUIL (concept Billat 2001, coefficients internes) :
  * ratio = allure_seuil_kmh / VMA
  *   ratio > 0.92 → VLamax très basse (< 0.28)
  *   ratio 0.85-0.92 → VLamax basse-modérée (0.28-0.40)
@@ -77,12 +87,12 @@ export interface VLamaxRunV2EnhancedInput {
   paceThresholdSecPerKm?: number | null;
   /** Sexe (pour fallback économie de course) */
   sex?: "H" | "F";
-  /** M3 — records de performance (allures distances courtes, Ward-Smith 1999) */
+  /** M3 — records de performance (allures distances courtes, heuristique interne non calibrée) */
   raceRecords?: RaceRecordsInput | null;
 }
 
 // =============================================
-// M3 — VLAMAX FROM RACE RECORDS (Ward-Smith 1999, Weyand 2010, Bundle 2003)
+// M3 — VLAMAX FROM RACE RECORDS (heuristique interne, non calibrée — voir avertissement en tête de fichier)
 // =============================================
 
 /**
@@ -173,7 +183,7 @@ export interface VLamaxRunV2EnhancedResult {
   runGlycolyticProfile: RunGlycolyticProfile | null;
   /** Économie de course estimée (fallback Lacour & Bourdin 2015) — optionnel */
   runningEconomy?: RunningEconomyEstimate;
-  /** M3 — VLamax depuis records (Ward-Smith 1999) — optionnel */
+  /** M3 — VLamax depuis records (heuristique interne non calibrée) — optionnel */
   vlamaxFromRecords?: VLamaxFromRecords;
 }
 
@@ -258,7 +268,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
   }
 
   // =============================================
-  // M3 — Records de performance (Ward-Smith 1999)
+  // M3 — Records de performance (heuristique interne non calibrée)
   // =============================================
   let vlamaxFromRecords: VLamaxFromRecords | undefined;
   let vlamaxFromRecordsValue: number | null = null;
@@ -301,12 +311,19 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
       const r60 = hasP60 ? runPower60s! / RPT : null;
       const rfm = hasP5min ? RPT / runPower5min! : null;
       
-      // Normalized scores (RECALIBRATED v2 — synthetic cohort N=40, RMSE 0.024)
+      // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : ce
+      // commentaire annonçait "synthetic cohort N=40, RMSE 0.024" — une
+      // précision en trompe-l'œil puisque "synthetic" signifie que ces
+      // seuils n'ont jamais été régressés sur des athlètes réels. C'est une
+      // heuristique interne (voir avertissement en tête de fichier), pas une
+      // formule calibrée. Un RMSE calculé sur des données simulées ne mesure
+      // rien de réel et a été retiré pour ne plus laisser croire à une
+      // validation empirique qui n'existe pas.
       const S1 = r1 !== null ? clamp((r1 - 2.0) / 1.5, 0, 1) : null;
-      const S5 = r5 !== null ? clamp((r5 - 1.6) / 1.0, 0, 1) : null;        // range 1.2 → 1.0
-      const S30 = r30 !== null ? clamp((r30 - 1.30) / 0.65, 0, 1) : null;   // 1.20/0.80 → 1.30/0.65
-      const S60 = r60 !== null ? clamp((r60 - 0.95) / 0.45, 0, 1) : null;   // 1.08/0.55 → 0.95/0.45
-      const E = rfm !== null ? clamp((0.92 - rfm) / 0.18, 0, 1) : null;     // range 0.22 → 0.18
+      const S5 = r5 !== null ? clamp((r5 - 1.6) / 1.0, 0, 1) : null;
+      const S30 = r30 !== null ? clamp((r30 - 1.30) / 0.65, 0, 1) : null;
+      const S60 = r60 !== null ? clamp((r60 - 0.95) / 0.45, 0, 1) : null;
+      const E = rfm !== null ? clamp((0.92 - rfm) / 0.18, 0, 1) : null;
       const D = hasTTE ? clamp((60 - tteMin!) / 30, 0, 1) : null;
       
       // Weighted Score G (RECALIBRATED weights)
@@ -357,17 +374,21 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
   
   if (vlamaxFromPace !== null && vlamaxFromScoreG !== null) {
     // Base DUAL VALIDATION : VMA/Seuil (50%) + Score G (50%)
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : M3
+    // (records) pesait 25% ici alors qu'il n'est pas une méthode calibrée
+    // (voir avertissement en tête de fichier) — poids réduit à 15% pour
+    // refléter sa fiabilité moindre, au lieu de le traiter à égalité avec
+    // M1/M2 qui ont au moins un ancrage conceptuel dans la littérature citée.
     let wPace = 0.50, wScoreG = 0.50, wRecords = 0;
     if (vlamaxFromRecordsValue !== null) {
-      // Triple: M3 = 25%, redistribuer M1/M2 proportionnellement (×0.75)
-      wPace = 0.375; wScoreG = 0.375; wRecords = 0.25;
+      wPace = 0.425; wScoreG = 0.425; wRecords = 0.15;
     }
     finalValue = vlamaxFromPace * wPace + vlamaxFromScoreG * wScoreG + (vlamaxFromRecordsValue ?? 0) * wRecords;
     fusionMethod = wRecords > 0 ? "triple_validation" : "dual_validation";
     divergence = Number(Math.abs(vlamaxFromPace - vlamaxFromScoreG).toFixed(3));
 
     confidence = 0.70 + 0.12 * qualityFactor;
-    if (wRecords > 0) confidence = Math.min(0.92, confidence + 0.04);
+    if (wRecords > 0) confidence = Math.min(0.92, confidence + 0.02);
 
     if (divergence > 0.12) {
       warnings.push(`Divergence puissance vs allure (Δ=${divergence.toFixed(2)}) — vérifier calibration capteur puissance`);
@@ -385,9 +406,9 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
       : "TFCL Run V2 (VMA/Seuil + Score G)";
 
   } else if (vlamaxFromScoreG !== null) {
-    // Score G ± Records
+    // Score G ± Records (poids Records réduit 25%→15%, cf. avertissement en tête de fichier)
     if (vlamaxFromRecordsValue !== null) {
-      finalValue = vlamaxFromScoreG * 0.75 + vlamaxFromRecordsValue * 0.25;
+      finalValue = vlamaxFromScoreG * 0.85 + vlamaxFromRecordsValue * 0.15;
       fusionMethod = "records+scoreG";
       formulaLabel = "TFCL Run V2 (Score G + Records)";
     } else {
@@ -396,13 +417,13 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
       formulaLabel = "TFCL Run V2 (puissance seule)";
       warnings.push("VMA manquante : ajouter VMA pour cross-validation allure/puissance");
     }
-    confidence = 0.55 + 0.10 * qualityFactor + (vlamaxFromRecordsValue !== null ? 0.05 : 0);
+    confidence = 0.55 + 0.10 * qualityFactor + (vlamaxFromRecordsValue !== null ? 0.03 : 0);
     formulaType = "tfcl_run_v2_partial";
 
   } else if (vlamaxFromPace !== null) {
-    // VMA/Seuil ± Records
+    // VMA/Seuil ± Records (poids Records réduit 25%→15%, cf. avertissement en tête de fichier)
     if (vlamaxFromRecordsValue !== null) {
-      finalValue = vlamaxFromPace * 0.75 + vlamaxFromRecordsValue * 0.25;
+      finalValue = vlamaxFromPace * 0.85 + vlamaxFromRecordsValue * 0.15;
       fusionMethod = "records+pace";
       formulaLabel = "TFCL Run V1+ (allure + records)";
       confidence = 0.55;
@@ -416,13 +437,15 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     formulaType = "tfcl_run_v1_fallback";
 
   } else if (vlamaxFromRecordsValue !== null) {
-    // Records seuls
+    // Records seuls — méthode de dernier recours, non calibrée (cf. avertissement
+    // en tête de fichier). Confiance abaissée 0.50→0.35 (proche du tier "estimation"
+    // non validée plutôt que "test_terrain" validé, cf. vlamaxV2Engine.ts).
     finalValue = vlamaxFromRecordsValue;
     fusionMethod = "records_only";
-    confidence = 0.50;
+    confidence = 0.35;
     formulaType = "tfcl_run_v1_fallback";
     formulaLabel = "TFCL Run (Records 400m/1km)";
-    warnings.push("Estimation depuis records uniquement — ajouter VMA + seuil pour cross-validation");
+    warnings.push("Estimation depuis records uniquement (heuristique non calibrée) — ajouter VMA + seuil pour cross-validation");
 
   } else {
     // Insufficient
@@ -609,20 +632,25 @@ export function getRunGlycolyticCategoryColor(cat: RunGlycolyticProfile["categor
 
 // =============================================
 // M3 — calibrateVLamaxFromRaceRecords
-// Ward-Smith 1999, Weyand 2010, Bundle 2003
+// Heuristique interne TFCL — NON dérivée de la littérature citée par erreur
+// dans une version antérieure (Ward-Smith 1999, Weyand 2010, Bundle 2003 ne
+// proposent pas cette formule ni ces seuils — ce sont des travaux sur la
+// biomécanique/énergétique du sprint, sans régression VLamax-depuis-chrono).
+// Voir l'avertissement scientifique en tête de fichier : méthode de dernier
+// recours, pas une estimation validée.
 // =============================================
 /**
  * Estime VLamax CAP depuis les records 400m / 1km en utilisant le ratio
  * vitesse / VMA comme proxy de la composante glycolytique.
  *
- * Logique :
+ * Logique (heuristique interne, coefficients non calibrés sur cohorte réelle) :
  *   glycolytic_index_400 = (v400 - vma) / vma  (sur-vitesse au-dessus de VMA)
  *   VLamax_from_400 = 0.20 + 0.85 × clamp((gi - 0.02) / 0.12, 0, 1)
  *   VLamax_from_1km = 0.20 + 0.70 × clamp((gi1km - 0.04) / 0.15, 0, 1)
  * Fusion : 60% 400m + 40% 1km si les deux disponibles.
  */
 export function calibrateVLamaxFromRaceRecords(records: RaceRecordsInput): VLamaxFromRecords {
-  const sources = ["Ward-Smith 1999", "Weyand 2010", "Bundle 2003"];
+  const sources = ["Heuristique interne TFCL (non calibrée)"];
   const { vma, pace400m_sec, pace1km_sec } = records;
 
   if (!vma || vma <= 0) {

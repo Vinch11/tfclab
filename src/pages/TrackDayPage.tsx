@@ -684,7 +684,7 @@ export default function TrackDayPage() {
                 Vitesse 1km = {calc.v1km > 0 ? `${fmt(calc.v1km, 1)} km/h` : "—"}
               </div>
               <div className="text-[10px] text-muted-foreground/80 mt-1 leading-snug italic">
-                → Calibration VLamax course M3 (Ward-Smith 1999) — ratio 400m/1km améliore la précision de ±15%
+                → Estimation VLamax course M3 (heuristique interne non calibrée) — ratio 400m/1km, à utiliser en dernier recours si aucune mesure labo n'est disponible
               </div>
             </div>
             <div>
