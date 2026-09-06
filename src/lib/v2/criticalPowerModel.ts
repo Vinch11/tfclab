@@ -230,10 +230,21 @@ export function analyzeCriticalPower(snapshot: {
   // it means short-duration data isn't truly maximal. Rather than using an
   // inflated CP for recovery calculations (which would underestimate rest),
   // we cap effectiveCP at FTP + 10W.
-  const CP_FTP_MAX_GAP = 20; // W — above this, CP is considered suspect
+  //
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : ce
+  // garde-fou ne corrigeait qu'un CP trop élevé par rapport au FTP. Un CP
+  // qui atterrit très EN DESSOUS du FTP (régression sur des données de
+  // puissance courte non-maximales, ex: P30s/P60s sous-maximaux) est tout
+  // aussi suspect physiologiquement (CP ne devrait jamais être <<FTP) mais
+  // n'était jamais corrigé — un CP de 166W avec un FTP réel de 280W passait
+  // tel quel, faisant passer presque tout intervalle tempo/seuil pour
+  // "supra-CP" dans wbalPostProcessor/wbalLibraryRecalc et déclenchant des
+  // réécritures de repos W'bal non pertinentes. Le garde-fou est désormais
+  // symétrique.
+  const CP_FTP_MAX_GAP = 20; // W — au-delà (dans les deux sens), CP est considéré suspect
   const CP_FTP_EFFECTIVE_OFFSET = 10; // W — effectiveCP = FTP + this offset
-  
-  if (snapshot.ftp && snapshot.ftp > 0 && result.cp > snapshot.ftp + CP_FTP_MAX_GAP) {
+
+  if (snapshot.ftp && snapshot.ftp > 0 && Math.abs(result.cp - snapshot.ftp) > CP_FTP_MAX_GAP) {
     result.effectiveCP = snapshot.ftp + CP_FTP_EFFECTIVE_OFFSET;
     result.cpBounded = true;
   } else {
@@ -262,6 +273,20 @@ export function analyzeCriticalPower(snapshot: {
         severity: "warning",
         message: `Écart CP-FTP élevé (${cpFtpDiff}W)`,
         detail: `L'écart CP-FTP est à la limite haute. Vérifiez que les efforts courts sont bien des all-out et que le FTP est à jour.`,
+      });
+    } else if (cpFtpDiff < -25) {
+      diag.push({
+        code: "CP_FTP_GAP_LOW",
+        severity: "critical",
+        message: `CP (${result.cp}W) très en dessous du FTP (${snapshot.ftp}W), écart ${cpFtpDiff}W`,
+        detail: `CP ne devrait jamais être nettement inférieur au FTP (il est normalement 5-15W au-dessus). Un écart de ${cpFtpDiff}W indique que les données de puissance courte (P30s, P60s, MAP5') ne sont probablement pas issues d'efforts maximaux. Utiliser ce CP tel quel sous-estimerait fortement les seuils "supra-CP" dans les calculs de repos/W'bal.`,
+      });
+    } else if (cpFtpDiff < -15) {
+      diag.push({
+        code: "CP_FTP_GAP_LOW",
+        severity: "warning",
+        message: `CP en dessous du FTP (écart ${cpFtpDiff}W)`,
+        detail: `L'écart CP-FTP est à la limite basse. Vérifiez que les efforts courts sont bien des all-out et que le FTP est à jour.`,
       });
     }
   }
