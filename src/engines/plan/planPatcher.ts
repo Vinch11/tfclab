@@ -72,7 +72,14 @@ function annotate(session: ParsedSession, tag: string): ParsedSession {
 export interface DeloadOptions {
   /** Semaine cible (1-indexée) */
   weekNumber: number;
-  /** Intensité de la réduction : 0.20 (légère) à 0.40 (lourde) */
+  /**
+   * Intensité de la réduction : 0.20 (légère) à 0.40 (lourde) recommandé.
+   * Bug réel corrigé (audit "dashboard/plan/export", passe 6) : ce
+   * commentaire ne correspondait pas au clamp réellement appliqué plus bas
+   * (`Math.max(0.1, Math.min(0.5, ...))`). Code inchangé (aucun appelant
+   * actuel ne dépasse la fourchette documentée) — bornes réelles précisées
+   * pour un futur appelant : la valeur est resserrée dans [0.1, 0.5].
+   */
   reductionPct?: number;
   /** Raison à journaliser dans les notes de semaine */
   reason?: string;
