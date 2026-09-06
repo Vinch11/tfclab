@@ -281,9 +281,19 @@ function computeLDRI(input: LongDistanceInput): LongDistanceRiskIndex {
   const { targetDurationHours, vlamaxValue, vlamaxConfidence, tteConfidence, athleteAge, historicalFadePattern } = input;
 
   // 1. Risque durée (non-linéaire après 2h)
+  //
+  // Bug réel corrigé (audit "simulation course/nutrition", passe 4) : le
+  // palier "≤1.5h" valait 10, alors que le palier suivant valait déjà 20
+  // juste au-dessus de 1.5h (20 + (1.5-1.5)*15) — un saut brutal de +10
+  // points au seuil exact où `computeLongDistanceEnvelope` autorise encore
+  // l'appel (garde `targetDurationHours < LONG_DISTANCE_THRESHOLD_HOURS`,
+  // 1.5 inclus). Un objectif estimé à exactement 1.5h franchissait donc ce
+  // saut pour une différence de durée infinitésimale. Aligné à 20 pour
+  // rester continu avec le palier suivant, comme le sont déjà les paliers
+  // 3h et 5h entre eux.
   let durationRisk = 0;
   if (targetDurationHours <= 1.5) {
-    durationRisk = 10;
+    durationRisk = 20;
   } else if (targetDurationHours <= 3) {
     durationRisk = 20 + (targetDurationHours - 1.5) * 15;
   } else if (targetDurationHours <= 5) {
