@@ -304,7 +304,7 @@ export const USE_CALIBRATED_MADER_ALPHA = true;
  * partagée par tout le module (MLSS, seuils, courbe, FatMax) — évite les
  * ~6 recopies de la même conversion qui pouvaient diverger silencieusement.
  */
-function intensityToPowerWatts(
+export function intensityToPowerWatts(
   intensityPct: number,
   vo2max: number,
   weight: number,
@@ -321,15 +321,18 @@ function intensityToPowerWatts(
  *   MLSS_pct = 100 × (1 − α × VLamax / VO2max_abs)
  *
  * Reference: Mader (2003), Heck & Schulz (2002). Source unique pour
- * `findMLSSPower`, `findLactateThresholds` et `findSteadyStateLactate` —
- * garantit que LT2/MLSS/la courbe de lactate ne peuvent plus diverger entre
- * eux pour un même profil (cf. audit : avant ce fix, `findLactateThresholds`
+ * `findMLSSPower`, `findLactateThresholds`, `findSteadyStateLactate` ET
+ * l'ancre FatMax (`computeFatMaxAnchorPctFTP` dans fatmaxTFCL.ts, depuis
+ * l'audit "estimations physiologiques" — la FatMax est maintenant dérivée
+ * de LT1, lui-même dérivé de ce MLSS calibré, au lieu d'une formule linéaire
+ * indépendante) — garantit que MLSS/LT2/LT1/FatMax ne peuvent plus diverger
+ * entre eux pour un même profil (cf. audit : avant ce fix, `findLactateThresholds`
  * retombait sur 60%/75% VO2max fixes et contredisait cette formule).
  *
  * `null` = non calculable (entrées absentes/invalides) — jamais une valeur
  * inventée en repli.
  */
-function computeMLSS(profile: MaderProfile): { intensityPct: number; power: number } | null {
+export function computeMLSS(profile: MaderProfile): { intensityPct: number; power: number } | null {
   const { vo2max, vlamax, weight } = profile;
   const efficiency = profile.efficiency ?? 0.23;
 

@@ -16,6 +16,7 @@
  */
 
 import { calculateCrossoverZone } from './scenarioEngine';
+import { computeMLSS, intensityToPowerWatts } from './maderMetabolicModel';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -86,6 +87,7 @@ export interface FatMaxTFCLInput {
   fatigueIndex: number | null;          // 0-100
   objectif: FatMaxObjectif;
   ftp?: number | null;                  // Optionnel, pour calcul W
+  weightKg?: number | null;             // Optionnel, pour l'ancre MLSS calibrée (défaut 70kg)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -128,27 +130,100 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+/** Ratio LT1 (2 mmol/L) / MLSS — même ancre que `anchoredLactateAtRatio()`
+ *  dans maderMetabolicModel.ts (ratio=0.85 → 2 mmol/L). Dupliqué ici en
+ *  constante plutôt qu'importé car cette fonction interne n'est pas exportée
+ *  et sa valeur (0.85) est un fait physiologique stable, pas un détail
+ *  d'implémentation appelé à changer indépendamment. */
+const LT1_TO_MLSS_RATIO = 0.85;
+
+/** FTP ≈ 72–80 % de la puissance à VO2max chez le cycliste entraîné (moyenne
+ *  citée, utilisée uniquement en repli quand la FTP réelle de l'athlète
+ *  n'est pas fournie — jamais quand elle l'est). */
+const FTP_PCT_OF_VO2MAX_POWER_FALLBACK = 0.76;
+
+/** VO2max par défaut (ml/kg/min) quand non fourni — même valeur "neutre" que
+ *  l'ancien terme correctif (`0.15×(VO2−50)` s'annulait à VO2max=50). */
+const VO2MAX_DEFAULT_ML_KG_MIN = 50;
+
+/** Poids par défaut (kg) quand non fourni — convention déjà utilisée
+ *  ailleurs dans la base (caffeineProtocol.ts, recoveryProtocol.ts, etc.). */
+const WEIGHT_DEFAULT_KG = 70;
+
 /**
- * Audit 2D F29 — Ancre FatMax canonique (%FTP)
+ * Audit 2D F29, puis re-calibrage (audit "estimations physiologiques") —
+ * Ancre FatMax canonique (%FTP)
  *
- * Formule unifiée TFCL : `clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82)`.
+ * Bug réel corrigé : l'ancienne formule (`clamp(78 − 52·(VLa−0.25) +
+ * 0.15·(VO2−50), 48, 82)`) était une régression linéaire isolée, sans
+ * source citée pour ses coefficients (78, 52, 0.25, 0.15, 50) — contrairement
+ * au reste de ce module physiologique où chaque constante cite une étude.
+ * Elle divergeait aussi fortement (jusqu'à ~50 points de %FTP-équivalent)
+ * du modèle de lactate Mader déjà calibré sur 44 profils de labo
+ * (`computeMLSS`, α=1.98), utilisé en parallèle dans `findFatMax`
+ * (maderMetabolicModel.ts) et dans 3 sections "INSCYD-STYLE" du rapport PDF
+ * exporté — un coach pouvait voir deux FatMax différentes pour le même
+ * athlète dans le même document.
+ *
+ * Nouvelle chaîne, ancrée sur la SEULE partie de ce modèle réellement
+ * validée sur données réelles :
+ *   MLSS_%VO2max = 100 × (1 − 1.98 × VLamax / VO2max_absolu)   [calibré, N=44]
+ *   LT1_%VO2max  = MLSS_%VO2max × 0.85                          [même ancre que le reste du module]
+ *   FatMax_%VO2max = CLAMP(LT1_%VO2max − (8 + 15×VLamax), 25, 75)
+ *
+ * L'écart FatMax↔LT1 (8 à 23 points de %VO2max selon VLamax) est situé dans
+ * la fourchette rapportée par la littérature (recherche WebSearch) : FatMax
+ * se situe classiquement 15-25 %VO2max sous LT1 chez les profils peu
+ * entraînés/très glycolytiques, l'écart se resserrant chez les profils plus
+ * aérobies/entraînés — VLamax sert ici de curseur entre ces deux extrêmes,
+ * cohérent avec son rôle central dans le reste de l'app. Comme pour le
+ * calibrage TTE/fatigue centrale (passe précédente), aucune étude ne publie
+ * cette relation quantitative précise pour cette application exacte : c'est
+ * l'estimation la plus défendable en l'absence de formule publiée, pas une
+ * valeur mesurée.
+ *
+ * Le VO2max n'a plus de terme correctif séparé : son effet sur la position
+ * de la FatMax passe désormais entièrement par son rôle dans le MLSS calibré
+ * (VO2max_absolu), au lieu d'être compté une 2e fois indépendamment.
+ *
  * Source unique pour tous les pipelines (snapshot diagnostic, ExportTools,
- * coachingCompass, nutrition). Ne PAS dupliquer ailleurs.
+ * coachingCompass, nutrition, zones d'entraînement). Ne PAS dupliquer ailleurs.
  *
- * @param vlamax mmol/L/s (effectif)
- * @param vo2max ml/kg/min (optionnel — terme correctif)
+ * @param vlamax mmol/L/s (effectif) — seule entrée strictement requise
+ * @param vo2max ml/kg/min — défaut 50 (neutre) si absent
+ * @param weightKg kg — défaut 70 si absent
+ * @param ftpWatts W — FTP réelle de l'athlète ; si fournie, conversion %FTP
+ *   précise via la puissance réelle plutôt que le ratio moyen de repli
  * @returns %FTP arrondi, ou null si VLamax invalide
  */
 export function computeFatMaxAnchorPctFTP(
   vlamax: number | null | undefined,
-  vo2max: number | null | undefined = null
+  vo2max: number | null | undefined = null,
+  weightKg: number | null | undefined = null,
+  ftpWatts: number | null | undefined = null,
 ): number | null {
   if (vlamax == null || !Number.isFinite(vlamax) || vlamax <= 0) return null;
-  const vo2Term = (vo2max != null && Number.isFinite(vo2max) && vo2max > 0)
-    ? 0.15 * (vo2max - 50)
-    : 0;
-  const raw = 78 - 52 * (vlamax - 0.25) + vo2Term;
-  return Math.round(clamp(raw, 48, 82));
+
+  const effectiveVo2max = vo2max != null && Number.isFinite(vo2max) && vo2max > 0
+    ? vo2max
+    : VO2MAX_DEFAULT_ML_KG_MIN;
+  const effectiveWeight = weightKg != null && Number.isFinite(weightKg) && weightKg > 0
+    ? weightKg
+    : WEIGHT_DEFAULT_KG;
+
+  const mlss = computeMLSS({ vo2max: effectiveVo2max, vlamax, weight: effectiveWeight });
+  if (!mlss) return null;
+
+  const lt1PctVo2max = mlss.intensityPct * LT1_TO_MLSS_RATIO;
+  const gap = 8 + 15 * vlamax;
+  const fatMaxPctVo2max = clamp(lt1PctVo2max - gap, 25, 75);
+
+  if (ftpWatts != null && Number.isFinite(ftpWatts) && ftpWatts > 0) {
+    const fatMaxWatts = intensityToPowerWatts(fatMaxPctVo2max, effectiveVo2max, effectiveWeight, 0.23);
+    return Math.round(clamp((fatMaxWatts / ftpWatts) * 100, 40, 90));
+  }
+
+  return Math.round(clamp(fatMaxPctVo2max / FTP_PCT_OF_VO2MAX_POWER_FALLBACK, 40, 90));
 }
 
 /**
@@ -175,6 +250,8 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
     tteConfidence,
     fatigueIndex,
     objectif,
+    ftp,
+    weightKg,
   } = input;
 
   // Validation: VLamax obligatoire
@@ -185,24 +262,19 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   const adjustments: FatMaxAdjustment[] = [];
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 1: Centre métabolique FatMax (%FTP) — FORMULE OFFICIELLE TFCL V2
-  // FatMax = 78 − 52 × (VLamax − 0.25) + 0.15 × (VO2max − 50)
-  // Borne basse 48% (sprinters purs), borne haute 82% (oxydatifs purs)
+  // STEP 1: Centre métabolique FatMax (%FTP) — ancré sur le MLSS calibré
+  // (voir computeFatMaxAnchorPctFTP pour la dérivation complète et sa justification)
   // ─────────────────────────────────────────────────────────────────────────────
-  const vo2Term = (vo2maxEffectif !== null && Number.isFinite(vo2maxEffectif) && vo2maxEffectif > 0)
-    ? 0.15 * (vo2maxEffectif - 50)
-    : 0;
-  const rawCenter = 78 - 52 * (vlamaxEffectif - 0.25) + vo2Term;
-  const centerBase = clamp(rawCenter, 48, 82);
-  
+  const centerBase = computeFatMaxAnchorPctFTP(vlamaxEffectif, vo2maxEffectif, weightKg, ftp) ?? 60;
+
   adjustments.push({
     id: "base",
     label: "Centre métabolique",
     value: centerBase,
     direction: "neutral",
     explanation: vo2maxEffectif
-      ? `VLamax ${vlamaxEffectif.toFixed(2)} + VO2max ${vo2maxEffectif.toFixed(0)} → base ${centerBase.toFixed(0)}% FTP`
-      : `VLamax ${vlamaxEffectif.toFixed(2)} → base ${centerBase.toFixed(0)}% FTP (VO2max indisponible)`,
+      ? `VLamax ${vlamaxEffectif.toFixed(2)} + VO2max ${vo2maxEffectif.toFixed(0)} → base ${centerBase.toFixed(0)}% FTP (ancré MLSS/LT1)`
+      : `VLamax ${vlamaxEffectif.toFixed(2)} → base ${centerBase.toFixed(0)}% FTP (VO2max indisponible, ancré MLSS/LT1)`,
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -265,9 +337,16 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 5: FatMax PHYSIOLOGIQUE finale (sans offset objectif)
+  //
+  // Bug réel corrigé (audit "estimations physiologiques") : ces bornes (85
+  // puis 92 plus bas) ne correspondaient déjà plus à celles de la formule de
+  // base (48-82 avant ce même audit) — un athlète VLamax très basse + TTE>65
+  // pouvait dépasser le plafond que la formule de base annonçait pourtant
+  // comme absolu. Bornes réharmonisées sur la plage réellement produite par
+  // computeFatMaxAnchorPctFTP (~40-90).
   // ─────────────────────────────────────────────────────────────────────────────
   const physioOffset = tteOffset + fatigueOffset;
-  const physioCenter = clamp(centerBase + physioOffset, 48, 85);
+  const physioCenter = clamp(centerBase + physioOffset, 38, 92);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 6: Plage FatMax physiologique
@@ -285,13 +364,13 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
     rangeWidth = 6;
   }
 
-  const physioMin = clamp(physioCenter - rangeWidth, 48, 85);
-  const physioMax = clamp(physioCenter + rangeWidth, 48, 85);
+  const physioMin = clamp(physioCenter - rangeWidth, 38, 92);
+  const physioMax = clamp(physioCenter + rangeWidth, 38, 92);
 
   // Zone de travail = FatMax physio + offset objectif
-  const workCenter = clamp(physioCenter + objectifOffset, 48, 92);
-  const workMin = clamp(physioMin + objectifOffset, 48, 92);
-  const workMax = clamp(physioMax + objectifOffset, 48, 92);
+  const workCenter = clamp(physioCenter + objectifOffset, 35, 96);
+  const workMin = clamp(physioMin + objectifOffset, 35, 96);
+  const workMax = clamp(physioMax + objectifOffset, 35, 96);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 7: Confiance et niveau
@@ -499,35 +578,50 @@ export function generateEnergyProfileData(
   raceIntensityPct: number | null = null
 ): EnergyProfileDataPoint[] {
   const data: EnergyProfileDataPoint[] = [];
-  
+
+  // Bug réel corrigé (audit "estimations physiologiques") : ce modèle plaçait
+  // le point 50% lipides / 50% glucides (crossover) directement à la FatMax
+  // (centerPctFTP), alors que ce fichier calcule séparément (calculateCrossoverZone,
+  // scenarioEngine.ts) que le vrai point de croisement 50/50 se situe 8 à 12
+  // points de %FTP AU-DESSUS de la FatMax — c'est la distinction classique
+  // FatMax vs Crossover Point (Brooks & Mercier 1994). Le graphique affiché au
+  // coach/athlète montrait donc un mélange de substrats physiologiquement
+  // inversé à l'intensité FatMax. Le pic lipidique (à centerPctFTP) est
+  // maintenant réellement > 50% (dominance lipidique), et le point 50/50 est
+  // replacé au centre de la crossoverZone déjà calculée.
+  const crossoverCenter = (fatmax.crossoverZone[0] + fatmax.crossoverZone[1]) / 2;
+  const PEAK_LIPID_PCT_AT_FATMAX = 62; // pic lipidique illustratif à la FatMax (dominance, pas 50/50)
+
   // Générer les points de 45% à 95% FTP
   for (let intensity = 45; intensity <= 95; intensity += 5) {
-    // Modèle de décroissance lipidique
-    // À FatMax center, lipides = 50%
-    // Au-dessus, lipides diminuent
-    // En-dessous, lipides augmentent
-    const distanceFromFatMax = intensity - fatmax.centerPctFTP;
-    
-    // Décroissance sigmoïde modifiée
     let lipidPct: number;
     if (intensity <= fatmax.minPctFTP) {
       // Zone basse: lipides dominants
       lipidPct = Math.min(85, 60 + (fatmax.minPctFTP - intensity) * 1.5);
-    } else if (intensity >= fatmax.maxPctFTP) {
-      // Zone haute: glucides dominants
-      const excess = intensity - fatmax.maxPctFTP;
-      lipidPct = Math.max(5, 45 - excess * 2.5);
+    } else if (intensity <= fatmax.centerPctFTP) {
+      // Montée vers le pic lipidique à la FatMax (continuité avec la valeur
+      // à minPctFTP dans la branche précédente, qui vaut 60 à distance nulle)
+      const span = Math.max(1, fatmax.centerPctFTP - fatmax.minPctFTP);
+      const t = (intensity - fatmax.minPctFTP) / span;
+      const lowZoneValue = 60;
+      lipidPct = lowZoneValue + (PEAK_LIPID_PCT_AT_FATMAX - lowZoneValue) * t;
+    } else if (intensity < crossoverCenter) {
+      // Descente du pic FatMax vers le point de croisement 50/50 (crossoverZone)
+      const span = Math.max(1, crossoverCenter - fatmax.centerPctFTP);
+      const t = (intensity - fatmax.centerPctFTP) / span;
+      lipidPct = PEAK_LIPID_PCT_AT_FATMAX + (50 - PEAK_LIPID_PCT_AT_FATMAX) * t;
     } else {
-      // Zone FatMax: max lipides
-      lipidPct = 50 + 10 * Math.cos((intensity - fatmax.centerPctFTP) / (fatmax.maxPctFTP - fatmax.minPctFTP) * Math.PI);
+      // Au-delà du crossover: glucides dominants
+      const excess = intensity - crossoverCenter;
+      lipidPct = Math.max(5, 50 - excess * 2.5);
     }
-    
+
     lipidPct = Math.max(5, Math.min(85, lipidPct));
     const carbPct = 100 - lipidPct;
-    
+
     const isFatMaxZone = intensity >= fatmax.minPctFTP && intensity <= fatmax.maxPctFTP;
     const isRaceIntensity = raceIntensityPct !== null && Math.abs(intensity - raceIntensityPct) < 3;
-    
+
     data.push({
       intensityPctFTP: intensity,
       lipidPct: Math.round(lipidPct),
@@ -537,7 +631,7 @@ export function generateEnergyProfileData(
       isRaceIntensity,
     });
   }
-  
+
   return data;
 }
 
