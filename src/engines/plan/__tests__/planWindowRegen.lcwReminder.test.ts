@@ -76,6 +76,9 @@ describe("planWindowRegen — rappel LCW explicite (checklist multi-semaines)", 
         { dayIndex: 5, dayName: "Samedi", sport: "Vélo", title: "Long ride LCW", catalogId: "B_LCW_BIKE_LONG_RACE_SAT" },
         { dayIndex: 6, dayName: "Dimanche", sport: "Course", title: "Off-legs run", catalogId: "B_LCW_RUN_OFF_LEGS_SUN" },
       ],
+      7: [
+        { dayIndex: 5, dayName: "Samedi", sport: "Vélo", title: "Simulation Peak", catalogId: "B_LCW_BACK_TO_BACK_PEAK" },
+      ],
     });
     const { config } = buildWindowRegenConfig({
       fromWeek: 5,
@@ -85,7 +88,35 @@ describe("planWindowRegen — rappel LCW explicite (checklist multi-semaines)", 
       baseConfig: lcwConfig,
     });
     expect(config.constraints).not.toMatch(/B_LCW_BIKE_LONG_RACE_SAT/);
+    expect(config.constraints).not.toMatch(/B_LCW_BACK_TO_BACK_PEAK/);
     expect(config.constraints).not.toMatch(/ENCORE NON SATISFAITE/i);
+  });
+
+  /**
+   * Bug réel corrigé (audit "dashboard/plan/export", passe 6) : `existing.hasBackToBack`
+   * était calculé par planHasLcwSignature() mais jamais lu dans buildWindowRegenConfig —
+   * seuls B_LCW_BIKE_LONG_RACE_SAT et B_LCW_RUN_OFF_LEGS_SUN étaient rappelés à l'IA,
+   * jamais B_LCW_BACK_TO_BACK_PEAK, alors que planValidator.ts (validateLcwSignaturePresence)
+   * traite les 3 comme une seule et même checklist "bloquante".
+   */
+  it("rappelle B_LCW_BACK_TO_BACK_PEAK quand les 2 autres IDs sont présents mais pas celui-ci", () => {
+    const plan = makePlan(7, {
+      3: [
+        { dayIndex: 5, dayName: "Samedi", sport: "Vélo", title: "Long ride LCW", catalogId: "B_LCW_BIKE_LONG_RACE_SAT" },
+        { dayIndex: 6, dayName: "Dimanche", sport: "Course", title: "Off-legs run", catalogId: "B_LCW_RUN_OFF_LEGS_SUN" },
+      ],
+    });
+    const { config } = buildWindowRegenConfig({
+      fromWeek: 5,
+      toWeek: 6,
+      currentPlan: plan,
+      athleteData,
+      baseConfig: lcwConfig,
+    });
+    expect(config.constraints).not.toMatch(/B_LCW_BIKE_LONG_RACE_SAT/);
+    expect(config.constraints).not.toMatch(/B_LCW_RUN_OFF_LEGS_SUN/);
+    expect(config.constraints).toMatch(/B_LCW_BACK_TO_BACK_PEAK/);
+    expect(config.constraints).toMatch(/bloquante.*ENCORE NON SATISFAITE/i);
   });
 
   it("ne rappelle rien pour un plan qui n'est pas au format LCW", () => {

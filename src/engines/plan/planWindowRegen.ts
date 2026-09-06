@@ -133,10 +133,18 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     const missing: string[] = [];
     if (!existing.hasBikeSat) missing.push("`B_LCW_BIKE_LONG_RACE_SAT` (long ride race-pace samedi)");
     if (!existing.hasRunSun) missing.push("`B_LCW_RUN_OFF_LEGS_SUN` (long run jambes fatiguées dimanche)");
+    // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : `existing.hasBackToBack`
+    // était calculé par planHasLcwSignature() mais jamais lu ici — planValidator.ts
+    // (validateLcwSignaturePresence) traite B_LCW_BACK_TO_BACK_PEAK comme la 3e fiche
+    // "bloquante" au même titre que les deux autres, mais seul ce rappel de régénération
+    // ciblée décidait explicitement à l'IA ce qui manque encore. Un coach utilisant
+    // cette régénération spécifiquement pour corriger un échec du validateur sur cette
+    // 3e fiche ne recevait donc aucun signal, et le même échec pouvait se reproduire.
+    if (!existing.hasBackToBack) missing.push("`B_LCW_BACK_TO_BACK_PEAK` (simulation complète week-end Peak, J-21 à J-28)");
     if (missing.length > 0) {
       lcwReminderLines = [
         "",
-        `🏴 FORMAT LCW — checklist "bloquante" ENCORE NON SATISFAITE sur le plan entier (passé + cette fenêtre) : ${missing.join(" et ")} n'apparaissent nulle part. Cette fenêtre DOIT inclure au moins un week-end SAMEDI+DIMANCHE consécutif avec ces deux IDs catalogue exacts — ne les remplace pas par des fiches génériques (brick T2 immédiat interdit).`,
+        `🏴 FORMAT LCW — checklist "bloquante" ENCORE NON SATISFAITE sur le plan entier (passé + cette fenêtre) : ${missing.join(" et ")} n'apparaissent nulle part. Cette fenêtre DOIT inclure au moins un week-end concerné avec ${missing.length > 1 ? "ces IDs catalogue exacts" : "cet ID catalogue exact"} — ne les remplace pas par des fiches génériques (brick T2 immédiat interdit).`,
       ];
     }
   }
