@@ -1,4 +1,4 @@
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 // =============================================
 // FATIGUE COMPARISON CHART - Snapshot fatigue_state vs Calculée
@@ -98,14 +98,19 @@ export function FatigueComparisonChart({
         objectif,
       });
 
-      const rr = computePotentielEffectif({
+      // Moteur riche à 4 piliers (Cluster 2, Phase 3) — même source que
+      // Dashboard/RaceSimulationPage.
+      const rr = computePotentielEffectifRich({
         objectif,
         vlamaxEffectif: vlmx,
         tteEffectif: tte,
         ftp: snap.ftp ?? null,
-        poids: snap.weight_kg ?? null,
-        fatigue_ok: true,
-        seance_specifique_validee: false,
+        weightKg: snap.weight_kg ?? null,
+        athleteAge,
+        vo2max: snap.vo2max ?? null,
+        vma: snap.vma ?? null,
+        runEconomyScore: snap.run_economy_score ?? null,
+        tss7d: snap.tss_7d ?? null,
       });
 
       const fatigueResult = computeFatigueEffectif({

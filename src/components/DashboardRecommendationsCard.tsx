@@ -1,4 +1,4 @@
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * Version compacte des recommandations Wahoo pour le Dashboard
  * Affiche les suggestions prioritaires avec un lien vers la bibliothèque complète
@@ -113,6 +113,9 @@ export function DashboardRecommendationsCard({
     const athleteId = currentAthlete.id;
     const objectif = currentAthlete.objectif || "IM";
     const athleteSnapshots = snapshots.filter((s) => s.athlete_id === athleteId);
+    const athleteAge = currentAthlete.birth_date
+      ? Math.floor((Date.now() - new Date(currentAthlete.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+      : null;
 
     // Compute VLamax Effectif
     const vlamaxEffectif = computeVLamaxEffectif({
@@ -139,17 +142,6 @@ export function DashboardRecommendationsCard({
       objectif,
     });
 
-    // Compute Potentiel Physiologique
-    const potentielPhysiologique = computePotentielEffectif({
-      objectif,
-      vlamaxEffectif,
-      tteEffectif,
-      ftp: activeSnapshot.ftp ?? null,
-      poids: activeSnapshot.weight_kg ?? null,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-    });
-
     // Determine sport focus
     let sportFocus: "run" | "bike" | "tri" = "bike";
     if (["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(objectif)) {
@@ -157,6 +149,24 @@ export function DashboardRecommendationsCard({
     } else if (["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectif)) {
       sportFocus = "tri";
     }
+
+    // Compute Potentiel Physiologique — moteur riche à 4 piliers (Cluster 2,
+    // Phase 3), même source que Dashboard/RaceSimulationPage.
+    const potentielPhysiologique = computePotentielEffectifRich({
+      objectif,
+      vlamaxEffectif,
+      tteEffectif,
+      ftp: activeSnapshot.ftp ?? null,
+      weightKg: activeSnapshot.weight_kg ?? null,
+      athleteAge,
+      ambition: currentAthlete.ambition,
+      sex: (currentAthlete.sexe === "M" || currentAthlete.sexe === "F") ? currentAthlete.sexe : null,
+      sportFocus,
+      vo2max: activeSnapshot.vo2max ?? null,
+      vma: activeSnapshot.vma ?? null,
+      runEconomyScore: activeSnapshot.run_economy_score ?? null,
+      tss7d: activeSnapshot.tss_7d ?? null,
+    });
 
     // Compute injury risk for runners
     let injuryRiskRun = undefined;

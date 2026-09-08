@@ -1,4 +1,4 @@
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 // =============================================
@@ -1628,18 +1628,19 @@ function buildExportPayload(
       _source: "diagnostic-v2",
     };
   } else {
-    // Fallback legacy — uniquement quand aucun snapshot effectif n'est disponible
-    potentielPhysiologique = computePotentielEffectif({
-      objectif: athlete.goal || "IM",
+    // Fallback — uniquement quand aucun snapshot effectif n'est disponible.
+    // Moteur riche à 4 piliers (Cluster 2, Phase 3) : mêmes vlamax/tte
+    // effectifs déjà calculés, même source que le Dashboard/RaceSimulationPage.
+    potentielPhysiologique = computePotentielEffectifRich({
+      objectif: objectifForLimiter,
       vlamaxEffectif: vlamax,
       tteEffectif: tte,
       ftp: effectiveRefs.ftp,
-      poids: effectiveRefs.weightKg,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-      fcMax: effectiveRefs.fcMax,
+      weightKg: effectiveRefs.weightKg,
       athleteAge,
       ambition,
+      sex: (athlete.sex === "M" || athlete.sex === "F") ? athlete.sex : null,
+      sportFocus: sportFocusForLimiter === "tri" ? "bike" : sportFocusForLimiter,
     });
   }
 
