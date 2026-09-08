@@ -391,8 +391,15 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   // (absents avant ce fix → toujours 70kg/50-48 ml/kg/min par défaut).
   const nutritionPred = vlamaxEffectif ? computeNutritionEstimateSimple({
     vlamax: vlamaxEffectif.value,
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+    // priorité 4) : sans vlamaxRun/tteRunMin, le leg course d'un triathlon
+    // réutilisait silencieusement la VLamax/TTE vélo — alors que
+    // tte_observed_min_run est déjà lu plus haut (ligne ~347) pour
+    // tteEffectif, et vlamax_run est déjà porté par effectiveSnapshot.
+    vlamaxRun: (effectiveSnapshot as any)?.vlamax_run ?? null,
     objectif: athlete?.goal || "IM",
     tteMin: tteEffectif?.tte_min ?? null,
+    tteRunMin: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
     vo2max: effectiveSnapshot?.vo2max ?? null,
     weightKg: effectiveRefs?.weightKg ?? null,
   }) : null;
