@@ -222,30 +222,10 @@ function getRiskLabel(risk: NutritionRiskV2): string {
 // =============================================
 
 // Audit 2D F26 — `computeBaseRateMader` est désormais importé en tête de
-// fichier depuis `nutritionUnified` (source canonique unique).
-
-/**
- * Étape B — Modulation par VLamax
- * Si VLamax < 0.35 → -10 g/h  
- * Si VLamax 0.35–0.55 → neutre  
- * Si VLamax > 0.55 → +10 à +20 g/h
- */
-function computeVlamaxAdjustment(vlamax: number | null): { adjustment: number; explanation: string } {
-  if (vlamax === null) {
-    return { adjustment: 0, explanation: "VLamax inconnue — modulation neutre" };
-  }
-  
-  if (vlamax < 0.35) {
-    return { adjustment: -10, explanation: "VLamax basse (<0.35) → économie glucidique naturelle" };
-  }
-  if (vlamax <= 0.55) {
-    return { adjustment: 0, explanation: "VLamax équilibrée (0.35-0.55) → besoins standards" };
-  }
-  if (vlamax <= 0.65) {
-    return { adjustment: 10, explanation: "VLamax élevée (>0.55) → dépendance glucidique accrue" };
-  }
-  return { adjustment: 20, explanation: "VLamax très élevée (>0.65) → forte combustion glucidique" };
-}
+// fichier depuis `nutritionUnified` (source canonique unique). VLamax : déjà
+// intégrée dans ce modèle Mader (calculateCarbOxidation) — computeVlamaxAdjustment
+// (ancien ajustement additionnel, jamais appelé, qui aurait doublé son effet)
+// a été supprimé (audit "estimations physiologiques", Cluster 4, priorité 5).
 
 /**
  * Étape C — Modulation par TTE
