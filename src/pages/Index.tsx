@@ -28,8 +28,6 @@ import { MetricHelpButton } from "@/components/MetricHelpButton";
 import { calculateAge } from "@/lib/ageAdjustment";
 import { getVLamaxOptimal, getTTETargetByAmbition, getTargetsForAmbition } from "@/lib/physiologicalTargets";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
-
-import { NutritionPredictive } from "@/components/NutritionPredictive";
 import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCard";

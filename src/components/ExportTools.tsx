@@ -54,6 +54,7 @@ import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } 
 // ✅ NEW: Strategic Roadmap Engine
 import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase, computeLorangStrategy, type LorangStrategyResult, type LorangLeverActivation, type LorangProhibitionRule } from "@/engines/decision";
 import { detectUnifiedLimiter, type UnifiedLimiterResult, computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+import { getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
 import { User, Shield, Sparkles, Activity } from "lucide-react";
 import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS, REPORT_PRESETS, type ReportPreset } from "./ReportSectionOrderEditor";
@@ -6302,6 +6303,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // 6. AJUSTEMENT PAR L'ÂGE (AAI)
   // =============================================
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 3) : la
+  // ligne "TTE — Cibles abaissées de X%" du tableau ci-dessous affichait le
+  // facteur AAI (ageAdjustment.aai.aai, seuils VLamax/nutrition) comme si
+  // c'était l'ajustement TTE réellement appliqué — pour un Master2 (40-49
+  // ans), l'AAI dit -10% pendant que l'ajustement TTE réel (getTTEAgeFactor,
+  // Peinado 2018/Lepers 2013, déjà utilisé par capInjuryRisk.ts et
+  // unifiedLimiterDetection.ts pour les vraies cibles TTE par âge) n'est que
+  // de -3%. Corrigé pour utiliser getTTEAgeFactor(ageAdjustment.age).
   const aaiTermLong = isAthlete ? "Ajustement lié à l'âge" : "Ajustement par l'Âge (AAI)";
   const aaiShort = isAthlete ? "Ajustement lié à l'âge" : "AAI";
   const aaiHTML = ageAdjustment.age !== null ? `
@@ -6408,7 +6417,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <tbody>
             <tr>
               <td><b>TTE (Time To Exhaustion)</b></td>
-              <td>Cibles abaissées de ${Math.round((1 - ageAdjustment.aai.aai) * 100)}%</td>
+              <td>Cibles abaissées de ${Math.round((1 - getTTEAgeFactor(ageAdjustment.age)) * 100)}%</td>
               <td class="muted">Un TTE de 50 min chez un Master2 équivaut à 60 min chez un jeune en termes de performance relative</td>
             </tr>
             <tr>
