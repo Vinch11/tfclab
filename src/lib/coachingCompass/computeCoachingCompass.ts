@@ -39,7 +39,7 @@ import {
   getVLamaxRange,
   getVmaTargetByAmbition,
 } from "@/lib/physiologicalTargets";
-import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
+import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor, getFatmaxTargets, getWprimeTargets } from "@/lib/v2/unifiedLimiterDetection";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { calibrateVO2maxFromFTP } from "@/lib/v2/metabolicSimulator";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
@@ -706,6 +706,18 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
     unit: "/100",
   };
 
+  // AXE FATMAX : zone d'oxydation lipidique maximale (% FTP), cible par objectif
+  const fatmaxValue = profile.fatmax.value;
+  const fatmaxTargets = getFatmaxTargets(objectif);
+  const fatmaxScore = scoreRelativeToTarget(fatmaxValue, fatmaxTargets.optimal);
+
+  // AXE W' : capacité anaérobie absolue (kJ), cible par objectif ET ambition
+  // (Sprint/Olympic exigent un W' élevé, IM/Ultra/Marathon un W' plus bas —
+  // déjà encodé dans WPRIME_TARGETS par objectif).
+  const wprimeValue = profile.wPrime.value;
+  const wprimeTargets = getWprimeTargets(objectif, ambition);
+  const wprimeScore = scoreRelativeToTarget(wprimeValue, wprimeTargets.optimal);
+
   const axes: RadarAxis[] = [
     {
       key: "vo2max",
@@ -740,6 +752,28 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       value: durabilityValue,
       target: durabilityTarget,
       unit: "/100",
+    },
+    {
+      key: "fatmax",
+      label: "FatMax",
+      shortLabel: "FatMax",
+      score: fatmaxScore,
+      icon: "🔥",
+      color: "hsl(20, 85%, 55%)",
+      value: fatmaxValue,
+      target: fatmaxTargets.optimal,
+      unit: "% FTP",
+    },
+    {
+      key: "wprime",
+      label: "W′ (Capacité Anaérobie)",
+      shortLabel: "W′",
+      score: wprimeScore,
+      icon: "💥",
+      color: "hsl(340, 75%, 55%)",
+      value: wprimeValue,
+      target: wprimeTargets.optimal,
+      unit: "kJ",
     },
   ];
 

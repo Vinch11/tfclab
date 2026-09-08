@@ -425,12 +425,13 @@ function getWeights(objectif: string): Record<string, number> {
   return STRATEGIC_WEIGHTS[normalized] || STRATEGIC_WEIGHTS["703"];
 }
 
-function getFatmaxTargets(objectif: string): { min: number; optimal: number } {
+// Exported for reuse by the Coaching Compass radar (FatMax/W' axes)
+export function getFatmaxTargets(objectif: string): { min: number; optimal: number } {
   const normalized = normalizeObjective(objectif);
   return FATMAX_TARGETS[normalized] || FATMAX_TARGETS["703"];
 }
 
-function getWprimeTargets(objectif: string, ambition: AmbitionLevel): { min: number; optimal: number; max: number } {
+export function getWprimeTargets(objectif: string, ambition: AmbitionLevel): { min: number; optimal: number; max: number } {
   const normalized = normalizeObjective(objectif);
   const targets = WPRIME_TARGETS[normalized] || WPRIME_TARGETS["703"];
   return targets[ambition] || targets.world_class || targets.elite || targets.age_group;
