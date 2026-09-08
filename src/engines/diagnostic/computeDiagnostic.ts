@@ -10,8 +10,14 @@
  * 3. Potentiel Physiologique
  * 4. Cibles Physiologiques
  * 5. Risque Blessure
- * 6. DRE (si données disponibles)
- * 7. Synthèse
+ * 6. Synthèse
+ *
+ * Le Decision Reliability Engine (DRE) n'est PAS calculé ici : il est
+ * produit séparément par la couche d'affichage (Dashboard, PDF Race
+ * Simulation) via computeFullDRE, avec les vraies confidences du snapshot
+ * actif. Un champ reliability figurait autrefois ici, toujours à null et
+ * jamais lu par aucun consommateur de computeDiagnostic() — supprimé
+ * (audit "estimations physiologiques", Cluster 3, finding secondaire).
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
@@ -115,9 +121,6 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
   const runInjuryRisk = computeRunInjuryRiskFromInput(input, fatigue, tte, vlamax);
   const bikeInjuryRisk = computeBikeInjuryRiskFromInput(input, fatigue, tte, vlamax);
 
-  // ── 6. DRE (placeholder — enrichi quand données disponibles) ──────────
-  const reliability = null;
-
   // ── 6bis. Run MLSS (Modèle C — cross-validator silencieux + fallback) ──
   const runMLSS = computeRunMLSSFromInput(input);
 
@@ -157,7 +160,6 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
       run: runInjuryRisk,
       bike: bikeInjuryRisk,
     },
-    reliability,
     runMLSS,
     raceChronoEstimate,
     synthesis,

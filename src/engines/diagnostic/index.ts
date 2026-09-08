@@ -16,7 +16,6 @@ export type {
   AthleteDiagnostic,
   DiagnosticSynthesis,
   DiagnosticAlert,
-  DecisionReliabilityInput,
   CheckinData,
 } from "./types";
 

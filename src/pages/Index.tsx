@@ -1002,32 +1002,7 @@ const Index = () => {
     };
   }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly]);
 
-  const { 
-    calculateAndPersist: persistDRE, 
-    markAsReferenceWeek 
-  } = useDecisionReliability(
-    currentAthlete?.id ?? null, 
-    effectiveCloudSnapshot?.id ?? null
-  );
-
-  // ✅ Persistance automatique quand le snapshot change
-  useEffect(() => {
-    if (!effectiveCloudSnapshot || !currentAthlete || !user) return;
-    
-    // Persister le DRE en base de données
-    const persistAsync = async () => {
-      try {
-        await persistDRE(effectiveCloudSnapshot);
-        console.log("[DRE] Score de fiabilité persisté pour snapshot:", effectiveCloudSnapshot.id);
-      } catch (err) {
-        console.error("[DRE] Erreur persistance:", err);
-      }
-    };
-    
-    // Debounce pour éviter trop d'appels
-    const timeoutId = setTimeout(persistAsync, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [effectiveCloudSnapshot?.id, currentAthlete?.id, user?.id, persistDRE]);
+  const { markAsReferenceWeek } = useDecisionReliability();
 
   // Handlers
   const handleAddAthlete = async () => {
