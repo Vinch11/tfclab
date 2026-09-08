@@ -937,11 +937,14 @@ function GoalDateSuggester() {
     else if (fatigueState === "low" || fatigueState === "faible") fatigueIndex = 20;
     else if (fatigueState === "ok" || fatigueState === "moderate") fatigueIndex = 45;
     
-    // Compute CAP injury risk
+    // Compute CAP injury risk — moteur canonique (fatigue + charge incluses,
+    // Cluster 3) au lieu du sous-total VLamax+TTE seul.
     const injuryRisk = computeCAPInjuryRiskIndex({
       vlamaxValue: vlamax,
       tteValue: tte,
-      objectif: currentAthlete.objectif || selectedGoal
+      objectif: currentAthlete.objectif || selectedGoal,
+      fatiguePct: fatigueIndex,
+      tss7d: activeSnapshot?.tss_7d ?? null,
     });
     
     return {

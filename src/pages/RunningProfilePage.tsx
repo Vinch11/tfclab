@@ -58,7 +58,8 @@ import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic"
 import { useRunDurabilityProxy } from "@/hooks/useRunDurabilityProxy";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { calculateAge } from "@/lib/ageAdjustment";
-import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
+import { adaptRunInjuryRiskToEnvelope } from "@/lib/v2/injuryRiskUnified";
+import { computeRunInjuryRisk } from "@/lib/runInjuryRisk";
 import { computeFatigueEffectif } from "@/engines/diagnostic";
 import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingEnvelopeRunning";
 import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
@@ -221,18 +222,19 @@ export default function RunningProfilePage() {
     });
   }, [effectiveCloudSnapshot, tteEffectif, vlamaxEffectif, athleteAge, athleteGoal]);
 
-  // CAP Injury Risk
+  // CAP Injury Risk — moteur canonique (runInjuryRisk.ts, Cluster 3) au lieu
+  // de computeCAPInjuryRisk (injuryRiskUnified.ts) qui déclarait tss7d en
+  // entrée mais ne l'utilisait jamais dans le score (charge ignorée). Adapté
+  // vers InjuryRiskEnvelope pour ne pas modifier InjuryRiskCAPCard.
   const capInjuryRisk = useMemo(() => {
-    return computeCAPInjuryRisk({
-      vlamaxValue: vlamaxEffectif.value,
-      economyLevel: effectiveCloudSnapshot?.run_economy_label ?? null,
-      tteMin: tteEffectif.tte_min,
-      fatiguePct: fatigueResult?.score ?? 40,
+    return adaptRunInjuryRiskToEnvelope(computeRunInjuryRisk({
+      fatigueEffectif: fatigueResult,
+      vlamaxEffectif,
+      tteEffectif,
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
-      runLoad7d: null,
       age: athleteAge,
       objectif: athleteGoal,
-    });
+    }));
   }, [vlamaxEffectif, effectiveCloudSnapshot, tteEffectif, fatigueResult, athleteAge, athleteGoal]);
 
   // Potentiel Physiologique Running — snapshot-centric

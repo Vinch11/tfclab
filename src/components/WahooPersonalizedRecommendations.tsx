@@ -54,7 +54,7 @@ import {
   LOW_CRR_JUSTIFICATION_LABELS,
   LOW_CRR_JUSTIFICATION_EFFECTS,
 } from "@/lib/wahoo/wahooSuggestionEngine";
-import { computeVLamaxEffectif, computeTTEEffectif, getTTETarget } from "@/engines/diagnostic";
+import { computeVLamaxEffectif, computeTTEEffectif, getTTETarget, computeFatigueEffectif } from "@/engines/diagnostic";
 import { computeCAPInjuryRiskIndex } from "@/lib/capInjuryRisk";
 import { getRiskColor, getRiskLabel, findWahooWorkoutById } from "@/data/wahooMapping";
 import { 
@@ -388,13 +388,27 @@ export function WahooPersonalizedRecommendations() {
       tss7d: activeSnapshot.tss_7d ?? null,
     });
 
-    // Compute injury risk for runners using the correct API
+    // Compute injury risk for runners — moteur canonique (fatigue + charge
+    // incluses, Cluster 3) au lieu du sous-total VLamax+TTE seul.
     let injuryRiskRun = undefined;
     if (sportFocus === "run" || sportFocus === "tri") {
+      const fatigueEffectif = computeFatigueEffectif({
+        tss7d: activeSnapshot.tss_7d,
+        tss7dHabituel: null,
+        fatiguePercue: null,
+        tteEffectif,
+        potentielPhysiologique,
+        vlamaxEffectif,
+        age: athleteAge,
+        objectif,
+      });
       const capRisk = computeCAPInjuryRiskIndex({
         vlamaxValue: vlamaxEffectif.value,
         tteValue: tteEffectif.tte_min,
         objectif,
+        age: athleteAge,
+        fatiguePct: fatigueEffectif.score,
+        tss7d: activeSnapshot.tss_7d ?? null,
       });
       const levelMap: Record<number, "faible" | "modéré" | "élevé"> = {
         0: "faible",

@@ -1426,11 +1426,16 @@ export default function TemplatesPage() {
       fatigueLevel = "MODERE";
     }
 
-    // Compute CAP injury risk locally (to avoid circular dependency)
+    // Compute CAP injury risk locally (to avoid circular dependency) —
+    // moteur canonique (fatigue + charge incluses, Cluster 3) au lieu du
+    // sous-total VLamax+TTE seul.
     const localInjuryRisk = computeCAPInjuryRiskIndex({
       vlamaxValue: athleteMetrics.vlamaxEffectif.value,
       tteValue: athleteMetrics.tteEffectif.value,
       objectif: selectedAthlete.goal || "marathon",
+      age,
+      fatiguePct: fatigueIndex,
+      tss7d: selectedSnapshot.tss_7d ?? null,
     });
 
     return {
@@ -1472,15 +1477,19 @@ export default function TemplatesPage() {
     });
   }, [staffMode, athleteMetrics.signals, displayedWeeks, selectedTemplateId]);
 
-  // Compute CAP Injury Risk
+  // Compute CAP Injury Risk — moteur canonique (fatigue + charge incluses,
+  // Cluster 3) au lieu du sous-total VLamax+TTE seul.
   const capInjuryRisk = useMemo(() => {
     if (!staffMode || !selectedAthlete) return null;
     return computeCAPInjuryRiskIndex({
       vlamaxValue: athleteMetrics.vlamaxEffectif.value,
       tteValue: athleteMetrics.tteEffectif.value,
       objectif: selectedAthlete.goal || "IM",
+      age: athleteTruthRunning?.age ?? null,
+      fatiguePct: athleteTruthRunning?.fatigueIndex ?? null,
+      tss7d: selectedSnapshot?.tss_7d ?? null,
     });
-  }, [staffMode, selectedAthlete, athleteMetrics.vlamaxEffectif.value, athleteMetrics.tteEffectif.value]);
+  }, [staffMode, selectedAthlete, athleteMetrics.vlamaxEffectif.value, athleteMetrics.tteEffectif.value, athleteTruthRunning, selectedSnapshot]);
 
   // v9: Wahoo Context for session interpretation
   const wahooContext = useMemo<WahooAthleteContext | null>(() => {
@@ -1506,11 +1515,15 @@ export default function TemplatesPage() {
     else if (fatigueState === "moderate" || fatigueState === "modéré") fatigueStatus = "moderate";
     else if (fatigueState === "low" || fatigueState === "faible") fatigueStatus = "low";
 
-    // Compute CAP injury risk locally to avoid TDZ issues
+    // Compute CAP injury risk locally to avoid TDZ issues — moteur canonique
+    // (fatigue + charge incluses, Cluster 3) au lieu du sous-total VLamax+TTE seul.
     const localCapRisk = computeCAPInjuryRiskIndex({
       vlamaxValue: athleteMetrics.vlamaxEffectif.value,
       tteValue: athleteMetrics.tteEffectif.value,
       objectif: selectedAthlete.goal || "IM",
+      age: athleteTruthRunning?.age ?? null,
+      fatiguePct: athleteTruthRunning?.fatigueIndex ?? null,
+      tss7d: selectedSnapshot?.tss_7d ?? null,
     });
 
     const input: SuggestionEngineInput = {
@@ -1530,7 +1543,7 @@ export default function TemplatesPage() {
     };
 
     return generateWahooSuggestions(input);
-  }, [selectedAthlete, staffMode, athleteMetrics, selectedSnapshot]);
+  }, [selectedAthlete, staffMode, athleteMetrics, selectedSnapshot, athleteTruthRunning]);
 
   const handleLoadTemplate = async () => {
     const template = getTemplateById(selectedTemplateId);
