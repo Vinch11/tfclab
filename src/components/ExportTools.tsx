@@ -37,6 +37,7 @@ import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zo
 import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";
 import { SEANCES } from "@/types/seances";
 import { computeNutritionEstimateSimple, type NutritionEstimateSimpleResult } from "@/lib/v2/nutritionUnified";
+import { computeFullDRE, type DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
 import { computeCAPInjuryRiskIndex, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment, getAgeAdjustedVLamaxProfil, getVLamaxAgeStatus, type VLamaxProfil } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
@@ -214,6 +215,12 @@ interface ExportPayload {
    * consommateur dans l'app, cf. Cluster 2, nettoyage).
    */
   unifiedCompassPillars: { aerobic: number; tolerance: number; metabolic: number; robustness: number } | null;
+  /**
+   * Decision Reliability Engine (DRE) — même calcul que la carte affichée
+   * sur le Dashboard (Index.tsx). Cf. commentaire sur le calcul de
+   * `reliability` dans buildExportPayload pour le bug corrigé (Cluster 3).
+   */
+  reliability: DecisionReliabilityResult;
   // ✅ NEW: Age Adjustment Index
   ageAdjustment: {
     age: number | null;
@@ -1212,7 +1219,11 @@ function buildProSimulationHTML(
           </div>
           <div>
             <div class="muted" style="font-size:10px;">Confiance données</div>
-            <p style="font-size:11px;">${Math.round(eligibility.confidence * 100)}%</p>
+            <p style="font-size:11px;">${payload.reliability.decisionConfidenceScore}% (${
+              payload.reliability.decisionLevel === "robust" ? "robuste"
+              : payload.reliability.decisionLevel === "prudent" ? "prudent"
+              : "insuffisant"
+            })</p>
           </div>
         </div>
       </div>
@@ -1587,6 +1598,40 @@ function buildExportPayload(
 
   // (TTE CAP séparé calculé plus tard dans buildStaffGradeReportHTML pour affichage)
 
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 3) : le
+  // rapport PDF (section Race Simulation, encart "Confiance données")
+  // affichait une confiance calculée par checkProModeEligibility()
+  // (raceSimulation.ts) — un simple compte de données manquantes ±0.1 par
+  // seuil de confiance <0.6 — totalement indépendante du Decision
+  // Reliability Engine (DRE) officiel qui alimente la carte affichée sur le
+  // Dashboard. Mesuré : mêmes VLamax/TTE, le Dashboard pouvait afficher
+  // "confiance modérée" (DRE) pendant que ce même rapport PDF affichait
+  // "confiance maximale" (checkProModeEligibility) pour le même athlète au
+  // même instant. Calculé ici avec les mêmes entrées que Index.tsx afin que
+  // les deux écrans partagent la même source de vérité.
+  const reliability: DecisionReliabilityResult = computeFullDRE({
+    snapshotId: effectiveSnapshot?.id ?? "",
+    athleteId: athlete.id,
+    coachId: "",
+    objective: athlete.goal || "IM",
+    vlamax: vlamax.value,
+    vlamaxConfidence: vlamax.confidence,
+    tteMin: tte.tte_min,
+    tteConfidence: tte.confidence,
+    fatmaxPct: null,
+    vo2max: effectiveSnapshot?.vo2max ?? null,
+    ftp: effectiveSnapshot?.ftp ?? null,
+    weightKg: effectiveSnapshot?.weight_kg ?? null,
+    p30s: (effectiveSnapshot as any)?.p30s_w ?? null,
+    p1min: (effectiveSnapshot as any)?.p60s_w ?? null,
+    map5min: (effectiveSnapshot as any)?.map5min_w ?? null,
+    pmax5s: effectiveSnapshot?.pmax_5s ?? null,
+    isReferenceWeek: (effectiveSnapshot as any)?.vlamax_is_reference === true,
+    fatigueState: (effectiveSnapshot as any)?.fatigue_state === "fatigued" ? "fatigued"
+      : (effectiveSnapshot as any)?.fatigue_state === "fresh" ? "fresh"
+      : "normal",
+  });
+
   // ✅ P1 — Score Potentiel Physiologique aligné sur le moteur Diagnostic V2
   // Source unique de vérité : `diagnostic.readiness` + `diagnostic.synthesis` (mêmes valeurs que le Dashboard).
   // Fallback sur le stub legacy uniquement si le diagnostic n'a pas pu être calculé (snapshot manquant).
@@ -1878,6 +1923,7 @@ function buildExportPayload(
     crr,
     chargeScore,
     unifiedCompassPillars,
+    reliability,
     // ✅ NEW: Age Adjustment
     ageAdjustment: (() => {
       const age = athleteAge;
