@@ -1,4 +1,4 @@
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -361,18 +361,6 @@ export function WahooPersonalizedRecommendations() {
       return age;
     })() : null;
     
-    const potentielPhysiologique = computePotentielEffectif({
-      objectif,
-      vlamaxEffectif,
-      tteEffectif,
-      ftp: activeSnapshot.ftp ?? null,
-      poids: activeSnapshot.weight_kg ?? null,
-      fatigue_ok: true,
-      seance_specifique_validee: false,
-      // ✅ Ajout âge pour uniformisation avec Compass
-      athleteAge,
-    });
-
     // Determine sport focus based on objective
     let sportFocus: "run" | "bike" | "tri" = "bike";
     if (["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(objectif)) {
@@ -380,6 +368,25 @@ export function WahooPersonalizedRecommendations() {
     } else if (["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectif)) {
       sportFocus = "tri";
     }
+
+    // Moteur riche à 4 piliers (Cluster 2, Phase 3) — même source que
+    // Dashboard/RaceSimulationPage.
+    const potentielPhysiologique = computePotentielEffectifRich({
+      objectif,
+      vlamaxEffectif,
+      tteEffectif,
+      ftp: activeSnapshot.ftp ?? null,
+      weightKg: activeSnapshot.weight_kg ?? null,
+      // ✅ Ajout âge pour uniformisation avec Compass
+      athleteAge,
+      ambition: currentAthlete.ambition,
+      sex: currentAthlete.sexe ?? null,
+      sportFocus,
+      vo2max: activeSnapshot.vo2max ?? null,
+      vma: activeSnapshot.vma ?? null,
+      runEconomyScore: activeSnapshot.run_economy_score ?? null,
+      tss7d: activeSnapshot.tss_7d ?? null,
+    });
 
     // Compute injury risk for runners using the correct API
     let injuryRiskRun = undefined;

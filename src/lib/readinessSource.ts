@@ -20,6 +20,7 @@ import type { VLamaxEffectif } from "./vlamaxEffectif";
 import type { TTEEffectif } from "./tteEffectif";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 import { DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import type { PotentielV2Result } from "./v2/potentielTypes";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SEUILS UNIFIÉS — modifier ICI uniquement
@@ -106,22 +107,24 @@ const INSUFFICIENT_READINESS: UnifiedReadiness = {
 };
 
 /**
- * Calcule le Readiness unifié à partir du moteur Diagnostic riche à 4 piliers
- * (computeDiagnostic → computeDecisionTFCL) — LA MÊME source que le Dashboard
- * (Index.tsx) et l'export PDF (ExportTools.tsx), garantissant un score
- * identique partout où computeUnifiedReadiness est utilisé (RaceSimulationPage,
- * staffPacingReport, pacingEnvelopeEngine, pacingDisciplineRules).
+ * Construit le DiagnosticInput et calcule le résultat brut du moteur riche
+ * (computeDiagnostic → computeDecisionTFCL) à partir d'un VLamaxEffectif/
+ * TTEEffectif déjà calculés — LA MÊME logique que le Dashboard (Index.tsx)
+ * et l'export PDF (ExportTools.tsx). Fonction interne partagée par
+ * computeUnifiedReadiness (ci-dessous) et par computePotentielEffectifRich
+ * (potentielPhysiologiqueEffectif.ts), pour que tous les écrans consommant
+ * le "Potentiel Physiologique" passent par le même calcul, sans dupliquer
+ * la construction du DiagnosticInput à chaque appelant.
  *
- * Règle "Données insuffisantes" : si le diagnostic signale des données
- * incomplètes en dessous du seuil, retourne `score: null` et
- * `level: "insufficient"` — le badge "Readiness réduit" n'est pas affiché.
+ * Retourne `null` si vlamaxEffectif ou tteEffectif est absent — Core memory
+ * rule "Données insuffisantes" : chaque appelant doit alors afficher un
+ * score null / "Données insuffisantes" plutôt qu'un neutre fabriqué.
  */
-export function computeUnifiedReadiness(input: UnifiedReadinessInput): UnifiedReadiness {
+export function computeRichPotentielV2(input: UnifiedReadinessInput): PotentielV2Result | null {
   const { vlamaxEffectif, tteEffectif, objectif, ftp, weightKg, athleteAge, ambition, tss7d } = input;
 
-  // Garde "Données insuffisantes" — Core memory rule
   if (!vlamaxEffectif || !tteEffectif) {
-    return INSUFFICIENT_READINESS;
+    return null;
   }
 
   const ftpKg = ftp && weightKg && weightKg > 0 ? ftp / weightKg : null;
@@ -174,12 +177,32 @@ export function computeUnifiedReadiness(input: UnifiedReadinessInput): UnifiedRe
     giIssuesFlag: false,
   };
 
-  const diagnostic = computeDiagnostic(diagnosticInput);
+  return computeDiagnostic(diagnosticInput).readiness;
+}
+
+/**
+ * Calcule le Readiness unifié à partir du moteur Diagnostic riche à 4 piliers
+ * — LA MÊME source que le Dashboard (Index.tsx) et l'export PDF
+ * (ExportTools.tsx), garantissant un score identique partout où
+ * computeUnifiedReadiness est utilisé (RaceSimulationPage, staffPacingReport,
+ * pacingEnvelopeEngine, pacingDisciplineRules).
+ *
+ * Règle "Données insuffisantes" : si le diagnostic signale des données
+ * incomplètes en dessous du seuil, retourne `score: null` et
+ * `level: "insufficient"` — le badge "Readiness réduit" n'est pas affiché.
+ */
+export function computeUnifiedReadiness(input: UnifiedReadinessInput): UnifiedReadiness {
+  const v2 = computeRichPotentielV2(input);
+
+  // Garde "Données insuffisantes" — Core memory rule
+  if (!v2) {
+    return INSUFFICIENT_READINESS;
+  }
+
   // ⚠️ PotentielV2Result imbrique un sous-objet `readiness` (score/category/...)
-  // sous le champ `readiness` lui-même (AthleteDiagnostic.readiness: PotentielV2Result,
-  // PotentielV2Result.readiness: { score, confidenceGlobal, ... }) — piège de nommage,
-  // voir adaptPotentielV2ToLegacyShape qui déstructure de la même façon.
-  const { readiness: potentiel, flags } = diagnostic.readiness;
+  // sous le champ `readiness` lui-même — piège de nommage, voir
+  // adaptPotentielV2ToLegacyShape qui déstructure de la même façon.
+  const { readiness: potentiel, flags } = v2;
 
   if (flags.dataIncomplete) {
     return { ...INSUFFICIENT_READINESS, confidence: potentiel.confidenceGlobal };

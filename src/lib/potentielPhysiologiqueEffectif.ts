@@ -4,6 +4,7 @@
  */
 
 import type { PotentielV2Result } from "./v2/potentielTypes";
+import { computeRichPotentielV2, type UnifiedReadinessInput } from "./readinessSource";
 
 export interface RunningEconomyData {
   [key: string]: any;
@@ -191,6 +192,33 @@ export function insufficientPotentielResult(): PotentielPhysiologiqueEffectif {
     availability: 0,
     governingFactor: "potential",
   };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// REMPLACEMENT RICHE DE computePotentielEffectif (Cluster 2, Phase 3)
+//
+// Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : outre
+// le Dashboard et RaceSimulationPage (PR #153/#154), 7 autres appelants du
+// stub 2 facteurs computePotentielEffectif ci-dessus subsistaient
+// (WeekSelectorTFCL, WahooPersonalizedRecommendations, ExportTools second
+// usage, FatigueComparisonChart, DashboardRecommendationsCard,
+// getAssistantContext, TemplatesPage) — chacun pouvait afficher/utiliser un
+// score "Potentiel Physiologique" différent de celui du Dashboard pour le
+// même athlète.
+//
+// computePotentielEffectifRich est un remplacement direct (même forme de
+// retour PotentielPhysiologiqueEffectif) mais backé par le moteur riche à 4
+// piliers via computeRichPotentielV2 (readinessSource.ts) +
+// adaptPotentielV2ToLegacyShape ci-dessus, garantissant la même source de
+// vérité partout.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export function computePotentielEffectifRich(input: UnifiedReadinessInput): PotentielPhysiologiqueEffectif {
+  const v2 = computeRichPotentielV2(input);
+  if (!v2) {
+    return insufficientPotentielResult();
+  }
+  return adaptPotentielV2ToLegacyShape(v2);
 }
 
 // ═══ Utility stubs ═══

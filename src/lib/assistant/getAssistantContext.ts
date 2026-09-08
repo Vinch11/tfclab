@@ -22,7 +22,7 @@ import {
   matchWahooSession,
   type WahooWorkoutMapping 
 } from "@/data/wahooMapping";
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 
 // Re-export types for external use
 export type { PotentielResult as PotentielSignatureResult };
@@ -349,20 +349,30 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     age: athleteAge, // F33
   }) : null;
 
-  // Potentiel Physiologique
-  
-  const potentielPhysiologique = tteEffectif && vlamaxEffectif ? computePotentielEffectif({
-    objectif: athlete?.goal || "IM",
+  // Potentiel Physiologique — moteur riche à 4 piliers (Cluster 2, Phase 3),
+  // même source que Dashboard/RaceSimulationPage.
+  const objectifForPotentiel = athlete?.goal || "IM";
+  let sportFocusForPotentiel: "run" | "bike" | "tri" = "bike";
+  if (["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(objectifForPotentiel)) {
+    sportFocusForPotentiel = "run";
+  } else if (["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForPotentiel)) {
+    sportFocusForPotentiel = "tri";
+  }
+
+  const potentielPhysiologique = tteEffectif && vlamaxEffectif ? computePotentielEffectifRich({
+    objectif: objectifForPotentiel,
     vlamaxEffectif,
     tteEffectif,
     ftp: effectiveRefs?.ftp ?? null,
-    poids: effectiveRefs?.weightKg ?? null,
-    fatigue_ok: true,
-    seance_specifique_validee: false,
-    fcMax: effectiveRefs?.fcMax ?? null,
-    deriveCardiaque: effectiveSnapshot?.run_hr_drift_pct ?? null,
+    weightKg: effectiveRefs?.weightKg ?? null,
     // ✅ Ajout âge pour uniformisation avec Compass
     athleteAge,
+    ambition: athlete ? getAthleteAmbition(athlete) : undefined,
+    sportFocus: sportFocusForPotentiel,
+    vo2max: effectiveSnapshot?.vo2max ?? null,
+    vma: effectiveSnapshot?.vma ?? null,
+    runEconomyScore: effectiveSnapshot?.run_economy_score ?? null,
+    tss7d: effectiveSnapshot?.tss_7d ?? null,
   }) : null;
   
   // Charge récente

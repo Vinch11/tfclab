@@ -1,4 +1,4 @@
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // WEEK SELECTOR TFCL™ - UI Component (Enhanced)
 // Two For Coaching Lab
@@ -144,13 +144,21 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
       objectif,
     });
 
-    // Potentiel Physiologique (for fatigue calc)
-    const readinessResult = computePotentielEffectif({
+    // Potentiel Physiologique (for fatigue calc) — moteur riche à 4 piliers
+    // (Cluster 2, Phase 3), même source que Dashboard/RaceSimulationPage.
+    const readinessResult = computePotentielEffectifRich({
       objectif,
       vlamaxEffectif: vlamaxResult,
       tteEffectif: tteResult,
       ftp: activeSnapshot.ftp ?? null,
-      poids: activeSnapshot.weight_kg ?? null,
+      weightKg: activeSnapshot.weight_kg ?? null,
+      athleteAge: selectedAthlete.birth_date
+        ? Math.floor((Date.now() - new Date(selectedAthlete.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+        : null,
+      sportFocus: "run",
+      vo2max: activeSnapshot.vo2max ?? null,
+      vma: activeSnapshot.vma ?? null,
+      runEconomyScore: activeSnapshot.run_economy_score ?? null,
     });
 
     // Fatigue

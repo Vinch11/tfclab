@@ -1,4 +1,4 @@
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 /**
  * Templates de Programmation Page
@@ -1316,13 +1316,33 @@ export default function TemplatesPage() {
       objectif: selectedAthlete.goal || "IM",
     });
 
-    // Potentiel Physiologique effectif
-    const potentielEffectif = computePotentielEffectif({
-      objectif: selectedAthlete.goal || "IM",
+    // Potentiel Physiologique effectif — moteur riche à 4 piliers (Cluster
+    // 2, Phase 3), même source que Dashboard/RaceSimulationPage.
+    const objectifForPotentiel = selectedAthlete.goal || "IM";
+    let sportFocusForPotentiel: "run" | "bike" | "tri" = "bike";
+    if (["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course"].includes(objectifForPotentiel)) {
+      sportFocusForPotentiel = "run";
+    } else if (["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForPotentiel)) {
+      sportFocusForPotentiel = "tri";
+    }
+    const athleteAgeForPotentiel = selectedAthlete.birth_date
+      ? Math.floor((Date.now() - new Date(selectedAthlete.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+      : null;
+
+    const potentielEffectif = computePotentielEffectifRich({
+      objectif: objectifForPotentiel,
       vlamaxEffectif,
       tteEffectif,
       ftp: selectedSnapshot.ftp,
-      poids: selectedSnapshot.weight_kg,
+      weightKg: selectedSnapshot.weight_kg,
+      athleteAge: athleteAgeForPotentiel,
+      ambition: selectedAthlete.ambition,
+      sex: (selectedAthlete.sex === "M" || selectedAthlete.sex === "F") ? selectedAthlete.sex : null,
+      sportFocus: sportFocusForPotentiel,
+      vo2max: selectedSnapshot.vo2max ?? null,
+      vma: selectedSnapshot.vma ?? null,
+      runEconomyScore: selectedSnapshot.run_economy_score ?? null,
+      tss7d: selectedSnapshot.tss_7d ?? null,
     });
 
     const ftpKg = selectedSnapshot.ftp && selectedSnapshot.weight_kg 
