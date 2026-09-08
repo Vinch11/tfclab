@@ -14,9 +14,12 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { computePotentielEffectif } from "./potentielPhysiologiqueEffectif";
+import { computeDiagnostic } from "@/engines/diagnostic/computeDiagnostic";
+import type { DiagnosticInput } from "@/engines/diagnostic/types";
 import type { VLamaxEffectif } from "./vlamaxEffectif";
 import type { TTEEffectif } from "./tteEffectif";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
+import { DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SEUILS UNIFIÉS — modifier ICI uniquement
@@ -64,61 +67,125 @@ export interface UnifiedReadinessInput {
   athleteAge?: number | null;
   ambition?: string;
   tss7d?: number | null;
+  /**
+   * Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : ces
+   * champs étaient absents et computeUnifiedReadiness retombait sur le
+   * stub 2 facteurs (VLamax+TTE) au lieu du moteur riche à 4 piliers
+   * (computeDecisionTFCL) déjà utilisé pour le Dashboard/PDF — 21 points
+   * d'écart et verdict opposé pour le même athlète selon l'écran. Tous
+   * optionnels : absents, le diagnostic tourne quand même (dataIncomplete
+   * pénalise juste la confiance), comme pour tout autre appelant de
+   * computeDiagnostic.
+   */
+  vo2max?: number | null;
+  pmax5s?: number | null;
+  p30sW?: number | null;
+  p60sW?: number | null;
+  map5minW?: number | null;
+  vma?: number | null;
+  sportFocus?: "bike" | "run" | "tri";
+  sex?: "M" | "F" | null;
+  runEconomyScore?: number | null;
+  wprimeKj?: number | null;
+  fatmax?: number | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // FONCTION PRINCIPALE
 // ═══════════════════════════════════════════════════════════════════════════════
 
+const INSUFFICIENT_READINESS: UnifiedReadiness = {
+  score: null,
+  level: "insufficient",
+  metricLabel: "Potentiel Physiologique",
+  status: "warning",
+  badge: null,
+  badgeColor: "gray",
+  isReduced: false,
+  confidence: 0,
+};
+
 /**
- * Calcule le Readiness unifié à partir du Potentiel Physiologique Effectif.
- * Source : `computePotentielEffectif` (même fonction que Dashboard / Diagnostic).
+ * Calcule le Readiness unifié à partir du moteur Diagnostic riche à 4 piliers
+ * (computeDiagnostic → computeDecisionTFCL) — LA MÊME source que le Dashboard
+ * (Index.tsx) et l'export PDF (ExportTools.tsx), garantissant un score
+ * identique partout où computeUnifiedReadiness est utilisé (RaceSimulationPage,
+ * staffPacingReport, pacingEnvelopeEngine, pacingDisciplineRules).
  *
- * Règle "Données insuffisantes" : si `isInsufficient`, retourne `score: null`
- * et `level: "insufficient"` — le badge "Readiness réduit" n'est pas affiché.
+ * Règle "Données insuffisantes" : si le diagnostic signale des données
+ * incomplètes en dessous du seuil, retourne `score: null` et
+ * `level: "insufficient"` — le badge "Readiness réduit" n'est pas affiché.
  */
 export function computeUnifiedReadiness(input: UnifiedReadinessInput): UnifiedReadiness {
   const { vlamaxEffectif, tteEffectif, objectif, ftp, weightKg, athleteAge, ambition, tss7d } = input;
 
   // Garde "Données insuffisantes" — Core memory rule
   if (!vlamaxEffectif || !tteEffectif) {
-    return {
-      score: null,
-      level: "insufficient",
-      metricLabel: "Potentiel Physiologique",
-      status: "warning",
-      badge: null,
-      badgeColor: "gray",
-      isReduced: false,
-      confidence: 0,
-    };
+    return INSUFFICIENT_READINESS;
   }
 
-  const potentiel = computePotentielEffectif({
+  const ftpKg = ftp && weightKg && weightKg > 0 ? ftp / weightKg : null;
+
+  const diagnosticInput: DiagnosticInput = {
+    athleteId: "readiness-source",
+    age: athleteAge ?? null,
+    sex: input.sex ?? null,
+    weightKg: weightKg ?? null,
     objectif,
-    vlamaxEffectif: { value: vlamaxEffectif.value ?? 0, confidence: vlamaxEffectif.confidence ?? 0 },
-    tteEffectif: { tte_min: tteEffectif.tte_min ?? 0, confidence: tteEffectif.confidence ?? 0 },
+    ambition: (ambition as AmbitionLevel) || DEFAULT_AMBITION,
+    sportFocus: input.sportFocus ?? "bike",
+    vo2max: input.vo2max ?? null,
     ftp: ftp ?? null,
-    poids: weightKg ?? undefined,
-    athleteAge: athleteAge ?? null,
-    ambition,
+    ftpKg,
+    pmax5s: input.pmax5s ?? null,
+    p30sW: input.p30sW ?? null,
+    p60sW: input.p60sW ?? null,
+    map5minW: input.map5minW ?? null,
+    vma: input.vma ?? null,
+    css: null,
+    vlamax: vlamaxEffectif.value ?? null,
+    vlamaxRun: null,
+    vlamaxSource: null,
+    vlamaxProtocol: null,
+    vlamaxIsReference: false,
+    vlamaxEffectifPrecomputed: vlamaxEffectif,
+    tteObservedMin: tteEffectif.tte_min ?? null,
+    tteMode: "observed",
     tss7d: tss7d ?? null,
-  });
+    tteEffectifPrecomputed: tteEffectif,
+    fatigueState: null,
+    runEconomyScore: input.runEconomyScore ?? null,
+    runHrDriftPct: null,
+    paceThresholdSecPerKm: null,
+    runningPower1s: null,
+    runningPower5s: null,
+    runningPower30s: null,
+    runningPower60s: null,
+    runningPower5min: null,
+    runningPowerThreshold: null,
+    sprint15sDistance: null,
+    bikeCadenceRpm: null,
+    bikeHrDriftFlag: false,
+    protocolQuality: null,
+    wprimeKj: input.wprimeKj ?? null,
+    cpDataQuality: null,
+    fatmax: input.fatmax ?? null,
+    forceDevMode: false,
+    giIssuesFlag: false,
+  };
 
-  if (potentiel.isInsufficient) {
-    return {
-      score: null,
-      level: "insufficient",
-      metricLabel: "Potentiel Physiologique",
-      status: "warning",
-      badge: null,
-      badgeColor: "gray",
-      isReduced: false,
-      confidence: potentiel.confidence,
-    };
+  const diagnostic = computeDiagnostic(diagnosticInput);
+  // ⚠️ PotentielV2Result imbrique un sous-objet `readiness` (score/category/...)
+  // sous le champ `readiness` lui-même (AthleteDiagnostic.readiness: PotentielV2Result,
+  // PotentielV2Result.readiness: { score, confidenceGlobal, ... }) — piège de nommage,
+  // voir adaptPotentielV2ToLegacyShape qui déstructure de la même façon.
+  const { readiness: potentiel, flags } = diagnostic.readiness;
+
+  if (flags.dataIncomplete) {
+    return { ...INSUFFICIENT_READINESS, confidence: potentiel.confidenceGlobal };
   }
 
-  return interpretReadinessScore(potentiel.score, potentiel.confidence);
+  return interpretReadinessScore(potentiel.score, potentiel.confidenceGlobal);
 }
 
 /**

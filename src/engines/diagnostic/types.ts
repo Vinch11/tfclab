@@ -72,6 +72,8 @@ export interface DiagnosticInput {
   tteProxyLabel?: string | null;
   tteMode: string | null;
   tss7d: number | null;
+  /** Optionnel — TTE effectif déjà calculé en amont (mirroir de vlamaxEffectifPrecomputed). Si fourni, devient la source unique pour garantir cohérence d'affichage. */
+  tteEffectifPrecomputed?: TTEEffectif;
   
   // Fatigue / Disponibilité
   fatigueState: string | null;

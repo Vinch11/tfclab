@@ -201,6 +201,13 @@ function computeVLamaxFromInput(input: DiagnosticInput): VLamaxEffectif {
 }
 
 function computeTTEFromInput(input: DiagnosticInput): TTEEffectif {
+  // ✅ COHÉRENCE GLOBALE (mirroir de computeVLamaxFromInput) : si un TTE
+  // effectif a déjà été calculé en amont, on le réutilise tel quel pour
+  // garantir une valeur identique partout dans l'app plutôt que de le
+  // re-dériver depuis des champs bruts potentiellement incomplets.
+  if (input.tteEffectifPrecomputed) {
+    return input.tteEffectifPrecomputed;
+  }
   // Sport-aware : on relaie sportFocus et le champ TTE run dédié pour éviter
   // qu'un coureur retombe silencieusement sur tte_observed_min (bike).
   const sport: "bike" | "run" =
