@@ -4,7 +4,10 @@
  * Single unified diagnostic output for the entire platform
  * 
  * PRINCIPE : "Voici l'état de l'athlète"
- * Fusionne Compas, Potentiel Physiologique, Ambition, DRE, Effectifs, Risque Blessure
+ * Fusionne Compas, Potentiel Physiologique, Ambition, Effectifs, Risque Blessure
+ * (le Decision Reliability Engine — DRE — est calculé séparément par la
+ * couche d'affichage — Dashboard, PDF Race Simulation — via computeFullDRE,
+ * pas par cet orchestrateur : cf. audit "estimations physiologiques", Cluster 3)
  * 
  * CONSOMMATEURS :
  * - Decision Engine (stratégie, workout advisory, simulation)
@@ -22,7 +25,6 @@ import type { InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
 import type { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import type { ObjectiveTargets, VLamaxTargets } from "@/lib/physiologicalTargets";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
-import type { DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
 import type { RunMLSSPrediction, RunMLSSCrossValidation } from "@/lib/v2/runMLSSPredictor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -105,10 +107,7 @@ export interface DiagnosticInput {
   // Flags
   forceDevMode: boolean;
   giIssuesFlag: boolean;
-  
-  // DRE (optionnel — enrichi si disponible)
-  dreInput?: DecisionReliabilityInput;
-  
+
   // Check-in data (optionnel)
   checkinData?: CheckinData;
 
@@ -128,16 +127,6 @@ export interface DiagnosticInput {
 
   // F-24 : durée cible de course (min) pour évaluer la Durabilité dans le limiter
   targetRaceDurationMin?: number | null;
-}
-
-export interface DecisionReliabilityInput {
-  protocolQualityScore: number;
-  perceivedFatigue: number;
-  sensorsCalibrated: boolean;
-  sleepQuality: string;
-  nutritionPreTest: string;
-  environmentalConditions: string;
-  isReferenceWeek: boolean;
 }
 
 export interface CheckinData {
@@ -186,9 +175,6 @@ export interface AthleteDiagnostic {
     bike: InjuryRiskEnvelope | null;
   };
   
-  // ─── 6. Fiabilité (DRE) ──────────────────────────
-  reliability: DecisionReliabilityResult | null;
-
   // ─── 6bis. Run MLSS (Modèle C — cross-validator + fallback) ───
   // null si sportFocus=bike ou si VLamax run / CE indisponibles
   runMLSS: {
