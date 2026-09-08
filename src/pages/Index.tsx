@@ -13,7 +13,6 @@ import { AthleteProfile } from "@/components/AthleteProfile";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { TwoForCoachingAnalysis } from "@/components/TwoForCoachingAnalysis";
 import { TestComparison } from "@/components/TestComparison";
-import { PhysiologicalAnalysis } from "@/components/PhysiologicalAnalysis";
 
 import { IndexSeancesView } from "@/components/IndexSeances";
 
@@ -43,11 +42,9 @@ import { AssistantDrawer } from "@/components/AssistantDrawer";
 import { ExpressDashboard } from "@/components/ExpressDashboard";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
-import { ScientificChartsDashboard, MetabolicPerformanceCompass, MetabolicCompassCAP, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
+import { ScientificChartsDashboard, MetabolicCompassCAP, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
 import { ChargeRecenteCard } from "@/components/ChargeRecenteCard";
 import { computeCRR } from "@/lib/chargeRecenteReference";
-// ✅ Potentiel Physiologique - Carte unifiée (Phase 1c UX)
-import { computeCompassScores, type CompassScores } from "@/lib/compassScoring";
 import { DecisionReliabilityCard } from "@/components/DecisionReliabilityCard";
 import { computeFullDRE, type DecisionReliabilityResult } from "@/engines/diagnostic";
 import { useDecisionReliability } from "@/hooks/useDecisionReliability";

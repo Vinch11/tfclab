@@ -10,8 +10,6 @@ export { NutritionPredictiveChart } from "./NutritionPredictiveChart";
 export { EnergyContributionChart } from "./EnergyContributionChart";
 export { StaffModeToggle } from "./StaffModeToggle";
 export { ScientificChartsDashboard } from "./ScientificChartsDashboard";
-export { MetabolicPerformanceCompassV2 as MetabolicPerformanceCompass, MetabolicPerformanceCompassV2 } from "./MetabolicPerformanceCompassV2";
-export { CompassMini, COMPASS_METHODOLOGY } from "./MetabolicPerformanceCompass";
 export { MetabolicCompassCAP } from "./MetabolicCompassCAP";
 export { AmbitionProgressChart, calculateAmbitionPredictions, type AmbitionPrediction } from "./AmbitionProgressChart";
 export { AmbitionProgressMini } from "./AmbitionProgressMini";
