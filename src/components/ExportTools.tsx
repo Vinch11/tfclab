@@ -202,6 +202,18 @@ interface ExportPayload {
   crr: ChargeRecenteReference;
   chargeScore: ChargeScore;
   compassScores: CompassScores;
+  /**
+   * Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : les
+   * piliers 4-axes du moteur riche unifié (diagnostic.readiness.potential.
+   * sources — même source que le score "Potentiel Physiologique" affiché en
+   * tête de ce même rapport) vs ceux de compassScores (formules indépendantes
+   * de compassScoring.ts) divergeaient nettement pour un même athlète
+   * (ex. Robustesse 100 vs 76, Profil Métabolique 27 vs 48) — le PDF pouvait
+   * se contredire en listant les "points forts" à partir d'un moteur
+   * différent de celui qui affiche le score global. `null` si le diagnostic
+   * complet n'a pas pu être calculé (pas de snapshot effectif).
+   */
+  unifiedCompassPillars: { aerobic: number; tolerance: number; metabolic: number; robustness: number } | null;
   // ✅ NEW: Age Adjustment Index
   ageAdjustment: {
     age: number | null;
@@ -1644,6 +1656,17 @@ function buildExportPayload(
     });
   }
 
+  // Piliers 4-axes du moteur riche unifié (Cluster 2) — même source que le
+  // score "Potentiel Physiologique" ci-dessus, pour que la section "points
+  // forts" du rapport ne se contredise plus avec le score global (voir
+  // commentaire sur ExportPayload.unifiedCompassPillars).
+  const unifiedCompassPillars = diagnostic ? {
+    aerobic: diagnostic.readiness.potential.sources.aerobic.value,
+    tolerance: diagnostic.readiness.potential.sources.tolerance.value,
+    metabolic: diagnostic.readiness.potential.sources.metabolic.value,
+    robustness: diagnostic.readiness.potential.sources.robustness.value,
+  } : null;
+
   // ✅ Unified Limiter — directement depuis le diagnostic engine (cohérence totale Dashboard ↔ PDF)
   const unifiedLimiter: UnifiedLimiterResult = diagnostic
     ? diagnostic.limiter
@@ -1852,6 +1875,7 @@ function buildExportPayload(
     crr,
     chargeScore,
     compassScores,
+    unifiedCompassPillars,
     // ✅ NEW: Age Adjustment
     ageAdjustment: (() => {
       const age = athleteAge;
@@ -8506,11 +8530,45 @@ interface AthleteReadinessReport {
   recentTests: { name: string; date: string }[]; // 3 derniers tests
 }
 
+/**
+ * Dérive les bullets "points forts" (section Well Prepared du rapport PDF) à
+ * partir des 4 piliers du moteur riche unifié — la même source que le score
+ * "Potentiel Physiologique" affiché en tête du même rapport.
+ *
+ * Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : ces
+ * piliers venaient auparavant de `compassScores` (formules indépendantes de
+ * compassScoring.ts, un 3ᵉ moteur de scoring 4-axes séparé du moteur riche
+ * unifié en PR #153-155), qui pouvait diverger nettement du moteur unifié
+ * pour le même athlète (ex. Robustesse 100 vs 76, Profil Métabolique 27 vs
+ * 48 pour VO2max=55/FTP-kg=3.5/VLamax=0.45/TTE=40min/40 ans/IM) — le rapport
+ * se contredisait entre son score global et ses "points forts".
+ */
+export function computeWellPreparedFromUnifiedPillars(
+  pillars: { aerobic: number; tolerance: number; metabolic: number; robustness: number } | null
+): string[] {
+  const wellPrepared: string[] = [];
+  const aerobic   = pillars?.aerobic ?? null;
+  const endurance = pillars?.tolerance ?? null;
+  const metabolic = pillars?.metabolic ?? null;
+  const robust    = pillars?.robustness ?? null;
+  const STRENGTH_THRESHOLD = 70; // /100
+
+  if (endurance !== null && endurance >= STRENGTH_THRESHOLD) wellPrepared.push("Endurance solide — tu tiens bien la durée.");
+  if (metabolic !== null && metabolic >= STRENGTH_THRESHOLD) wellPrepared.push("Profil énergétique adapté à ton objectif.");
+  if (aerobic   !== null && aerobic   >= STRENGTH_THRESHOLD) wellPrepared.push("Capacité aérobie bien développée.");
+  if (robust    !== null && robust    >= STRENGTH_THRESHOLD) wellPrepared.push("Niveau de fraîcheur favorable — corps disponible.");
+
+  if (wellPrepared.length === 0) {
+    wellPrepared.push("Ta régularité d'entraînement reste ton meilleur atout — continue à construire la base.");
+  }
+  return wellPrepared;
+}
+
 function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadinessReport {
   const {
     potentielPhysiologique, unifiedLimiter, completude,
     nutritionV2, nutritionEstimate, effectiveSnapshot, capInjuryRisk,
-    compassScores, vlamax, tte
+    unifiedCompassPillars, vlamax, tte
   } = payload;
 
   // 1) SCORE : provient du Potentiel Physiologique (déjà dans payload)
@@ -8529,23 +8587,10 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
     ? `Globalement tu tiens la route${limiterLabel ? `, mais ${String(limiterLabel).toLowerCase()} freine ta progression` : ""}.`
     : `Ton corps envoie des signaux clairs${limiterLabel ? ` autour de ${String(limiterLabel).toLowerCase()}` : ""}. Il faut prioriser cet axe avant de pousser.`;
 
-  // 3) WELL PREPARED : piliers V2 sur /100 (compassScores) — source de vérité unifiée
-  //    FIX: ne plus comparer details.* (échelle /25) avec >=70 (échelle /100)
-  const wellPrepared: string[] = [];
-  const aerobic   = compassScores?.capaciteAerobie?.score ?? null;
-  const endurance = compassScores?.toleranceEffort?.score ?? null;
-  const metabolic = compassScores?.profilMetabolique?.score ?? null;
-  const robust    = compassScores?.robustesse?.score ?? null;
-  const STRENGTH_THRESHOLD = 70; // /100
-
-  if (endurance !== null && endurance >= STRENGTH_THRESHOLD) wellPrepared.push("Endurance solide — tu tiens bien la durée.");
-  if (metabolic !== null && metabolic >= STRENGTH_THRESHOLD) wellPrepared.push("Profil énergétique adapté à ton objectif.");
-  if (aerobic   !== null && aerobic   >= STRENGTH_THRESHOLD) wellPrepared.push("Capacité aérobie bien développée.");
-  if (robust    !== null && robust    >= STRENGTH_THRESHOLD) wellPrepared.push("Niveau de fraîcheur favorable — corps disponible.");
-
-  if (wellPrepared.length === 0) {
-    wellPrepared.push("Ta régularité d'entraînement reste ton meilleur atout — continue à construire la base.");
-  }
+  // 3) WELL PREPARED : piliers du moteur riche unifié (voir
+  //    computeWellPreparedFromUnifiedPillars ci-dessous pour le détail du
+  //    bug corrigé).
+  const wellPrepared = computeWellPreparedFromUnifiedPillars(unifiedCompassPillars);
 
   // 4) TO WATCH : limiteur primaire + 2e du categoryRanking + risque blessure + fatigue
   const toWatch: string[] = [];
