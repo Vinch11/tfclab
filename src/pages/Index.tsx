@@ -2080,6 +2080,18 @@ const Index = () => {
                 ftp={ftp}
                 weight={poids ?? undefined}
                 initialStaffMode={staffMode}
+                // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+                // priorité 4) : cette prop n'était jamais passée → défaut "velo"
+                // pour tout coureur pur, alors que la section "Nutrition &
+                // Hydratation" du même Dashboard affichait déjà correctement
+                // sport="cap" pour ce même athlète (isRunningOnly).
+                sport={
+                  isRunningOnly
+                    ? "cap"
+                    : ["IM", "Ironman", "70.3", "703", "TriathlonLD"].includes(currentAthlete.goal || "IM")
+                      ? "triathlon"
+                      : "velo"
+                }
               />
             ),
           },
@@ -2215,18 +2227,59 @@ const Index = () => {
           // Nutrition V2
           {
             id: "nutrition-v2",
-            render: () => currentAthlete && (
-              <NutritionUnifiedCard
-                vlamaxValue={alignedVlamaxEffectif.value}
-                vlamaxConfidence={alignedVlamaxEffectif.confidence}
-                vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                tteMin={alignedTteEffectif.tte_min}
-                sport={isRunningOnly ? "cap" : "velo"}
-                objectif={currentAthlete.goal || "IM"}
-                weightKg={poids ?? null}
-                staffMode={staffMode}
-              />
-            ),
+            render: () => {
+              if (!currentAthlete) return null;
+              const goal = currentAthlete.goal || "IM";
+              // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+              // priorité 2) : pour tout objectif triathlon, cette carte traitait
+              // l'athlète comme un pur cycliste (sport toujours "velo") — le
+              // segment course (durée, plafond digestif ~75 g/h vs 90 vélo,
+              // majoration de risque CAP) n'était jamais pris en compte, alors
+              // que vlamax_run/tteEffectifRun sont déjà résolus plus haut dans
+              // ce même fichier. RaceSimulationPage.tsx fait déjà ça correctement
+              // (2 cartes vélo + course) — même principe ici, sans durée de
+              // segment réelle disponible sur le Dashboard (résolution par les
+              // tables canoniques par objectif, comme /essentiels).
+              const isTriGoal = ["IM", "Ironman", "70.3", "703", "TriathlonLD"].includes(goal);
+              if (isTriGoal && !isRunningOnly) {
+                return (
+                  <div className="space-y-4">
+                    <NutritionUnifiedCard
+                      vlamaxValue={alignedVlamaxEffectif.value}
+                      vlamaxConfidence={alignedVlamaxEffectif.confidence}
+                      vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                      tteMin={alignedTteEffectif.tte_min}
+                      sport="velo"
+                      objectif={goal}
+                      weightKg={poids ?? null}
+                      staffMode={staffMode}
+                    />
+                    <NutritionUnifiedCard
+                      vlamaxValue={(effectiveCloudSnapshot as any)?.vlamax_run ?? alignedVlamaxEffectif.value}
+                      vlamaxConfidence={tteEffectifRun?.confidence ?? alignedVlamaxEffectif.confidence}
+                      vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                      tteMin={tteEffectifRun?.tte_min ?? alignedTteEffectif.tte_min}
+                      sport="cap"
+                      objectif={goal}
+                      weightKg={poids ?? null}
+                      staffMode={staffMode}
+                    />
+                  </div>
+                );
+              }
+              return (
+                <NutritionUnifiedCard
+                  vlamaxValue={alignedVlamaxEffectif.value}
+                  vlamaxConfidence={alignedVlamaxEffectif.confidence}
+                  vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
+                  tteMin={alignedTteEffectif.tte_min}
+                  sport={isRunningOnly ? "cap" : "velo"}
+                  objectif={goal}
+                  weightKg={poids ?? null}
+                  staffMode={staffMode}
+                />
+              );
+            },
           },
           // Pacing Envelope
           {
