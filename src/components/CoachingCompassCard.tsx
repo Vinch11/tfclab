@@ -47,6 +47,10 @@ const AXIS_PEDAGOGY: Record<string, { short: string; detail: string }> = {
     short: "Robustesse (Durabilité)",
     detail: "Résistance à la dégradation de la performance dans le temps. Combine TTE, dérive cardiaque et stabilité de la puissance/allure.",
   },
+  wprime: {
+    short: "W′ (Capacité Anaérobie)",
+    detail: "Réserve d'énergie mobilisable au-dessus de la puissance critique (sprints, relances, côtes). La cible dépend de ton objectif : élevée pour un format court (Sprint), plus basse pour un format long (IM, Marathon).",
+  },
   economy: {
     short: "Économie de mouvement",
     detail: "Efficience du geste sportif : moins d'énergie gaspillée pour une même vitesse ou puissance. Inclut la cadence, la technique et le rendement musculaire.",
@@ -193,7 +197,7 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
       {axes.map((axis, i) => {
         const labelP = getPoint(i, 135);
         const pedagogy = AXIS_PEDAGOGY[axis.key];
-        const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : "🎯";
+        const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
         
         return (
           <g key={`label-${i}`}>
@@ -697,7 +701,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 Niveau 1 — Profil physiologique
               </span>
               <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
-                Le radar visualise tes 4 piliers physiologiques (VO₂max, VLamax, Aérobie, Durabilité). Plus ta surface est grande, plus tu es prêt. L'<strong>économie</strong> est affichée à part comme modulateur secondaire d'efficience.
+                Le radar visualise tes 6 piliers physiologiques (VO₂max, VLamax, Aérobie, Durabilité, FatMax, W′). Plus ta surface est grande, plus tu es prêt. L'<strong>économie</strong> est affichée à part comme modulateur secondaire d'efficience.
               </p>
               <div className="mt-1">
                 <SignatureRadar axes={compass.radarAxes} size={320} />
@@ -733,7 +737,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               <div className="mt-3 space-y-1.5 px-1">
                 {compass.radarAxes.map((axis) => {
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
-                  const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : "🎯";
+                  const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
                   const statusLabel = axis.score >= 75 ? "Optimal" : axis.score >= 50 ? "Correct" : "Prioritaire";
 
                   const hasValues = axis.value != null && axis.target != null;
