@@ -88,7 +88,6 @@ import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NutritionUnifiedCard } from "@/components/NutritionUnifiedCard";
 import { getEffectiveSnapshot } from "@/lib/effectiveRefs";
-import { computeVLamaxEffectif as computeVLamaxEffectifDiag, computeTTEEffectif } from "@/engines/diagnostic";
 import { Apple } from "lucide-react";
 
 const OBJECTIVE_OPTIONS = [
@@ -158,6 +157,28 @@ export function resolveFullRegenerationStartDate(
   now: Date = new Date(),
 ): Date {
   return hadExistingActivePlan ? currentPlanStartDate : startOfWeek(now, { weekStartsOn: 1 });
+}
+
+/**
+ * Bug réel corrigé (audit "estimations physiologiques", Cluster 4, priorité
+ * 4). La fiche "Plan Nutritionnel" (Sheet) classait le sport de l'athlète
+ * via `/velo|bike|v[ée]lo/.test(objStr)` — cette regex ne matche AUCUN
+ * objectif réel de cette app (ObjectifType : IM/703/Sprint/Olympic/
+ * Marathon/Semi/5K/10K/StartToRun/Trail*), donc le résultat était TOUJOURS
+ * "cap" par défaut, y compris pour un pur cycliste. Remplacée par la même
+ * logique que TwoForCoachingAnalysis.tsx : aucun objectif réel de cette app
+ * n'étant un pur objectif vélo, "cap" est le bon fallback par défaut — mais
+ * désormais explicite plutôt qu'accidentel (une regex qui matche par
+ * coïncidence sur son propre échec n'est pas un fix, c'est un bug qui
+ * marchait par hasard). Exportée pour être testée directement — ce
+ * composant page n'a pas de harnais de test complet.
+ */
+export function resolvePlanNutritionSport(goalLabel: string): "velo" | "cap" {
+  const obj = (goalLabel || "").toLowerCase();
+  if (obj.includes("velo") || obj.includes("vélo") || obj.includes("bike")) {
+    return "velo";
+  }
+  return "cap";
 }
 
 /**
@@ -3330,32 +3351,25 @@ export default function AITrainingPlanPage() {
                               if (!currentAthlete) return <p className="text-sm text-muted-foreground">Aucun athlète sélectionné.</p>;
                               const athleteSnaps = snapshots.filter(s => s.athlete_id === currentAthlete.id);
                               const snap = getEffectiveSnapshot(currentAthlete as any, athleteSnaps);
-                              const objStr = String((snap as any)?.objectif || objective || currentAthlete.goal || '').toLowerCase();
-                              const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
-                              const vlaRes = computeVLamaxEffectifDiag({
-                                athleteId: currentAthlete.id,
-                                objectif: objective || currentAthlete.goal || 'IM',
-                                activeSnapshotId: currentAthlete.active_snapshot_id ?? null,
-                                tests: tests ?? [],
-                                snapshots: athleteSnaps,
-                                sportOverride: sport === 'cap' ? 'cap' : undefined,
-                              });
-                              const tteRes = snap ? computeTTEEffectif({
-                                ftp: snap.ftp,
-                                tss_7d: (snap as any).tss_7d,
-                                tte_mode: (snap as any).tte_mode,
-                                tte_observed_min: (snap as any).tte_observed_min,
-                                tte_observed_min_run: (snap as any).tte_observed_min_run,
-                                sport: sport === 'cap' ? 'run' : 'bike',
-                                objectif: objective || currentAthlete.goal || 'IM',
-                              }) : null;
                               const goalLabel = raceGoals?.[0]?.objective || objective || currentAthlete.goal || 'IM';
+                              // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+                              // priorité 4) : la regex /velo|bike|v[ée]lo/ ne matchait aucun
+                              // objectif réel de cette app (IM/703/Sprint/Marathon/...) → sport
+                              // toujours "cap" par défaut, y compris pour un pur cycliste. Alignée
+                              // sur le même principe que TwoForCoachingAnalysis.tsx (aucun
+                              // objectif réel n'est un pur objectif vélo). Réutilise en plus le
+                              // VLamax/TTE déjà résolus par athleteContext.diagnostic.effectifs
+                              // au lieu de recalculer localement, pour garantir la même valeur
+                              // affichée partout pour ce même athlète.
+                              const sport = resolvePlanNutritionSport(String(goalLabel));
+                              const vlaEffectif = athleteContext?.diagnostic.effectifs.vlamax ?? null;
+                              const tteEffectifResolved = athleteContext?.diagnostic.effectifs.tte ?? null;
                               return (
                                 <NutritionUnifiedCard
-                                  vlamaxValue={vlaRes?.value ?? null}
-                                  vlamaxConfidence={vlaRes?.confidence ?? 0.7}
+                                  vlamaxValue={vlaEffectif?.value ?? null}
+                                  vlamaxConfidence={vlaEffectif?.confidence ?? 0.7}
                                   vo2max={snap?.vo2max ?? null}
-                                  tteMin={tteRes?.tte_min ?? null}
+                                  tteMin={tteEffectifResolved?.tte_min ?? null}
                                   sport={sport}
                                   objectif={String(goalLabel)}
                                   weightKg={snap?.weight_kg ?? null}
