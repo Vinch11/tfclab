@@ -18,7 +18,7 @@
  */
 
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
-import { computeBaseRateMader } from './nutritionUnified';
+import { computeBaseRateMader, computeNutritionUnified, type NutritionUnifiedResult } from './nutritionUnified';
 
 // =============================================
 // TYPES V2
@@ -105,6 +105,23 @@ export interface NutritionV2Input {
   // Gut training avancé (entraînement digestif validé)
   // Si true, permet des apports jusqu'à 120 g/h
   advancedGutTraining?: boolean;
+
+  // ─── Triathlon (sport === 'triathlon') uniquement ──────────────────────
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+  // priorité 1) : quand `objectif` est fourni, le calcul triathlon délègue
+  // à un vrai modèle 2 legs (vélo + course, computeNutritionUnified avec les
+  // tables canoniques DURATION_BY_OBJECTIF/INTENSITY_BY_OBJECTIF) — la même
+  // recette que nutritionUnified.computeNutritionEstimateSimple — au lieu de
+  // l'ancien facteur de blend fixe (0.90), qui produisait un chiffre pouvant
+  // diverger de ~20-25 g/h (jusqu'à ~26%) du chiffre "leg dominant" affiché
+  // ailleurs dans le MÊME rapport pour le MÊME athlète. Sans `objectif`
+  // (compat arrière), l'ancien comportement (blend 0.90) reste inchangé.
+  /** Objectif (ex. "IM", "70.3") — active la résolution 2-legs si fourni pour un triathlon. */
+  objectif?: string | null;
+  /** VLamax course (leg run), si distincte de `vlamaxValue` (vélo). */
+  vlamaxRun?: number | null;
+  /** TTE course (leg run) en minutes, si distinct de `tteMin` (vélo). */
+  tteRunMin?: number | null;
 }
 
 // =============================================
@@ -313,22 +330,128 @@ function computeGlycogenRiskScore(input: NutritionV2Input): number {
 }
 
 // =============================================
+// TRIATHLON — MODÈLE 2 LEGS (vélo + course)
+// =============================================
+
+/**
+ * Résout le triathlon via 2 legs indépendants (vélo + course), exactement
+ * comme `nutritionUnified.computeNutritionEstimateSimple` : chaque leg
+ * utilise les tables canoniques DURATION_BY_OBJECTIF/INTENSITY_BY_OBJECTIF
+ * (via `computeNutritionUnified`) plutôt qu'un facteur de blend fixe.
+ * carbsMin/Max/Central proviennent du leg "dominant" (le plus exigeant en
+ * g/h) ; le risque du leg "pire" (le plus à risque) — les deux peuvent
+ * différer, exactement comme dans computeNutritionEstimateSimple.
+ */
+function computeTriathlonV2FromLegs(input: NutritionV2Input, weightKg: number): NutritionPredictiveV2 | null {
+  const { vlamaxValue, vo2max, tteMin, targetDurationHours, targetIntensityPct, objectif, vlamaxRun, tteRunMin, advancedGutTraining } = input;
+
+  const bike = computeNutritionUnified({
+    vlamaxValue, vo2max: vo2max ?? null, tteMin, sport: 'velo', objectif: objectif!,
+    targetDurationHours: targetDurationHours ?? null, targetIntensityPct: targetIntensityPct ?? null,
+    weightKg, advancedGutTraining,
+  });
+  const run = computeNutritionUnified({
+    vlamaxValue: vlamaxRun ?? vlamaxValue, vo2max: vo2max ?? null, tteMin: tteRunMin ?? tteMin, sport: 'cap', objectif: objectif!,
+    targetDurationHours: null, targetIntensityPct: null,
+    weightKg, advancedGutTraining,
+  });
+
+  type Leg = { sport: 'velo' | 'cap'; vlamax: number | null; tte: number | null; result: NutritionUnifiedResult };
+  const legs: Leg[] = [];
+  if (bike) legs.push({ sport: 'velo', vlamax: vlamaxValue, tte: tteMin, result: bike });
+  if (run) legs.push({ sport: 'cap', vlamax: vlamaxRun ?? vlamaxValue, tte: tteRunMin ?? tteMin, result: run });
+  if (legs.length === 0) return null;
+
+  const dominant = legs.reduce((a, b) => (b.result.carbsCentral > a.result.carbsCentral ? b : a));
+  const riskRank: Record<NutritionRiskV2, number> = { low: 0, moderate: 1, high: 2, critical: 3 };
+  const worst = legs.reduce((a, b) => (riskRank[b.result.risk] > riskRank[a.result.risk] ? b : a));
+
+  const contributors: NutritionContributor[] = dominant.result.contributors.map(c => ({
+    id: c.id,
+    label: c.label,
+    value: c.id === 'base' ? `${c.adjustment} g/h`
+      : c.id === 'tte' ? (dominant.tte !== null ? `${dominant.tte} min` : '—')
+      : c.id === 'duration' ? (dominant.result.durationHours !== null ? `${dominant.result.durationHours}h` : '—')
+      : `${c.adjustment}`,
+    adjustment: c.adjustment,
+    direction: c.direction,
+    explanation: c.explanation,
+  }));
+  const baseRate = contributors.find(c => c.id === 'base')?.adjustment ?? dominant.result.carbsCentral;
+
+  const glycogenRisk = worst.result.risk;
+
+  const dominantInputForText: NutritionV2Input = {
+    vlamaxValue: dominant.vlamax,
+    vo2max,
+    tteMin: dominant.tte,
+    sport: dominant.sport,
+    targetDurationHours: dominant.result.durationHours,
+    targetIntensityPct: targetIntensityPct ?? null,
+    weightKg,
+  };
+  const legLabel = dominant.sport === 'velo' ? 'vélo' : 'course à pied';
+  const whyThisNumber = generateWhyThisNumber(dominantInputForText, dominant.result.carbsCentral, contributors)
+    + ` Ce chiffre reflète le segment le plus exigeant de votre triathlon (${legLabel}).`;
+  const recommendations = generateRecommendations(glycogenRisk, dominant.sport, dominant.result.durationHours);
+
+  const warnings = Array.from(new Set([...dominant.result.warnings, ...worst.result.warnings]));
+  if (vlamaxValue !== null && vlamaxValue > 0.60) {
+    warnings.push("Profil glycolytique — forte dépendance glucidique. Considérer travail VLamax.");
+  }
+  if (dominant.result.carbsCentral > NUTRITION_BOUNDS.GUT_TRAINING_THRESHOLD && !advancedGutTraining) {
+    warnings.push(`Besoins > ${NUTRITION_BOUNDS.GUT_TRAINING_THRESHOLD} g/h — entraînement digestif progressif sur 4-8 semaines requis.`);
+  }
+  if (advancedGutTraining && dominant.result.carbsCentral >= 100) {
+    warnings.push("Apports ≥100 g/h — valider la tolérance en conditions d'entraînement avant la course.");
+  }
+
+  return {
+    carbsMin: dominant.result.carbsMin,
+    carbsMax: dominant.result.carbsMax,
+    carbsCentral: dominant.result.carbsCentral,
+    glycogenRisk,
+    glycogenRiskLabel: worst.result.riskLabel,
+    glycogenRiskScore: worst.result.riskScore,
+    confidence: dominant.result.confidence,
+    sport: 'triathlon',
+    sportLabel: 'Triathlon',
+    baseRate,
+    targetDurationHours: dominant.result.durationHours,
+    targetIntensityPct: targetIntensityPct ?? null,
+    contributors,
+    whyThisNumber,
+    recommendations,
+    warnings,
+    disclaimer: NUTRITION_PHILOSOPHY.disclaimer,
+  };
+}
+
+// =============================================
 // FONCTION PRINCIPALE V2
 // =============================================
 
 export function computeNutritionV2(input: NutritionV2Input): NutritionPredictiveV2 | null {
   const { vlamaxValue, vlamaxConfidence = 0.7, vo2max, tteMin, sport, targetDurationHours, targetIntensityPct, weightKg } = input;
-  
+
   // Poids obligatoire pour le calcul de base
   if (weightKg === null || weightKg <= 0) {
     return null;
   }
-  
+
   // Sans aucune donnée physiologique (VLamax + TTE), l'estimation est trop générique
   if (vlamaxValue === null && tteMin === null) {
     return null;
   }
-  
+
+  // Triathlon avec objectif connu : modèle 2 legs (vélo + course), voir
+  // computeTriathlonV2FromLegs() et le commentaire de NutritionV2Input.objectif.
+  // Sans objectif (compat arrière), l'ancien facteur de blend (0.90) ci-dessous
+  // reste inchangé.
+  if (sport === 'triathlon' && input.objectif) {
+    return computeTriathlonV2FromLegs(input, weightKg);
+  }
+
   const warnings: string[] = [];
   const contributors: NutritionContributor[] = [];
 

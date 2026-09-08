@@ -1824,8 +1824,15 @@ function buildExportPayload(
   // le même athlète (audit "simulations pas fiables").
   const nutritionEstimate = computeNutritionEstimateSimple({
     vlamax: vlamax.value,
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+    // priorité 1) : sans vlamaxRun/tteRunMin, le leg course d'un triathlon
+    // réutilisait silencieusement la VLamax/TTE vélo — alors que ces valeurs
+    // existent déjà dans ce même fichier (cf. ligne ~1538) et divergent
+    // souvent chez un triathlète.
+    vlamaxRun: effectiveSnapshot?.vlamax_run ?? null,
     objectif: athlete.goal || "IM",
     tteMin: tte.tte_min,
+    tteRunMin: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
     vo2max: effectiveRefs.vo2max,
     weightKg: effectiveRefs.weightKg,
   });
@@ -1951,31 +1958,37 @@ function buildExportPayload(
       vlamaxConfidence: vlamax.confidence,
       vo2max: effectiveRefs.vo2max,
       tteMin: tte.tte_min,
-      // Bug corrigé (audit nutrition) : IM/70.3/Ironman/Half tombaient dans
-      // le "else" ⇒ "velo" — traité comme du cyclisme pur (facteur 1.0, le
-      // plus généreux). `computeNutritionV2` sait maintenant traiter
-      // 'triathlon' nativement (cf. nutritionV2.ts).
-      // ⚠️ Depuis la migration de `nutritionEstimate` (plus bas) vers le
-      // moteur unifié (computeNutritionEstimateSimple), ce champ nutritionV2
-      // et le champ nutritionEstimate peuvent de nouveau diverger légèrement
-      // sur un objectif triathlon (approches différentes : facteur de
-      // blend 0.90 ici vs leg le plus exigeant côté nutritionEstimate) — les
-      // deux restent néanmoins bien plus proches qu'avant l'audit ambition/
-      // nutrition. Non résolu dans cette PR : migrer nutritionV2 lui-même
-      // vers le moteur unifié demanderait de porter son détail par phase.
       sport: determineNutritionV2Sport(athlete.goal),
+      // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+      // priorité 1) : pour un objectif triathlon, ce champ divergeait de
+      // celui de `nutritionEstimate` (ci-dessus, moteur unifié) de ~20-25 g/h
+      // (jusqu'à ~26%) dans le MÊME rapport pour le MÊME athlète — deux
+      // tables durée/intensité par objectif maintenues séparément (celle-ci
+      // vs DURATION_BY_OBJECTIF/INTENSITY_BY_OBJECTIF de nutritionUnified.ts)
+      // et deux façons différentes de traiter le triathlon (facteur de blend
+      // fixe 0.90 ici vs leg le plus exigeant côté nutritionEstimate).
+      // `computeNutritionV2` délègue désormais au même modèle 2 legs
+      // (vélo + course) que `computeNutritionEstimateSimple` dès que
+      // `objectif` est fourni — mêmes tables canoniques, même VLamax/TTE
+      // course réelle → même chiffre affiché dans les deux sections du PDF.
+      objectif: athlete.goal || "IM",
+      vlamaxRun: effectiveSnapshot?.vlamax_run ?? null,
+      tteRunMin: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
+      // Laisser null (sauf override explicite futur) : la durée/intensité
+      // par leg est désormais résolue en interne via les tables canoniques
+      // ci-dessus pour les objectifs triathlon (IM/70.3/Ironman/Half).
       targetDurationHours: (() => {
         const goal = athlete.goal || "IM";
+        if (determineNutritionV2Sport(goal) === "triathlon") return null;
         const durationMap: Record<string, number> = {
-          IM: 10, Ironman: 10, "70.3": 5, "703": 5, Half: 5,
           Marathon: 3.5, Semi: 1.75, Trail: 4, TrailLong: 8, TrailCourt: 2, Ultra: 12,
         };
         return durationMap[goal] || 5;
       })(),
       targetIntensityPct: (() => {
         const goal = athlete.goal || "IM";
+        if (determineNutritionV2Sport(goal) === "triathlon") return null;
         const intensityMap: Record<string, number> = {
-          IM: 70, Ironman: 70, "70.3": 78, "703": 78, Half: 78,
           Marathon: 82, Semi: 88, Trail: 75, TrailLong: 65, TrailCourt: 80, Ultra: 60,
         };
         return intensityMap[goal] || 75;
