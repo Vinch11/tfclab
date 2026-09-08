@@ -517,6 +517,14 @@ export default function RaceSimulationPage() {
 
   
   // Source de vérité unifiée — voir src/lib/readinessSource.ts
+  //
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : cet
+  // appel ne transmettait que VLamax/TTE/FTP — computeUnifiedReadiness
+  // retombait sur le stub 2 facteurs au lieu du moteur riche à 4 piliers
+  // déjà utilisé pour le Dashboard/PDF (21 points d'écart, verdict opposé
+  // pour le même athlète). Les champs manquants (VO2max, puissances
+  // courtes, VMA, sport) sont transmis désormais pour un score identique
+  // partout.
   const readiness = React.useMemo(() => computeUnifiedReadiness({
     objectif,
     vlamaxEffectif,
@@ -526,7 +534,16 @@ export default function RaceSimulationPage() {
     athleteAge: (selectedAthlete as any)?.age ?? null,
     ambition: (selectedAthlete as any)?.ambition ?? undefined,
     tss7d: activeSnapshot?.tss_7d ?? null,
-  }), [vlamaxEffectif, tteEffectif, objectif, activeSnapshot, selectedAthlete]);
+    vo2max: activeSnapshot?.vo2max ?? null,
+    pmax5s: (activeSnapshot as any)?.pmax_5s ?? null,
+    p30sW: (activeSnapshot as any)?.p30s_w ?? null,
+    p60sW: (activeSnapshot as any)?.p60s_w ?? null,
+    map5minW: (activeSnapshot as any)?.map5min_w ?? null,
+    vma: activeSnapshot?.vma ?? null,
+    sportFocus: isTriathlon ? "tri" : discipline,
+    runEconomyScore: (activeSnapshot as any)?.run_economy_score ?? null,
+    fatmax: fatmax?.centerPctFTP ?? null,
+  }), [vlamaxEffectif, tteEffectif, objectif, activeSnapshot, selectedAthlete, isTriathlon, discipline, fatmax]);
   const potentielPhysiologiqueScore = readiness.score;
   
   // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : cette page
