@@ -10,6 +10,8 @@ import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
 import { fatigueStateToScore100 } from "@/lib/fatigueStateMapping";
+import { getVLamaxRange } from "@/lib/physiologicalTargets";
+import { scoreRelativeToTargetInverse } from "@/lib/coachingCompass";
 
 export interface PillarMetric {
   label: string;
@@ -136,10 +138,18 @@ export function computeEssentielsData(args: {
   const mlssRun = predictRunMLSSPctFromVLaCE(vla, ce);
   const fatmaxPct = computeFatMaxAnchorPctFTP(vla, vo2);
   const ftp = effectiveSnapshot?.ftp ?? null;
-  const obj = (athlete.objectif || "IM").toUpperCase();
-  const isLongDist = ["IM", "70.3", "MARATHON", "ULTRA", "TRAIL_LONG"].some((k) =>
-    obj.includes(k),
-  );
+
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 3) : la
+  // cible VLamax idéale se déplace avec la distance (5K=0.50, Semi=0.40,
+  // Marathon=0.34, IM=0.32 — cf. src/lib/v2/vlamaxTargets.ts, cohortes
+  // Mader-Heck/INSCYD). Cette page utilisait un seuil binaire universel
+  // (0.6 "format court" / 0.4 "format long") au lieu de la cible propre à
+  // l'objectif — pour un 5K, la vraie cible est 0.50 (pas 0.6), pour un
+  // Marathon 0.34 (pas 0.4). Le sens de notation n'est pas non plus un
+  // simple "plus haut = mieux" pour les formats courts : c'est un écart à
+  // l'idéal (au-delà, ça pénalise, y compris en 5K — cf. scoreRelativeTo-
+  // TargetInverse, même formule que le radar Coaching Compass canonique).
+  const vlamaxRange = getVLamaxRange(athlete.objectif || "IM", undefined, "run");
 
   const pillars: PillarData[] = [];
 
@@ -164,9 +174,9 @@ export function computeEssentielsData(args: {
         value: vla,
         unit: "mmol/L/s",
         decimals: 2,
-        target: isLongDist ? [0.25, 0.4] : [0.45, 0.7],
+        target: [vlamaxRange.min, vlamaxRange.max],
         scale: [0.1, 1.0],
-        direction: isLongDist ? "band" : "higher",
+        direction: "band",
       },
     ],
     status: (() => {
@@ -179,8 +189,8 @@ export function computeEssentielsData(args: {
       });
       const b = evaluateStatus({
         value: vla,
-        target: isLongDist ? [0.25, 0.4] : [0.45, 0.7],
-        direction: isLongDist ? "band" : "higher",
+        target: [vlamaxRange.min, vlamaxRange.max],
+        direction: "band",
         label: "",
         unit: "",
       });
@@ -190,11 +200,11 @@ export function computeEssentielsData(args: {
     })(),
     interpretation: (() => {
       if (!vo2 || !vla) return "Le couple complet n'est pas mesurable — manque VO₂max ou VLamax.";
-      if (isLongDist && vla > 0.45)
-        return `VLamax ${vla.toFixed(2)} élevée pour ton objectif longue distance : tu brûles trop vite tes glucides. Travail Low-VLa prioritaire (FatMax + sweet-spot longs).`;
-      if (isLongDist && vla < 0.25)
-        return `Profil très endurant (VLa ${vla.toFixed(2)}). Veille à conserver un peu de réactivité (1-2 séances neuromusculaires/mois).`;
-      return `Couple cohérent : VO₂max ${vo2.toFixed(0)} + VLa ${vla.toFixed(2)}. Identité métabolique compatible avec l'objectif.`;
+      if (vla > vlamaxRange.max)
+        return `VLamax ${vla.toFixed(2)} au-dessus de la cible pour ton objectif (idéal ${vlamaxRange.optimal.toFixed(2)}, max ${vlamaxRange.max.toFixed(2)}) : tu brûles trop vite tes glucides pour la distance visée. Travail Low-VLa prioritaire (FatMax + sweet-spot longs).`;
+      if (vla < vlamaxRange.min)
+        return `VLamax ${vla.toFixed(2)} en dessous de la cible pour ton objectif (idéal ${vlamaxRange.optimal.toFixed(2)}, min ${vlamaxRange.min.toFixed(2)}) — profil très endurant, veille à conserver un peu de réactivité (1-2 séances neuromusculaires/mois).`;
+      return `Couple cohérent : VO₂max ${vo2.toFixed(0)} + VLa ${vla.toFixed(2)} (cible ${vlamaxRange.optimal.toFixed(2)} pour cet objectif). Identité métabolique compatible avec l'objectif.`;
     })(),
     definition:
       "VO₂max = capacité maximale de consommation d'oxygène (puissance aérobie). VLamax = vitesse maximale de production de lactate par la glycolyse (puissance anaérobie). Le couple décrit l'identité métabolique : endurant, équilibré ou explosif.",
@@ -432,7 +442,9 @@ export function computeEssentielsData(args: {
     vo2 || vla || tteEff || ftp || ce
       ? {
           vo2: scoreH(vo2, 65),
-          vla: isLongDist ? scoreInv(vla, 0.4) : scoreH(vla, 0.6),
+          // Moteur canonique (même formule + même cible par distance que le
+          // radar Coaching Compass, cf. commentaire sur vlamaxRange ci-dessus).
+          vla: vla ? scoreRelativeToTargetInverse(vla, vlamaxRange.optimal) : 0,
           durability: tteEff && tteEff.target ? scoreH(tteEff.tte_min || 0, tteEff.target) : 0,
           economy: ce ? scoreH(ce, 75) : 0,
           freshness: freshnessScore,
