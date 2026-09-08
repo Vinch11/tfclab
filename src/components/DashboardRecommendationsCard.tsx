@@ -46,7 +46,7 @@ import {
   needToTargetAxis,
   LowCRRJustification,
 } from "@/lib/wahoo/wahooSuggestionEngine";
-import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
+import { computeVLamaxEffectif, computeTTEEffectif, computeFatigueEffectif } from "@/engines/diagnostic";
 import { computeCAPInjuryRiskIndex } from "@/lib/capInjuryRisk";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 
@@ -168,13 +168,27 @@ export function DashboardRecommendationsCard({
       tss7d: activeSnapshot.tss_7d ?? null,
     });
 
-    // Compute injury risk for runners
+    // Compute injury risk for runners — moteur canonique (fatigue + charge
+    // incluses, Cluster 3) au lieu du sous-total VLamax+TTE seul.
     let injuryRiskRun = undefined;
     if (sportFocus === "run" || sportFocus === "tri") {
+      const fatigueEffectif = computeFatigueEffectif({
+        tss7d: activeSnapshot.tss_7d,
+        tss7dHabituel: null,
+        fatiguePercue: null,
+        tteEffectif,
+        potentielPhysiologique,
+        vlamaxEffectif,
+        age: athleteAge,
+        objectif,
+      });
       const capRisk = computeCAPInjuryRiskIndex({
         vlamaxValue: vlamaxEffectif.value,
         tteValue: tteEffectif.tte_min,
         objectif,
+        age: athleteAge,
+        fatiguePct: fatigueEffectif.score,
+        tss7d: activeSnapshot.tss_7d ?? null,
       });
       const levelMap: Record<number, "faible" | "modéré" | "élevé"> = {
         0: "faible",

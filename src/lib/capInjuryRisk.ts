@@ -21,6 +21,7 @@
  */
 
 import { getTTETargetByAmbition } from "@/lib/physiologicalTargets";
+import { computeRunInjuryRiskFromValues, RUN_INJURY_RISK_SCALE } from "@/lib/runInjuryRisk";
 
 // =============================================
 // TYPES
@@ -51,6 +52,19 @@ interface CAPRiskParams {
   ambition?: import("@/types/ambitionLevel").AmbitionLevel;
   /** R5 : âge pour ajustement TTE via getTTETargetByAmbition */
   age?: number | null;
+  /**
+   * Bug réel corrigé (audit "estimations physiologiques", Cluster 3) : sans
+   * ces champs, ce moteur ignore complètement la fatigue et la charge
+   * d'entraînement — un athlète en surcharge (ex. TSS 7j = 580) pouvait
+   * afficher "Très faible" ici pendant que le moteur canonique
+   * (runInjuryRisk.ts, utilisé par le pipeline Plan IA) affichait "Modéré"
+   * pour le même athlète au même instant. Tous optionnels : absents, le
+   * niveau retombe sur le calcul VLamax+TTE historique (comportement
+   * inchangé pour les appelants qui ne les fournissent pas encore).
+   */
+  fatiguePct?: number | null;
+  tss7d?: number | null;
+  runLoad7d?: number | null;
 }
 
 
@@ -300,21 +314,57 @@ function generateStaffAnalysis(
 // FONCTION PRINCIPALE
 // =============================================
 
+/**
+ * Convertit le score continu 0-100 du moteur canonique (runInjuryRisk.ts)
+ * vers l'échelle discrète 0-3 de ce fichier, en réutilisant EXACTEMENT les
+ * mêmes bornes que RUN_INJURY_RISK_SCALE (FAIBLE/MODERE/ELEVE/CRITIQUE) —
+ * pas de nouveau seuil inventé ici.
+ */
+function canonicalScoreToCapLevel(score: number): CAPRiskLevel {
+  if (score <= RUN_INJURY_RISK_SCALE.FAIBLE.max) return 0;
+  if (score <= RUN_INJURY_RISK_SCALE.MODERE.max) return 1;
+  if (score <= RUN_INJURY_RISK_SCALE.ELEVE.max) return 2;
+  return 3;
+}
+
 // Renommée depuis `computeCAPInjuryRisk` pour lever l'ambiguïté avec la
 // fonction homonyme de src/lib/v2/injuryRiskUnified.ts — même nom, formats
 // de résultat totalement différents (index discret 0-4 ici vs score continu
-// 0-100 là-bas). Aucun changement de logique/valeurs, renommage pur.
+// 0-100 là-bas).
 export function computeCAPInjuryRiskIndex(params: CAPRiskParams): CAPInjuryRiskResult {
-  const { vlamaxValue, tteValue, objectif, ambition, age } = params;
+  const { vlamaxValue, tteValue, objectif, ambition, age, fatiguePct, tss7d, runLoad7d } = params;
 
   const thresholds = getThresholdsForObjectif(objectif, ambition ?? "age_group", age ?? null);
 
-  
   const vlamaxScore = computeVLamaxScore(vlamaxValue, thresholds);
   const tteScore = computeTTEScore(tteValue, thresholds);
-  const totalScore = vlamaxScore + tteScore;
-  
-  const level = mapScoreToLevel(totalScore);
+
+  let level: CAPRiskLevel;
+  let totalScore: number;
+
+  if (fatiguePct != null) {
+    // Moteur canonique (fatigue + VLamax + TTE + charge + âge) — même
+    // formule que le pipeline Plan IA. Remplace le sous-total VLamax+TTE
+    // seul dès que la fatigue est disponible, pour ne plus jamais ignorer
+    // une charge d'entraînement élevée (cf. commentaire CAPRiskParams).
+    const canonical = computeRunInjuryRiskFromValues({
+      fatiguePct,
+      vlamaxValue,
+      tteValue,
+      tss7d: tss7d ?? null,
+      runLoad7d: runLoad7d ?? null,
+      age: age ?? null,
+      objectif,
+    });
+    level = canonicalScoreToCapLevel(canonical.score);
+    totalScore = Math.round((canonical.score / 100) * 4);
+  } else {
+    // Comportement historique (VLamax+TTE seuls) — préservé pour les
+    // appelants qui ne fournissent pas encore fatiguePct.
+    totalScore = vlamaxScore + tteScore;
+    level = mapScoreToLevel(totalScore);
+  }
+
   const { color, bgColor, borderColor } = getLevelColors(level);
   
   return {

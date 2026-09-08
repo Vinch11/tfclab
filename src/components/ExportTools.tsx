@@ -32,7 +32,7 @@ import {
 } from "@/lib/calibration";
 import { generateTestCalibrationSection, type TestCalibrationSection } from "@/lib/calibration/testCalibrationSection";
 import { getEffectiveSnapshot, getEffectiveRefs, type EffectiveRefs } from "@/lib/effectiveRefs";
-import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
+import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, computeFatigueEffectif } from "@/engines/diagnostic";
 import { ZonesConfig, computeAbsoluteRange, AthleteRefsForZones } from "@/lib/zonesConfig";
 import { TRAINING_ZONES, computeZoneAbsoluteValues, ZONES_METHODOLOGY_NOTE, type AthleteZoneRefs } from "@/lib/trainingZonesDefinition";
 import { SEANCES } from "@/types/seances";
@@ -1784,11 +1784,25 @@ function buildExportPayload(
     weightKg: effectiveRefs.weightKg,
   });
   
-  // Calculer CAP Injury Risk
+  // Calculer CAP Injury Risk — moteur canonique (fatigue + charge incluses,
+  // Cluster 3) au lieu du sous-total VLamax+TTE seul.
+  const fatigueEffectifForRisk = computeFatigueEffectif({
+    tss7d: effectiveSnapshot?.tss_7d ?? null,
+    tss7dHabituel: null,
+    fatiguePercue: null,
+    tteEffectif: tte,
+    potentielPhysiologique,
+    vlamaxEffectif: vlamax,
+    age: athleteAge,
+    objectif: athlete.goal || "IM",
+  });
   const capRiskResult = computeCAPInjuryRiskIndex({
     vlamaxValue: vlamax.value,
     tteValue: tte.tte_min,
-    objectif: athlete.goal || "IM"
+    objectif: athlete.goal || "IM",
+    age: athleteAge,
+    fatiguePct: fatigueEffectifForRisk.score,
+    tss7d: effectiveSnapshot?.tss_7d ?? null,
   });
   
   const capInjuryRisk = {

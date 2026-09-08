@@ -210,21 +210,47 @@ function computeAgeComponent(age: number | null): { component: number; known: bo
 // FONCTION PRINCIPALE
 // =============================================
 
+export interface RunInjuryRiskValuesParams {
+  fatiguePct: number;
+  vlamaxValue: number | null;
+  tteValue: number | null;
+  tss7d?: number | null;
+  runLoad7d?: number | null;
+  age?: number | null;
+  objectif: string;
+}
+
 export function computeRunInjuryRisk(params: ComputeRunInjuryRiskParams): RunInjuryRiskEnvelope {
+  const { fatigueEffectif, vlamaxEffectif, tteEffectif, tss7d, runLoad7d, age, objectif } = params;
+
+  return computeRunInjuryRiskFromValues({
+    fatiguePct: fatigueEffectif.score,
+    vlamaxValue: vlamaxEffectif?.value ?? null,
+    tteValue: tteEffectif?.tte_min ?? null,
+    tss7d,
+    runLoad7d,
+    age,
+    objectif,
+  });
+}
+
+/**
+ * Version "valeurs brutes" du moteur — extraite pour réutilisation par des
+ * appelants qui n'ont pas (ou pas encore) construit d'objets VLamaxEffectif/
+ * TTEEffectif/FatigueEffectif complets (ex. capInjuryRisk.ts, dont l'API
+ * historique n'accepte que des nombres). Même formule, même pondération —
+ * computeRunInjuryRisk() ci-dessus n'est qu'un dépliage de ses paramètres.
+ */
+export function computeRunInjuryRiskFromValues(params: RunInjuryRiskValuesParams): RunInjuryRiskEnvelope {
   const {
-    fatigueEffectif,
-    vlamaxEffectif,
-    tteEffectif,
+    fatiguePct,
+    vlamaxValue,
+    tteValue,
     tss7d,
     runLoad7d,
     age,
     objectif,
   } = params;
-
-  // Extraire les valeurs
-  const fatiguePct = fatigueEffectif.score;
-  const vlamaxValue = vlamaxEffectif?.value ?? null;
-  const tteValue = tteEffectif?.tte_min ?? null;
 
   // Calculer les composantes
   const fatigueComp = computeFatigueComponent(fatiguePct);

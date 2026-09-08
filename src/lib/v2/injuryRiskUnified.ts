@@ -21,6 +21,7 @@ import { getTTETarget } from '../tteEffectif';
 import type { FatigueEffectif } from '../fatigueEffectif';
 import type { IFSCResult } from './ifsc';
 import { getVlamaxTarget } from './vlamaxTargets';
+import type { RunInjuryRiskEnvelope } from '../runInjuryRisk';
 
 
 // ============================================
@@ -931,4 +932,47 @@ export function computeInjuryRiskTFCL(input: InjuryRiskTFCLInput): InjuryRiskEnv
     age: null,
     objectif: input.objectif ?? 'IM'
   });
+}
+
+// ============================================
+// ADAPTATEUR — moteur canonique CAP (runInjuryRisk.ts) → InjuryRiskEnvelope
+// ============================================
+//
+// Bug réel corrigé (audit "estimations physiologiques", Cluster 3) :
+// computeCAPInjuryRisk() ci-dessus recalculait le risque CAP avec sa propre
+// formule (0.35×Fatigue + 0.25×VLamax + 0.25×TTE + 0.15×Économie) —
+// déclarait `tss7d`/`runLoad7d` en entrée (CAPRiskInput) mais ne les
+// utilisait JAMAIS dans le score (stockés dans inputsUsed, aucun driver
+// associé). Résultat mesuré : un athlète en surcharge (TSS 7j = 580)
+// affichait "Faible" ici (RunningProfilePage) pendant que le pipeline Plan
+// IA (runInjuryRisk.ts, qui pondère la charge à 20%) affichait "Modéré"
+// pour le même athlète au même instant.
+//
+// Cet adaptateur permet à RunningProfilePage/InjuryRiskCAPCard de consommer
+// le moteur canonique (fatigue+VLamax+TTE+charge+âge) sans réécrire le
+// composant d'affichage : même forme InjuryRiskEnvelope, juste la source du
+// score qui change.
+export function adaptRunInjuryRiskToEnvelope(env: RunInjuryRiskEnvelope): InjuryRiskEnvelope {
+  return {
+    sport: 'CAP',
+    score: env.score,
+    level: env.level,
+    levelLabel: env.levelLabel,
+    levelColor: env.levelColor,
+    confidence: env.confidence,
+    drivers: env.drivers.map((d) => ({
+      id: d.label,
+      label: d.label,
+      value: d.value,
+      component: d.component,
+      weight: d.weight,
+      impact: d.impact,
+      explanation: `Contribution ${d.component}/100 (poids ${Math.round(d.weight * 100)}%) au score de risque.`,
+    })),
+    why: env.why,
+    guardrails: env.guardrails,
+    coachRecommendations: env.coachOptions,
+    inputsUsed: env.inputsUsed,
+    disclaimer: env.disclaimer,
+  };
 }
