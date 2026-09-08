@@ -46,7 +46,6 @@ import profileReportLogoAsset from "@/assets/logo-24c.png.asset.json";
 import { buildChartePageHTML } from "@/data/charteInterpretation";
 // ✅ NEW: Import Compass Scoring et CRR
 import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
-import { computeCompassScores, type CompassScores, type CompassAxisScore } from "@/lib/compassScoring";
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 // ✅ NEW: Import FatMax TFCL et Nutrition V2
 import { computeFatMaxTFCL, computeFatMaxAnchorPctFTP, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
@@ -198,20 +197,21 @@ interface ExportPayload {
     factors: { vlamaxContribution: number; tteContribution: number; chargeContribution: number };
     staffAnalysis: string;
   } | null;
-  // CRR et Compass Scores
+  // CRR
   crr: ChargeRecenteReference;
   chargeScore: ChargeScore;
-  compassScores: CompassScores;
   /**
-   * Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : les
-   * piliers 4-axes du moteur riche unifié (diagnostic.readiness.potential.
-   * sources — même source que le score "Potentiel Physiologique" affiché en
-   * tête de ce même rapport) vs ceux de compassScores (formules indépendantes
-   * de compassScoring.ts) divergeaient nettement pour un même athlète
-   * (ex. Robustesse 100 vs 76, Profil Métabolique 27 vs 48) — le PDF pouvait
-   * se contredire en listant les "points forts" à partir d'un moteur
-   * différent de celui qui affiche le score global. `null` si le diagnostic
-   * complet n'a pas pu être calculé (pas de snapshot effectif).
+   * Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : cette
+   * section utilisait auparavant un moteur de scoring séparé (compassScores,
+   * compassScoring.ts) dont les formules divergeaient nettement du moteur
+   * riche unifié (diagnostic.readiness.potential.sources — même source que
+   * le score "Potentiel Physiologique" affiché en tête de ce même rapport)
+   * pour un même athlète (ex. Robustesse 100 vs 76, Profil Métabolique 27 vs
+   * 48) — le PDF pouvait se contredire en listant les "points forts" à
+   * partir d'un moteur différent de celui qui affiche le score global.
+   * `null` si le diagnostic complet n'a pas pu être calculé (pas de
+   * snapshot effectif). compassScoring.ts a été retiré (plus aucun
+   * consommateur dans l'app, cf. Cluster 2, nettoyage).
    */
   unifiedCompassPillars: { aerobic: number; tolerance: number; metabolic: number; robustness: number } | null;
   // ✅ NEW: Age Adjustment Index
@@ -1807,26 +1807,15 @@ function buildExportPayload(
     staffAnalysis: capRiskResult.staffAnalysis
   };
   
-  // ✅ NEW: Calculer CRR et Compass Scores
+  // ✅ NEW: Calculer CRR
   const crr = computeCRR({
     tss7d: effectiveSnapshot?.tss_7d ?? null,
     snapshotDate: effectiveSnapshot?.date ?? null,
     snapshotUpdatedAt: effectiveSnapshot?.updated_at ?? null
   });
-  
+
   const chargeScore = computeChargeScore(crr, athlete.goal || "IM");
-  
-  const compassScores = computeCompassScores({
-    ftp: effectiveRefs.ftp,
-    poids: effectiveRefs.weightKg,
-    vlamaxEffectif: vlamax,
-    tteEffectif: tte,
-    crr,
-    objectif: athlete.goal || "IM",
-    ambition,
-    athleteAge
-  });
-  
+
   // ✅ sportFocus déjà calculé plus haut (sportFocusForLimiter)
   const objectif = objectifForLimiter;
   const sportFocus = sportFocusForLimiter;
@@ -1874,7 +1863,6 @@ function buildExportPayload(
     capInjuryRisk,
     crr,
     chargeScore,
-    compassScores,
     unifiedCompassPillars,
     // ✅ NEW: Age Adjustment
     ageAdjustment: (() => {
@@ -4757,60 +4745,15 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   
   // Utiliser les scores calculés dans le payload (source unique de vérité)
-  const { compassScores: cScores, crr, chargeScore } = payload;
+  const { crr, chargeScore } = payload;
   const crrTargets = getCRRTargets(athlete.goal || "IM");
-  
-  // Générer l'interprétation coach automatique
-  const generateCoachInterpretation = (): { limitation: string; risk: string; recommendation: string } => {
-    const axes = [
-      { name: "Capacité Aérobie (FTP/kg)", score: cScores.capaciteAerobie.score },
-      { name: "Tolérance Effort (TTE)", score: cScores.toleranceEffort.score },
-      { name: "Profil Métabolique (VLamax)", score: cScores.profilMetabolique.score },
-      { name: "Robustesse", score: cScores.robustesse.score }
-    ];
-    
-    const sorted = [...axes].sort((a, b) => a.score - b.score);
-    const weakest = sorted[0];
-    
-    let limitation = "Aucune limitation majeure détectée.";
-    let risk = "Risque global modéré.";
-    let recommendation = "Maintenir l'équilibre actuel.";
-    
-    if (weakest.score < 60) {
-      limitation = "La performance est principalement limitée par : " + weakest.name + " (score: " + weakest.score + "/100).";
-    }
-    
-    if (!crr.isValid) {
-      risk = "⚠️ Charge récente inconnue – l'évaluation de la robustesse et du risque est incomplète.";
-      recommendation = "Priorité : renseigner la charge d'entraînement (TSS 7j) pour une analyse fiable.";
-    } else if (chargeScore.status === "overload") {
-      risk = "🔴 Surcharge détectée – risque de surentraînement élevé.";
-      recommendation = "Réduire immédiatement la charge et surveiller les signes de fatigue.";
-    } else if (chargeScore.status === "low") {
-      risk = "⚠️ Charge insuffisante pour l'objectif visé.";
-      recommendation = "Augmenter progressivement le volume d'entraînement.";
-    } else if (weakest.name.includes("VLamax") && weakest.score < 70) {
-      recommendation = "Travailler le profil métabolique : séances de seuil bas, tempo long pour réduire VLamax.";
-    } else if (weakest.name.includes("TTE") && weakest.score < 70) {
-      recommendation = "Développer l'endurance au seuil : intervalles longs 88-95% FTP.";
-    } else if (weakest.name.includes("FTP") && weakest.score < 70) {
-      recommendation = "Améliorer la puissance aérobie : sweet spot et travail au seuil.";
-    }
-    
-    return { limitation, risk, recommendation };
-  };
-  
-  const coachInterpretation = generateCoachInterpretation();
-  
+
   // Build compass HTML with proper template literals
   const crrCardColor = crr.isValid ? '#1F9D6B' : '#C8860D';
   const crrValue = crr.value !== null ? crr.value : "—";
   const crrSourceClass = crr.source === 'NOLIO' ? 'tagSuccess' : crr.source === 'SNAPSHOT' ? 'tagInfo' : 'tagWarning';
   const chargeStatusClass = chargeScore.status === 'optimal' ? 'badgeSuccess' : chargeScore.status === 'overload' ? 'badgeError' : 'badgeWarning';
   const chargeStatusLabel = chargeScore.status === 'optimal' ? '✓ Optimal' : chargeScore.status === 'overload' ? '⚠ Surcharge' : chargeScore.status === 'low' ? '↓ Faible' : chargeScore.status === 'high' ? '↑ Élevée' : '? Inconnu';
-  
-  const globalBadgeClass = cScores.globalColor === 'success' ? 'badgeSuccess' : cScores.globalColor === 'warning' ? 'badgeWarning' : 'badgeError';
-  const limitationAlertClass = cScores.mainLimitation ? 'alertWarning' : 'alertInfo';
   const riskAlertClass = chargeScore.status === 'overload' ? 'alertError' : chargeScore.status === 'unknown' ? 'alertWarning' : 'alertInfo';
   
   

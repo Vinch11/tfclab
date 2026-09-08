@@ -30,7 +30,35 @@ import { computeFatigueEffectif, type FatigueEffectif } from "@/lib/fatigueEffec
 import { detectUnifiedLimiter, LIMITER_INFO, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
 import { computeDecisionTFCL, type PotentielV2Result } from "@/lib/v2/potentielTypes";
 import { getTargetsForAmbition, normalizeObjective, getVLamaxRange } from "@/lib/physiologicalTargets";
-import type { CompassScores, CompassAxisScore } from "@/lib/compassScoring";
+
+// Forme locale du "compass" attendu par computeDecisionTFCL (ComputeDecisionTFCLInput.compass).
+// Anciennement importée de compassScoring.ts — ce moteur (compassScoring.ts) a été retiré
+// car il n'avait plus aucun autre consommateur dans l'app (cf. Cluster 2, nettoyage) ; sa
+// logique de gap-analysis ci-dessous lui était de toute façon indépendante.
+interface CompassAxisScore {
+  score: number;
+  rawScore: number;
+  label: string;
+  explanation: string;
+  formula: string;
+  inputs: Record<string, number | string | null>;
+  confidence: number;
+  source: string;
+}
+
+interface CompassScores {
+  capaciteAerobie: CompassAxisScore;
+  toleranceEffort: CompassAxisScore;
+  profilMetabolique: CompassAxisScore;
+  robustesse: CompassAxisScore;
+  globalScore: number;
+  globalLabel: string;
+  globalColor: "success" | "warning" | "destructive";
+  dataCompleteness: number;
+  mainLimitation: string | null;
+  mainStrength: string | null;
+  isFatigueModulated: boolean;
+}
 import { computeRunInjuryRisk, type RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import { computeBikeInjuryRisk, type InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
