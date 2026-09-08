@@ -288,10 +288,21 @@ export function TwoForCoachingAnalysis({
   // =============================================
   const sport = useMemo(() => {
     const obj = (athlete.objectif || "").toLowerCase();
-    if (obj.includes("marathon") || obj.includes("semi") || obj.includes("trail") || obj.includes("cap")) {
-      return "cap" as const;
+    // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+    // priorité 3) : le fallback était "velo" — mais aucun objectif réel de
+    // cette app (ObjectifType) n'est un pur objectif vélo : IM/703/Sprint/
+    // Olympic sont des triathlons (natation+vélo+course), tout le reste est
+    // déjà de la course à pied. "cap" (plafond digestif plus bas, risque CAP
+    // compté) est l'approximation la plus sûre pour un objectif combiné —
+    // c'est aussi le fallback réel de nutritionEstimate/computeNutritionEstimateSimple
+    // (mapNutritionSimpleSport) pour ces mêmes objectifs non-course-pure.
+    // computeNutritionTiming ne modélise pas encore le triathlon en 2 legs
+    // (contrairement à nutritionEstimate/nutritionV2 depuis les priorités 1-2
+    // de ce cluster) — amélioration future possible.
+    if (obj.includes("velo") || obj.includes("bike")) {
+      return "velo" as const;
     }
-    return "velo" as const;
+    return "cap" as const;
   }, [athlete.objectif]);
 
   const energyDrift = useMemo<EnergyDriftResult>(() => {
@@ -312,8 +323,19 @@ export function TwoForCoachingAnalysis({
       sport,
       digestiveTolerance: "MEDIUM",
       energyDrift,
+      // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
+      // priorité 3) : vo2max/weightKg n'étaient jamais transmis ici, alors
+      // qu'ils sont déjà disponibles (props du composant, utilisés 30 lignes
+      // plus haut par nutritionEstimate) — computeNutritionTiming basculait
+      // sur son modèle heuristique legacy (seuils VLamax et table de durée
+      // différents du moteur canonique) au lieu de déléguer à
+      // computeBaseRateMader comme nutritionEstimate. Résultat : la phase
+      // MID affichée pouvait dépasser la "cible" affichée juste au-dessus
+      // dans la MÊME carte, pour le MÊME athlète.
+      vo2max,
+      weightKg,
     });
-  }, [vlamaxEffectif.value, tteEffectif.tte_min, tteTarget, athlete.objectif, sport, energyDrift]);
+  }, [vlamaxEffectif.value, tteEffectif.tte_min, tteTarget, athlete.objectif, sport, energyDrift, vo2max, weightKg]);
 
   // ✅ RACE READINESS EFFECTIF - Utilise la prop si fournie (plus de calcul local!)
   const readiness = readinessProp ?? {
