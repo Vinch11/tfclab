@@ -934,6 +934,11 @@ export function useAITrainingPlan() {
                 // fenêtre), ils valent totalWeeks/0 et ne changent rien.
                 globalTotalWeeks: effTotalWeeks,
                 globalWeekOffset: weekOffset,
+                // Fix B3 (audit "génération de plan IA") : même libellé L1 brut
+                // que le serveur transmet à extractLimiterKeywords (jsonPlanHandler.ts)
+                // — sans ça, le réconciliateur client pouvait remplacer une
+                // insertion serveur ciblant le limiteur par une fiche générique.
+                primaryLimiter: planConfig.identifiedLimitersRaw?.[0] ?? null,
               });
 
               const c = rec.counters;

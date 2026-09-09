@@ -31,6 +31,7 @@ import { computePlanDiversity, formatDiversitySummary } from "./diversityMetrics
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
+import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
 import {
   parseAthleteConstraints,
@@ -198,6 +199,24 @@ function intentScore(original: LibraryWorkout, candidate: LibraryWorkout): numbe
   return score;
 }
 
+/** Fix B3 (audit "génération de plan IA") : même mécanisme que
+ *  jsonPlanHandler.ts::matchesLimiter côté serveur — une fiche dont
+ *  l'objectif/la structure contient un des mots-clés du limiteur L1 de
+ *  l'athlète est considérée comme ciblant ce limiteur. */
+function matchesLimiter(w: LibraryWorkout, keywords: string[]): boolean {
+  if (keywords.length === 0) return false;
+  const struct = (w.structure || []).map(p => p.text).join(" ");
+  const text = `${w.objectif ?? w.id} ${struct}`.toLowerCase();
+  return keywords.some(kw => text.includes(kw.toLowerCase()));
+}
+/** Bonus dominant (avant intention/durée/diversité) pour une fiche ciblant
+ *  le limiteur L1 — même priorité absolue que le tri à 2 niveaux du serveur
+ *  (matchesLimiter d'abord, proximité de durée ensuite). Très supérieur à
+ *  la plage réaliste d'`intent*100` (max ~700) pour garantir qu'un match
+ *  limiteur l'emporte toujours, intention/durée/diversité ne servant que de
+ *  départage AU SEIN de chaque groupe (matché / non matché). */
+const LIMITER_MATCH_BONUS = 100_000;
+
 interface FindOpts {
   sport: NormSport;
   weekPhase: PlanPhase;
@@ -213,10 +232,14 @@ interface FindOpts {
   /** Ledger d'usage du plan courant : pénalise/exclut les fiches déjà
    *  sur-représentées pour éviter la convergence vers toujours la même fiche. */
   ledger?: UsageLedger;
+  /** Fix B3 : mots-clés du limiteur prioritaire (L1) de l'athlète — cf.
+   *  limiterKeywords.ts. Une fiche les contenant est préférée à toute
+   *  autre, avant intention/durée/diversité. */
+  primaryLimiterKeywords?: string[];
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds, ledger } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, primaryLimiterKeywords } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   let best: { w: LibraryWorkout; key: number } | null = null;
@@ -235,8 +258,9 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     const durPenalty = targetDur > 0 ? Math.abs(ficheMedian(w) - targetDur) / 10 : 0;
     const intent = original ? intentScore(original, w) : 0;
     const usage = ledgerCount(ledger, w.id);
-    // maximize intent, tiebreak by duration proximity, penalize repetition
-    const key = intent * 100 - durPenalty - usage * DIVERSITY_PENALTY;
+    const limiterBonus = matchesLimiter(w, primaryLimiterKeywords ?? []) ? LIMITER_MATCH_BONUS : 0;
+    // maximize limiter match, then intent, tiebreak by duration proximity, penalize repetition
+    const key = limiterBonus + intent * 100 - durPenalty - usage * DIVERSITY_PENALTY;
     if (usage >= MAX_FICHE_REPEATS) {
       if (!saturatedBest || key > saturatedBest.key) saturatedBest = { w, key };
       continue;
@@ -280,6 +304,7 @@ function runOnePass(
   logs: string[],
   restrictToIds?: Set<string>,
   ledger?: UsageLedger,
+  primaryLimiterKeywords?: string[],
 ): boolean {
   let anyChange = false;
   const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
@@ -309,6 +334,7 @@ function runOnePass(
             original: fiche,
             restrictToIds,
             ledger,
+            primaryLimiterKeywords,
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
@@ -339,6 +365,7 @@ function runOnePass(
             requireDurationContains: true,
             restrictToIds,
             ledger,
+            primaryLimiterKeywords,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -367,6 +394,7 @@ function runOnePass(
             original: fiche3,
             restrictToIds,
             ledger,
+            primaryLimiterKeywords,
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
@@ -434,6 +462,7 @@ function runOnePass(
             requireDurationContains: true,
             restrictToIds,
             ledger,
+            primaryLimiterKeywords,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -1220,6 +1249,17 @@ export interface RunReconcilerOptions {
    * semaine seule).
    */
   globalWeekOffset?: number | null;
+  /**
+   * Fix B3 (audit "génération de plan IA") : libellé BRUT du limiteur
+   * prioritaire (L1) de l'athlète (ex. "VLamax", "TTE (Time to Exhaustion)"
+   * — même valeur que `identifiedLimiters[0]`/`identifiedLimitersRaw[0]`
+   * transmise côté serveur à `extractLimiterKeywords`, jsonPlanHandler.ts).
+   * Sans ce contexte, le réconciliateur client n'avait AUCUNE notion de
+   * facteur limitant — il pouvait remplacer une insertion serveur ciblant
+   * le limiteur par une fiche générique, sans jamais tenir compte du
+   * ciblage déjà fait côté serveur.
+   */
+  primaryLimiter?: string | null;
 }
 
 
@@ -1388,11 +1428,15 @@ export function runReconciler(
     `→ substituted(pre)=${preStats.substituted} noSafeNeighbor(pre)=${preStats.noSafe}`
   );
 
+  // Fix B3 (audit "génération de plan IA") : calculé une seule fois, transmis
+  // à chaque passe — cf. RunReconcilerOptions.primaryLimiter.
+  const primaryLimiterKeywords = opts.primaryLimiter ? extractLimiterKeywords(opts.primaryLimiter) : [];
+
   // runOnePass — restreint aux IDs du catalogue injecté quand disponible,
   // pour ne PAS réintroduire d'ID hors-catalogue via phase/durée/discipline.
   let anyOnePassChange = false;
   for (let i = 0; i < maxPasses; i++) {
-    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected, usageLedger);
+    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected, usageLedger, primaryLimiterKeywords);
     if (changed) anyOnePassChange = true;
     if (!changed) break;
   }
