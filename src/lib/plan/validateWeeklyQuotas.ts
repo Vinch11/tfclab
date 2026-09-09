@@ -55,6 +55,10 @@ export function validateWeeklyQuotas(
     const counts = { swim: 0, bike: 0, run: 0, brick: 0, strength: 0 } as Record<string, number>;
     const dayCounts = new Map<string, number>();
     const dayObservedSports = new Map<string, string[]>();
+    // Fix A5 (audit "génération de plan IA") : au moins une séance "clé"
+    // (isKeySession) a-t-elle été réellement observée ce jour ? — cf.
+    // diffLayoutVsWeek ci-dessous.
+    const dayObservedKey = new Map<string, boolean>();
     let hasLongRide = false;
     let hasLongRun = false;
     // PHASE 2A.4 — un brick de durée ≥ slBikeMin + 20 satisfait le floor SL vélo.
@@ -68,6 +72,7 @@ export function validateWeeklyQuotas(
       const list = dayObservedSports.get(dayKey) ?? [];
       list.push(s.sport);
       dayObservedSports.set(dayKey, list);
+      if (s.isKeySession) dayObservedKey.set(dayKey, true);
       if (s.sport === "bike" && (s.durationMin ?? 0) >= slBikeMin) hasLongRide = true;
       if (s.sport === "brick" && (s.durationMin ?? 0) >= brickSLBikeThreshold) hasLongRide = true;
       if (s.sport === "run" && (s.durationMin ?? 0) >= slRunMin) hasLongRun = true;
@@ -163,7 +168,7 @@ export function validateWeeklyQuotas(
 
     // ─── LAYOUT DRIFT (warnings v1) ────────────────────────────────────────
     if (entry.layout) {
-      const drifts = diffLayoutVsWeek(entry.layout, dayObservedSports);
+      const drifts = diffLayoutVsWeek(entry.layout, dayObservedSports, dayObservedKey);
       for (const dr of drifts.slice(0, 5)) {
         out.push({
           severity: "warning", code: "layout_drift", weekNumber: w.weekNumber,
