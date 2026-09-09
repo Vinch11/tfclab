@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { computePerformanceReport } from "../computePerformanceReport";
 import { getGlycogenStore } from "@/lib/v2/maderMetabolicModel";
+import { getVlamaxTarget } from "@/lib/v2/vlamaxTargets";
 
 /**
  * Tests ciblés pour l'enrichissement "narration continue" du Rapport de
@@ -81,5 +82,49 @@ describe("computePerformanceReport — structure du prochain bloc", () => {
     for (const b of result.blockStructure.slice(0, 3)) {
       expect(b.weeksRange).toBe("2–6 sem");
     }
+  });
+});
+
+/**
+ * Bug réel signalé par le coach ("je n'ai pas l'impression que ces données
+ * soient justes pour Vince") : la jauge VLamax du rapport ("Position de
+ * chaque paramètre par rapport à la plage attendue") utilisait une
+ * fourchette générique codée en dur ([0.3, 0.5]) identique pour TOUS les
+ * objectifs — alors que la cible VLamax canonique de l'app (getVlamaxTarget,
+ * déjà utilisée par le diagnostic/plan/risque blessure) dépend fortement de
+ * l'objectif (0.28-0.44 pour un 70.3, 0.28-0.42 pour un Marathon, etc.). Le
+ * bandeau "Bande verte = plage de référence pour ton niveau ET TON
+ * OBJECTIF" promettait une personnalisation qui n'existait pas.
+ */
+describe("computePerformanceReport — jauge VLamax dépend réellement de l'objectif", () => {
+  it("la cible de la jauge VLamax correspond à getVlamaxTarget(objectif, 'run'), pas à une fourchette générique", () => {
+    const marathonResult = computePerformanceReport(BASE_PAYLOAD, opts); // athlete.goal = "Marathon"
+    const marathonTarget = getVlamaxTarget("Marathon", "run");
+    const vlamaxGauge = marathonResult.gauges.find((g) => g.label === "VLamax")!;
+    expect(vlamaxGauge.target).toEqual([marathonTarget.min, marathonTarget.max]);
+    expect(vlamaxGauge.target).not.toEqual([0.3, 0.5]);
+  });
+
+  it("un même 70.3 change la cible affichée par rapport à un Marathon (cibles canoniques différentes)", () => {
+    const payload703 = { ...BASE_PAYLOAD, athlete: { ...BASE_PAYLOAD.athlete, goal: "70.3" } };
+    const result703 = computePerformanceReport(payload703, opts);
+    const resultMarathon = computePerformanceReport(BASE_PAYLOAD, opts);
+    const gauge703 = result703.gauges.find((g) => g.label === "VLamax")!;
+    const gaugeMarathon = resultMarathon.gauges.find((g) => g.label === "VLamax")!;
+    expect(gauge703.target).not.toEqual(gaugeMarathon.target);
+  });
+
+  it("le verdict \"Profil économe/glycolytique\" de la table des paramètres utilise le même seuil canonique que la jauge (plus le seuil générique 0.45)", () => {
+    // 0.44 : conforme à la cible max 70.3 (0.44) mais déjà au-dessus de la
+    // cible max Marathon (0.42) — l'ancien seuil générique 0.45 aurait classé
+    // les deux profils "Profil économe" à tort pour le Marathon.
+    const payload = { ...BASE_PAYLOAD, vlamax: { value: 0.44 } };
+    const payload703 = { ...payload, athlete: { ...payload.athlete, goal: "70.3" } };
+    const resultMarathon = computePerformanceReport(payload, opts); // goal: "Marathon"
+    const result703 = computePerformanceReport(payload703, opts);
+    const rowMarathon = resultMarathon.parameterRows.find((r: any) => r.name === "VLamax")!;
+    const row703 = result703.parameterRows.find((r: any) => r.name === "VLamax")!;
+    expect(rowMarathon.verdict).toBe("Profil glycolytique");
+    expect(row703.verdict).toBe("Profil économe");
   });
 });

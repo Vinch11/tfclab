@@ -28,6 +28,7 @@ import { TRAINABILITY_CAPS } from "@/lib/v2/trainabilityCaps";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { deriveTrainingZones } from "@/lib/zones/deriveTrainingZones";
+import { getVlamaxTarget } from "@/lib/v2/vlamaxTargets";
 import { AMBER, MINT, PERI, ROSE, SKY, VIOL } from "./charts";
 import type {
   PerfBlock,
@@ -154,6 +155,17 @@ export function computePerformanceReport(
   const fcThreshold = num((snap as any)?.fc_seuil ?? (snap as any)?.fc_threshold);
   const age = num(payload?.ageAdjustment?.age);
 
+  // Cible VLamax RÉELLEMENT dépendante de l'objectif (course/triathlon)
+  // — source unique déjà utilisée par le diagnostic/plan (injuryRiskUnified,
+  // lorangStrategyEngine, planConfigBuilder...). Le gauge ci-dessous utilisait
+  // jusqu'ici une fourchette générique identique pour tout le monde
+  // ([0.3, 0.5]), sans lien avec l'objectif réel de l'athlète — pour un 70.3
+  // (cible canonique 0,28-0,44), une valeur de 0,44 apparaissait à tort
+  // "dans la cible" du rapport alors qu'elle est déjà au plafond réel de son
+  // objectif, et inversement une valeur conforme au 70.3 pouvait paraître
+  // "hors cible" par rapport à la bande générique.
+  const vlamaxTarget = getVlamaxTarget(payload?.athlete?.goal ?? null, "run");
+
   const hasModel = vo2max != null && vlamax != null && weightKg != null;
   const profile: MaderProfile | null = hasModel
     ? { vo2max, vlamax, weight: weightKg, efficiency: 0.23 }
@@ -208,7 +220,7 @@ export function computePerformanceReport(
       value: vlamax,
       display: fr(vlamax, 2),
       scale: [0.2, 1.0],
-      target: [0.3, 0.5],
+      target: [vlamaxTarget.min, vlamaxTarget.max],
       color: ROSE,
       lowerIsBetter: true,
     },
@@ -270,11 +282,14 @@ export function computePerformanceReport(
     {
       name: "VLamax",
       detail: fr(vlamax, 2, "mmol/L/s"),
+      // Seuil aligné sur la cible canonique de l'objectif (getVlamaxTarget),
+      // pas un seuil générique — un même 0,44 est "conforme" pour un 70.3
+      // (cible max 0,44) mais "trop haut" pour un Marathon (cible max 0,42).
       verdict:
-        vlamax == null ? "Données insuffisantes" : vlamax <= 0.45 ? "Profil économe" : "Profil glycolytique",
+        vlamax == null ? "Données insuffisantes" : vlamax <= vlamaxTarget.max ? "Profil économe" : "Profil glycolytique",
       meaning:
         "La vitesse maximale de production de lactate. Haute, elle consomme les glucides et abaisse le seuil ; basse, elle économise le carburant mais coûte de l'explosivité.",
-      pill: pill(vlamax == null ? null : vlamax <= 0.45),
+      pill: pill(vlamax == null ? null : vlamax <= vlamaxTarget.max),
     },
     {
       name: "MLSS",
