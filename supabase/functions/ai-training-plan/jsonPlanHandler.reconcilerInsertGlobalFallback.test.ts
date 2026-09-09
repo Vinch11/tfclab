@@ -15,9 +15,15 @@ import { applyReconciler } from "./jsonPlanHandler.ts";
  * existe presque toujours ailleurs dans le catalogue complet.
  */
 
+// bike.min à 0 (au lieu de 1) depuis le fix "plancher séance clé par sport"
+// (vague 1, correctif 4/4) : le plancher bike est désormais évalué par
+// classifyIntensity, pas par simple présence. Le fixture bike ci-dessous
+// (catalogId "V2_BIKE_RECOVERY", sans title/zones) n'existe que pour peupler
+// une journée du calendrier — ce test isole volontairement l'insertion RUN
+// via repli catalogue global, pas le comportement du plancher bike.
 const BASE_QUOTA = {
   quota: {
-    swim: { min: 0, max: 0 }, bike: { min: 1, max: 5 }, run: { min: 1, max: 5 },
+    swim: { min: 0, max: 0 }, bike: { min: 0, max: 5 }, run: { min: 1, max: 5 },
     brick: { min: 0, max: 1 }, strength: { min: 0, max: 2 },
     totalSessions: { min: 1, max: 10 }, maxSessionsPerDay: 2, minFullRestDays: 0,
   },

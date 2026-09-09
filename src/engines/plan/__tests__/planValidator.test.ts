@@ -1499,3 +1499,77 @@ describe("planValidator", () => {
   });
 });
 
+describe("validateKeySessions — plancher par sport (audit génération de plan IA)", () => {
+  /**
+   * Bug réel corrigé : la règle 3 ("séance clé") n'agrégeait que le total
+   * hebdomadaire, toutes disciplines confondues — une semaine avec 1 clé
+   * vélo + 1 clé course + 3 séances 100% récup natation passait avec un
+   * score parfait. Corrigé : une discipline structurante de l'objectif,
+   * présente cette semaine, sans AUCUNE séance clé, est désormais signalée
+   * (rule: "key_sessions_per_sport"), sauf pour les objectifs
+   * Finisher/Start-to-Run (déjà exemptés de toute la règle 3).
+   */
+  it("triathlon (703) — natation 100% récup une semaine complète est signalée", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Natation", title: "Technique EF", details: "Éducatifs, Z1" },
+        { sport: "Natation", title: "Technique EF", details: "Éducatifs, Z1" },
+        { sport: "Vélo", title: "Z2 60min", details: "Endurance" },
+        { sport: "Vélo", title: "Seuil 3x10min", details: "Séance clé 🔑 Z5" },
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "Sortie longue", details: "SL progressive 🔑" },
+      ]),
+    ]);
+    const result = validatePlan(plan, "IRONMAN 70.3");
+    const perSportIssue = result.issues.find(i => i.rule === "key_sessions_per_sport" && i.week === 1);
+    expect(perSportIssue).toBeDefined();
+    expect(perSportIssue?.message).toContain("Natation");
+  });
+
+  it("triathlon (703) — natation avec une séance clé n'est pas signalée", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Natation", title: "Technique EF", details: "Éducatifs, Z1" },
+        { sport: "Natation", title: "Seuil 10x100m", details: "Séance clé 🔑 CSS" },
+        { sport: "Vélo", title: "Z2 60min", details: "Endurance" },
+        { sport: "Vélo", title: "Seuil 3x10min", details: "Séance clé 🔑 Z5" },
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "Sortie longue", details: "SL progressive 🔑" },
+      ]),
+    ]);
+    const result = validatePlan(plan, "IRONMAN 70.3");
+    expect(result.issues.filter(i => i.rule === "key_sessions_per_sport")).toHaveLength(0);
+  });
+
+  it("régression : plan course pure (Marathon) avec une séance vélo incidentelle non-clé n'est PAS signalé (cross-training, pas une discipline structurante)", () => {
+    const plan = makePlan([
+      makePolarizedWeek(1),
+      makePolarizedWeek(2),
+      makePolarizedWeek(3),
+      makePolarizedWeek(4, true),
+      makePolarizedWeek(5),
+      makePolarizedWeek(6),
+      makePolarizedWeek(7),
+      makeWeek(8, [
+        { sport: "Course", title: "EF Z2 30min", details: "Activation pré-course" },
+        { sport: "Course", title: "EF Z2 20min", details: "Récupération" },
+        { sport: "Course", title: "🏁 COURSE OBJECTIF", details: "Jour J — Marathon" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ], "Affûtage / Course"),
+    ]);
+    const result = validatePlan(plan);
+    expect(result.issues.filter(i => i.rule === "key_sessions_per_sport")).toHaveLength(0);
+  });
+
+  it("Finisher/Start-to-Run reste totalement exempté (y compris du plancher par sport)", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "Marche-course", details: "Technique, Z1" },
+        { sport: "Course", title: "Marche-course", details: "Technique, Z1" },
+      ]),
+    ]);
+    const result = validatePlan(plan, "5K", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "finisher");
+    expect(result.issues.filter(i => i.rule.startsWith("key_sessions"))).toHaveLength(0);
+  });
+});
+

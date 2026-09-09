@@ -821,13 +821,29 @@ export function applyReconciler(
         }
       }
 
-      // ────────── (b) INSERT si min ≥1 et 0 séance du sport ──────────
+      // ────────── (b) INSERT si min ≥1 et 0 séance CLÉ du sport ──────────
+      // Bug réel corrigé (audit "génération de plan IA", volet composition
+      // hebdomadaire) : ce filet ne se déclenchait que si `present === 0`
+      // (aucune séance de ce sport DU TOUT) — un sport avec 2-3 séances
+      // toutes classées récupération/technique passait sans jamais recevoir
+      // de séance de qualité. Pour swim/bike/run, `present` compte
+      // désormais les séances déjà présentes classées endurance/seuil/
+      // vo2/race_sim (via classifyIntensity, même classifieur que le pool
+      // de candidats juste en dessous) — pas n'importe quelle séance.
+      // Renfo garde l'ancien critère de présence simple (sa notion de
+      // "clé" n'a pas le même sens).
       if (entry.weekType !== "taper") {
         const sportsToCheck: Array<"swim" | "bike" | "run" | "strength"> = ["swim", "bike", "run", "strength"];
+        const KEY_FLOOR_SPORTS = new Set<"swim" | "bike" | "run" | "strength">(["swim", "bike", "run"]);
+        const isKeyClass = (cls: IntensityClass) =>
+          cls === "endurance" || cls === "tempo_threshold" || cls === "vo2_intensity" || cls === "race_sim";
         for (const sport of sportsToCheck) {
           const q = (entry.quota as any)[sport];
           if (!q || q.min < 1) continue;
-          const present = (week.sessions ?? []).filter(s => s.sport === sport).length;
+          const sportSessions = (week.sessions ?? []).filter(s => s.sport === sport);
+          const present = KEY_FLOOR_SPORTS.has(sport)
+            ? sportSessions.filter(s => isKeyClass(classifyIntensity((s as any).zones, `${s.title ?? ""} ${(s as any).details ?? ""}`))).length
+            : sportSessions.length;
           if (present > 0) continue;
           const floorMin =
             sport === "bike" && entry.floors?.longRideWeekly && entry.floors.slLongRideMin ? entry.floors.slLongRideMin :
@@ -843,7 +859,11 @@ export function applyReconciler(
           const buildInsertPool = (src: typeof candidates) => src
             .filter(c => c.sport === sport)
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
-            .filter(x => x.cls === "endurance" || x.cls === "recovery" || (sport === "strength" && x.cls === "unknown"))
+            // Pour swim/bike/run, le pool de réparation doit rester capable de
+            // produire une séance CLÉ (cf. present ci-dessus) — "recovery" en est
+            // exclu, sinon on réintroduit exactement le contenu que ce filet est
+            // censé combler. Renfo garde l'ancien filtre large.
+            .filter(x => KEY_FLOOR_SPORTS.has(sport) ? isKeyClass(x.cls) : (x.cls === "endurance" || x.cls === "recovery" || x.cls === "unknown"))
             .filter(x => floorMin === 0 ? true : (x.c.durationMin[1] >= floorMin || x.c.durationMedian >= floorMin))
             // Priorité au limiteur L1 (mots-clés extraits de son libellé) avant la
             // proximité de durée — auparavant seule la durée comptait, l'insertion ne
@@ -893,7 +913,11 @@ export function applyReconciler(
             day: dayTarget,
             title: picked.title,
             details: `${picked.structure || picked.title}. [ID: ${picked.id}]`,
-            isKeySession: floorMin > 0,
+            // floorMin n'est jamais calculé pour swim (seuls bike/run ont un
+            // floor SL dédié) : sans ce cas, une réparation natation n'était
+            // jamais taguée clé quel que soit son contenu réel (endurance
+            // garanti par le pool ci-dessus pour swim/bike/run).
+            isKeySession: KEY_FLOOR_SPORTS.has(sport) ? true : floorMin > 0,
             durationMin: dur,
             zones: picked.zones,
             sport,

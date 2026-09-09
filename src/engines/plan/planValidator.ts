@@ -48,6 +48,17 @@ export interface WeekMetrics {
   activeSessions: number;
   restDays: number;
   sports: Record<string, number>;
+  /**
+   * Bug réel corrigé (audit "génération de plan IA", volet composition
+   * hebdomadaire) : `keySessions` ci-dessous agrège toutes disciplines
+   * confondues — une semaine avec 1 clé vélo + 1 clé course + 3 séances 100%
+   * récup natation passait la règle 3 (validateKeySessions) avec un score
+   * parfait. Ce compteur par discipline (Natation/Vélo/Course uniquement —
+   * mêmes clés que `sports`, cf. normalizeSport) permet de détecter qu'une
+   * discipline présente cette semaine n'a aucune séance clé, même si le
+   * total hebdomadaire est correct.
+   */
+  keySessionsBySport: Record<string, number>;
   /** Estimated intensity distribution from session titles/details */
   intensityProfile: {
     lowPct: number;   // Z1-Z2 (easy, endurance, récupération)
@@ -191,6 +202,10 @@ const LOW_INTENSITY_PATTERNS = /z[12]|endurance|ef\b|footing|récup|recovery|eas
 const MID_INTENSITY_PATTERNS = /z3|tempo\b|allure\s*marathon|sweet\s*spot|zone\s*3|endurance\s*active|fartlek\s*léger/i;
 const HIGH_INTENSITY_PATTERNS = /z[4-7]|seuil|threshold|vo2|vma|interval|fractionné|sprint|hiit|30\/30|pma|over.under|norvégienne|billat|canova|race.pace|race.sim|compétition|course\b.*\brace|🏁|force\s*max|plio|rønnestad|sfr|côtes?\s*\d/i;
 const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|threshold|vo2|vma|sortie\s*longue|\bsl\b|long\s*(?:run|ride)|brick|race(?:[\s_.-]*sim|[\s_.-]*pace|[\s_.-]*power)|test|compétition|🏁|\bsst\b|sweet[\s_-]*spot|over.?under|train[\s_-]*low|fat\s*(?:max|ox)|lipid|tempo|norv[ée]gi|norwegian|double[\s_-]*threshold|pma|sprint|c[ôo]te|sfr|r[øo]nnestad|plio|strides|drill|force\s*max|[àa]\s*jeun|fasted|mlss|ftp|durabilit|simulation|endurance[\s_-]*long|z2[\s_-]*long|30[\/_ -]?30|allure|gut[\s_-]*train|back[\s_-]*to[\s_-]*back|renfo|ppg|muscul|gainage|core\b|strength/i;
+/** Disciplines endurance couvertes par le plancher "séance clé par sport" (validateKeySessions) — Renfo/Brick/Repos ont une sémantique différente. */
+const KEY_SESSION_ENDURANCE_SPORTS = ["Natation", "Vélo", "Course"] as const;
+/** Clés normalizeObjectiveKey() correspondant à un objectif triathlon (natation+vélo+course). */
+const TRIATHLON_OBJECTIVE_KEYS = new Set(["703", "IM", "Sprint", "Olympic"]);
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
 // Audit — l'ancien RACE_PATTERNS (mots génériques "course"/"race"/"objectif"/
 // "marathon"/"ironman"/"triathlon"/"semi"/"trail"/"10k") matchait la quasi-
@@ -439,9 +454,13 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
 
   // Sport distribution
   const sports: Record<string, number> = {};
+  const keySessionsBySport: Record<string, number> = {};
   for (const s of activeSessions) {
     const sport = normalizeSport(s.sport);
     sports[sport] = (sports[sport] || 0) + 1;
+    if (isKeySession(s)) {
+      keySessionsBySport[sport] = (keySessionsBySport[sport] || 0) + 1;
+    }
   }
 
   // Deload detection
@@ -484,6 +503,7 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     activeSessions: activeSessions.length,
     restDays,
     sports,
+    keySessionsBySport,
     intensityProfile: {
       lowPct: Math.round((low / total) * 100),
       midPct: Math.round((mid / total) * 100),
@@ -777,12 +797,26 @@ function validateKeySessions(
     return { issues: [], score: 100 };
   }
 
+  // Le plancher par sport (ci-dessous) ne porte que sur les disciplines
+  // réellement structurantes de l'objectif : Natation/Vélo uniquement pour
+  // un triathlon (703/IM/Sprint/Olympic) — sinon une simple séance vélo de
+  // cross-training incidentelle dans un plan Marathon/Trail serait à tort
+  // signalée comme "sport sans séance clé". "Course" reste vérifiée pour
+  // tout objectif : aucun objectif de cette app n'est un pur objectif vélo
+  // (cf. audit Cluster 4).
+  const objKeyForKeySessions = normalizeObjectiveKey(objective || "");
+  const isTriathlonObjective = TRIATHLON_OBJECTIVE_KEYS.has(objKeyForKeySessions);
+  const keySessionSportsToCheck = isTriathlonObjective
+    ? KEY_SESSION_ENDURANCE_SPORTS
+    : KEY_SESSION_ENDURANCE_SPORTS.filter(s => s === "Course");
+
   for (const wm of metrics) {
     // Décharge / semaine de course : hors périmètre d'évaluation (num. ET dénom.)
     if (wm.isDeload || wm.isRaceWeek) {
       continue;
     }
 
+    let weekCompliant: number;
 
     if (wm.keySessions === 0) {
       issues.push({
@@ -796,6 +830,7 @@ function validateKeySessions(
         // règle avant ce fix — désormais toutes alignées sur 2-4.
         message: `S${wm.weekNumber}: Aucune séance clé détectée (attendu: 2-4 séances d'intensité/semaine)`,
       });
+      weekCompliant = 0;
     } else if (wm.keySessions === 1 && wm.activeSessions >= 5) {
       issues.push({
         rule: "key_sessions",
@@ -803,7 +838,7 @@ function validateKeySessions(
         week: wm.weekNumber,
         message: `S${wm.weekNumber}: Seulement 1 séance clé pour ${wm.activeSessions} séances actives (recommandé: 2-4)`,
       });
-      compliant += 0.5;
+      weekCompliant = 0.5;
     } else if (wm.keySessions > 4) {
       issues.push({
         rule: "key_sessions",
@@ -811,10 +846,35 @@ function validateKeySessions(
         week: wm.weekNumber,
         message: `S${wm.weekNumber}: ${wm.keySessions} séances clés — risque de surcharge d'intensité`,
       });
-      compliant += 0.5;
+      weekCompliant = 0.5;
     } else {
-      compliant++;
+      weekCompliant = 1;
     }
+
+    // Bug réel corrigé (audit "génération de plan IA", volet composition
+    // hebdomadaire) : les branches ci-dessus ne regardent que le TOTAL
+    // hebdomadaire de séances clés, toutes disciplines confondues — une
+    // semaine avec 1 clé vélo + 1 clé course + 3 séances 100% récup
+    // natation passait déjà cette règle avec le score maximal. On vérifie
+    // ici, en plus, qu'aucune discipline structurante de l'objectif,
+    // PRÉSENTE cette semaine, ne se retrouve à 0 séance clé — mêmes
+    // exemptions deload/course/Finisher-Start-to-Run que ci-dessus.
+    const missingKeyBySport = keySessionSportsToCheck.filter(
+      sport => (wm.sports[sport] ?? 0) > 0 && (wm.keySessionsBySport[sport] ?? 0) === 0,
+    );
+    if (missingKeyBySport.length > 0) {
+      for (const sport of missingKeyBySport) {
+        issues.push({
+          rule: "key_sessions_per_sport",
+          severity: "error",
+          week: wm.weekNumber,
+          message: `S${wm.weekNumber}: ${sport} — ${wm.sports[sport]} séance(s) cette semaine, aucune classée séance clé (toutes récupération/technique)`,
+        });
+      }
+      weekCompliant = 0;
+    }
+
+    compliant += weekCompliant;
   }
 
   const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek).length || 1;
