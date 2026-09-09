@@ -198,3 +198,38 @@ describe("weeklySlotLayout — format LCW (isLCW) : pas de brick, back-to-back s
     }
   });
 });
+
+describe("weeklySlotLayout — fillSwim pose isKeySession (audit génération de plan IA)", () => {
+  /**
+   * Bug réel corrigé : contrairement à fillBike/fillRun, fillSwim ne posait
+   * jamais `isKeySession` sur aucun créneau — la natation ne recevait donc
+   * jamais la consigne "séance de qualité" (tag "(qualité)") dans le prompt
+   * envoyé à l'IA, alors que bike/run la reçoivent déjà pour leur créneau
+   * non partagé. Corrigé : le premier créneau natation placé dans la
+   * semaine porte désormais isKeySession: true.
+   */
+  it("703 age_group load : au moins un créneau natation porte isKeySession: true", () => {
+    const l = build("IRONMAN 70.3", "age_group", 10, "load");
+    const swimSlots = l.days.flatMap(d => d.slots.filter(s => s.sport === "swim"));
+    expect(swimSlots.length).toBeGreaterThan(0);
+    expect(swimSlots.some(s => s.isKeySession === true)).toBe(true);
+  });
+
+  it("IM competitor load : le premier créneau natation placé (round-robin mardi→dimanche) est la séance clé", () => {
+    const l = build("IRONMAN", "competitor", 13, "load");
+    const rrSwimOrder: Array<typeof l.days[number]["dayName"]> = ["mardi", "jeudi", "mercredi", "vendredi", "dimanche"];
+    const firstSwimDay = rrSwimOrder.find(d => l.days.find(day => day.dayName === d)!.slots.some(s => s.sport === "swim"));
+    expect(firstSwimDay).toBeDefined();
+    const firstSlot = l.days.find(d => d.dayName === firstSwimDay)!.slots.find(s => s.sport === "swim")!;
+    expect(firstSlot.isKeySession).toBe(true);
+  });
+
+  it("formatWeeklySlotLayoutLine affiche bien '(qualité)' pour la natation, pas seulement vélo/course", () => {
+    const l = build("IRONMAN 70.3", "age_group", 10, "load");
+    const line = formatWeeklySlotLayoutLine(1, l);
+    const swimDay = l.days.find(d => d.slots.some(s => s.sport === "swim" && s.isKeySession))!;
+    const dayLabelMap: Record<string, string> = { lundi: "Lun", mardi: "Mar", mercredi: "Mer", jeudi: "Jeu", vendredi: "Ven", samedi: "Sam", dimanche: "Dim" };
+    const segment = line.split(" · ").find(s => s.startsWith(`${dayLabelMap[swimDay.dayName]}:`));
+    expect(segment).toContain("(qualité)");
+  });
+});
