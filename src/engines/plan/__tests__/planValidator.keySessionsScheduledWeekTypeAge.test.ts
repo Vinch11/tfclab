@@ -105,3 +105,30 @@ describe("validateKeySessions — scheduledWeekType tient compte de l'âge (fix 
     expect(issue).toBeUndefined();
   });
 });
+
+/**
+ * Override coach explicite (PlanConfig.deloadCadenceWeeks, dernier paramètre
+ * de validatePlan) — permet de forcer un cycle 2:1 ou 3:1 indépendamment de
+ * l'âge, prioritaire sur l'auto-détection.
+ */
+describe("validateKeySessions — deloadCadenceWeeks (override coach) prime sur l'âge", () => {
+  it("coach force 2:1 (3) pour un jeune athlète (< 40 ans) : S3/12 devient 'recovery' → exemptée", () => {
+    const result = validatePlan(
+      planWithWeek3NonCompliant(), "Marathon", undefined, undefined, undefined, undefined,
+      { age: 28 } as any, undefined, undefined, undefined, undefined, undefined, undefined,
+      3,
+    );
+    const issue = result.issues.find((i) => i.rule === "key_sessions" && i.week === 3);
+    expect(issue).toBeUndefined();
+  });
+
+  it("coach force 3:1 (4) pour un master (≥ 40 ans) : S3/12 reste 'load' → flaguée malgré l'âge", () => {
+    const result = validatePlan(
+      planWithWeek3NonCompliant(), "Marathon", undefined, undefined, undefined, undefined,
+      { age: 45 } as any, undefined, undefined, undefined, undefined, undefined, undefined,
+      4,
+    );
+    const issue = result.issues.find((i) => i.rule === "key_sessions" && i.week === 3);
+    expect(issue).toBeDefined();
+  });
+});

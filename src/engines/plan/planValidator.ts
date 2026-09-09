@@ -502,6 +502,9 @@ function extractWeekMetrics(
    *  inferWeekType pour que `scheduledWeekType` reflète le cycle 2:1 (≥40
    *  ans) réellement appliqué à la génération, pas un cycle 3:1 par défaut. */
   athleteAge?: number | null,
+  /** Override coach explicite (PlanConfig.deloadCadenceWeeks) — prime sur
+   *  l'auto-détection par âge ci-dessus, cf. inferWeekType. */
+  cadenceOverride?: 3 | 4 | null,
 ): WeekMetrics {
   const activeSessions = week.sessions.filter(s => !s.isRest);
   const restDays = new Set(
@@ -534,7 +537,7 @@ function extractWeekMetrics(
   // consommé UNIQUEMENT par validateKeySessions (règle 3) en exemption
   // supplémentaire, pas par les règles qui vérifient le contenu réel.
   const scheduledWeekType = totalWeeks != null
-    ? inferWeekType(week.weekNumber, totalWeeks, objective, athleteAge)
+    ? inferWeekType(week.weekNumber, totalWeeks, objective, athleteAge, cadenceOverride)
     : null;
 
   // Race week detection
@@ -3480,6 +3483,10 @@ export function validatePlan(
    *  RaceGoal.raceFormat === "lcw_3day", calculé par l'appelant — prime sur
    *  la détection par texte libre (titre/thème) dans isLCWFormatPlan. */
   isLcwFormatHint?: boolean | null,
+  /** Override coach explicite du cycle de décharge (PlanConfig.deload
+   *  CadenceWeeks, UI plan config) : 3 = 2:1, 4 = 3:1. Prime sur l'auto-
+   *  détection par âge dans extractWeekMetrics/inferWeekType. */
+  deloadCadenceWeeks?: 3 | 4 | null,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -3500,7 +3507,7 @@ export function validatePlan(
   }
 
   // Extract metrics for each week
-  const weekMetrics = plan.weeks.map((w) => extractWeekMetrics(w, plan.totalWeeks, objective, athleteData?.age));
+  const weekMetrics = plan.weeks.map((w) => extractWeekMetrics(w, plan.totalWeeks, objective, athleteData?.age, deloadCadenceWeeks));
 
   // Run all validation rules
   const polarizationBase = validatePolarization(weekMetrics);

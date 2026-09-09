@@ -572,6 +572,9 @@ export default function AITrainingPlanPage() {
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
+  // Cycle de décharge (override coach) — "auto" = auto-détection par âge
+  // (inferWeekType, sessionSizingMatrix.ts : 2:1 dès 40 ans, sinon 3:1).
+  const [deloadCadence, setDeloadCadence] = useState<string>("auto");
   const [trainingLevel, setTrainingLevel] = useState<string>("auto");
   const [lockAmbition, setLockAmbition] = useState<boolean>(false);
 
@@ -655,6 +658,7 @@ export default function AITrainingPlanPage() {
     setConstraints("");
     setMaxSessionsPerDay("3");
     setStrengthSessionsPerWeek("2");
+    setDeloadCadence("auto");
     setTrainingLevel("auto");
     setLockAmbition(false);
     setRaceGoals([]);
@@ -678,6 +682,7 @@ export default function AITrainingPlanPage() {
       if (savedState.constraints) setConstraints(savedState.constraints);
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
+      if (savedState.deloadCadence) setDeloadCadence(savedState.deloadCadence);
       if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
       if (typeof savedState.lockAmbition === "boolean") setLockAmbition(savedState.lockAmbition);
 
@@ -799,6 +804,7 @@ export default function AITrainingPlanPage() {
       constraints,
       maxSessionsPerDay,
       strengthSessionsPerWeek,
+      deloadCadence,
       trainingLevel,
       lockAmbition,
 
@@ -842,7 +848,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -1307,6 +1313,7 @@ export default function AITrainingPlanPage() {
       })(),
       maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
       strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
+      deloadCadenceWeeks: deloadCadence === "auto" ? undefined : (parseInt(deloadCadence, 10) as 3 | 4),
       // ⚠️ NE PAS résoudre `amb` (clé canonique, ex. "world_class") vers son label
       // AMBITION_OPTIONS ici : ce label inclut l'icône emoji ("👑 Elite"), et
       // `normalizeAmbitionLevel` (appelé plus loin par computeAmbitionEffective)
@@ -1324,7 +1331,7 @@ export default function AITrainingPlanPage() {
     const built = buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
     // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
     return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, currentAthlete?.id]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, currentAthlete?.id]);
 
 
   const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
@@ -1989,6 +1996,7 @@ export default function AITrainingPlanPage() {
           // (course principale + courses additionnelles) plutôt que de
           // laisser validatePlan deviner via le titre/thème du plan.
           raceFormat === "lcw_3day" || raceGoals.some((g) => g?.raceFormat === "lcw_3day"),
+          cfg?.deloadCadenceWeeks,
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;
@@ -2211,7 +2219,7 @@ export default function AITrainingPlanPage() {
     // cas de sur-effectif) n'avait aucun équivalent. On reproduit ici le
     // même calcul de quota déterministe que la génération complète (PHASE
     // 2A, useAITrainingPlan.ts ~ligne 588-606) pour la seule semaine cible.
-    const regenWeekType = inferWeekType(weekNumber, parsedPlan.totalWeeks, fullPlanConfig.objective || "", athleteContext.data.age);
+    const regenWeekType = inferWeekType(weekNumber, parsedPlan.totalWeeks, fullPlanConfig.objective || "", athleteContext.data.age, fullPlanConfig.deloadCadenceWeeks);
     const regenHoursAvail = typeof fullPlanConfig.weeklyHours === "number" ? fullPlanConfig.weeklyHours : 0;
     const regenAmbition = typeof fullPlanConfig.ambition === "string" ? fullPlanConfig.ambition : "age_group";
     const regenTargetSpw = typeof fullPlanConfig.sessionsPerWeek === "number" && fullPlanConfig.sessionsPerWeek > 0
@@ -3227,6 +3235,21 @@ export default function AITrainingPlanPage() {
                       2 recommandé • 0 si blessure
                     </p>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Cycle de décharge</Label>
+                  <Select value={deloadCadence} onValueChange={setDeloadCadence}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Auto (selon l'âge)</SelectItem>
+                      <SelectItem value="4">3:1 — décharge toutes les 4 semaines</SelectItem>
+                      <SelectItem value="3">2:1 — décharge toutes les 3 semaines</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground">
+                    Auto : 2:1 dès 40 ans (Tanaka/Seals), 3:1 sinon. Force un cycle spécifique quel que soit l'âge.
+                  </p>
                 </div>
 
                 <div className="space-y-2">

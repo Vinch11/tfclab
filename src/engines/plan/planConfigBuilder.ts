@@ -99,6 +99,8 @@ export interface PlanFormConfig {
   sessionsPerWeek?: number;
   maxSessionsPerDay?: number;
   strengthSessionsPerWeek?: number;
+  /** Cycle de décharge coach (override) : 3 = 2:1, 4 = 3:1. Omis = auto (âge). */
+  deloadCadenceWeeks?: 3 | 4;
   ambition?: string;        // Label (e.g. "Age Group")
   constraints?: string;
   /** Évaluation rapide du niveau d'entraînement actuel — utilisé comme fallback CRR si TSS 7j absent */
@@ -324,6 +326,7 @@ export function buildPlanConfigFromDiagnostic(
     sessionsPerWeek: formConfig.sessionsPerWeek,
     maxSessionsPerDay: formConfig.maxSessionsPerDay,
     strengthSessionsPerWeek: formConfig.strengthSessionsPerWeek,
+    deloadCadenceWeeks: formConfig.deloadCadenceWeeks,
     ambition: effectiveFormConfig.ambition,
     ambitionMeta: {
       saisie: ambitionResolution.ambitionSaisie,

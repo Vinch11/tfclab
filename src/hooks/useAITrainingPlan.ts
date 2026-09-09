@@ -212,6 +212,13 @@ export interface PlanConfig {
   sessionsPerWeek?: number;
   maxSessionsPerDay?: number;
   strengthSessionsPerWeek?: number;
+  /**
+   * Cycle de décharge coach (override — audit "génération de plan IA", fix
+   * F1/UI) : 3 = 2:1 (décharge toutes les 3 semaines), 4 = 3:1 (toutes les 4
+   * semaines). Omis = auto-détection par âge (inferWeekType, sessionSizing
+   * Matrix.ts : 2:1 dès 40 ans, sinon 3:1).
+   */
+  deloadCadenceWeeks?: 3 | 4;
   ambition?: string;
   /**
    * Métadonnées de résolution d'ambition (déclassement en amont).
@@ -602,7 +609,7 @@ export function useAITrainingPlan() {
       for (let w = 1; w <= totalWeeks; w++) {
         // Position globale : quota/taper/recovery calculés sur la vraie place
         // de la semaine dans le plan (cf. PlanConfig.globalTotalWeeks).
-        const weekType = inferWeekType(w + weekOffset, effTotalWeeks, objectiveForQuota, athleteData.age);
+        const weekType = inferWeekType(w + weekOffset, effTotalWeeks, objectiveForQuota, athleteData.age, planConfig.deloadCadenceWeeks);
         const entry = computeWeekQuotaEntry(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat, {
           sessionsPerWeek: targetSpw,
           bannedSports: bannedSportsForQuota,
