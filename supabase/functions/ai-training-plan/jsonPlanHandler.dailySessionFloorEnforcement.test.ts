@@ -102,6 +102,59 @@ Deno.test("applyDailySessionFloorEnforcement — semaine taper/recovery/race jam
   assertEquals(repairs.length, 0);
 });
 
+// Fix A4 (audit "génération de plan IA") : ce filet comblait un jour creux
+// avec le candidat le plus proche en durée, SANS jamais vérifier si le sport
+// complémentaire a déjà 0 séance clé cette semaine — pouvant préférer une
+// fiche "recovery" plus proche en durée à une fiche "endurance" (qui, elle,
+// compte comme séance clé) et forcer isKeySession:false dans tous les cas,
+// même quand la fiche choisie était réellement "endurance".
+const CATALOG_DUMP_RUN_CHOICE = `#### Course
+| ID | Cat | Titre | Phase | Durée | Structure |
+| B_RUN_RECOVERY_JOG | A | Footing récupération | Base | 40-50 | récupération Z1 tranquille |
+| A_RUN_ENDURANCE_EASY | A | Endurance fondamentale | Base | 60-70 | endurance Z2 stable |
+`;
+
+Deno.test("applyDailySessionFloorEnforcement — sport complémentaire à 0 séance clé cette semaine : préfère 'endurance' à 'recovery' même si moins proche en durée, et tague isKeySession honnêtement", () => {
+  const chunks = [
+    { weeks: [mkWeek(1, [
+      mkSess("lundi", "strength", null, "Circuit Endurance Musculaire Général"),
+      mkSess("mardi", "bike", "V3_BIKE_FORCE_SFR"),
+      // Aucune séance "run" nulle part ailleurs cette semaine.
+    ])] },
+  ] as any;
+  const { chunks: out, repairs } = applyDailySessionFloorEnforcement(
+    chunks, { 1: BASE_QUOTA_LOAD }, [CATALOG_DUMP_RUN_CHOICE], "Ironman 70.3", "competitor",
+  );
+  const runSession = out[0].weeks[0].sessions.find((s: any) => s.sport === "run");
+  assert(runSession, "une séance run doit avoir été ajoutée le lundi");
+  // "endurance" gagne malgré une durée cible (45min) plus proche de la fiche
+  // "recovery" (médiane 45 vs 65) — combler le déficit prime sur la proximité.
+  assertEquals(runSession.catalogId, "A_RUN_ENDURANCE_EASY");
+  assertEquals(runSession.isKeySession, true, "isKeySession doit refléter la classe réellement choisie (endurance = clé)");
+  assertEquals(repairs.filter(r => r.code === "daily_floor_enforced").length, 1);
+});
+
+Deno.test("applyDailySessionFloorEnforcement — sport complémentaire a DÉJÀ une séance clé cette semaine : comportement inchangé (proximité de durée prime)", () => {
+  const chunks = [
+    { weeks: [mkWeek(1, [
+      mkSess("lundi", "strength", null, "Circuit Endurance Musculaire Général"),
+      mkSess("mardi", "bike", "V3_BIKE_FORCE_SFR"),
+      // Séance run "endurance" DÉJÀ présente ailleurs cette semaine (mercredi)
+      // → presentKeyForComplement=1 pour "run" → needsKeySession=false.
+      { day: "mercredi", sport: "run", title: "Endurance fondamentale", details: "endurance Z2 stable", catalogId: "A_RUN_ENDURANCE_EASY", custom: false, durationMin: 60 },
+    ])] },
+  ] as any;
+  const { chunks: out } = applyDailySessionFloorEnforcement(
+    chunks, { 1: BASE_QUOTA_LOAD }, [CATALOG_DUMP_RUN_CHOICE], "Ironman 70.3", "competitor",
+  );
+  const lundiRun = out[0].weeks[0].sessions.find((s: any) => s.day === "lundi" && s.sport === "run");
+  assert(lundiRun, "une séance run doit avoir été ajoutée le lundi");
+  // Sans besoin de combler un déficit, la proximité de durée (45min cible)
+  // reprend la main — "recovery" (médiane 45) bat "endurance" (médiane 65).
+  assertEquals(lundiRun.catalogId, "B_RUN_RECOVERY_JOG");
+  assertEquals(lundiRun.isKeySession, false);
+});
+
 Deno.test("applyDailySessionFloorEnforcement — dump du chunk courant sans candidate, mais disponible dans un AUTRE chunk : repli catalogue global (même bug que le dédoublonnage 'Test_Vince')", () => {
   // Chunk 0 (S1) : dump SANS aucune fiche run/bike endurance — reproduit la
   // rotation catalogue réelle qui peut exclure ces fiches de ce chunk précis.

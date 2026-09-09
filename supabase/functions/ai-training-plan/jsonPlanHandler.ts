@@ -193,6 +193,17 @@ function classifyIntensity(zones: string[] | undefined, text: string): Intensity
   return "unknown";
 }
 
+/** Disciplines endurance couvertes par le plancher "séance clé par sport"
+ *  (cf. planValidator.ts::KEY_SESSION_ENDURANCE_SPORTS côté client) — Renfo
+ *  a une sémantique de présence différente. Partagé entre applyReconciler
+ *  (bloc b, insertion si 0 séance clé) et applyDailySessionFloorEnforcement
+ *  (fix A4, audit "génération de plan IA") pour rester une seule définition. */
+const KEY_FLOOR_SPORTS = new Set<"swim" | "bike" | "run" | "strength">(["swim", "bike", "run"]);
+/** Classes comptant comme "séance clé" pour le plancher par sport — tout sauf
+ *  récupération/inconnu. Partagé pour la même raison que KEY_FLOOR_SPORTS. */
+const isKeyClass = (cls: IntensityClass) =>
+  cls === "endurance" || cls === "tempo_threshold" || cls === "vo2_intensity" || cls === "race_sim";
+
 function rankCandidatesBySport(candidates: CatalogCandidate[], sport: NormalizedSport, durationMin: number) {
   const target = Number.isFinite(durationMin) && durationMin > 0 ? durationMin : 0;
   const sameSport = candidates.filter(c => c.sport === sport);
@@ -834,9 +845,6 @@ export function applyReconciler(
       // "clé" n'a pas le même sens).
       if (entry.weekType !== "taper") {
         const sportsToCheck: Array<"swim" | "bike" | "run" | "strength"> = ["swim", "bike", "run", "strength"];
-        const KEY_FLOOR_SPORTS = new Set<"swim" | "bike" | "run" | "strength">(["swim", "bike", "run"]);
-        const isKeyClass = (cls: IntensityClass) =>
-          cls === "endurance" || cls === "tempo_threshold" || cls === "vo2_intensity" || cls === "race_sim";
         for (const sport of sportsToCheck) {
           const q = (entry.quota as any)[sport];
           if (!q || q.min < 1) continue;
@@ -1317,17 +1325,42 @@ export function applyDailySessionFloorEnforcement(
           });
           continue;
         }
+        // Fix A4 (audit "génération de plan IA") : ce filet comblait un jour
+        // creux avec un sport complémentaire filtré endurance/recovery,
+        // toujours forcé isKeySession:false — sans jamais vérifier si ce
+        // sport a par ailleurs 0 séance clé cette semaine (même critère
+        // qu'applyReconciler bloc (b), KEY_FLOOR_SPORTS/isKeyClass ci-dessus).
+        // Si oui, il pouvait AGGRAVER A1/A2 (choisir "recovery" par pure
+        // proximité de durée, quand une fiche "endurance" tout aussi proche
+        // aurait compté comme séance clé) au lieu de les compenser.
+        const presentKeyForComplement = KEY_FLOOR_SPORTS.has(complementSport)
+          ? (week.sessions ?? []).filter(s => s.sport === complementSport
+              && isKeyClass(classifyIntensity((s as any).zones, `${s.title ?? ""} ${(s as any).details ?? ""}`))).length
+          : null;
+        const needsKeySession = presentKeyForComplement === 0;
+
         const targetDur = complementSport === "strength" ? 40 : 45;
         const buildComplementPool = (src: typeof candidates) => src
           .filter(c => c.sport === complementSport)
           .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
           .filter(x => x.cls === "endurance" || x.cls === "recovery" || (complementSport === "strength" && x.cls === "unknown"))
-          .sort((a, b) => Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur));
+          .sort((a, b) => {
+            // Sport déjà à 0 séance clé cette semaine : préférer une fiche
+            // "endurance" (compte comme clé, cf. isKeyClass) à une fiche
+            // "recovery" — combler le trou plutôt que le creuser.
+            if (needsKeySession) {
+              const aScore = a.cls === "endurance" ? 0 : 1;
+              const bScore = b.cls === "endurance" ? 0 : 1;
+              if (aScore !== bScore) return aScore - bScore;
+            }
+            return Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur);
+          });
         // Repli catalogue global si le dump local du chunk n'a rien (cf.
         // commentaire allCandidatesAllChunks ci-dessus).
         const poolLocal = buildComplementPool(candidates);
         const pool = poolLocal.length > 0 ? poolLocal : buildComplementPool(allCandidatesAllChunks);
-        const picked = pool[0]?.c ?? null;
+        const pickedEntry = pool[0] ?? null;
+        const picked = pickedEntry?.c ?? null;
         if (!picked) {
           traces.push(`[DAILY_FLOOR] S${week.weekNumber} ${day} action=unresolved_no_candidate (complement=${complementSport})`);
           repairs.push({
@@ -1340,7 +1373,10 @@ export function applyDailySessionFloorEnforcement(
         const newSess: any = {
           day, title: picked.title,
           details: `${picked.structure || picked.title}. [ID: ${picked.id}]`,
-          isKeySession: false, durationMin: dur, zones: picked.zones,
+          // isKeySession reflète honnêtement la classe RÉELLEMENT choisie —
+          // avant ce fix, toujours false même quand la fiche choisie était
+          // "endurance" (une vraie séance clé pour KEY_FLOOR_SPORTS).
+          isKeySession: isKeyClass(pickedEntry!.cls), durationMin: dur, zones: picked.zones,
           sport: complementSport, custom: false, catalogId: picked.id,
         };
         (week.sessions as any[]).push(newSess);
