@@ -93,13 +93,27 @@ export function applyTaperVolumeOverride(
   }
 
   const detect = (week: ParsedWeek): WeekKind => {
-    if (raceWeek) {
-      if (week.weekNumber === raceWeek) return "race";
-      if (week.weekNumber === raceWeek - 1) return "taper";
-    } else {
-      const t = isTaperWeek(week);
-      if (t) return t;
-    }
+    // Bug réel corrigé (audit "génération de plan IA", C1) : quand raceWeek
+    // est connu, seule la semaine raceWeek-1 recevait le facteur taper —
+    // pour tout objectif dont le taper canonique dépasse 1 semaine (IM,
+    // 70.3, Marathon, Trail long...), les semaines de taper antérieures,
+    // dont `phase` vaut pourtant littéralement "Affûtage" (inferPhaseFromWeek
+    // ne connaît pas de valeur "race" distincte, y compris pour la dernière
+    // semaine — cf. jsonPlanHandler.ts::inferPhaseFromWeek), retombaient sur
+    // detectPhaseKind("affûtage") = "generic" = 100% du volume affiché.
+    //
+    // Le numéro de semaine de course reste prioritaire (précis, sans
+    // ambiguïté) : le thème généré par l'IA pour CETTE semaine précise ne
+    // mentionne pas toujours explicitement "course" (le marqueur 🏁 est
+    // souvent porté par une séance insérée par le réconciliateur, pas par le
+    // thème de la semaine — cf. RACE_DAY_RX dans planReconciler.ts). Ensuite,
+    // isTaperWeek (phase/thème) couvre désormais TOUTE la fenêtre de taper,
+    // plus seulement raceWeek-1 — repli positionnel conservé pour cette
+    // semaine précise si son thème/phase ne portent aucun signal exploitable.
+    if (raceWeek && week.weekNumber === raceWeek) return "race";
+    const t = isTaperWeek(week);
+    if (t) return t;
+    if (raceWeek && week.weekNumber === raceWeek - 1) return "taper";
     const combined = `${week.theme} ${week.coachNotes || ""}`;
     if (RECOVERY_RX.test(combined)) return "recovery";
     return detectPhaseKind(week.phase || "");
