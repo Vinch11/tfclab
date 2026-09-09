@@ -6,6 +6,7 @@
 
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 import { getTemplateProfiles, getClosestProfile, type TemplateProfile, type TemplateProfilePair } from "@/data/templateProfiles";
+import { taperWeeksForObjective } from "@/engines/plan/sessionSizingMatrix";
 
 // ============= TYPES =============
 
@@ -834,6 +835,14 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
   
   // Legacy alias for isIM (for backwards compatibility with existing code)
   const isIM = isIMFull;
+  // Fix C5 (audit "génération de plan IA") : deux règles de ce fichier
+  // détectaient chacune leur propre fenêtre de taper IM — l'une 4 semaines
+  // (IM-TAPER-1 plus bas, isTaperWeekIMFull), l'autre 2 semaines (section
+  // SESSION-LEVEL, isTaperWeek) — aucune ne correspondant au taper canonique
+  // IM (3 semaines, TAPER_WEEKS_BY_OBJECTIVE.IM, sessionSizingMatrix.ts,
+  // déjà la source de vérité utilisée par le moteur de génération). Unifiées
+  // ici sur cette même valeur.
+  const imTaperWeeks = taperWeeksForObjective("Ironman");
   
   // ============= MARATHON SPECIFIC PLAN ANNOTATIONS =============
   
@@ -1328,8 +1337,8 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
         }
       }
       
-      // IM-TAPER-1: Affûtage mal calibré (3-4 dernières semaines)
-      const isTaperWeekIMFull = week.weekNumber > totalWeeks - 4 || (totalWeeks >= 20 && week.weekNumber > IMFULL_THRESHOLDS.taper_week_threshold);
+      // IM-TAPER-1: Affûtage mal calibré (fix C5 : taper unifié sur imTaperWeeks)
+      const isTaperWeekIMFull = week.weekNumber > totalWeeks - imTaperWeeks || (totalWeeks >= 20 && week.weekNumber > IMFULL_THRESHOLDS.taper_week_threshold);
       
       if (isTaperWeekIMFull) {
         const longSessionsInTaper = sessionsClassified.filter(s => s.classification.estimatedDurationMin > 120);
@@ -1628,7 +1637,9 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
   // ============= SESSION-LEVEL ANNOTATIONS =============
   
   weeks.forEach((week) => {
-    const isTaperWeek = isIM && (week.weekNumber > totalWeeks - 2 || (totalWeeks >= 20 && week.weekNumber > IM_THRESHOLDS.taper_week_threshold));
+    // Fix C5 : taper unifié sur imTaperWeeks (était 2 semaines en dur ici,
+    // 4 dans IM-TAPER-1 plus haut — même objectif IM, deux fenêtres différentes).
+    const isTaperWeek = isIM && (week.weekNumber > totalWeeks - imTaperWeeks || (totalWeeks >= 20 && week.weekNumber > IM_THRESHOLDS.taper_week_threshold));
     
     // Count key sessions this week for fatigue estimation
     const weekKeyCount = week.sessions.filter(s => classifySession(s).isKey).length;
