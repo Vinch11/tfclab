@@ -130,4 +130,61 @@ describe("planWindowRegen — rappel LCW explicite (checklist multi-semaines)", 
     });
     expect(config.constraints).not.toMatch(/LCW/);
   });
+
+  // Fix D4 (audit "génération de plan IA") : le filet dur côté edge
+  // (applyLcwSignatureEnforcement) ne voit que les chunks régénérés — sans
+  // lcwSignatureCountsElsewhere, il ignore ce qui est déjà satisfait HORS de
+  // la fenêtre et peut forcer un doublon (quota déjà atteint) ou, à
+  // l'inverse, signaler à tort une non-résolution. buildWindowRegenConfig a
+  // la visibilité plan-entier pour combler ce blanc, symétriquement à
+  // regenerateWeek.lcwSignatureCountsElsewhere (fix D2).
+  describe("lcwSignatureCountsElsewhere — visibilité plan-entier transmise au filet dur (fix D4)", () => {
+    it("compte les occurrences des 2 IDs à quota dur présentes HORS de la fenêtre régénérée", () => {
+      const plan = makePlan(9, {
+        2: [{ dayIndex: 5, dayName: "Samedi", sport: "Vélo", title: "Long ride LCW", catalogId: "B_LCW_BIKE_LONG_RACE_SAT" }],
+        3: [{ dayIndex: 6, dayName: "Dimanche", sport: "Course", title: "Off-legs run", catalogId: "B_LCW_RUN_OFF_LEGS_SUN" }],
+        8: [
+          { dayIndex: 5, dayName: "Samedi", sport: "Vélo", title: "Long ride LCW", catalogId: "B_LCW_BIKE_LONG_RACE_SAT" },
+          { dayIndex: 6, dayName: "Dimanche", sport: "Course", title: "Off-legs run", catalogId: "B_LCW_RUN_OFF_LEGS_SUN" },
+        ],
+      });
+      const { config } = buildWindowRegenConfig({
+        fromWeek: 5,
+        toWeek: 6,
+        currentPlan: plan,
+        athleteData,
+        baseConfig: lcwConfig,
+      });
+      expect(config.lcwSignatureCountsElsewhere).toEqual({
+        B_LCW_BIKE_LONG_RACE_SAT: 2,
+        B_LCW_RUN_OFF_LEGS_SUN: 2,
+      });
+    });
+
+    it("N'inclut PAS les occurrences DANS la fenêtre régénérée (elles vont être remplacées)", () => {
+      const plan = makePlan(9, {
+        5: [{ dayIndex: 5, dayName: "Samedi", sport: "Vélo", title: "Long ride LCW", catalogId: "B_LCW_BIKE_LONG_RACE_SAT" }],
+      });
+      const { config } = buildWindowRegenConfig({
+        fromWeek: 5,
+        toWeek: 6,
+        currentPlan: plan,
+        athleteData,
+        baseConfig: lcwConfig,
+      });
+      expect(config.lcwSignatureCountsElsewhere?.B_LCW_BIKE_LONG_RACE_SAT ?? 0).toBe(0);
+    });
+
+    it("vaut null pour un plan qui n'est pas au format LCW (pas de comptage inutile)", () => {
+      const plan = makePlan(7);
+      const { config } = buildWindowRegenConfig({
+        fromWeek: 5,
+        toWeek: 6,
+        currentPlan: plan,
+        athleteData,
+        baseConfig: continuousConfig,
+      });
+      expect(config.lcwSignatureCountsElsewhere).toBeNull();
+    });
+  });
 });

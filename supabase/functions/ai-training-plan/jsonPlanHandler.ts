@@ -1870,11 +1870,16 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           // couvrir. On reste actif en régénération semaine seule en informant le
           // filet du décompte déjà satisfait ailleurs dans le plan (transmis par
           // le client, seul à connaître le plan complet).
+          // Fix D4 (audit "génération de plan IA") : même défaut de visibilité en
+          // régénération de FENÊTRE (windowRegenPhase défini) — `chunks` ne couvre
+          // alors que la fenêtre, jamais le reste du plan. planConfig.lcwSignatureCountsElsewhere
+          // (planWindowRegen.ts::buildWindowRegenConfig, même mécanisme que D2) comble
+          // ce blanc symétriquement à regenerateWeek.lcwSignatureCountsElsewhere.
           const lcwEnforced = applyLcwSignatureEnforcement(
             reconciled.chunks,
             catalogDumpsByChunk,
             planConfig,
-            regenerateWeek?.lcwSignatureCountsElsewhere ?? {},
+            regenerateWeek?.lcwSignatureCountsElsewhere ?? planConfig?.lcwSignatureCountsElsewhere ?? {},
           );
           for (const line of lcwEnforced.traces) {
             console.log(line);
