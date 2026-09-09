@@ -51,12 +51,26 @@ function planHasLcwSignature(plan: ParsedPlan): { hasBikeSat: boolean; hasRunSun
  * (jsonPlanHandler.ts) — utilisé pour garder cohérente la sélection du
  * catalogue envoyé à l'IA avec la résolution faite côté serveur.
  */
-function catalogPhaseForGlobalWeek(globalWeek: number, globalTotalWeeks: number): "base" | "build" | "peak" | "taper" {
+function catalogPhaseForGlobalWeek(
+  globalWeek: number,
+  globalTotalWeeks: number,
+  objective?: string | null,
+): "base" | "build" | "peak" | "taper" {
+  // Fix C2 (audit "génération de plan IA") : seuil fixe (92%) remplacé par
+  // le même calcul objectif-aware que le serveur de référence
+  // (inferPhaseFromWeek, jsonPlanHandler.ts — taperWeeksForObjective : IM=3
+  // semaines, 70.3=2, Semi/Sprint/Olympique=1...). Pour un objectif à taper
+  // court, un seuil fixe pouvait classer "Peak" (travail à allure course)
+  // une semaine déjà dans la fenêtre de taper réelle de l'objectif — et
+  // `windowRegenPhase`, calculé ici, prime sur la version corrigée côté
+  // serveur. `inferWeekType` (déjà importé dans ce fichier, déjà
+  // objectif-aware) fait ce même calcul côté client.
+  const weekType = inferWeekType(globalWeek, globalTotalWeeks, objective);
+  if (weekType === "taper" || weekType === "race") return "taper";
   const pct = globalWeek / Math.max(globalTotalWeeks, 1);
   if (pct <= 0.30) return "base";
   if (pct <= 0.70) return "build";
-  if (pct <= 0.92) return "peak";
-  return "taper";
+  return "peak";
 }
 
 export interface WindowRegenRequest {
@@ -104,7 +118,7 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
   const periodizationLines: string[] = [];
   for (let i = 1; i <= windowSize; i++) {
     const globalWeek = i + globalWeekOffset;
-    const phase = catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks);
+    const phase = catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks, req.baseConfig.objective);
     const weekType = inferWeekType(globalWeek, globalTotalWeeks, req.baseConfig.objective || "");
     perWeekPhase.push(phase);
     phaseCounts[phase] = (phaseCounts[phase] ?? 0) + 1;
