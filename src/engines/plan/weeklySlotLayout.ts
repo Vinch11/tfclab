@@ -182,12 +182,23 @@ export function buildWeeklySlotLayout(
     ? ["mardi", "jeudi", "mercredi", "vendredi", "samedi"]
     : ["mercredi", "vendredi", "mardi", "jeudi", "samedi"];
 
+  // Bug réel corrigé (audit "génération de plan IA", volet composition
+  // hebdomadaire) : contrairement à fillBike/fillRun ci-dessous, cette
+  // fonction ne posait jamais `isKeySession` sur aucun créneau — la natation
+  // ne recevait donc jamais la consigne "séance de qualité" (tag "(qualité)")
+  // dans le prompt envoyé à l'IA, asymétrie structurelle cohérente avec le
+  // fait que la natation soit le sport le plus exposé aux semaines sans
+  // contenu de qualité. Le premier créneau placé dans la semaine porte
+  // désormais `isKeySession: true`, comme le fait bike/run pour leur créneau
+  // non partagé avec l'autre discipline.
   const fillSwim = () => {
+    let placed = 0;
     for (const d of rrSwim) {
       if (remaining.swim <= 0) break;
       if (!canAdd(d) || hasSportOn(d, "swim")) continue;
-      findDay(d).slots.push({ sport: "swim" });
+      findDay(d).slots.push({ sport: "swim", isKeySession: placed === 0 });
       remaining.swim--;
+      placed++;
     }
   };
   // Vélo restant (qualité) — jamais bike autonome le même jour qu'un brick.
