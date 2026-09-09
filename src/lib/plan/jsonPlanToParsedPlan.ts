@@ -48,7 +48,17 @@ function toParsedSession(s: MergedSession): ParsedSession {
 }
 
 function toParsedWeek(w: MergedWeek): ParsedWeek {
-  const sessions = w.sessions.map(toParsedSession);
+  // Bug réel (coach, capture d'écran) : les jours d'une semaine s'affichaient
+  // dans un ordre incohérent (ex. Lundi-Dimanche-Mardi-Samedi-Mercredi) —
+  // aucune étape du pipeline (merge des chunks, réconciliation, insertion de
+  // séances, filet dur signatures LCW) ne garantit que `sessions` reste
+  // ordonné par jour ; ces opérations mutent ou substituent des séances en
+  // place, ou en ajoutent en fin de tableau, sans jamais retrier. Ce mapping
+  // identité étant le point de passage UNIQUE des 3 chemins de génération
+  // (complète, fenêtre, semaine seule — tous convergent ici via
+  // jsonPlanToParsedPlan), un tri stable par dayIndex ici les corrige tous
+  // d'un coup, à la source, plutôt que dans chaque composant d'affichage.
+  const sessions = [...w.sessions].sort((a, b) => a.dayIndex - b.dayIndex).map(toParsedSession);
   const computedVolumeMin = w.sessions.reduce((sum, s) => sum + (s.durationMin || 0), 0);
   return {
     weekNumber: w.weekNumber,

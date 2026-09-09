@@ -285,7 +285,13 @@ export function parseAIPlan(markdown: string): ParsedPlan {
         computedVolumeMin: computedVolumeMin > 0 ? computedVolumeMin : undefined,
         computedVolumeStr,
         coachNotes: currentCoachNotes.trim() || undefined,
-        sessions: [...pendingSessions],
+        // Bug réel (coach, capture d'écran) : les jours d'une semaine
+        // s'affichaient dans un ordre incohérent — les lignes du tableau
+        // markdown généré par l'IA ne sont pas garanties dans l'ordre
+        // chronologique des jours. Tri stable par dayIndex (0=Lundi..
+        // 6=Dimanche) ; les rares lignes au jour non reconnu (dayIndex=-1,
+        // normDay) restent en tête plutôt que de casser le tri.
+        sessions: [...pendingSessions].sort((a, b) => a.dayIndex - b.dayIndex),
       };
 
       // === DEDUPLICATION: If this week number already exists, keep the one with more real sessions ===
