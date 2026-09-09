@@ -1964,6 +1964,10 @@ export default function AITrainingPlanPage() {
           cfg?.injuryRisk,
           ambition,
           cfg?.constraints,
+          // Fix D1 (audit "génération de plan IA") : raceFormat authoritative
+          // (course principale + courses additionnelles) plutôt que de
+          // laisser validatePlan deviner via le titre/thème du plan.
+          raceFormat === "lcw_3day" || raceGoals.some((g) => g?.raceFormat === "lcw_3day"),
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;
