@@ -14,7 +14,7 @@
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 import type { PlanAthleteData } from "./types";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
-import { extractCatalogId } from "@/lib/catalogIdExtractor";
+import { extractCatalogId, extractAllCatalogIds } from "@/lib/catalogIdExtractor";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { HIGH_IMPACT_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
@@ -1124,7 +1124,6 @@ function validateSportRatio(
 // CATALOGUE/CUSTOM RATIO VALIDATION (Rule 6)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const CATALOG_ID_PATTERN = /\b(?:[A-D]_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE)[A-Za-z0-9_]+|(?:BRICK|ENR|V[0-9]|TPL|RS|BR|URBAN|EXPE)_[A-Za-z0-9_]+)/g;
 const CUSTOM_PATTERN = /\[Custom\]/gi;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1192,20 +1191,18 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
       if (!isKey) continue;
 
       totalKeySessions++;
-      // Phase 1C-A : préférer session.catalogId (JSON path structuré),
-      // fallback regex title+details pour le chemin Markdown legacy.
-      const structuredId = (session as unknown as { catalogId?: string | null }).catalogId;
-      const ids: string[] = [];
-      if (typeof structuredId === "string" && structuredId.trim().length > 0) {
-        ids.push(structuredId.trim());
-      } else {
-        CATALOG_ID_PATTERN.lastIndex = 0;
-        let m: RegExpExecArray | null;
-        while ((m = CATALOG_ID_PATTERN.exec(text)) !== null) {
-          ids.push(m[0]);
-        }
-        CATALOG_ID_PATTERN.lastIndex = 0;
-      }
+      // Fix E3 (audit "génération de plan IA") : remplace la copie locale
+      // incomplète du détecteur d'identifiant (CATALOG_ID_PATTERN, supprimée)
+      // par extractAllCatalogIds (catalogIdExtractor.ts) — regex à jour,
+      // déjà utilisée ailleurs dans ce fichier via extractCatalogId.
+      // L'ancienne regex locale ratait ~20% des identifiants réels (préfixes
+      // HEAT_, BILLAT_, NORWEGIAN_, FATMAX_, etc., ajoutés depuis côté
+      // extracteur partagé mais jamais reportés ici), comptés à tort comme
+      // "hors catalogue" sur le chemin Markdown de secours. La variante
+      // multi-ID (pas extractCatalogId) est nécessaire pour préserver F-05 :
+      // une séance brick/pyramide peut mentionner plusieurs fiches dans son
+      // texte, chacune comptant pour la diversité catalogue réelle.
+      const ids = extractAllCatalogIds(session.title, session.details, session.catalogId);
       const isCustom = CUSTOM_PATTERN.test(text);
       CUSTOM_PATTERN.lastIndex = 0;
 
