@@ -19,6 +19,51 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(r!.downgraded).toBe(false);
   });
 
+  // Fix D5 (audit "génération de plan IA") : le brick est mis à zéro pour un
+  // plan LCW (course à étapes 3 jours) mais totalSessions n'était jamais
+  // ajusté en conséquence — le plancher devenait structurellement
+  // inatteignable (10 max sans brick < 11 requis pour 703 age_group),
+  // déclenchant systématiquement un faux positif "total hors fourchette".
+  it("703 age_group 10h load, LCW : brick à 0 ET totalSessions réduit du brick d'origine (plancher réellement atteignable)", () => {
+    const r = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "load", true);
+    expect(r).not.toBeNull();
+    const q = r!.quota;
+    expect(q.brick).toEqual({ min: 0, max: 0 });
+    // Sans LCW : totalSessions.min=11 (swim3+bike3+run3+brick1+strength1).
+    // Avec LCW (brick retranché) : 11-1=10, exactement swim3+bike3+run3+strength1.
+    expect(q.totalSessions.min).toBe(10);
+    expect(q.totalSessions.max).toBe(10);
+    const achievableMax = q.swim.max + q.bike.max + q.run.max + q.brick.max + q.strength.max;
+    expect(
+      q.totalSessions.min,
+      `totalSessions.min=${q.totalSessions.min} > plafond réellement atteignable (${achievableMax}) — faux positif garanti`,
+    ).toBeLessThanOrEqual(achievableMax);
+  });
+
+  it("703 finisher 6h load, LCW : brick {0,1} d'origine → seul totalSessions.max baisse (min déjà atteignable sans brick)", () => {
+    const withoutLCW = computeWeeklySessionQuota("IRONMAN 70.3", "finisher", 6, "load", false);
+    const withLCW = computeWeeklySessionQuota("IRONMAN 70.3", "finisher", 6, "load", true);
+    expect(withoutLCW).not.toBeNull();
+    expect(withLCW).not.toBeNull();
+    expect(withLCW!.quota.brick).toEqual({ min: 0, max: 0 });
+    expect(withLCW!.quota.totalSessions.min).toBe(withoutLCW!.quota.totalSessions.min);
+    expect(withLCW!.quota.totalSessions.max).toBe(withoutLCW!.quota.totalSessions.max - 1);
+  });
+
+  it("N'affecte PAS totalSessions pour un objectif non-LCW (703 sans isLCW)", () => {
+    const r = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "load", false);
+    expect(r).not.toBeNull();
+    expect(r!.quota.brick).toEqual({ min: 1, max: 1 });
+    expect(r!.quota.totalSessions.min).toBe(11);
+  });
+
+  it("N'affecte PAS totalSessions pour un objectif non-703/IM même avec isLCW=true (garde objKey déjà en place)", () => {
+    const r = computeWeeklySessionQuota("SEMI-MARATHON", "competitor", 6, "load", true);
+    expect(r).not.toBeNull();
+    const witness = computeWeeklySessionQuota("SEMI-MARATHON", "competitor", 6, "load", false);
+    expect(r!.quota.totalSessions).toEqual(witness!.quota.totalSessions);
+  });
+
   it("703 elite 12h → downgraded=true vers competitor", () => {
     const r = computeWeeklySessionQuota("IRONMAN 70.3", "elite", 12, "load");
     expect(r).not.toBeNull();
