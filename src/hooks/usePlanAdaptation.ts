@@ -154,7 +154,10 @@ export function usePlanAdaptation() {
             result = swapModality(args.currentPlan, args.options as SwapModalityOptions);
             break;
           case "shift_race":
-            result = shiftRaceDate(args.currentPlan, args.options as ShiftRaceDateOptions);
+            result = shiftRaceDate(args.currentPlan, {
+              ...(args.options as ShiftRaceDateOptions),
+              objective: args.planConfig?.objective,
+            });
             break;
         }
 

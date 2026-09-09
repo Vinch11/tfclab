@@ -90,10 +90,33 @@ describe("planPatcher", () => {
     expect(sess.details).toContain("SWAP");
   });
 
-  it("shiftRaceDate annote les 3 dernières semaines", () => {
+  it("shiftRaceDate — sans objectif connu, annote seulement la dernière semaine (DEFAULT_TAPER_WEEKS=1, pas 3 en dur)", () => {
+    // Fix C4 (audit "génération de plan IA") : avant le fix, `taperStart`
+    // supposait TOUJOURS 3 semaines de taper, quel que soit l'objectif (ou
+    // son absence). Sans objectif connu, mieux vaut le plancher sûr par
+    // défaut (1 semaine, DEFAULT_TAPER_WEEKS) que d'inventer 3 à l'aveugle.
     const { diff } = shiftRaceDate(makePlan(), { weeksShift: 2, reason: "Course reportée" });
-    expect(diff.length).toBeGreaterThanOrEqual(2);
+    expect(diff.length).toBe(1);
+    expect(diff[0].weekNumber).toBe(4);
     expect(diff.every((d) => d.type === "taper_shift")).toBe(true);
+  });
+
+  it("shiftRaceDate — objectif IM (taper canonique 3 semaines) annote les 3 dernières semaines", () => {
+    const plan: ParsedPlan = { ...makePlan(), totalWeeks: 6, weeks: [
+      ...makePlan().weeks.slice(0, 2),
+      { weekNumber: 3, theme: "Build", phase: "Build", sessions: [] },
+      { weekNumber: 4, theme: "Taper -3", phase: "Taper", sessions: [] },
+      { weekNumber: 5, theme: "Taper -2", phase: "Taper", sessions: [] },
+      { weekNumber: 6, theme: "Race", phase: "Race", sessions: [] },
+    ] };
+    const { diff } = shiftRaceDate(plan, { weeksShift: 1, reason: "Course reportée", objective: "Ironman" });
+    expect(diff.map((d) => d.weekNumber).sort()).toEqual([4, 5, 6]);
+  });
+
+  it("shiftRaceDate — objectif Marathon (taper canonique 2 semaines) annote les 2 dernières semaines", () => {
+    const plan: ParsedPlan = { ...makePlan(), totalWeeks: 4 };
+    const { diff } = shiftRaceDate(plan, { weeksShift: -1, reason: "Course avancée", objective: "Marathon" });
+    expect(diff.map((d) => d.weekNumber).sort()).toEqual([3, 4]);
   });
 
   it("truncateAfterWeek coupe le plan à la semaine donnée", () => {
