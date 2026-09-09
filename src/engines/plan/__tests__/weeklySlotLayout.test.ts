@@ -137,6 +137,69 @@ describe("weeklySlotLayout — diffLayoutVsWeek", () => {
     const drifts = diffLayoutVsWeek(l, observed);
     expect(drifts.some(d => d.dayName === "samedi")).toBe(true);
   });
+
+  // Fix A5 (audit "génération de plan IA") : le signal isKeySession posé par
+  // le layout (fillBike/fillRun, fix A3) n'était jusqu'ici jamais relu en
+  // aval — diffLayoutVsWeek ne comparait que l'ensemble des sports présents
+  // par jour. `observedKeyByDay` (3e paramètre optionnel) comble ce trou.
+  describe("observedKeyByDay — signal isKeySession du layout (fix A5)", () => {
+    it("drift détecté si un jour marqué qualité (isKeySession) n'a AUCUNE séance clé observée", () => {
+      const l = build("IRONMAN 70.3", "age_group", 10, "load");
+      const keyDay = l.days.find(d => d.slots.some(s => s.isKeySession));
+      expect(keyDay).toBeDefined();
+      const observed = new Map<string, string[]>();
+      const observedKey = new Map<string, boolean>();
+      for (const d of l.days) {
+        if (d.isRest) continue;
+        observed.set(d.dayName, d.slots.map(s => s.sport));
+        // Aucun jour n'est observé comme "clé" — même sport, contenu diluée en récup.
+      }
+      const drifts = diffLayoutVsWeek(l, observed, observedKey);
+      expect(drifts.some(d => d.dayName === keyDay!.dayName && d.observed === "séance non-clé")).toBe(true);
+    });
+
+    it("aucun drift qualité quand TOUS les jours marqués isKeySession ont bien une séance clé observée", () => {
+      const l = build("IRONMAN 70.3", "age_group", 10, "load");
+      expect(l.days.some(d => d.slots.some(s => s.isKeySession))).toBe(true);
+      const observed = new Map<string, string[]>();
+      const observedKey = new Map<string, boolean>();
+      for (const d of l.days) {
+        if (d.isRest) continue;
+        observed.set(d.dayName, d.slots.map(s => s.sport));
+        if (d.slots.some(s => s.isKeySession)) observedKey.set(d.dayName, true);
+      }
+      const drifts = diffLayoutVsWeek(l, observed, observedKey);
+      expect(drifts.some(d => d.observed === "séance non-clé")).toBe(false);
+    });
+
+    it("sans observedKeyByDay (paramètre omis), comportement inchangé — pas de vérification qualité", () => {
+      const l = build("IRONMAN 70.3", "age_group", 10, "load");
+      const observed = new Map<string, string[]>();
+      for (const d of l.days) {
+        if (d.isRest) continue;
+        observed.set(d.dayName, d.slots.map(s => s.sport));
+      }
+      const drifts = diffLayoutVsWeek(l, observed);
+      expect(drifts.length).toBe(0);
+    });
+
+    it("ne double-compte pas : un jour déjà en drift de sport n'est pas aussi signalé en drift qualité", () => {
+      const l = build("IRONMAN 70.3", "age_group", 10, "load");
+      const keyDay = l.days.find(d => d.slots.some(s => s.isKeySession))!;
+      const observed = new Map<string, string[]>();
+      const observedKey = new Map<string, boolean>();
+      for (const d of l.days) {
+        if (d.isRest) continue;
+        observed.set(d.dayName, d.slots.map(s => s.sport));
+      }
+      // Sport totalement différent de celui attendu ce jour-là — drift de sport.
+      observed.set(keyDay.dayName, ["swim"]);
+      const drifts = diffLayoutVsWeek(l, observed, observedKey);
+      const dayDrifts = drifts.filter(d => d.dayName === keyDay.dayName);
+      expect(dayDrifts.length).toBe(1);
+      expect(dayDrifts[0].observed).not.toBe("séance non-clé");
+    });
+  });
 });
 
 describe("plancher fréquence course taper/race", () => {

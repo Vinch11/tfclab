@@ -301,10 +301,20 @@ export function buildLayoutPromptBlock(
  * Retourne les jours où le sport dominant diverge du slot attendu.
  * v1 : sportif seulement (on ne vérifie pas isLongSession ni durée ici — les
  * floors s'en chargent). Warning "layout_drift".
+ *
+ * Fix A5 (audit "génération de plan IA") : `observedKeyByDay`, quand fourni,
+ * ajoute une seconde vérification — un jour marqué "qualité" au layout
+ * (`slot.isKeySession`) mais dont AUCUNE séance observée n'est réellement
+ * une séance clé (isKeySession structuré) est aussi signalé en drift. Ce
+ * signal `isKeySession` du layout n'était jusqu'ici jamais lu en aval — la
+ * comparaison ne portait que sur l'ensemble des sports présents par jour.
+ * Vérifié seulement quand les sports du jour correspondent déjà (sinon la
+ * divergence de sport, déjà détectée ci-dessus, suffit à expliquer le jour).
  */
 export function diffLayoutVsWeek(
   layout: WeeklySlotLayout,
   observedByDay: Map<string, string[]>,
+  observedKeyByDay?: Map<string, boolean>,
 ): Array<{ dayName: DayName; expected: string; observed: string }> {
   const drifts: Array<{ dayName: DayName; expected: string; observed: string }> = [];
   for (const d of layout.days) {
@@ -313,9 +323,8 @@ export function diffLayoutVsWeek(
     if (!d.isRest && d.slots.length === 0) continue;
     const expected = d.isRest ? ["rest"] : d.slots.map(s => s.sport).sort();
     // Normalisation casse (Mardi / mardi) + accents inutile ici (ASCII).
-    const raw = observedByDay.get(d.dayName)
-      ?? observedByDay.get(d.dayName.toLocaleLowerCase("fr-FR"))
-      ?? [];
+    const dayKeyLower = d.dayName.toLocaleLowerCase("fr-FR");
+    const raw = observedByDay.get(d.dayName) ?? observedByDay.get(dayKeyLower) ?? [];
     const observed = raw.length === 0 ? ["rest"] : [...raw].sort();
     // Comparaison ensembliste multi-slot (autoriser ordre différent)
     const sameSize = expected.length === observed.length;
@@ -326,6 +335,17 @@ export function diffLayoutVsWeek(
         expected: expected.join("+"),
         observed: observed.join("+"),
       });
+      continue;
+    }
+    if (observedKeyByDay && !d.isRest && d.slots.some(s => s.isKeySession)) {
+      const hasObservedKey = observedKeyByDay.get(d.dayName) ?? observedKeyByDay.get(dayKeyLower) ?? false;
+      if (!hasObservedKey) {
+        drifts.push({
+          dayName: d.dayName,
+          expected: "qualité (isKeySession)",
+          observed: "séance non-clé",
+        });
+      }
     }
   }
   return drifts;
