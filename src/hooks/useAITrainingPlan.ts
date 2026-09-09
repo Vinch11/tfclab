@@ -602,7 +602,7 @@ export function useAITrainingPlan() {
       for (let w = 1; w <= totalWeeks; w++) {
         // Position globale : quota/taper/recovery calculés sur la vraie place
         // de la semaine dans le plan (cf. PlanConfig.globalTotalWeeks).
-        const weekType = inferWeekType(w + weekOffset, effTotalWeeks, objectiveForQuota);
+        const weekType = inferWeekType(w + weekOffset, effTotalWeeks, objectiveForQuota, athleteData.age);
         const entry = computeWeekQuotaEntry(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat, {
           sessionsPerWeek: targetSpw,
           bannedSports: bannedSportsForQuota,
