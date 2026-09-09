@@ -462,7 +462,15 @@ const DEFAULT_TAPER_WEEKS = 1;
 function taperWeeksForTrail(objectiveLower: string): number | null {
   if (!objectiveLower.includes("trail") && !objectiveLower.includes("ultra")) return null;
   if (objectiveLower.includes("ultra")) return 3;
-  if (objectiveLower.includes("mountain") || objectiveLower.includes("long")) return 2;
+  // Fix C3 (audit "génération de plan IA") : le libellé UI réel est "Trail
+  // montagne" (français, cf. AthleteSelector.tsx/QuickObjectiveSelector.tsx)
+  // — seul "mountain" (anglais, matché via la clé objectif "TrailMountain")
+  // était reconnu ici. Le prompt LLM (sportRatioMatrix.ts, edge function)
+  // reconnaît déjà les deux graphies. Sans "montagne", le moteur de quotas
+  // client calculait 1 semaine de taper pour un objectif dont le prompt en
+  // demandait 2 — divergence entre ce qui est demandé à l'IA et ce que le
+  // moteur de quotas déterministe vérifie/affiche.
+  if (objectiveLower.includes("mountain") || objectiveLower.includes("montagne") || objectiveLower.includes("long")) return 2;
   return 1; // TrailShort / trail générique
 }
 

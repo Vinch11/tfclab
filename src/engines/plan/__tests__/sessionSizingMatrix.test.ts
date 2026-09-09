@@ -100,6 +100,17 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(inferWeekType(5, 12)).toBe("load");
   });
 
+  it("fix C3 : 'Trail montagne' (libellé UI réel, français) reconnu au même titre que 'Trail mountain' — taper 2 semaines", () => {
+    // Plan de 10 semaines : taper=2 → S8 est déjà taper (10-2=8). taper=1 (bug)
+    // → S8 reste "recovery" (8%4===0), pas "taper". Avant le fix, "Trail
+    // montagne" (graphie française réelle de l'UI) ne matchait aucun mot-clé
+    // de taperWeeksForTrail et retombait sur 1 semaine — divergent du prompt
+    // LLM (sportRatioMatrix.ts, edge function), qui reconnaît déjà les deux
+    // graphies et demande 2 semaines de taper pour cet objectif.
+    expect(inferWeekType(8, 10, "Trail montagne")).toBe("taper");
+    expect(inferWeekType(8, 10, "Trail mountain")).toBe("taper"); // déjà correct avant le fix
+  });
+
   // ─── PHASE 2A.1 — Invariant de faisabilité sur TOUTES les cellules ─────────
   it("invariant faisabilité : totalSessions.max ≤ (7−minRest)×maxPerDay ET totalSessions.min ≥ Σ mins sport", () => {
     const objectives = ["IRONMAN 70.3", "IRONMAN", "TRIATHLON SPRINT", "TRIATHLON OLYMPIQUE",
