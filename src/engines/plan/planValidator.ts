@@ -410,6 +410,43 @@ function isKeySession(session: ParsedSession): boolean {
 }
 
 /**
+ * Rule (fix A6, audit "génération de plan IA") : `isKeySession` est un
+ * booléen AUTO-DÉCLARÉ par le LLM (chemin JSON) et prime sur toute autre
+ * détection dans `isKeySession()` ci-dessus, sans jamais être confronté au
+ * contenu réel de la séance (zones, durée, mots-clés d'intensité). Un LLM
+ * qui sur-étiquette une séance de récupération en "clé" contournerait
+ * silencieusement le plancher par sport (A1/A2) même corrigé — cette règle
+ * ne change PAS `isKeySession()` (trop de règles en dépendent déjà pour un
+ * changement de confiance non mesuré) mais signale, en avertissement
+ * séparé, une déclaration suspecte : `isKeySession:true` sans AUCUN
+ * marqueur d'intensité moyenne/haute (seuil, VO2, tempo, sweet spot...)
+ * détectable dans le texte.
+ */
+function validateKeySessionSelfDeclaration(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  let totalDeclared = 0;
+  let mismatches = 0;
+  for (const week of plan.weeks) {
+    for (const s of week.sessions) {
+      if (s.isRest || s.isKeySession !== true) continue;
+      totalDeclared++;
+      const text = `${s.title} ${s.details}`;
+      if (!HIGH_INTENSITY_PATTERNS.test(text) && !MID_INTENSITY_PATTERNS.test(text)) {
+        mismatches++;
+        issues.push({
+          rule: "key_session_self_declaration_mismatch",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: séance déclarée "clé" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — "${s.title}"`,
+        });
+      }
+    }
+  }
+  if (totalDeclared === 0) return { issues: [], score: 100 };
+  return { issues, score: Math.round(((totalDeclared - mismatches) / totalDeclared) * 100) };
+}
+
+/**
  * F-23: Extract session duration in minutes from title + details.
  * Handles formats: "1h30", "1h", "90min", "45'", "45 min", "2h 15'".
  * Returns null if no duration found (do not invent a value).
@@ -3506,6 +3543,7 @@ export function validatePlan(
   const dailySessionFloor = validateDailySessionFloor(plan, objective, ambition);
   const lcwSignaturePresence = validateLcwSignaturePresence(plan, isLcwFormatHint);
   const raceDayOnlyFichePlacement = validateRaceDayOnlyFichePlacement(plan);
+  const keySessionSelfDeclaration = validateKeySessionSelfDeclaration(plan);
 
   // Combine all issues
   const allIssues = [
@@ -3534,6 +3572,7 @@ export function validatePlan(
     ...antiRepetition.issues,
     ...lcwSignaturePresence.issues,
     ...raceDayOnlyFichePlacement.issues,
+    ...keySessionSelfDeclaration.issues,
   ];
 
   // Weighted score (17 rules) — Lot 4 introduit lorangCategories (5%),
