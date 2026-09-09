@@ -509,10 +509,26 @@ export function taperWeeksForObjective(objective?: string | null): number {
  *             défaut si objectif inconnu — cf. table ci-dessus), OU pct > 0.92 (permet
  *             d'ajouter des semaines de taper supplémentaires sur les plans très longs,
  *             au-delà du minimum garanti par objectif)
- * - recovery: toutes les 4 semaines (cycle 3:1), hors taper/race
+ * - recovery: toutes les 4 semaines (cycle 3:1), ou toutes les 3 semaines
+ *             (cycle 2:1) si `athleteAge` >= 40, hors taper/race
  * - load    : autrement
  */
-export function inferWeekType(weekNumber: number, totalWeeks: number, objective?: string | null): WeekType {
+export function inferWeekType(
+  weekNumber: number,
+  totalWeeks: number,
+  objective?: string | null,
+  /**
+   * Fix F1 (audit "génération de plan IA", vague 6 — solidité scientifique) :
+   * le prompt (systemPrompt.ts, PROFIL MASTER Tanaka/Seals) exige un cycle de
+   * décharge resserré 2:1 dès 40 ans ("STRICTE ... jamais 3:1" dès 50 ans),
+   * mais ce garde-fou mécanique — seul réellement appliqué au quota hebdo
+   * (computeWeeklySessionQuota) et donc au volume effectivement généré —
+   * ignorait jusqu'ici l'âge et appliquait uniformément un cycle 3:1 (4
+   * semaines) à tout le monde. Optionnel et rétrocompatible : omis, le
+   * comportement (3:1 pour tous) est inchangé.
+   */
+  athleteAge?: number | null,
+): WeekType {
   const total = Math.max(totalWeeks, 1);
   if (weekNumber === total) return "race";
   // Garantit un minimum de semaines de taper adapté à l'objectif juste avant la course
@@ -525,7 +541,8 @@ export function inferWeekType(weekNumber: number, totalWeeks: number, objective?
   // plancher additionnel, un taper trop court relativement à la durée totale du plan).
   const pct = weekNumber / total;
   if (pct > 0.92) return "taper";
-  if (weekNumber % 4 === 0) return "recovery";
+  const recoveryEveryNWeeks = athleteAge != null && athleteAge >= 40 ? 3 : 4;
+  if (weekNumber % recoveryEveryNWeeks === 0) return "recovery";
   return "load";
 }
 

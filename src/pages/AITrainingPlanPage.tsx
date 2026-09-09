@@ -2211,7 +2211,7 @@ export default function AITrainingPlanPage() {
     // cas de sur-effectif) n'avait aucun équivalent. On reproduit ici le
     // même calcul de quota déterministe que la génération complète (PHASE
     // 2A, useAITrainingPlan.ts ~ligne 588-606) pour la seule semaine cible.
-    const regenWeekType = inferWeekType(weekNumber, parsedPlan.totalWeeks, fullPlanConfig.objective || "");
+    const regenWeekType = inferWeekType(weekNumber, parsedPlan.totalWeeks, fullPlanConfig.objective || "", athleteContext.data.age);
     const regenHoursAvail = typeof fullPlanConfig.weeklyHours === "number" ? fullPlanConfig.weeklyHours : 0;
     const regenAmbition = typeof fullPlanConfig.ambition === "string" ? fullPlanConfig.ambition : "age_group";
     const regenTargetSpw = typeof fullPlanConfig.sessionsPerWeek === "number" && fullPlanConfig.sessionsPerWeek > 0

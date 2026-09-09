@@ -494,7 +494,15 @@ export function parseSessionDurationMin(session: ParsedSession): number | null {
 // WEEK METRICS EXTRACTION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function extractWeekMetrics(week: ParsedWeek, totalWeeks?: number, objective?: string | null): WeekMetrics {
+function extractWeekMetrics(
+  week: ParsedWeek,
+  totalWeeks?: number,
+  objective?: string | null,
+  /** Fix F1 (audit "génération de plan IA", vague 6) : propage l'âge jusqu'à
+   *  inferWeekType pour que `scheduledWeekType` reflète le cycle 2:1 (≥40
+   *  ans) réellement appliqué à la génération, pas un cycle 3:1 par défaut. */
+  athleteAge?: number | null,
+): WeekMetrics {
   const activeSessions = week.sessions.filter(s => !s.isRest);
   const restDays = new Set(
     week.sessions.filter(s => s.isRest).map(s => s.dayIndex)
@@ -526,7 +534,7 @@ function extractWeekMetrics(week: ParsedWeek, totalWeeks?: number, objective?: s
   // consommé UNIQUEMENT par validateKeySessions (règle 3) en exemption
   // supplémentaire, pas par les règles qui vérifient le contenu réel.
   const scheduledWeekType = totalWeeks != null
-    ? inferWeekType(week.weekNumber, totalWeeks, objective)
+    ? inferWeekType(week.weekNumber, totalWeeks, objective, athleteAge)
     : null;
 
   // Race week detection
@@ -3492,7 +3500,7 @@ export function validatePlan(
   }
 
   // Extract metrics for each week
-  const weekMetrics = plan.weeks.map((w) => extractWeekMetrics(w, plan.totalWeeks, objective));
+  const weekMetrics = plan.weeks.map((w) => extractWeekMetrics(w, plan.totalWeeks, objective, athleteData?.age));
 
   // Run all validation rules
   const polarizationBase = validatePolarization(weekMetrics);

@@ -145,6 +145,23 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(inferWeekType(5, 12)).toBe("load");
   });
 
+  it("fix F1 (audit vague 6) : cycle de décharge resserré 2:1 (toutes les 3 semaines) dès 40 ans, au lieu de 3:1 (4 semaines) par défaut", () => {
+    // Sans âge (ou <40) : comportement inchangé, cycle 3:1.
+    expect(inferWeekType(3, 12)).toBe("load");
+    expect(inferWeekType(4, 12)).toBe("recovery");
+    expect(inferWeekType(3, 12, "IRONMAN 70.3", 35)).toBe("load");
+    expect(inferWeekType(4, 12, "IRONMAN 70.3", 35)).toBe("recovery");
+    // ≥40 ans (systemPrompt.ts, PROFIL MASTER Tanaka/Seals : "Charge 2:1" dès
+    // 40 ans, "STRICTE ... jamais 3:1" dès 50 ans) : décharge toutes les 3
+    // semaines — semaine 3 devient "recovery" (pas "load"), semaine 4 revient
+    // à "load" (le cycle recommence après la décharge, pas après 4 semaines).
+    expect(inferWeekType(3, 12, "IRONMAN 70.3", 40)).toBe("recovery");
+    expect(inferWeekType(4, 12, "IRONMAN 70.3", 40)).toBe("load");
+    expect(inferWeekType(6, 12, "IRONMAN 70.3", 52)).toBe("recovery");
+    // Race/taper priment toujours sur le cycle de décharge, quel que soit l'âge.
+    expect(inferWeekType(12, 12, "IRONMAN 70.3", 45)).toBe("race");
+  });
+
   it("fix C3 : 'Trail montagne' (libellé UI réel, français) reconnu au même titre que 'Trail mountain' — taper 2 semaines", () => {
     // Plan de 10 semaines : taper=2 → S8 est déjà taper (10-2=8). taper=1 (bug)
     // → S8 reste "recovery" (8%4===0), pas "taper". Avant le fix, "Trail
