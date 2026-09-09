@@ -910,6 +910,16 @@ export function useAITrainingPlan() {
                   (Array.isArray(planConfig.raceGoals) &&
                     planConfig.raceGoals.some(g => g?.raceFormat === "lcw_3day")) ||
                   /long\s*course\s*weekend|\blcw\b/i.test(String(planConfig.raceName ?? "")),
+                // Fix B1 (audit "génération de plan IA") : sans ça, ensureRaceDaySession
+                // traite la dernière semaine des chunks REÇUS (`collected`, qui ne
+                // couvre que la fenêtre régénérée en régénération partielle) comme la
+                // dernière semaine du PLAN ENTIER — cf. commentaire au site de
+                // définition dans planReconciler.ts. effTotalWeeks/weekOffset sont
+                // déjà calculés ci-dessus (PlanConfig.globalTotalWeeks/globalWeekOffset,
+                // posés par planWindowRegen.ts) ; en génération complète (pas de
+                // fenêtre), ils valent totalWeeks/0 et ne changent rien.
+                globalTotalWeeks: effTotalWeeks,
+                globalWeekOffset: weekOffset,
               });
 
               const c = rec.counters;

@@ -2302,6 +2302,14 @@ export default function AITrainingPlanPage() {
               objectiveKey: fullPlanConfig.objective ? normalizeObjectiveKey(fullPlanConfig.objective) : null,
               constraints: (fullPlanConfig as any)?.constraints ?? null,
               isLcw3Day: isLCWPlan,
+              // Fix B1 (audit "génération de plan IA") : `weekNumber` est déjà le
+              // numéro RÉEL de la semaine dans le plan entier (forcé plus haut sur
+              // regeneratedChunk.weeks[0]) — offset nul, total = celui du plan
+              // affiché. Sans ça, ensureRaceDaySession fabriquerait un faux
+              // "🏁 Jour J" à chaque régénération d'une semaine qui n'est pas
+              // réellement la dernière du plan.
+              globalTotalWeeks: parsedPlan.totalWeeks,
+              globalWeekOffset: 0,
             },
           );
           console.log(`[handleRegenerateWeek] reconciler S${weekNumber}:`, rec.counters);

@@ -818,7 +818,22 @@ function enforceStartToRunLadder(
   chunks: PlanChunk[],
   counters: ReconcilerCounters,
   logs: string[],
+  globalWeekOffset?: number | null,
 ): void {
+  // Fix B1 (audit "génération de plan IA") : même faille que
+  // ensureRaceDaySession — `chunks` peut ne couvrir qu'une fenêtre du plan
+  // (régénération partielle). `prevMax` repartait de 0 à chaque appel,
+  // aveugle à la progression déjà atteinte dans les semaines RÉELLEMENT
+  // antérieures mais hors de cette fenêtre, pouvant faire régresser
+  // l'échelle marche-course affichée. Sans visibilité sur cette progression
+  // réelle, mieux vaut ne rien lisser que lisser à tort (offset>0 = la
+  // fenêtre ne débute pas en S1 du plan réel).
+  if ((globalWeekOffset ?? 0) > 0) {
+    logs.push(
+      `[s2r_ladder_skipped] fenêtre ne débute pas en S1 du plan réel (offset=${globalWeekOffset}) — pas de visibilité sur la progression déjà atteinte, filet désactivé pour cet appel`,
+    );
+    return;
+  }
   const allWeeks = chunks
     .flatMap(ch => ch.weeks ?? [])
     .sort((a, b) => (a.weekNumber ?? 0) - (b.weekNumber ?? 0));
@@ -993,12 +1008,31 @@ function ensureRaceDaySession(
   logs: string[],
   objectiveKey: string | null | undefined,
   isLcw3Day = false,
+  globalTotalWeeks?: number | null,
+  globalWeekOffset?: number | null,
 ): void {
   const allWeeks = chunks
     .flatMap(ch => (ch.weeks ?? []))
     .sort((a, b) => (a.weekNumber ?? 0) - (b.weekNumber ?? 0));
   const last = allWeeks[allWeeks.length - 1];
   if (!last) return;
+
+  // Fix B1 (audit "génération de plan IA") : `chunks` peut ne couvrir qu'une
+  // FENÊTRE du plan (régénération partielle) — sans ce garde-fou, la
+  // dernière semaine REÇUE était traitée comme la dernière semaine du plan
+  // ENTIER, fabriquant un faux "🏁 Jour J" au milieu du plan (ex. semaines
+  // 9-12 d'un plan de 16 → jour J inséré à S12). globalTotalWeeks non fourni
+  // = comportement legacy (chunks supposés couvrir le plan entier, ex. B10/
+  // B11 appelés en tests unitaires sans ce contexte).
+  if (globalTotalWeeks != null) {
+    const globalLastWeek = (last.weekNumber ?? 0) + (globalWeekOffset ?? 0);
+    if (globalLastWeek !== globalTotalWeeks) {
+      logs.push(
+        `[race_day_skipped] fenêtre (dernière semaine locale=${last.weekNumber}, offset=${globalWeekOffset ?? 0} → globale=${globalLastWeek}) ne couvre pas la dernière semaine réelle du plan (${globalTotalWeeks}) — aucun jour de course fabriqué`,
+      );
+      return;
+    }
+  }
 
   const sessions = (last.sessions ?? []) as PlanSession[];
 
@@ -1171,6 +1205,21 @@ export interface RunReconcilerOptions {
   isLcw3Day?: boolean;
   /** Champ libre "Contraintes" saisi par le coach (jours off, sports interdits, blessures). */
   constraints?: string | null;
+  /**
+   * Nombre RÉEL de semaines du plan entier (PlanConfig.globalTotalWeeks) —
+   * distinct du nombre de semaines couvertes par `chunks` en régénération
+   * partielle (fenêtre ou semaine seule). Non fourni = comportement legacy
+   * (chunks supposés couvrir le plan entier).
+   */
+  globalTotalWeeks?: number | null;
+  /**
+   * Décalage entre le numéro de semaine LOCAL des `chunks` reçus et sa
+   * position RÉELLE dans le plan entier (PlanConfig.globalWeekOffset,
+   * = semaine réelle − 1 pour la 1ère semaine locale). 0 = les numéros
+   * locaux sont déjà les numéros réels (génération complète, régénération
+   * semaine seule).
+   */
+  globalWeekOffset?: number | null;
 }
 
 
@@ -1363,11 +1412,11 @@ export function runReconciler(
   fixEarlyConsolidationSessions(chunks, counters, logs);
   if (String(opts.objectiveKey ?? "").toLowerCase().includes("start")) {
     capStartToRunSessions(chunks, counters, logs);
-    enforceStartToRunLadder(chunks, counters, logs);
+    enforceStartToRunLadder(chunks, counters, logs, opts.globalWeekOffset);
     orderStartToRunWeek(chunks, counters, logs);
   }
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
-  ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day);
+  ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day, opts.globalTotalWeeks, opts.globalWeekOffset);
   alignPostBikeRunClaims(chunks, counters, logs);
 
   // Métrique de diversité finale (observabilité P0).
