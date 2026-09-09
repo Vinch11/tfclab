@@ -971,10 +971,34 @@ export function applyReconciler(
           const victim = occurrences[i];
           const sport = victim.sport;
           const victimClass = classifyIntensity(victim.zones, `${victim.title} ${victim.details ?? ""}`);
+          // Fix B4 (audit "génération de plan IA") : quand la classe de la
+          // VICTIME est "unknown" (texte non reconnu par classifyIntensity),
+          // l'ancien filtre (`x.cls === victimClass || x.cls === "unknown"
+          // || victimClass === "unknown"`) acceptait N'IMPORTE QUELLE classe
+          // de remplacement — y compris "recovery" — sans jamais relire ni
+          // réécrire `isKeySession`. Une séance clé dupliquée dont le texte
+          // ne matche aucun pattern d'intensité connu pouvait ainsi être
+          // silencieusement dégradée en récupération. Sans confiance sur la
+          // classe d'origine, on ne devine plus : la séance d'origine est
+          // conservée telle quelle (le doublon de catalogId reste, mais
+          // aucune dégradation de contenu n'est risquée).
+          if (victimClass === "unknown") {
+            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupId}(x${occurrences.length}) → occurrence #${i + 1} conservée telle quelle (classe victime=unknown, pas de remplacement fiable)`);
+            repairs.push({
+              code: "duplicate_catalog_id_unresolved",
+              severity: "warning",
+              chunkIndex: ci,
+              weekNumber: week.weekNumber,
+              sport,
+              session: { title: victim.title ?? "", catalogId: dupId, durationMin: victim.durationMin ?? 0 },
+              reason: `catalogId ${dupId} utilisé ${occurrences.length}× dans S${week.weekNumber} — classe d'intensité de la séance non reconnue (unknown), remplacement non tenté pour éviter une dégradation silencieuse (ex. vers recovery)`,
+            });
+            continue;
+          }
           const findAlt = (pool: typeof candidates) => pool
             .filter(c => c.sport === sport && !usedIdsThisWeek.has(c.id))
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
-            .filter(x => x.cls === victimClass || x.cls === "unknown" || victimClass === "unknown")
+            .filter(x => x.cls === victimClass || x.cls === "unknown")
             .sort((a, b) => Math.abs(a.c.durationMedian - (victim.durationMin ?? 0)) - Math.abs(b.c.durationMedian - (victim.durationMin ?? 0)))[0]?.c
             ?? null;
           // Repli catalogue complet (tous chunks) si le dump rotationné de CE
