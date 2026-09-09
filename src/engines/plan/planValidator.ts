@@ -12,6 +12,7 @@
  */
 
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
+import { inferWeekType, type WeekType } from "./sessionSizingMatrix";
 import type { PlanAthleteData } from "./types";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { extractCatalogId, extractAllCatalogIds } from "@/lib/catalogIdExtractor";
@@ -65,8 +66,18 @@ export interface WeekMetrics {
     midPct: number;   // Z3 (tempo, allure marathon)
     highPct: number;  // Z4-Z7 (seuil, VO2, VMA, sprint, intervalles)
   };
-  /** Whether this looks like a deload/recovery week */
+  /** Whether this looks like a deload/recovery week (basé sur le contenu
+   *  observé — thème/phase, nombre de séances actives). */
   isDeload: boolean;
+  /** Fix A7 (audit "génération de plan IA") : weekType canonique
+   *  (inferWeekType, sessionSizingMatrix.ts) calculé à partir de la position
+   *  réelle (weekNumber/totalWeeks/objective) — même fonction que la
+   *  génération utilise pour le quota hebdo. `null` si totalWeeks
+   *  indisponible à l'appel. Distinct d'isDeload (contenu observé) : utilisé
+   *  en exemption ADDITIONNELLE par validateKeySessions (règle 3) uniquement
+   *  — ne remplace pas isDeload pour les règles qui vérifient que la charge a
+   *  RÉELLEMENT été réduite (validateLoadPattern). */
+  scheduledWeekType: WeekType | null;
   /** Whether this looks like a race week */
   isRaceWeek: boolean;
   /** Whether this is an explicitly-named threshold block (norvégien double-seuil,
@@ -446,7 +457,7 @@ export function parseSessionDurationMin(session: ParsedSession): number | null {
 // WEEK METRICS EXTRACTION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
+function extractWeekMetrics(week: ParsedWeek, totalWeeks?: number, objective?: string | null): WeekMetrics {
   const activeSessions = week.sessions.filter(s => !s.isRest);
   const restDays = new Set(
     week.sessions.filter(s => s.isRest).map(s => s.dayIndex)
@@ -463,9 +474,23 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     }
   }
 
-  // Deload detection
+  // Deload detection — reste basé sur le CONTENU observé (regex thème/phase,
+  // ou ≤3 séances actives) : plusieurs règles (validateLoadPattern en
+  // particulier, "detects missing deload weeks") vérifient précisément que
+  // la génération a RÉELLEMENT réduit la charge une semaine sur N — un
+  // signal purement positionnel remplacerait ce contrôle de contenu par une
+  // présomption automatique ("semaine 4 = toujours recovery"), qui ne
+  // détecterait plus jamais l'absence réelle de décharge.
   const themeText = `${week.theme} ${week.phase}`.toLowerCase();
   const isDeload = DELOAD_PATTERNS.test(themeText) || activeSessions.length <= 3;
+  // Fix A7 (audit "génération de plan IA") : weekType canonique (même
+  // fonction que la génération utilise pour calculer le quota hebdo,
+  // sessionSizingMatrix.ts::inferWeekType), calculé séparément d'isDeload —
+  // consommé UNIQUEMENT par validateKeySessions (règle 3) en exemption
+  // supplémentaire, pas par les règles qui vérifient le contenu réel.
+  const scheduledWeekType = totalWeeks != null
+    ? inferWeekType(week.weekNumber, totalWeeks, objective)
+    : null;
 
   // Race week detection
   const isRaceWeek = weekHasRaceDay(week);
@@ -510,6 +535,7 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
       highPct: Math.round((high / total) * 100),
     },
     isDeload,
+    scheduledWeekType,
     isRaceWeek,
     isThresholdBlock,
     keySessions,
@@ -812,7 +838,18 @@ function validateKeySessions(
 
   for (const wm of metrics) {
     // Décharge / semaine de course : hors périmètre d'évaluation (num. ET dénom.)
-    if (wm.isDeload || wm.isRaceWeek) {
+    // Fix A7 (audit "génération de plan IA") : quand le contexte le permet
+    // (scheduledWeekType non-null), l'exemption se base sur le weekType
+    // RÉELLEMENT calculé à la génération plutôt que sur isDeload (heuristique
+    // de contenu — ≤3 séances actives ou thème par regex). Sans ce fix, une
+    // semaine "load" compressée à ≤3 séances (voyage, blessure) était
+    // exemptée à tort de cette règle par isDeload — alors qu'elle DOIT être
+    // vérifiée puisqu'elle n'est pas réellement une semaine de récupération
+    // planifiée. Repli sur isDeload uniquement si le contexte est absent.
+    const isDeloadOrTaperForKeySessions = wm.scheduledWeekType != null
+      ? wm.scheduledWeekType === "recovery" || wm.scheduledWeekType === "taper"
+      : wm.isDeload;
+    if (isDeloadOrTaperForKeySessions || wm.isRaceWeek) {
       continue;
     }
 
@@ -3418,7 +3455,7 @@ export function validatePlan(
   }
 
   // Extract metrics for each week
-  const weekMetrics = plan.weeks.map(extractWeekMetrics);
+  const weekMetrics = plan.weeks.map((w) => extractWeekMetrics(w, plan.totalWeeks, objective));
 
   // Run all validation rules
   const polarizationBase = validatePolarization(weekMetrics);
