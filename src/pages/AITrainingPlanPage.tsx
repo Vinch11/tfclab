@@ -2129,6 +2129,22 @@ export default function AITrainingPlanPage() {
     const lcwWeekendReminder = isLCWPlan && !isRestOrTaperOrRaceWeek
       ? `🏴 FORMAT LCW (Long Course Weekend) — cette semaine DOIT inclure le week-end signature : SAMEDI = long ride race-pace (catalogue \`B_LCW_BIKE_LONG_RACE_SAT\`), DIMANCHE = long run sur jambes fatiguées post-vélo veille (catalogue \`B_LCW_RUN_OFF_LEGS_SUN\`). Utilise ces IDs catalogue EXACTS — ne les remplace pas par une fiche générique (brick T2 immédiat interdit).`
       : "";
+    // Fix D2 (audit "génération de plan IA") : le filet dur serveur
+    // (applyLcwSignatureEnforcement) était désactivé en BLOC en régénération
+    // semaine seule — l'edge function ne voit QUE cette semaine, elle ne
+    // pouvait pas savoir si le quota checklist (≥3 occurrences chacun) était
+    // déjà satisfait ailleurs dans le plan. Seul le client connaît le plan
+    // complet : on lui transmet ce décompte pour que le filet reste actif
+    // sans jamais forcer à tort une substitution déjà satisfaite ailleurs.
+    const LCW_SIGNATURE_IDS = ["B_LCW_BIKE_LONG_RACE_SAT", "B_LCW_RUN_OFF_LEGS_SUN"] as const;
+    const lcwSignatureCountsElsewhere = isLCWPlan
+      ? LCW_SIGNATURE_IDS.reduce<Record<string, number>>((acc, id) => {
+          acc[id] = parsedPlan.weeks
+            .filter((w) => w.weekNumber !== weekNumber)
+            .reduce((n, w) => n + w.sessions.filter((s) => (s.catalogId || "").toUpperCase() === id).length, 0);
+          return acc;
+        }, {})
+      : undefined;
     const buildRegenerationConstraint = (correctionNote?: string) => [
       correctionNote || "",
       `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine — ni plus, ni moins. Recompte tes séances avant de répondre.`,
@@ -2184,6 +2200,7 @@ export default function AITrainingPlanPage() {
             phase: week.phase,
             theme: week.theme,
             totalWeeks: parsedPlan.totalWeeks,
+            lcwSignatureCountsElsewhere,
           },
           workoutCatalog: catalogResult.workoutCatalog,
         }),
