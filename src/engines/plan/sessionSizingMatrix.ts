@@ -474,10 +474,9 @@ function taperWeeksForTrail(objectiveLower: string): number | null {
   return 1; // TrailShort / trail générique
 }
 
-// Exportée (fix C4, audit "génération de plan IA") : shiftRaceDate
-// (planPatcher.ts) supposait toujours 3 semaines de taper en dur, alors que
-// l'appelant connaît déjà l'objectif — cette fonction est la source de
-// vérité déjà utilisée par inferWeekType pour le même calcul.
+// Exportée (fix C4/C5, audit "génération de plan IA") : cette fonction est
+// la source de vérité unique du taper par objectif, réutilisée en dehors de
+// ce fichier (planPatcher.ts::shiftRaceDate, annotationEngineV2.ts).
 export function taperWeeksForObjective(objective?: string | null): number {
   if (!objective) return DEFAULT_TAPER_WEEKS;
   const objKey = normalizeSizingObjective(objective);
