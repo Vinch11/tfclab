@@ -155,7 +155,13 @@ const START_TO_RUN: LibraryWorkout[] = [
     objectif: "Semaine de palier — répétition du volume de la semaine précédente sans progression",
     necessite: "Obligatoire",
     when: "JAMAIS avant la semaine 4. Uniquement en S4, S8 et S12 (semaines de consolidation) — interdite en S1-S3 car il n'existe aucun volume antérieur à répéter.",
-    phase: ["base", "build", "peak"],
+    // Bug réel corrigé (audit "génération de plan IA", volet catalogue) :
+    // cette fiche est explicitement utilisée en S12 ("when" ci-dessus), mais
+    // S12 (fin d'un cycle Start-to-Run de 12 semaines) tombe côté calcul de
+    // phase par pourcentage (phasesForWeekRange) dans le bucket "taper" —
+    // sans ce tag, la fiche disparaissait du catalogue injecté pour le
+    // dernier chunk du plan, contredisant son propre "when".
+    phase: ["base", "build", "peak", "taper"],
     avoid: "Semaines 1 à 3. Toute tentation d'augmenter la durée cette semaine.",
     durationMin: [28, 36],
     metricKey: "cardiaque",
@@ -201,7 +207,11 @@ const START_TO_RUN: LibraryWorkout[] = [
     objectif: "Course continue 20-25min — consolidation de l'endurance de base",
     necessite: "Obligatoire",
     when: "Semaines 10-11, 2×/semaine",
-    phase: ["build", "peak"],
+    // Bug réel corrigé (audit "génération de plan IA", volet catalogue) :
+    // S10-11 peut tomber dans le bucket "taper" du calcul de phase par
+    // pourcentage selon la longueur exacte du cycle — sans ce tag, la
+    // fiche pouvait disparaître du catalogue injecté pour ces semaines.
+    phase: ["build", "peak", "taper"],
     avoid: "Enchaînement sur 2 jours consécutifs",
     durationMin: [34, 42],
     metricKey: "cardiaque",
@@ -223,7 +233,13 @@ const START_TO_RUN: LibraryWorkout[] = [
     objectif: "Sortie longue débutant 30min continues — objectif final du cycle",
     necessite: "Obligatoire",
     when: "Semaine 12, sortie la plus longue de la semaine",
-    phase: ["peak"],
+    // Bug réel corrigé (audit "génération de plan IA", volet catalogue) :
+    // c'est la séance phare du cycle (objectif final), explicitement en
+    // S12 — qui tombe côté calcul de phase par pourcentage dans le bucket
+    // "taper" pour un cycle de 12 semaines. Sans ce tag, la séance la plus
+    // importante du programme disparaissait du catalogue injecté pour sa
+    // propre semaine.
+    phase: ["peak", "taper"],
     avoid: "Veille d'une autre séance de course",
     durationMin: [42, 50],
     metricKey: "cardiaque",
