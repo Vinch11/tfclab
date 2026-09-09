@@ -118,6 +118,10 @@ Deno.test("applyDailySessionFloorEnforcement — sport complémentaire à 0 séa
   const chunks = [
     { weeks: [mkWeek(1, [
       mkSess("lundi", "strength", null, "Circuit Endurance Musculaire Général"),
+      // Mardi a déjà 2 séances (pas un jour "lone") pour isoler le test sur
+      // le seul lundi — sinon mardi (bike seul) déclencherait lui aussi sa
+      // propre insertion complémentaire, faussant le compte de repairs.
+      mkSess("mardi", "bike", "V3_BIKE_FORCE_SFR"),
       mkSess("mardi", "bike", "V3_BIKE_FORCE_SFR"),
       // Aucune séance "run" nulle part ailleurs cette semaine.
     ])] },
