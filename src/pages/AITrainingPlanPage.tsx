@@ -47,6 +47,10 @@ import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type P
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
+import { runReconciler } from "@/lib/plan/planReconciler";
+import { inferWeekType, computeWeekQuotaEntry } from "@/engines/plan/sessionSizingMatrix";
+import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import { upgradeLegacyTaper, detectLegacyTaperGap, taperVolumeAlreadyReduced, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
 import { LegacyTaperBanner } from "@/components/plan/LegacyTaperBanner";
 
@@ -2154,6 +2158,36 @@ export default function AITrainingPlanPage() {
       console.warn("[handleRegenerateWeek] échec construction catalogue, régénération sans catalogue:", catalogErr);
     }
 
+    // Bug réel corrigé (audit "génération de plan IA", volet réconciliation,
+    // B2) : ce chemin de régénération appelait l'edge function en fetch brut
+    // puis ne faisait QUE fusionner le chunk reçu — jamais `runReconciler`,
+    // contrairement aux deux autres chemins (génération complète et
+    // régénération de fenêtre, cf. useAITrainingPlan.ts ~ligne 910). Une
+    // contrainte dure de l'athlète ("pas de natation — épaule", "jamais le
+    // mercredi") redevenait une simple suggestion de prompt sans aucun
+    // garde-fou pour cette seule semaine, et le plafond de quota (trim en
+    // cas de sur-effectif) n'avait aucun équivalent. On reproduit ici le
+    // même calcul de quota déterministe que la génération complète (PHASE
+    // 2A, useAITrainingPlan.ts ~ligne 588-606) pour la seule semaine cible.
+    const regenWeekType = inferWeekType(weekNumber, parsedPlan.totalWeeks, fullPlanConfig.objective || "");
+    const regenHoursAvail = typeof fullPlanConfig.weeklyHours === "number" ? fullPlanConfig.weeklyHours : 0;
+    const regenAmbition = typeof fullPlanConfig.ambition === "string" ? fullPlanConfig.ambition : "age_group";
+    const regenTargetSpw = typeof fullPlanConfig.sessionsPerWeek === "number" && fullPlanConfig.sessionsPerWeek > 0
+      ? fullPlanConfig.sessionsPerWeek : null;
+    const regenBannedSports = parseAthleteConstraints((fullPlanConfig as any)?.constraints ?? null).bannedSports;
+    const regenQuotaEntry = computeWeekQuotaEntry(fullPlanConfig.objective || "", regenAmbition, regenHoursAvail, regenWeekType, isLCWPlan, {
+      sessionsPerWeek: regenTargetSpw,
+      bannedSports: regenBannedSports,
+    });
+    // Union des catalogId réellement présentés au modèle pour cette semaine
+    // (même parseur que le chemin de génération complète, useAITrainingPlan.ts
+    // ~ligne 528-541) — restreint le réconciliateur aux fiches vues par l'IA.
+    const regenAllowedCatalogIds: string[] = [];
+    for (const line of (catalogResult.workoutCatalog || "").split("\n")) {
+      const m = line.match(/^\|\s*([A-Za-z0-9_-]{4,})\s*\|/);
+      if (m && m[1] !== "ID") regenAllowedCatalogIds.push(m[1]);
+    }
+
     // Une tentative complète : requête + parsing du flux SSE. Retourne la
     // semaine parsée quel que soit son nombre de séances — le comptage est
     // vérifié par l'appelant, pas ici, pour permettre une correction/retry
@@ -2232,6 +2266,32 @@ export default function AITrainingPlanPage() {
 
       if (streamError) throw new Error(streamError);
       if (!regeneratedChunk) throw new Error("Aucune semaine structurée reçue");
+
+      // Réconciliateur déterministe (fix B2, cf. commentaire ci-dessus) — même
+      // pipeline que la génération complète : phase/durée/discipline, plancher
+      // et plafond de quota, contraintes dures de l'athlète (jour interdit,
+      // sport banni). Doit tourner sur le NUMÉRO RÉEL de la semaine (le
+      // réconciliateur indexe ses quotas par weekNumber) — la renumérotation
+      // à 1 pour le mergeur a lieu APRÈS, ci-dessous.
+      if (regeneratedChunk.weeks[0]) regeneratedChunk.weeks[0].weekNumber = weekNumber;
+      if (regenQuotaEntry) {
+        try {
+          const rec = runReconciler(
+            [regeneratedChunk],
+            { [weekNumber]: regenQuotaEntry },
+            2,
+            regenAllowedCatalogIds,
+            {
+              objectiveKey: fullPlanConfig.objective ? normalizeObjectiveKey(fullPlanConfig.objective) : null,
+              constraints: (fullPlanConfig as any)?.constraints ?? null,
+              isLcw3Day: isLCWPlan,
+            },
+          );
+          console.log(`[handleRegenerateWeek] reconciler S${weekNumber}:`, rec.counters);
+        } catch (rerr) {
+          console.error("[handleRegenerateWeek] reconciler exception:", rerr);
+        }
+      }
 
       // Le mergeur client attend une séquence commençant à S1. On normalise
       // temporairement l'unique semaine, puis on restaure son numéro réel.

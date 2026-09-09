@@ -22,7 +22,7 @@ import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock, applySessionsPerWeekTarget, applyBannedSportsRedistribution } from "@/engines/plan/sessionSizingMatrix";
+import { inferWeekType, buildQuotaPromptBlock, computeWeekQuotaEntry } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
@@ -589,20 +589,16 @@ export function useAITrainingPlan() {
         // Position globale : quota/taper/recovery calculés sur la vraie place
         // de la semaine dans le plan (cf. PlanConfig.globalTotalWeeks).
         const weekType = inferWeekType(w + weekOffset, effTotalWeeks, objectiveForQuota);
-        const q0 = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat);
-        if (q0) {
-          let adj = targetSpw
-            ? applySessionsPerWeekTarget({ quota: q0.quota, floors: q0.floors }, targetSpw, weekType)
-            : { quota: q0.quota, floors: q0.floors };
-          if (bannedSportsForQuota.length > 0) {
-            const red = applyBannedSportsRedistribution(adj, bannedSportsForQuota);
-            adj = { quota: red.quota, floors: red.floors };
-          }
-          const layout: WeeklySlotLayout = buildWeeklySlotLayout(adj.quota, adj.floors, weekType, {
+        const entry = computeWeekQuotaEntry(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat, {
+          sessionsPerWeek: targetSpw,
+          bannedSports: bannedSportsForQuota,
+        });
+        if (entry) {
+          const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, entry.floors, weekType, {
             finalStageSport: isLCWFormat ? "run" : undefined,
           });
 
-          weeklyQuotas[w] = { quota: adj.quota, floors: adj.floors, weekType, downgraded: q0.downgraded, downgradeReason: q0.downgradeReason, layout };
+          weeklyQuotas[w] = { ...entry, layout };
         }
       }
 
