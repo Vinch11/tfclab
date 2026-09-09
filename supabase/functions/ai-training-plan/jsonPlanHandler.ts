@@ -1107,6 +1107,12 @@ export function applyLcwSignatureEnforcement(
   chunks: PlanChunk[],
   catalogDumpsByChunk: Array<string | null | undefined>,
   planConfig: unknown,
+  // Fix D2 (audit "génération de plan IA") : décompte des occurrences déjà
+  // présentes AILLEURS dans le plan (semaines non incluses dans `chunks`),
+  // transmis par le client en régénération semaine seule — voir
+  // HandlerInput.regenerateWeek.lcwSignatureCountsElsewhere. `{}` en
+  // génération complète/fenêtre : `chunks` y couvre déjà tout le plan.
+  alreadySatisfiedElsewhere: Record<string, number> = {},
 ): { chunks: PlanChunk[]; repairs: LcwSignatureRepair[]; traces: string[] } {
   const repairs: LcwSignatureRepair[] = [];
   const traces: string[] = [];
@@ -1124,7 +1130,7 @@ export function applyLcwSignatureEnforcement(
   for (const target of LCW_HARD_ENFORCED_TARGETS) {
     const hasId = (week: PlanChunk["weeks"][number]) =>
       (week.sessions ?? []).some(s => String((s as any).catalogId ?? "").toUpperCase() === target.id);
-    let have = allWeeks.filter(({ week }) => hasId(week)).length;
+    let have = (alreadySatisfiedElsewhere[target.id] ?? 0) + allWeeks.filter(({ week }) => hasId(week)).length;
     if (have >= target.min) {
       traces.push(`[LCW_SIGNATURE] ${target.id} have=${have}/${target.min} action=skipped_reason=quota_met`);
       continue;
@@ -1361,6 +1367,14 @@ interface HandlerInput {
     phase?: string;
     theme?: string;
     totalWeeks: number;
+    // Fix D2 (audit "génération de plan IA") : en régénération semaine
+    // seule, l'edge function ne voit QUE cette semaine — elle ne peut pas
+    // compter elle-même les occurrences des fiches signature LCW déjà
+    // présentes ailleurs dans le plan. Le client (seul à connaître le plan
+    // complet) transmet ce décompte pour que applyLcwSignatureEnforcement
+    // reste actif au lieu d'être désactivé en bloc (cf. commentaire au site
+    // d'appel plus bas).
+    lcwSignatureCountsElsewhere?: Record<string, number> | null;
   } | null;
   workoutCatalog?: string;
   phaseCatalogs?: Record<string, string>;
@@ -1849,9 +1863,19 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
           // Filet déterministe signatures LCW (post-reconciler, avant value-check) —
           // voir applyLcwSignatureEnforcement ci-dessus. No-op si le plan n'est pas LCW.
-          const lcwEnforced = regenerateWeek
-            ? { chunks: reconciled.chunks, repairs: [] as ReturnType<typeof applyLcwSignatureEnforcement>["repairs"], traces: [] as string[] }
-            : applyLcwSignatureEnforcement(reconciled.chunks, catalogDumpsByChunk, planConfig);
+          // Fix D2 (audit "génération de plan IA") : ce filet était désactivé en
+          // BLOC dès que regenerateWeek était défini — seule protection restante,
+          // un rappel de prompt côté client sans aucune garantie d'exécution,
+          // exactement le type de non-fiabilité que ce filet dur a été créé pour
+          // couvrir. On reste actif en régénération semaine seule en informant le
+          // filet du décompte déjà satisfait ailleurs dans le plan (transmis par
+          // le client, seul à connaître le plan complet).
+          const lcwEnforced = applyLcwSignatureEnforcement(
+            reconciled.chunks,
+            catalogDumpsByChunk,
+            planConfig,
+            regenerateWeek?.lcwSignatureCountsElsewhere ?? {},
+          );
           for (const line of lcwEnforced.traces) {
             console.log(line);
             enqueue("warning", { code: "lcw_signature_trace", severity: "info", message: line });

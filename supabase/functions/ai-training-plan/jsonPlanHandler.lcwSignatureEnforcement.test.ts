@@ -113,6 +113,48 @@ Deno.test("applyLcwSignatureEnforcement — fiche absente du dump du chunk : con
   assert(bikeSession.title !== "OTHER_BIKE", "le titre générique ne doit plus rester tel quel");
 });
 
+// Fix D2 (audit "génération de plan IA") : ce filet était un no-op
+// INCONDITIONNEL dès que regenerateWeek était défini côté handler, faute de
+// visibilité sur le reste du plan (chunks = 1 seule semaine en régénération
+// semaine seule). alreadySatisfiedElsewhere (transmis par le client, seul à
+// connaître le plan complet) permet de garder le filet actif sans jamais le
+// déclencher à tort quand le quota est déjà satisfait ailleurs.
+Deno.test("applyLcwSignatureEnforcement — régénération semaine seule (1 chunk), quota DÉJÀ satisfait ailleurs : aucune substitution forcée", () => {
+  const chunks = [
+    { weeks: [mkWeek(9, "peak", [mkSess("mardi", "bike", "OTHER_BIKE"), mkSess("jeudi", "run", "OTHER_RUN")])] },
+  ] as any;
+  const { repairs } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG, {
+    B_LCW_BIKE_LONG_RACE_SAT: 3,
+    B_LCW_RUN_OFF_LEGS_SUN: 3,
+  });
+  assertEquals(repairs.length, 0, "quota déjà atteint ailleurs dans le plan : cette semaine régénérée ne doit pas être forcée");
+});
+
+Deno.test("applyLcwSignatureEnforcement — régénération semaine seule (1 chunk), quota PAS satisfait ailleurs : le filet reste actif sur cette semaine", () => {
+  const chunks = [
+    { weeks: [mkWeek(9, "peak", [mkSess("mardi", "bike", "OTHER_BIKE"), mkSess("jeudi", "run", "OTHER_RUN")])] },
+  ] as any;
+  const { chunks: out, repairs } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG, {
+    B_LCW_BIKE_LONG_RACE_SAT: 1,
+    B_LCW_RUN_OFF_LEGS_SUN: 1,
+  });
+  const allIds = out[0].weeks.flatMap((w: any) => w.sessions.map((s: any) => s.catalogId));
+  assert(allIds.includes("B_LCW_BIKE_LONG_RACE_SAT"), "quota pas encore atteint (1/3 ailleurs) : cette semaine doit contribuer");
+  assert(allIds.includes("B_LCW_RUN_OFF_LEGS_SUN"), "quota pas encore atteint (1/3 ailleurs) : cette semaine doit contribuer");
+  assertEquals(repairs.filter(r => r.code === "lcw_signature_enforced").length, 2);
+});
+
+Deno.test("applyLcwSignatureEnforcement — sans alreadySatisfiedElsewhere (défaut {}), comportement génération complète inchangé", () => {
+  const chunks = [
+    { weeks: [mkWeek(1, "build", [mkSess("samedi", "bike", "OTHER_BIKE"), mkSess("dimanche", "run", "OTHER_RUN")])] },
+  ] as any;
+  const { repairs } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG);
+  // 1 seule semaine dans tout le plan connu : quota 3 jamais atteignable,
+  // mais le filet contribue quand même ce qu'il peut (comportement identique
+  // à avant l'ajout du 4e paramètre).
+  assertEquals(repairs.filter(r => r.code === "lcw_signature_enforced").length, 2);
+});
+
 Deno.test("applyLcwSignatureEnforcement — substitution préfère le même jour/sport quand disponible (pas de déplacement inutile)", () => {
   const chunks = [
     {
