@@ -7,10 +7,12 @@
  * pertinentes largement (base + build + peak au minimum).
  *
  * Ce module opère APRÈS le chargement de la bibliothèque et élargit
- * programmatiquement `phase[]` (et `when` si un mot-clé de phase fort le
- * restreint) pour les fiches dont l'intention est :
+ * programmatiquement `phase[]` pour les fiches dont l'intention est :
  *   - endurance_fondamentale
  *   - technique
+ *
+ * N'écrit jamais dans le champ libre `when` (cf. commentaire dans la boucle
+ * ci-dessous pour le bug réel que cela causait).
  *
  * Chaque modification est journalisée : `[phase_widened] id=... ancien=[...] nouveau=[...]`.
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -24,7 +26,7 @@ const WIDE_PHASES: PhaseTag[] = ["base", "build", "peak"];
 
 /** Élargit programmatiquement les phase[] trop étroits pour les intentions endurance/technique. */
 export function widenEndurancePhases(library: LibraryWorkout[]): void {
-  const changed: Array<{ id: string; oldPhases: PhaseTag[]; newPhases: PhaseTag[]; oldWhen?: string; newWhen?: string }> = [];
+  const changed: Array<{ id: string; oldPhases: PhaseTag[]; newPhases: PhaseTag[] }> = [];
 
   for (const w of library) {
     const family = intentFamilyOf(w);
@@ -37,21 +39,20 @@ export function widenEndurancePhases(library: LibraryWorkout[]): void {
     const oldPhases = [...(w.phase ?? [])];
     const newPhases: PhaseTag[] = ["base", "build", "peak", ...(cur.has("taper") ? ["taper" as PhaseTag] : [])];
 
-    // Neutraliser un `when` restrictif : ficheAllowedPhases lit d'abord les
-    // mots-clés forts du champ `when`. Si le when ne contient QUE base/build,
-    // on l'enrichit pour couvrir peak (sans réécrire tout le sens).
-    let newWhen: string | undefined;
-    const oldWhen = w.when;
-    if (oldWhen) {
-      const hasPeak = /\bpeak\b|sp[eé]cifique/i.test(oldWhen);
-      if (!hasPeak) {
-        newWhen = `${oldWhen} · Peak (pertinent — pilier endurance/technique)`;
-      }
-    }
-
+    // Bug réel corrigé (audit "génération de plan IA", volet composition) :
+    // cette fonction ajoutait aussi le mot "Peak" au champ libre `when` pour
+    // "neutraliser" une restriction — mais `ficheAllowedPhases`
+    // (phaseNormalization.ts) traite tout `when` contenant "peak" comme un
+    // mot-clé FORT et EXCLUSIF : dès qu'il matche, il ignore complètement
+    // `phase[]` et ne retient QUE les phases détectées dans `when`. Pour une
+    // fiche dont le `when` d'origine ne contenait aucun mot-clé base/build
+    // (ex. "Toute l'année"), ce texte injecté produisait `{peak}` seul —
+    // l'INVERSE de l'élargissement voulu : 51 fiches d'endurance/technique
+    // (tous sports) devenaient indisponibles hors phase Peak. Le seul
+    // élargissement fiable est celui de `phase[]` ci-dessus ; ne plus toucher
+    // `when` du tout.
     w.phase = newPhases;
-    if (newWhen) w.when = newWhen;
-    changed.push({ id: w.id, oldPhases, newPhases, oldWhen, newWhen });
+    changed.push({ id: w.id, oldPhases, newPhases });
   }
 
   if (changed.length > 0) {
