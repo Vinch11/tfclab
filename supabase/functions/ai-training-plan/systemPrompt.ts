@@ -926,10 +926,18 @@ Force Max, SFR, Train Low, Gut Training, Heat Training, HRV Adaptation.
 
 ### Doubles & Triples Séances — OBLIGATOIRE Modèle Pro/Élite
 Pour triathlon IM/70.3, 2-3 séances/jour, 6j/7 est la norme.
-- **Elite (20-30h/sem)**: 10-14 doubles/triples.
-- **Competitor (15-22h/sem)**: 5-8 doubles/sem.
-- **Age Group (10-15h/sem)**: 2-4 doubles/sem.
-- **Finisher**: 1 séance/jour max.
+Fourchettes horaires alignées sur le moteur de quotas déterministe (sessionSizingMatrix.ts,
+seule contrainte réellement appliquée/non négociable — audit "génération de plan IA", fix F2 :
+ce texte indiquait auparavant des fourchettes non alignées, ex. Competitor "15-22h" ici contre
+11-14h dans le moteur, deux plages qui ne se recoupaient même pas).
+- **Elite (15-30h/sem)**: 10-14 doubles/triples.
+- **Competitor (11-14h/sem)**: 5-8 doubles/sem.
+- **Age Group (8-11h/sem)**: 2-4 doubles/sem.
+- **Finisher (5-8h/sem)**: 1 séance/jour dans la grande majorité des cas — le doublage n'est
+  PAS un objectif pour ce palier. Le moteur de quotas autorise au plus 2 séances/jour en
+  dernier recours (semaine dense, rattrapage) ; ne JAMAIS le présenter comme la norme (fix F3 :
+  ce texte disait auparavant "1 séance/jour max", une consigne stricte contredite par le
+  plafond réel de 2 appliqué par la matrice de quotas).
 Format : une ligne PAR SÉANCE, avec "matin", "soir". JAMAIS grouper. Si un jour n'a qu'1 séance pour Elite/Competitor IM/70.3 (hors repos), c'est une ERREUR.
 
 ### Règles de Sécurité Métabolique
@@ -1028,7 +1036,7 @@ Pour 5K, 10K, Semi, Marathon, Trail : CAP 75-85% volume. Vélo = 5-10% max, Z1-Z
 ## SCIENCE DE LA PÉRIODISATION AVANCÉE
 - **Polarisé (Seiler 2010)**: 80% Z1-Z2 / 5% Z3 / 15% Z4-Z5. Modèle TFCL™. Z3 ("black hole") = erreur n°1 amateur.
 - **Bloc-Périodisation (Issurin 2010)**: blocs 2-4 sem, 1-2 qualités. Supérieur pour athlètes >2 ans.
-- **Taper (Mujika & Padilla 2003)**: réduction volume -40/-60% exponentiel. MAINTIEN fréquence & intensité (rappels courts). Durée 8-14j (endurance).
+- **Taper (Mujika & Padilla 2003)**: réduction volume -40/-60% exponentiel. MAINTIEN fréquence & intensité (rappels courts). Durée 8-14j (endurance) pour les formats courts — mais NE PAS appliquer ce chiffre tel quel à l'IM (fix F4, audit "génération de plan IA" : ce "8-14j" générique et la durée réellement calculée/appliquée pour l'IM affichaient deux nombres différents sans dire lequel prime). Durée RÉELLEMENT appliquée par objectif (moteur de quotas, sessionSizingMatrix.ts::TAPER_WEEKS_BY_OBJECTIVE — fait foi) : **IM 21j (3 sem)** · 70.3/Marathon 14j (2 sem) · Sprint/Olympique/Semi/10K/5K/Start to Run 7j (1 sem) · Trail court 7j · Trail montagne 14j · Trail ultra 14-21j (cf. section Trail Ultra). Le taper IM, plus long que le "8-14j" de base, reflète la fatigue cumulée bien supérieure d'un format long-course (calibrage par cohérence interne avec le reste de la matrice, pas une méta-analyse Mujika dédiée à ce format précis).
 - **Taper obligatoire** : TAPER_ACTIVATION_J2 J-2, TAPER_SWIM_J3 J-3 natation, TAPER_MINI_5DAYS pour course B.
 
 ## ENTRAÎNEMENT FÉMININ (Sims, Bruinvels)

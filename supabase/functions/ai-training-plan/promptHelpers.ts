@@ -1869,14 +1869,25 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     } else if (ambition === "competitor") {
       lines.push("Ambition COMPETITOR → minimum 10-12 séances/semaine, 5-8 doubles.");
       lines.push("- Au moins 5 jours avec doubles séances.");
-      lines.push("- Volume cible : 15-22h/sem. Nat 3-4 séances, Vélo 3-4, CAP 3-4, Renfo 2.");
+      // Fix F2 (audit "génération de plan IA", vague 6) : "15-22h/sem" ne
+      // recoupait même pas la fourchette 11-14h du moteur de quotas
+      // déterministe (sessionSizingMatrix.ts::MATRIX, seule contrainte
+      // réellement appliquée/non négociable pour ce palier) — corrigé pour
+      // ne plus présenter deux volumes horaires différents à l'IA.
+      lines.push("- Volume cible : 11-14h/sem. Nat 3-4 séances, Vélo 3-4, CAP 3-4, Renfo 2.");
     } else if (ambition === "age_group" || ambition === "agegroup") {
       lines.push("Ambition AGE GROUP → 8-10 séances/semaine, 2-4 doubles.");
       lines.push("- 2-3 jours avec doubles séances (nat matin + renfo soir, brique).");
-      lines.push("- Volume cible : 10-15h/sem.");
+      // Fix F2 : idem, alignée sur 8-11h/sem (sessionSizingMatrix.ts::MATRIX)
+      // au lieu de "10-15h/sem" (chevauchement partiel seulement avant fix).
+      lines.push("- Volume cible : 8-11h/sem.");
     } else {
       lines.push("Ambition FINISHER → 5-7 séances/semaine, pas de doubles.");
-      lines.push("- 1 séance/jour max. Focus terminer en sécurité.");
+      // Fix F3 (audit "génération de plan IA", vague 6) : "1 séance/jour max"
+      // contredisait le plafond réellement appliqué par le moteur de quotas
+      // (maxSessionsPerDay=2 pour Finisher 703/IM) — reformulé pour ne plus
+      // présenter une règle stricte que le quota ne fait pas respecter.
+      lines.push("- 1 séance/jour dans la grande majorité des cas (le doublage n'est PAS un objectif pour ce palier). Focus terminer en sécurité.");
     }
     lines.push("- Format : UNE LIGNE PAR SÉANCE dans le tableau. 'Mardi matin', 'Mardi midi', 'Mardi soir' = 3 lignes séparées.");
     lines.push("- JAMAIS 2 intensités le même jour sauf brique planifiée.");
