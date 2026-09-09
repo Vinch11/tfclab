@@ -752,3 +752,43 @@ export function applyBannedSportsRedistribution(
 
   return { quota, floors, redistributed };
 }
+
+/**
+ * Compose les trois étapes déterministes du calcul de quota d'une semaine
+ * (base matrice → cible séances/semaine → redistribution disciplines
+ * bannies) en un seul appel. Factorisé (fix "plancher réconciliation
+ * régénération semaine seule", audit génération de plan IA, B2) : cette
+ * composition existait déjà, dupliquée, dans la boucle de génération
+ * complète (useAITrainingPlan.ts) — la régénération d'une semaine seule en
+ * a besoin à l'identique pour construire son propre `WeekQuotaEntry` et
+ * passer par le même réconciliateur déterministe que les deux autres
+ * chemins de régénération.
+ */
+export function computeWeekQuotaEntry(
+  objective: string,
+  ambitionEffective: string,
+  hoursAvailable: number,
+  weekType: WeekType,
+  isLCW: boolean,
+  opts: {
+    sessionsPerWeek?: number | null;
+    bannedSports?: Array<"swim" | "bike" | "run" | "strength" | "any">;
+  } = {},
+): {
+  quota: WeeklyQuota;
+  floors: SizingFloors;
+  weekType: WeekType;
+  downgraded: boolean;
+  downgradeReason?: string;
+} | null {
+  const q0 = computeWeeklySessionQuota(objective, ambitionEffective, hoursAvailable, weekType, isLCW);
+  if (!q0) return null;
+  let adj = opts.sessionsPerWeek && opts.sessionsPerWeek > 0
+    ? applySessionsPerWeekTarget({ quota: q0.quota, floors: q0.floors }, opts.sessionsPerWeek, weekType)
+    : { quota: q0.quota, floors: q0.floors };
+  if (opts.bannedSports && opts.bannedSports.length > 0) {
+    const red = applyBannedSportsRedistribution(adj, opts.bannedSports);
+    adj = { quota: red.quota, floors: red.floors };
+  }
+  return { quota: adj.quota, floors: adj.floors, weekType, downgraded: q0.downgraded, downgradeReason: q0.downgradeReason };
+}

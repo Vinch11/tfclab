@@ -4,6 +4,9 @@ import {
   normalizeSizingObjective,
   normalizeSizingAmbition,
   inferWeekType,
+  computeWeekQuotaEntry,
+  applySessionsPerWeekTarget,
+  applyBannedSportsRedistribution,
 } from "@/engines/plan/sessionSizingMatrix";
 
 describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
@@ -149,5 +152,56 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(r!.floors.slLongRideMin).toBeUndefined();
     expect(r!.floors.slLongRunMin).toBeUndefined();
     expect(r!.floors.longRideWeekly).toBe(false);
+  });
+});
+
+// Fix "réconciliation régénération semaine seule" (audit génération de plan
+// IA, B2) : cette composition (base matrice → cible séances/semaine →
+// redistribution disciplines bannies) était dupliquée entre la boucle de
+// génération complète (useAITrainingPlan.ts) et le nouveau chemin de
+// régénération semaine seule (AITrainingPlanPage.tsx) — factorisée ici pour
+// que les deux appelants soient prouvés identiques.
+describe("sessionSizingMatrix — computeWeekQuotaEntry", () => {
+  it("sans options : équivalent strict à computeWeeklySessionQuota seul", () => {
+    const direct = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "load");
+    const composed = computeWeekQuotaEntry("IRONMAN 70.3", "age_group", 10, "load", false);
+    expect(composed).not.toBeNull();
+    expect(composed!.quota).toEqual(direct!.quota);
+    expect(composed!.floors).toEqual(direct!.floors);
+    expect(composed!.weekType).toBe("load");
+    expect(composed!.downgraded).toBe(direct!.downgraded);
+  });
+
+  it("objectif non reconnu → null (comme computeWeeklySessionQuota)", () => {
+    expect(computeWeekQuotaEntry("Objectif inconnu xyz", "age_group", 10, "load", false)).toBeNull();
+  });
+
+  it("sessionsPerWeek fourni → identique à applySessionsPerWeekTarget appliqué manuellement", () => {
+    const q0 = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "load")!;
+    const expected = applySessionsPerWeekTarget({ quota: q0.quota, floors: q0.floors }, 8, "load");
+    const composed = computeWeekQuotaEntry("IRONMAN 70.3", "age_group", 10, "load", false, { sessionsPerWeek: 8 });
+    expect(composed!.quota).toEqual(expected.quota);
+    expect(composed!.floors).toEqual(expected.floors);
+  });
+
+  it("bannedSports fourni → identique à applyBannedSportsRedistribution appliqué manuellement", () => {
+    const q0 = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "load")!;
+    const expected = applyBannedSportsRedistribution({ quota: q0.quota, floors: q0.floors }, ["swim"]);
+    const composed = computeWeekQuotaEntry("IRONMAN 70.3", "age_group", 10, "load", false, { bannedSports: ["swim"] });
+    expect(composed!.quota.swim).toEqual({ min: 0, max: 0 });
+    expect(composed!.quota).toEqual(expected.quota);
+    expect(composed!.floors).toEqual(expected.floors);
+  });
+
+  it("sessionsPerWeek ET bannedSports combinés : ordre identique à la boucle de génération complète (cible d'abord, puis redistribution)", () => {
+    const q0 = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "load")!;
+    const afterTarget = applySessionsPerWeekTarget({ quota: q0.quota, floors: q0.floors }, 8, "load");
+    const expected = applyBannedSportsRedistribution(afterTarget, ["swim"]);
+    const composed = computeWeekQuotaEntry("IRONMAN 70.3", "age_group", 10, "load", false, {
+      sessionsPerWeek: 8,
+      bannedSports: ["swim"],
+    });
+    expect(composed!.quota).toEqual(expected.quota);
+    expect(composed!.floors).toEqual(expected.floors);
   });
 });
