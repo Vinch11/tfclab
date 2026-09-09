@@ -397,6 +397,14 @@ function runOnePass(
         bySport.set(s.sport, arr);
       }
       const cnt = (sp: string) => (bySport.get(sp)?.length ?? 0);
+      // Bug réel corrigé (audit "génération de plan IA", volet composition
+      // hebdomadaire) : le plancher FLOOR ci-dessous ne se déclenchait que si
+      // `cnt(sport) === 0` (aucune séance de ce sport DU TOUT) — un sport
+      // avec 2-3 séances toutes classées récupération/technique passait sans
+      // jamais recevoir de séance de qualité. `cntKey` compte les séances
+      // réellement marquées `isKeySession` (signal posé par l'IA elle-même,
+      // même source de confiance que la ligne de trim CEILING plus bas).
+      const cntKey = (sp: string) => (bySport.get(sp)?.filter(s => (s as any).isKeySession === true).length ?? 0);
 
       // 4a. FLOOR — insertion depuis catalogue
       ctx.family = "quota-floor"; ctx.week = week.weekNumber; ctx.day = undefined; ctx.sport = undefined; ctx.catalogId = undefined;
@@ -407,9 +415,13 @@ function runOnePass(
           { sport: "run", min: q.run.min },
           { sport: "strength", min: q.strength.min },
         ];
+        // Disciplines endurance concernées par le plancher "séance clé", pas
+        // "séance quelconque" — renfo garde l'ancien critère de présence
+        // simple (sa notion de "clé" n'a pas le même sens).
+        const KEY_FLOOR_SPORTS = new Set<SchemaSport>(["swim", "bike", "run"]);
         for (const sp of specs) {
           if (sp.min < 1) continue;
-          if (cnt(sp.sport) > 0) continue;
+          if (KEY_FLOOR_SPORTS.has(sp.sport) ? cntKey(sp.sport) > 0 : cnt(sp.sport) > 0) continue;
           const floor =
             sp.sport === "bike" && floors.longRideWeekly && floors.slLongRideMin ? floors.slLongRideMin :
             sp.sport === "run" && floors.longRunWeekly && floors.slLongRunMin ? floors.slLongRunMin :
