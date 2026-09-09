@@ -2747,15 +2747,18 @@ function validateTrailBackToBack(
   return { issues, score: 100 };
 }
 
-/** Détection d'un plan format LCW (Long Course Weekend) — dérivée du contenu
- *  du plan (titre H1, thème/bloc de semaine), pas d'un paramètre séparé :
- *  `validatePlan` ne reçoit pas le `raceFormat` brut, et le thème de bloc
- *  ("Bloc 3 · Race-Specific LCW") est un signal fiable même quand le titre
- *  H1 lui-même omet `LCW` (cas constaté sur un vrai plan généré — RÈGLE #0
- *  du prompt l'exige pourtant explicitement). */
+/** Détection d'un plan format LCW (Long Course Weekend). Fix D1 (audit
+ *  "génération de plan IA") : `validatePlan` ne recevait jamais le
+ *  `raceFormat` authoritative (RaceGoal.raceFormat === "lcw_3day"), déjà lu
+ *  par le composant appelant — la détection retombait donc toujours sur du
+ *  texte libre (titre H1, thème de bloc), fragile par nature. `isLcwFormatHint`
+ *  est maintenant la source primaire quand l'appelant la fournit ; le texte
+ *  libre reste le repli pour les appelants qui n'ont pas ce contexte (tests,
+ *  AIPlanBenchmark). */
 const LCW_FORMAT_PATTERN = /\bLCW\b|long\s*course\s*weekend/i;
 
-function isLCWFormatPlan(plan: ParsedPlan): boolean {
+function isLCWFormatPlan(plan: ParsedPlan, isLcwFormatHint?: boolean | null): boolean {
+  if (isLcwFormatHint != null) return isLcwFormatHint;
   if (LCW_FORMAT_PATTERN.test(plan.title || "")) return true;
   return plan.weeks.some((w) => LCW_FORMAT_PATTERN.test(`${w.theme} ${w.phase}`));
 }
@@ -2775,9 +2778,12 @@ function isLCWFormatPlan(plan: ParsedPlan): boolean {
  *  fatiguées post-vélo veille) est justement LE stimulus spécifique course du
  *  bloc LCW, et son absence pure et simple se lit comme "course timide",
  *  pas comme un manque de variété. */
-function validateLcwSignaturePresence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+function validateLcwSignaturePresence(
+  plan: ParsedPlan,
+  isLcwFormatHint?: boolean | null,
+): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
-  if (!isLCWFormatPlan(plan)) return { issues, score: 100 };
+  if (!isLCWFormatPlan(plan, isLcwFormatHint)) return { issues, score: 100 };
 
   const REQUIRED_IDS: Array<{ id: string; label: string }> = [
     { id: "B_LCW_BIKE_LONG_RACE_SAT", label: "long ride race-pace samedi (B_LCW_BIKE_LONG_RACE_SAT)" },
@@ -3391,6 +3397,10 @@ export function validatePlan(
    *  de ne pas la traiter comme un défaut de génération (voir
    *  redistributeTargetsForBannedSports ci-dessus). */
   constraintsText?: string,
+  /** Fix D1 (audit "génération de plan IA") : signal authoritative
+   *  RaceGoal.raceFormat === "lcw_3day", calculé par l'appelant — prime sur
+   *  la détection par texte libre (titre/thème) dans isLCWFormatPlan. */
+  isLcwFormatHint?: boolean | null,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -3460,7 +3470,7 @@ export function validatePlan(
   const trailBackToBack = validateTrailBackToBack(plan, objective);
   const trailDPlusPresence = validateTrailDPlusPresence(plan, objective);
   const dailySessionFloor = validateDailySessionFloor(plan, objective, ambition);
-  const lcwSignaturePresence = validateLcwSignaturePresence(plan);
+  const lcwSignaturePresence = validateLcwSignaturePresence(plan, isLcwFormatHint);
   const raceDayOnlyFichePlacement = validateRaceDayOnlyFichePlacement(plan);
 
   // Combine all issues

@@ -85,4 +85,27 @@ describe("validateLcwSignaturePresence — checklist LCW bloquante réellement v
     const issue = result.issues.find((i) => i.rule === "lcw_signature_missing");
     expect(issue).toBeDefined();
   });
+
+  // Fix D1 (audit "génération de plan IA") : isLcwFormatHint (raceFormat
+  // authoritative) prime sur la détection par texte libre, dans les deux sens.
+  it("D1 — isLcwFormatHint=true détecte un plan LCW même sans AUCUN mot-clé LCW dans titre/thème", () => {
+    const weeks = [makeWeek(1, [{ title: "SFR", catalogId: "V3_BIKE_FORCE_SFR" }], "Semaine 1", "Bloc 1")];
+    const result = validatePlan(
+      makePlan(weeks, "Plan TFCL™ — 703 — Structure Confirmé"),
+      undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+      true,
+    );
+    const issue = result.issues.find((i) => i.rule === "lcw_signature_missing");
+    expect(issue).toBeDefined();
+  });
+
+  it("D1 — isLcwFormatHint=false désactive la checklist même si le titre contient LCW (faux positif texte)", () => {
+    const weeks = [makeWeek(1, [{ title: "SFR", catalogId: "V3_BIKE_FORCE_SFR" }], "Fondation", "Bloc 1")];
+    const result = validatePlan(
+      makePlan(weeks, "Plan TFCL™ — 70.3 LCW Cath — 7 semaines"),
+      undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+      false,
+    );
+    expect(result.issues.filter((i) => i.rule === "lcw_signature_missing")).toHaveLength(0);
+  });
 });
