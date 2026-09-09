@@ -344,6 +344,20 @@ export function computeWeeklySessionQuota(
   // vélo long samedi + run long dimanche séparés (back-to-back), sans
   // modification nécessaire côté layout.
   if (isLCW && (objKey === "703" || objKey === "IM")) {
+    // Fix D5 (audit "génération de plan IA") : `totalSessions.min/max`
+    // (row.totalSessions ci-dessus) est calculé EN COMPTANT le brick d'origine
+    // — ex. age_group : swim3+bike3+run3+brick1+strength1=11=totalSessions.min.
+    // Le mettre à zéro sans ajuster totalSessions rend ce plancher
+    // structurellement inatteignable (10 max sans brick < 11 requis) : le
+    // contrôle QA "total hors fourchette" se déclenchait alors
+    // systématiquement, chaque semaine, pour toute la population LCW —
+    // pollution durable du panneau QA sans qu'aucun plan ne soit réellement en
+    // cause. On retranche le brick D'ORIGINE (avant reset) de chaque borne.
+    const originalBrick = base.brick;
+    base.totalSessions = {
+      min: Math.max(0, base.totalSessions.min - originalBrick.min),
+      max: Math.max(0, base.totalSessions.max - originalBrick.max),
+    };
     base.brick = { min: 0, max: 0 };
   }
 
