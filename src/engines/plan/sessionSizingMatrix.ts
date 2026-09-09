@@ -466,7 +466,11 @@ function taperWeeksForTrail(objectiveLower: string): number | null {
   return 1; // TrailShort / trail générique
 }
 
-function taperWeeksForObjective(objective?: string | null): number {
+// Exportée (fix C4, audit "génération de plan IA") : shiftRaceDate
+// (planPatcher.ts) supposait toujours 3 semaines de taper en dur, alors que
+// l'appelant connaît déjà l'objectif — cette fonction est la source de
+// vérité déjà utilisée par inferWeekType pour le même calcul.
+export function taperWeeksForObjective(objective?: string | null): number {
   if (!objective) return DEFAULT_TAPER_WEEKS;
   const objKey = normalizeSizingObjective(objective);
   if (objKey && TAPER_WEEKS_BY_OBJECTIVE[objKey] != null) return TAPER_WEEKS_BY_OBJECTIVE[objKey]!;

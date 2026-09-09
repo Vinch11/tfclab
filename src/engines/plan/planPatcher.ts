@@ -17,6 +17,7 @@
  */
 
 import type { ParsedPlan, ParsedSession, ParsedWeek } from "@/lib/aiPlanParser";
+import { taperWeeksForObjective } from "./sessionSizingMatrix";
 
 export interface PatchDiff {
   weekNumber: number;
@@ -319,6 +320,16 @@ export interface ShiftRaceDateOptions {
   /** Nombre de semaines de décalage (positif = course retardée, négatif = avancée) */
   weeksShift: number;
   reason?: string;
+  /**
+   * Objectif du plan — fix C4 (audit "génération de plan IA") : sans lui,
+   * le taper était supposé faire 3 semaines pour tout objectif (constante
+   * en dur), alors que le vrai taper varie de 1 à 3 semaines selon
+   * l'objectif (cf. TAPER_WEEKS_BY_OBJECTIVE, sessionSizingMatrix.ts).
+   * Impact cosmétique (annotation de thème) mais réel : sans objectif
+   * connu, on retombe sur DEFAULT_TAPER_WEEKS (1 semaine) plutôt que
+   * d'inventer une valeur à l'aveugle.
+   */
+  objective?: string | null;
 }
 
 export function shiftRaceDate(plan: ParsedPlan, opts: ShiftRaceDateOptions): PatchResult {
@@ -332,7 +343,8 @@ export function shiftRaceDate(plan: ParsedPlan, opts: ShiftRaceDateOptions): Pat
   }
 
   const totalWeeks = next.totalWeeks;
-  const taperStart = Math.max(1, totalWeeks - 2); // 3 dernières semaines = taper
+  const taperWeeks = taperWeeksForObjective(opts.objective);
+  const taperStart = Math.max(1, totalWeeks - taperWeeks + 1);
   const annotation = `[TAPER SHIFT ${opts.weeksShift > 0 ? "+" : ""}${opts.weeksShift}w] ${opts.reason ?? "Décalage course"}`;
 
   for (const w of next.weeks) {
