@@ -93,6 +93,25 @@ describe("planWindowRegen — périodisation globale", () => {
     expect(config.windowRegenPhase).toBe("taper");
   });
 
+  it("fix C2 : taper court objectif-aware (Semi=1 semaine) détecté même quand le seuil fixe 92% l'aurait classé 'peak'", () => {
+    // Plan Semi de 8 semaines, fenêtre régénérée = 4 dernières (S5-S8).
+    // Taper réel Semi = 1 semaine (S7 seule, S8 = course) — S6 et S7 sont à
+    // moins de 92% du plan (6/8=75%, 7/8=87.5%), donc l'ancien seuil fixe les
+    // classait TOUTES DEUX "peak" alors que S7 est déjà dans la fenêtre de
+    // taper réelle de l'objectif. Avant le fix : dominant="peak" (S6+S7).
+    // Après : dominant="taper" (S7 taper + S8 course→taper).
+    const plan = makeLongPlan(8);
+    const { config } = buildWindowRegenConfig({
+      fromWeek: 5,
+      toWeek: 8,
+      currentPlan: plan,
+      athleteData,
+      baseConfig: { ...baseConfig, objective: "SEMI-MARATHON", weeksAvailable: 8 },
+    });
+    expect(config.windowRegenPhase).toBe("taper");
+    expect(config.constraints).toContain("Sem locale 3 (= S7 globale) : phase \"taper\"");
+  });
+
   it("injecte la périodisation réelle par semaine locale dans les contraintes envoyées à l'IA", () => {
     const plan = makeLongPlan(20);
     const { config } = buildWindowRegenConfig({
