@@ -24,6 +24,28 @@ import { extractCatalogId } from "@/lib/catalogIdExtractor";
  *  "FORMAT LONG COURSE WEEKEND", checklist déclarée "bloquante". */
 const LCW_SIGNATURE_IDS = ["B_LCW_BIKE_LONG_RACE_SAT", "B_LCW_RUN_OFF_LEGS_SUN", "B_LCW_BACK_TO_BACK_PEAK"];
 
+/**
+ * Fix D4 (audit "génération de plan IA") : décompte des occurrences des 2
+ * fiches signature LCW à quota dur (B_LCW_BIKE_LONG_RACE_SAT/RUN_OFF_LEGS_SUN,
+ * ≥3 chacune côté edge — cf. LCW_HARD_ENFORCED_TARGETS, jsonPlanHandler.ts)
+ * présentes dans les semaines données — utilisé pour compter ce qui existe
+ * DÉJÀ HORS de la fenêtre régénérée, seule visibilité que le filet dur ne
+ * possède pas par lui-même (il ne voit que les chunks régénérés).
+ */
+function countLcwSignatureIdsInWeeks(weeks: ParsedWeek[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const week of weeks) {
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      const id = extractCatalogId(s.title, s.details, s.catalogId)?.toUpperCase();
+      if (id === "B_LCW_BIKE_LONG_RACE_SAT" || id === "B_LCW_RUN_OFF_LEGS_SUN") {
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+    }
+  }
+  return counts;
+}
+
 /** Le plan entier (pas seulement la fenêtre régénérée) contient-il déjà au
  *  moins une occurrence de chaque fiche signature LCW ? Bug réel (coach) :
  *  régénérer une fenêtre ne changeait rien à l'absence du week-end LCW,
@@ -198,6 +220,10 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     globalTotalWeeks,
     globalWeekOffset,
     windowRegenPhase: dominantPhase,
+    // Fix D4 (audit "génération de plan IA") : donne au filet dur côté edge
+    // (applyLcwSignatureEnforcement) la même visibilité plan-entier que ce
+    // rappel de prompt — cf. countLcwSignatureIdsInWeeks ci-dessus.
+    lcwSignatureCountsElsewhere: isLCWPlan ? countLcwSignatureIdsInWeeks([...pastWeeks, ...futureWeeks]) : null,
   };
 
   return { config: windowConfig, athleteData: req.athleteData, expectedWeeks: windowSize };

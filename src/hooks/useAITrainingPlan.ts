@@ -349,6 +349,20 @@ export interface PlanConfig {
    * `chunk.start` vaut 1 donc `inferPhaseFromWeek(1, N)` retombe sur "base").
    */
   windowRegenPhase?: string;
+  /**
+   * Fix D4 (audit "génération de plan IA") : décompte des occurrences des
+   * fiches signature LCW (B_LCW_BIKE_LONG_RACE_SAT / B_LCW_RUN_OFF_LEGS_SUN)
+   * déjà présentes AILLEURS dans le plan (hors de la fenêtre régénérée),
+   * pré-calculé par `planWindowRegen.ts` à partir de la visibilité
+   * plan-entier du client. Sans ce contexte, le filet dur côté edge
+   * (applyLcwSignatureEnforcement) ne voit QUE les semaines de la fenêtre —
+   * il peut forcer un week-end LCW en double dans chaque fenêtre régénérée
+   * (quota déjà satisfait ailleurs) ou, si la checklist prompt-side est
+   * suffisante, signaler une non-résolution qui n'en est pas une. Même
+   * mécanisme que `HandlerInput.regenerateWeek.lcwSignatureCountsElsewhere`
+   * (fix D2), étendu à la régénération de fenêtre.
+   */
+  lcwSignatureCountsElsewhere?: Record<string, number> | null;
 }
 
 export interface ChunkProgress {
