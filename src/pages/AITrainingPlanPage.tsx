@@ -43,7 +43,7 @@ import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
-import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan } from "@/lib/aiPlanParser";
+import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan, type ParsedWeek } from "@/lib/aiPlanParser";
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
@@ -219,6 +219,27 @@ export function buildMarkdownFromPlan(plan: ParsedPlan): string {
     lines.push("");
   }
   return lines.join("\n");
+}
+
+/**
+ * Détermine si une semaine doit être exemptée du rappel de prompt "week-end
+ * signature LCW" lors de la régénération d'une semaine seule (repos,
+ * décharge, taper, semaine de course, ou semaine Base/fondation).
+ *
+ * Fix D3 (audit "génération de plan IA") : l'exemption reposait uniquement
+ * sur le mot-clé libre "fondation" dans le thème généré par l'IA — si ce
+ * thème ne le contenait pas mot pour mot, une semaine Base pouvait se voir
+ * imposer à tort le week-end signature LCW. `week.phase` (valeur canonique
+ * "base") est ajouté en complément du texte libre plutôt qu'à sa place (le
+ * texte libre reste nécessaire pour taper/repos/course, qui n'ont pas de
+ * phase canonique aussi fiable dans ce contexte). Exportée pour être testée
+ * directement — ce composant page n'a pas de harnais de test complet.
+ */
+export function isLcwWeekendExemptWeek(week: Pick<ParsedWeek, "theme" | "phase" | "sessions">): boolean {
+  const weekThemeText = `${week.theme || ""} ${week.phase || ""}`.toLowerCase();
+  return /d[ée]charge|taper|aff[uû]tage|repos|fondation|semaine\s*de\s*course|race\s*week|🏁/i.test(weekThemeText)
+    || (week.phase || "").toLowerCase() === "base"
+    || (week.sessions || []).some((s) => /course objectif|🏁/i.test(`${s.title} ${s.details}`));
 }
 
 function calculateAge(birthDate: string): number {
@@ -2131,9 +2152,10 @@ export default function AITrainingPlanPage() {
     // CETTE semaine plutôt que de compter sur un raisonnement multi-semaines
     // impossible depuis un contexte à une seule semaine.
     const isLCWPlan = (fullPlanConfig.raceGoals || []).some((g) => g?.raceFormat === "lcw_3day");
-    const weekThemeText = `${week.theme || ""} ${week.phase || ""}`.toLowerCase();
-    const isRestOrTaperOrRaceWeek = /d[ée]charge|taper|aff[uû]tage|repos|fondation|semaine\s*de\s*course|race\s*week|🏁/i.test(weekThemeText)
-      || week.sessions.some((s) => /course objectif|🏁/i.test(`${s.title} ${s.details}`));
+    // Fix D3 (audit "génération de plan IA") : cf. isLcwWeekendExemptWeek
+    // (exportée plus haut dans ce fichier) — utilise désormais week.phase en
+    // complément du mot-clé libre "fondation".
+    const isRestOrTaperOrRaceWeek = isLcwWeekendExemptWeek(week);
     const lcwWeekendReminder = isLCWPlan && !isRestOrTaperOrRaceWeek
       ? `🏴 FORMAT LCW (Long Course Weekend) — cette semaine DOIT inclure le week-end signature : SAMEDI = long ride race-pace (catalogue \`B_LCW_BIKE_LONG_RACE_SAT\`), DIMANCHE = long run sur jambes fatiguées post-vélo veille (catalogue \`B_LCW_RUN_OFF_LEGS_SUN\`). Utilise ces IDs catalogue EXACTS — ne les remplace pas par une fiche générique (brick T2 immédiat interdit).`
       : "";
