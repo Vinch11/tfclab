@@ -24,3 +24,30 @@ export function extractCatalogId(
   CATALOG_ID_PATTERN.lastIndex = 0;
   return match ? match[0] : null;
 }
+
+/**
+ * Variante multi-ID : une séance brick/pyramide peut mentionner plusieurs
+ * fiches dans son texte (ex. "BRICK_703_BIKE_RUN — B_BIKE_SST_3x20 +
+ * B_RUN_TEMPO_LONG"). Consommée par planValidator.ts::validateCatalogRatio
+ * pour ne pas sous-compter la diversité catalogue réelle d'une telle séance
+ * (fix E3 — remplace la copie locale incomplète de CATALOG_ID_PATTERN par
+ * cette même regex à jour, sans perdre le comptage multi-ID par séance).
+ */
+export function extractAllCatalogIds(
+  title: string,
+  details?: string,
+  structuredCatalogId?: string | null,
+): string[] {
+  if (typeof structuredCatalogId === "string" && structuredCatalogId.trim().length > 0) {
+    return [structuredCatalogId.trim()];
+  }
+  const text = `${title || ""} ${details || ""}`;
+  CATALOG_ID_PATTERN.lastIndex = 0;
+  const ids: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = CATALOG_ID_PATTERN.exec(text)) !== null) {
+    ids.push(match[0]);
+  }
+  CATALOG_ID_PATTERN.lastIndex = 0;
+  return ids;
+}
