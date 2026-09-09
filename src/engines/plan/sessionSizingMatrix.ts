@@ -528,6 +528,14 @@ export function inferWeekType(
    * comportement (3:1 pour tous) est inchangé.
    */
   athleteAge?: number | null,
+  /**
+   * Override coach explicite (PlanConfig.deloadCadenceWeeks) : 3 = cycle 2:1
+   * (décharge toutes les 3 semaines), 4 = cycle 3:1 (toutes les 4 semaines).
+   * Prime sur l'auto-détection par âge ci-dessus quand fourni — un coach qui
+   * veut un 2:1 pour un jeune athlète à charge élevée, ou un 3:1/4:1 pour un
+   * master résilient, n'est plus contraint par le seul défaut basé sur l'âge.
+   */
+  cadenceOverride?: 3 | 4 | null,
 ): WeekType {
   const total = Math.max(totalWeeks, 1);
   if (weekNumber === total) return "race";
@@ -541,7 +549,7 @@ export function inferWeekType(
   // plancher additionnel, un taper trop court relativement à la durée totale du plan).
   const pct = weekNumber / total;
   if (pct > 0.92) return "taper";
-  const recoveryEveryNWeeks = athleteAge != null && athleteAge >= 40 ? 3 : 4;
+  const recoveryEveryNWeeks = cadenceOverride ?? (athleteAge != null && athleteAge >= 40 ? 3 : 4);
   if (weekNumber % recoveryEveryNWeeks === 0) return "recovery";
   return "load";
 }

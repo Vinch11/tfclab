@@ -78,6 +78,7 @@ function catalogPhaseForGlobalWeek(
   globalTotalWeeks: number,
   objective?: string | null,
   athleteAge?: number | null,
+  cadenceOverride?: 3 | 4 | null,
 ): "base" | "build" | "peak" | "taper" {
   // Fix C2 (audit "génération de plan IA") : seuil fixe (92%) remplacé par
   // le même calcul objectif-aware que le serveur de référence
@@ -88,7 +89,7 @@ function catalogPhaseForGlobalWeek(
   // `windowRegenPhase`, calculé ici, prime sur la version corrigée côté
   // serveur. `inferWeekType` (déjà importé dans ce fichier, déjà
   // objectif-aware) fait ce même calcul côté client.
-  const weekType = inferWeekType(globalWeek, globalTotalWeeks, objective, athleteAge);
+  const weekType = inferWeekType(globalWeek, globalTotalWeeks, objective, athleteAge, cadenceOverride);
   if (weekType === "taper" || weekType === "race") return "taper";
   const pct = globalWeek / Math.max(globalTotalWeeks, 1);
   if (pct <= 0.30) return "base";
@@ -141,8 +142,8 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
   const periodizationLines: string[] = [];
   for (let i = 1; i <= windowSize; i++) {
     const globalWeek = i + globalWeekOffset;
-    const phase = catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks, req.baseConfig.objective, req.athleteData.age);
-    const weekType = inferWeekType(globalWeek, globalTotalWeeks, req.baseConfig.objective || "", req.athleteData.age);
+    const phase = catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks, req.baseConfig.objective, req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
+    const weekType = inferWeekType(globalWeek, globalTotalWeeks, req.baseConfig.objective || "", req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
     perWeekPhase.push(phase);
     phaseCounts[phase] = (phaseCounts[phase] ?? 0) + 1;
     periodizationLines.push(

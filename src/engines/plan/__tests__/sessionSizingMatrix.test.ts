@@ -162,6 +162,16 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(inferWeekType(12, 12, "IRONMAN 70.3", 45)).toBe("race");
   });
 
+  it("override coach explicite du cycle de décharge prime sur l'auto-détection par âge", () => {
+    // Coach force 2:1 (3) pour un jeune athlète (< 40 ans) à charge élevée.
+    expect(inferWeekType(3, 12, "IRONMAN 70.3", 28, 3)).toBe("recovery");
+    expect(inferWeekType(4, 12, "IRONMAN 70.3", 28, 3)).toBe("load");
+    // Coach force 3:1 (4) pour un master (>= 40 ans) résilient — l'override
+    // gagne même si l'auto-détection par âge aurait donné 2:1.
+    expect(inferWeekType(3, 12, "IRONMAN 70.3", 52, 4)).toBe("load");
+    expect(inferWeekType(4, 12, "IRONMAN 70.3", 52, 4)).toBe("recovery");
+  });
+
   it("fix C3 : 'Trail montagne' (libellé UI réel, français) reconnu au même titre que 'Trail mountain' — taper 2 semaines", () => {
     // Plan de 10 semaines : taper=2 → S8 est déjà taper (10-2=8). taper=1 (bug)
     // → S8 reste "recovery" (8%4===0), pas "taper". Avant le fix, "Trail

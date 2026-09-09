@@ -192,6 +192,9 @@ export function usePlanAdaptation() {
           undefined,
           args.planConfig.injuryRisk,
           args.planConfig.ambition,
+          undefined,
+          undefined,
+          args.planConfig.deloadCadenceWeeks,
         );
         const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 
@@ -305,6 +308,9 @@ export function usePlanAdaptation() {
           undefined,
           req.baseConfig.injuryRisk,
           req.baseConfig.ambition,
+          undefined,
+          undefined,
+          req.baseConfig.deloadCadenceWeeks,
         );
         const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 
