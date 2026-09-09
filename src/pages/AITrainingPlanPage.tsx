@@ -2336,6 +2336,9 @@ export default function AITrainingPlanPage() {
               // réellement la dernière du plan.
               globalTotalWeeks: parsedPlan.totalWeeks,
               globalWeekOffset: 0,
+              // Fix B3 (audit "génération de plan IA") : même libellé L1 brut
+              // que le chemin de génération complète (useAITrainingPlan.ts).
+              primaryLimiter: (fullPlanConfig as any)?.identifiedLimitersRaw?.[0] ?? null,
             },
           );
           console.log(`[handleRegenerateWeek] reconciler S${weekNumber}:`, rec.counters);
