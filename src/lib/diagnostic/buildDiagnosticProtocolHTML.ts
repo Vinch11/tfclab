@@ -1,8 +1,31 @@
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import logoUrl from "@/assets/logo-2fc.png";
 /**
  * buildDiagnosticProtocolHTML — Génère une page HTML imprimable (A4 portrait)
  * pour les protocoles de test TFCLab. Ouvrir dans un nouvel onglet puis Ctrl+P.
+ *
+ * Charte graphique alignée sur les rapports staff/athlète (ExportTools.tsx) :
+ * même logo, même bannière dégradée indigo→violet, même palette Bevel
+ * (primary #5555E0, mint/amber/danger pour les encadrés typés).
  */
+
+const BRAND_MAIN = "Two For Coaching Lab";
+
+/** Même helper que ExportTools.tsx — convertit le logo en data URI pour l'impression. */
+async function imageToBase64(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return "";
+  }
+}
 
 export type DiagnosticProtocol = "track-day" | "bike-day" | "pool-day" | "tri-day";
 
@@ -649,6 +672,7 @@ const blank = (width = "100%") =>
 export function buildDiagnosticProtocolHTML(
   protocol: DiagnosticProtocol,
   athleteName?: string,
+  logoBase64?: string,
 ): string {
   const p = PROTOCOLS[protocol];
   const today = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
@@ -713,20 +737,22 @@ export function buildDiagnosticProtocolHTML(
 <meta charset="utf-8" />
 <title>${escapeHtml(p.name)} — Protocole papier</title>
 <style>
-  @page { size: A4 portrait; margin: 15mm 15mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "TFCLab™ · ${escapeHtml(p.name)}"; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } }
+  @page { size: A4 portrait; margin: 15mm 15mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "${escapeHtml(BRAND_MAIN)} · ${escapeHtml(p.name)}"; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } }
   * { box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.4; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #12897E; padding-bottom: 8px; margin-bottom: 12px; }
-  .header .brand { font-size: 16pt; font-weight: bold; color: #12897E; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.4; }
+  .header { display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 2px solid #5555E0; padding-bottom: 8px; margin-bottom: 12px; }
+  .header .header-brand { display: flex; align-items: center; gap: 12px; }
+  .header .logo-img { height: 46px; width: auto; }
+  .header .brand { font-size: 16pt; font-weight: bold; color: #5555E0; }
   .header .brand small { display: block; font-size: 10pt; color: #555; font-weight: normal; }
   .header .meta { font-size: 10pt; text-align: right; }
-  h1 { font-size: 14pt; color: #12897E; margin: 4px 0; }
-  h2 { font-size: 12pt; color: #12897E; border-bottom: 1px solid #12897E; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px; }
-  h3 { font-size: 11pt; color: #12897E; margin: 10px 0 4px; }
+  h1 { font-size: 14pt; color: #5555E0; margin: 4px 0; }
+  h2 { font-size: 12pt; color: #5555E0; border-bottom: 1px solid #5555E0; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px; }
+  h3 { font-size: 11pt; color: #5555E0; margin: 10px 0 4px; }
   h3 .duration { color: #666; font-weight: normal; font-size: 10pt; }
   table { width: 100%; border-collapse: collapse; margin-top: 4px; }
   th, td { border: 1px solid #bbb; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
-  th { background: #f1f5f5; color: #12897E; font-weight: 600; }
+  th { background: #F2F0E9; color: #3C3CB8; font-weight: 600; }
   td.fill { height: 32px; background: repeating-linear-gradient(transparent, transparent 28px, #ccc 28px, #ccc 29px); }
   .instructions { margin: 4px 0 8px 18px; padding: 0; font-size: 10.5pt; }
   .instructions li { margin-bottom: 2px; }
@@ -738,8 +764,8 @@ export function buildDiagnosticProtocolHTML(
   .alt-list { margin: 0 0 0 18px; padding: 0; font-size: 10pt; line-height: 1.45; }
   .alt-list li { margin-bottom: 2px; }
 
-  .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #12897E; font-size: 8.5pt; color: #555; text-align: center; }
-  .print-btn { position: fixed; top: 10px; right: 10px; background: #12897E; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; }
+  .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #5555E0; font-size: 8.5pt; color: #555; text-align: center; }
+  .print-btn { position: fixed; top: 10px; right: 10px; background: #5555E0; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; }
   @media print { .print-btn { display: none; } }
 </style>
 </head>
@@ -747,7 +773,10 @@ export function buildDiagnosticProtocolHTML(
   <button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
 
   <div class="header">
-    <div class="brand">TFCLab™ <small>Two For Coaching</small></div>
+    <div class="header-brand">
+      ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="logo-img" />` : ""}
+      <div class="brand">${escapeHtml(BRAND_MAIN)}</div>
+    </div>
     <div class="meta">
       <div><strong>${p.emoji} ${escapeHtml(p.name)}</strong></div>
       <div>${escapeHtml(p.subtitle)}</div>
@@ -788,7 +817,7 @@ export function buildDiagnosticProtocolHTML(
 
 
   <div class="footer">
-    TFCLab™ — Two For Coaching · Protocole scientifique basé sur Billat 2001, Léger &amp; Bouchard 1980, Coggan 2010, Wakayoshi 1992 · Confidentiel
+    ${escapeHtml(BRAND_MAIN)} · Protocole scientifique basé sur Billat 2001, Léger &amp; Bouchard 1980, Coggan 2010, Wakayoshi 1992 · Confidentiel
   </div>
 </body>
 </html>`;
@@ -797,11 +826,12 @@ export function buildDiagnosticProtocolHTML(
 /**
  * Ouvre le protocole dans un nouvel onglet imprimable.
  */
-export function openDiagnosticProtocolPrint(
+export async function openDiagnosticProtocolPrint(
   protocol: DiagnosticProtocol,
   athleteName?: string,
-): void {
-  const html = buildDiagnosticProtocolHTML(protocol, athleteName);
+): Promise<void> {
+  const logoBase64 = await imageToBase64(logoUrl);
+  const html = buildDiagnosticProtocolHTML(protocol, athleteName, logoBase64);
   openPrintableHTML(html, { filenameHint: athleteName ? `Protocole — ${athleteName}` : "Protocole", includeInstructions: false });
 }
 
@@ -978,15 +1008,21 @@ function buildProtocolChapter(
 export function buildFullDiagnosticDossierHTML(
   athleteName?: string,
   sport: DossierSport = "triathlon",
+  logoBase64?: string,
 ): string {
   const today = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
   const athlete = athleteName ? escapeHtml(athleteName) : blank("260px");
   const sportLabel =
     sport === "triathlon" ? "Triathlon" : sport === "course" ? "Course à pied" : "Cyclisme";
 
-  // Sélection des fiches : Track + Bike toujours, Pool seulement si triathlon.
-  const protocols: DiagnosticProtocol[] = ["track-day", "bike-day"];
-  if (sport === "triathlon") protocols.push("pool-day");
+  // Sélection des fiches selon le sport choisi — un cycliste ne doit pas se
+  // retrouver avec la fiche course à pied et inversement (bug corrigé : les
+  // deux fiches étaient auparavant systématiquement incluses quel que soit
+  // le sport sélectionné).
+  const protocols: DiagnosticProtocol[] =
+    sport === "triathlon" ? ["track-day", "bike-day", "pool-day"] :
+    sport === "cyclisme" ? ["bike-day"] :
+    ["track-day"];
 
   // Numérotation : Chapitre 1 = Track, 2 = Bike, 3 = Pool (si tri)
   const chapters = protocols.map((proto, idx) => ({
@@ -1023,40 +1059,50 @@ export function buildFullDiagnosticDossierHTML(
     .map((c) => buildProtocolChapter(c.proto, c.num, athleteName))
     .join('\n<div class="page-break"></div>\n');
 
-  // Tableau de synthèse — regroupé par catégorie pour la lisibilité
-  type SynthRow = { metric: string; unit: string };
-  const synthGroups: Array<{ title: string; rows: SynthRow[] }> = [
+  // Tableau de synthèse — regroupé par catégorie, filtré par sport pour ne
+  // pas demander au coach de remplir des métriques qui ne concernent pas
+  // l'athlète (ex : CSS natation pour un cycliste pur).
+  type SynthRow = { metric: string; unit: string; sports: DossierSport[] };
+  const ALL_SPORTS: DossierSport[] = ["triathlon", "course", "cyclisme"];
+  const synthGroupsAll: Array<{ title: string; rows: SynthRow[] }> = [
     {
       title: "Puissance & seuils aérobies",
       rows: [
-        { metric: "FTP", unit: "W" },
-        { metric: "FTP/kg", unit: "W/kg" },
-        { metric: "VMA", unit: "km/h" },
-        { metric: "CSS", unit: "s/100m" },
-        { metric: "FC max", unit: "bpm" },
-        { metric: "FC repos", unit: "bpm" },
-        { metric: "VO2max estimé", unit: "ml/kg/min" },
+        { metric: "FTP", unit: "W", sports: ["triathlon", "cyclisme"] },
+        { metric: "FTP/kg", unit: "W/kg", sports: ["triathlon", "cyclisme"] },
+        { metric: "VMA", unit: "km/h", sports: ["triathlon", "course"] },
+        { metric: "CSS", unit: "s/100m", sports: ["triathlon"] },
+        { metric: "FC max", unit: "bpm", sports: ALL_SPORTS },
+        { metric: "FC repos", unit: "bpm", sports: ALL_SPORTS },
+        { metric: "VO2max estimé", unit: "ml/kg/min", sports: ALL_SPORTS },
       ],
     },
     {
       title: "Capacités anaérobies & neuromusculaires",
       rows: [
-        { metric: "VLamax vélo", unit: "mmol/L/s" },
-        { metric: "VLamax course", unit: "mmol/L/s" },
-        { metric: "Pmax 5s", unit: "W/kg" },
-        { metric: "P1s CMJ", unit: "W/kg" },
+        { metric: "VLamax vélo", unit: "mmol/L/s", sports: ["triathlon", "cyclisme"] },
+        { metric: "VLamax course", unit: "mmol/L/s", sports: ["triathlon", "course"] },
+        { metric: "Pmax 5s", unit: "W/kg", sports: ["triathlon", "cyclisme"] },
+        { metric: "P1s CMJ", unit: "W/kg", sports: ["triathlon", "course"] },
       ],
     },
     {
       title: "Endurance, efficience & métabolisme",
       rows: [
-        { metric: "TTE vélo", unit: "min" },
-        { metric: "TTE course", unit: "min" },
-        { metric: "Économie de course", unit: "ml/kg/km" },
-        { metric: "FatMax estimé", unit: "% FTP" },
+        { metric: "TTE vélo", unit: "min", sports: ["triathlon", "cyclisme"] },
+        { metric: "TTE course", unit: "min", sports: ["triathlon", "course"] },
+        { metric: "Économie de course", unit: "ml/kg/km", sports: ["triathlon", "course"] },
+        {
+          metric: "FatMax estimé",
+          unit: sport === "cyclisme" ? "% FTP" : "% VMA",
+          sports: ALL_SPORTS,
+        },
       ],
     },
   ];
+  const synthGroups = synthGroupsAll
+    .map((g) => ({ title: g.title, rows: g.rows.filter((r) => r.sports.includes(sport)) }))
+    .filter((g) => g.rows.length > 0);
 
   const synthesisHtml = synthGroups
     .map(
@@ -1091,35 +1137,35 @@ export function buildFullDiagnosticDossierHTML(
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
-<title>Dossier de Tests Physiologiques TFCL™ — ${escapeHtml(athleteName || "Athlète")}</title>
+<title>${escapeHtml(BRAND_MAIN)} — Dossier de Tests Physiologiques — ${escapeHtml(athleteName || "Athlète")}</title>
 <style>
-  @page { size: A4 portrait; margin: 14mm 14mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "TFCLab™ · Dossier de Tests Physiologiques"; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } }
+  @page { size: A4 portrait; margin: 14mm 14mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "${escapeHtml(BRAND_MAIN)} · Dossier de Tests Physiologiques"; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } }
   * { box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.45; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.45; }
 
   /* ---- Typographie & hiérarchie commune ---- */
-  h1 { font-size: 18pt; color: #12897E; margin: 4px 0 8px; }
-  h2 { font-size: 13pt; color: #12897E; margin: 18px 0 8px; padding: 6px 10px; background: #E2F1F9; border-left: 4px solid #12897E; border-radius: 2px; page-break-after: avoid; }
+  h1 { font-size: 18pt; color: #5555E0; margin: 4px 0 8px; }
+  h2 { font-size: 13pt; color: #5555E0; margin: 18px 0 8px; padding: 6px 10px; background: #EDEDFC; border-left: 4px solid #5555E0; border-radius: 2px; page-break-after: avoid; }
   h2 .h2-hint { font-size: 9pt; font-weight: normal; color: #666; margin-left: 6px; }
-  h3 { font-size: 11pt; color: #12897E; margin: 10px 0 4px; }
+  h3 { font-size: 11pt; color: #5555E0; margin: 10px 0 4px; }
   .mini-label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; color: #555; font-weight: 600; margin-bottom: 4px; }
 
   /* ---- Tableaux génériques ---- */
   table { width: 100%; border-collapse: collapse; margin-top: 2px; }
   th, td { border: 1px solid #DAD6CC; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
-  th { background: #f1f7f6; color: #0d6b65; font-weight: 600; }
+  th { background: #F2F0E9; color: #3C3CB8; font-weight: 600; }
   .kv-table th { width: 28%; }
-  .results-table th { background: #fdf6e3; color: #8a6d1f; }
+  .results-table th { background: #FBF0DA; color: #8a6d14; }
   .results-table tbody tr td:first-child { font-weight: 600; }
 
   /* ---- Champs à remplir : cellule haute, fond très clair, baseline nette ---- */
-  td.fill-cell { height: 32px; padding: 8px 10px; background: #fcfdfd; border-bottom: 1.5px solid #12897E; }
-  td.unit-cell { padding: 8px 10px; background: #f7faf9; color: #555; font-size: 10pt; text-align: center; }
+  td.fill-cell { height: 32px; padding: 8px 10px; background: #fcfdfd; border-bottom: 1.5px solid #5555E0; }
+  td.unit-cell { padding: 8px 10px; background: #FAF9F5; color: #555; font-size: 10pt; text-align: center; }
 
   /* ---- Cards ---- */
   .block-card { border: 1px solid #DAD6CC; border-radius: 4px; margin: 10px 0 14px; overflow: hidden; page-break-inside: avoid; }
-  .block-head { display: flex; align-items: center; gap: 10px; background: #12897E; color: white; padding: 6px 10px; }
-  .block-num { background: white; color: #12897E; font-weight: bold; padding: 2px 8px; border-radius: 3px; font-size: 10.5pt; }
+  .block-head { display: flex; align-items: center; gap: 10px; background: #5555E0; color: white; padding: 6px 10px; }
+  .block-num { background: white; color: #5555E0; font-weight: bold; padding: 2px 8px; border-radius: 3px; font-size: 10.5pt; }
   .block-title { flex: 1; font-weight: bold; font-size: 11pt; }
   .block-duration { font-size: 9.5pt; opacity: 0.95; white-space: nowrap; }
   .block-body { padding: 8px 10px 10px; }
@@ -1157,8 +1203,8 @@ export function buildFullDiagnosticDossierHTML(
   /* ---- Méta page chapitre ---- */
   .page-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 10pt; color: #333; margin: 6px 0 4px; padding: 6px 10px; background: #FAF9F5; border: 1px dashed #DAD6CC; border-radius: 3px; }
 
-  /* ---- Bandeau chapitre ---- */
-  .chapter-banner { background: linear-gradient(135deg, #5555E0 0%, #3C3CB8 100%); color: white; padding: 14px 18px; border-radius: 4px; margin-bottom: 12px; page-break-after: avoid; }
+  /* ---- Bandeau chapitre (même dégradé que les rapports staff/athlète) ---- */
+  .chapter-banner { background: linear-gradient(135deg, #5555E0 0%, #6C55D8 55%, #7A56C2 100%); color: white; padding: 14px 18px; border-radius: 8px; margin-bottom: 12px; page-break-after: avoid; }
   .chapter-num { font-size: 9.5pt; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; margin-bottom: 2px; }
   .chapter-title { font-size: 18pt; font-weight: bold; line-height: 1.15; }
   .chapter-emoji { margin-right: 6px; }
@@ -1169,19 +1215,21 @@ export function buildFullDiagnosticDossierHTML(
 
   /* ---- Sauts de page & impression ---- */
   .page-break { page-break-after: always; }
-  .footer { margin-top: 20px; padding-top: 6px; border-top: 1px solid #12897E; font-size: 8.5pt; color: #555; text-align: center; }
-  .print-btn { position: fixed; top: 10px; right: 10px; background: #12897E; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .footer { margin-top: 20px; padding-top: 6px; border-top: 1px solid #5555E0; font-size: 8.5pt; color: #555; text-align: center; }
+  .print-btn { position: fixed; top: 10px; right: 10px; background: #5555E0; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
   @media print { .print-btn { display: none; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 
-  /* ---- Couverture ---- */
-  .cover { min-height: 95vh; display: flex; flex-direction: column; justify-content: space-between; padding: 30px 10px; }
-  .cover-top { text-align: center; }
-  .cover .logo { font-size: 38pt; font-weight: bold; color: #12897E; letter-spacing: -1px; }
-  .cover .logo small { display: block; font-size: 12pt; color: #555; font-weight: normal; margin-top: 2px; }
-  .cover .doc-tag { display: inline-block; margin-top: 18px; padding: 4px 14px; background: #12897E; color: white; font-size: 10pt; letter-spacing: 2px; text-transform: uppercase; border-radius: 20px; }
-  .cover .doc-title { font-size: 30pt; color: #12897E; margin: 60px 0 12px; font-weight: bold; text-align: center; line-height: 1.1; }
-  .cover .doc-sub { font-size: 13pt; color: #555; text-align: center; margin-bottom: 40px; }
-  .cover .info-card { border: 2px solid #12897E; border-radius: 6px; padding: 20px 28px; margin: 0 auto; max-width: 480px; background: #FAF9F5; }
+  /* ---- Couverture : même bannière dégradée + logo que les rapports staff/athlète ---- */
+  .cover { min-height: 95vh; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 10px 30px; }
+  .cover-banner { background: linear-gradient(135deg, #5555E0 0%, #6C55D8 55%, #7A56C2 100%); border-radius: 16px; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .cover-banner .cover-brand { display: flex; align-items: center; gap: 18px; }
+  .cover-banner .cover-logo-img { height: 64px; width: auto; background: white; padding: 8px; border-radius: 12px; }
+  .cover-banner .cover-brand-name { color: white; font-size: 20pt; font-weight: 800; letter-spacing: 0.2px; }
+  .cover-banner .cover-brand-tagline { color: rgba(255,255,255,0.9); font-size: 10.5pt; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
+  .cover-banner .cover-badge { background: rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 20px; font-size: 10pt; font-weight: 600; }
+  .cover .doc-title { font-size: 28pt; color: #14131A; margin: 46px 0 12px; font-weight: 800; text-align: center; line-height: 1.15; }
+  .cover .doc-sub { font-size: 13pt; color: #555; text-align: center; margin-bottom: 34px; }
+  .cover .info-card { border: 2px solid #5555E0; border-radius: 12px; padding: 20px 28px; margin: 0 auto; max-width: 480px; background: #FAF9F5; }
   .cover .info-card .info-line { display: flex; align-items: baseline; margin: 12px 0; font-size: 12pt; }
   .cover .info-card .info-line .lbl { width: 130px; color: #555; font-weight: 600; }
   .cover .info-card .info-line .val { flex: 1; border-bottom: 1px solid #777; min-height: 18px; padding-left: 6px; }
@@ -1190,7 +1238,7 @@ export function buildFullDiagnosticDossierHTML(
   /* ---- Sommaire ---- */
   .toc-table { border: none; }
   .toc-table td, .toc-table th { border: none; padding: 7px 0; }
-  .toc-num { width: 50px; font-weight: bold; color: #12897E; font-size: 11pt; }
+  .toc-num { width: 50px; font-weight: bold; color: #5555E0; font-size: 11pt; }
   .toc-title { font-size: 11pt; }
   .toc-dots { border-bottom: 2px dotted #999; height: 1px; }
   .toc-page { width: 50px; text-align: right; color: #555; font-weight: 600; }
@@ -1198,14 +1246,14 @@ export function buildFullDiagnosticDossierHTML(
   /* ---- Mode d'emploi ---- */
   .howto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
   .howto-card { border: 1px solid #DAD6CC; border-radius: 4px; padding: 10px 12px; background: #FAF9F5; }
-  .howto-card .htc-title { font-weight: bold; color: #12897E; font-size: 11pt; margin-bottom: 4px; }
+  .howto-card .htc-title { font-weight: bold; color: #5555E0; font-size: 11pt; margin-bottom: 4px; }
   .howto-card .htc-body { font-size: 10pt; color: #333; line-height: 1.45; }
   .legend-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 10pt; }
   .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.15); }
 
   /* ---- Synthèse ---- */
-  .synth-group-title { margin: 14px 0 4px; color: #12897E; font-size: 11.5pt; }
-  .synthesis-table th { background: #E2F1F9; }
+  .synth-group-title { margin: 14px 0 4px; color: #5555E0; font-size: 11.5pt; }
+  .synthesis-table th { background: #EDEDFC; color: #3C3CB8; }
   .synthesis-table tbody tr td:first-child { font-weight: 600; }
   .conclusion-line { border-bottom: 1px solid #aaa; height: 26px; margin: 0; }
 </style>
@@ -1215,13 +1263,19 @@ export function buildFullDiagnosticDossierHTML(
 
   <!-- ============================ 1 · COUVERTURE ============================ -->
   <section class="cover">
-    <div class="cover-top">
-      <div class="logo">TFCLab™<small>Two For Coaching</small></div>
-      <div class="doc-tag">Dossier de tests physiologiques</div>
+    <div class="cover-banner">
+      <div class="cover-brand">
+        ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="cover-logo-img" />` : ""}
+        <div>
+          <div class="cover-brand-name">${escapeHtml(BRAND_MAIN)}</div>
+          <div class="cover-brand-tagline">Dossier de tests physiologiques</div>
+        </div>
+      </div>
+      <div class="cover-badge">📅 ${today}</div>
     </div>
 
     <div>
-      <div class="doc-title">Dossier de Tests<br/>Physiologiques TFCL™</div>
+      <div class="doc-title">Dossier de Tests<br/>Physiologiques</div>
       <div class="doc-sub">${escapeHtml(sportLabel)} — Édition du ${today}</div>
 
       <div class="info-card">
@@ -1248,7 +1302,7 @@ export function buildFullDiagnosticDossierHTML(
     <table class="toc-table">
       <tbody>${tocHtml}</tbody>
     </table>
-    <div class="footer">TFCLab™ · ${chapters.length} fiches de test + 1 synthèse · ${today}</div>
+    <div class="footer">${escapeHtml(BRAND_MAIN)} · ${chapters.length} fiches de test + 1 synthèse · ${today}</div>
   </section>
 
   <div class="page-break"></div>
@@ -1284,7 +1338,7 @@ export function buildFullDiagnosticDossierHTML(
       <li>Après le test, saisir les valeurs dans l'app : la synthèse se calcule automatiquement.</li>
     </ul>
 
-    <div class="footer">TFCLab™ · Lire avant d'utiliser le dossier sur le terrain</div>
+    <div class="footer">${escapeHtml(BRAND_MAIN)} · Lire avant d'utiliser le dossier sur le terrain</div>
   </section>
 
   <div class="page-break"></div>
@@ -1321,7 +1375,7 @@ export function buildFullDiagnosticDossierHTML(
     </table>
 
     <div class="footer">
-      TFCLab™ — Two For Coaching · Dossier complet de tests physiologiques · Confidentiel
+      ${escapeHtml(BRAND_MAIN)} · Dossier complet de tests physiologiques · Confidentiel
     </div>
   </section>
 </body>
@@ -1331,11 +1385,12 @@ export function buildFullDiagnosticDossierHTML(
 /**
  * Ouvre le dossier complet dans un nouvel onglet imprimable.
  */
-export function openFullDiagnosticDossierPrint(
+export async function openFullDiagnosticDossierPrint(
   athleteName?: string,
   sport: DossierSport = "triathlon",
-): void {
-  const html = buildFullDiagnosticDossierHTML(athleteName, sport);
+): Promise<void> {
+  const logoBase64 = await imageToBase64(logoUrl);
+  const html = buildFullDiagnosticDossierHTML(athleteName, sport, logoBase64);
   openPrintableHTML(html, { filenameHint: "Dossier diagnostic", includeInstructions: false });
 }
 
