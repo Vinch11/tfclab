@@ -4405,12 +4405,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // A. COUVERTURE — POSITIONNEMENT CLAIR (NON DOGMATIQUE)
   // =============================================
-  const completudeBadge = completude.score >= 80 
-    ? '<span class="badge badgeSuccess">Données complètes</span>'
-    : completude.score >= 50 
-      ? '<span class="badge badgeWarning">Données partielles</span>'
-      : '<span class="badge badgeError">Données insuffisantes</span>';
-
   // Fonction helper pour obtenir le statut de la source (MESURE vs ESTIMATION)
   const getSourceStatus = (source: string, confidence: number): { icon: string; label: string; cssClass: string } => {
     if (source === "test" || source === "labo" || source === "observed") {
@@ -4461,14 +4455,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="tag tagPrimary"><b>Objectif:</b> ${coverObjective}</div>
             <div class="tag"><b>Snapshot:</b> ${snapshotDate}</div>
             <div class="tag"><b>Cycle:</b> ${htmlEscape(cycleTag)}</div>
-            ${completudeBadge}
           </div>
         </div>
 
         <div class="coverBottom">
           <div class="card cardHighlight">
             <h3>🎯 Indicateurs clés — Vue rapide</h3>
-            <div class="grid3 mt">
+            <div class="grid2 mt">
               <div>
                 <span class="muted">VLamax</span><br>
                 <span class="medium" style="color:${vlamaxProfilColor};">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
@@ -4482,12 +4475,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 <br><span class="badge ${tteStatus.cssClass}" style="font-size:9px;">${tteStatus.icon} ${tteStatus.label}</span>
                 <br><span class="muted" style="font-size:10px;">${tte.target != null ? `Cible: ${tte.target} min` : 'Cible : données insuffisantes'}</span>
                 ${showTteRun ? `<br><span class="muted" style="font-size:10px;margin-top:2px;display:inline-block;">CAP: <b>${tteRun.tte_min} min</b>${tteRun.target != null ? ` (cible ${tteRun.target} min)` : ''}</span>` : ''}
-              </div>
-              <div>
-                <span class="muted">Potentiel Physiologique</span><br>
-                <span class="medium ${potentielPhysiologique.score >= 80 ? 'success' : potentielPhysiologique.score >= 60 ? 'warning' : 'error'}">${potentielPhysiologique.score}%</span>
-                <br><span class="badge badgeWarning" style="font-size:9px;">🔁 Indicateur calculé</span>
-                <br><span class="muted" style="font-size:10px;">Cohérence globale</span>
               </div>
             </div>
           </div>

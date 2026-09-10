@@ -134,42 +134,57 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Aide": "bg-muted text-muted-foreground",
 };
 
-// Ordre par défaut
+// Ordre par défaut — arc narratif (audit "rapport staff", demande coach :
+// "réorganiser pour que ça raconte une histoire"). Avant ce fix, l'ordre
+// mélangeait les catégories (ex. la catégorie "Analyse" apparaissait en 3
+// blocs séparés et non contigus : positions 5-8, 22-24, 29-33) — un lecteur
+// retombait sur de la physiologie brute juste après avoir lu la nutrition,
+// puis à nouveau après l'historique. Regroupé ici en 7 mouvements qui se
+// lisent dans l'ordre : où en est l'athlète → les preuves qui le montrent →
+// ce que ça change à l'entraînement → carburant/corps → l'objectif de
+// course → profil & tendances dans le temps → annexes méthodo.
 export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
+  // 1. Où en est l'athlète (diagnostic global)
   "synthese",
   "compass",
   "facteursLimitants",
   "leviersAction",
+  // 2. Les preuves physiologiques (ce qui justifie le diagnostic ci-dessus)
   "profilMetabolique",
   "vlamaxZoneConfidence",
   "runMLSSCoherence",
   "indicateurs",
+  "lactateCurve",
+  "substrateCurve",
+  "cpWprimeWbal",
+  "lactateCorrespondence",
+  // 3. Ce que ça change à l'entraînement
   "pacingEnvelope",
   "potentielPhysiologiqueRunning",
   "injuryRisk",
+  "zones",
+  "roadmap",
+  // 4. Carburant / corps
   "nutritionV2",
   "fatmaxTFCL",
+  // 5. L'objectif de course
   "ambitionTargets",
   "ambitionPredictions",
-  "evolutionCharts",
-  "ageAdjustment",
   "ambitionLegend",
-  "zones",
+  "performancePrediction",
+  // 6. Profil & tendances dans le temps
+  "ageAdjustment",
+  "cycleIntelligence",
+  "evolutionCharts",
   "historique",
   "tests",
+  "checkins",
+  // 7. Annexes / méthodologie
+  "comprendre",
+  "qualite",
   "testsCalibration",
   "calibrationEvidence",
   "fitImports",
-  "checkins",
-  "comprendre",
-  "qualite",
-  "roadmap",
-  "lactateCurve",
-  "substrateCurve",
-  "performancePrediction",
-  "cpWprimeWbal",
-  "lactateCorrespondence",
-  "cycleIntelligence",
 ];
 
 // Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
