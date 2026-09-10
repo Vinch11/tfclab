@@ -663,6 +663,9 @@ const Index = () => {
       raceChronos: chronos,
       vmaKmh: effectiveCloudSnapshot?.vma ?? null,
       thresholdPaceSecPerKm: (effectiveCloudSnapshot as any)?.pace_threshold_sec_km ?? null,
+      ftp: effectiveCloudSnapshot?.ftp ?? null,
+      weightKg: (effectiveCloudSnapshot as any)?.weight_kg ?? null,
+      vlamaxRun: (effectiveCloudSnapshot as any)?.vlamax_run ?? (effectiveCloudSnapshot as any)?.vlamax ?? null,
     });
   }, [currentAthlete, effectiveCloudSnapshot, currentAmbition]);
   const targetRaceDurationMin = targetRacePrediction?.targetRaceDurationMin ?? null;

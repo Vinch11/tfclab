@@ -44,6 +44,7 @@ import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibi
 import { computePacingEnvelope } from '@/lib/v2/pacingEnvelopeEngine';
 import { analyzeCriticalPower } from '@/lib/v2/criticalPowerModel';
 import { estimateBikeSplit } from '@/lib/v2/bikeSplitEstimator';
+import { estimateRunSplitMin, V_SEUIL_FRACTION_BY_AMBITION, type RunSplitAmbition } from '@/lib/v2/runSplitEstimator';
 
 import { buildRaceChronosFromSnapshot } from '@/lib/v2/buildRaceChronosFromSnapshot';
 import { generateDisciplineRules } from '@/lib/v2/pacingDisciplineRules';
@@ -388,35 +389,16 @@ export default function RaceSimulationPage() {
     // F41 — insufficient-data guard : pas de fake 0.4. Si VLamax absente,
     // on n'applique aucune pénalité glyco (on ne devine pas un profil).
     const vlamaxRunVal = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null;
-    const vlamaxHigh = vlamaxRunVal != null && vlamaxRunVal >= 0.55;
-    const vlamaxVSeuilPenalty = vlamaxHigh ? 0.02 : 0; // -2% vSeuil si glyco
 
-    // P2 — Pénalité de durabilité observée chronos (Riegel semi→marathon)
-    //   • idx ≤ 1.04 → 0%   • 1.04–1.08 → -1.5%   • >1.08 → -3%
+    // P2 — Indice de durabilité observé chronos (Riegel semi→marathon), consommé
+    // par estimateRunSplitMin (pénalité -1.5% si >1.04, -3% si >1.08).
     const durIdx = raceChronoEstimate?.durabilityIndex;
-    const durabilityPenalty = durIdx == null ? 0
-      : durIdx <= 1.04 ? 0
-      : durIdx <= 1.08 ? 0.015
-      : 0.03;
 
-    const ambition = ((selectedAthlete as any)?.ambition ?? 'age_group') as
-      | 'finisher' | 'age_group' | 'competitor' | 'elite';
+    const ambition = ((selectedAthlete as any)?.ambition ?? 'age_group') as RunSplitAmbition;
+    const fractions = V_SEUIL_FRACTION_BY_AMBITION[ambition] ?? V_SEUIL_FRACTION_BY_AMBITION.age_group;
 
-    const vSeuilFractionByAmbition: Record<typeof ambition, { half: number; full: number }> = {
-      elite:      { half: 0.95, full: 0.89 },
-      competitor: { half: 0.88, full: 0.82 },
-      age_group:  { half: 0.82, full: 0.76 },
-      finisher:   { half: 0.75, full: 0.70 },
-    };
-
-    const computeRunMin = (distanceKm: number, vSeuilFraction: number): number | null => {
-      if (!paceThr || paceThr <= 0) return null;
-      const effectiveFraction = Math.max(0.5, vSeuilFraction - vlamaxVSeuilPenalty - durabilityPenalty);
-      const paceRunSecKm = paceThr / effectiveFraction;
-      return (paceRunSecKm * distanceKm) / 60;
-    };
-
-    const fractions = vSeuilFractionByAmbition[ambition] ?? vSeuilFractionByAmbition.age_group;
+    const computeRunMin = (distanceKm: number, vSeuilFraction: number): number | null =>
+      estimateRunSplitMin({ distanceKm, thresholdPaceSecPerKm: paceThr, vSeuilFraction, vlamaxRun: vlamaxRunVal, durabilityIndex: durIdx });
 
     // Vélo — estimation physiologique (FTP × fraction ambition + modèle aéro/roulement)
     // au lieu des baselines forfaitaires 300/150 min (≈ 36 km/h pour tout le monde).
