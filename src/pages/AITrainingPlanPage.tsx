@@ -929,6 +929,9 @@ export default function AITrainingPlanPage() {
       raceChronos,
       vmaKmh: refs.vma ?? null,
       thresholdPaceSecPerKm: (activeSnap as any).pace_threshold_sec_km ?? activeSnap.pace_threshold_sec_per_km ?? null,
+      ftp: refs.ftp ?? null,
+      weightKg: refs.weightKg ?? null,
+      vlamaxRun: vlamaxEffectifPrecomputed.value ?? null,
     })?.targetRaceDurationMin ?? null;
 
     const latestCheckin = (getCheckinsForAthlete(athlete.id) ?? [])

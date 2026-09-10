@@ -300,6 +300,9 @@ export function resolvePredictedDurationMin(
     vmaKmh: input.vmaKmh ?? null,
     thresholdPaceSecPerKm:
       input.paceThreshold ?? input.raceChrono?.paceThreshold_sec_km ?? null,
+    ftp: input.ftp ?? null,
+    weightKg: input.weight ?? null,
+    vlamaxRun: input.vlamaxEffectif?.value ?? null,
   });
   if (predictor) {
     return {
