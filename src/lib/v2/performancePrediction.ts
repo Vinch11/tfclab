@@ -28,6 +28,7 @@
 
 import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
 import { estimateCdA, solveSpeed, BIKE_KIT_KG, type BikeAmbition } from "@/lib/v2/bikeSplitEstimator";
+import { predictRaceDurationMin } from "@/lib/raceTimePredictor";
 
 /** Niveau aéro/matériel déduit du rapport poids-puissance (CdA réaliste). */
 function bikeAmbitionFromWkg(wkg: number): BikeAmbition {
@@ -74,6 +75,8 @@ export interface PerformancePredictionInput {
   weight: number;
   ftp?: number | null;
   vma?: number | null;            // km/h
+  /** Allure au seuil lactique (sec/km) — permet le split physio triathlon (cf. estimateBaseTime). */
+  thresholdPaceSecPerKm?: number | null;
   runEconomyScore?: number | null; // 0-1
   css?: number | null;             // swim CSS sec/100m
   confidence?: number;
@@ -356,6 +359,30 @@ function estimateBaseTime(
 
   // Triathlon: sum of segments
   if (race.segments) {
+    // IM/70.3 : délègue au split physiologique déjà validé (FTP réel pour le
+    // vélo, allure seuil réelle pour la course) au lieu du modèle ad-hoc
+    // ci-dessous — deux moteurs de temps triathlon indépendants divergeaient
+    // significativement (ex. 5h24 estimés ici pour un 70.3 réellement couru
+    // en 4h45, cf. audit "rapport staff"). Repli sur le modèle ad-hoc
+    // uniquement si FTP/allure seuil manquent (predictRaceDurationMin retombe
+    // alors sur une baseline forfaitaire moins bonne que ce modèle-ci).
+    const physioObjective = race.id === "tri_703" ? "70.3" : race.id === "tri_im" ? "IM" : null;
+    if (physioObjective) {
+      const physio = predictRaceDurationMin({
+        objective: physioObjective,
+        ambition: "perf",
+        ftp: ftp ?? null,
+        weightKg: weight,
+        vlamaxRun: vlamax,
+        thresholdPaceSecPerKm: input.thresholdPaceSecPerKm ?? null,
+        vmaKmh: vma ?? null,
+        raceChronos: null,
+      });
+      if (physio && physio.source === "triathlon_physio_split") {
+        return physio.targetRaceDurationMin;
+      }
+    }
+
     let totalMin = 0;
     for (const seg of race.segments) {
       if (seg.sport === "swim") {
