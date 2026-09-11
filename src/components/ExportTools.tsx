@@ -4004,6 +4004,7 @@ function buildExecutiveSummaryHTML(payload: ExportPayload): string {
         vo2max: vo2, vlamax: vlaVal, weight: wKg,
         ftp: effectiveRefs.ftp ?? null,
         vma: effectiveSnapshot?.vma ?? null,
+        thresholdPaceSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
         css: effectiveSnapshot?.css ?? null,
         // vlamax.confidence est déjà sur une échelle 0-1 — cf. bug réel corrigé
         // (audit "dashboard/plan/export", passe 6) sur le même /100 en double
@@ -8238,6 +8239,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       weight: weightKg,
       ftp: ftpVal,
       vma: vmaVal,
+      thresholdPaceSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
       css: cssVal,
       // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : p.vlamax.confidence
       // est déjà sur une échelle 0-1 (comme VLamaxEffectif.confidence partout ailleurs) —
