@@ -1269,7 +1269,7 @@ const Index = () => {
                   <Button
                     size="sm"
                     variant={isRaceWeek ? "default" : "outline"}
-                    className={cn("hidden sm:inline-flex shrink-0 gap-1.5", isRaceWeek && "animate-pulse")}
+                    className={cn("hidden sm:inline-flex shrink-0 gap-1.5", isRaceWeek && "shadow-md shadow-primary/30")}
                     onClick={() => setReadinessOpen(true)}
                     title={isRaceWeek ? "Race week — bilan disponible" : days !== null ? `J-${days} avant la course` : "Bilan pré-objectif TFCL"}
                   >
@@ -1552,7 +1552,7 @@ const Index = () => {
                       variant="outline"
                       className={cn(
                         "w-full h-11 gap-1.5 text-sm border-warning/50 bg-warning/10 text-foreground hover:bg-warning/20 hover:border-warning/70",
-                        raceWeek && "animate-pulse shadow-md border-warning bg-warning/25"
+                        raceWeek && "shadow-md border-warning bg-warning/25"
                       )}
                       onClick={() => setReadinessOpen(true)}
                     >
