@@ -92,6 +92,7 @@ import { computeCycleIntelligence, snapshotToEngineData } from "@/lib/v2/cycleIn
 import { computePacingEnvelope, type PacingEnvelopeResult, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import { computePacingEnvelopeRun, PACING_ZONE_COLORS } from "@/lib/v2/pacingEnvelopeRunning";
 import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
+import { estimateFromRaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
 import { computeLongDistanceEnvelope, LONG_DISTANCE_THRESHOLD_HOURS, type LongDistanceEnvelopeResult } from "@/lib/v2/pacingEnvelopeLongDistance";
 
 // ✅ Rapport Profil Athlète (design Bevel, pédagogique)
@@ -2297,6 +2298,26 @@ export const RACE_DURATION_HOURS_E: Record<string, number> = {
   "10km": 0.75, "10K": 0.75,
 };
 
+/**
+ * Résout l'allure au seuil effective pour les prédictions de temps triathlon
+ * (computePerformancePredictions). Bug réel corrigé : le fix "temps triathlon
+ * 70.3/IM" (audit "rapport staff") ne lisait que le champ brut du snapshot
+ * (pace_threshold_sec_per_km) — souvent vide, la plupart des athlètes n'ayant
+ * jamais saisi directement leur allure seuil. RaceSimulationPage.tsx (déjà
+ * validé) complète avec une allure dérivée des chronos de course réels
+ * (estimateFromRaceChronos) quand le champ brut est absent ; sans ce même
+ * repli ici, le split physiologique restait systématiquement indisponible
+ * (retombant sur l'ancien modèle ad-hoc) pour la quasi-totalité des athlètes,
+ * pas seulement ceux sans données.
+ */
+export function resolveThresholdPaceForPrediction(snapshot: DbSnapshot | null): number | null {
+  const raw = snapshot?.pace_threshold_sec_per_km ?? null;
+  if (raw != null) return raw;
+  const chronos = buildRaceChronosFromSnapshot(snapshot as any);
+  if (!chronos) return null;
+  return estimateFromRaceChronos(chronos)?.paceThreshold_sec_km ?? null;
+}
+
 function computePacingEnvelopeForExport(payload: ExportPayload): PacingEnvelopeResult | null {
   const { effectiveSnapshot, effectiveRefs, vlamax, tte, potentielPhysiologique, athlete, ambition, fatmaxTFCL } = payload;
   const objectif = athlete.goal || "Marathon";
@@ -4004,7 +4025,7 @@ function buildExecutiveSummaryHTML(payload: ExportPayload): string {
         vo2max: vo2, vlamax: vlaVal, weight: wKg,
         ftp: effectiveRefs.ftp ?? null,
         vma: effectiveSnapshot?.vma ?? null,
-        thresholdPaceSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
+        thresholdPaceSecPerKm: resolveThresholdPaceForPrediction(effectiveSnapshot),
         css: effectiveSnapshot?.css ?? null,
         // vlamax.confidence est déjà sur une échelle 0-1 — cf. bug réel corrigé
         // (audit "dashboard/plan/export", passe 6) sur le même /100 en double
@@ -8239,7 +8260,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       weight: weightKg,
       ftp: ftpVal,
       vma: vmaVal,
-      thresholdPaceSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
+      thresholdPaceSecPerKm: resolveThresholdPaceForPrediction(effectiveSnapshot),
       css: cssVal,
       // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : p.vlamax.confidence
       // est déjà sur une échelle 0-1 (comme VLamaxEffectif.confidence partout ailleurs) —
