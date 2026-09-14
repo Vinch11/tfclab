@@ -17,6 +17,37 @@ export function isIOSDevice(): boolean {
   return classicIOS || Boolean(iPadOS);
 }
 
+/**
+ * App installée sur l'écran d'accueil (mode standalone). Sur iOS, `window.
+ * print()` ne produit AUCUNE UI dans ce mode — pas d'erreur, pas de dialogue :
+ * le bouton "Imprimer" ne fait simplement rien, ce qui explique la confusion
+ * ("je ne sais plus imprimer") signalée par le coach. Aucun contournement JS
+ * pur n'existe pour rouvrir le vrai chrome Safari depuis un WKWebView
+ * standalone — d'où le bouton "Partager" (Web Share API) ajouté en repli,
+ * qui fonctionne lui en mode standalone.
+ */
+function isStandalonePWA(): boolean {
+  return (
+    (navigator as any).standalone === true ||
+    (typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches)
+  );
+}
+
+/** Partage le document comme fichier HTML via le share sheet natif (AirDrop, Fichiers, Mail…). */
+async function shareReportFile(html: string, filenameHint?: string): Promise<boolean> {
+  try {
+    const nav = navigator as any;
+    if (typeof nav.share !== "function" || typeof nav.canShare !== "function") return false;
+    const safeName = (filenameHint ?? "rapport").replace(/[^a-zA-Z0-9-_ ]+/g, "_").trim() || "rapport";
+    const file = new File([html], `${safeName}.html`, { type: "text/html" });
+    if (!nav.canShare({ files: [file] })) return false;
+    await nav.share({ files: [file], title: filenameHint ?? "Rapport" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function injectBefore(html: string, needle: string, insertion: string): string {
   const idx = html.toLowerCase().lastIndexOf(needle.toLowerCase());
   if (idx === -1) return html + insertion;
@@ -112,9 +143,32 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   printBtn.textContent = "Imprimer / PDF";
   printBtn.style.cssText = btnStyle;
 
+  const nav = navigator as any;
+  const canShareFiles = typeof nav.canShare === "function" && (() => {
+    try {
+      return nav.canShare({ files: [new File([""], "test.html", { type: "text/html" })] });
+    } catch {
+      return false;
+    }
+  })();
+  const shareBtn = document.createElement("button");
+  shareBtn.textContent = "Partager";
+  shareBtn.style.cssText = btnStyle + "background:#fff;color:#111;";
+
   const closeBtn = document.createElement("button");
   closeBtn.textContent = "Fermer";
   closeBtn.style.cssText = btnStyle + "background:#fff;color:#111;";
+
+  // App installée à l'écran d'accueil (standalone) : window.print() n'ouvre
+  // aucune UI dans ce mode sur iOS (limitation plateforme, pas un bug de ce
+  // code) — on le signale clairement et on met en avant "Partager" (Web
+  // Share API), qui lui fonctionne en standalone.
+  const hint = document.createElement("div");
+  if (isStandalonePWA()) {
+    hint.textContent = "📱 Depuis l'app installée, \"Imprimer\" peut ne rien faire (limitation iOS). Utilise plutôt \"Partager\" → Enregistrer dans Fichiers, puis ouvre le fichier et imprime/exporte en PDF depuis là.";
+    hint.style.cssText =
+      "flex:0 0 auto;padding:6px 12px;font-size:11.5px;line-height:1.4;color:#7a4b00;background:#fff6e5;border-bottom:1px solid rgba(0,0,0,.08);";
+  }
 
   // iOS Safari ne scrolle pas à l'intérieur d'une iframe : on l'étire à la
   // hauteur du contenu et on scrolle le conteneur parent à la place.
@@ -162,15 +216,20 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
       window.print();
     }
   };
+  shareBtn.onclick = () => {
+    void shareReportFile(html, filenameHint);
+  };
   closeBtn.onclick = () => {
     document.body.style.overflow = "";
     overlay.remove();
   };
 
-  bar.append(title, printBtn, closeBtn);
+  bar.append(title, printBtn, ...(canShareFiles ? [shareBtn] : []), closeBtn);
+  overlay.append(bar);
+  if (hint.textContent) overlay.append(hint);
   stage.append(frame);
   scroller.append(stage);
-  overlay.append(bar, scroller);
+  overlay.append(scroller);
   document.body.appendChild(overlay);
 
   document.body.style.overflow = "hidden";

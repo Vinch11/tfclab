@@ -28,6 +28,10 @@ import {
   openFullDiagnosticDossierPrint,
   type DossierSport,
 } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import {
+  openTestingWeekDossierPrint,
+  type TestingWeekSport,
+} from "@/lib/diagnostic/buildTestingWeekProtocolHTML";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -124,6 +128,7 @@ export default function DiagnosticPage() {
   const { currentAthlete } = useAthletes();
   const [dossierSport, setDossierSport] = useState<DossierSport>("triathlon");
   const [dossierAthleteName, setDossierAthleteName] = useState<string>("");
+  const [testingWeekSport, setTestingWeekSport] = useState<TestingWeekSport>("triathlon");
 
   useEffect(() => {
     setDossierAthleteName(currentAthlete?.name ?? "");
@@ -231,6 +236,60 @@ export default function DiagnosticPage() {
             >
               <FolderDown className="h-4 w-4 mr-2" />
               Générer le dossier complet
+            </Button>
+            <p className="text-[10px] text-muted-foreground italic">
+              S'ouvre dans un nouvel onglet — utilisez Ctrl+P (Cmd+P) puis "Enregistrer en PDF".
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Export semaine de test officielle PDF (mêmes tests/données que TFCLTestingWeekPage/CAPTestingWeekPage) */}
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FolderDown className="h-5 w-5 text-primary" />
+              🧪 Exporter la semaine de test officielle (protocole complet)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Version papier du protocole 8 jours (D-1 à D7) exactement utilisé par "Semaine de Test TFCL" et "Semaine de Test CAP" — mêmes tests, mêmes données à enregistrer que dans l'app, pour remplir le snapshot précisément.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="testing-week-athlete" className="text-xs">Nom de l'athlète</Label>
+                <Input
+                  id="testing-week-athlete"
+                  value={dossierAthleteName}
+                  onChange={(e) => setDossierAthleteName(e.target.value)}
+                  placeholder="Nom Prénom"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="testing-week-sport" className="text-xs">Sport</Label>
+                <select
+                  id="testing-week-sport"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={testingWeekSport}
+                  onChange={(e) => setTestingWeekSport(e.target.value as TestingWeekSport)}
+                >
+                  <option value="triathlon">Triathlon (vélo + course)</option>
+                  <option value="run">Course à pied seule</option>
+                  <option value="bike">Vélo seul</option>
+                </select>
+              </div>
+            </div>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() =>
+                openTestingWeekDossierPrint(
+                  testingWeekSport,
+                  dossierAthleteName.trim() || undefined,
+                )
+              }
+            >
+              <FolderDown className="h-4 w-4 mr-2" />
+              Générer la semaine de test
             </Button>
             <p className="text-[10px] text-muted-foreground italic">
               S'ouvre dans un nouvel onglet — utilisez Ctrl+P (Cmd+P) puis "Enregistrer en PDF".
