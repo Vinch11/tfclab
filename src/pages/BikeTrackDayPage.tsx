@@ -254,7 +254,14 @@ export default function BikeTrackDayPage() {
       pmax_5s: calc.p10 || null,
       vo2max: calc.vo2maxEst > 0 ? Math.round(calc.vo2maxEst * 10) / 10 : null,
       map5min_w: calc.map || null,
-      p30s_w: calc.cp3 || null,
+      // Bug réel corrigé (audit coach "câblage snapshot") : p30s_w recevait
+      // calc.cp3 (test critical power 3 MIN) au lieu du vrai sprint 30s —
+      // deux tests physiologiquement très différents (CP3' ≈ FTP, P30s
+      // sprint >> FTP). Le vrai P30s (calc.p30, déjà calculé) n'était écrit
+      // nulle part ; p60s_w (calc.p60) non plus. CP3' reste tracé dans
+      // coach_notes (pas de colonne dédiée, même politique que Pool Day).
+      p30s_w: calc.p30 || null,
+      p60s_w: calc.p60 || null,
       tte_observed_min: calc.tteEst || null,
       coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
