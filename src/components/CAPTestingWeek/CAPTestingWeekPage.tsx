@@ -28,6 +28,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { CAP_TESTING_WEEK, computeCAPCompletion } from "@/data/capTestingWeek";
+import { openTestingWeekDossierPrint } from "@/lib/diagnostic/buildTestingWeekProtocolHTML";
+import { Printer } from "lucide-react";
 import { CAPDayCard } from "./CAPDayCard";
 import { CAPTestSheet } from "./CAPTestSheet";
 import { CAPCompletionSummary } from "./CAPCompletionSummary";
@@ -151,7 +153,18 @@ export function CAPTestingWeekPage() {
                 </div>
               </div>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => openTestingWeekDossierPrint("run", selectedAthlete?.name)}
+              >
+                <Printer className="w-4 h-4" />
+                <span className="hidden sm:inline">Imprimer</span>
+              </Button>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>

@@ -24,6 +24,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TFCL_TESTING_WEEK, computeTFCLCompletion } from "@/data/tfclTestingWeek";
+import { openTestingWeekDossierPrint } from "@/lib/diagnostic/buildTestingWeekProtocolHTML";
+import { Printer } from "lucide-react";
 import { TFCLDayCard } from "./TFCLDayCard";
 import { TFCLTestSheet } from "./TFCLTestSheet";
 import { TFCLCompletionSummary } from "./TFCLCompletionSummary";
@@ -98,7 +100,18 @@ export function TFCLTestingWeekPage() {
                 </div>
               </div>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => openTestingWeekDossierPrint("bike", selectedAthlete?.name)}
+              >
+                <Printer className="w-4 h-4" />
+                <span className="hidden sm:inline">Imprimer</span>
+              </Button>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
