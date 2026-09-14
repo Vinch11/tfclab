@@ -121,6 +121,18 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
       } else if (dayKey === "D5") {
         if (formData.ftp_used) snapshotUpdates.ftp = parseInt(formData.ftp_used);
         if (formData.tte_observed) snapshotUpdates.tte_observed_min = parseInt(formData.tte_observed);
+      } else if (dayKey === "D6") {
+        // Bug réel corrigé (audit coach "snapshot bien câblé ?") : les champs
+        // saisis pour D6 (Z2 Validation) n'étaient jamais écrits sur le
+        // snapshot — seuls protocol_quality/coach_notes l'étaient, la
+        // dérive FC et la cadence disparaissaient silencieusement alors
+        // qu'elles alimentent DiagnosticInput.bikeHrDriftFlag/bikeCadenceRpm
+        // (moteur unique utilisé par tous les onglets, cf. Index.tsx).
+        if (formData.hr_drift) {
+          // Seuil de validité D6 : dérive <5% (protocole outdoor de référence).
+          snapshotUpdates.bike_hr_drift_flag = parseFloat(formData.hr_drift) >= 5;
+        }
+        if (formData.cadence_avg) snapshotUpdates.bike_cadence_rpm = parseInt(formData.cadence_avg);
       }
 
       if (snapshot) {
