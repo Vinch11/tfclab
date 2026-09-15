@@ -90,6 +90,27 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(q.run.min).toBe(2);
   });
 
+  it("load/taper STARTTORUN → run.min assoupli à 2 (catalogue : S2R_CONTINUOUS_20_25 prescrit 2×/semaine en S10-11)", () => {
+    // Régression : avant ce fix, run était figé à {min:3,max:3} pour TOUTE
+    // semaine "load"/"taper", contredisant la fiche catalogue qui réduit
+    // explicitement la fréquence de course à 2×/semaine dès la phase
+    // "continu" (rang 6 de l'échelle enforceStartToRunLadder). max reste 3 :
+    // les semaines "load" normales (marche-course 3×/semaine) restent
+    // possibles, seul le plancher est assoupli.
+    const load = computeWeeklySessionQuota("Start to Run", "finisher", 2, "load");
+    expect(load!.quota.run.min).toBe(2);
+    expect(load!.quota.run.max).toBe(3);
+
+    const taper = computeWeeklySessionQuota("Start to Run", "finisher", 2, "taper");
+    expect(taper!.quota.run.min).toBe(2);
+    expect(taper!.quota.run.max).toBe(3);
+  });
+
+  it("race STARTTORUN → run.max reste 3 (non modifié par le fix load/taper)", () => {
+    const race = computeWeeklySessionQuota("Start to Run", "finisher", 2, "race");
+    expect(race!.quota.run.max).toBe(3);
+  });
+
   it("recovery 703 age_group → total ≤ 8, swim ≥ 2, strength ≥ 1", () => {
     const r = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "recovery");
     expect(r).not.toBeNull();

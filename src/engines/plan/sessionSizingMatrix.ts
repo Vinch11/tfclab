@@ -443,6 +443,21 @@ export function computeWeeklySessionQuota(
     localFloors.slLongRunMin = undefined;
   }
 
+  // Start to Run : le catalogue prescrit explicitement 2×/semaine (pas 3) dès
+  // la phase "continu" (S2R_CONTINUOUS_20_25, rang 6 de l'échelle de
+  // progression enforceStartToRunLadder/planReconciler.ts, "Semaines 10-11,
+  // 2×/semaine") — un plancher hebdo rigide à exactement 3 courses
+  // (base.run={min:3,max:3}) contredisait cette fiche sur la quasi-totalité
+  // du plan ("load" = la majorité des semaines, "taper" = S11 pour un cycle
+  // de 12 semaines). Assoupli ici SEULEMENT pour load/taper : la branche
+  // recovery ci-dessus dérive déjà de base.run.min=3 (→2 après son propre
+  // -1) et reste inchangée (cf. test "recovery STARTTORUN finisher →
+  // run.min===2") ; race n'est pas touchée (déjà réduite via le facteur
+  // ×0.5 sur totalSessions).
+  if (objKey === "STARTTORUN" && (weekType === "load" || weekType === "taper")) {
+    quota = { ...quota, run: { min: 2, max: quota.run.max } };
+  }
+
   return { quota, floors: localFloors, downgraded, downgradeReason };
 }
 
