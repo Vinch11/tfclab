@@ -124,7 +124,7 @@ const START_TO_RUN: LibraryWorkout[] = [
     variants: {},
     goals: ["start_to_run"],
     tags: ["start-to-run", "marche-course", "construction"],
-    notes: "Minutes courues cumulées : ~54min/semaine (+~28 % sur 2 semaines → palier de consolidation obligatoire en S7).",
+    notes: "Minutes courues cumulées : ~54min/semaine (+~28 % sur 2 semaines). Palier de consolidation suivant en S8 (cadence fixe toutes les 4 semaines : S4, S8, S12 — jamais S7).",
   },
   {
     id: "S2R_WALK_RUN_5_1",

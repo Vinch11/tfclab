@@ -302,16 +302,16 @@ const FEWSHOT_WALMSLEY_TRAIL_COURT = `### Exemple : Jim Walmsley — Semaine Bas
 | Samedi | CAP/Trail | Sortie longue D+ | 2h30 sentier montagneux Z2. +900m D+. Ravitaillement testé 40g/h. |
 | Dimanche | Renfo + Mobilité | Core + étirements | Gainage 4×45s, hip thrust 3×12, foam roller 20min. 40min. |`;
 
-const FEWSHOT_STARTTORUN = `### Exemple : Start to Run — Semaine Type Débutant Absolu (3h, 12km course + marche)
+const FEWSHOT_STARTTORUN = `### Exemple : Start to Run — Semaine Type Débutant Absolu (Semaines 5-6, ~2h40, catalogue S2R)
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
 | Lundi | Repos | Repos complet | Récupération, hydratation, sommeil 8h minimum |
-| Mardi | CAP | Marche/Course alternée | 30min: 5×(3min marche rapide + 3min course Z1 6:30-7:00/km). Cad 170spm. |
-| Mercredi | Renfo | PPG débutant | Squats PDC 3×10, fentes 2×8, gainage 3×20s, chaise 3×20s. 25min. |
-| Jeudi | Repos | Repos complet | Marche douce 20min optionnelle. |
-| Vendredi | CAP | Marche/Course progression | 30min: 4×(2min marche + 4min course Z1 6:15-6:45/km). |
-| Samedi | Mobilité | Mobilité + étirements | Foam roller 15min, mobilité hanches/chevilles, étirements. 25min. |
-| Dimanche | CAP | Sortie longue douce | 35min marche/course: 3×(3min marche + 5min course Z1 6:30/km). |`;
+| Mardi | CAP | Marche-course 3'/1' | 5min marche + 5min alternance 30s trot/30s marche. Puis 6×(3min trot facile + 1min marche). Total couru = 18min. Test de la parole à chaque fraction — jamais d'allure chiffrée. 5min marche + mobilité hanches. 35min total. [ID: S2R_WALK_RUN_3_1] |
+| Mercredi | Renfo | Renforcement fondation — Bloc 2 | 6min mobilité chevilles/hanches. 3 tours récup 60-75s : montées pointes unipodales 3×10/jambe, pont fessier unipodal 3×10/jambe, fente avant 3×10/jambe, step-up 3×8/jambe, planche ventrale 3×30s, planche latérale 3×25s/côté. 27min total. [ID: S2R_STR_FOUNDATION_BLOC2] |
+| Jeudi | Repos | Repos complet | Marche douce optionnelle, aucune course |
+| Vendredi | CAP | Marche-course 3'/1' | Même format que mardi (fiche identique, 3×/semaine). 35min total. [ID: S2R_WALK_RUN_3_1] |
+| Samedi | Renfo | Renforcement fondation — Bloc 2 | Même contenu que mercredi. 27min total. [ID: S2R_STR_FOUNDATION_BLOC2] |
+| Dimanche | CAP | Marche-course progressive | Même format que mardi/vendredi — jamais 2 jours de course de suite, jamais le mot "sortie longue". 35min total. [ID: S2R_WALK_RUN_3_1] |`;
 
 /**
  * Progression force déterministe Start to Run (12 semaines).
