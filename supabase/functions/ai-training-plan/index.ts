@@ -1331,9 +1331,18 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
 
             // ─── ASSERTION POST-GÉNÉRATION : contamination triathlon dans plan running ───
             // Chantier "doubles/triples" — rend visible toute violation, sans bloquer la publication.
+            // Audit "structure multi-objectifs" (Marathon + Ironman dans le même plan) :
+            // cette assertion ne regardait que l'objectif PRINCIPAL — un plan running
+            // dont un objectif secondaire (raceGoals B/C) est un triathlon a
+            // légitimement besoin de natation pour préparer CET objectif, ce n'était
+            // pas une contamination mais le fonctionnement normal du multi-objectifs.
             try {
               const finalSport = mapObjectiveToSport(planConfig?.objective || "");
-              if (finalSport === "run_route" || finalSport === "trail") {
+              const hasTriathlonRaceGoal = Array.isArray(planConfig?.raceGoals) && planConfig.raceGoals.some((g: any) => {
+                const s = mapObjectiveToSport(g?.objective || "");
+                return s === "tri_70_3" || s === "ironman";
+              });
+              if ((finalSport === "run_route" || finalSport === "trail") && !hasTriathlonRaceGoal) {
                 const totalSwim = chunkMetricsHistory.reduce((s, m) => s + (m.sportDist?.swim || 0), 0);
                 const totalBike = chunkMetricsHistory.reduce((s, m) => s + (m.sportDist?.bike || 0), 0);
                 if (totalSwim > 0) {
