@@ -2,7 +2,7 @@
 // PROMPT HELPERS — User prompt builder, CP/W' model, diagnostics
 // ═══════════════════════════════════════════════════════════════
 
-import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, taperWeeksForObjectiveServer, SPORT_RATIO_REFS, type CatalogDurationStats } from "./sportRatioMatrix.ts";
+import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, taperWeeksForObjectiveServer, canBeIndependentPeak, minGapWeeksForFullPeak, SPORT_RATIO_REFS, type CatalogDurationStats } from "./sportRatioMatrix.ts";
 import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
 import { buildNutritionAndSafetyBlock } from "./nutritionAndSafetyGuardrails.ts";
 import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
@@ -751,6 +751,66 @@ export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrate
   return lines.join("\n");
 }
 
+/**
+ * Multi-objectifs — classification "pic complet" vs "jalon intermédiaire"
+ * (audit "structure d'un plan à plusieurs objectifs", Marathon + Ironman à
+ * ~5 mois d'écart). AVANT ce fix, deux mécanismes indépendants décidaient
+ * chacun de leur côté qui est "le vrai pic du plan" :
+ *  - la ligne "DERNIÈRE semaine du plan / taper complet" (chronologie pure) ;
+ *  - le "RAPPEL FINAL" ("Objectif principal (A) : le pic de forme PRINCIPAL
+ *    vise cette course") — basé sur l'étiquette de priorité, indépendante de
+ *    la date.
+ * Si l'objectif étiqueté "A" (toujours le champ objectif principal du
+ * formulaire — cf. AITrainingPlanPage.tsx) n'est PAS la course
+ * chronologiquement dernière, le prompt contenait alors deux instructions
+ * contradictoires sur laquelle des deux courses est le "vrai" pic.
+ *
+ * Remplacé par une classification UNIQUE, basée sur l'écart calendaire réel
+ * (cf. sportRatioMatrix.ts::canBeIndependentPeak/minGapWeeksForFullPeak,
+ * littérature périodisation double/triple — Bompa & Haff, Issurin 2010) :
+ * une course non-dernière peut recevoir un traitement de pic complet
+ * (affûtage propre à sa discipline) si son format s'y prête ET si l'écart
+ * avant la course suivante est suffisant pour une vraie récupération + un
+ * bloc spécifique complet. Sinon, jalon avec mini-taper générique.
+ */
+export interface ClassifiedRaceGoal {
+  goal: any;
+  /** true = pic de forme complet (affûtage propre à sa discipline) ; false = jalon intermédiaire (mini-taper). */
+  isFullPeak: boolean;
+  /** true = c'est la course chronologiquement dernière du plan. */
+  isLast: boolean;
+  /** Semaines d'affûtage propres à l'objectif de CETTE course (utile uniquement si isFullPeak). */
+  taperWeeks: number;
+}
+
+export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoal[] {
+  const sorted = [...(raceGoals || [])].sort((a: any, b: any) => {
+    if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
+    const prio: Record<string, number> = { A: 1, B: 2, C: 3 };
+    return (prio[a.priority] || 3) - (prio[b.priority] || 3);
+  });
+  const dated = sorted.filter((g: any) => g.raceDate);
+
+  return sorted.map((goal: any) => {
+    const taperWeeks = taperWeeksForObjectiveServer(goal.objective);
+    if (!goal.raceDate) return { goal, isFullPeak: false, isLast: false, taperWeeks };
+
+    const idx = dated.indexOf(goal);
+    const isLast = idx === dated.length - 1;
+    if (isLast) return { goal, isFullPeak: true, isLast: true, taperWeeks };
+
+    if (!canBeIndependentPeak(goal.objective)) {
+      return { goal, isFullPeak: false, isLast: false, taperWeeks };
+    }
+    const next = dated[idx + 1];
+    const d1 = new Date(goal.raceDate).getTime();
+    const d2 = new Date(next.raceDate).getTime();
+    const gapWeeks = Math.round((d2 - d1) / (7 * 24 * 3600 * 1000));
+    const isFullPeak = Number.isFinite(gapWeeks) && gapWeeks >= minGapWeeksForFullPeak(goal.objective);
+    return { goal, isFullPeak, isLast: false, taperWeeks };
+  });
+}
+
 export function buildUserPrompt(data: any, config: any, catalogDurationStats?: CatalogDurationStats | null): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
@@ -857,15 +917,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       return `${pm}:${String(ps).padStart(2, "0")}/km`;
     };
 
-    // Audit multi-objectifs : sert à identifier la course réellement DERNIÈRE
-    // chronologiquement (celle qui doit recevoir un taper complet de fin de
-    // plan) — sans ça, la ligne "DERNIÈRE semaine du plan" plus bas était
-    // émise pour CHAQUE objectif daté (A, B et C), contredisant directement
-    // les règles multi-objectifs qui suivent ("B/C = mini-taper 7-10j, ne
-    // pas sacrifier A"). Une course B en milieu de plan pouvait ainsi se
-    // voir prescrire un taper/pic complet de fin de plan à la place de A.
-    const lastRaceDate = sortedGoals.reduce((latest: string | null, g: any) =>
-      g.raceDate && (!latest || g.raceDate > latest) ? g.raceDate : latest, null as string | null);
+    // Classification pic complet / jalon intermédiaire — basée sur l'écart
+    // calendaire réel entre courses datées, pas sur l'étiquette A/B/C (cf.
+    // classifyMultiObjectiveGoals ci-dessus pour la justification complète).
+    const classification = classifyMultiObjectiveGoals(config.raceGoals);
+    const classifiedByGoal = new Map(classification.map((c) => [c.goal, c]));
 
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
@@ -911,15 +967,26 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       if (goalWeek && goal.raceDate) {
         lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
         lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
-        if (goal.raceDate === lastRaceDate) {
-          lines.push(`→ La DERNIÈRE semaine du plan (S${goalWeek}) DOIT être la SEMAINE DE COURSE avec : taper complet, activation J-2/J-1, et Jour de Course le jour exact de la compétition.`);
+        const classified = classifiedByGoal.get(goal);
+        if (classified?.isLast) {
+          lines.push(`→ La DERNIÈRE semaine du plan (S${goalWeek}) DOIT être la SEMAINE DE COURSE avec : taper complet de ${classified.taperWeeks} semaine(s), activation J-2/J-1, et Jour de Course le jour exact de la compétition.`);
+        } else if (classified?.isFullPeak) {
+          // Pic de forme complet MAIS pas la dernière course chronologique
+          // (écart suffisant avant la course suivante pour un vrai second
+          // cycle — cf. classifyMultiObjectiveGoals). Affûtage propre à SA
+          // discipline, explicitement chiffré ici car aucun mécanisme de
+          // bornage de phase (pourcentages, cf. plus bas) ne le calcule
+          // automatiquement pour une course qui n'est pas en fin de plan.
+          const taperStartWeek = Math.max(1, goalWeek - classified.taperWeeks);
+          lines.push(`→ 🎯 **PIC DE FORME COMPLET** (pas la dernière course du plan, mais l'écart avant la course suivante est suffisant pour un second cycle complet — cf. littérature périodisation double/triple) : affûtage complet de ${classified.taperWeeks} semaine(s) de S${taperStartWeek} à S${goalWeek}, activation J-2/J-1, Jour de Course le jour exact de la compétition. Puis 1-2 semaines de RÉCUPÉRATION RÉELLE (-40% volume, pas d'intensité) avant de relancer une montée en charge progressive et spécifique vers l'objectif suivant.`);
         } else {
-          // Course B/C intermédiaire (pas la dernière chronologiquement) :
+          // Jalon intermédiaire (pas la dernière course chronologique, écart
+          // insuffisant ou format non éligible à un second pic indépendant) :
           // NE PAS affirmer que c'est la dernière semaine du plan — ça
           // contredirait directement les règles multi-objectifs ci-dessous
-          // (mini-taper, ne pas sacrifier la progression vers A). Le plan
-          // continue après cette semaine.
-          lines.push(`→ S${goalWeek} DOIT contenir : mini-taper (7-10j), activation J-2/J-1, et Jour de Course le jour exact de la compétition — CE N'EST PAS la dernière semaine du plan, qui continue ensuite vers l'objectif principal (cf. règles multi-objectifs ci-dessous).`);
+          // (mini-taper, ne pas sacrifier la progression vers le(s) pic(s)
+          // complet(s)). Le plan continue après cette semaine.
+          lines.push(`→ S${goalWeek} DOIT contenir : mini-taper (7-10j), activation J-2/J-1, et Jour de Course le jour exact de la compétition — CE N'EST PAS la dernière semaine du plan, qui continue ensuite vers le(s) pic(s) de forme complet(s) (cf. règles multi-objectifs ci-dessous).`);
         }
         // Cartographie explicite J-N → jour calendaire, calculée déterministe.
         // BUG constaté sans ceci : le modèle place le shakeout "J-1" (catalogue)
@@ -959,12 +1026,24 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         }
       }
 
+      const fullPeaks = classification.filter((c) => c.isFullPeak && c.goal.raceDate);
+      const jalons = classification.filter((c) => !c.isFullPeak && c.goal.raceDate);
+
       lines.push("\n**⚠️ RÈGLES MULTI-OBJECTIFS :**");
-      lines.push("1. **Objectif A (PRINCIPAL)** : le plan est optimisé GLOBALEMENT pour cet objectif. C'est le pic de forme principal.");
-      lines.push("2. **Objectif B (INTERMÉDIAIRE)** : reçoit un mini-taper de 7-10 jours avant la course + adaptation des 1-2 semaines post-course (récupération + relance).");
-      lines.push("3. L'objectif B sert de JALON et de course de préparation. Ne pas sacrifier la progression vers l'objectif A pour un pic total sur B.");
-      lines.push("4. Inclure une semaine de récupération post-course B avant de relancer le bloc suivant vers l'objectif A.");
-      lines.push("5. **Ne PAS créer 2 blocs indépendants.** La préparation est CONTINUE avec des ajustements autour des courses intermédiaires.");
+      if (fullPeaks.length > 1) {
+        // Plusieurs pics de forme complets (littérature périodisation double/
+        // triple — Bompa & Haff, Issurin 2010 — Block Periodization) : chacun
+        // reçoit sa PROPRE montée en charge et son PROPRE affûtage complet,
+        // pas de hiérarchie "principal vs secondaire" entre eux.
+        lines.push(`1. **Ce plan comporte ${fullPeaks.length} PICS DE FORME COMPLETS et INDÉPENDANTS** (pas un seul objectif principal + des jalons) : ${fullPeaks.map((c) => `${c.goal.objective}${c.goal.raceName ? ` (${c.goal.raceName})` : ""} — affûtage ${c.taperWeeks} sem.`).join(" · ")}. Chacun a droit à sa propre montée en charge et son propre affûtage dimensionné à sa discipline — ne dégrade PAS le premier pic pour "économiser" en vue du second, et inversement.`);
+        lines.push("2. Après CHAQUE pic complet (sauf le dernier), insère une VRAIE semaine de récupération (-40% volume, pas d'intensité) avant de relancer une montée en charge progressive et spécifique vers le pic suivant.");
+      } else if (fullPeaks.length === 1) {
+        lines.push(`1. **${fullPeaks[0].goal.objective}${fullPeaks[0].goal.raceName ? ` (${fullPeaks[0].goal.raceName})` : ""} = PIC DE FORME PRINCIPAL** : le plan est optimisé GLOBALEMENT pour cet objectif, avec un affûtage complet de ${fullPeaks[0].taperWeeks} semaine(s).`);
+      }
+      if (jalons.length > 0) {
+        lines.push(`3. **Jalon(s) intermédiaire(s)** (${jalons.map((c) => c.goal.objective).join(", ")}) : reçoivent un mini-taper de 7-10 jours avant la course + adaptation des 1-2 semaines post-course (récupération + relance). Ce sont des courses de préparation/jalons, pas des pics de forme — ne pas sacrifier la progression vers le(s) pic(s) complet(s) pour un pic total sur un jalon.`);
+      }
+      lines.push("4. **Ne PAS créer de blocs totalement déconnectés.** La préparation reste continue : les jalons intermédiaires ne sont que des ajustements ponctuels, et même entre deux pics complets, la transition (récupération puis relance) s'inscrit dans un seul plan cohérent, pas deux plans mis bout à bout.");
     }
     lines.push("");
   } else {
@@ -1913,19 +1992,20 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
   // Multi-objective final reminder
   if (config.raceGoals && config.raceGoals.length > 1) {
-    const sortedGoals = [...config.raceGoals].sort((a: any, b: any) => {
-      if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
-      return 0;
-    });
-    const goalA = sortedGoals.find((g: any) => g.priority === "A");
-    const goalsB = sortedGoals.filter((g: any) => g.priority === "B" || g.priority === "C");
+    const classification = classifyMultiObjectiveGoals(config.raceGoals);
+    const sortedGoals = classification.map((c) => c.goal);
+    const fullPeaks = classification.filter((c) => c.isFullPeak && c.goal.raceDate);
+    const jalons = classification.filter((c) => !c.isFullPeak && c.goal.raceDate);
 
     lines.push(`\n---`);
     lines.push(`## 🔥🔥🔥 RAPPEL FINAL MULTI-OBJECTIFS — RÈGLE ABSOLUE 🔥🔥🔥`);
     lines.push(`Ce plan a ${config.raceGoals.length} objectifs de course. Tu DOIS TOUS les intégrer dans la planification :\n`);
-    
+
     sortedGoals.forEach((goal: any) => {
-      const prioLabel = goal.priority === "A" ? "🅰️ OBJECTIF PRINCIPAL (pic de forme)" : goal.priority === "B" ? "🅱️ OBJECTIF INTERMÉDIAIRE (mini-taper)" : "🆎 SECONDAIRE";
+      const classified = classification.find((c) => c.goal === goal)!;
+      const prioLabel = classified.isFullPeak
+        ? (fullPeaks.length > 1 ? "🎯 PIC DE FORME COMPLET" : "🅰️ OBJECTIF PRINCIPAL (pic de forme)")
+        : "🅱️ JALON INTERMÉDIAIRE (mini-taper)";
       const goalWeek = computeGoalWeek(goal);
       const bounds = getWeekBounds(goalWeek);
       const weekInfo = goalWeek ? ` — Semaine cible: S${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
@@ -1935,24 +2015,31 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       }
     });
 
-    if (goalsB.length > 0) {
-      lines.push(`\n### Structure obligatoire pour chaque objectif B/C :`);
-      goalsB.forEach((g: any) => {
+    if (jalons.length > 0) {
+      lines.push(`\n### Structure obligatoire pour chaque jalon intermédiaire :`);
+      jalons.forEach((c) => {
+        const g = c.goal;
         const w = computeGoalWeek(g);
         const bounds = getWeekBounds(w);
         if (w) {
           lines.push(`- **${g.objective}${g.raceName ? ` (${g.raceName})` : ""}** : mini-taper en S${Math.max(1, w - 1)}, course en S${w}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}, récupération en S${w + 1}. Date course IMPÉRATIVE: ${g.raceDate || "n/a"}.`);
         }
       });
-      lines.push(`1. **Semaines pré-course B** : les 1-2 semaines avant la course B doivent montrer une RÉDUCTION de volume (-20 à -30%) avec maintien d'intensité courte (mini-taper). Marque-les explicitement "Mini-Taper pour [nom course B]".`);
-      lines.push(`2. **Semaine de course B** : la semaine contenant la course B doit inclure la course comme séance principale (ex: "🏁 COURSE : Marathon de Paris"). Volume très réduit le reste de la semaine.`);
-      lines.push(`3. **Semaine post-course B** : semaine de récupération (-40% volume, pas d'intensité, régénération). Marque-la "Récupération post-${goalsB[0]?.objective || 'course B'}".`);
-      lines.push(`4. **Relance vers objectif A** : après la récupération, reprendre la progression vers l'objectif A avec une montée en charge progressive.`);
-      lines.push(`\n⚠️ Si tu génères le plan sans mentionner l'objectif B ni inclure de mini-taper/récupération autour de sa date, le plan est INVALIDE. RECOMMENCE.`);
+      lines.push(`1. **Semaines pré-course jalon** : les 1-2 semaines avant chaque course-jalon doivent montrer une RÉDUCTION de volume (-20 à -30%) avec maintien d'intensité courte (mini-taper). Marque-les explicitement "Mini-Taper pour [nom course]".`);
+      lines.push(`2. **Semaine de course jalon** : la semaine contenant la course doit l'inclure comme séance principale (ex: "🏁 COURSE : Marathon de Paris"). Volume très réduit le reste de la semaine.`);
+      lines.push(`3. **Semaine post-course jalon** : semaine de récupération (-40% volume, pas d'intensité, régénération). Marque-la "Récupération post-${jalons[0]?.goal?.objective ?? "course jalon"}".`);
+      lines.push(`4. **Relance vers le(s) pic(s) de forme complet(s)** : après la récupération, reprendre la progression vers l'objectif suivant avec une montée en charge progressive.`);
+      lines.push(`\n⚠️ Si tu génères le plan sans mentionner ce(s) jalon(s) ni inclure de mini-taper/récupération autour de sa date, le plan est INVALIDE. RECOMMENCE.`);
     }
 
-    if (goalA) {
-      lines.push(`\nObjectif principal (A) : ${goalA.objective}${goalA.raceDate ? ` le ${goalA.raceDate}` : ""}. Le pic de forme PRINCIPAL vise cette course.`);
+    if (fullPeaks.length === 1) {
+      lines.push(`\nObjectif principal : ${fullPeaks[0].goal.objective}${fullPeaks[0].goal.raceDate ? ` le ${fullPeaks[0].goal.raceDate}` : ""}. Le pic de forme PRINCIPAL vise cette course (affûtage ${fullPeaks[0].taperWeeks} semaine(s)).`);
+    } else if (fullPeaks.length > 1) {
+      // Périodisation double/triple (Bompa & Haff ; Issurin 2010 — Block
+      // Periodization) : plusieurs pics de forme complets légitimes dans une
+      // même saison quand l'écart calendaire le permet (cf.
+      // classifyMultiObjectiveGoals) — pas de hiérarchie artificielle entre eux.
+      lines.push(`\n${fullPeaks.length} pics de forme COMPLETS et INDÉPENDANTS dans ce plan — chacun avec sa propre montée en charge et son propre affûtage, sans hiérarchie entre eux : ${fullPeaks.map((c) => `${c.goal.objective}${c.goal.raceDate ? ` (${c.goal.raceDate})` : ""} — affûtage ${c.taperWeeks} sem.`).join(" · ")}.`);
     }
   }
 

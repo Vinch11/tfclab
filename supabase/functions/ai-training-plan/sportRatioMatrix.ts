@@ -280,6 +280,50 @@ export function taperWeeksForObjectiveServer(objective?: string | null): number 
   return TAPER_WEEKS_BY_OBJECTIVE_SERVER[key] ?? 1;
 }
 
+/**
+ * Multi-objectifs (audit "structure d'un plan à plusieurs objectifs" —
+ * Marathon + Ironman à ~5 mois d'écart) : la littérature de périodisation
+ * (Bompa & Haff — périodisation double/triple ; Issurin 2010, Block
+ * Periodization — blocs Accumulation/Transmutation/Réalisation répétés
+ * 2-4×/an) admet PLUSIEURS pics de forme complets par saison — la question
+ * n'est pas "combien d'objectifs A" mais "y a-t-il assez de temps pour une
+ * vraie récupération PUIS un bloc spécifique complet avant le pic suivant".
+ *
+ * Deux conditions cumulatives pour qu'une course intermédiaire (non
+ * chronologiquement dernière) reçoive un traitement de PIC COMPLET (affûtage
+ * propre à sa discipline) plutôt qu'un mini-taper de jalon :
+ *  1. Son format appartient aux formats "longs" pour lesquels un second pic
+ *     de saison a un sens physiologique (IM/70.3/Marathon/Trail long) — un
+ *     10K/5K/Semi/Sprint reste TOUJOURS un jalon, quel que soit l'écart : ce
+ *     sont par nature des tests de forme à faible coût de récupération, pas
+ *     de seconds objectifs de saison.
+ *  2. L'écart avant la course datée SUIVANTE est suffisant pour une
+ *     récupération réelle + un bloc spécifique complet vers cette suivante.
+ */
+const INDEPENDENT_PEAK_ELIGIBLE_OBJECTIVES = new Set([
+  "IM", "703", "Marathon", "TrailUltra", "TrailMountain",
+]);
+export function canBeIndependentPeak(objective?: string | null): boolean {
+  if (!objective) return false;
+  return INDEPENDENT_PEAK_ELIGIBLE_OBJECTIVES.has(normalizeObjKey(String(objective)));
+}
+
+/**
+ * Écart minimal (semaines) avant la course datée suivante pour que CETTE
+ * course-ci mérite un pic complet indépendant. Calibré par cohérence interne
+ * (récupération réelle post-course longue ~2-4 sem + bloc spécifique minimal
+ * ~6 sem avant le pic suivant), pas une méta-analyse dédiée à ce seuil précis
+ * — à ajuster si l'expérience terrain le justifie.
+ */
+const MIN_GAP_WEEKS_FOR_FULL_PEAK: Record<string, number> = {
+  IM: 12, "703": 10, Marathon: 8, TrailUltra: 12, TrailMountain: 10,
+};
+export function minGapWeeksForFullPeak(objective?: string | null): number {
+  if (!objective) return 8;
+  const key = normalizeObjKey(String(objective));
+  return MIN_GAP_WEEKS_FOR_FULL_PEAK[key] ?? 8;
+}
+
 // === REFERENCE STANDARDS BY OBJECTIVE × AMBITION × SEX ===
 // ⚠️ Standards populationnels (littérature / cohortes AG). Usage EXCLUSIF :
 //    • GapAmbitionPanel (comparaison snapshot vs standard populationnel).
