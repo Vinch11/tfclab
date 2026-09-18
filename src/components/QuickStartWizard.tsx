@@ -616,7 +616,7 @@ export function QuickStartWizard({
           {step === "chronos" && (
             <StepBlock
               title="Chronos récents (optionnel)"
-              hint="Une seule distance suffit — les autres seront extrapolées (Riegel). Sans chrono, le plan reste subjectif (~65% fiabilité) et un test de calibration sera injecté."
+              hint="Une seule distance suffit — les autres seront extrapolées (Riegel). Sans chrono, le plan reste basé sur tes réponses subjectives (moins précis) — pense à programmer toi-même un test de calibration (Testing Week ou Track/Bike/Pool Day TFCL) tôt dans le plan pour ancrer les allures."
             >
               <div className="space-y-2">
                 <Label className="text-xs">Distance</Label>
@@ -680,8 +680,9 @@ export function QuickStartWizard({
 
                 {Object.keys(chronos).length === 0 && (
                   <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 text-[11px] text-amber-700 dark:text-amber-300">
-                    Aucun chrono saisi — le plan sera basé sur tes réponses subjectives. Un test de calibration (CAP-test)
-                    sera automatiquement injecté en semaine 2-3 pour ancrer les allures.
+                    Aucun chrono saisi — le plan sera basé sur tes réponses subjectives, sans allure calibrée.
+                    Pense à programmer toi-même un test de calibration (Testing Week TFCL ou Track/Bike/Pool Day)
+                    tôt dans le plan pour ancrer les allures — rien ne l'ajoute automatiquement.
                   </div>
                 )}
               </div>
