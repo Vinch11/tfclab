@@ -1514,7 +1514,22 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   // --- Identified weaknesses (ranked by importance) ---
-  if (config.identifiedLimiters && config.identifiedLimiters.length > 0) {
+  // Audit "démarrage guidé" (QuickStartWizard) : ce bloc + sa matrice Dan
+  // Lorang prescrivent explicitement du seuil, de la VMA, des côtes et des
+  // sprints (ex: "TTE faible → Seuil continu Norvégienne", "Économie basse →
+  // Côtes/Rønnestad") — le wizard route pourtant systématiquement un
+  // débutant Start to Run vers un de ces limiteurs (durability/TTE ou
+  // neuromuscular/Économie selon la gêne articulaire déclarée), et
+  // `buildCoachOverrides` (AITrainingPlanPage.tsx) alimente
+  // `identifiedLimiters` SANS distinction d'objectif. Résultat : chaque plan
+  // S2R généré via le wizard recevait cette matrice dans le MÊME prompt que
+  // S2R_STRUCTURE_RULES ("Pas de seuil, pas de VMA, pas de fractionné rapide,
+  // pas de côtes avant S9", systemPrompt.ts) — contradiction directe. Ce
+  // bloc générique n'a de toute façon pas de sens pour un débutant : le
+  // catalogue et les règles S2R pilotent déjà ses séances clés (progression
+  // RPE/impact, pas de cible métabolique), cf. enrichedWorkoutsStartToRun.ts.
+  const isStartToRunObjective = /start.?to.?run|d[ée]but/i.test(String(config?.objective || ""));
+  if (!isStartToRunObjective && config.identifiedLimiters && config.identifiedLimiters.length > 0) {
     lines.push("\n### 🔴 LIMITEURS IDENTIFIÉS PAR L'APP — CLASSÉS PAR IMPORTANCE — SÉANCES CLÉS OBLIGATOIRES");
     lines.push("Les limiteurs ci-dessous sont calculés et classés par le diagnostic TFCL™ (impact pondéré = importance × gap vs cible).");
     lines.push("Le plan DOIT adresser CHAQUE limiteur, du plus critique au moins critique, avec une périodisation séquentielle.");
