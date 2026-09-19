@@ -71,7 +71,10 @@ function getBasePhases(goal: string): { templates: BasePhaseTemplate[]; totalWee
         templates: [
           { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", baseStartWeek: 1, baseEndWeek: 4, color: "#D9DDF7", baseFocus: "Développer le plafond aérobie et la vélocité neuromusculaire", baseLevers: ["VO2max intervals", "Sprints neuromusculaires"] },
           { name: "Force Endurance K3", subtitle: "Phase 2: Force & Seuil", baseStartWeek: 5, baseEndWeek: 8, color: "#9AA6F0", baseFocus: "Convertir la puissance en endurance de force", baseLevers: ["SFR", "Sweet Spot"] },
-          { name: "Spécifique & Big Week", subtitle: "Phase 3: Spécifique", baseStartWeek: 9, baseEndWeek: 18, color: "#5555E0", baseFocus: "Volume d'intensité spécifique race-pace", baseLevers: ["Race Pace", "Briques", "Train Low"] },
+          // Fix (audit "estimations de temps/stratégies") : Phase 3 se
+          // terminait S18 et Phase 4 démarrait S20 — S19 n'appartenait à
+          // aucune phase (trou visible dans la frise RoadmapStrategique.tsx).
+          { name: "Spécifique & Big Week", subtitle: "Phase 3: Spécifique", baseStartWeek: 9, baseEndWeek: 19, color: "#5555E0", baseFocus: "Volume d'intensité spécifique race-pace", baseLevers: ["Race Pace", "Briques", "Train Low"] },
           { name: "Fraîcheur & Densité", subtitle: "Phase 4: Affûtage", baseStartWeek: 20, baseEndWeek: 24, color: "#7FD3AE", baseFocus: "Supercompensation et fraîcheur musculaire", baseLevers: ["Taper progressif", "Openers"] },
         ],
       };
@@ -82,7 +85,10 @@ function getBasePhases(goal: string): { templates: BasePhaseTemplate[]; totalWee
         templates: [
           { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", baseStartWeek: 1, baseEndWeek: 5, color: "#D9DDF7", baseFocus: "Développer VO2max et rappels de vitesse", baseLevers: ["VO2max intervals", "Sprints"] },
           { name: "Force Endurance", subtitle: "Phase 2: Force & Seuil", baseStartWeek: 6, baseEndWeek: 10, color: "#9AA6F0", baseFocus: "Force spécifique et seuil fonctionnel", baseLevers: ["SFR", "Tempo"] },
-          { name: "Spécifique Race Pace", subtitle: "Phase 3: Spécifique", baseStartWeek: 11, baseEndWeek: 19, color: "#5555E0", baseFocus: "Intensité cible 70.3 et briques", baseLevers: ["Race Pace", "Briques"] },
+          // Fix (audit "estimations de temps/stratégies") : Phase 3 se
+          // terminait S19 et Phase 4 démarrait S21 — S20 n'appartenait à
+          // aucune phase (même trou que le template IM ci-dessus).
+          { name: "Spécifique Race Pace", subtitle: "Phase 3: Spécifique", baseStartWeek: 11, baseEndWeek: 20, color: "#5555E0", baseFocus: "Intensité cible 70.3 et briques", baseLevers: ["Race Pace", "Briques"] },
           { name: "Affûtage", subtitle: "Phase 4: Affûtage", baseStartWeek: 21, baseEndWeek: 24, color: "#7FD3AE", baseFocus: "Fraîcheur et activation", baseLevers: ["Taper", "Openers"] },
         ],
       };
@@ -141,10 +147,12 @@ function adaptPhasesToLimiter(
   // Phase duration adjustments based on primary limiter
   const durationShifts = getDurationShifts(primaryLimiter, totalWeeks);
 
-  return templates.map((tmpl, idx) => {
+  const phases = templates.map((tmpl, idx) => {
     const shift = durationShifts[idx] || { startDelta: 0, endDelta: 0 };
     const startWeek = Math.max(1, tmpl.baseStartWeek + shift.startDelta);
-    const endWeek = Math.min(totalWeeks, tmpl.baseEndWeek + shift.endDelta);
+    // Filet de sécurité : endWeek ne doit jamais être < startWeek (phase de
+    // largeur négative) même si un futur delta mal calibré l'y pousserait.
+    const endWeek = Math.max(startWeek, Math.min(totalWeeks, tmpl.baseEndWeek + shift.endDelta));
 
     // Enrich levers based on limiter
     const enrichedLevers = [...tmpl.baseLevers];
@@ -182,10 +190,65 @@ function adaptPhasesToLimiter(
       focus: focusOverride,
     };
   });
+
+  // Fix (audit "estimations de temps/stratégies") : startWeek/endWeek
+  // ci-dessus sont recalculés INDÉPENDAMMENT pour chaque phase depuis les
+  // bornes du template de base + son propre delta — rien ne garantit que la
+  // phase N+1 démarre juste après la fin de la phase N. Constaté concrètement
+  // sur le template Marathon (pourtant contigu à la base) avec le shift
+  // "aerobic_engine" : Phase 2 finissait S13, Phase 3 recalculée démarrait
+  // S16 → 2 semaines (S14-S15) n'appartenaient plus à aucune phase, alors
+  // qu'aucun trou n'existait avant décalage. RoadmapStrategique.tsx affiche
+  // ces bornes comme une frise de Gantt (largeur = endWeek-startWeek+1) : un
+  // tel trou est un blanc visible et non expliqué pour le coach. On rechaîne
+  // donc chaque phase sur la fin réelle de la précédente plutôt que de
+  // recalculer un point de départ indépendant — la position du DÉBUT de la
+  // phase N+1 reste pilotée par son propre delta (le rationnel du limiteur
+  // pour QUAND cette phase démarre est préservé), c'est la phase N qui
+  // s'étire pour combler l'écart, jamais l'inverse (on ne fait pas démarrer
+  // une phase plus tôt que ce que son delta prévoit).
+  for (let i = 1; i < phases.length; i++) {
+    const prev = phases[i - 1];
+    const curr = phases[i];
+    if (curr.startWeek > prev.endWeek + 1) {
+      prev.endWeek = curr.startWeek - 1;
+    } else if (curr.startWeek <= prev.endWeek) {
+      curr.startWeek = prev.endWeek + 1;
+      if (curr.startWeek > curr.endWeek) curr.endWeek = curr.startWeek;
+    }
+  }
+  if (phases.length > 0) {
+    if (phases[0].startWeek > 1) phases[0].startWeek = 1;
+    const last = phases[phases.length - 1];
+    if (last.endWeek < totalWeeks) last.endWeek = totalWeeks;
+  }
+
+  return phases;
 }
 
+// Fix (audit "estimations de temps/stratégies") : les deltas ci-dessous ont
+// été calibrés en semaines ABSOLUES pour les templates ~24 semaines (IM,
+// 70.3, Marathon, générique) mais étaient appliqués tels quels même sur le
+// template Semi (12 semaines, phases 2x plus courtes) — proportionnellement
+// deux fois plus agressifs. Constaté concrètement : Semi × "aerobic_engine"
+// recalculait Phase 3 avec startWeek=11 > endWeek=9 (phase inversée, largeur
+// négative dans la frise RoadmapStrategique.tsx). `getDurationShifts` mis à
+// l'échelle du plan réel (référence 24 semaines) au lieu d'appliquer ces
+// semaines fixes brutes.
+const DURATION_SHIFT_REFERENCE_WEEKS = 24;
+
 function getDurationShifts(limiter: UnifiedLimiter, totalWeeks: number): { startDelta: number; endDelta: number }[] {
-  // Adjust phase durations based on the primary limiter
+  const scale = totalWeeks / DURATION_SHIFT_REFERENCE_WEEKS;
+  return getRawDurationShifts(limiter).map(({ startDelta, endDelta }) => ({
+    startDelta: Math.round(startDelta * scale),
+    endDelta: Math.round(endDelta * scale),
+  }));
+}
+
+function getRawDurationShifts(limiter: UnifiedLimiter): { startDelta: number; endDelta: number }[] {
+  // Deltas calibrés pour un plan de référence à 24 semaines (cf.
+  // DURATION_SHIFT_REFERENCE_WEEKS) — mis à l'échelle par getDurationShifts
+  // avant application, jamais utilisés bruts.
   // Positive endDelta = phase gets longer, negative = shorter
   switch (limiter) {
     case "aerobic_engine":

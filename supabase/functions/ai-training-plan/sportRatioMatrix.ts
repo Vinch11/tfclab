@@ -346,14 +346,20 @@ export const REFERENCE_STANDARDS: Record<string, Record<string, { M: string; F: 
     world_class: { M: "Sub 3h55",        F: "Sub 4h20" },
   },
   TriSprint: {
-    finisher:    { M: "1h30 – 1h50",     F: "1h35 – 2h00" },
+    // Fix (audit "estimations de temps/stratégies") : finisher F chevauchait
+    // age_group F de 3min (1h35 < 1h38, max de age_group) — coquille de
+    // saisie, la colonne M touche exactement ses bornes (1h30=1h30).
+    finisher:    { M: "1h30 – 1h50",     F: "1h38 – 2h00" },
     age_group:   { M: "1h15 – 1h30",     F: "1h22 – 1h38" },
     competitor:  { M: "1h05 – 1h15",     F: "1h12 – 1h22" },
     elite:       { M: "0h58 – 1h05",     F: "1h05 – 1h12" },
     world_class: { M: "Sub 0h55",        F: "Sub 1h02" },
   },
   TriOlympique: {
-    finisher:    { M: "3h00 – 3h45",     F: "3h15 – 4h00" },
+    // Fix (audit "estimations de temps/stratégies") : finisher F chevauchait
+    // age_group F de 5min (3h15 < 3h20, max de age_group) — même coquille
+    // que TriSprint F, corrigée sur le même principe (bornes qui se touchent).
+    finisher:    { M: "3h00 – 3h45",     F: "3h20 – 4h00" },
     age_group:   { M: "2h30 – 3h00",     F: "2h45 – 3h20" },
     competitor:  { M: "2h10 – 2h30",     F: "2h22 – 2h45" },
     elite:       { M: "1h55 – 2h10",     F: "2h08 – 2h22" },
@@ -362,7 +368,10 @@ export const REFERENCE_STANDARDS: Record<string, Record<string, { M: string; F: 
   Marathon: {
     finisher:    { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
     age_group:   { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
-    competitor:  { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
+    // Fix (audit "estimations de temps/stratégies") : competitor F
+    // chevauchait elite F de 2min (3h18 < 3h20, max d'elite) — coquille de
+    // saisie, corrigée pour que les bornes se touchent (comme la colonne M).
+    competitor:  { M: "3h00 – 3h30",    F: "3h20 – 3h50" },
     elite:       { M: "2h45 – 3h00",    F: "3h05 – 3h20" },
     world_class: { M: "Sub 2h35",       F: "Sub 2h55" },
   },
