@@ -771,13 +771,16 @@ export function applyReconciler(
   // pour ce dédoublonnage déterministe post-génération, où la fiche de repli
   // n'a pas besoin d'avoir figuré dans le prompt du chunk courant.
   const allCandidatesAllChunks = candidatesByChunk.flat();
-  // Mots-clés du limiteur prioritaire (L1) — utilisés pour préférer, à l'insertion
-  // d'une séance manquante, une fiche du catalogue qui cible réellement ce limiteur
-  // plutôt qu'une séance générique la plus proche en durée (audit qualité plans IA :
-  // l'insertion ne regardait auparavant que le sport et la durée, jamais le limiteur).
-  const primaryLimiterKeywords = identifiedLimiters && identifiedLimiters.length > 0
-    ? extractLimiterKeywords(identifiedLimiters[0])
-    : [];
+  // Mots-clés de TOUS les limiteurs identifiés, par rang (L1 en tête) — utilisés
+  // pour préférer, à l'insertion d'une séance manquante, une fiche du catalogue
+  // qui cible réellement UN des limiteurs identifiés, en priorisant le rang le
+  // plus critique parmi ceux matchés, plutôt qu'une séance générique la plus
+  // proche en durée (audit qualité plans IA). Fix "traitement des limiteurs" :
+  // ne se limitait auparavant qu'à identifiedLimiters[0] (L1 seul) — un plan
+  // avec 3-4 limiteurs classés laissait L2/L3/L4 sans AUCUN ciblage mécanique
+  // à l'insertion, alors que la matrice de périodisation (systemPrompt.ts)
+  // attend explicitement une séance clé dédiée pour L2 dès la Phase Base.
+  const limiterKeywordsByRank: string[][] = (identifiedLimiters ?? []).map(l => extractLimiterKeywords(l));
 
   chunks.forEach((chunk, ci) => {
     const candidates = candidatesByChunk[ci] ?? [];
@@ -860,10 +863,15 @@ export function applyReconciler(
             0;
           const targetDur = floorMin > 0 ? floorMin : (sport === "strength" ? 45 : 60);
           // Recherche catalogue : même sport, endurance/recovery, durée >= targetDur
-          const matchesLimiter = (c: { title: string; structure: string }): boolean => {
-            if (primaryLimiterKeywords.length === 0) return false;
+          // Rang du meilleur limiteur matché (0 = L1, 1 = L2, ...) ou Infinity si
+          // aucun mot-clé de aucun limiteur identifié ne matche.
+          const bestLimiterRank = (c: { title: string; structure: string }): number => {
+            if (limiterKeywordsByRank.length === 0) return Infinity;
             const text = `${c.title} ${c.structure}`.toLowerCase();
-            return primaryLimiterKeywords.some(kw => text.includes(kw.toLowerCase()));
+            for (let rank = 0; rank < limiterKeywordsByRank.length; rank++) {
+              if (limiterKeywordsByRank[rank].some(kw => text.includes(kw.toLowerCase()))) return rank;
+            }
+            return Infinity;
           };
           const buildInsertPool = (src: typeof candidates) => src
             .filter(c => c.sport === sport)
@@ -874,12 +882,13 @@ export function applyReconciler(
             // censé combler. Renfo garde l'ancien filtre large.
             .filter(x => KEY_FLOOR_SPORTS.has(sport) ? isKeyClass(x.cls) : (x.cls === "endurance" || x.cls === "recovery" || x.cls === "unknown"))
             .filter(x => floorMin === 0 ? true : (x.c.durationMin[1] >= floorMin || x.c.durationMedian >= floorMin))
-            // Priorité au limiteur L1 (mots-clés extraits de son libellé) avant la
-            // proximité de durée — auparavant seule la durée comptait, l'insertion ne
-            // ciblait jamais le limiteur prioritaire de la semaine (audit qualité plans IA).
+            // Priorité au limiteur le plus critique matché (rang le plus bas) avant
+            // la proximité de durée — auparavant seule la durée comptait, l'insertion
+            // ne ciblait jamais aucun limiteur (audit qualité plans IA), puis
+            // seulement L1 (audit "traitement des limiteurs").
             .sort((a, b) => {
-              const limA = matchesLimiter(a.c) ? 0 : 1;
-              const limB = matchesLimiter(b.c) ? 0 : 1;
+              const limA = bestLimiterRank(a.c);
+              const limB = bestLimiterRank(b.c);
               if (limA !== limB) return limA - limB;
               return Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur);
             });
@@ -888,7 +897,7 @@ export function applyReconciler(
           const poolLocal = buildInsertPool(candidates);
           const pool = poolLocal.length > 0 ? poolLocal : buildInsertPool(allCandidatesAllChunks);
           const picked = pool[0]?.c ?? null;
-          const pickedMatchesLimiter = picked ? matchesLimiter(picked) : false;
+          const pickedLimiterRank = picked ? bestLimiterRank(picked) : Infinity;
           if (!picked) {
             traces.push(`[RECONCILER] S${week.weekNumber} insert sport=${sport} action=unresolved_no_candidate (min=${q.min} present=0 floor=${floorMin})`);
             repairs.push({
@@ -934,7 +943,8 @@ export function applyReconciler(
             catalogId: picked.id,
           };
           (week.sessions as any[]).push(newSess);
-          traces.push(`[RECONCILER] S${week.weekNumber} insert sport=${sport} day=${dayTarget} → ${picked.id} (${dur}min) limiterMatch=${pickedMatchesLimiter}`);
+          const limiterMatchLabel = pickedLimiterRank === Infinity ? "none" : `L${pickedLimiterRank + 1}`;
+          traces.push(`[RECONCILER] S${week.weekNumber} insert sport=${sport} day=${dayTarget} → ${picked.id} (${dur}min) limiterMatch=${limiterMatchLabel}`);
           repairs.push({
             code: "session_inserted",
             severity: "warning",
@@ -944,8 +954,8 @@ export function applyReconciler(
             toDay: dayTarget,
             session: { title: picked.title, catalogId: picked.id, durationMin: dur },
             reason: `quota min=${q.min} for ${sport}, week had 0 sessions → inserted ${picked.id} on ${dayTarget}`
-              + (primaryLimiterKeywords.length > 0
-                ? (pickedMatchesLimiter ? " (cible le limiteur L1)" : " (aucune fiche candidate ne cible le limiteur L1)")
+              + (limiterKeywordsByRank.length > 0
+                ? (pickedLimiterRank !== Infinity ? ` (cible le limiteur ${limiterMatchLabel})` : " (aucune fiche candidate ne cible un limiteur identifié)")
                 : ""),
           });
         }
@@ -1912,7 +1922,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             slEnforce.chunks,
             planConfig?._weeklyQuotas ?? null,
             catalogDumpsByChunk,
-            planConfig?.identifiedLimiters ?? null,
+            planConfig?.identifiedLimitersRaw ?? planConfig?.identifiedLimiters ?? null,
           );
           for (const line of reconciled.traces) {
             console.log(line);
