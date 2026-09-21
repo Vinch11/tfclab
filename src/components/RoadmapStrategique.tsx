@@ -154,6 +154,32 @@ export function RoadmapStrategique({
                     Personnalisée
                   </Badge>
                 )}
+                {/* Audit "système de périodisation" : cette frise est un aperçu
+                    visuel générique par objectif (single-objectif, séquençage
+                    fixe) — DIFFÉRENT du séquençage réellement dynamique et
+                    limiteur-aware du plan généré (cf. systemPrompt.ts /
+                    promptHelpers.ts, "Séquençage des Blocs par Objectif ×
+                    Limiteur"). Elle place aussi VO2max en phase 1 pour IM/70.3/
+                    Semi (principe explicitement qualifié d'"attribution Lorang
+                    non vérifiée" côté prompt) sans le signaler ici — d'où ce
+                    tooltip, pour ne pas laisser le coach sur-interpréter cette
+                    frise comme LA structure exacte du plan généré. */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="text-xs text-muted-foreground">
+                        Aperçu visuel générique par objectif, à titre indicatif — le séquençage
+                        exact des blocs et l'ordre intensité/volume du plan réellement généré
+                        dépendent du limiteur détecté et peuvent différer de cette frise.
+                        Pour un plan multi-objectifs (plusieurs courses), cette frise ne
+                        représente qu'un seul cycle et ne montre pas les pics intermédiaires.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               {isOpen ? (
                 <ChevronUp className="h-4 w-4 text-muted-foreground" />

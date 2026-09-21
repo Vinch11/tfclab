@@ -2,11 +2,31 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * STRATEGIC ROADMAP ENGINE — TFCL METHOD™
  * Metabolic-Aware Training Periodization
- * 
+ *
  * Generates personalized training phases based on:
  * - Athlete's objective (IM, 703, Marathon, Semi)
  * - Detected limiters from the Unified Limiter Engine
  * - Gap analysis for physiological targets
+ *
+ * ⚠️ PÉRIMÈTRE (audit "système de périodisation") : ce moteur produit un
+ * APERÇU VISUEL générique par objectif pour les rapports/diagnostic — ce
+ * n'est PAS le même moteur que celui qui structure le plan réellement généré
+ * (supabase/functions/ai-training-plan/promptHelpers.ts::buildStructuredDiagnosticBlock
+ * + systemPrompt.ts). Deux écarts connus à garder en tête si ce fichier est
+ * modifié :
+ * 1. `adaptPhasesToLimiter` ne fait que DÉCALER les durées de phase selon le
+ *    limiteur — il ne nomme jamais un "Bloc Chantier [Limiteur]" dédié comme
+ *    le fait le prompt réel (matrice "Séquençage des Blocs par Objectif ×
+ *    Limiteur", Issurin 2008).
+ * 2. Les templates IM/703/Semi placent VO2max dès la Phase 1 ("intensité
+ *    précoce") — un principe que systemPrompt.ts qualifie explicitement
+ *    d'"attribution Lorang 2018 NON VÉRIFIÉE" (à l'inverse, le template
+ *    Marathon démarre par la base aérobie). Le composant `RoadmapStrategique`
+ *    porte un tooltip signalant cette incertitude au coach ; ne pas
+ *    supprimer ce tooltip sans re-vérifier ce point.
+ * De plus, `RoadmapInput` ne prend qu'UN objectif — ce moteur ne représente
+ * pas un plan multi-objectifs (plusieurs pics de forme datés) et ne doit
+ * pas être présenté comme tel.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
