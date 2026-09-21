@@ -230,7 +230,13 @@ const START_TO_RUN: LibraryWorkout[] = [
     id: "S2R_CONTINUOUS_30_LONG",
     cat: "A",
     sport: "course",
-    objectif: "Sortie longue débutant 30min continues — objectif final du cycle",
+    // Bug réel corrigé (audit "cohérence du prompt assemblé") : "sortie
+    // longue" est le terme explicitement banni par S2R_STRUCTURE_RULES
+    // (systemPrompt.ts, règle 1 — "on écrit marche-course progressive") pour
+    // ne pas induire un cadrage performance chez un débutant. Ce libellé de
+    // fiche l'utilisait pourtant lui-même — un plan citant ce titre tel quel
+    // aurait donc violé sa propre règle S2R.
+    objectif: "Course continue débutant 30min — objectif final du cycle",
     necessite: "Obligatoire",
     when: "Semaine 12, sortie la plus longue de la semaine",
     // Bug réel corrigé (audit "génération de plan IA", volet catalogue) :
@@ -251,7 +257,7 @@ const START_TO_RUN: LibraryWorkout[] = [
     ],
     variants: {},
     goals: ["start_to_run"],
-    tags: ["start-to-run", "course-continue", "sortie-longue-debutant", "objectif-final"],
+    tags: ["start-to-run", "course-continue", "course-continue-debutant", "objectif-final"],
     notes: "30min continues ≈ 4-5 km selon le profil. C'est la porte d'entrée vers les Test Days TFCL et le catalogue 5K/10K.",
   },
   {

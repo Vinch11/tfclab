@@ -572,7 +572,14 @@ export function getSportDistributionConstraint(objective: string, ambition: stri
       lines.push(`| 🚴 Sortie longue vélo (SL) | ${d.longBikeMin[0]}-${d.longBikeMin[1]} min | Lorang : SL = pilier endurance spécifique, progression +15min/sem |`);
     }
     if (d?.longRunMin) {
-      lines.push(`| 🏃 Sortie longue CAP (SL) | ${d.longRunMin[0]}-${d.longRunMin[1]} min | Haugen 2022 : SL CAP plafonnée pour limiter risque blessure |`);
+      // Bug réel corrigé (audit "cohérence du prompt assemblé") : pour
+      // StartToRun, cette table injectait le libellé "Sortie longue CAP (SL)"
+      // — le terme explicitement banni par S2R_STRUCTURE_RULES (systemPrompt.ts)
+      // — directement dans le prompt, avec les valeurs calibrées débutant.
+      const longRunLabel = objKey === "StartToRun"
+        ? "🏃 Marche-course la plus longue"
+        : "🏃 Sortie longue CAP (SL)";
+      lines.push(`| ${longRunLabel} | ${d.longRunMin[0]}-${d.longRunMin[1]} min | Haugen 2022 : SL CAP plafonnée pour limiter risque blessure |`);
     }
     if (d?.longSwimM) {
       lines.push(`| 🏊 Séance longue natation | ${d.longSwimM[0]}-${d.longSwimM[1]} m | Muñoz 2014 : volume technique, CSS + endurance aérobie |`);
