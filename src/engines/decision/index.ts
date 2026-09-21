@@ -112,4 +112,5 @@ export type {
 
 // Strategic Roadmap
 export { computeStrategicRoadmap } from "@/lib/v2/strategicRoadmap";
-export type { StrategicRoadmap, RoadmapPhase } from "@/lib/v2/strategicRoadmap";
+export type { StrategicRoadmap, RoadmapPhase, RoadmapInput } from "@/lib/v2/strategicRoadmap";
+export type { ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";

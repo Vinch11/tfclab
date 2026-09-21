@@ -2371,6 +2371,21 @@ const Index = () => {
               <RoadmapStrategique
                 objectif={currentAthlete.goal ?? null}
                 limiterResult={alignedLimiterResult}
+                // Audit "système de périodisation" : mappe les objectifs de
+                // course enregistrés (DB, useAthleteRaceGoals — race_type/
+                // race_date/plan_start_date par course) vers la forme
+                // attendue par la classification multi-objectifs (objective/
+                // raceDate/priority) pour que la frise segmente par pic de
+                // forme complet au lieu d'un cycle unique vers l'objectif
+                // principal. `priority` n'existe pas côté DB (le tri se fait
+                // sur raceDate, toujours renseignée pour ces enregistrements) :
+                // "A" partout est un défaut inerte, jamais utilisé comme
+                // départage réel.
+                raceGoals={raceGoals.map((g) => ({ objective: g.race_type, raceDate: g.race_date, raceName: g.race_name ?? undefined, priority: "A" as const }))}
+                planStartDate={raceGoals.reduce<string | undefined>((earliest, g) => {
+                  if (!g.plan_start_date) return earliest;
+                  return !earliest || g.plan_start_date < earliest ? g.plan_start_date : earliest;
+                }, undefined)}
               />
             )}
 
