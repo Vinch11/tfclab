@@ -94,12 +94,18 @@ describe("buildTestingWeekDossierHTML — triathlon (combiné)", () => {
  *  - rien n'est perdu (tous les jours des 2 semaines apparaissent),
  *  - l'ordre respecte l'espacement de récupération voulu,
  *  - le seul arbitrage fait (repos avant le test Course D5) est bien signalé.
+ *
+ * Fix "intégrer la natation" (demande coach) : ajoute le protocole TFCL Pool
+ * Day™ (PROTOCOLS["pool-day"] de buildDiagnosticProtocolHTML.ts, réutilisé
+ * tel quel pour ne jamais diverger de la fiche officielle) en Jour 2, juste
+ * après l'activation D-1 — décale tous les jours suivants de +1 et porte le
+ * calendrier à 16 jours / 18 chapitres.
  */
-describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionné 15 jours)", () => {
+describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionné 16 jours)", () => {
   const html = buildTestingWeekDossierHTML("triathlon-compact", "Athlète Test");
 
-  it("contient les 17 chapitres (15 jours, dont 2 jours splittés en a/b) numérotés Jour 1a à Jour 15b", () => {
-    const labels = ["Jour 1a", "Jour 1b", "Jour 2", "Jour 3", "Jour 4", "Jour 5", "Jour 6", "Jour 7", "Jour 8", "Jour 9", "Jour 10", "Jour 11", "Jour 12", "Jour 13", "Jour 14", "Jour 15a", "Jour 15b"];
+  it("contient les 18 chapitres (16 jours, dont 2 jours splittés en a/b) numérotés Jour 1a à Jour 16b", () => {
+    const labels = ["Jour 1a", "Jour 1b", "Jour 2", "Jour 3", "Jour 4", "Jour 5", "Jour 6", "Jour 7", "Jour 8", "Jour 9", "Jour 10", "Jour 11", "Jour 12", "Jour 13", "Jour 14", "Jour 15", "Jour 16a", "Jour 16b"];
     for (const label of labels) {
       expect(html).toContain(label);
     }
@@ -125,18 +131,39 @@ describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionn�
     expect(idxRunVma).toBeGreaterThan(idxBikeMap);
   });
 
-  it("place le repos complet course (Jour 11) juste après le test FTP+TTE vélo (Jour 10), et le signale explicitement", () => {
-    const idxJour10 = html.indexOf("Jour 10");
+  it("place le repos complet course (Jour 12) juste après le test FTP+TTE vélo (Jour 11), et le signale explicitement", () => {
     const idxJour11 = html.indexOf("Jour 11");
+    const idxJour12 = html.indexOf("Jour 12");
     const idxRunSeuilTTE = html.indexOf("TEST ALLURE SEUIL");
-    expect(idxJour10).toBeGreaterThan(-1);
-    expect(idxJour11).toBeGreaterThan(idxJour10);
-    expect(idxRunSeuilTTE).toBeGreaterThan(idxJour11);
+    expect(idxJour11).toBeGreaterThan(-1);
+    expect(idxJour12).toBeGreaterThan(idxJour11);
+    expect(idxRunSeuilTTE).toBeGreaterThan(idxJour12);
     expect(html).toContain("Point de vigilance (calendrier compact)");
     expect(html).toContain("Ce repos complet suit directement le test Vélo D5");
   });
 
   it("mentionne la méthode de construction du calendrier compact dans les prérequis", () => {
     expect(html).toContain("Calendrier compact — comment il a été construit");
+  });
+
+  it("intègre le protocole natation TFCL Pool Day™ en Jour 2, avec son contenu officiel complet", () => {
+    expect(html).toContain("Jour 2");
+    expect(html).toContain("TFCL Pool Day™");
+    // Contenu réel du protocole (PROTOCOLS["pool-day"]) — garantit l'absence de divergence.
+    expect(html).toContain("Bloc 2 — Sprint (VLamax nage)");
+    expect(html).toContain("Bloc 3 — CSS (200 + 400m)");
+    expect(html).toContain("Bloc 4 — Endurance critique (1500m)");
+    expect(html).toContain("CSS estimée");
+    expect(html).toContain("VLamax nage estimée");
+    const idxJour1b = html.indexOf("Jour 1b");
+    const idxJour2 = html.indexOf("Jour 2");
+    const idxJour3 = html.indexOf("Jour 3");
+    expect(idxJour1b).toBeGreaterThan(-1);
+    expect(idxJour2).toBeGreaterThan(idxJour1b);
+    expect(idxJour3).toBeGreaterThan(idxJour2);
+  });
+
+  it("ajoute une carte prérequis et une ligne de synthèse dédiées à la natation", () => {
+    expect(html).toContain("Profil natation");
   });
 });

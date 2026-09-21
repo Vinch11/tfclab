@@ -48,7 +48,7 @@ type ProtocolAlternatives = {
   short?: string[];      // Format allégé (moins de temps, blocs prioritaires)
 };
 
-type ProtocolDef = {
+export type ProtocolDef = {
   name: string;
   emoji: string;
   subtitle: string;
@@ -662,6 +662,14 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
 
 };
 
+/**
+ * Accès en lecture à la définition d'un protocole (ex. réutilisation de
+ * "pool-day" par buildTestingWeekProtocolHTML.ts pour intégrer le test
+ * natation au dossier "semaine de test" officiel).
+ */
+export function getProtocolDef(protocol: DiagnosticProtocol): ProtocolDef {
+  return PROTOCOLS[protocol];
+}
 
 const escapeHtml = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
