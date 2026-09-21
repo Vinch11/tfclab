@@ -69,6 +69,28 @@ export function buildTerrainHardBanBlock(config: any): string {
 }
 
 /**
+ * Durée de Fondation réduite pour un cycle qui redémarre APRÈS un pic de
+ * forme complet (2e pic ou plus d'un plan multi-objectifs), PAS pour un
+ * athlète qui commence son plan. Mirror simplifié (cas "highly_trained"
+ * uniquement) de `computeFondationDurationWeeks` (planConfigBuilder.ts,
+ * côté client — inaccessible depuis cette edge function Deno).
+ *
+ * Un athlète qui vient de courir un Marathon ou un IM n'est PAS désentraîné
+ * après 1-2 semaines de vraie récupération : sa base aérobie est intacte,
+ * potentiellement renforcée par la course elle-même. Lui appliquer le même
+ * pourcentage de Fondation qu'un cycle qui démarre de zéro (audit "système
+ * de périodisation") contredirait à la fois la physiologie et la règle
+ * explicite du prompt ("COHÉRENCE DES PHASES — RÈGLES INVIOLABLES" :
+ * "jamais de retour à Fondation une fois quittée") : ce court palier est une
+ * réadaptation technique/neuromusculaire, pas une reconstruction de base.
+ */
+function computeReducedFondationWeeksPostPeak(segmentWeeks: number): number {
+  const base = 3; // = computeFondationDurationWeeks("highly_trained", …)
+  const capFromTotal = Math.max(2, Math.round(segmentWeeks * 0.35));
+  return Math.max(2, Math.min(base, capFromTotal, 6));
+}
+
+/**
  * Calcule les bornes de phase (Fondation/Chantier/Consolidation/Race-Specific/
  * Affûtage — ou Adaptation/Développement/Consolidation/Affûtage en finisher)
  * pour UN cycle de blocs concentrés (Issurin 2008/2010), sur une plage de
@@ -84,6 +106,16 @@ function buildPhaseBoundsSegmentLines(
   L1: string,
   L2: string,
   headerSuffix: string,
+  // Bug réel corrigé (audit "système de périodisation") : ce bloc recalculait
+  // sa PROPRE durée de Fondation via un pourcentage basé sur le limiteur,
+  // indépendamment de `config.fondationDurationWeeks` (calculée côté client
+  // selon le niveau d'entraînement réel — cf. computeFondationDurationWeeks,
+  // planConfigBuilder.ts — et injectée juste au-dessus dans ce même prompt
+  // comme valeur FAISANT AUTORITÉ : "utilise CETTE valeur, pas le générique").
+  // Les deux pouvaient donc afficher deux durées différentes pour "la
+  // Fondation de CET athlète" dans le même prompt. Quand un override est
+  // fourni, il prime sur le calcul par pourcentage.
+  fondationWeeksOverride?: number,
 ): string[] {
   const lines: string[] = [];
   const tw = segEnd - segStart + 1;
@@ -104,7 +136,9 @@ function buildPhaseBoundsSegmentLines(
   else if (isVlamaxLimiter) fondationPct = 0.30;
   else if (isDurabilityLimiter) fondationPct = 0.30;
 
-  let fondationWeeks = Math.max(1, Math.floor(remainingWeeks * fondationPct));
+  let fondationWeeks = (typeof fondationWeeksOverride === "number" && fondationWeeksOverride > 0)
+    ? Math.max(1, Math.min(fondationWeeksOverride, remainingWeeks - 1))
+    : Math.max(1, Math.floor(remainingWeeks * fondationPct));
   let buildWeeks = remainingWeeks - fondationWeeks;
   if (buildWeeks < 1) {
     buildWeeks = 1;
@@ -410,7 +444,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     // via `classifyMultiObjectiveGoals` (même classification, même taper par
     // objectif que la section "Ancrage absolu" — une seule source de vérité).
     const REGEN_WEEKS_BETWEEN_PEAKS = 2; // cohérent avec "1-2 sem RÉCUPÉRATION RÉELLE" (règle 2 multi-objectifs, plus bas)
-    type PhaseSegment = { startWeek: number; endWeek: number; objKey: string; headerSuffix: string };
+    type PhaseSegment = { startWeek: number; endWeek: number; objKey: string; headerSuffix: string; fondationWeeksOverride?: number };
     let segments: PhaseSegment[] = [];
     if (Array.isArray(config?.raceGoals) && config.raceGoals.length > 1) {
       const fullPeaks = classifyMultiObjectiveGoals(config.raceGoals)
@@ -429,7 +463,22 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
               startWeek: cursor,
               endWeek: segEnd,
               objKey: normalizeObjKey(String(c.goal.objective || "")),
-              headerSuffix: ` — Cycle ${i + 1}/${fullPeaks.length}, vers ${c.goal.objective}${c.goal.raceName ? ` (${c.goal.raceName})` : ""} en S${c.goalWeek}`,
+              headerSuffix: ` — Cycle ${i + 1}/${fullPeaks.length}, vers ${c.goal.objective}${c.goal.raceName ? ` (${c.goal.raceName})` : ""} en S${c.goalWeek}${i > 0 ? " (Fondation = réadaptation courte post-pic, PAS une reconstruction de base aérobie)" : ""}`,
+              // Bug scientifique réel corrigé (audit "système de périodisation") :
+              // seul le 1er cycle part d'un athlète réellement à son niveau
+              // d'entraînement déclaré (config.fondationDurationWeeks). Les
+              // cycles suivants redémarraient un plein bloc "Fondation" au
+              // même pourcentage qu'un cycle qui part de zéro — alors que
+              // l'athlète sort d'un pic de forme COMPLET (Marathon, IM…),
+              // pas d'un arrêt d'entraînement. `computeReducedFondationWeeksPostPeak`
+              // le traite comme "highly_trained" (réadaptation courte), jamais
+              // comme une reconstruction de base aérobie depuis zéro — fidèle
+              // à la règle du prompt ("jamais de retour à Fondation une fois
+              // quittée") tout en gardant un court palier de réadaptation
+              // technique/neuromusculaire après la coupure de récupération.
+              fondationWeeksOverride: i === 0
+                ? (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0 ? config.fondationDurationWeeks : undefined)
+                : computeReducedFondationWeeksPostPeak(segEnd - cursor + 1),
             });
           }
           cursor = segEnd + REGEN_WEEKS_BETWEEN_PEAKS + 1;
@@ -439,7 +488,13 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     if (segments.length === 0) {
       // Cas mono-objectif (ou multi-objectifs sans ≥2 pics complets datés) :
       // comportement inchangé, un seul cycle sur la totalité du plan.
-      segments = [{ startWeek: 1, endWeek: tw, objKey, headerSuffix: "" }];
+      segments = [{
+        startWeek: 1,
+        endWeek: tw,
+        objKey,
+        headerSuffix: "",
+        fondationWeeksOverride: (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0) ? config.fondationDurationWeeks : undefined,
+      }];
     }
 
     segments.forEach((seg, i) => {
@@ -447,7 +502,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
         const prevEnd = segments[i - 1].endWeek;
         lines.push(`\n🔁 RÉGÉNÉRATION POST-PIC : S${prevEnd + 1}-S${seg.startWeek - 1} — vraie récupération (-40% volume, pas d'intensité), avant de relancer la montée en charge du cycle suivant (règle 2 multi-objectifs, plus bas).`);
       }
-      lines.push(...buildPhaseBoundsSegmentLines(seg.startWeek, seg.endWeek, seg.objKey, isFinisher, L1, L2, seg.headerSuffix));
+      lines.push(...buildPhaseBoundsSegmentLines(seg.startWeek, seg.endWeek, seg.objKey, isFinisher, L1, L2, seg.headerSuffix, seg.fondationWeeksOverride));
     });
 
     lines.push(`  ⚠️ Ces bornes sont INDICATIVES mais adaptées aux limiteurs détectés. Le Récapitulatif Stratégique du chunk 1 fait foi.`);

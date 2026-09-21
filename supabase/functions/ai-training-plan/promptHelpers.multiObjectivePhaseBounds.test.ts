@@ -98,3 +98,49 @@ Deno.test("buildStructuredDiagnosticBlock — multi-objectifs mais un seul pic c
   );
   assertEquals(countOccurrences(text, "📅 BORNES DE PHASE ESTIMÉES"), 1, text);
 });
+
+/**
+ * Bug scientifique réel corrigé (même audit, suite) : le cycle 2 (post-pic)
+ * redémarrait un plein bloc "Fondation" au même pourcentage limiteur qu'un
+ * cycle qui part de zéro — contredisant la règle du prompt ("jamais de
+ * retour à Fondation une fois quittée") et la physiologie (un athlète qui
+ * sort d'un Marathon n'est pas désentraîné après 1-2 sem de récupération).
+ * Vérifie que le cycle 2 a une Fondation nettement plus courte, INDÉPENDANTE
+ * du limiteur (contrairement au cycle 1, qui reste limiteur-dépendant).
+ */
+Deno.test("buildStructuredDiagnosticBlock — cycle post-pic (2/2) : Fondation courte et indépendante du limiteur (réadaptation, pas reconstruction)", () => {
+  for (const limiter of ["VLamax élevé", "Économie de course faible", "TTE faible"]) {
+    const text = buildStructuredDiagnosticBlock(
+      { ...marathonPlusIMConfig, identifiedLimitersRaw: [limiter], identifiedLimiters: [limiter] },
+      40,
+    );
+    const lines = text.split("\n").filter((l) => l.includes("Bloc Fondation"));
+    // 2 cycles => 2 lignes "Bloc Fondation" ; on prend celle du 2e cycle (la dernière).
+    assertEquals(lines.length, 2, `limiteur=${limiter}: ${text}`);
+    assertStringIncludes(lines[1], "S25-S27", `limiteur=${limiter} — Fondation du cycle post-pic doit rester à 3 sem quel que soit le limiteur`);
+  }
+  const textVlamax = buildStructuredDiagnosticBlock(marathonPlusIMConfig, 40);
+  assertStringIncludes(textVlamax, "réadaptation courte post-pic");
+});
+
+/**
+ * Bug réel corrigé (même audit) : le bloc "BORNES DE PHASE ESTIMÉES"
+ * recalculait sa propre durée de Fondation par pourcentage-limiteur, sans
+ * jamais lire `config.fondationDurationWeeks` — pourtant injecté juste au-
+ * dessus dans le MÊME prompt comme valeur faisant autorité ("utilise CETTE
+ * valeur, pas le générique"). Les deux pouvaient afficher deux durées
+ * différentes pour "la Fondation de CET athlète".
+ */
+Deno.test("buildStructuredDiagnosticBlock — le 1er cycle respecte config.fondationDurationWeeks quand fourni", () => {
+  const withoutOverride = buildStructuredDiagnosticBlock(marathonPlusIMConfig, 40);
+  const withOverride = buildStructuredDiagnosticBlock({ ...marathonPlusIMConfig, fondationDurationWeeks: 4 }, 40);
+
+  const fondationLine = (text: string) => text.split("\n").find((l) => l.includes("Bloc Fondation"))!;
+
+  // Sans override explicite, le cycle 1 utilise le calcul par pourcentage
+  // (VLamax => 0.30) — ici S1-S5 pour un cycle de 22 sem.
+  assertStringIncludes(fondationLine(withoutOverride), "S1-S5");
+  // Avec override, le cycle 1 DOIT utiliser exactement cette valeur (4 sem),
+  // pas le calcul par pourcentage.
+  assertStringIncludes(fondationLine(withOverride), "S1-S4");
+});
