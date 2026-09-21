@@ -303,7 +303,7 @@ export function mapExportPayloadToProfileReport(
   // ── Roadmap ───────────────────────────────────────────────────────────────
   let roadmap = null;
   try {
-    const r = computeStrategicRoadmap({ objectif: goal, limiterResult });
+    const r = computeStrategicRoadmap({ objectif: goal, limiterResult, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate });
     roadmap = {
       title: r.title,
       totalWeeks: r.totalWeeks,

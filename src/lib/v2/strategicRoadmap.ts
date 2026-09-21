@@ -28,13 +28,10 @@
  *    Marathon démarre par la base aérobie). Le composant `RoadmapStrategique`
  *    porte un tooltip signalant cette incertitude au coach ; ne pas le
  *    supprimer sans re-vérifier ce point.
- * 3. La segmentation multi-objectifs n'est câblée QUE sur l'appel depuis
- *    `RoadmapStrategique.tsx` (Index.tsx — vue diagnostic/dashboard). Les
- *    exports PDF (`ExportTools.tsx`, `athleteProfileReport/mapPayloadToReport.ts`)
- *    appellent `computeStrategicRoadmap` sans `raceGoals`/`planStartDate` —
- *    leur `ExportPayload` ne porte pas ces champs. Un PDF exporté pour un
- *    athlète multi-objectifs affichera donc encore un cycle unique tant que
- *    ce payload n'est pas étendu.
+ * (Point 3 — export PDF sans raceGoals/planStartDate — corrigé : `ExportPayload`
+ * porte désormais ces champs, alimentés depuis `useAthleteRaceGoals` via
+ * `mapDbRaceGoalsForRoadmap` — même fonction que `Index.tsx`, pour éviter que
+ * dashboard et PDF divergent silencieusement comme au point 1 ci-dessus.)
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 

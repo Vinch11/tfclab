@@ -52,7 +52,7 @@ import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplate
 import { computeFatMaxTFCL, computeFatMaxAnchorPctFTP, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 // ✅ NEW: Strategic Roadmap Engine
-import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase, computeLorangStrategy, type LorangStrategyResult, type LorangLeverActivation, type LorangProhibitionRule } from "@/engines/decision";
+import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase, computeLorangStrategy, type LorangStrategyResult, type LorangLeverActivation, type LorangProhibitionRule, type ClassifiableRaceGoal } from "@/engines/decision";
 import { detectUnifiedLimiter, type UnifiedLimiterResult, computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
@@ -81,6 +81,7 @@ import {
 import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 import { useAthleteRaceRecords } from "@/hooks/useAthleteRaceRecords";
 import { useAthleteRaceGoals, type RaceGoal } from "@/hooks/useAthleteRaceGoals";
+import { mapDbRaceGoalsForRoadmap } from "@/lib/plan/multiObjectiveClassification";
 // ✅ NEW: Coaching Compass (5 axes)
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
@@ -271,6 +272,16 @@ interface ExportPayload {
   runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"] | null;
   // Records de course réels (injectés depuis useAthleteRaceRecords côté composant)
   raceRecords?: import("@/lib/v2/vlamaxRunV2Enhanced").RaceRecordsInput | null;
+  /**
+   * Audit "amélioration des plans" (suite #219) : ces deux champs manquaient
+   * pour que buildRoadmapHTML/buildLeviersActionHTML (ci-dessous) et
+   * mapPayloadToReport.ts segmentent la frise en cycles multi-objectifs,
+   * comme le fait déjà RoadmapStrategique.tsx (dashboard). Sans eux, un
+   * athlète multi-objectifs recevait un PDF avec un cycle unique alors que
+   * le dashboard interactif affichait déjà la bonne segmentation.
+   */
+  raceGoals?: ClassifiableRaceGoal[];
+  planStartDate?: string;
   // Audience du rapport (dérivée du preset actif) — pilote le rendu, jamais les calculs
   audience?: "athlete" | "staff";
 }
@@ -3071,7 +3082,7 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
 function buildLeviersActionHTML(payload: ExportPayload): string {
   const ul = payload.unifiedLimiter;
   const lr = payload.lorangResult;
-  const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult: ul });
+  const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult: ul, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate });
   
   // ✅ Utiliser le Lorang Strategy Engine (identique au dashboard)
   const levers = lr?.activatedLevers || [];
@@ -3557,7 +3568,7 @@ function buildRoadmapHTML(payload: ExportPayload): string {
   // ✅ Réutilise le limiter unifié du payload (source unique de vérité)
   const limiterResult = payload.unifiedLimiter;
 
-  const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult });
+  const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate });
   const { phases, totalWeeks, title } = roadmap;
 
   const W = 900, H = 360, marginLeft = 60, marginRight = 30, chartTop = 40;
@@ -9870,6 +9881,13 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
 
   const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition, raceContext);
   payload.raceRecords = raceRecords;
+  // Fix "amélioration des plans" (suite #219) : mêmes données déjà chargées
+  // ci-dessus (exportRaceGoals) que RoadmapStrategique.tsx/Index.tsx pour le
+  // dashboard — jusqu'ici jamais transmises au PDF, qui affichait donc un
+  // cycle unique pour un athlète multi-objectifs.
+  const roadmapRaceGoals = mapDbRaceGoalsForRoadmap(exportRaceGoals);
+  payload.raceGoals = roadmapRaceGoals.raceGoals;
+  payload.planStartDate = roadmapRaceGoals.planStartDate;
   const exportCheck = canExport(payload);
 
   const [isExporting, setIsExporting] = useState(false);
