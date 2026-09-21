@@ -50,13 +50,13 @@ const blank = (width = "100%") =>
 
 export type TestingWeekSport = "bike" | "run" | "triathlon" | "triathlon-compact";
 
-interface NormStep {
+export interface NormStep {
   durationMin: number;
   intensityLabel: string;
   notes?: string;
 }
 
-interface NormProtocol {
+export interface NormProtocol {
   warmup: NormStep[];
   main: NormStep[];
   recovery: NormStep[];
@@ -74,7 +74,7 @@ interface NormVariant {
   protocol?: NormProtocol;
 }
 
-interface NormDay extends NormProtocol {
+export interface NormDay extends NormProtocol {
   dayKey: string;
   title: string;
   goal: string;
@@ -468,7 +468,7 @@ const CSS = `
   }
 </style>`;
 
-interface WeekSpec {
+export interface WeekSpec {
   sportLabel: string;
   weekTitle: string;
   description: string;
@@ -477,7 +477,7 @@ interface WeekSpec {
   synthGroup: { title: string; rows: string[] };
 }
 
-function buildBikeSpec(): WeekSpec {
+export function buildBikeSpec(): WeekSpec {
   const w = TFCL_TESTING_WEEK;
   return {
     sportLabel: "Vélo",
@@ -492,7 +492,7 @@ function buildBikeSpec(): WeekSpec {
   };
 }
 
-function buildRunSpec(): WeekSpec {
+export function buildRunSpec(): WeekSpec {
   const w = CAP_TESTING_WEEK;
   return {
     sportLabel: "Course à pied",
@@ -517,7 +517,7 @@ interface CompactSlot {
 }
 
 /** Item source avant regroupement/numérotation — `splitId` marque les paires combinées (Jour Na/Nb). */
-type CompactItem =
+export type CompactItem =
   | { kind: "day"; day: NormDay; sportLabel: string; flag?: string; splitId?: string }
   | { kind: "swim"; splitId?: string };
 
@@ -552,10 +552,17 @@ type CompactItem =
  * globale (systémique) potentiellement un peu moins profonde que ce que le
  * protocole d'origine garantit pour son propre D5.
  */
-function buildCompactTriathlonOrder(bikeSpec: WeekSpec, runSpec: WeekSpec): CompactSlot[] {
+/**
+ * Construit la liste source des items du calendrier compact, AVANT regroupement
+ * (Jour Na/Nb) et numérotation. Exportée pour être réutilisée par un
+ * consommateur autre que le HTML imprimable (ex. conversion vers des séances
+ * Nolio) — une seule définition de l'ordre/enchaînement, jamais deux qui
+ * pourraient diverger silencieusement.
+ */
+export function buildCompactTriathlonItems(bikeSpec: WeekSpec, runSpec: WeekSpec): CompactItem[] {
   const bike = bikeSpec.days; // [D-1, D1, D2, D3, D4, D5, D6, D7]
   const run = runSpec.days; // [D-1, D1, D2, D3, D4, D5, D6, D7]
-  const items: CompactItem[] = [
+  return [
     { kind: "day", day: bike[0], sportLabel: bikeSpec.sportLabel, splitId: "start" },
     { kind: "day", day: run[0], sportLabel: runSpec.sportLabel, splitId: "start" },
     { kind: "swim" },
@@ -580,11 +587,16 @@ function buildCompactTriathlonOrder(bikeSpec: WeekSpec, runSpec: WeekSpec): Comp
     { kind: "day", day: bike[7], sportLabel: bikeSpec.sportLabel, splitId: "end" },
     { kind: "day", day: run[7], sportLabel: runSpec.sportLabel, splitId: "end" },
   ];
+}
 
-  // Regroupe les items partageant un même splitId consécutif (Jour Na/Nb) et
-  // numérote séquentiellement — évite de renuméroter les libellés à la main
-  // à chaque ajout/retrait d'une étape (comme la natation ici).
-  const slots: CompactSlot[] = [];
+/**
+ * Regroupe les items partageant un même splitId consécutif (Jour Na/Nb) et
+ * numérote séquentiellement — évite de renuméroter les libellés à la main
+ * à chaque ajout/retrait d'une étape (comme la natation). Exportée pour la
+ * même raison que `buildCompactTriathlonItems`.
+ */
+export function groupCompactItems(items: CompactItem[]): Array<{ dayNumber: number; group: CompactItem[] }> {
+  const groups: Array<{ dayNumber: number; group: CompactItem[] }> = [];
   let dayNum = 0;
   let i = 0;
   while (i < items.length) {
@@ -597,8 +609,17 @@ function buildCompactTriathlonOrder(bikeSpec: WeekSpec, runSpec: WeekSpec): Comp
       i += 1;
     }
     dayNum++;
+    groups.push({ dayNumber: dayNum, group });
+  }
+  return groups;
+}
+
+function buildCompactTriathlonOrder(bikeSpec: WeekSpec, runSpec: WeekSpec): CompactSlot[] {
+  const items = buildCompactTriathlonItems(bikeSpec, runSpec);
+  const slots: CompactSlot[] = [];
+  for (const { dayNumber, group } of groupCompactItems(items)) {
     group.forEach((it, idx) => {
-      const dayLabel = group.length > 1 ? `Jour ${dayNum}${String.fromCharCode(97 + idx)}` : `Jour ${dayNum}`;
+      const dayLabel = group.length > 1 ? `Jour ${dayNumber}${String.fromCharCode(97 + idx)}` : `Jour ${dayNumber}`;
       slots.push(
         it.kind === "swim"
           ? { kind: "swim", dayLabel }
