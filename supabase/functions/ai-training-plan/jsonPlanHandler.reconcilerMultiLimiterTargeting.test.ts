@@ -86,7 +86,9 @@ Deno.test("applyReconciler (insert) — un seul limiteur (L1) : comportement his
   );
 
   const runSession = out[0].weeks[0].sessions.find((s: any) => s.sport === "run");
+  assert(runSession, "une séance run doit avoir été insérée");
   assertEquals(runSession.catalogId, "RUN_SEUIL_LONG");
   const repair = repairs.find(r => r.code === "session_inserted" && r.sport === "run");
-  assert(repair!.reason.includes("cible le limiteur L1"));
+  assert(repair, "repair session_inserted attendu");
+  assert(repair.reason.includes("cible le limiteur L1"));
 });
