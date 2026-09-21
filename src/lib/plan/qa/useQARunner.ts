@@ -166,6 +166,7 @@ export function useQARunner() {
               objective: profile.planConfig.objective,
               quotaIssues: quotaIssuesRef.current,
               quotasByWeek: plan.lastWeeklyQuotasRef.current,
+              identifiedLimiters: profile.planConfig.identifiedLimitersRaw ?? profile.planConfig.identifiedLimiters,
             });
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
