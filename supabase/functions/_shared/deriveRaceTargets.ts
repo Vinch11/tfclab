@@ -159,6 +159,14 @@ export interface DeriveRaceTargetsInput {
 
 export interface PaceTargets {
   allureSemiCible: number;
+  /** Bug réel corrigé (audit "duplications client/serveur") : ce champ
+   *  existait côté client (src/lib/deriveRaceTargets.ts) mais avait été
+   *  omis ici, malgré l'en-tête "MIROIR EXACT" — la copie serveur avait
+   *  silencieusement divergé de la copie client. Actuellement mort (aucun
+   *  appelant ne lit .allureMarathon), donc sans impact live aujourd'hui,
+   *  mais laissé divergent c'est le prochain lecteur qui hérite d'un
+   *  `undefined` silencieux côté edge function. */
+  allureMarathon: number;
   seuilBas: number;
   seuilHaut: number;
   allureVO2max: number | null;
@@ -195,10 +203,12 @@ export function buildPaceTargets(racePaceSecPerKm: number, vmaKmh: number | null
   const allureZ2 = vma
     ? { lo: Math.round(3600 / (0.75 * vma)), hi: Math.round(3600 / (0.65 * vma)) }
     : null;
+  const semi = Math.round(racePaceSecPerKm);
   return {
-    allureSemiCible: Math.round(racePaceSecPerKm),
-    seuilBas: Math.round(racePaceSecPerKm) + 10,
-    seuilHaut: Math.max(Math.round(racePaceSecPerKm) - 5, 120),
+    allureSemiCible: semi,
+    allureMarathon: Math.max(semi + 15, Math.round(semi * 1.055)),
+    seuilBas: semi + 10,
+    seuilHaut: Math.max(semi - 5, 120),
     allureVO2max,
     allureZ2,
     vmaKmh: vma,
