@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getSystemPrompt } from "../../../../supabase/functions/ai-training-plan/systemPrompt";
-import { buildUserPrompt, classifyMultiObjectiveGoals } from "../../../../supabase/functions/ai-training-plan/promptHelpers";
+import { buildUserPrompt, buildStructuredDiagnosticBlock, classifyMultiObjectiveGoals } from "../../../../supabase/functions/ai-training-plan/promptHelpers";
 import { EnrichedWorkoutsStartToRun } from "../../../lib/enrichedWorkoutsStartToRun";
 
 /**
@@ -163,4 +163,43 @@ describe("Cohérence du prompt assemblé — multi-objectifs : le texte reflète
       expect(jalonMentions, "nombre de courses annoncées comme jalon dans le texte").toBe(expectedJalons);
     });
   }
+});
+
+describe("Cohérence du prompt assemblé — multi-objectifs : le squelette de phases (BORNES DE PHASE) s'accorde avec l'Ancrage absolu", () => {
+  /**
+   * Piste "structure d'un plan multi-objectifs long" (Marathon + IM, ~18 sem
+   * d'écart) : `buildStructuredDiagnosticBlock` (section "BORNES DE PHASE
+   * ESTIMÉES") et `buildUserPrompt` (section "Ancrage absolu" par course)
+   * décrivaient chacune, indépendamment, où tombe le taper de la course
+   * intermédiaire — avant le fix, la première ignorait totalement la course
+   * intermédiaire (un seul cycle continu sur tout le plan) ; la seconde avait
+   * par ailleurs un off-by-one sur la borne de départ du taper. Ce test
+   * assemble les DEUX sections (comme le fait réellement jsonPlanHandler.ts :
+   * baseUserPrompt + structuredDiagnostic) et vérifie qu'elles citent
+   * EXACTEMENT la même plage de semaines pour le taper de la course non-
+   * finale, plutôt que de tester chaque section isolément.
+   */
+  it("Marathon (S22) + IM (S40) : le Bloc Affûtage du 1er cycle et l'Ancrage absolu du Marathon citent la même plage de semaines", () => {
+    const raceGoals = [
+      { objective: "Marathon", raceDate: "2027-02-21", priority: "A" },
+      { objective: "IM", raceDate: "2027-06-27", priority: "A" },
+    ];
+    const config = baseConfig("IM", "age_group", { raceGoals, weeksAvailable: undefined, planStartDate: "2026-09-21" });
+    const usr = buildUserPrompt({}, config);
+    const diag = buildStructuredDiagnosticBlock(config, 40);
+
+    const ancrageMatch = usr.match(/affûtage complet de \d+ semaine\(s\) de (S\d+ à S\d+)/);
+    const affutageLine = diag.split("\n").find((l) => l.includes("Bloc Affûtage"));
+
+    expect(ancrageMatch, "la section Ancrage absolu doit citer une plage de taper pour le pic non-final").not.toBeNull();
+    expect(affutageLine, "buildStructuredDiagnosticBlock doit produire un Bloc Affûtage pour le 1er cycle").toBeDefined();
+
+    const ancrageRange = ancrageMatch![1].replace(/ à /, "-"); // "S21 à S22" -> "S21-S22"
+    expect(affutageLine).toContain(ancrageRange);
+
+    // Non-régression du bug d'origine : le bloc segmenté doit exister (2
+    // cycles), pas un seul cycle continu qui engloberait S22 dans un bloc de
+    // charge (Fondation/Chantier/Consolidation/Race-Specific).
+    expect((diag.match(/📅 BORNES DE PHASE ESTIMÉES/g) || []).length).toBe(2);
+  });
 });
