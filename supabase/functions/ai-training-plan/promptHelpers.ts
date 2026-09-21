@@ -69,6 +69,64 @@ export function buildTerrainHardBanBlock(config: any): string {
 }
 
 /**
+ * Segmente un plan multi-objectifs en cycles — un segment par pic de forme
+ * complet daté (cf. `classifyMultiObjectiveGoals`), séparés par une vraie
+ * régénération de `REGEN_WEEKS_BETWEEN_PEAKS` semaines. Retourne `null` si le
+ * plan est mono-objectif (ou n'a pas ≥2 pics complets datés) : l'appelant
+ * doit alors traiter le plan comme UN SEUL cycle continu (comportement
+ * historique).
+ *
+ * Extrait de `buildStructuredDiagnosticBlock` (audit "système de
+ * périodisation") pour être réutilisé aussi par `inferPhaseFromWeek`
+ * (jsonPlanHandler.ts) — SANS ce partage, la sélection du catalogue de
+ * séances par phase (base/build/peak/taper) suivait un découpage DIFFÉRENT
+ * de celui du texte de guidance du prompt : une course intermédiaire (ex.
+ * Marathon en S22 d'un plan de 40 sem vers l'IM) recevait des fiches
+ * catalogue "build" au lieu de fiches "taper" pour sa PROPRE semaine de
+ * course — un bug réel, découvert en auditant ce chemin séparément, qui
+ * pouvait faire produire du contenu de charge la semaine même de la course.
+ */
+export const MULTI_OBJECTIVE_REGEN_WEEKS_BETWEEN_PEAKS = 2; // cohérent avec "1-2 sem RÉCUPÉRATION RÉELLE" (règle 2 multi-objectifs)
+
+export interface MultiObjectiveWeekSegment {
+  startWeek: number;
+  endWeek: number;
+  objective: string;
+  goalWeek: number;
+  isLastCycle: boolean;
+}
+
+export function computeMultiObjectiveSegments(config: any, totalWeeks: number): MultiObjectiveWeekSegment[] | null {
+  if (!Array.isArray(config?.raceGoals) || config.raceGoals.length < 2) return null;
+
+  const fullPeaks = classifyMultiObjectiveGoals(config.raceGoals)
+    .filter((c) => c.isFullPeak && c.goal.raceDate)
+    .map((c) => ({ ...c, goalWeek: computeGoalWeekForConfig(config, c.goal) }))
+    .filter((c): c is typeof c & { goalWeek: number } => typeof c.goalWeek === "number" && c.goalWeek >= 1 && c.goalWeek <= totalWeeks)
+    .sort((a, b) => a.goalWeek - b.goalWeek);
+
+  if (fullPeaks.length < 2) return null;
+
+  const segments: MultiObjectiveWeekSegment[] = [];
+  let cursor = 1;
+  fullPeaks.forEach((c, i) => {
+    const isLastSegment = i === fullPeaks.length - 1;
+    const segEnd = isLastSegment ? totalWeeks : c.goalWeek;
+    if (segEnd - cursor + 1 >= 2) {
+      segments.push({
+        startWeek: cursor,
+        endWeek: segEnd,
+        objective: String(c.goal.objective || ""),
+        goalWeek: c.goalWeek,
+        isLastCycle: isLastSegment,
+      });
+    }
+    cursor = segEnd + MULTI_OBJECTIVE_REGEN_WEEKS_BETWEEN_PEAKS + 1;
+  });
+  return segments.length > 0 ? segments : null;
+}
+
+/**
  * Durée de Fondation réduite pour un cycle qui redémarre APRÈS un pic de
  * forme complet (2e pic ou plus d'un plan multi-objectifs), PAS pour un
  * athlète qui commence son plan. Mirror simplifié (cas "highly_trained"
@@ -440,52 +498,36 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     // affûtage") disent explicitement que CHAQUE pic de forme complet reçoit
     // son propre cycle de blocs concentrés, séparé du suivant par une vraie
     // régénération — pas un unique cycle indifférencié. Segmente donc ce
-    // bloc par pic de forme complet quand `raceGoals` en contient plusieurs,
-    // via `classifyMultiObjectiveGoals` (même classification, même taper par
-    // objectif que la section "Ancrage absolu" — une seule source de vérité).
-    const REGEN_WEEKS_BETWEEN_PEAKS = 2; // cohérent avec "1-2 sem RÉCUPÉRATION RÉELLE" (règle 2 multi-objectifs, plus bas)
+    // bloc par pic de forme complet via `computeMultiObjectiveSegments`
+    // (fonction PARTAGÉE avec `inferPhaseFromWeek`, jsonPlanHandler.ts — la
+    // sélection du catalogue de séances par phase doit suivre EXACTEMENT le
+    // même découpage que ce texte de guidance, sinon la course elle-même
+    // recevrait des fiches "build" au lieu de fiches "taper").
     type PhaseSegment = { startWeek: number; endWeek: number; objKey: string; headerSuffix: string; fondationWeeksOverride?: number };
-    let segments: PhaseSegment[] = [];
-    if (Array.isArray(config?.raceGoals) && config.raceGoals.length > 1) {
-      const fullPeaks = classifyMultiObjectiveGoals(config.raceGoals)
-        .filter((c) => c.isFullPeak && c.goal.raceDate)
-        .map((c) => ({ ...c, goalWeek: computeGoalWeekForConfig(config, c.goal) }))
-        .filter((c): c is typeof c & { goalWeek: number } => typeof c.goalWeek === "number" && c.goalWeek >= 1 && c.goalWeek <= tw)
-        .sort((a, b) => a.goalWeek - b.goalWeek);
-
-      if (fullPeaks.length >= 2) {
-        let cursor = 1;
-        fullPeaks.forEach((c, i) => {
-          const isLastSegment = i === fullPeaks.length - 1;
-          const segEnd = isLastSegment ? tw : c.goalWeek;
-          if (segEnd - cursor + 1 >= 2) {
-            segments.push({
-              startWeek: cursor,
-              endWeek: segEnd,
-              objKey: normalizeObjKey(String(c.goal.objective || "")),
-              headerSuffix: ` — Cycle ${i + 1}/${fullPeaks.length}, vers ${c.goal.objective}${c.goal.raceName ? ` (${c.goal.raceName})` : ""} en S${c.goalWeek}${i > 0 ? " (Fondation = réadaptation courte post-pic, PAS une reconstruction de base aérobie)" : ""}`,
-              // Bug scientifique réel corrigé (audit "système de périodisation") :
-              // seul le 1er cycle part d'un athlète réellement à son niveau
-              // d'entraînement déclaré (config.fondationDurationWeeks). Les
-              // cycles suivants redémarraient un plein bloc "Fondation" au
-              // même pourcentage qu'un cycle qui part de zéro — alors que
-              // l'athlète sort d'un pic de forme COMPLET (Marathon, IM…),
-              // pas d'un arrêt d'entraînement. `computeReducedFondationWeeksPostPeak`
-              // le traite comme "highly_trained" (réadaptation courte), jamais
-              // comme une reconstruction de base aérobie depuis zéro — fidèle
-              // à la règle du prompt ("jamais de retour à Fondation une fois
-              // quittée") tout en gardant un court palier de réadaptation
-              // technique/neuromusculaire après la coupure de récupération.
-              fondationWeeksOverride: i === 0
-                ? (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0 ? config.fondationDurationWeeks : undefined)
-                : computeReducedFondationWeeksPostPeak(segEnd - cursor + 1),
-            });
-          }
-          cursor = segEnd + REGEN_WEEKS_BETWEEN_PEAKS + 1;
-        });
-      }
-    }
-    if (segments.length === 0) {
+    const multiSegments = computeMultiObjectiveSegments(config, tw);
+    let segments: PhaseSegment[];
+    if (multiSegments) {
+      segments = multiSegments.map((seg, i) => ({
+        startWeek: seg.startWeek,
+        endWeek: seg.endWeek,
+        objKey: normalizeObjKey(seg.objective),
+        headerSuffix: ` — Cycle ${i + 1}/${multiSegments.length}, vers ${seg.objective} en S${seg.goalWeek}${i > 0 ? " (Fondation = réadaptation courte post-pic, PAS une reconstruction de base aérobie)" : ""}`,
+        // Bug scientifique réel corrigé (audit "système de périodisation") :
+        // seul le 1er cycle part d'un athlète réellement à son niveau
+        // d'entraînement déclaré (config.fondationDurationWeeks). Les
+        // cycles suivants redémarraient un plein bloc "Fondation" au même
+        // pourcentage qu'un cycle qui part de zéro — alors que l'athlète
+        // sort d'un pic de forme COMPLET (Marathon, IM…), pas d'un arrêt
+        // d'entraînement. `computeReducedFondationWeeksPostPeak` le traite
+        // comme "highly_trained" (réadaptation courte), jamais comme une
+        // reconstruction de base aérobie depuis zéro — fidèle à la règle du
+        // prompt ("jamais de retour à Fondation une fois quittée") tout en
+        // gardant un court palier de réadaptation post-récupération.
+        fondationWeeksOverride: i === 0
+          ? (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0 ? config.fondationDurationWeeks : undefined)
+          : computeReducedFondationWeeksPostPeak(seg.endWeek - seg.startWeek + 1),
+      }));
+    } else {
       // Cas mono-objectif (ou multi-objectifs sans ≥2 pics complets datés) :
       // comportement inchangé, un seul cycle sur la totalité du plan.
       segments = [{
