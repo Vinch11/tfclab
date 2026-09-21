@@ -2,6 +2,7 @@ import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import logoUrl from "@/assets/logo-2fc.png";
 import { TFCL_TESTING_WEEK, type TFCLTestDay } from "@/data/tfclTestingWeek";
 import { CAP_TESTING_WEEK, type CAPTestDay } from "@/data/capTestingWeek";
+import { getProtocolDef } from "./buildDiagnosticProtocolHTML";
 
 /**
  * buildTestingWeekProtocolHTML — Dossier imprimable des semaines de test
@@ -157,12 +158,14 @@ function renderStepsTable(steps: NormStep[]): string {
     </table>`;
 }
 
-function renderCallout(kind: "validity" | "formula" | "safety", title: string, items: string[]): string {
+function renderCallout(kind: "validity" | "formula" | "safety" | "prep" | "error", title: string, items: string[]): string {
   if (items.length === 0) return "";
   const meta: Record<string, { icon: string }> = {
     validity: { icon: "✅" },
     formula: { icon: "🧮" },
     safety: { icon: "⚠️" },
+    prep: { icon: "📋" },
+    error: { icon: "⚠️" },
   };
   return `
     <div class="callout callout-${kind}">
@@ -253,6 +256,115 @@ function buildDayChapter(day: NormDay, chapterNumber: number, sportLabel: string
   </section>`;
 }
 
+function detectSwimCalloutKind(title: string): "prep" | "validity" | "formula" | "error" | "safety" {
+  const t = title.toLowerCase();
+  if (t.includes("préparation") || t.includes("preparation")) return "prep";
+  if (t.includes("validité") || t.includes("validite") || t.includes("condition")) return "validity";
+  if (t.includes("formule") || t.includes("calcul")) return "formula";
+  if (t.includes("erreur")) return "error";
+  if (t.includes("sécurité") || t.includes("securite")) return "safety";
+  return "validity";
+}
+
+/**
+ * Chapitre natation (demande coach : intégrer la partie natation au dossier
+ * "semaine de test" triathlon). Contrairement au vélo/course, il n'existe pas
+ * de semaine de test officielle dédiée à la natation — la référence utilisée
+ * par l'app est le protocole "TFCL Pool Day™" (une seule séance ~1h30, CSS +
+ * VLamax nage + capacité aérobie, cf. SwimPoolDayPage.tsx / PROTOCOLS["pool-day"]
+ * dans buildDiagnosticProtocolHTML.ts). Ce chapitre lit DIRECTEMENT cette même
+ * définition pour ne jamais diverger du protocole réellement utilisé par l'app.
+ */
+function buildSwimDayChapter(chapterNumber: number, dayLabel: string): string {
+  const p = getProtocolDef("pool-day");
+
+  const materialHtml = p.material.map((m) => `<span class="chip">☐ ${escapeHtml(m)}</span>`).join("");
+
+  const blocksHtml = p.blocks
+    .map(
+      (b, i) => `
+    <div class="block-card">
+      <div class="block-head">
+        <span class="block-num">${chapterNumber}.${i + 1}</span>
+        <div class="block-title">${escapeHtml(b.title)}</div>
+        <span class="block-duration">⏱ ${escapeHtml(b.duration)}</span>
+      </div>
+      <div class="block-body">
+        <div class="block-steps">
+          <div class="mini-label">Étapes</div>
+          <ol class="instructions">${b.instructions.map((ins) => `<li>${escapeHtml(ins)}</li>`).join("")}</ol>
+        </div>
+        <div class="mini-label">Mesures à reporter</div>
+        <table class="steps-table">
+          <thead><tr><th style="width:52%">Mesure</th><th style="width:28%">Valeur</th><th style="width:20%">Unité</th></tr></thead>
+          <tbody>
+            ${b.rows.map((r) => `<tr><td>${escapeHtml(r.measure)}</td><td class="fill-cell"></td><td>${escapeHtml(r.unit)}</td></tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>`,
+    )
+    .join("");
+
+  const detailedHtml = (p.detailed ?? [])
+    .map((sec) => renderCallout(detectSwimCalloutKind(sec.title), sec.title, sec.items))
+    .join("");
+
+  const altGroups: Array<{ title: string; icon: string; items?: string[] }> = [
+    { title: "Matériel manquant — substitutions", icon: "🧰", items: p.alternatives?.material },
+    { title: "Terrain / environnement dégradé", icon: "🌦️", items: p.alternatives?.terrain },
+    { title: "Format allégé (temps ou profil limité)", icon: "⏱️", items: p.alternatives?.short },
+  ];
+  const alternativesHtml = altGroups
+    .filter((g) => g.items && g.items.length > 0)
+    .map(
+      (g) => `
+      <div class="callout callout-alt">
+        <div class="callout-head"><span class="callout-icon">${g.icon}</span> ${escapeHtml(g.title)}</div>
+        <ul class="callout-list">${g.items!.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}</ul>
+      </div>`,
+    )
+    .join("");
+
+  const resultsHtml = p.results
+    .map((r) => `<tr><td>${escapeHtml(r.metric)}</td><td class="fill-cell"></td><td class="fill-cell"></td><td>${escapeHtml(r.unit)}</td></tr>`)
+    .join("");
+
+  return `
+  <section class="chapter" id="chap-${escapeHtml(dayLabel)}">
+    <div class="chapter-banner">
+      <div class="chapter-num">${escapeHtml(dayLabel)} — 🧪 Test</div>
+      <div class="chapter-title">${p.emoji} ${escapeHtml(p.name)}</div>
+      <div class="chapter-sub">${escapeHtml(p.subtitle)}</div>
+    </div>
+
+    <div class="page-meta">
+      <span><strong>Sport :</strong> Natation</span>
+      <span><strong>Durée estimée :</strong> ~90 min</span>
+      <span><strong>Date réalisée :</strong> ${blank("120px")}</span>
+    </div>
+
+    <h2>${chapterNumber}.0 — Matériel</h2>
+    <div class="material-block"><div class="chip-row">${materialHtml}</div></div>
+
+    <h2>${chapterNumber}.A — Protocole pas à pas</h2>
+    ${blocksHtml}
+
+    ${detailedHtml ? `<h2>${chapterNumber}.B — Cadre scientifique &amp; sécurité</h2>${detailedHtml}` : ""}
+
+    ${alternativesHtml ? `<h2>${chapterNumber}.C — Variantes &amp; adaptations <span class="h2-hint">(si contrainte matériel, terrain ou temps)</span></h2>${alternativesHtml}` : ""}
+
+    <h2>${chapterNumber}.D — Résultats calculés <span class="h2-hint">(à remplir après le test)</span></h2>
+    <table class="results-table">
+      <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
+      <tbody>${resultsHtml}</tbody>
+    </table>
+
+    <h2>${chapterNumber}.E — Notes du coach</h2>
+    <div class="lined-notes"></div>
+  </section>`;
+}
+
 const CSS = `
 <style>
   @page { size: A4 portrait; margin: 14mm 14mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "${escapeHtml(BRAND_MAIN)} · Semaine de Test"; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } }
@@ -261,9 +373,12 @@ const CSS = `
 
   h1 { font-size: 18pt; color: #5555E0; margin: 4px 0 8px; }
   h2 { font-size: 13pt; color: #5555E0; margin: 18px 0 8px; padding: 6px 10px; background: #EDEDFC; border-left: 4px solid #5555E0; border-radius: 2px; page-break-after: avoid; }
+  h2 .h2-hint { font-size: 9pt; font-weight: normal; color: #666; margin-left: 6px; }
   h3 { font-size: 11pt; color: #5555E0; margin: 10px 0 4px; }
   .mini-label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; color: #555; font-weight: 600; margin-bottom: 4px; }
   .muted-note { font-size: 10pt; color: #777; font-style: italic; }
+  .instructions { margin: 0 0 0 20px; padding: 0; font-size: 10.5pt; }
+  .instructions li { margin-bottom: 3px; }
 
   table { width: 100%; border-collapse: collapse; margin-top: 2px; }
   th, td { border: 1px solid #DAD6CC; padding: 7px 9px; font-size: 10pt; text-align: left; vertical-align: middle; }
@@ -286,7 +401,22 @@ const CSS = `
   .callout-safety .callout-head { color: #8F2E27; }
   .callout-alt { background: #EFE9FA; border-color: #7A56C2; }
   .callout-alt .callout-head { color: #5A3E93; }
+  .callout-prep { background: #FBF0DA; border-color: #C8860D; }
+  .callout-prep .callout-head { color: #8a6d14; }
+  .callout-error { background: #FAE6E4; border-color: #D0433A; }
+  .callout-error .callout-head { color: #8F2E27; }
   .variant-box { border: 1px dashed #7A56C2; border-radius: 6px; padding: 8px 12px; margin: 6px 0 10px; background: #FCFBFF; }
+
+  .block-card { border: 1px solid #DAD6CC; border-radius: 4px; margin: 10px 0 14px; overflow: hidden; page-break-inside: avoid; }
+  .block-head { display: flex; align-items: center; gap: 10px; background: #5555E0; color: white; padding: 6px 10px; }
+  .block-num { background: white; color: #5555E0; font-weight: bold; padding: 2px 8px; border-radius: 3px; font-size: 10.5pt; }
+  .block-title { flex: 1; font-weight: bold; font-size: 11pt; }
+  .block-duration { font-size: 9.5pt; opacity: 0.95; white-space: nowrap; }
+  .block-body { padding: 8px 10px 10px; }
+  .block-steps { margin-bottom: 8px; }
+  .material-block { margin: 6px 0 4px; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-block; padding: 3px 8px; border: 1px solid #DAD6CC; border-radius: 14px; font-size: 9.5pt; background: #FAF9F5; }
 
   .page-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 10pt; color: #333; margin: 6px 0 4px; padding: 6px 10px; background: #FAF9F5; border: 1px dashed #DAD6CC; border-radius: 3px; }
 
@@ -378,20 +508,27 @@ function buildRunSpec(): WeekSpec {
 }
 
 interface CompactSlot {
-  day: NormDay;
-  sportLabel: string;
+  kind: "day" | "swim";
+  day?: NormDay;
+  sportLabel?: string;
   dayLabel: string;
   /** Note de vigilance méthodologique affichée dans ce chapitre uniquement. */
   flag?: string;
 }
 
+/** Item source avant regroupement/numérotation — `splitId` marque les paires combinées (Jour Na/Nb). */
+type CompactItem =
+  | { kind: "day"; day: NormDay; sportLabel: string; flag?: string; splitId?: string }
+  | { kind: "swim"; splitId?: string };
+
 /**
  * Ordre compact interleaved triathlon (demande coach, audit "premier test
  * complet") : fusionne les DEUX semaines officielles (vélo 8j + course 8j,
- * TFCL_TESTING_WEEK / CAP_TESTING_WEEK) en UN seul calendrier continu de
- * 15 jours au lieu de 16, structuré "Jour 1, Jour 2..." comme le Tri Test
- * Day — mais sans reproduire son défaut (tests enchaînés le même jour sans
- * récupération, cf. audit "connexion tests → snapshot").
+ * TFCL_TESTING_WEEK / CAP_TESTING_WEEK) et le protocole natation (TFCL Pool
+ * Day™, une séance ~1h30) en UN seul calendrier continu, structuré
+ * "Jour 1, Jour 2..." comme le Tri Test Day — mais sans reproduire son défaut
+ * (tests enchaînés le même jour sans récupération, cf. audit "connexion
+ * tests → snapshot").
  *
  * Ce que la compaction gagne SANS coût de rigueur :
  *  - Jour 1 fusionne les 2 activations D-1 (vélo + course) — gain 1 jour.
@@ -400,6 +537,12 @@ interface CompactSlot {
  *    le même espacement (1 jour de récupération légère) que chaque semaine
  *    utilisait déjà en interne entre ses propres tests D1 et D3 — aucune
  *    perte de fraîcheur par rapport à l'original, seule l'alternance change.
+ *  - Le test natation (TFCL Pool Day™) est placé en Jour 2, juste après
+ *    l'activation D-1 : c'est le moment où l'athlète est le plus frais sur
+ *    l'ensemble du protocole, et la natation ne recrute ni les mêmes masses
+ *    musculaires (jambes) ni la même filière dominante que les tests vélo/
+ *    course qui suivent — aucun jour de récupération vélo/course n'est
+ *    consommé pour l'y insérer.
  *
  * Le SEUL arbitrage fait ici (à valider par le coach, cf. `flag` du jour
  * concerné) : le repos complet précédant le test Course D5 (Allure seuil +
@@ -412,30 +555,58 @@ interface CompactSlot {
 function buildCompactTriathlonOrder(bikeSpec: WeekSpec, runSpec: WeekSpec): CompactSlot[] {
   const bike = bikeSpec.days; // [D-1, D1, D2, D3, D4, D5, D6, D7]
   const run = runSpec.days; // [D-1, D1, D2, D3, D4, D5, D6, D7]
-  return [
-    { day: bike[0], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 1a" },
-    { day: run[0], sportLabel: runSpec.sportLabel, dayLabel: "Jour 1b" },
-    { day: bike[1], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 2" },
-    { day: bike[2], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 3" },
-    { day: run[1], sportLabel: runSpec.sportLabel, dayLabel: "Jour 4" },
-    { day: run[2], sportLabel: runSpec.sportLabel, dayLabel: "Jour 5" },
-    { day: bike[3], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 6" },
-    { day: bike[2], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 7" },
-    { day: run[3], sportLabel: runSpec.sportLabel, dayLabel: "Jour 8" },
-    { day: bike[4], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 9" },
-    { day: bike[5], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 10" },
+  const items: CompactItem[] = [
+    { kind: "day", day: bike[0], sportLabel: bikeSpec.sportLabel, splitId: "start" },
+    { kind: "day", day: run[0], sportLabel: runSpec.sportLabel, splitId: "start" },
+    { kind: "swim" },
+    { kind: "day", day: bike[1], sportLabel: bikeSpec.sportLabel },
+    { kind: "day", day: bike[2], sportLabel: bikeSpec.sportLabel },
+    { kind: "day", day: run[1], sportLabel: runSpec.sportLabel },
+    { kind: "day", day: run[2], sportLabel: runSpec.sportLabel },
+    { kind: "day", day: bike[3], sportLabel: bikeSpec.sportLabel },
+    { kind: "day", day: bike[2], sportLabel: bikeSpec.sportLabel },
+    { kind: "day", day: run[3], sportLabel: runSpec.sportLabel },
+    { kind: "day", day: bike[4], sportLabel: bikeSpec.sportLabel },
+    { kind: "day", day: bike[5], sportLabel: bikeSpec.sportLabel },
     {
+      kind: "day",
       day: run[4],
       sportLabel: runSpec.sportLabel,
-      dayLabel: "Jour 11",
       flag: "Ce repos complet suit directement le test Vélo D5 (FTP+TTE), l'effort le plus exigeant du protocole — dans la semaine d'origine, aucun repos complet n'est jamais précédé d'un tel effort la veille. Si l'athlète ne se sent pas totalement frais le lendemain, décaler le test Course D5 d'un jour supplémentaire plutôt que de forcer.",
     },
-    { day: run[5], sportLabel: runSpec.sportLabel, dayLabel: "Jour 12" },
-    { day: bike[6], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 13" },
-    { day: run[6], sportLabel: runSpec.sportLabel, dayLabel: "Jour 14" },
-    { day: bike[7], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 15a" },
-    { day: run[7], sportLabel: runSpec.sportLabel, dayLabel: "Jour 15b" },
+    { kind: "day", day: run[5], sportLabel: runSpec.sportLabel },
+    { kind: "day", day: bike[6], sportLabel: bikeSpec.sportLabel },
+    { kind: "day", day: run[6], sportLabel: runSpec.sportLabel },
+    { kind: "day", day: bike[7], sportLabel: bikeSpec.sportLabel, splitId: "end" },
+    { kind: "day", day: run[7], sportLabel: runSpec.sportLabel, splitId: "end" },
   ];
+
+  // Regroupe les items partageant un même splitId consécutif (Jour Na/Nb) et
+  // numérote séquentiellement — évite de renuméroter les libellés à la main
+  // à chaque ajout/retrait d'une étape (comme la natation ici).
+  const slots: CompactSlot[] = [];
+  let dayNum = 0;
+  let i = 0;
+  while (i < items.length) {
+    const cur = items[i];
+    const group = [cur];
+    if (cur.splitId && items[i + 1]?.splitId === cur.splitId) {
+      group.push(items[i + 1]);
+      i += 2;
+    } else {
+      i += 1;
+    }
+    dayNum++;
+    group.forEach((it, idx) => {
+      const dayLabel = group.length > 1 ? `Jour ${dayNum}${String.fromCharCode(97 + idx)}` : `Jour ${dayNum}`;
+      slots.push(
+        it.kind === "swim"
+          ? { kind: "swim", dayLabel }
+          : { kind: "day", day: it.day, sportLabel: it.sportLabel, dayLabel, flag: it.flag },
+      );
+    });
+  }
+  return slots;
 }
 
 /**
@@ -453,7 +624,7 @@ export function buildTestingWeekDossierHTML(
   const isCompact = sport === "triathlon-compact";
   const specs: WeekSpec[] = sport === "triathlon" || isCompact ? [buildBikeSpec(), buildRunSpec()] : sport === "bike" ? [buildBikeSpec()] : [buildRunSpec()];
   const sportLabel = isCompact
-    ? "Triathlon compact — 15 jours"
+    ? "Triathlon compact — 16 jours"
     : sport === "triathlon"
       ? "Triathlon (vélo + course)"
       : specs[0].sportLabel;
@@ -470,8 +641,13 @@ export function buildTestingWeekDossierHTML(
     const [bikeSpec, runSpec] = specs;
     for (const slot of buildCompactTriathlonOrder(bikeSpec, runSpec)) {
       chapterCounter++;
-      tocRows.push({ num: slot.dayLabel, title: `${slot.day.title} (${slot.sportLabel})` });
-      chapterPages.push(buildDayChapter(slot.day, chapterCounter, slot.sportLabel, slot.dayLabel, slot.flag));
+      if (slot.kind === "swim") {
+        tocRows.push({ num: slot.dayLabel, title: `${getProtocolDef("pool-day").name} (Natation)` });
+        chapterPages.push(buildSwimDayChapter(chapterCounter, slot.dayLabel));
+      } else {
+        tocRows.push({ num: slot.dayLabel, title: `${slot.day!.title} (${slot.sportLabel})` });
+        chapterPages.push(buildDayChapter(slot.day!, chapterCounter, slot.sportLabel!, slot.dayLabel, slot.flag));
+      }
     }
   } else {
     for (const spec of specs) {
@@ -507,7 +683,19 @@ export function buildTestingWeekDossierHTML(
         <div class="prereq-card"><div class="pc-title">⚠️ Avertissements</div><ul>${spec.prerequisites.warnings.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul></div>
       </div>`,
     )
-    .join("<div style=\"margin-top:16px;\"></div>");
+    .join("<div style=\"margin-top:16px;\"></div>") + (isCompact ? (() => {
+      const swim = getProtocolDef("pool-day");
+      const validitySec = swim.detailed?.find((d) => d.title.toLowerCase().includes("validité"));
+      const safetySec = swim.detailed?.find((d) => d.title.toLowerCase().includes("sécurité"));
+      return `<div style="margin-top:16px;"></div>
+      <h3>${escapeHtml(swim.name)}</h3>
+      <p style="font-size:10pt;color:#333;margin:2px 0 8px;">${escapeHtml(swim.subtitle)}</p>
+      <div class="prereq-grid">
+        <div class="prereq-card"><div class="pc-title">🧰 Matériel</div><ul>${swim.material.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul></div>
+        <div class="prereq-card"><div class="pc-title">✅ Conditions</div><ul>${(validitySec?.items ?? []).map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul></div>
+        <div class="prereq-card"><div class="pc-title">⚠️ Avertissements</div><ul>${(safetySec?.items ?? []).map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul></div>
+      </div>`;
+    })() : "");
 
   const synthesisHtml = specs
     .map(
@@ -520,7 +708,14 @@ export function buildTestingWeekDossierHTML(
         </tbody>
       </table>`,
     )
-    .join("");
+    .join("") + (isCompact ? `
+      <h3 class="synth-group-title">Profil natation (CSS / VLamax nage)</h3>
+      <table>
+        <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Précédente</th></tr></thead>
+        <tbody>
+          ${["CSS (min:sec/100m)", "V max sprint (m/s)", "CSS / V max (%)", "VLamax nage estimée (mmol/L/s)", "TTE nage estimé (min)", "Drift cardiaque 1500m (%)"].map((r) => `<tr><td>${escapeHtml(r)}</td><td class="fill-cell"></td><td class="fill-cell"></td></tr>`).join("")}
+        </tbody>
+      </table>` : "");
 
   const conclusionLines = Array.from({ length: 10 }).map(() => `<div class="conclusion-line"></div>`).join("");
 
@@ -583,9 +778,10 @@ ${CSS}
     <div class="callout callout-formula">
       <div class="callout-head"><span class="callout-icon">🧮</span> Calendrier compact — comment il a été construit</div>
       <ul class="callout-list">
-        <li>Fusion des deux semaines officielles (vélo 8 jours + course 8 jours) en un seul calendrier continu de 15 jours, numéroté Jour 1 à Jour 15.</li>
-        <li>Chaque test garde EXACTEMENT le même espacement de récupération que dans sa semaine d'origine (1 jour de récupération légère entre un test glycolytique et le test aérobie suivant, 1 jour de repos complet avant chaque test long) — seule l'alternance entre les deux disciplines change, jamais la profondeur de récupération.</li>
-        <li>Un seul arbitrage a été fait (signalé directement au Jour 11 concerné) : le repos avant le test Course D5 suit le test Vélo D5, l'effort le plus exigeant du protocole — une récupération globale un peu moins garantie qu'en semaine séparée. À surveiller au ressenti de l'athlète.</li>
+        <li>Fusion des deux semaines officielles (vélo 8 jours + course 8 jours) et du protocole natation (TFCL Pool Day™, une séance ~1h30) en un seul calendrier continu de 16 jours, numéroté Jour 1 à Jour 16.</li>
+        <li>Chaque test vélo/course garde EXACTEMENT le même espacement de récupération que dans sa semaine d'origine (1 jour de récupération légère entre un test glycolytique et le test aérobie suivant, 1 jour de repos complet avant chaque test long) — seule l'alternance entre les deux disciplines change, jamais la profondeur de récupération.</li>
+        <li>Le test natation est placé en Jour 2, juste après l'activation D-1 : l'athlète y est le plus frais, et la natation ne recrute ni les mêmes masses musculaires ni la même filière dominante que les tests vélo/course qui suivent — son insertion ne consomme aucun jour de récupération vélo/course.</li>
+        <li>Un seul arbitrage a été fait (signalé directement au jour concerné) : le repos avant le test Course D5 suit le test Vélo D5, l'effort le plus exigeant du protocole — une récupération globale un peu moins garantie qu'en semaine séparée. À surveiller au ressenti de l'athlète.</li>
       </ul>
     </div>` : ""}
     ${prereqHtml}
