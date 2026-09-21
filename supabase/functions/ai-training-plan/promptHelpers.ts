@@ -68,6 +68,74 @@ export function buildTerrainHardBanBlock(config: any): string {
   return lines.join("\n");
 }
 
+/**
+ * Calcule les bornes de phase (Fondation/Chantier/Consolidation/Race-Specific/
+ * Affûtage — ou Adaptation/Développement/Consolidation/Affûtage en finisher)
+ * pour UN cycle de blocs concentrés (Issurin 2008/2010), sur une plage de
+ * semaines [segStart, segEnd] (numérotation GLOBALE du plan). Extrait de
+ * l'ancien corps de `buildStructuredDiagnosticBlock` (FIX C5 + audit V8) pour
+ * être appelable plusieurs fois sur un plan multi-objectifs (cf. appelant).
+ */
+function buildPhaseBoundsSegmentLines(
+  segStart: number,
+  segEnd: number,
+  objKey: string,
+  isFinisher: boolean,
+  L1: string,
+  L2: string,
+  headerSuffix: string,
+): string[] {
+  const lines: string[] = [];
+  const tw = segEnd - segStart + 1;
+  const off = segStart - 1; // décalage pour convertir une semaine locale (1..tw) en semaine globale du plan
+
+  const taperWeeks = Math.max(1, taperWeeksForObjectiveServer(objKey));
+  const targetRaceSpecific = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
+  const raceSpecificWeeks = Math.max(0, Math.min(targetRaceSpecific, tw - taperWeeks - 2));
+  const remainingWeeks = Math.max(2, tw - taperWeeks - raceSpecificWeeks);
+
+  const isVlamaxLimiter = /vlamax|glycoly|anaerob/i.test(L1);
+  const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
+  const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
+  const isVo2maxLimiter = /vo2max/i.test(L1);
+
+  let fondationPct = 0.35;
+  if (isEconomyLimiter) fondationPct = 0.42;
+  else if (isVlamaxLimiter) fondationPct = 0.30;
+  else if (isDurabilityLimiter) fondationPct = 0.30;
+
+  let fondationWeeks = Math.max(1, Math.floor(remainingWeeks * fondationPct));
+  let buildWeeks = remainingWeeks - fondationWeeks;
+  if (buildWeeks < 1) {
+    buildWeeks = 1;
+    fondationWeeks = Math.max(1, remainingWeeks - 1);
+  }
+
+  const L1Short = L1 ? L1.split(/[\s(,]/)[0] : "Limiteur #1";
+  const L2Short = L2 ? L2.split(/[\s(,]/)[0] : "Limiteur #2";
+
+  const planLengthTag = tw < 8 ? " — PLAN COURT (densité prioritaire sur volume)" : tw < 12 ? " — PLAN MOYEN" : "";
+  lines.push(`\n📅 BORNES DE PHASE ESTIMÉES${headerSuffix} (${tw} semaines, ajustées selon L1="${L1Short}")${planLengthTag} :`);
+  if (isFinisher) {
+    lines.push(`  Phase 1 — Adaptation : S${off + 1}-S${off + fondationWeeks}`);
+    lines.push(`  Phase 2 — Développement : S${off + fondationWeeks + 1}-S${off + fondationWeeks + buildWeeks}`);
+    if (raceSpecificWeeks > 0) lines.push(`  Phase 3 — Consolidation : S${off + fondationWeeks + buildWeeks + 1}-S${off + tw - taperWeeks}`);
+    lines.push(`  Phase ${raceSpecificWeeks > 0 ? "4" : "3"} — Affûtage : S${off + tw - taperWeeks + 1}-S${off + tw}`);
+  } else {
+    const chantierEnd = fondationWeeks + Math.max(1, Math.ceil(buildWeeks * (isVlamaxLimiter || isDurabilityLimiter ? 0.55 : 0.5)));
+    const consolEnd = fondationWeeks + buildWeeks;
+    lines.push(`  Bloc Fondation${isVo2maxLimiter ? " (SANS VO2max — réservé au Bloc Chantier dédié)" : " + Intensité"} : S${off + 1}-S${off + fondationWeeks}${isEconomyLimiter ? " (étendu: adaptation motrice L1)" : ""}`);
+    lines.push(`  Bloc Chantier [${L1Short}↓] : S${off + fondationWeeks + 1}-S${off + chantierEnd}${isVlamaxLimiter ? " (étendu: chantier métabolique prioritaire)" : ""}`);
+    if (consolEnd > chantierEnd) lines.push(`  Bloc Consolidation [${L2Short}] : S${off + chantierEnd + 1}-S${off + consolEnd}`);
+    if (raceSpecificWeeks > 0) lines.push(`  Bloc Race-Specific : S${off + consolEnd + 1}-S${off + tw - taperWeeks}`);
+    lines.push(`  Bloc Affûtage : S${off + tw - taperWeeks + 1}-S${off + tw}`);
+  }
+  if (tw < 8) {
+    lines.push(`  ⚠️ PLAN COURT (<8 sem) : pas de redondance. CHAQUE séance compte. Densité Z3/Z4 maintenue dès S1 (pas de "vraie" base aérobie possible).`);
+  }
+  return lines;
+}
+
 export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): string {
   const lines: string[] = [];
   
@@ -325,68 +393,63 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     const L1 = (rawList[0] || "").toLowerCase();
     const L2 = (rawList[1] || "").toLowerCase();
 
-    // Bug réel confirmé (audit "Test_Vince", 703 8 semaines) : cette table
-    // locale (Semi=2, Trail générique=2) ET son plafond `floor(tw*0.2)`
-    // divergeaient de taperWeeksForObjectiveServer (source de vérité, elle-
-    // même miroir du moteur de quotas client qui NE plafonne JAMAIS le taper
-    // pour un plan court — cf. inferWeekType/sessionSizingMatrix.ts). Sur ce
-    // plan précis, cette table disait au LLM "taper = 1 semaine (S8)" pendant
-    // que le moteur de quotas traitait déjà S7 ET S8 comme taper — la
-    // consigne donnée au LLM contredisait directement ce que le reconciliateur
-    // allait ensuite imposer. Remplacé par l'appel direct à la fonction
-    // partagée, sans plafond proportionnel (aucun équivalent côté quotas).
-    const taperWeeks = Math.max(1, taperWeeksForObjectiveServer(objKey));
+    // Bug réel corrigé (audit "structure d'un plan multi-objectifs long" —
+    // Marathon + IM à ~5 mois d'écart) : ce bloc calculait un SEUL cycle
+    // Fondation→Chantier→Affûtage continu sur la totalité du plan, sans
+    // aucune notion de `raceGoals` — une course intermédiaire datée (ex:
+    // Marathon en S22 d'un plan de 40 sem vers l'IM) tombait alors en plein
+    // "Bloc Chantier", contredisant DIRECTEMENT la section "Ancrage absolu"
+    // (plus bas dans ce même prompt) qui exige un taper à cette semaine.
+    // La littérature de périodisation double/triple (Bompa & Haff ; Issurin
+    // 2010, Block Periodization) et la règle 1 des "RÈGLES MULTI-OBJECTIFS"
+    // ci-dessous ("chacun a droit à sa propre montée en charge et son propre
+    // affûtage") disent explicitement que CHAQUE pic de forme complet reçoit
+    // son propre cycle de blocs concentrés, séparé du suivant par une vraie
+    // régénération — pas un unique cycle indifférencié. Segmente donc ce
+    // bloc par pic de forme complet quand `raceGoals` en contient plusieurs,
+    // via `classifyMultiObjectiveGoals` (même classification, même taper par
+    // objectif que la section "Ancrage absolu" — une seule source de vérité).
+    const REGEN_WEEKS_BETWEEN_PEAKS = 2; // cohérent avec "1-2 sem RÉCUPÉRATION RÉELLE" (règle 2 multi-objectifs, plus bas)
+    type PhaseSegment = { startWeek: number; endWeek: number; objKey: string; headerSuffix: string };
+    let segments: PhaseSegment[] = [];
+    if (Array.isArray(config?.raceGoals) && config.raceGoals.length > 1) {
+      const fullPeaks = classifyMultiObjectiveGoals(config.raceGoals)
+        .filter((c) => c.isFullPeak && c.goal.raceDate)
+        .map((c) => ({ ...c, goalWeek: computeGoalWeekForConfig(config, c.goal) }))
+        .filter((c): c is typeof c & { goalWeek: number } => typeof c.goalWeek === "number" && c.goalWeek >= 1 && c.goalWeek <= tw)
+        .sort((a, b) => a.goalWeek - b.goalWeek);
 
-    // Race-specific: rogné aussi pour plans courts
-    const targetRaceSpecific = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
-    const raceSpecificWeeks = Math.max(0, Math.min(targetRaceSpecific, tw - taperWeeks - 2)); // au moins 2 sem pour fondation+build
-
-    const remainingWeeks = Math.max(2, tw - taperWeeks - raceSpecificWeeks);
-
-    const isVlamaxLimiter = /vlamax|glycoly|anaerob/i.test(L1);
-    const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
-    const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
-    // Cf. matrice "Séquençage par Limiteur Principal" du prompt statique : quand
-    // VO2max EST le limiteur #1, le stimulus VO2max est réservé au Bloc Chantier
-    // dédié (concentration Issurin), pas dilué en priming dès la Fondation — seul
-    // ce cas précis exclut VO2max de la Fondation (FTP/kg bas garde le priming).
-    const isVo2maxLimiter = /vo2max/i.test(L1);
-
-    let fondationPct = 0.35;
-    if (isEconomyLimiter) fondationPct = 0.42;
-    else if (isVlamaxLimiter) fondationPct = 0.30;
-    else if (isDurabilityLimiter) fondationPct = 0.30;
-
-    // Garantit fondation ≥1 sem et build ≥1 sem (jamais négatif)
-    let fondationWeeks = Math.max(1, Math.floor(remainingWeeks * fondationPct));
-    let buildWeeks = remainingWeeks - fondationWeeks;
-    if (buildWeeks < 1) {
-      buildWeeks = 1;
-      fondationWeeks = Math.max(1, remainingWeeks - 1);
+      if (fullPeaks.length >= 2) {
+        let cursor = 1;
+        fullPeaks.forEach((c, i) => {
+          const isLastSegment = i === fullPeaks.length - 1;
+          const segEnd = isLastSegment ? tw : c.goalWeek;
+          if (segEnd - cursor + 1 >= 2) {
+            segments.push({
+              startWeek: cursor,
+              endWeek: segEnd,
+              objKey: normalizeObjKey(String(c.goal.objective || "")),
+              headerSuffix: ` — Cycle ${i + 1}/${fullPeaks.length}, vers ${c.goal.objective}${c.goal.raceName ? ` (${c.goal.raceName})` : ""} en S${c.goalWeek}`,
+            });
+          }
+          cursor = segEnd + REGEN_WEEKS_BETWEEN_PEAKS + 1;
+        });
+      }
+    }
+    if (segments.length === 0) {
+      // Cas mono-objectif (ou multi-objectifs sans ≥2 pics complets datés) :
+      // comportement inchangé, un seul cycle sur la totalité du plan.
+      segments = [{ startWeek: 1, endWeek: tw, objKey, headerSuffix: "" }];
     }
 
-    const L1Short = L1 ? L1.split(/[\s(,]/)[0] : "Limiteur #1";
-    const L2Short = L2 ? L2.split(/[\s(,]/)[0] : "Limiteur #2";
+    segments.forEach((seg, i) => {
+      if (i > 0) {
+        const prevEnd = segments[i - 1].endWeek;
+        lines.push(`\n🔁 RÉGÉNÉRATION POST-PIC : S${prevEnd + 1}-S${seg.startWeek - 1} — vraie récupération (-40% volume, pas d'intensité), avant de relancer la montée en charge du cycle suivant (règle 2 multi-objectifs, plus bas).`);
+      }
+      lines.push(...buildPhaseBoundsSegmentLines(seg.startWeek, seg.endWeek, seg.objKey, isFinisher, L1, L2, seg.headerSuffix));
+    });
 
-    const planLengthTag = tw < 8 ? " — PLAN COURT (densité prioritaire sur volume)" : tw < 12 ? " — PLAN MOYEN" : "";
-    lines.push(`\n📅 BORNES DE PHASE ESTIMÉES (${tw} semaines, ajustées selon L1="${L1Short}")${planLengthTag} :`);
-    if (isFinisher) {
-      lines.push(`  Phase 1 — Adaptation : S1-S${fondationWeeks}`);
-      lines.push(`  Phase 2 — Développement : S${fondationWeeks + 1}-S${fondationWeeks + buildWeeks}`);
-      if (raceSpecificWeeks > 0) lines.push(`  Phase 3 — Consolidation : S${fondationWeeks + buildWeeks + 1}-S${tw - taperWeeks}`);
-      lines.push(`  Phase ${raceSpecificWeeks > 0 ? "4" : "3"} — Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
-    } else {
-      const chantierEnd = fondationWeeks + Math.max(1, Math.ceil(buildWeeks * (isVlamaxLimiter || isDurabilityLimiter ? 0.55 : 0.5)));
-      const consolEnd = fondationWeeks + buildWeeks;
-      lines.push(`  Bloc Fondation${isVo2maxLimiter ? " (SANS VO2max — réservé au Bloc Chantier dédié)" : " + Intensité"} : S1-S${fondationWeeks}${isEconomyLimiter ? " (étendu: adaptation motrice L1)" : ""}`);
-      lines.push(`  Bloc Chantier [${L1Short}↓] : S${fondationWeeks + 1}-S${chantierEnd}${isVlamaxLimiter ? " (étendu: chantier métabolique prioritaire)" : ""}`);
-      if (consolEnd > chantierEnd) lines.push(`  Bloc Consolidation [${L2Short}] : S${chantierEnd + 1}-S${consolEnd}`);
-      if (raceSpecificWeeks > 0) lines.push(`  Bloc Race-Specific : S${consolEnd + 1}-S${tw - taperWeeks}`);
-      lines.push(`  Bloc Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
-    }
-    if (tw < 8) {
-      lines.push(`  ⚠️ PLAN COURT (<8 sem) : pas de redondance. CHAQUE séance compte. Densité Z3/Z4 maintenue dès S1 (pas de "vraie" base aérobie possible).`);
-    }
     lines.push(`  ⚠️ Ces bornes sont INDICATIVES mais adaptées aux limiteurs détectés. Le Récapitulatif Stratégique du chunk 1 fait foi.`);
   }
   
@@ -811,18 +874,44 @@ export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoa
   });
 }
 
+/** Partagé (module-level) : anciennement dupliqué en closure locale dans
+ *  `buildUserPrompt` ET recalculé indépendamment dans `buildStructuredDiagnosticBlock`
+ *  pour la segmentation multi-objectifs — extrait pour garantir une SEULE source
+ *  de vérité sur "quelle semaine correspond à quelle date", évitant la classe de
+ *  bug déjà rencontrée sur les paires MIROIR client/serveur (divergence silencieuse
+ *  entre deux implémentations censées être identiques). */
+export function parseIsoDateUtc(iso?: string): number | undefined {
+  if (!iso) return undefined;
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return undefined;
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  const d = Number(match[3]);
+  return Date.UTC(y, m - 1, d);
+}
+
+/** Partagé (module-level) : cf. note sur `parseIsoDateUtc` ci-dessus. */
+export function computeGoalWeekForConfig(config: any, goal: any): number | undefined {
+  // PRIORITÉ ABSOLUE: calculer depuis les dates (source de vérité)
+  if (goal?.raceDate && config?.planStartDate) {
+    const raceUtc = parseIsoDateUtc(goal.raceDate);
+    const startUtc = parseIsoDateUtc(config.planStartDate);
+    if (raceUtc !== undefined && startUtc !== undefined) {
+      const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
+      if (days >= 0) return Math.floor(days / 7) + 1;
+    }
+  }
+
+  // Fallback uniquement si aucune date exploitable
+  if (typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
+    return Math.max(1, Math.floor(goal.weeksUntilRace));
+  }
+
+  return undefined;
+}
+
 export function buildUserPrompt(data: any, config: any, catalogDurationStats?: CatalogDurationStats | null): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
-
-  const parseIsoDateUtc = (iso?: string): number | undefined => {
-    if (!iso) return undefined;
-    const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!match) return undefined;
-    const y = Number(match[1]);
-    const m = Number(match[2]);
-    const d = Number(match[3]);
-    return Date.UTC(y, m - 1, d);
-  };
 
   const formatIsoDateFr = (iso?: string): string => {
     if (!iso) return "";
@@ -837,24 +926,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     }).format(new Date(utc));
   };
 
-  const computeGoalWeek = (goal: any): number | undefined => {
-    // PRIORITÉ ABSOLUE: calculer depuis les dates (source de vérité)
-    if (goal?.raceDate && config?.planStartDate) {
-      const raceUtc = parseIsoDateUtc(goal.raceDate);
-      const startUtc = parseIsoDateUtc(config.planStartDate);
-      if (raceUtc !== undefined && startUtc !== undefined) {
-        const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
-        if (days >= 0) return Math.floor(days / 7) + 1;
-      }
-    }
-
-    // Fallback uniquement si aucune date exploitable
-    if (typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
-      return Math.max(1, Math.floor(goal.weeksUntilRace));
-    }
-
-    return undefined;
-  };
+  const computeGoalWeek = (goal: any): number | undefined => computeGoalWeekForConfig(config, goal);
 
   const getWeekBounds = (weekNumber?: number): { start: string; end: string } | undefined => {
     if (!weekNumber || !config?.planStartDate) return undefined;
@@ -974,10 +1046,18 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
           // Pic de forme complet MAIS pas la dernière course chronologique
           // (écart suffisant avant la course suivante pour un vrai second
           // cycle — cf. classifyMultiObjectiveGoals). Affûtage propre à SA
-          // discipline, explicitement chiffré ici car aucun mécanisme de
-          // bornage de phase (pourcentages, cf. plus bas) ne le calcule
-          // automatiquement pour une course qui n'est pas en fin de plan.
-          const taperStartWeek = Math.max(1, goalWeek - classified.taperWeeks);
+          // discipline, explicitement chiffré ici pour rester cohérent avec
+          // le bloc segmenté "BORNES DE PHASE ESTIMÉES" (plus haut dans ce
+          // même prompt, cf. buildPhaseBoundsSegmentLines) qui calcule
+          // désormais lui aussi un cycle dédié par pic de forme complet.
+          //
+          // Bug réel corrigé (même audit) : `goalWeek - taperWeeks` compte
+          // taperWeeks+1 semaines inclusivement (ex: goalWeek=22, taperWeeks=2
+          // → "S20 à S22" = 3 semaines calendaires, mal étiqueté "2 semaines")
+          // — un off-by-one qui, une fois le bloc segmenté ajouté, aurait
+          // affiché DEUX bornes différentes ("S20-S22" ici vs "S21-S22" dans
+          // le bloc segmenté) pour le MÊME taper de la MÊME course.
+          const taperStartWeek = Math.max(1, goalWeek - classified.taperWeeks + 1);
           lines.push(`→ 🎯 **PIC DE FORME COMPLET** (pas la dernière course du plan, mais l'écart avant la course suivante est suffisant pour un second cycle complet — cf. littérature périodisation double/triple) : affûtage complet de ${classified.taperWeeks} semaine(s) de S${taperStartWeek} à S${goalWeek}, activation J-2/J-1, Jour de Course le jour exact de la compétition. Puis 1-2 semaines de RÉCUPÉRATION RÉELLE (-40% volume, pas d'intensité) avant de relancer une montée en charge progressive et spécifique vers l'objectif suivant.`);
         } else {
           // Jalon intermédiaire (pas la dernière course chronologique, écart
