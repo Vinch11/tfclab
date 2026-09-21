@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Target, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase } from "@/engines/decision";
+import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase, type ClassifiableRaceGoal } from "@/engines/decision";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -23,6 +23,16 @@ interface RoadmapStrategiqueProps {
   objectif: string | null;
   limiterResult: UnifiedLimiterResult | null;
   className?: string;
+  /**
+   * Audit "système de périodisation" : quand ≥2 pics de forme complets sont
+   * détectés parmi ces courses (cf. classifyMultiObjectiveGoalsClient), la
+   * frise segmente en plusieurs cycles au lieu d'un cycle unique vers
+   * `objectif` seul — sinon un plan Marathon+IM n'affichait jamais le
+   * Marathon. Optionnel : sans ces props, comportement mono-objectif
+   * inchangé.
+   */
+  raceGoals?: ClassifiableRaceGoal[];
+  planStartDate?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -124,12 +134,14 @@ export function RoadmapStrategique({
   objectif,
   limiterResult,
   className,
+  raceGoals,
+  planStartDate,
 }: RoadmapStrategiqueProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   const roadmap = useMemo(
-    () => computeStrategicRoadmap({ objectif, limiterResult }),
-    [objectif, limiterResult],
+    () => computeStrategicRoadmap({ objectif, limiterResult, raceGoals, planStartDate }),
+    [objectif, limiterResult, raceGoals, planStartDate],
   );
 
   // Week markers
@@ -155,15 +167,18 @@ export function RoadmapStrategique({
                   </Badge>
                 )}
                 {/* Audit "système de périodisation" : cette frise est un aperçu
-                    visuel générique par objectif (single-objectif, séquençage
-                    fixe) — DIFFÉRENT du séquençage réellement dynamique et
-                    limiteur-aware du plan généré (cf. systemPrompt.ts /
-                    promptHelpers.ts, "Séquençage des Blocs par Objectif ×
-                    Limiteur"). Elle place aussi VO2max en phase 1 pour IM/70.3/
-                    Semi (principe explicitement qualifié d'"attribution Lorang
-                    non vérifiée" côté prompt) sans le signaler ici — d'où ce
-                    tooltip, pour ne pas laisser le coach sur-interpréter cette
-                    frise comme LA structure exacte du plan généré. */}
+                    visuel — depuis ce fix, elle segmente les plans multi-
+                    objectifs et nomme un "Chantier [Limiteur]" dédié comme le
+                    prompt réel. Ce qui reste approximatif : la classification/
+                    matrice qu'elle utilise est PORTÉE côté client (MIROIR du
+                    serveur, cf. multiObjectiveClassification.ts) et peut
+                    diverger si le serveur évolue sans mise à jour manuelle ;
+                    et les templates IM/70.3/Semi placent VO2max en Phase 1
+                    quand ce n'est PAS le limiteur détecté ("intensité
+                    précoce", attribution Lorang 2018 explicitement NON
+                    VÉRIFIÉE côté prompt). D'où ce tooltip, pour ne pas laisser
+                    le coach sur-interpréter cette frise comme LA structure
+                    exacte, garantie identique au plan généré. */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -171,11 +186,9 @@ export function RoadmapStrategique({
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
                       <p className="text-xs text-muted-foreground">
-                        Aperçu visuel générique par objectif, à titre indicatif — le séquençage
-                        exact des blocs et l'ordre intensité/volume du plan réellement généré
-                        dépendent du limiteur détecté et peuvent différer de cette frise.
-                        Pour un plan multi-objectifs (plusieurs courses), cette frise ne
-                        représente qu'un seul cycle et ne montre pas les pics intermédiaires.
+                        Aperçu visuel, à titre indicatif — calculé séparément du plan réellement
+                        généré et peut occasionnellement en différer (ex. l'ordre intensité/volume
+                        en début de plan quand le limiteur n'est pas franchement tranché).
                       </p>
                     </TooltipContent>
                   </Tooltip>
