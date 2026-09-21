@@ -46,6 +46,41 @@ export interface ClassifiableRaceGoal {
   priority?: "A" | "B" | "C";
 }
 
+/**
+ * Champs DB minimaux nécessaires pour convertir un `RaceGoal` (forme
+ * `useAthleteRaceGoals.ts`, snake_case) vers `ClassifiableRaceGoal[]` +
+ * `planStartDate`. Extrait pour être réutilisé PAR LES DEUX consommateurs
+ * (`Index.tsx`/`RoadmapStrategique` pour le dashboard, `ExportTools.tsx`/
+ * `mapPayloadToReport.ts` pour le PDF) au lieu que chacun réécrive sa propre
+ * conversion inline — exactement la classe de bug (deux implémentations qui
+ * finissent par diverger silencieusement) rencontrée plusieurs fois cette
+ * session (deriveRaceTargets, computeMultiObjectiveSegments).
+ */
+export interface DbRaceGoalForRoadmap {
+  race_type: string;
+  race_date: string;
+  race_name?: string | null;
+  plan_start_date?: string | null;
+}
+
+export function mapDbRaceGoalsForRoadmap(
+  raceGoals: DbRaceGoalForRoadmap[] | null | undefined,
+): { raceGoals: ClassifiableRaceGoal[]; planStartDate: string | undefined } {
+  const goals = raceGoals ?? [];
+  return {
+    raceGoals: goals.map((g) => ({
+      objective: g.race_type,
+      raceDate: g.race_date,
+      raceName: g.race_name ?? undefined,
+      priority: "A" as const,
+    })),
+    planStartDate: goals.reduce<string | undefined>((earliest, g) => {
+      if (!g.plan_start_date) return earliest;
+      return !earliest || g.plan_start_date < earliest ? g.plan_start_date : earliest;
+    }, undefined),
+  };
+}
+
 export interface ClassifiedRaceGoalClient {
   goal: ClassifiableRaceGoal;
   isFullPeak: boolean;

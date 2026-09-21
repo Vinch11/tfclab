@@ -136,6 +136,7 @@ import { generateTTEScenarios, generateVLamaxScenarios } from "@/lib/v2/scenario
 // ✅ Athlete Objective Manager — Gestion des objectifs
 import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
+import { mapDbRaceGoalsForRoadmap } from "@/lib/plan/multiObjectiveClassification";
 
 // ✅ Header components - Quick selectors & Next Race
 import { NextRaceIndicator } from "@/components/NextRaceIndicator";
@@ -292,6 +293,10 @@ const Index = () => {
     updateRaceGoalDate,
     loading: raceGoalsLoading,
   } = useAthleteRaceGoals(currentAthlete?.id ?? null);
+
+  // Conversion partagée avec ExportTools.tsx (fix "amélioration des plans",
+  // dossier PDF) pour ne pas dupliquer cette logique dans deux fichiers.
+  const roadmapRaceGoals = useMemo(() => mapDbRaceGoalsForRoadmap(raceGoals), [raceGoals]);
 
   // Force un re-render horaire pour que le badge "Bilan pré-objectif" (J-X)
   // reste à jour au fil des jours — sans ça, le compte à rebours calculé
@@ -2377,15 +2382,9 @@ const Index = () => {
                 // attendue par la classification multi-objectifs (objective/
                 // raceDate/priority) pour que la frise segmente par pic de
                 // forme complet au lieu d'un cycle unique vers l'objectif
-                // principal. `priority` n'existe pas côté DB (le tri se fait
-                // sur raceDate, toujours renseignée pour ces enregistrements) :
-                // "A" partout est un défaut inerte, jamais utilisé comme
-                // départage réel.
-                raceGoals={raceGoals.map((g) => ({ objective: g.race_type, raceDate: g.race_date, raceName: g.race_name ?? undefined, priority: "A" as const }))}
-                planStartDate={raceGoals.reduce<string | undefined>((earliest, g) => {
-                  if (!g.plan_start_date) return earliest;
-                  return !earliest || g.plan_start_date < earliest ? g.plan_start_date : earliest;
-                }, undefined)}
+                // principal.
+                raceGoals={roadmapRaceGoals.raceGoals}
+                planStartDate={roadmapRaceGoals.planStartDate}
               />
             )}
 
