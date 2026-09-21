@@ -84,3 +84,59 @@ describe("buildTestingWeekDossierHTML — triathlon (combiné)", () => {
     }
   });
 });
+
+/**
+ * Fix "premier test complet — structure jour par jour + version compacte"
+ * (demande coach) : fusionne les 2 semaines officielles (16 jours au total)
+ * en un seul calendrier continu de 15 jours, numéroté "Jour 1" à "Jour 15"
+ * comme le Tri Test Day — mais SANS reproduire son défaut (tests enchaînés
+ * sans récupération). Ces tests vérifient que :
+ *  - rien n'est perdu (tous les jours des 2 semaines apparaissent),
+ *  - l'ordre respecte l'espacement de récupération voulu,
+ *  - le seul arbitrage fait (repos avant le test Course D5) est bien signalé.
+ */
+describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionné 15 jours)", () => {
+  const html = buildTestingWeekDossierHTML("triathlon-compact", "Athlète Test");
+
+  it("contient les 17 chapitres (15 jours, dont 2 jours splittés en a/b) numérotés Jour 1a à Jour 15b", () => {
+    const labels = ["Jour 1a", "Jour 1b", "Jour 2", "Jour 3", "Jour 4", "Jour 5", "Jour 6", "Jour 7", "Jour 8", "Jour 9", "Jour 10", "Jour 11", "Jour 12", "Jour 13", "Jour 14", "Jour 15a", "Jour 15b"];
+    for (const label of labels) {
+      expect(html).toContain(label);
+    }
+  });
+
+  it("ne perd aucun jour des 2 semaines officielles (chaque titre apparaît)", () => {
+    for (const day of TFCL_TESTING_WEEK.days) {
+      expect(html).toContain(day.title);
+    }
+    for (const day of CAP_TESTING_WEEK.days) {
+      expect(html).toContain(day.title);
+    }
+  });
+
+  it("respecte l'ordre : test glycolytique vélo avant test sprint course avant test MAP5 vélo avant test VMA course", () => {
+    const idxBikeGlyco = html.indexOf("TEST GLYCOLYTIQUE");
+    const idxRunSprint = html.indexOf("TEST SPRINT 15s");
+    const idxBikeMap = html.indexOf("TEST MAP 5 min");
+    const idxRunVma = html.indexOf("TEST VMA");
+    expect(idxBikeGlyco).toBeGreaterThan(-1);
+    expect(idxRunSprint).toBeGreaterThan(idxBikeGlyco);
+    expect(idxBikeMap).toBeGreaterThan(idxRunSprint);
+    expect(idxRunVma).toBeGreaterThan(idxBikeMap);
+  });
+
+  it("place le repos complet course (Jour 11) juste après le test FTP+TTE vélo (Jour 10), et le signale explicitement", () => {
+    const idxJour10 = html.indexOf("Jour 10");
+    const idxJour11 = html.indexOf("Jour 11");
+    const idxRunSeuilTTE = html.indexOf("TEST ALLURE SEUIL");
+    expect(idxJour10).toBeGreaterThan(-1);
+    expect(idxJour11).toBeGreaterThan(idxJour10);
+    expect(idxRunSeuilTTE).toBeGreaterThan(idxJour11);
+    expect(html).toContain("Point de vigilance (calendrier compact)");
+    expect(html).toContain("Ce repos complet suit directement le test Vélo D5");
+  });
+
+  it("mentionne la méthode de construction du calendrier compact dans les prérequis", () => {
+    expect(html).toContain("Calendrier compact — comment il a été construit");
+  });
+});

@@ -47,7 +47,7 @@ const escapeHtml = (s: string): string =>
 const blank = (width = "100%") =>
   `<span style="display:inline-block;border-bottom:1px solid #555;min-width:60px;width:${width};height:14px;"></span>`;
 
-export type TestingWeekSport = "bike" | "run" | "triathlon";
+export type TestingWeekSport = "bike" | "run" | "triathlon" | "triathlon-compact";
 
 interface NormStep {
   durationMin: number;
@@ -196,7 +196,9 @@ function renderProtocolSteps(p: NormProtocol): string {
   `;
 }
 
-function buildDayChapter(day: NormDay, chapterNumber: number, sportLabel: string): string {
+function buildDayChapter(day: NormDay, chapterNumber: number, sportLabel: string, dayLabelOverride?: string, extraFlag?: string): string {
+  const dayLabel = dayLabelOverride ?? day.dayKey;
+  const flagHtml = extraFlag ? renderCallout("safety", "Point de vigilance (calendrier compact)", [extraFlag]) : "";
   const variantHtml = day.variant
     ? day.variant.kind === "notes"
       ? `
@@ -217,9 +219,9 @@ function buildDayChapter(day: NormDay, chapterNumber: number, sportLabel: string
     : "";
 
   return `
-  <section class="chapter" id="chap-${day.dayKey}">
+  <section class="chapter" id="chap-${escapeHtml(dayLabel)}">
     <div class="chapter-banner">
-      <div class="chapter-num">${escapeHtml(day.dayKey)} — ${escapeHtml(SESSION_TYPE_LABEL[day.sessionType] ?? day.sessionType)}</div>
+      <div class="chapter-num">${escapeHtml(dayLabel)} — ${escapeHtml(SESSION_TYPE_LABEL[day.sessionType] ?? day.sessionType)}</div>
       <div class="chapter-title">${escapeHtml(day.title)}</div>
       <div class="chapter-sub">${escapeHtml(day.goal)}</div>
     </div>
@@ -229,6 +231,8 @@ function buildDayChapter(day: NormDay, chapterNumber: number, sportLabel: string
       <span><strong>Durée estimée :</strong> ${day.durationEstimateMin} min</span>
       <span><strong>Date réalisée :</strong> ${blank("120px")}</span>
     </div>
+
+    ${flagHtml}
 
     <h2>${chapterNumber}.A — Protocole (extérieur / condition standard)</h2>
     ${renderProtocolSteps(day)}
@@ -373,6 +377,67 @@ function buildRunSpec(): WeekSpec {
   };
 }
 
+interface CompactSlot {
+  day: NormDay;
+  sportLabel: string;
+  dayLabel: string;
+  /** Note de vigilance méthodologique affichée dans ce chapitre uniquement. */
+  flag?: string;
+}
+
+/**
+ * Ordre compact interleaved triathlon (demande coach, audit "premier test
+ * complet") : fusionne les DEUX semaines officielles (vélo 8j + course 8j,
+ * TFCL_TESTING_WEEK / CAP_TESTING_WEEK) en UN seul calendrier continu de
+ * 15 jours au lieu de 16, structuré "Jour 1, Jour 2..." comme le Tri Test
+ * Day — mais sans reproduire son défaut (tests enchaînés le même jour sans
+ * récupération, cf. audit "connexion tests → snapshot").
+ *
+ * Ce que la compaction gagne SANS coût de rigueur :
+ *  - Jour 1 fusionne les 2 activations D-1 (vélo + course) — gain 1 jour.
+ *  - Le dernier jour fusionne les 2 "OFF + Cohérence check" — gain 1 jour.
+ *  - L'alternance des tests D1/D3 entre vélo et course respecte EXACTEMENT
+ *    le même espacement (1 jour de récupération légère) que chaque semaine
+ *    utilisait déjà en interne entre ses propres tests D1 et D3 — aucune
+ *    perte de fraîcheur par rapport à l'original, seule l'alternance change.
+ *
+ * Le SEUL arbitrage fait ici (à valider par le coach, cf. `flag` du jour
+ * concerné) : le repos complet précédant le test Course D5 (Allure seuil +
+ * TTE) suit directement le test Vélo D5 (FTP + TTE, l'effort le plus
+ * exigeant du protocole) — alors que dans les semaines d'origine, aucun
+ * repos complet n'est jamais précédé d'un tel effort la veille. Récupération
+ * globale (systémique) potentiellement un peu moins profonde que ce que le
+ * protocole d'origine garantit pour son propre D5.
+ */
+function buildCompactTriathlonOrder(bikeSpec: WeekSpec, runSpec: WeekSpec): CompactSlot[] {
+  const bike = bikeSpec.days; // [D-1, D1, D2, D3, D4, D5, D6, D7]
+  const run = runSpec.days; // [D-1, D1, D2, D3, D4, D5, D6, D7]
+  return [
+    { day: bike[0], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 1a" },
+    { day: run[0], sportLabel: runSpec.sportLabel, dayLabel: "Jour 1b" },
+    { day: bike[1], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 2" },
+    { day: bike[2], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 3" },
+    { day: run[1], sportLabel: runSpec.sportLabel, dayLabel: "Jour 4" },
+    { day: run[2], sportLabel: runSpec.sportLabel, dayLabel: "Jour 5" },
+    { day: bike[3], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 6" },
+    { day: bike[2], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 7" },
+    { day: run[3], sportLabel: runSpec.sportLabel, dayLabel: "Jour 8" },
+    { day: bike[4], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 9" },
+    { day: bike[5], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 10" },
+    {
+      day: run[4],
+      sportLabel: runSpec.sportLabel,
+      dayLabel: "Jour 11",
+      flag: "Ce repos complet suit directement le test Vélo D5 (FTP+TTE), l'effort le plus exigeant du protocole — dans la semaine d'origine, aucun repos complet n'est jamais précédé d'un tel effort la veille. Si l'athlète ne se sent pas totalement frais le lendemain, décaler le test Course D5 d'un jour supplémentaire plutôt que de forcer.",
+    },
+    { day: run[5], sportLabel: runSpec.sportLabel, dayLabel: "Jour 12" },
+    { day: bike[6], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 13" },
+    { day: run[6], sportLabel: runSpec.sportLabel, dayLabel: "Jour 14" },
+    { day: bike[7], sportLabel: bikeSpec.sportLabel, dayLabel: "Jour 15a" },
+    { day: run[7], sportLabel: runSpec.sportLabel, dayLabel: "Jour 15b" },
+  ];
+}
+
 /**
  * Construit le dossier imprimable d'une (ou des deux, en triathlon) semaine(s)
  * de test officielle(s).
@@ -385,8 +450,13 @@ export function buildTestingWeekDossierHTML(
   const today = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
   const athlete = athleteName ? escapeHtml(athleteName) : blank("260px");
 
-  const specs: WeekSpec[] = sport === "triathlon" ? [buildBikeSpec(), buildRunSpec()] : sport === "bike" ? [buildBikeSpec()] : [buildRunSpec()];
-  const sportLabel = sport === "triathlon" ? "Triathlon (vélo + course)" : specs[0].sportLabel;
+  const isCompact = sport === "triathlon-compact";
+  const specs: WeekSpec[] = sport === "triathlon" || isCompact ? [buildBikeSpec(), buildRunSpec()] : sport === "bike" ? [buildBikeSpec()] : [buildRunSpec()];
+  const sportLabel = isCompact
+    ? "Triathlon compact — 15 jours"
+    : sport === "triathlon"
+      ? "Triathlon (vélo + course)"
+      : specs[0].sportLabel;
 
   let chapterCounter = 0;
   const tocRows: Array<{ num: string; title: string }> = [
@@ -396,11 +466,20 @@ export function buildTestingWeekDossierHTML(
   ];
   const chapterPages: string[] = [];
 
-  for (const spec of specs) {
-    for (const day of spec.days) {
+  if (isCompact) {
+    const [bikeSpec, runSpec] = specs;
+    for (const slot of buildCompactTriathlonOrder(bikeSpec, runSpec)) {
       chapterCounter++;
-      tocRows.push({ num: String(chapterCounter), title: `${day.dayKey} — ${day.title} (${spec.sportLabel})` });
-      chapterPages.push(buildDayChapter(day, chapterCounter, spec.sportLabel));
+      tocRows.push({ num: slot.dayLabel, title: `${slot.day.title} (${slot.sportLabel})` });
+      chapterPages.push(buildDayChapter(slot.day, chapterCounter, slot.sportLabel, slot.dayLabel, slot.flag));
+    }
+  } else {
+    for (const spec of specs) {
+      for (const day of spec.days) {
+        chapterCounter++;
+        tocRows.push({ num: String(chapterCounter), title: `${day.dayKey} — ${day.title} (${spec.sportLabel})` });
+        chapterPages.push(buildDayChapter(day, chapterCounter, spec.sportLabel));
+      }
     }
   }
   const synthChapterNum = chapterCounter + 1;
@@ -500,6 +579,15 @@ ${CSS}
     <p style="font-size:10.5pt;color:#333;margin:4px 0 10px;">
       Remplissez chaque chapitre au fur et à mesure des jours de test. Les données demandées correspondent exactement aux champs utilisés par l'application pour calibrer le profil physiologique — reportez-les ensuite dans le snapshot de l'athlète.
     </p>
+    ${isCompact ? `
+    <div class="callout callout-formula">
+      <div class="callout-head"><span class="callout-icon">🧮</span> Calendrier compact — comment il a été construit</div>
+      <ul class="callout-list">
+        <li>Fusion des deux semaines officielles (vélo 8 jours + course 8 jours) en un seul calendrier continu de 15 jours, numéroté Jour 1 à Jour 15.</li>
+        <li>Chaque test garde EXACTEMENT le même espacement de récupération que dans sa semaine d'origine (1 jour de récupération légère entre un test glycolytique et le test aérobie suivant, 1 jour de repos complet avant chaque test long) — seule l'alternance entre les deux disciplines change, jamais la profondeur de récupération.</li>
+        <li>Un seul arbitrage a été fait (signalé directement au Jour 11 concerné) : le repos avant le test Course D5 suit le test Vélo D5, l'effort le plus exigeant du protocole — une récupération globale un peu moins garantie qu'en semaine séparée. À surveiller au ressenti de l'athlète.</li>
+      </ul>
+    </div>` : ""}
     ${prereqHtml}
   </section>
 
