@@ -322,7 +322,9 @@ const FEWSHOT_STARTTORUN = `### Exemple : Start to Run — Semaine Type Débutan
  */
 const S2R_STRENGTH_PROGRESSION = `### RENFORCEMENT FONDATION — OBLIGATOIRE CHAQUE SEMAINE (Start to Run)
 Chaque semaine DOIT contenir 2 séances "Renforcement fondation" (1 seule en S12),
-placées sur des jours SANS course ou après la course, jamais la veille d'une sortie longue.
+placées sur des jours SANS course ou après la course, jamais la veille de la séance de
+marche-course/course continue la plus longue de la semaine (le mot "sortie longue" est
+interdit chez le débutant, cf. règles structurelles ci-dessous).
 Utiliser la fiche catalogue du bloc correspondant et reprendre exactement le volume ci-dessous.
 
 | Sem | Fiche catalogue | Séances | Tours | Mollets (montées pointes) | Fessiers (pont) | Fentes | Gainage ventral | Gainage latéral |
