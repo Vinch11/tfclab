@@ -32,10 +32,13 @@ import {
   openTestingWeekDossierPrint,
   type TestingWeekSport,
 } from "@/lib/diagnostic/buildTestingWeekProtocolHTML";
+import { buildCompactTriathlonNolioSessions } from "@/lib/diagnostic/testingWeekNolioSessions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FolderDown } from "lucide-react";
+import { FolderDown, Send, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const sections = [
   {
@@ -129,10 +132,65 @@ export default function DiagnosticPage() {
   const [dossierSport, setDossierSport] = useState<DossierSport>("triathlon");
   const [dossierAthleteName, setDossierAthleteName] = useState<string>("");
   const [testingWeekSport, setTestingWeekSport] = useState<TestingWeekSport>("triathlon");
+  const [nolioId, setNolioId] = useState<number | null>(null);
+  const [nolioDay1Date, setNolioDay1Date] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [nolioSending, setNolioSending] = useState(false);
 
   useEffect(() => {
     setDossierAthleteName(currentAthlete?.name ?? "");
   }, [currentAthlete?.id, currentAthlete?.name]);
+
+  useEffect(() => {
+    if (!currentAthlete?.id) { setNolioId(null); return; }
+    let cancelled = false;
+    supabase
+      .from("athletes")
+      .select("nolio_id")
+      .eq("id", currentAthlete.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const raw = (data as { nolio_id?: number | null } | null)?.nolio_id;
+        setNolioId(typeof raw === "number" ? raw : null);
+      });
+    return () => { cancelled = true; };
+  }, [currentAthlete?.id]);
+
+  async function handleSendTestingWeekToNolio() {
+    if (!currentAthlete) { toast.error("Sélectionnez un athlète"); return; }
+    if (!nolioId) { toast.error("Cet athlète n'est pas lié à un compte Nolio"); return; }
+    setNolioSending(true);
+    try {
+      const sessions = buildCompactTriathlonNolioSessions();
+      const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
+        body: {
+          athlete_id: currentAthlete.id,
+          nolio_athlete_id: nolioId,
+          planStartDate: nolioDay1Date,
+          sessions,
+        },
+      });
+      if (error) throw error;
+      const result = data as { sent?: number; errors?: { status: number; detail?: string }[] } | null;
+      const sentCount = result?.sent ?? 0;
+      const errs = result?.errors ?? [];
+      if (errs.length === 0 && sentCount > 0) {
+        toast.success(`${sentCount} séances du calendrier de test envoyées vers Nolio ✅`);
+      } else if (sentCount > 0) {
+        toast.warning(
+          `${sentCount} envoyées · ${errs.length} échec(s) — ${errs.slice(0, 2).map((e) => `${e.status} ${e.detail ?? ""}`).join(" | ")}`.slice(0, 240),
+        );
+      } else {
+        toast.error(
+          `Aucune séance envoyée — ${errs.slice(0, 2).map((e) => `${e.status} ${e.detail ?? ""}`).join(" | ")}`.slice(0, 240),
+        );
+      }
+    } catch (e) {
+      toast.error(`Erreur Nolio : ${(e as Error).message ?? "inconnue"}`);
+    } finally {
+      setNolioSending(false);
+    }
+  }
 
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
@@ -274,6 +332,7 @@ export default function DiagnosticPage() {
                   onChange={(e) => setTestingWeekSport(e.target.value as TestingWeekSport)}
                 >
                   <option value="triathlon">Triathlon (vélo + course)</option>
+                  <option value="triathlon-compact">Triathlon compact — 16 jours (+ natation)</option>
                   <option value="run">Course à pied seule</option>
                   <option value="bike">Vélo seul</option>
                 </select>
@@ -294,6 +353,39 @@ export default function DiagnosticPage() {
             <p className="text-[10px] text-muted-foreground italic">
               S'ouvre dans un nouvel onglet — utilisez Ctrl+P (Cmd+P) puis "Enregistrer en PDF".
             </p>
+
+            {testingWeekSport === "triathlon-compact" && (
+              <div className="mt-3 space-y-2 rounded-md border border-primary/30 bg-background/60 p-3">
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Envoie les 16 jours du calendrier compact (vélo + course + natation) dans le calendrier Nolio de <strong>{currentAthlete?.name ?? "l'athlète sélectionné"}</strong>, un par un, comme un plan classique. Aucune cible chiffrée (FTP/VMA/CSS pas encore connues) — chaque séance porte le protocole complet en description, à suivre au chronomètre.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-3 items-end">
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label htmlFor="nolio-day1-date" className="text-xs">Date du Jour 1</Label>
+                    <Input
+                      id="nolio-day1-date"
+                      type="date"
+                      value={nolioDay1Date}
+                      onChange={(e) => setNolioDay1Date(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    disabled={!currentAthlete || !nolioId || nolioSending}
+                    onClick={handleSendTestingWeekToNolio}
+                  >
+                    {nolioSending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                    Envoyer vers Nolio
+                  </Button>
+                </div>
+                {!currentAthlete && (
+                  <p className="text-[10px] text-destructive">Sélectionnez un athlète pour activer l'envoi.</p>
+                )}
+                {currentAthlete && !nolioId && (
+                  <p className="text-[10px] text-destructive">Cet athlète n'est pas lié à un compte Nolio.</p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
