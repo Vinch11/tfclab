@@ -40,6 +40,7 @@ import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from 
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
+import { checkB12, checkB12ToValidationIssues } from "@/lib/plan/qa/checkB12";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
@@ -2018,6 +2019,22 @@ export default function AITrainingPlanPage() {
             criticalIssues = [...criticalIssues, ...checkB11ToValidationIssues(b11).filter(i => i.severity === "error")];
           } catch (b11Err) {
             console.warn("[B11] échec du contrôle placement catalogue, sauvegarde sans ce contrôle:", b11Err);
+          }
+
+          // Audit "traitement des limiteurs" — B12 : jusqu'ici rien ne
+          // vérifiait qu'un limiteur identifié par le diagnostic TFCL™ est
+          // effectivement ciblé par au moins une séance du plan livré (le
+          // bonus mots-clés à l'insertion ne couvre que L1, et uniquement
+          // au moment de l'insertion automatique — jamais les séances
+          // rédigées directement par le LLM). Ne bloque que le cas franc
+          // "L1 ou L2 totalement absent" ; une couverture faible ou un
+          // limiteur secondaire (L3+) absent restent des warnings visibles
+          // en QA mais non bloquants.
+          try {
+            const b12 = checkB12(mergedPlan, cfg?.identifiedLimitersRaw ?? cfg?.identifiedLimiters);
+            criticalIssues = [...criticalIssues, ...checkB12ToValidationIssues(b12)];
+          } catch (b12Err) {
+            console.warn("[B12] échec du contrôle couverture limiteurs, sauvegarde sans ce contrôle:", b12Err);
           }
         }
       }

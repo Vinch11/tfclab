@@ -22,6 +22,7 @@ import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX, isTrailCatalogId } from "@/lib/plan/trailMarkers";
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { checkB10, checkB11 } from "./checksB10B11";
+import { checkB12 } from "./checkB12";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { getCatalogAttribution } from "@/lib/workoutCatalogBuilder";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
@@ -29,7 +30,7 @@ import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalizatio
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
-  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9" | "B10" | "B11";
+  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9" | "B10" | "B11" | "B12";
   label: string;
   level: CheckLevel;
   pass: boolean;
@@ -584,6 +585,7 @@ export function runAllChecks(args: {
   objective: string | undefined;
   quotaIssues?: QuotaIssue[];
   quotasByWeek?: Record<number, WeekQuotaEntry>;
+  identifiedLimiters?: string[] | null;
 }): CheckResult[] {
   const b4 = args.profileId === "B-70.3"
     ? checkB4_703(args.merged)
@@ -602,5 +604,6 @@ export function runAllChecks(args: {
     checkB9(args.stat?.semanticRepairs),
     checkB10(args.merged),
     checkB11(args.merged, args.objective),
+    checkB12(args.merged, args.identifiedLimiters),
   ];
 }
