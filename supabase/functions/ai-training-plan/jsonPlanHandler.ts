@@ -25,6 +25,7 @@ import {
   buildTerrainHardBanBlock,
   buildCanonicalRaceCard,
   buildStructuredDiagnosticBlock,
+  computeMultiObjectiveSegments,
 } from "./promptHelpers.ts";
 import { getSystemPromptJSON } from "./systemPromptJSON.ts";
 import { extractLimiterKeywords, normalizeObjKey, taperWeeksForObjectiveServer } from "./sportRatioMatrix.ts";
@@ -1460,8 +1461,45 @@ function resolvePhaseCatalog(
  * — exactement le symptôme détecté par checkB11 (fuite_mapping) côté
  * client, jamais corrigé jusqu'ici puisque la source du problème est cette
  * heuristique, pas le contenu généré en lui-même.
+ *
+ * Bug réel corrigé (audit "système de périodisation", suite) : cette
+ * fonction pilote directement `resolvePhaseCatalog` — c'est-à-dire QUELLES
+ * fiches catalogue le LLM a le droit de piocher pour un chunk donné. Sur un
+ * plan multi-objectifs (raceGoals ≥2 pics complets), elle restait aveugle au
+ * découpage en cycles utilisé par `buildStructuredDiagnosticBlock` : la
+ * semaine d'une course intermédiaire (ex. Marathon en S22 d'un plan de 40
+ * sem vers l'IM) était jugée sur sa position dans les 40 semaines TOTALES
+ * (pct=0.55 → "build"), pendant que le texte du prompt exigeait un taper à
+ * cette même semaine — le LLM recevait alors des fiches catalogue "build"
+ * pour la semaine même de sa course. Le 5e paramètre optionnel
+ * `multiObjectiveConfig` (le `planConfig` complet) permet de resegmenter par
+ * cycle via `computeMultiObjectiveSegments` (MÊME fonction que la guidance
+ * textuelle — une seule source de vérité sur le découpage).
  */
-export function inferPhaseFromWeek(weekStart: number, totalWeeks: number, objective?: string | null): string {
+export function inferPhaseFromWeek(
+  weekStart: number,
+  totalWeeks: number,
+  objective?: string | null,
+  multiObjectiveConfig?: any,
+): string {
+  const segments = multiObjectiveConfig ? computeMultiObjectiveSegments(multiObjectiveConfig, totalWeeks) : null;
+  if (segments) {
+    const seg = segments.find((s) => weekStart >= s.startWeek && weekStart <= s.endWeek);
+    if (seg) {
+      const segLen = seg.endWeek - seg.startWeek + 1;
+      const localWeek = weekStart - seg.startWeek + 1;
+      const segTaperWeeks = Math.max(1, taperWeeksForObjectiveServer(seg.objective));
+      if (localWeek > segLen - segTaperWeeks) return "taper";
+      const pct = localWeek / Math.max(segLen, 1);
+      if (pct <= 0.30) return "base";
+      if (pct <= 0.70) return "build";
+      return "peak";
+    }
+    // `weekStart` tombe dans l'intervalle de régénération ENTRE deux cycles
+    // (pas couvert par un segment) : volume réduit, pas d'intensité — plus
+    // proche des fiches "base" que d'un bloc de charge "build".
+    return "base";
+  }
   const taperWeeks = Math.max(1, taperWeeksForObjectiveServer(objective));
   if (weekStart > totalWeeks - taperWeeks) return "taper";
   const pct = weekStart / Math.max(totalWeeks, 1);
@@ -1521,7 +1559,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
     ? computeLcwChunkSize(
         totalWeeks,
         standardChunkSize,
-        (w, tw) => inferPhaseFromWeek(w, tw, planConfig?.objective),
+        (w, tw) => inferPhaseFromWeek(w, tw, planConfig?.objective, planConfig),
       )
     : standardChunkSize;
   const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 6;
@@ -1593,7 +1631,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             ?? (typeof planConfig?.windowRegenPhase === "string" && planConfig.windowRegenPhase
               ? planConfig.windowRegenPhase
               : null)
-            ?? inferPhaseFromWeek(chunk.start, totalWeeks, planConfig?.objective);
+            ?? inferPhaseFromWeek(chunk.start, totalWeeks, planConfig?.objective, planConfig);
           const catalogDump = chunkSpecificCatalog
             ?? resolvePhaseCatalog(activePhase, phaseCatalogs, workoutCatalog);
           catalogDumpsByChunk[ci] = catalogDump;
@@ -1696,7 +1734,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
                 isLastBuildOrPeakChunk: !Array.from(
                   { length: Math.max(0, totalWeeks - chunk.end) },
                   (_, i) => chunk.end + 1 + i,
-                ).some((wk) => ["build", "peak"].includes(inferPhaseFromWeek(wk, totalWeeks, planConfig?.objective))),
+                ).some((wk) => ["build", "peak"].includes(inferPhaseFromWeek(wk, totalWeeks, planConfig?.objective, planConfig))),
               })
             : null;
 
