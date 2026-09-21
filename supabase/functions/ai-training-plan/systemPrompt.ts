@@ -756,32 +756,28 @@ Modèle hybride : 3 principes distincts et de fiabilité de sourcing inégale �
 PAS présenter comme un système unique attribuable à un seul coach. Voir le détail
 de chacun ci-dessous, y compris leur niveau de confiance de citation.
 
-### 1. 🔄 SÉQUENÇAGE INTENSITÉ-PUIS-VOLUME (attribution "Lorang 2018" — NON VÉRIFIÉE)
+### 1. 🔄 SÉQUENÇAGE INTENSITÉ-PUIS-VOLUME (heuristique interne TFCL)
 Principe : INTENSITÉ courte (VO2max) en Bloc 1, puis VOLUME.
 Justification : stimule adaptations mitochondriales avant que le volume les consolide pour meilleure fat oxidation.
 Application : IM, 70.3, Marathon (Competitor+), Trail Ultra. Pas pour débutants/finishers, 5K/10K.
 Concrètement : Bloc Fondation inclut blocs VO2max courts (3-5min) dès sem 1.
-⚠️ ATTRIBUTION CONTESTÉE : contrairement à "Issurin 2008" et "Seiler 2010" ci-dessous
-(citations vérifiables, littérature publiée), "Lorang 2018" ne renvoie à aucune
-publication identifiée — c'est une interprétation TFCL de pratiques rapportées de
-Dan Lorang (coach Frodeno/Haug/Bora-hansgrohe), non confirmée sur source primaire.
-Des informations plus détaillées (recoupant plusieurs interviews) décrivent au
-contraire une base aérobie longue avant l'intensité, une séquence qui se répète en
-cycles de plus en plus spécifiques (pas un unique passage linéaire), et une
-distribution 80/20 explicitement NON dogmatique chez Lorang — cohérent avec
-l'exception bornée du point 3 ci-dessous (bloc seuil concentré nommé), même si
-cette exception reste une règle TFCL explicite et non une citation Lorang.
-Traiter cette section comme une heuristique TFCL, pas comme une règle Lorang
-établie.
+⚠️ SOURCING : contrairement à "Issurin 2008" et "Seiler 2010" ci-dessous (citations
+vérifiables, littérature publiée), ce principe ne s'appuie sur aucune publication
+identifiée. Il n'est plus attribué à Dan Lorang (l'attribution antérieure "Lorang
+2018" ne renvoyait à aucune source primaire confirmée, et des informations plus
+détaillées — recoupant plusieurs interviews — décrivent au contraire chez lui une
+base aérobie longue avant l'intensité, en cycles répétés de plus en plus
+spécifiques, avec une distribution 80/20 explicitement NON dogmatique). C'est une
+heuristique interne TFCL, à traiter comme telle — pas comme une règle établie par
+une source externe, coach ou étude.
 
 ### 2. 📦 BLOCK PERIODIZATION PAR LIMITEUR (Issurin 2008)
 Principe : BLOCS CONCENTRÉS 2-4 sem ciblant 1-2 qualités max. Supérieur à tradi pour athlètes >2 ans.
 Chaque bloc a un NOM MÉTABOLIQUE : "Bloc VLamax↓", "Bloc VO2max", "Bloc TTE", "Bloc Race-Pace".
 Séquençage des blocs dépend du limiteur #1.
-Note : c'est Issurin, pas Lorang, qui est la source citée ici pour le principe de
-blocs concentrés — même si Lorang applique lui aussi une forme de périodisation par
-bloc en pratique (cf. point 1), ce n'est pas la même source ni nécessairement la
-même mise en œuvre exacte.
+Note : c'est Issurin qui est la source citée ici pour le principe de blocs
+concentrés — à ne pas confondre avec l'heuristique interne TFCL de séquençage
+intensité-puis-volume (point 1), qui n'a pas de source externe.
 
 ### 3. ⚖️ POLARIZED TRAINING (Seiler 2010) — Règle PAR DÉFAUT
 Principe : Dans CHAQUE bloc/semaine standard, distribution d'intensité polarisée :
@@ -802,7 +798,7 @@ seulement quand le limiteur #1 le justifie (TTE faible, seuil bas). Ne PAS
 | Aspect | Règle | Source citée |
 |--------|-------|---------------|
 | Architecture | Blocs concentrés 2-4 sem | Issurin 2008 |
-| Ordre des blocs | Intensité courte → volume → spécifique | "Lorang 2018" — attribution non vérifiée, cf. point 1 |
+| Ordre des blocs | Intensité courte → volume → spécifique | Heuristique interne TFCL — cf. point 1 |
 | Distribution intra-bloc | Polarisé 80/20 chaque semaine (sauf bloc seuil concentré nommé, cf. point 3) | Seiler 2010 |
 | Séquence blocs | Déterminée par limiteur #1 | Issurin 2008 |
 | Charge intra-bloc | Ondulée 3:1 ou 2:1 | "Rhea" — hors-domaine, cf. section MICRO-CYCLE UNDULATING |
@@ -820,7 +816,7 @@ Règles : Sweet Spot → B. Z3 > 30min → B. Chaque semaine doit contenir 1 sé
 
 ### 📦 SÉQUENÇAGE DES BLOCS PAR OBJECTIF × LIMITEUR (Architecture Issurin, séquence "intensité précoce" TFCL)
 Noms des blocs : Fondation, Chantier [Limiteur], Consolidation, Race-Specific, Affûtage.
-Séquençage Standard (intensité précoce, attribution "Lorang" non vérifiée — cf. section précédente) pour IM/70.3/Marathon Competitor+ :
+Séquençage Standard (intensité précoce, heuristique interne TFCL — cf. section précédente) pour IM/70.3/Marathon Competitor+ :
 1. Bloc Fondation + Intensité (3-4 sem) : VO2max courts + Force max + Z2 croissant + Train Low
    ⚠️ EXCEPTION si Limiteur #1 = VO2max bas (cf. matrice ci-dessous) : NE PAS placer de VO2max
    en Fondation. Le stimulus VO2max est réservé au Bloc Chantier dédié ("Chantier VO2max" :
@@ -893,9 +889,12 @@ Application : 2 séances/sem si VO2max est limiteur, pendant 3-4 semaines.
 
 ### 🇳🇴 MÉTHODE RØNNESTAD — Force + Endurance (Bent Rønnestad, PhD)
 Direction bien établie (force max concurrente améliore l'économie de mouvement
-et la puissance au seuil) ; les deux chiffres précis "+4.8%"/"+3.5%" ne sont
-pas rattachés à une publication identifiée — à traiter comme des ordres de
-grandeur indicatifs, pas des résultats vérifiés d'une étude donnée.
+et la puissance au seuil). Le chiffre "+4.8%" est traçable à Rønnestad et al.
+2010 (économie de pédalage après 12 sem de squats lourds 4×4RM, sans gain
+VO2max/poids) — un résultat d'une étude donnée, pas une moyenne méta-analytique,
+donc à traiter comme indicatif de l'ordre de grandeur plutôt que comme une
+garantie individuelle. "+3.5%" reste lui non rattaché à une publication
+identifiée — à traiter comme un ordre de grandeur indicatif seulement.
 Force max 2x/sem → gains économie course + puissance seuil.
 Protocole : Phase Force Max (8-12 sem, 4×4@85% 1RM) → Phase Maintien (1x/sem).
 Timing : force AVANT endurance (ou jours séparés). Jamais post-intensité.
@@ -912,8 +911,8 @@ Fartlek Kényan : 1h20-1h40 vallonné, surges en côte, récup descente.
 | VO2max plafonné | 🇫🇷 Billat (30/30, 3min/3min) | Temps @VO2max optimisé |
 | Spécificité marathon | 🇰🇪 Canova (blocs spécifiques) | Volume @allure course progressif |
 | Débutant/Finisher | 🇺🇸 Daniels (VDOT zones) | Zones claires, progression structurée |
-| Force/économie faible | 🇳🇴 Rønnestad (force max) | Gain économie prouvé +4.8% |
-| IM/70.3 triathlon | Séquence "intensité précoce" TFCL (attribution Lorang non vérifiée) | Intensité précoce + volume tardif |
+| Force/économie faible | 🇳🇴 Rønnestad (force max) | Gain économie +4.8% (Rønnestad et al. 2010, une étude) |
+| IM/70.3 triathlon | Séquence "intensité précoce" TFCL (heuristique interne, non attribuée à une source externe) | Intensité précoce + volume tardif |
 Règle TFCL : Combiner les méthodes par bloc.
 
 ### 5 Limiteurs Primaires (INSCYD/TFCL)

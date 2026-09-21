@@ -175,8 +175,8 @@ export function RoadmapStrategique({
                     diverger si le serveur évolue sans mise à jour manuelle ;
                     et les templates IM/70.3/Semi placent VO2max en Phase 1
                     quand ce n'est PAS le limiteur détecté ("intensité
-                    précoce", attribution Lorang 2018 explicitement NON
-                    VÉRIFIÉE côté prompt). D'où ce tooltip, pour ne pas laisser
+                    précoce", heuristique interne TFCL SANS source externe
+                    vérifiée côté prompt). D'où ce tooltip, pour ne pas laisser
                     le coach sur-interpréter cette frise comme LA structure
                     exacte, garantie identique au plan généré. */}
                 <TooltipProvider>
