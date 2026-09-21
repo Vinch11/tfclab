@@ -1734,10 +1734,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("| VLamax↓ (Z2 long + Train Low) | → TTE↑, FatMax↑, économie glycogène↑ |");
     lines.push("| VO2max↑ (Billat/VMA) | → FTP/kg↑, vitesse aérobie↑, récupération inter-effort↑ |");
     lines.push("| TTE↑ (seuil long continu) | → VLamax↓ (synergie : déplétion glycolytique via effort soutenu au seuil), allure course↑, résistance fatigue↑ |");
-    lines.push("| SFR / Force basse cadence (40-60rpm) | → VLamax↓ (synergie : recrutement fibres Type I, réduction contribution glycolytique rapide), économie↑ (+4.8%) |");
-    lines.push("| Force max (Rønnestad) | → économie↑, prévention blessures, puissance neuromusculaire↑ |");
-    lines.push("| FatMax↑ (Train Low) | → VLamax↓ (synergie), autonomie glycogène↑, durabilité↑ |");
-    lines.push("⚠️ IMPORTANT : Le seuil long continu et la force basse cadence (SFR) sont des CO-CONTRIBUTEURS prouvés à la réduction de la VLamax. Quand L1=VLamax, prescris ces séances EN PLUS du Z2 long/Train Low pour maximiser la suppression glycolytique.\n");
+    lines.push("| SFR / Force basse cadence (40-60rpm) | → VLamax↓ (rationale théorique : recrutement précoce fibres Type I, discipline glycolytique — preuves d'entraînement encore limitées et contradictoires sur la performance, cf. revue Hansen & Rønnestad 2017) |");
+    lines.push("| Force max lourde (squats 4×4RM, Rønnestad et al. 2010) | → économie↑ (+4.8% mesuré, sans gain VO2max/poids), prévention blessures, puissance neuromusculaire↑ |");
+    lines.push("| FatMax↑ (Train Low) | → VLamax↓ (synergie plausible), autonomie glycogène↑, durabilité↑ |");
+    lines.push("⚠️ IMPORTANT : Le seuil long continu et la force basse cadence (SFR) sont des leviers PLAUSIBLES pour réduire la VLamax (rationale mécanistique cohérent), mais PAS un résultat démontré par essai contrôlé — la littérature d'entraînement sur ce point précis reste clairsemée. Quand L1=VLamax, prescris ces séances EN PLUS du Z2 long/Train Low ; garde un œil sur la réponse individuelle plutôt que sur une promesse de résultat garanti.");
+    lines.push("⚠️ FatMax — fiabilité de mesure : le taux d'oxydation des lipides mesuré sur un seul test a une reproductibilité jour-à-jour FAIBLE (CV intra-sujet ~21-26%, Achten/Gleeson/Jeukendrup 2002). Traite la cible FatMax comme une estimation de départ à réévaluer, pas une valeur fixe précise.\n");
 
     lines.push("### ⚙️ RÈGLES DE PÉRIODISATION SÉQUENTIELLE STRICTES");
     lines.push("1. **Limiteur #1 (🔴 CRITIQUE)** :");

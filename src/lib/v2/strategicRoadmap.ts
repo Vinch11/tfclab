@@ -22,11 +22,12 @@
  *    la génération réelle) doit être reportée manuellement ici aussi.
  * 2. Les templates IM/703/Semi placent VO2max dès la Phase 1 ("intensité
  *    précoce") quand ce N'EST PAS le limiteur détecté — un principe que
- *    systemPrompt.ts qualifie explicitement d'"attribution Lorang 2018 NON
- *    VÉRIFIÉE" (à l'inverse, le template Marathon démarre par la base
- *    aérobie). Le composant `RoadmapStrategique` porte un tooltip signalant
- *    cette incertitude au coach ; ne pas le supprimer sans re-vérifier ce
- *    point.
+ *    systemPrompt.ts qualifie explicitement d'heuristique interne TFCL SANS
+ *    source externe vérifiée (l'attribution antérieure à Dan Lorang a été
+ *    retirée faute de source primaire confirmée ; à l'inverse, le template
+ *    Marathon démarre par la base aérobie). Le composant `RoadmapStrategique`
+ *    porte un tooltip signalant cette incertitude au coach ; ne pas le
+ *    supprimer sans re-vérifier ce point.
  * 3. La segmentation multi-objectifs n'est câblée QUE sur l'appel depuis
  *    `RoadmapStrategique.tsx` (Index.tsx — vue diagnostic/dashboard). Les
  *    exports PDF (`ExportTools.tsx`, `athleteProfileReport/mapPayloadToReport.ts`)
