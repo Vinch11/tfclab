@@ -1083,7 +1083,7 @@ d'entraînement d'endurance sans auteur unique identifié — l'attribution à R
 est un emprunt de nom hors de son domaine réel, pas une citation vérifiée.
 Traiter comme une règle TFCL, pas comme une règle "Rhea" établie.
 - Variation quotidienne de charge pour éviter monotonie. RPE 2→9 dans la semaine.
-- Charge 3:1 (ou 2:1 si >45 ans).
+- Charge 3:1 (ou 2:1 si ≥40 ans).
 
 ## CRITICAL POWER / W' — PACING (Jones, Skiba)
 - CP ≈ FTP. W' = réserve anaérobie.
