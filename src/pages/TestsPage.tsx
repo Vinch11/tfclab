@@ -252,6 +252,11 @@ export default function TestsPage() {
       p60s: data.metrics.p60s,
       tte_observed_min: data.metrics.tte_observed_min,
       drift_percent: data.metrics.drift_percent,
+      // Course à pied — champs propres au protocole Semaine Test CAP
+      pace_threshold_sec_per_km: data.metrics.pace_threshold_sec_per_km,
+      vma: data.metrics.vma,
+      sprint_15s_distance: data.metrics.sprint_15s_distance,
+      tte_observed_min_run: data.metrics.tte_observed_min_run,
       computedVlamax: data.computedVlamax ?? null,
       computedVlamaxRun: data.computedVlamaxRun ?? null,
     };
@@ -276,6 +281,10 @@ export default function TestsPage() {
         data.type === "Z2_DRIFT" ? "DRIFT" :
         data.type === "RUN_ECONOMY" ? "ECONOMY" :
         data.type === "TTE_THRESHOLD" ? "TTE_OBS" :
+        // VMA course — même convention que MAP_5MIN vélo (effort ~5-8min haute intensité)
+        data.type === "VMA_TEST" ? "MAP" :
+        // Allure seuil course — même convention que le fix TFCL vélo (FTP-family -> P60)
+        data.type === "THRESHOLD_RUN_30MIN" ? "P60" :
         data.type.startsWith("FTP") ? "P60" :
         "P30";
 

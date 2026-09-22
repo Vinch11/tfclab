@@ -59,7 +59,10 @@ describe("analyzeFitSession — sport course vs vélo", () => {
     expect(result.driftAnalysis).toBeUndefined();
     expect(result.mapEstimate).toBeUndefined();
     expect(result.testType.type).toBe("UNKNOWN");
-    expect(result.testType.reasoning).toMatch(/course/i);
+    // Séance course sans données de vitesse/allure GPS (puissance Stryd
+    // seule) : la détection de test course (allure) ne peut pas s'appliquer
+    // — message précis plutôt qu'un simple "course non applicable" générique.
+    expect(result.testType.reasoning).toMatch(/vitesse|allure/i);
 
     // Les best-efforts bruts (puissance course) restent calculés — ce sont
     // eux qui alimentent running_power_* côté FitImportDialog, pas ftpEstimate.
@@ -115,5 +118,83 @@ describe("analyzeFitSession — TTE uniquement au FTP déjà validé, jamais à 
     expect(result.tteObservation).toBeDefined();
     expect(result.tteObservation?.targetFtp).toBe(existingFtp);
     expect(result.tteObservation?.tteMinutes).toBeGreaterThan(4);
+  });
+});
+
+/**
+ * Fix "câblage Nolio → Semaine Test CAP incomplet" (demande coach) : avant ce
+ * module, isRunningSession désactivait TOUTE détection pour une séance de
+ * course (testType toujours UNKNOWN, aucune métrique). Ces tests vérifient
+ * le pipeline complet côté course (allure/vitesse GPS), miroir exact des
+ * tests vélo ci-dessus, avec la même règle "TTE jamais au seuil frais".
+ */
+function buildSteadySpeedSession(overrides: {
+  sport?: string;
+  speedMs: number;
+  durationMin: number;
+}): FitSession {
+  const { sport = "running", speedMs, durationMin } = overrides;
+  const totalSec = durationMin * 60;
+  const records: FitRecord[] = [];
+  const start = new Date("2026-09-01T08:00:00Z");
+  for (let i = 0; i <= totalSec; i++) {
+    records.push({
+      timestamp: new Date(start.getTime() + i * 1000),
+      speed: speedMs,
+      heartRate: 155,
+    });
+  }
+  return {
+    startTime: start,
+    endTime: records[records.length - 1].timestamp,
+    sport,
+    totalTimeSec: totalSec,
+    movingTimeSec: totalSec,
+    totalDistance: speedMs * totalSec,
+    records,
+    laps: [],
+  };
+}
+
+describe("analyzeFitSession — course : détection réelle du type de test (plus de blanket UNKNOWN)", () => {
+  it("détecte un test allure seuil 30 min et estime l'allure seuil", () => {
+    const session = buildSteadySpeedSession({ speedMs: 4.0, durationMin: 32 });
+    const result = analyzeFitSession(session);
+
+    expect(result.testType.type).toBe("THRESHOLD_RUN_30MIN");
+    expect(result.paceThresholdEstimate).toBeDefined();
+    expect(result.paceThresholdEstimate?.paceSecPerKm).toBeCloseTo(Math.round(1000 / 4.0), 0);
+    // Les champs vélo restent bien vides pour une séance de course
+    expect(result.ftpEstimate).toBeUndefined();
+    expect(result.mapEstimate).toBeUndefined();
+  });
+
+  it("n'estime jamais l'allure seuil pour une séance vélo (garde-fou sport croisé)", () => {
+    const bikeTest = buildSteadyPowerSession({ sport: "cycling", watts: 300, durationMin: 30 });
+    const result = analyzeFitSession(bikeTest);
+
+    expect(result.paceThresholdEstimate).toBeUndefined();
+    expect(result.vmaEstimate).toBeUndefined();
+    expect(result.runTteObservation).toBeUndefined();
+  });
+});
+
+describe("analyzeFitSession — TTE course uniquement à l'allure seuil déjà validée, jamais à une allure fraîche", () => {
+  it("ne calcule aucune TTE course quand aucune allure seuil existante n'est fournie, même si une allure seuil est fraîchement estimée dans cette séance", () => {
+    const session = buildSteadySpeedSession({ speedMs: 4.0, durationMin: 32 });
+    const result = analyzeFitSession(session); // pas d'allure seuil existante
+
+    expect(result.paceThresholdEstimate).toBeDefined(); // allure fraîche bien calculée (c'est le jour D5)
+    expect(result.runTteObservation).toBeUndefined(); // mais pas de TTE tirée de ce même effort
+  });
+
+  it("calcule bien une TTE course quand une allure seuil déjà validée est fournie (ex. séance D6, testée à l'allure mesurée en D5)", () => {
+    const existingPaceSecPerKm = Math.round(1000 / 4.2);
+    const session = buildSteadySpeedSession({ speedMs: 4.2, durationMin: 12 });
+    const result = analyzeFitSession(session, undefined, undefined, existingPaceSecPerKm);
+
+    expect(result.runTteObservation).toBeDefined();
+    expect(result.runTteObservation?.targetPaceSecPerKm).toBe(existingPaceSecPerKm);
+    expect(result.runTteObservation?.tteMinutes).toBeGreaterThan(10);
   });
 });

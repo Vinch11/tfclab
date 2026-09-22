@@ -18,6 +18,10 @@ export type {
   FitAnalysisResult,
   ObservedTestData,
   ProfileUpdatePreview,
+  RunBestEfforts,
+  PaceThresholdEstimate,
+  VmaEstimate,
+  RunTteObservation,
 } from "./types";
 
 // Parser
@@ -32,8 +36,15 @@ export {
 } from "./bestEfforts";
 
 // Test Detector
-export { detectTestType, getTFCLWeekSlot, formatTFCLSlot } from "./testDetector";
-export type { TFCLWeekSlot } from "./testDetector";
+export {
+  detectTestType,
+  getTFCLWeekSlot,
+  formatTFCLSlot,
+  detectRunTestType,
+  getCAPWeekSlot,
+  formatCAPSlot,
+} from "./testDetector";
+export type { TFCLWeekSlot, CAPWeekSlot } from "./testDetector";
 
 // Metrics Calculator
 export {
@@ -42,6 +53,15 @@ export {
   calculateDriftAnalysis,
   evaluateProtocolQuality,
 } from "./metricsCalculator";
+
+// Running Best Efforts / Metrics Calculator
+export { calculateRunBestEfforts, speedToPaceSecPerKm, speedToKmh } from "./runningBestEfforts";
+export {
+  estimatePaceThreshold,
+  estimateVma,
+  calculateRunTteObservation,
+  evaluateRunProtocolQuality,
+} from "./runningMetricsCalculator";
 
 // Analyzer
 export {
