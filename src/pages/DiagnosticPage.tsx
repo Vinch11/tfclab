@@ -239,6 +239,38 @@ export default function DiagnosticPage() {
     }
   }
 
+  // --- Sonde diagnostic Nolio (read-only) — séances réalisées ---
+  const [probeResult, setProbeResult] = useState<string | null>(null);
+  const [probeLoading, setProbeLoading] = useState(false);
+
+  async function handleRunNolioProbe() {
+    if (!currentAthlete) { toast.error("Sélectionnez un athlète"); return; }
+    if (!nolioId) { toast.error("Cet athlète n'est pas lié à un compte Nolio"); return; }
+    setProbeLoading(true);
+    setProbeResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-training-probe", {
+        body: { nolio_athlete_id: nolioId, limit: 5 },
+      });
+      if (error) throw error;
+      setProbeResult(JSON.stringify(data, null, 2));
+    } catch (e) {
+      toast.error(`Erreur sonde Nolio : ${(e as Error).message ?? "inconnue"}`);
+    } finally {
+      setProbeLoading(false);
+    }
+  }
+
+  async function handleCopyProbeResult() {
+    if (!probeResult) return;
+    try {
+      await navigator.clipboard.writeText(probeResult);
+      toast.success("Copié dans le presse-papiers");
+    } catch {
+      toast.error("Impossible de copier automatiquement — sélectionnez le texte manuellement");
+    }
+  }
+
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
@@ -513,6 +545,47 @@ export default function DiagnosticPage() {
                     </Button>
                   </>
                 )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Sonde diagnostic Nolio (temporaire) — inspecte le JSON brut des séances réalisées */}
+        <Card className="border-dashed border-primary/40 bg-primary/5">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FlaskConical className="h-5 w-5 text-primary" />
+              🔬 Sonde diagnostic Nolio (temporaire)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Lit les 5 dernières séances <strong>réalisées</strong> sur Nolio pour <strong>{currentAthlete?.name ?? "l'athlète sélectionné"}</strong> et affiche le JSON brut, sans rien écrire en base. Sert à vérifier ce que Nolio renvoie vraiment (puissance/allure/FC détaillées ? <code>id_partner</code> ré-émis ?) avant de décider si un pull-back automatique vers le snapshot est possible.
+            </p>
+            <Button
+              variant="outline"
+              disabled={!currentAthlete || !nolioId || probeLoading}
+              onClick={handleRunNolioProbe}
+            >
+              {probeLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FlaskConical className="h-4 w-4 mr-2" />}
+              Sonder Nolio
+            </Button>
+            {!currentAthlete && (
+              <p className="text-[10px] text-destructive">Sélectionnez un athlète pour lancer la sonde.</p>
+            )}
+            {currentAthlete && !nolioId && (
+              <p className="text-[10px] text-destructive">Cet athlète n'est pas lié à un compte Nolio.</p>
+            )}
+            {probeResult && (
+              <div className="space-y-2">
+                <div className="flex justify-end">
+                  <Button size="sm" variant="ghost" onClick={handleCopyProbeResult}>
+                    Copier le JSON
+                  </Button>
+                </div>
+                <pre className="max-h-96 overflow-auto rounded-md border border-border/40 bg-background/60 p-3 text-[10px] leading-snug whitespace-pre-wrap break-all">
+                  {probeResult}
+                </pre>
               </div>
             )}
           </CardContent>
