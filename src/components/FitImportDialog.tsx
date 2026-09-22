@@ -3,7 +3,7 @@
  * Interface d'import et d'analyse de fichiers FIT (Nolio, Garmin, Wahoo)
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -87,6 +87,12 @@ interface FitImportDialogProps {
   currentSnapshot?: ExtendedSnapshot | null;
   onSaveTest: (data: FitTestSaveData) => Promise<void>;
   onUpdateProfile: (updates: ProfileUpdates) => Promise<void>;
+  /**
+   * Fichier .fit déjà obtenu par le parent (ex: téléchargé depuis Nolio) —
+   * quand fourni, l'analyse démarre automatiquement sans passer par l'étape
+   * de dépôt manuel du fichier.
+   */
+  initialFile?: File | null;
 }
 
 export interface FitTestSaveData {
@@ -171,8 +177,10 @@ export function FitImportDialog({
   currentSnapshot,
   onSaveTest,
   onUpdateProfile,
+  initialFile,
 }: FitImportDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const consumedInitialFileRef = useRef<File | null>(null);
   const [step, setStep] = useState<"upload" | "analysis" | "review">("upload");
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -250,6 +258,16 @@ export function FitImportDialog({
       setIsLoading(false);
     }
   }, [currentSnapshot?.ftp]);
+
+  useEffect(() => {
+    if (open && initialFile && consumedInitialFileRef.current !== initialFile) {
+      consumedInitialFileRef.current = initialFile;
+      handleFileSelect(initialFile);
+    }
+    if (!open) {
+      consumedInitialFileRef.current = null;
+    }
+  }, [open, initialFile, handleFileSelect]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
