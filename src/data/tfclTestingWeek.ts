@@ -21,7 +21,7 @@ export interface TFCLProtocol {
 }
 
 export interface TFCLTestDay {
-  dayKey: "D-1" | "D1" | "D2" | "D3" | "D4" | "D5" | "D6" | "D7";
+  dayKey: "D-1" | "D1" | "D2" | "D3" | "D4" | "D5" | "D6" | "D7" | "D8";
   title: string;
   goal: string;
   sessionType: "TEST" | "RECOVERY" | "REST" | "VALIDATION";
@@ -42,7 +42,7 @@ export interface TFCLTestingWeek {
 
 export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
   title: "Semaine de Référence TFCL™",
-  description: "Protocole de testing standardisé sur 8 jours pour calibrer VLamax V2 Enhanced avec précision maximale. Ce n'est pas un plan d'entraînement, mais un protocole de mesure scientifique.",
+  description: "Protocole de testing standardisé sur 9 jours pour calibrer VLamax V2 Enhanced avec précision maximale. Ce n'est pas un plan d'entraînement, mais un protocole de mesure scientifique. Fix coach (audit \"FTP et TTE mélangés\") : le FTP (D5) et le TTE (D7) sont testés sur 2 jours dédiés distincts, séparés par une sortie Z2 de récupération/préparation (D6) — mesurer les deux dans le même effort est méthodologiquement bancal (le pacing optimal pour estimer un FTP fiable — soutenu mais non maximal — contredit celui d'une vraie TTE, qui doit aller jusqu'à l'échec).",
   prerequisites: {
     equipment: [
       "Capteur de puissance calibré",
@@ -228,7 +228,7 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
     {
       dayKey: "D4",
       title: "Repos complet",
-      goal: "Récupération totale avant le test FTP + TTE",
+      goal: "Récupération totale avant le test FTP (D5)",
       sessionType: "REST",
       durationEstimateMin: 30,
       protocol: {
@@ -253,10 +253,10 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
     },
     {
       dayKey: "D5",
-      title: "TEST FTP + TTE (point long de la régression CP)",
-      goal: "Valider/recalibrer le FTP et mesurer le Time To Exhaustion au seuil. Couplé au MAP 5 min de D3, ce point long alimente la régression Critical Power → CP + W' (≠ MAP seul, qui ne donne que la PAM).",
+      title: "TEST FTP (20 min)",
+      goal: "Valider/recalibrer le FTP par un effort maximal SOUTENABLE de 20 min (méthode Coggan, FTP = Pavg × 0.95). Couplé au MAP 5 min de D3, ce point alimente la régression Critical Power → CP + W'. Test dédié — la durabilité au seuil (TTE) se mesure séparément en D7, une fois ce FTP validé (mélanger les deux dans un seul effort est méthodologiquement bancal : un pacing soutenable pour un FTP propre contredit un pacing poussé à l'échec pour une vraie TTE).",
       sessionType: "TEST",
-      durationEstimateMin: 90,
+      durationEstimateMin: 60,
       protocol: {
         warmup: [
           { durationMin: 15, intensityLabel: "Z2", notes: "Activation progressive, 65% FTP" },
@@ -265,48 +265,45 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           { durationMin: 5, intensityLabel: "Z1", notes: "Récupération avant le test" }
         ],
         main: [
-          { durationMin: 50, intensityLabel: "Option A : FTP connu", notes: "Tenir 100% FTP le plus longtemps possible. Arrêter si incapacité à maintenir ≥97% FTP." },
-          { durationMin: 50, intensityLabel: "Option B : FTP à recalibrer", notes: "40–50 min steady max (pacing régulier). FTP = Pavg × 0.95. TTE = durée ≥ FTP." }
+          { durationMin: 20, intensityLabel: "ALL-OUT régulier (20 min)", notes: "Effort maximal SOUTENABLE de 20 min, pacing TRÈS régulier (éviter le positive split). FTP = puissance moyenne × 0.95. Ne pas pousser à l'échec — ce n'est pas une TTE (réservée à D7)." }
         ],
         recovery: [
-          { durationMin: 10, intensityLabel: "Z1", notes: "Retour au calme" }
+          { durationMin: 10, intensityLabel: "Z1", notes: "Retour au calme progressif" }
         ],
         pacingCadenceRules: [
           "Cadence stable 85–95 rpm",
           "Pacing TRÈS régulier (éviter le positive split)",
           "Acceptable : monter légèrement les 3 dernières minutes",
-          "Si chute <97% FTP pendant >30s → arrêt"
+          "NE PAS pousser à l'échec — objectif = effort maximal soutenable, pas une TTE"
         ],
         validityCriteria: [
           "Variabilité de puissance <5%",
           "Pacing constant (pas de pic initial)",
           "FC dérive logique (+5–10 bpm sur la durée)",
-          "Arrêt volontaire ou incapacité physique"
+          "Effort mené à son terme sans effondrement (si chute >10% en fin de test, refaire)"
         ],
         dataToRecord: [
-          "FTP utilisé (W)",
-          "Durée totale (TTE observé, min)",
-          "Puissance moyenne (W)",
-          "HR drift (%)",
+          "Puissance moyenne 20 min (W)",
+          "FTP calculé (Pavg × 0.95, W)",
+          "HR moyenne",
+          "HR max",
           "RPE (1–10)",
           "Qualité protocole (1–5)"
         ],
         homeTrainerNotes: [
-          "AUDIT #3 — Variante HOME-TRAINER (HT) D5 FTP + TTE :",
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D5 FTP :",
           "Spin-down obligatoire (15 min échauffement puis recalibration)",
-          "ERG mode RECOMMANDÉ pour Option A (FTP connu) : régler à 100% FTP, le HT impose la puissance = TTE pur sans biais de pacing",
-          "ATTENTION ERG : risque de 'death spiral' si fatigue (cadence chute, ERG augmente couple, blocage). Surveillance critique : si cadence <80 rpm pendant >10 s → ARRÊT (= TTE atteint)",
-          "Option B (recalibration) : mode résistance fixe + pacing manuel, FTP = Pavg × 0.95",
-          "Ventilation MAXIMALE (2 ventilateurs si possible) — un effort de 40–60 min sans ventilation perd 15–25 W par hyperthermie",
-          "Hydratation 500 mL/h minimum, gel optionnel après 30 min",
-          "FTP HT typiquement 3–7% inférieur au FTP outdoor (moins d'inertie, monotonie) — noter sur quel format le FTP a été mesuré pour traçabilité"
+          "Mode résistance fixe + pacing manuel recommandé (l'ERG lisse artificiellement un effort de 20 min et peut masquer un pacing initial trop agressif)",
+          "Ventilation MAXIMALE (2 ventilateurs si possible) — un effort de 20 min sans ventilation perd 8–15 W par hyperthermie",
+          "Hydratation à portée de main",
+          "FTP HT typiquement 3–7% inférieur au FTP outdoor — noter sur quel format le FTP a été mesuré pour traçabilité"
         ]
       }
     },
     {
       dayKey: "D6",
       title: "Z2 Validation",
-      goal: "Validation de la récupération et de la cohérence du profil",
+      goal: "Valider la récupération après le test FTP (D5) ET préparer le terrain pour le test TTE (D7) — cette sortie easy doit confirmer que l'athlète est prêt à enchaîner sur un effort mené à l'échec.",
       sessionType: "VALIDATION",
       durationEstimateMin: 75,
       protocol: {
@@ -319,7 +316,7 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
         pacingCadenceRules: [
           "Cadence naturelle et confortable",
           "Puissance stable sans variation",
-          "Objectif : vérifier la récupération après D5"
+          "Objectif : vérifier la récupération après D5 et préparer D7 (TTE)"
         ],
         validityCriteria: [
           "HR drift <5% sur 60 min",
@@ -339,12 +336,57 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "Ventilateur frontal OBLIGATOIRE — le HR drift sans ventilation est faussé (+8 à +15 bpm artificiel)",
           "Température salle <22°C, hydratation 500 mL/h",
           "HR drift acceptable sur HT : <8% (vs <5% outdoor) à cause de la chaleur résiduelle inévitable",
-          "Si drift HT >10% : refaire avec meilleure ventilation, sinon la validation D5 n'est pas exploitable"
+          "Si drift HT >10% : ne pas enchaîner sur D7, refaire D6 avec meilleure ventilation"
         ]
       }
     },
     {
       dayKey: "D7",
+      title: "TEST TTE (au FTP validé D5)",
+      goal: "Mesurer le Time To Exhaustion en tenant 100% du FTP validé en D5 — un test de durabilité au seuil, distinct de la mesure du FTP elle-même. Alimente tte_observed_min et la cohérence globale du profil (D8).",
+      sessionType: "TEST",
+      durationEstimateMin: 90,
+      protocol: {
+        warmup: [
+          { durationMin: 15, intensityLabel: "Z2", notes: "Activation progressive, 65% FTP" },
+          { durationMin: 5, intensityLabel: "85–90% FTP", notes: "Préparation au seuil" },
+          { durationMin: 5, intensityLabel: "Z1", notes: "Récupération avant le test" }
+        ],
+        main: [
+          { durationMin: 60, intensityLabel: "Tenir 100% FTP", notes: "Tenir 100% du FTP mesuré en D5 le plus longtemps possible. Arrêter si incapacité à maintenir ≥97% FTP pendant >30s (= TTE atteint)." }
+        ],
+        recovery: [
+          { durationMin: 10, intensityLabel: "Z1", notes: "Retour au calme" }
+        ],
+        pacingCadenceRules: [
+          "Cadence stable 85–95 rpm",
+          "Cible fixe : 100% du FTP mesuré en D5 (pas de recalibration ici)",
+          "Si chute <97% FTP pendant >30s → arrêt (= TTE)"
+        ],
+        validityCriteria: [
+          "FTP cible = celui mesuré en D5 (jamais une nouvelle estimation)",
+          "Puissance stable ≥97% de la cible jusqu'à l'arrêt",
+          "FC dérive logique en fin d'effort",
+          "Arrêt volontaire ou incapacité physique (pas un arrêt anticipé par prudence)"
+        ],
+        dataToRecord: [
+          "Durée totale (TTE observé, min)",
+          "Puissance moyenne pendant l'effort (W)",
+          "HR drift (%)",
+          "RPE (1–10)",
+          "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D7 TTE :",
+          "ERG mode RECOMMANDÉ : régler à 100% du FTP D5, le HT impose la puissance = TTE pur sans biais de pacing",
+          "ATTENTION ERG : risque de 'death spiral' si fatigue (cadence chute, ERG augmente couple, blocage). Surveillance critique : si cadence <80 rpm pendant >10 s → ARRÊT (= TTE atteint)",
+          "Ventilation MAXIMALE (2 ventilateurs si possible) — un effort de 30–60 min sans ventilation perd 15–25 W par hyperthermie",
+          "Hydratation 500 mL/h minimum, gel optionnel après 30 min"
+        ]
+      }
+    },
+    {
+      dayKey: "D8",
       title: "OFF + COHÉRENCE CHECK",
       goal: "Repos complet + validation croisée des résultats (audit #6)",
       sessionType: "REST",
@@ -363,8 +405,9 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "• Ratio P30s/FTP : attendu 2.5–4.0 (sprinter naturel >3.5, endurant <3.0) — cohérent avec VLamax estimée",
           "• Ratio P60s/FTP : attendu 1.8–2.5 — si <1.6 = P60s sous-estimé (pacing trop conservateur)",
           "• VLamax bike estimée (sprint P30s) vs ratio FTP/MAP : VLamax >0.55 attendu si ratio FTP/MAP <0.80 (profil glycolytique), VLamax <0.40 attendu si ratio >0.86 (profil aérobie). Sinon = incohérence à investiguer.",
-          "• TTE observé vs ambition : ultra/IM >55 min, competitor 45–55 min, fitness 30–45 min, débutant <30 min",
-          "• HR drift Z2 D6 <5% outdoor / <8% HT = récupération validée — si >10% : reporter analyse, refaire D5+D6 dans 7 j"
+          "• TTE observé (D7) vs ambition : ultra/IM >55 min, competitor 45–55 min, fitness 30–45 min, débutant <30 min",
+          "• TTE (D7) doit avoir été mesurée au FTP validé en D5 CETTE MÊME semaine — sinon non exploitable pour la calibration",
+          "• HR drift Z2 D6 <5% outdoor / <8% HT = prêt pour D7 — si >10% : ne pas enchaîner, refaire D6 (et D7 si déjà fait) après 1–2 j de repos"
         ],
         dataToRecord: [
           "Sensation générale (1–10)",
@@ -412,12 +455,18 @@ export function computeTFCLCompletion(snapshot: {
     missingData.push("MAP 5min (W)");
   }
 
-  // D5 - FTP + TTE
-  if (snapshot.ftp && snapshot.tte_observed_min) {
-    completedTests.push("D5 - Test FTP + TTE");
+  // D5 - FTP
+  if (snapshot.ftp) {
+    completedTests.push("D5 - Test FTP");
   } else {
-    if (!snapshot.ftp) missingData.push("FTP (W)");
-    if (!snapshot.tte_observed_min) missingData.push("TTE observé (min)");
+    missingData.push("FTP (W)");
+  }
+
+  // D7 - TTE
+  if (snapshot.tte_observed_min) {
+    completedTests.push("D7 - Test TTE");
+  } else {
+    missingData.push("TTE observé (min)");
   }
 
   // Confidence adjustment based on protocol quality

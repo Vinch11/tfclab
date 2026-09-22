@@ -1218,7 +1218,7 @@ export default function AcademyPage() {
                         <ArrowRight className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <p className="text-muted-foreground text-sm">
-                        Programme de 7 jours pour calibrer la VLamax V2 Enhanced via les tests P30s, P60s, MAP 5min et TTE.
+                        Programme de 9 jours pour calibrer la VLamax V2 Enhanced via les tests P30s, P60s, MAP 5min, FTP et TTE — chacun sur un jour dédié.
                       </p>
                       <div className="flex flex-wrap gap-2 pt-2">
                         <span className="px-2 py-1 rounded text-xs bg-blue-500/10 text-blue-600 border border-blue-500/20">
@@ -1228,7 +1228,10 @@ export default function AcademyPage() {
                           MAP 5min (Aérobie max)
                         </span>
                         <span className="px-2 py-1 rounded text-xs bg-orange-500/10 text-orange-600 border border-orange-500/20">
-                          FTP + TTE (Durabilité)
+                          FTP (Seuil)
+                        </span>
+                        <span className="px-2 py-1 rounded text-xs bg-orange-500/10 text-orange-600 border border-orange-500/20">
+                          TTE (Durabilité)
                         </span>
                       </div>
                     </div>
