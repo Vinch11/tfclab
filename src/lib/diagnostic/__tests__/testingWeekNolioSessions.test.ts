@@ -159,7 +159,10 @@ describe("buildCompactTriathlonNolioSessions", () => {
     // Officiellement (TFCL_TESTING_WEEK D1) : 4 étapes d'échauffement + 3 étapes de corps de séance + 1 retour au calme = 8.
     expect(glyco!.structuredWorkout.length).toBe(8);
     // Durée totale des étapes = somme exacte des durées officielles (26 + 11.5 + 10 min) — aucune étape perdue en route.
-    const totalSec = glyco!.structuredWorkout.reduce((acc, s) => acc + s.step_duration_value, 0);
+    const totalSec = glyco!.structuredWorkout.reduce(
+      (acc, s) => acc + ("step_duration_value" in s ? s.step_duration_value : s.steps.reduce((a, x) => a + x.step_duration_value, 0)),
+      0
+    );
     expect(totalSec).toBe(47.5 * 60);
   });
 
