@@ -20,6 +20,12 @@ describe("buildCompactTriathlonNolioSessions", () => {
     }
   });
 
+  it("porte noStructuredWorkout=true sur toutes les séances (bug réel corrigé : le générateur d'intervalles de nolio-send-plan suppose 1 part = 1 étape et produisait des durées/cibles fausses sur nos séquences multi-étapes)", () => {
+    for (const s of sessions) {
+      expect(s.noStructuredWorkout).toBe(true);
+    }
+  });
+
   it("garde dayIndex dans 0-6 pour toutes les séances (contrat dur de nolio-send-plan)", () => {
     for (const s of sessions) {
       expect(s.dayIndex).toBeGreaterThanOrEqual(0);
