@@ -61,6 +61,7 @@ export const snapshotSchema = z.object({
   tss_7d: intOptional(0, 2000),
   tte_mode: z.string().max(50).nullable().optional(),
   tte_observed_min: intOptional(1, 120),
+  tte_observed_min_run: intOptional(1, 120), // TTE observé course — distinct de tte_observed_min (vélo)
   // ✅ VLamax Bike V2 Enhanced - Power indices
   p30s_w: intOptional(100, 3000),
   p60s_w: intOptional(100, 2500),
