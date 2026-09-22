@@ -24,17 +24,59 @@ describe("buildCompactTriathlonNolioSessions", () => {
     }
   });
 
-  it("construit, pour chaque étape de chaque séance, un step sans cible chiffrée (demande coach : \"empty unit\" + texte explicatif, pas de valeur liée à un athlète précis)", () => {
+  it("construit, pour chaque étape de chaque séance (y compris à l'intérieur des blocs de répétition), un step sans cible chiffrée (demande coach : \"empty unit\" + texte explicatif, pas de valeur liée à un athlète précis)", () => {
     for (const s of sessions) {
-      for (const step of s.structuredWorkout) {
-        expect(step.type).toBe("step");
-        expect(step.step_duration_type).toBe("duration");
-        expect(step.target_type).toBe("no_target");
-        expect(step.step_duration_value).toBeGreaterThan(0);
-        expect(step.notes.trim().length).toBeGreaterThan(0);
-        expect(["warmup", "active", "cooldown"]).toContain(step.intensity_type);
+      for (const item of s.structuredWorkout) {
+        const steps = item.type === "repetition" ? item.steps : [item];
+        for (const step of steps) {
+          expect(step.type).toBe("step");
+          expect(step.step_duration_type).toBe("duration");
+          expect(step.target_type).toBe("no_target");
+          expect(step.step_duration_value).toBeGreaterThan(0);
+          expect(step.notes.trim().length).toBeGreaterThan(0);
+          expect(["warmup", "active", "cooldown"]).toContain(step.intensity_type);
+        }
       }
     }
+  });
+
+  /**
+   * Fix "séances structurées comme le Pool Day créé à la main dans Nolio"
+   * (demande coach) : CAP D1 répète 2 sprints 15s identiques séparés d'une
+   * récupération de 8 min — jusqu'ici aplati en 3 étapes séquentielles
+   * (sprint 1, récup, sprint 2), perdant le rendu "2x { ... }" natif que
+   * Nolio sait afficher (mêmes blocs `type:"repetition"` que le coach a
+   * construits manuellement pour TFCL Pool Day™). groupRepeatedEffort()
+   * détecte ce pattern (2 efforts identiques, même durée, séparés d'une même
+   * récup) et le regroupe en un vrai bloc de répétition Nolio.
+   */
+  it("regroupe les 2 sprints identiques de CAP D1 en un bloc de répétition Nolio natif (2x { sprint, récup })", () => {
+    const capSprintDay = sessions.find((s) => s.title === "TEST SPRINT 15s");
+    expect(capSprintDay).toBeDefined();
+
+    const repBlock = capSprintDay!.structuredWorkout.find((it) => it.type === "repetition");
+    expect(repBlock).toBeDefined();
+    expect(repBlock!.value).toBe(2);
+    expect(repBlock!.steps).toHaveLength(2);
+    expect(repBlock!.steps[0].intensity_type).toBe("active");
+    expect(repBlock!.steps[0].notes).toContain("SPRINT MAXIMAL 15s");
+    expect(repBlock!.steps[0].notes).not.toContain("(essai");
+    expect(repBlock!.steps[0].step_duration_value).toBe(15);
+    expect(repBlock!.steps[1].intensity_type).toBe("cooldown");
+    expect(repBlock!.steps[1].step_duration_value).toBe(480);
+
+    // Jamais un "step" à plat pour les 2 sprints d'origine — uniquement le bloc de répétition.
+    const flatSprintSteps = capSprintDay!.structuredWorkout.filter(
+      (it) => it.type === "step" && it.notes.includes("SPRINT MAXIMAL 15s"),
+    );
+    expect(flatSprintSteps).toHaveLength(0);
+  });
+
+  it("ne regroupe PAS deux efforts distincts qui se suivent (TFCL D1 : P30s puis P60s, pas 2 tentatives identiques)", () => {
+    const tfclGlycoDay = sessions.find((s) => s.title === "TEST GLYCOLYTIQUE (P30s + P60s)");
+    expect(tfclGlycoDay).toBeDefined();
+    const repBlocks = tfclGlycoDay!.structuredWorkout.filter((it) => it.type === "repetition");
+    expect(repBlocks).toHaveLength(0);
   });
 
   it("a un structuredWorkout non vide pour toute séance qui a effectivement des étapes physiques", () => {
