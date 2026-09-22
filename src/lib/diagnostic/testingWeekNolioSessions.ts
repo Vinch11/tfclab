@@ -13,29 +13,48 @@ import {
  * (16 jours vélo + course + natation, cf. buildTestingWeekProtocolHTML.ts)
  * en séances envoyables à l'edge function `nolio-send-plan`, pour que le
  * coach puisse pousser ce protocole de test dans le calendrier Nolio de
- * l'athlète comme un plan classique.
+ * l'athlète comme un plan classique, puis l'enregistrer comme modèle
+ * directement depuis Nolio.
  *
  * Réutilise buildCompactTriathlonItems() / groupCompactItems() — la MÊME
  * source que le dossier PDF — pour ne jamais diverger de l'ordre/espacement
  * de récupération déjà audité.
  *
- * Choix délibéré : aucun `structured_workout` (intervalles chiffrés Nolio)
- * n'est généré ici. Ces tests visent justement à ÉTABLIR les zones (FTP,
- * VMA, CSS...) — il n'y a donc pas encore de référence fiable pour calculer
- * des cibles en %. Chaque séance est envoyée avec une description texte
- * riche (échauffement / corps de séance / retour au calme + règles de
- * pacing + critères de validité + données à enregistrer), à suivre au
- * chronomètre comme dans le dossier papier.
+ * Deux volets complémentaires par séance :
+ *  - `objectif` : description texte riche (échauffement / corps de séance /
+ *    retour au calme + règles de pacing + critères de validité + données à
+ *    enregistrer), construite ENTIÈREMENT ici (jamais via le champ
+ *    `structure` de nolio-send-plan — buildDescription() y aplatit tout
+ *    texte multi-paragraphe en une seule liste à puces continue, bug réel
+ *    déjà observé en prod).
+ *  - `structuredWorkout` : la STRUCTURE de la séance (une étape Nolio par
+ *    étape du protocole, avec sa vraie durée) SANS cible chiffrée
+ *    (`target_type: "no_target"`, dit "empty unit" côté Nolio) — seule la
+ *    consigne (ex. "Z2 65-70% FTP", "ALL-OUT 30s") apparaît en note sur
+ *    l'étape. Choix délibéré (demande coach) : ces tests visent à ÉTABLIR
+ *    les zones (FTP/VMA/CSS) — il n'y a donc pas de référence fiable pour
+ *    calculer une cible en %, ET un modèle Nolio à cible chiffrée fixe
+ *    n'est de toute façon pas réutilisable d'un athlète à l'autre (Nolio
+ *    n'accepte que des valeurs absolues, jamais un pourcentage — vérifié
+ *    dans nolio-send-plan : `target_unit` est systématiquement supprimé
+ *    avant l'envoi). La structure (durées + notes), elle, reste valable
+ *    pour n'importe quel athlète.
  *
- * Le texte est construit ENTIÈREMENT ici (pas via le champ `structure` de
- * nolio-send-plan) : buildDescription() de nolio-send-plan aplatit chaque
- * "part" de `structure` en une seule liste à puces (toListLines), fusionnant
- * étapes/règles/critères/données à enregistrer en un seul bloc indistinct
- * dès que le texte contient plusieurs paragraphes — bug réel observé en
- * prod (retour coach : "la fin du bloc texte est très condensée"). Poser
- * tout le texte final dans `objectif` (jamais lu par toListLines) garde nos
- * propres sauts de ligne et titres de section intacts.
+ * `structuredWorkout` est envoyé tel quel à nolio-send-plan (champ dédié
+ * qui court-circuite buildStructuredFromParts) — on ne passe JAMAIS par le
+ * champ `structure` (texte à reparser) pour la structure chiffrée : chaque
+ * étape du protocole est déjà connue individuellement ici, pas besoin de
+ * la faire deviner par un parseur de texte.
  */
+
+export interface NolioStepLike {
+  type: "step";
+  intensity_type: "warmup" | "active" | "cooldown";
+  step_duration_type: "duration";
+  step_duration_value: number; // secondes
+  target_type: "no_target";
+  notes: string;
+}
 
 export interface TestingWeekNolioSession {
   weekNumber: number;
@@ -46,13 +65,7 @@ export interface TestingWeekNolioSession {
   objectif: string;
   details: string;
   isRest: false;
-  /**
-   * Défensif : aucun `structure` n'est jamais posé par ce module (cf. note
-   * de tête de fichier), donc nolio-send-plan ne tenterait de toute façon
-   * pas de générer un structured_workout chiffré — ce flag documente
-   * explicitement l'intention si `structure` était réintroduit un jour.
-   */
-  noStructuredWorkout: true;
+  structuredWorkout: NolioStepLike[];
 }
 
 function formatStep(s: NormStep): string {
@@ -66,6 +79,17 @@ function listLines(items: string[]): string {
 
 function stepsToLines(steps: NormStep[]): string {
   return listLines(steps.map(formatStep));
+}
+
+function nolioStep(intensity: NolioStepLike["intensity_type"], durationSec: number, notes: string): NolioStepLike {
+  return {
+    type: "step",
+    intensity_type: intensity,
+    step_duration_type: "duration",
+    step_duration_value: Math.max(1, Math.round(durationSec)),
+    target_type: "no_target",
+    notes: notes.slice(0, 500),
+  };
 }
 
 /** Construit le texte de description (sections clairement titrées) d'un jour vélo/course. */
@@ -97,6 +121,15 @@ function dayToDescriptionText(day: NormDay, flag?: string): string {
   return sections.join("\n\n");
 }
 
+/** Construit les étapes structurées (une par étape du protocole, sans cible chiffrée) d'un jour vélo/course. */
+function dayToNolioSteps(day: NormDay): NolioStepLike[] {
+  return [
+    ...day.warmup.map((s) => nolioStep("warmup", s.durationMin * 60, formatStep(s))),
+    ...day.main.map((s) => nolioStep("active", s.durationMin * 60, formatStep(s))),
+    ...day.recovery.map((s) => nolioStep("cooldown", s.durationMin * 60, formatStep(s))),
+  ];
+}
+
 /** Construit le texte de description du protocole natation (TFCL Pool Day™, format blocs). */
 function swimDescriptionText(): string {
   const p = getProtocolDef("pool-day");
@@ -110,6 +143,26 @@ function swimDescriptionText(): string {
   }
 
   return sections.join("\n\n");
+}
+
+/** "~20 min" / "~1h30" → secondes. Repli à 20 min si rien de reconnaissable (n'arrive jamais sur les blocs réels). */
+function parseApproxDurationToSec(duration: string): number {
+  const hourMatch = duration.match(/(\d+)\s*h\s*(\d+)?/i);
+  if (hourMatch) {
+    const h = parseInt(hourMatch[1], 10);
+    const m = hourMatch[2] ? parseInt(hourMatch[2], 10) : 0;
+    return h * 3600 + m * 60;
+  }
+  const minMatch = duration.match(/(\d+)/);
+  return (minMatch ? parseInt(minMatch[1], 10) : 20) * 60;
+}
+
+/** Construit les étapes structurées du protocole natation — une par bloc (chaque bloc regroupe plusieurs consignes, pas de minutage plus fin dans la source). */
+function swimNolioSteps(): NolioStepLike[] {
+  const p = getProtocolDef("pool-day");
+  return p.blocks.map((b, i) =>
+    nolioStep(i === 0 ? "warmup" : "active", parseApproxDurationToSec(b.duration), `${b.title} — ${b.instructions.join(" ")}`),
+  );
 }
 
 /**
@@ -141,7 +194,7 @@ export function buildCompactTriathlonNolioSessions(): TestingWeekNolioSession[] 
           objectif: swimDescriptionText(),
           details: p.subtitle,
           isRest: false,
-          noStructuredWorkout: true,
+          structuredWorkout: swimNolioSteps(),
         });
         return;
       }
@@ -156,7 +209,7 @@ export function buildCompactTriathlonNolioSessions(): TestingWeekNolioSession[] 
         objectif: dayToDescriptionText(day, it.flag),
         details: day.goal,
         isRest: false,
-        noStructuredWorkout: true,
+        structuredWorkout: dayToNolioSteps(day),
       });
     });
   }
