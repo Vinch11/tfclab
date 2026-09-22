@@ -304,6 +304,64 @@ export function FitImportDialog({
 
     const updates: ProfileUpdatePreview[] = [];
     const snap = currentSnapshot as ExtendedSnapshot | null;
+    const sportRaw = (analysis.session.sport ?? "").toLowerCase();
+    const isRun = sportRaw.includes("run") || selectedTestType === "RUN_ECONOMY";
+
+    // Best efforts en puissance : mêmes fenêtres (30s/60s/5min), mais un
+    // signal de puissance course (Stryd) n'est pas un signal de puissance
+    // vélo — chaque sport a ses propres champs snapshot (jamais p30s_w/
+    // p60s_w/map5min_w/ftp pour une séance de course).
+    if (isRun) {
+      if (analysis.bestEfforts.p30s) {
+        updates.push({
+          field: "running_power_30s",
+          label: "Puissance course 30s",
+          currentValue: snap?.running_power_30s ?? undefined,
+          newValue: analysis.bestEfforts.p30s,
+          source: "Best Effort FIT",
+          willUpdate: true,
+          requiresConfirmation: (snap?.running_power_30s ?? 0) > 0,
+        });
+      }
+
+      if (analysis.bestEfforts.p60s) {
+        updates.push({
+          field: "running_power_60s",
+          label: "Puissance course 60s",
+          currentValue: snap?.running_power_60s ?? undefined,
+          newValue: analysis.bestEfforts.p60s,
+          source: "Best Effort FIT",
+          willUpdate: true,
+          requiresConfirmation: (snap?.running_power_60s ?? 0) > 0,
+        });
+      }
+
+      if (analysis.bestEfforts.p5min) {
+        updates.push({
+          field: "running_power_5min",
+          label: "Puissance course 5min",
+          currentValue: snap?.running_power_5min ?? undefined,
+          newValue: analysis.bestEfforts.p5min,
+          source: "Best Effort FIT",
+          willUpdate: true,
+          requiresConfirmation: (snap?.running_power_5min ?? 0) > 0,
+        });
+      }
+
+      if (analysis.bestEfforts.p20min) {
+        updates.push({
+          field: "running_power_threshold",
+          label: "Puissance seuil course (P20min)",
+          currentValue: snap?.running_power_threshold ?? undefined,
+          newValue: analysis.bestEfforts.p20min,
+          source: "Best Effort FIT",
+          willUpdate: true,
+          requiresConfirmation: (snap?.running_power_threshold ?? 0) > 0,
+        });
+      }
+
+      return updates;
+    }
 
     if (analysis.bestEfforts.p30s) {
       updates.push({
@@ -366,7 +424,7 @@ export function FitImportDialog({
     }
 
     return updates;
-  }, [analysis, currentSnapshot]);
+  }, [analysis, currentSnapshot, selectedTestType]);
 
   const handleSave = useCallback(async () => {
     if (!analysis || !file || !selectedTestType) return;
