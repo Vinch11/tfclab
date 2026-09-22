@@ -35,7 +35,7 @@ describe("computeRaceSimulation — breakpointKm n'écrase plus le PREMIER segme
     // segment précoce (y compris potentiellement km 0) franchisse le seuil.
     const result = computeRaceSimulation(baseInput({
       raceType: "IM",
-      heat: "hot",
+      heat: "high",
       vlamaxEffectif: 0.75,
       tteMin: 20,
       fatmaxCenterPct: 45,

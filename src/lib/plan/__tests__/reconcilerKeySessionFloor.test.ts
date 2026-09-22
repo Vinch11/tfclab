@@ -21,15 +21,15 @@ vi.mock("@/lib/workoutLibrary", () => {
       when: "Toute l'année", phase: ["base", "build"] as any,
       avoid: "", durationMin: [50, 75], metricKey: "pace", sportKey: "swim",
       structure: [{ part: "Main", text: "40' Z2", zones: ["Z2"] }],
-      variants: {}, tags: ["endurance", "swim"], goals: ["703"],
+      variants: {}, tags: ["endurance", "swim"], goals: ["half"],
     },
     {
       id: "STRENGTH_GENERAL_BUILD",
       cat: "A", sport: "strength", objectif: "Général", necessite: "Recommandé",
       when: "Toute l'année", phase: ["base", "build"] as any,
-      avoid: "", durationMin: [40, 50], metricKey: "rpe", sportKey: "strength",
+      avoid: "", durationMin: [40, 50], metricKey: "cardiaque", sportKey: "strength",
       structure: [{ part: "Main", text: "Circuit général", zones: [] }],
-      variants: {}, tags: ["renfo"], goals: ["703"],
+      variants: {}, tags: ["renfo"], goals: ["half"],
     },
   ];
   return { WorkoutLibrary: fiches };
