@@ -28,7 +28,7 @@ function makeBoundary(highPct: number, lowPct: number): EnvelopeBoundary {
     widthLow: (highPct + lowPct) / 2 - lowPct,
     widthHigh: highPct - (highPct + lowPct) / 2,
     asymmetryRatio: 1,
-    referenceBase: "FTP",
+    referenceBase: "ftp",
     referenceLabel: "% FTP",
     referenceShortLabel: "FTP",
     isFallbackReference: false,

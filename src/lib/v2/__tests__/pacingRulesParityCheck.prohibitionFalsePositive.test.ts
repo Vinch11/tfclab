@@ -24,7 +24,7 @@ function rule(overrides: Partial<DisciplineRule> & Pick<DisciplineRule, "id" | "
 
 function makeResult(overrides: Partial<DisciplineRulesResult> = {}): DisciplineRulesResult {
   const nonNegotiables = [rule({ id: "nn1", category: "non_negotiable", priority: "critical" })];
-  const tacticals = [rule({ id: "tac1", category: "tactical", priority: "normal" })];
+  const tacticals = [rule({ id: "tac1", category: "tactical", priority: "recommended" })];
   const prohibitions = [rule({ id: "drift_prohibition", category: "prohibition", priority: "critical" })];
   const coachPhrases: DisciplineRule[] = [];
   return {

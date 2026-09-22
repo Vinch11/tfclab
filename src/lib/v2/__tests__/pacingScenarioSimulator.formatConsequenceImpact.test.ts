@@ -18,7 +18,7 @@ function makeScenario(glycogenImpactPct: number, performanceLossPct: number): Pa
     title: "Test",
     condition: { description: "", intensityOverPct: 0, durationMinutes: 0, phase: "start" },
     consequence: { description: "", severity: "low", glycogenImpactPct, performanceLossPct },
-  } as PacingScenario;
+  } as unknown as PacingScenario;
 }
 
 describe("formatConsequenceImpact — signe correct pour les scénarios à impact négatif (gain, pas coût)", () => {

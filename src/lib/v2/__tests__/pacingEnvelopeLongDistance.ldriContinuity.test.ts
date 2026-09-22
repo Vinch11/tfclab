@@ -24,7 +24,7 @@ function makeBoundary(): EnvelopeBoundary {
     widthLow: 10,
     widthHigh: 10,
     asymmetryRatio: 1,
-    referenceBase: "FTP",
+    referenceBase: "ftp",
     referenceLabel: "% FTP",
     referenceShortLabel: "FTP",
     isFallbackReference: false,
