@@ -545,12 +545,12 @@ export type CompactItem =
  *    consommé pour l'y insérer.
  *
  * Le SEUL arbitrage fait ici (à valider par le coach, cf. `flag` du jour
- * concerné) : le repos complet précédant le test Course D5 (Allure seuil +
- * TTE) suit directement le test Vélo D5 (FTP + TTE, l'effort le plus
- * exigeant du protocole) — alors que dans les semaines d'origine, aucun
- * repos complet n'est jamais précédé d'un tel effort la veille. Récupération
- * globale (systémique) potentiellement un peu moins profonde que ce que le
- * protocole d'origine garantit pour son propre D5.
+ * concerné) : la séance course "Endurance Validation + Économie de Course"
+ * (D6 CAP, qui nécessite un pacing contrôlé à allure marathon pour être
+ * exploitable) suit directement le test TTE vélo (D7 TFCL, l'effort le plus
+ * exigeant du protocole maintenant que FTP et TTE sont testés sur des jours
+ * séparés) — alors que dans les semaines d'origine, aucune séance à pacing
+ * contrôlé n'est jamais précédée d'un tel effort la veille.
  */
 /**
  * Construit la liste source des items du calendrier compact, AVANT regroupement
@@ -560,7 +560,7 @@ export type CompactItem =
  * pourraient diverger silencieusement.
  */
 export function buildCompactTriathlonItems(bikeSpec: WeekSpec, runSpec: WeekSpec): CompactItem[] {
-  const bike = bikeSpec.days; // [D-1, D1, D2, D3, D4, D5, D6, D7]
+  const bike = bikeSpec.days; // [D-1, D1, D2, D3, D4, D5(FTP), D6(Z2), D7(TTE), D8]
   const run = runSpec.days; // [D-1, D1, D2, D3, D4, D5, D6, D7]
   return [
     { kind: "day", day: bike[0], sportLabel: bikeSpec.sportLabel, splitId: "start" },
@@ -575,16 +575,17 @@ export function buildCompactTriathlonItems(bikeSpec: WeekSpec, runSpec: WeekSpec
     { kind: "day", day: run[3], sportLabel: runSpec.sportLabel },
     { kind: "day", day: bike[4], sportLabel: bikeSpec.sportLabel },
     { kind: "day", day: bike[5], sportLabel: bikeSpec.sportLabel },
-    {
-      kind: "day",
-      day: run[4],
-      sportLabel: runSpec.sportLabel,
-      flag: "Ce repos complet suit directement le test Vélo D5 (FTP+TTE), l'effort le plus exigeant du protocole — dans la semaine d'origine, aucun repos complet n'est jamais précédé d'un tel effort la veille. Si l'athlète ne se sent pas totalement frais le lendemain, décaler le test Course D5 d'un jour supplémentaire plutôt que de forcer.",
-    },
+    { kind: "day", day: run[4], sportLabel: runSpec.sportLabel },
     { kind: "day", day: run[5], sportLabel: runSpec.sportLabel },
     { kind: "day", day: bike[6], sportLabel: bikeSpec.sportLabel },
-    { kind: "day", day: run[6], sportLabel: runSpec.sportLabel },
-    { kind: "day", day: bike[7], sportLabel: bikeSpec.sportLabel, splitId: "end" },
+    { kind: "day", day: bike[7], sportLabel: bikeSpec.sportLabel },
+    {
+      kind: "day",
+      day: run[6],
+      sportLabel: runSpec.sportLabel,
+      flag: "Cette séance course (pacing contrôlé à allure marathon) suit directement le test TTE vélo, l'effort le plus exigeant du protocole maintenant que FTP et TTE sont testés séparément — dans la semaine d'origine, aucune séance à pacing contrôlé n'est jamais précédée d'un tel effort la veille. Si l'athlète ne se sent pas totalement frais, alléger cette séance (rester en Z2, reporter les 3×1km à allure marathon) plutôt que de fausser la mesure d'économie de course.",
+    },
+    { kind: "day", day: bike[8], sportLabel: bikeSpec.sportLabel, splitId: "end" },
     { kind: "day", day: run[7], sportLabel: runSpec.sportLabel, splitId: "end" },
   ];
 }
@@ -645,7 +646,7 @@ export function buildTestingWeekDossierHTML(
   const isCompact = sport === "triathlon-compact";
   const specs: WeekSpec[] = sport === "triathlon" || isCompact ? [buildBikeSpec(), buildRunSpec()] : sport === "bike" ? [buildBikeSpec()] : [buildRunSpec()];
   const sportLabel = isCompact
-    ? "Triathlon compact — 16 jours"
+    ? "Triathlon compact — 17 jours"
     : sport === "triathlon"
       ? "Triathlon (vélo + course)"
       : specs[0].sportLabel;
@@ -799,10 +800,11 @@ ${CSS}
     <div class="callout callout-formula">
       <div class="callout-head"><span class="callout-icon">🧮</span> Calendrier compact — comment il a été construit</div>
       <ul class="callout-list">
-        <li>Fusion des deux semaines officielles (vélo 8 jours + course 8 jours) et du protocole natation (TFCL Pool Day™, une séance ~1h30) en un seul calendrier continu de 16 jours, numéroté Jour 1 à Jour 16.</li>
+        <li>Fusion des deux semaines officielles (vélo 9 jours + course 8 jours) et du protocole natation (TFCL Pool Day™, une séance ~1h30) en un seul calendrier continu de 17 jours, numéroté Jour 1 à Jour 17.</li>
         <li>Chaque test vélo/course garde EXACTEMENT le même espacement de récupération que dans sa semaine d'origine (1 jour de récupération légère entre un test glycolytique et le test aérobie suivant, 1 jour de repos complet avant chaque test long) — seule l'alternance entre les deux disciplines change, jamais la profondeur de récupération.</li>
         <li>Le test natation est placé en Jour 2, juste après l'activation D-1 : l'athlète y est le plus frais, et la natation ne recrute ni les mêmes masses musculaires ni la même filière dominante que les tests vélo/course qui suivent — son insertion ne consomme aucun jour de récupération vélo/course.</li>
-        <li>Un seul arbitrage a été fait (signalé directement au jour concerné) : le repos avant le test Course D5 suit le test Vélo D5, l'effort le plus exigeant du protocole — une récupération globale un peu moins garantie qu'en semaine séparée. À surveiller au ressenti de l'athlète.</li>
+        <li>La semaine vélo compte désormais 9 jours (au lieu de 8) : le FTP (D5) et le TTE (D7) sont testés sur des jours dédiés distincts, séparés par une sortie Z2 (D6) — mesurer les deux dans le même effort était méthodologiquement bancal.</li>
+        <li>Un seul arbitrage a été fait (signalé directement au jour concerné) : la séance course à pacing contrôlé (Économie de Course) suit le test TTE vélo, l'effort le plus exigeant du protocole désormais — à alléger si l'athlète n'est pas totalement frais.</li>
       </ul>
     </div>` : ""}
     ${prereqHtml}

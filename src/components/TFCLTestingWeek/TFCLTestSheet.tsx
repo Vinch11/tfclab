@@ -120,6 +120,7 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
         if (formData.map5min_avg) snapshotUpdates.map5min_w = parseInt(formData.map5min_avg);
       } else if (dayKey === "D5") {
         if (formData.ftp_used) snapshotUpdates.ftp = parseInt(formData.ftp_used);
+      } else if (dayKey === "D7") {
         if (formData.tte_observed) snapshotUpdates.tte_observed_min = parseInt(formData.tte_observed);
       } else if (dayKey === "D6") {
         // Bug réel corrigé (audit coach "snapshot bien câblé ?") : les champs
@@ -150,8 +151,8 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
         toast.success(`${dayKey} enregistré dans un nouveau profil`);
       }
 
-      // Save as test entry for continuous calibration (D1/D3/D5)
-      if (["D1", "D3", "D5"].includes(dayKey)) {
+      // Save as test entry for continuous calibration (D1/D3/D5/D7)
+      if (["D1", "D3", "D5", "D7"].includes(dayKey)) {
         let testType = "TFCL";
         let testName = `TFCL ${dayKey}`;
         const rawData: Record<string, unknown> = {
@@ -172,13 +173,16 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
           testName = "TFCL D3 — MAP 5min";
           if (formData.map5min_avg) rawData.map5min_w = parseInt(formData.map5min_avg);
         } else if (dayKey === "D5") {
+          testType = "FTP";
+          testName = "TFCL D5 — Test FTP";
+          if (formData.ftp_used) rawData.ftp = parseInt(formData.ftp_used);
+        } else if (dayKey === "D7") {
           testType = "TTE";
-          testName = "TFCL D5 — FTP + TTE";
+          testName = "TFCL D7 — Test TTE";
           if (formData.tte_observed) {
             rawData.tte_minutes = parseInt(formData.tte_observed);
             rawData.tteObserved = parseInt(formData.tte_observed);
           }
-          if (formData.ftp_used) rawData.ftp = parseInt(formData.ftp_used);
         }
 
         const reliability = 0.5 + (protocolQuality - 3) * 0.075;
@@ -197,7 +201,8 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
         const evidenceTypeMap: Record<string, string> = {
           D1: "P30",
           D3: "MAP",
-          D5: "TTE_OBS",
+          D5: "P60", // FTP-family evidence — même convention que TestsPage.tsx (data.type.startsWith("FTP") -> "P60")
+          D7: "TTE_OBS",
         };
         await supabase.from("calibration_evidence").insert({
           athlete_id: athlete.id,
@@ -281,16 +286,21 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
       );
     } else if (dayKey === "D5") {
       fields.push(
-        { key: "ftp_used", label: "FTP utilisé", unit: "W" },
-        { key: "tte_observed", label: "TTE observé", unit: "min" },
-        { key: "power_avg", label: "Puissance moy.", unit: "W" },
-        { key: "hr_drift", label: "HR drift", unit: "%" },
+        { key: "power_avg", label: "Puissance moy. 20 min", unit: "W" },
+        { key: "ftp_used", label: "FTP calculé (Pavg × 0.95)", unit: "W" },
         { key: "rpe", label: "RPE", unit: "/10" }
       );
     } else if (dayKey === "D6") {
       fields.push(
         { key: "hr_drift", label: "HR drift", unit: "%" },
         { key: "cadence_avg", label: "Cadence moy.", unit: "rpm" },
+        { key: "rpe", label: "RPE", unit: "/10" }
+      );
+    } else if (dayKey === "D7") {
+      fields.push(
+        { key: "tte_observed", label: "TTE observé", unit: "min" },
+        { key: "power_avg", label: "Puissance moy. pendant l'effort", unit: "W" },
+        { key: "hr_drift", label: "HR drift", unit: "%" },
         { key: "rpe", label: "RPE", unit: "/10" }
       );
     }

@@ -12,22 +12,26 @@ interface DetectionCandidate {
 }
 
 /**
- * TFCL Reference-Week slots: which of the 4 efforts of the Semaine Test
+ * TFCL Reference-Week slots: which of the 5 efforts of the Semaine Test
  * a detected FIT test type fills.
- *  - P30S  → Sprint 30s (snapshot.p30s_w)
- *  - P60S  → Sprint 60s (snapshot.p60s_w)
- *  - MAP5  → MAP 5 min  (snapshot.map5min_w)
- *  - FTP_TTE → FTP + TTE (snapshot.ftp + tte_observed_min)
+ *  - P30S → Sprint 30s (snapshot.p30s_w)
+ *  - P60S → Sprint 60s (snapshot.p60s_w)
+ *  - MAP5 → MAP 5 min  (snapshot.map5min_w)
+ *  - FTP  → FTP 20 min (snapshot.ftp) — D5, dédié
+ *  - TTE  → TTE au seuil (snapshot.tte_observed_min) — D7, dédié, distinct de D5
+ *    (coach fix : FTP et TTE étaient mesurés dans le même effort D5, ce qui est
+ *    méthodologiquement bancal — un pacing soutenable pour un FTP propre
+ *    contredit un pacing poussé à l'échec pour une vraie TTE)
  */
-export type TFCLWeekSlot = "P30S" | "P60S" | "MAP5" | "FTP_TTE" | null;
+export type TFCLWeekSlot = "P30S" | "P60S" | "MAP5" | "FTP" | "TTE" | null;
 
 const TFCL_SLOT_MAP: Partial<Record<DetectedTestType, TFCLWeekSlot>> = {
   SPRINT_30S: "P30S",
   SPRINT_60S: "P60S",
   MAP_5MIN: "MAP5",
-  FTP_20MIN: "FTP_TTE",
-  FTP_2x8MIN: "FTP_TTE",
-  TTE_THRESHOLD: "FTP_TTE",
+  FTP_20MIN: "FTP",
+  FTP_2x8MIN: "FTP",
+  TTE_THRESHOLD: "TTE",
 };
 
 export function getTFCLWeekSlot(type: DetectedTestType): TFCLWeekSlot {
@@ -39,7 +43,8 @@ export function formatTFCLSlot(slot: TFCLWeekSlot): string {
     case "P30S": return "Sprint 30s (D1)";
     case "P60S": return "Sprint 60s (D1)";
     case "MAP5": return "MAP 5 min (D3)";
-    case "FTP_TTE": return "FTP + TTE (D5)";
+    case "FTP": return "FTP (D5)";
+    case "TTE": return "TTE (D7)";
     default: return "—";
   }
 }

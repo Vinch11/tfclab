@@ -121,7 +121,8 @@ export function TFCLTestingWeekStatusCard({ snapshot, sport = "tri" }: Props) {
         ["p30s", "Sprint 30s", snapshot.p30s_w ?? null, "W"],
         ["p60s", "Sprint 60s", snapshot.p60s_w ?? null, "W"],
         ["map5", "MAP 5 min", snapshot.map5min_w ?? null, "W"],
-        ["ftp", "FTP + TTE", snapshot.ftp ?? null, "W"],
+        ["ftp", "FTP", snapshot.ftp ?? null, "W"],
+        ["tte", "TTE", snapshot.tte_observed_min ?? null, "min"],
       ];
       return rows.map(([k, l, v, u]) => ({
         key: k, label: l,

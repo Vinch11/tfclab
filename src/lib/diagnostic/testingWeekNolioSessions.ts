@@ -10,7 +10,7 @@ import {
 
 /**
  * testingWeekNolioSessions — Convertit le calendrier compact triathlon
- * (16 jours vélo + course + natation, cf. buildTestingWeekProtocolHTML.ts)
+ * (17 jours vélo + course + natation, cf. buildTestingWeekProtocolHTML.ts)
  * en séances envoyables à l'edge function `nolio-send-plan`, pour que le
  * coach puisse pousser ce protocole de test dans le calendrier Nolio de
  * l'athlète comme un plan classique, puis l'enregistrer comme modèle
@@ -166,7 +166,7 @@ function swimNolioSteps(): NolioStepLike[] {
 }
 
 /**
- * Construit les séances Nolio du calendrier compact triathlon (16 jours),
+ * Construit les séances Nolio du calendrier compact triathlon (17 jours),
  * numérotées weekNumber/dayIndex de façon séquentielle continue à partir
  * du Jour 1 (weekNumber=1+floor((n-1)/7), dayIndex=(n-1)%7) — indépendant
  * du jour de la semaine réel, puisqu'un `planStartDate` arbitraire ancre

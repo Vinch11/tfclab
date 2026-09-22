@@ -73,8 +73,13 @@ export function analyzeFitSession(
   // 5. Calculer MAP (P5min) — concept vélo (snapshot.map5min_w)
   const mapEstimate = isRun ? undefined : bestEfforts.p5min;
 
-  // 6. Calculer TTE observé (seuil = % de FTP vélo, non applicable à la course)
-  const ftpForTte = ftpEstimate?.ftpWatts ?? (isRun ? undefined : existingFtp);
+  // 6. Calculer TTE observé — UNIQUEMENT au FTP DÉJÀ validé (existingFtp),
+  // jamais à un FTP fraîchement estimé dans CETTE MÊME séance. Coach fix
+  // (audit "FTP et TTE mélangés") : mesurer les deux dans le même effort est
+  // méthodologiquement bancal — un pacing soutenable pour un FTP propre
+  // contredit un pacing poussé à l'échec pour une vraie TTE. La semaine de
+  // test sépare maintenant FTP (D5) et TTE (D7, testée au FTP de D5).
+  const ftpForTte = isRun ? undefined : existingFtp;
   const tteObservation = ftpForTte
     ? calculateTteObservation(session, ftpForTte)
     : undefined;

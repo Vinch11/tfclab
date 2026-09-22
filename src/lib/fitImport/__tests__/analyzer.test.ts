@@ -85,3 +85,35 @@ describe("analyzeFitSession — sport course vs vélo", () => {
     expect(result.ftpEstimate).toBeUndefined();
   });
 });
+
+/**
+ * Fix "FTP et TTE mélangés" (demande coach, semaine de test TFCL D5 séparée
+ * en D5 FTP dédié + D7 TTE dédié) : la TTE ne doit se mesurer QU'au FTP DÉJÀ
+ * validé (existingFtp, ex. celui de D5), jamais à un FTP fraîchement estimé
+ * dans la même séance — sinon on retombe exactement dans le mélange
+ * méthodologique corrigé (pacing soutenable pour un FTP propre vs pacing
+ * poussé à l'échec pour une vraie TTE, contradictoires dans un seul effort).
+ */
+describe("analyzeFitSession — TTE uniquement au FTP déjà validé, jamais à un FTP frais", () => {
+  it("ne calcule aucune TTE quand aucun FTP existant n'est fourni, même si un FTP est fraîchement estimé dans cette séance", () => {
+    const bikeTest = buildSteadyPowerSession({ sport: "cycling", watts: 300, durationMin: 30 });
+    const result = analyzeFitSession(bikeTest); // pas d'existingFtp
+
+    expect(result.ftpEstimate).toBeDefined(); // FTP frais bien calculé (c'est le jour D5)
+    expect(result.tteObservation).toBeUndefined(); // mais pas de TTE tirée de ce même effort
+  });
+
+  it("calcule bien une TTE quand un FTP déjà validé est fourni (ex. séance D7, testée au FTP mesuré en D5)", () => {
+    const existingFtp = 300;
+    // Effort tenu 5 min à 285W (95% du FTP existant) — au-dessus du seuil de
+    // calculateTteObservation. Durée courte délibérément (pas un vrai 40-60
+    // min de TTE) pour éviter le coût O(n²) de findSteadySegment (détection
+    // de type de test, non pertinente ici) sur un grand nombre de records.
+    const tteSession = buildSteadyPowerSession({ sport: "cycling", watts: 285, durationMin: 5 });
+    const result = analyzeFitSession(tteSession, undefined, existingFtp);
+
+    expect(result.tteObservation).toBeDefined();
+    expect(result.tteObservation?.targetFtp).toBe(existingFtp);
+    expect(result.tteObservation?.tteMinutes).toBeGreaterThan(4);
+  });
+});

@@ -110,14 +110,19 @@ export function calculateTteObservation(
 
   if (records.length < 60) return undefined;
 
-  // Chercher la plus longue séquence continue au-dessus du seuil
+  // Chercher la plus longue séquence continue au-dessus du seuil.
+  // Fix (trouvé en implémentant le fix "FTP/TTE séparés" — cette fonction ne
+  // détectait jamais aucune séquence, quel que soit l'input) : `currentStart`
+  // était réinitialisé à `i` dès que `currentDuration === 0`, hors
+  // `currentDuration` valait TOUJOURS 0 juste après ce reset (elapsed d'un
+  // point par rapport à lui-même) — le reset se redéclenchait donc à CHAQUE
+  // itération suivante, empêchant toute accumulation de durée. `currentStart`
+  // est maintenant un sentinel (-1 = pas de séquence en cours), qui n'est
+  // posé qu'UNE fois au vrai début d'une séquence.
   let maxDuration = 0;
-  let currentDuration = 0;
-  let currentStart = 0;
+  let currentStart = -1;
   let bestStart = 0;
   let bestEnd = 0;
-  let powerSum = 0;
-  let powerCount = 0;
 
   const pauseThresholdMs = 5000; // 5 secondes de pause max
 
@@ -126,19 +131,13 @@ export function calculateTteObservation(
     const isAboveThreshold = power >= targetPower * 0.95; // Tolérance de 5%
 
     if (isAboveThreshold) {
-      if (currentDuration === 0) {
+      if (currentStart === -1) {
         currentStart = i;
-      }
-
-      // Vérifier s'il n'y a pas eu de pause
-      if (i > 0) {
+      } else if (i > 0) {
+        // Reset si pause dans la séquence en cours
         const timeDiff =
           records[i].timestamp.getTime() - records[i - 1].timestamp.getTime();
         if (timeDiff > pauseThresholdMs) {
-          // Reset si pause
-          currentDuration = 0;
-          powerSum = 0;
-          powerCount = 0;
           currentStart = i;
         }
       }
@@ -147,19 +146,14 @@ export function calculateTteObservation(
         (records[i].timestamp.getTime() -
           records[currentStart].timestamp.getTime()) /
         1000;
-      currentDuration = elapsed;
-      powerSum += power;
-      powerCount++;
 
-      if (currentDuration > maxDuration) {
-        maxDuration = currentDuration;
+      if (elapsed > maxDuration) {
+        maxDuration = elapsed;
         bestStart = currentStart;
         bestEnd = i;
       }
     } else {
-      currentDuration = 0;
-      powerSum = 0;
-      powerCount = 0;
+      currentStart = -1;
     }
   }
 
