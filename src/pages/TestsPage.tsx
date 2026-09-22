@@ -3,7 +3,7 @@
  * Page principale avec 3 onglets : Bibliothèque, Tests Réalisés, Historique
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { 
@@ -18,7 +18,8 @@ import {
   Filter,
   Info,
   Users,
-  Upload
+  Upload,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,6 +36,7 @@ import { CompletedTestsView } from "@/components/tests/CompletedTestsView";
 import { TestHistoryView } from "@/components/tests/TestHistoryView";
 import { TestExecutionSheet } from "@/components/tests/TestExecutionSheet";
 import { FitImportDialog, type FitTestSaveData, type ProfileUpdates } from "@/components/FitImportDialog";
+import { NolioFitPickerDialog } from "@/components/NolioFitPickerDialog";
 
 import { IntegratedTestProtocol, INTEGRATED_TESTS_LIBRARY } from "@/data/testProtocolsLibrary";
 import type { Json } from "@/integrations/supabase/types";
@@ -49,11 +51,30 @@ export default function TestsPage() {
   const [activeTest, setActiveTest] = useState<IntegratedTestProtocol | null>(null);
   const [sportFilter, setSportFilter] = useState<"all" | "bike" | "run">("all");
   const [fitImportOpen, setFitImportOpen] = useState(false);
-  
+  const [nolioPickerOpen, setNolioPickerOpen] = useState(false);
+  const [nolioId, setNolioId] = useState<number | null>(null);
+  const [pendingNolioFile, setPendingNolioFile] = useState<File | null>(null);
+
   const selectedAthlete = useMemo(
     () => athletes.find(a => a.id === selectedAthleteId) || null,
     [athletes, selectedAthleteId]
   );
+
+  useEffect(() => {
+    if (!selectedAthlete?.id) { setNolioId(null); return; }
+    let cancelled = false;
+    supabase
+      .from("athletes")
+      .select("nolio_id")
+      .eq("id", selectedAthlete.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const raw = (data as { nolio_id?: number | null } | null)?.nolio_id;
+        setNolioId(typeof raw === "number" ? raw : null);
+      });
+    return () => { cancelled = true; };
+  }, [selectedAthlete?.id]);
   
   const athleteTests = useMemo(() => {
     if (!selectedAthlete) return [];
@@ -371,6 +392,16 @@ export default function TestsPage() {
                 <Upload className="w-4 h-4" />
                 <span>Importer fichier .FIT</span>
               </Button>
+              {nolioId && (
+                <Button
+                  variant="outline"
+                  onClick={() => setNolioPickerOpen(true)}
+                  className="gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Importer depuis Nolio</span>
+                </Button>
+              )}
               <Badge variant="secondary" className="gap-1">
                 <ClipboardList className="w-3 h-3" />
                 {completedTestsCount} test{completedTestsCount !== 1 ? "s" : ""}
@@ -493,14 +524,29 @@ export default function TestsPage() {
       {selectedAthlete && (
         <FitImportDialog
           open={fitImportOpen}
-          onOpenChange={setFitImportOpen}
+          onOpenChange={(o) => {
+            setFitImportOpen(o);
+            if (!o) setPendingNolioFile(null);
+          }}
           athleteId={selectedAthlete.id}
           athleteName={selectedAthlete.name}
           currentSnapshot={currentSnapshot}
           onSaveTest={handleSaveFitTest}
           onUpdateProfile={handleUpdateProfileFromFit}
+          initialFile={pendingNolioFile}
         />
       )}
+
+      {/* Nolio Fit Picker */}
+      <NolioFitPickerDialog
+        open={nolioPickerOpen}
+        onOpenChange={setNolioPickerOpen}
+        nolioAthleteId={nolioId}
+        onFileReady={(file) => {
+          setPendingNolioFile(file);
+          setFitImportOpen(true);
+        }}
+      />
     </div>
   );
 }
