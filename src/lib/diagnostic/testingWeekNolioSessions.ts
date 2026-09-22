@@ -56,6 +56,22 @@ export interface NolioStepLike {
   notes: string;
 }
 
+/**
+ * Bloc de répétition Nolio natif (même shape que `NolioRepStep` côté
+ * nolio-send-plan/index.ts : `structuredWorkout` construit ici est envoyé
+ * TEL QUEL, sans repasser par buildStructuredFromParts). Utilisé quand le
+ * protocole répète un même effort identique à l'identique (ex. CAP D1 : 2
+ * sprints 15s séparés par la même récupération) — donne dans Nolio le même
+ * rendu visuel "2x { ... }" qu'un bloc construit à la main (cf. demande
+ * coach, capture TFCL Pool Day™).
+ */
+export interface NolioRepStepLike {
+  type: "repetition";
+  intensity_type: "repetition";
+  value: number; // nombre de répétitions
+  steps: NolioStepLike[];
+}
+
 export interface TestingWeekNolioSession {
   weekNumber: number;
   dayIndex: number; // 0-6, requis par nolio-send-plan
@@ -65,7 +81,7 @@ export interface TestingWeekNolioSession {
   objectif: string;
   details: string;
   isRest: false;
-  structuredWorkout: NolioStepLike[];
+  structuredWorkout: (NolioStepLike | NolioRepStepLike)[];
 }
 
 function formatStep(s: NormStep): string {
@@ -90,6 +106,80 @@ function nolioStep(intensity: NolioStepLike["intensity_type"], durationSec: numb
     target_type: "no_target",
     notes: notes.slice(0, 500),
   };
+}
+
+/** Repère un suffixe "(essai N)" / "(tentative N)" — sert à regrouper des tentatives identiques répétées. */
+const ATTEMPT_SUFFIX = /\s*\((?:essai|tentative)\s*\d+\)\s*$/i;
+
+/**
+ * Regroupe les tentatives identiques consécutives du corps de séance en un
+ * bloc de répétition Nolio natif ("2x { effort, récup }"), au lieu de la
+ * liste à plat historique (effort 1, récup, effort 2). Ne s'applique QUE
+ * quand deux (ou plus) efforts consécutifs ont la même durée et le même
+ * libellé de base (hors suffixe "(essai N)"), séparés par une même étape de
+ * récupération — sinon (cas normal : chaque étape du corps de séance est un
+ * effort distinct, ex. P30s puis P60s) la séquence reste inchangée.
+ *
+ * Note assumée : le bloc de répétition inclut la récupération APRÈS CHAQUE
+ * tentative, y compris la dernière (même convention que le calendrier
+ * construit à la main par le coach dans Nolio, ex. TFCL Pool Day™ "2x { 25m
+ * sprint, 3min récup }") — quelques minutes de récupération de plus avant le
+ * retour au calme, jamais un raccourci du protocole.
+ */
+function groupRepeatedEffort(main: NormStep[]): (NolioStepLike | NolioRepStepLike)[] {
+  const items: (NolioStepLike | NolioRepStepLike)[] = [];
+  let i = 0;
+
+  while (i < main.length) {
+    const effort = main[i];
+    const effortMatch = effort.intensityLabel.match(ATTEMPT_SUFFIX);
+
+    if (effortMatch && i + 2 < main.length) {
+      const recovery = main[i + 1];
+      const nextEffort = main[i + 2];
+      const nextMatch = nextEffort?.intensityLabel.match(ATTEMPT_SUFFIX);
+      const baseLabel = effort.intensityLabel.replace(ATTEMPT_SUFFIX, "");
+      const sameBase = nextMatch && nextEffort.intensityLabel.replace(ATTEMPT_SUFFIX, "") === baseLabel;
+      const sameDuration = nextEffort && nextEffort.durationMin === effort.durationMin;
+      const isRecoveryBetween = recovery && recovery.durationMin !== effort.durationMin;
+
+      if (sameBase && sameDuration && isRecoveryBetween) {
+        // Compte toutes les tentatives consécutives partageant ce même libellé de base.
+        let reps = 1;
+        let j = i;
+        while (
+          j + 2 < main.length &&
+          main[j + 2]?.intensityLabel.replace(ATTEMPT_SUFFIX, "") === baseLabel &&
+          main[j + 2].durationMin === effort.durationMin &&
+          main[j + 1]?.durationMin !== effort.durationMin
+        ) {
+          reps++;
+          j += 2;
+        }
+
+        const notesParts = [effort.notes, nextEffort.notes].filter((n): n is string => !!n);
+        const mergedNotes = Array.from(new Set(notesParts)).join(" ");
+
+        items.push({
+          type: "repetition",
+          intensity_type: "repetition",
+          value: reps,
+          steps: [
+            nolioStep("active", effort.durationMin * 60, `${baseLabel}${mergedNotes ? ` (${mergedNotes})` : ""}`),
+            nolioStep("cooldown", recovery.durationMin * 60, formatStep(recovery)),
+          ],
+        });
+
+        i = j + 2; // saute toutes les tentatives + récups consommées
+        continue;
+      }
+    }
+
+    items.push(nolioStep("active", effort.durationMin * 60, formatStep(effort)));
+    i++;
+  }
+
+  return items;
 }
 
 /** Construit le texte de description (sections clairement titrées) d'un jour vélo/course. */
@@ -122,10 +212,10 @@ function dayToDescriptionText(day: NormDay, flag?: string): string {
 }
 
 /** Construit les étapes structurées (une par étape du protocole, sans cible chiffrée) d'un jour vélo/course. */
-function dayToNolioSteps(day: NormDay): NolioStepLike[] {
+function dayToNolioSteps(day: NormDay): (NolioStepLike | NolioRepStepLike)[] {
   return [
     ...day.warmup.map((s) => nolioStep("warmup", s.durationMin * 60, formatStep(s))),
-    ...day.main.map((s) => nolioStep("active", s.durationMin * 60, formatStep(s))),
+    ...groupRepeatedEffort(day.main),
     ...day.recovery.map((s) => nolioStep("cooldown", s.durationMin * 60, formatStep(s))),
   ];
 }
