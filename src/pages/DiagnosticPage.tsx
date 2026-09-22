@@ -33,10 +33,18 @@ import {
   type TestingWeekSport,
 } from "@/lib/diagnostic/buildTestingWeekProtocolHTML";
 import { buildCompactTriathlonNolioSessions } from "@/lib/diagnostic/testingWeekNolioSessions";
+import {
+  mergeTestingWeekSnapshots,
+  buildConsolidatedSnapshotPayload,
+  TESTING_FIELDS,
+  TESTING_FIELD_LABELS,
+  type MergedTestingSnapshot,
+} from "@/lib/testingWeekSnapshotMerge";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FolderDown, Send, Loader2 } from "lucide-react";
+import { FolderDown, Send, Loader2, ClipboardCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -189,6 +197,45 @@ export default function DiagnosticPage() {
       toast.error(`Erreur Nolio : ${(e as Error).message ?? "inconnue"}`);
     } finally {
       setNolioSending(false);
+    }
+  }
+
+  // --- Consolidation semaine de test → snapshot unique ---
+  const { snapshots, addSnapshot, setActiveSnapshot } = useCloudDataContext();
+  const [consolidationSince, setConsolidationSince] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 21);
+    return d.toISOString().slice(0, 10);
+  });
+  const [consolidationPreview, setConsolidationPreview] = useState<MergedTestingSnapshot | null>(null);
+  const [consolidationSaving, setConsolidationSaving] = useState(false);
+
+  function handlePreviewConsolidation() {
+    if (!currentAthlete) { toast.error("Sélectionnez un athlète"); return; }
+    const merged = mergeTestingWeekSnapshots(currentAthlete.id, snapshots, consolidationSince);
+    setConsolidationPreview(merged);
+    if (Object.keys(merged.fields).length === 0) {
+      toast.warning("Aucun résultat de test trouvé depuis cette date pour cet athlète.");
+    }
+  }
+
+  async function handleConfirmConsolidation() {
+    if (!currentAthlete || !consolidationPreview) return;
+    setConsolidationSaving(true);
+    try {
+      const todayISO = new Date().toISOString().slice(0, 10);
+      const payload = buildConsolidatedSnapshotPayload(consolidationPreview, todayISO);
+      const created = await addSnapshot(payload);
+      if (!created) { toast.error("Échec de la création du snapshot consolidé"); return; }
+      const activated = await setActiveSnapshot(currentAthlete.id, created.id);
+      if (!activated) {
+        toast.warning("Snapshot consolidé créé, mais échec de son activation — activez-le manuellement.");
+      } else {
+        toast.success("Snapshot complet créé et activé ✅");
+      }
+      setConsolidationPreview(null);
+    } finally {
+      setConsolidationSaving(false);
     }
   }
 
@@ -383,6 +430,88 @@ export default function DiagnosticPage() {
                 )}
                 {currentAthlete && !nolioId && (
                   <p className="text-[10px] text-destructive">Cet athlète n'est pas lié à un compte Nolio.</p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Consolidation de la semaine de test en un snapshot unique */}
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <ClipboardCheck className="h-5 w-5 text-primary" />
+              🧬 Consolider la semaine de test en un snapshot complet
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Les tests vélo (semaine TFCL), course (semaine CAP) et natation (Pool Day) enregistrent leurs résultats séparément et peuvent finir éparpillés sur plusieurs profils selon l'ordre des tests. Cette action relit tous les résultats de l'athlète depuis une date de départ, retient la valeur la plus récente pour chaque mesure, puis crée <strong>un seul</strong> nouveau profil consolidé — activé automatiquement.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3 items-end">
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="consolidation-since" className="text-xs">Résultats depuis le</Label>
+                <Input
+                  id="consolidation-since"
+                  type="date"
+                  value={consolidationSince}
+                  onChange={(e) => { setConsolidationSince(e.target.value); setConsolidationPreview(null); }}
+                />
+              </div>
+              <Button
+                variant="outline"
+                disabled={!currentAthlete}
+                onClick={handlePreviewConsolidation}
+              >
+                Aperçu
+              </Button>
+            </div>
+            {!currentAthlete && (
+              <p className="text-[10px] text-destructive">Sélectionnez un athlète pour prévisualiser.</p>
+            )}
+
+            {consolidationPreview && (
+              <div className="space-y-3 rounded-md border border-primary/30 bg-background/60 p-3">
+                {Object.keys(consolidationPreview.fields).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Aucun résultat trouvé depuis cette date.</p>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {Object.keys(consolidationPreview.fields).length} mesure(s) retenue(s), depuis {consolidationPreview.contributingSnapshots.length} profil(s) source(s).
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-left text-muted-foreground">
+                            <th className="pr-2 py-1">Mesure</th>
+                            <th className="pr-2 py-1">Valeur retenue</th>
+                            <th className="py-1">Origine</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {TESTING_FIELDS.filter((f) => f in consolidationPreview.fields).map((field) => (
+                            <tr key={field} className="border-t border-border/40">
+                              <td className="pr-2 py-1">{TESTING_FIELD_LABELS[field]}</td>
+                              <td className="pr-2 py-1 font-medium tabular-nums">
+                                {String(consolidationPreview.fields[field])}
+                              </td>
+                              <td className="py-1 text-muted-foreground">
+                                {consolidationPreview.fieldOrigins[field]?.date} · {consolidationPreview.fieldOrigins[field]?.source}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Button
+                      className="w-full sm:w-auto"
+                      disabled={consolidationSaving}
+                      onClick={handleConfirmConsolidation}
+                    >
+                      {consolidationSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ClipboardCheck className="h-4 w-4 mr-2" />}
+                      Valider et créer le snapshot complet
+                    </Button>
+                  </>
                 )}
               </div>
             )}

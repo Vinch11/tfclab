@@ -42,6 +42,7 @@ export interface DbSnapshot {
   cycle_tag?: string | null;
   confidence?: number | null;
   fc_max?: number | null;
+  fc_repos?: number | null;
   vma?: number | null;
   ftp?: number | null;
   css?: number | null;
@@ -58,6 +59,7 @@ export interface DbSnapshot {
   tss_7d?: number | null;
   tte_mode?: string | null;
   tte_observed_min?: number | null;
+  tte_observed_min_run?: number | null; // TTE observé course (min) — distinct de tte_observed_min (vélo)
   // Running Economy (CAP) fields
   run_pace_ref_sec_per_km?: number | null;
   run_hr_ref_bpm?: number | null;
