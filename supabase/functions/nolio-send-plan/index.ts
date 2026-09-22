@@ -69,6 +69,15 @@ type ParsedSession = {
    * à tort un pattern de répétition dans le texte concaténé).
    */
   noStructuredWorkout?: boolean;
+  /**
+   * structured_workout déjà construit côté appelant (un step par étape,
+   * jamais un texte concaténé) — court-circuite entièrement buildStructuredFromParts
+   * et les overrides/generated (par id, qui ne s'appliquent qu'aux séances
+   * catalogue). Utilisé par les séances qui n'ont pas d'id de catalogue,
+   * ex. les semaines de test TFCL/CAP dont chaque étape est déjà minutée
+   * individuellement — pas besoin de reparser un texte pour la retrouver.
+   */
+  structuredWorkout?: NolioStructuredItem[] | null;
 };
 
 type AthleteRefs = {
@@ -1814,7 +1823,9 @@ Deno.serve(async (req) => {
       const structure = Array.isArray(s.structure) ? s.structure : [];
       const overrideKey = (s.id ?? "").trim();
       const override = overrideKey ? overridesMap.get(overrideKey) : undefined;
-      let structured_workout: unknown = null;
+      let structured_workout: unknown = Array.isArray(s.structuredWorkout) && s.structuredWorkout.length > 0
+        ? s.structuredWorkout
+        : null;
       let usedOverride = false;
 
       // Détection du shape de l'override :

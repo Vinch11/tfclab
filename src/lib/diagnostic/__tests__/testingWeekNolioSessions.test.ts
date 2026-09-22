@@ -20,10 +20,28 @@ describe("buildCompactTriathlonNolioSessions", () => {
     }
   });
 
-  it("porte noStructuredWorkout=true sur toutes les séances (bug réel corrigé : le générateur d'intervalles de nolio-send-plan suppose 1 part = 1 étape et produisait des durées/cibles fausses sur nos séquences multi-étapes)", () => {
+  it("construit, pour chaque étape de chaque séance, un step sans cible chiffrée (demande coach : \"empty unit\" + texte explicatif, pas de valeur liée à un athlète précis)", () => {
     for (const s of sessions) {
-      expect(s.noStructuredWorkout).toBe(true);
+      for (const step of s.structuredWorkout) {
+        expect(step.type).toBe("step");
+        expect(step.step_duration_type).toBe("duration");
+        expect(step.target_type).toBe("no_target");
+        expect(step.step_duration_value).toBeGreaterThan(0);
+        expect(step.notes.trim().length).toBeGreaterThan(0);
+        expect(["warmup", "active", "cooldown"]).toContain(step.intensity_type);
+      }
     }
+  });
+
+  it("a un structuredWorkout non vide pour toute séance qui a effectivement des étapes physiques", () => {
+    // "OFF + COHÉRENCE CHECK" (D7) n'a aucune étape physique dans le protocole officiel
+    // (juste une table de cohérence à remplir) — structuredWorkout vide y est donc correct,
+    // pas un oubli. Toutes les autres séances doivent avoir au moins une étape.
+    const withoutSteps = sessions.filter((s) => s.structuredWorkout.length === 0);
+    for (const s of withoutSteps) {
+      expect(s.title).toBe("OFF + COHÉRENCE CHECK");
+    }
+    expect(sessions.length - withoutSteps.length).toBeGreaterThan(0);
   });
 
   it("garde dayIndex dans 0-6 pour toutes les séances (contrat dur de nolio-send-plan)", () => {
@@ -87,5 +105,22 @@ describe("buildCompactTriathlonNolioSessions", () => {
     // Chaque section démarre sur sa propre ligne, séparée par une ligne vide — jamais fusionnée.
     expect(glyco!.objectif).toMatch(/\n\n🔥 ÉCHAUFFEMENT/);
     expect(glyco!.objectif).toMatch(/\n\n💪 CORPS DE SÉANCE/);
+  });
+
+  it("découpe le structuredWorkout en une étape par étape réelle du protocole (jamais une seule étape fourre-tout, contrairement au bug initial)", () => {
+    const glyco = sessions.find((s) => s.title.includes("TEST GLYCOLYTIQUE"));
+    expect(glyco).toBeDefined();
+    // Officiellement (TFCL_TESTING_WEEK D1) : 4 étapes d'échauffement + 3 étapes de corps de séance + 1 retour au calme = 8.
+    expect(glyco!.structuredWorkout.length).toBe(8);
+    // Durée totale des étapes = somme exacte des durées officielles (26 + 11.5 + 10 min) — aucune étape perdue en route.
+    const totalSec = glyco!.structuredWorkout.reduce((acc, s) => acc + s.step_duration_value, 0);
+    expect(totalSec).toBe(47.5 * 60);
+  });
+
+  it("la séance natation a une étape structurée par bloc officiel (4 blocs)", () => {
+    const swim = sessions.find((s) => s.sport === "Natation");
+    expect(swim).toBeDefined();
+    expect(swim!.structuredWorkout).toHaveLength(4);
+    expect(swim!.structuredWorkout[0].intensity_type).toBe("warmup");
   });
 });
