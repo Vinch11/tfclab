@@ -212,7 +212,7 @@ function dayToDescriptionText(day: NormDay, flag?: string): string {
 }
 
 /** Construit les étapes structurées (une par étape du protocole, sans cible chiffrée) d'un jour vélo/course. */
-function dayToNolioSteps(day: NormDay): (NolioStepLike | NolioRepStepLike)[] {
+export function dayToNolioSteps(day: NormDay): (NolioStepLike | NolioRepStepLike)[] {
   return [
     ...day.warmup.map((s) => nolioStep("warmup", s.durationMin * 60, formatStep(s))),
     ...groupRepeatedEffort(day.main),
