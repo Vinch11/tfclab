@@ -26,6 +26,15 @@ import {
  * riche (échauffement / corps de séance / retour au calme + règles de
  * pacing + critères de validité + données à enregistrer), à suivre au
  * chronomètre comme dans le dossier papier.
+ *
+ * Le texte est construit ENTIÈREMENT ici (pas via le champ `structure` de
+ * nolio-send-plan) : buildDescription() de nolio-send-plan aplatit chaque
+ * "part" de `structure` en une seule liste à puces (toListLines), fusionnant
+ * étapes/règles/critères/données à enregistrer en un seul bloc indistinct
+ * dès que le texte contient plusieurs paragraphes — bug réel observé en
+ * prod (retour coach : "la fin du bloc texte est très condensée"). Poser
+ * tout le texte final dans `objectif` (jamais lu par toListLines) garde nos
+ * propres sauts de ligne et titres de section intacts.
  */
 
 export interface TestingWeekNolioSession {
@@ -36,17 +45,12 @@ export interface TestingWeekNolioSession {
   title: string;
   objectif: string;
   details: string;
-  structure: Array<{ part: string; zones: string[]; text: string }>;
   isRest: false;
   /**
-   * `structure` sert uniquement à la description texte (nolio-send-plan
-   * la lit pour le rendu 🔥/💪/🧘) — jamais à un structured_workout chiffré.
-   * Chaque "part" ici encode une SÉQUENCE de plusieurs étapes minutées
-   * (plusieurs lignes de warmup/main/recovery concaténées), pas une seule
-   * consigne : le générateur d'intervalles de nolio-send-plan suppose une
-   * part = une étape et produisait des durées/cibles fausses (bug réel
-   * observé en prod — étapes dupliquées, mauvaises unités W/bpm) en tentant
-   * de condenser toute la séquence en un seul step programmé.
+   * Défensif : aucun `structure` n'est jamais posé par ce module (cf. note
+   * de tête de fichier), donc nolio-send-plan ne tenterait de toute façon
+   * pas de générer un structured_workout chiffré — ce flag documente
+   * explicitement l'intention si `structure` était réintroduit un jour.
    */
   noStructuredWorkout: true;
 }
@@ -56,55 +60,56 @@ function formatStep(s: NormStep): string {
   return `${dur} — ${s.intensityLabel}${s.notes ? ` (${s.notes})` : ""}`;
 }
 
-function stepsToText(steps: NormStep[]): string {
-  return steps.map(formatStep).join("\n");
+function listLines(items: string[]): string {
+  return items.map((it) => `• ${it}`).join("\n");
 }
 
-/** Construit la `structure` (parts échauffement/travail/récupération) d'un jour vélo/course. */
-function dayToStructure(day: NormDay): Array<{ part: string; zones: string[]; text: string }> {
-  const structure: Array<{ part: string; zones: string[]; text: string }> = [];
+function stepsToLines(steps: NormStep[]): string {
+  return listLines(steps.map(formatStep));
+}
+
+/** Construit le texte de description (sections clairement titrées) d'un jour vélo/course. */
+function dayToDescriptionText(day: NormDay, flag?: string): string {
+  const sections: string[] = [day.goal];
 
   if (day.warmup.length > 0) {
-    structure.push({ part: "Échauffement", zones: [], text: stepsToText(day.warmup) });
+    sections.push(`🔥 ÉCHAUFFEMENT\n${stepsToLines(day.warmup)}`);
   }
-
-  const mainLines: string[] = [];
-  if (day.main.length > 0) mainLines.push(stepsToText(day.main));
-  if (day.pacingRules.length > 0) mainLines.push(`Règles de pacing :\n${day.pacingRules.map((r) => `- ${r}`).join("\n")}`);
-  if (day.validityCriteria.length > 0) mainLines.push(`Critères de validité :\n${day.validityCriteria.map((r) => `- ${r}`).join("\n")}`);
-  if (day.dataToRecord.length > 0) mainLines.push(`À enregistrer : ${day.dataToRecord.join(", ")}`);
-  if (mainLines.length > 0) {
-    structure.push({ part: "Travail", zones: [], text: mainLines.join("\n\n") });
+  if (day.main.length > 0) {
+    sections.push(`💪 CORPS DE SÉANCE\n${stepsToLines(day.main)}`);
   }
-
   if (day.recovery.length > 0) {
-    structure.push({ part: "Récupération", zones: [], text: stepsToText(day.recovery) });
+    sections.push(`🧘 RETOUR AU CALME\n${stepsToLines(day.recovery)}`);
+  }
+  if (day.pacingRules.length > 0) {
+    sections.push(`🧭 RÈGLES DE PACING\n${listLines(day.pacingRules)}`);
+  }
+  if (day.validityCriteria.length > 0) {
+    sections.push(`✅ CRITÈRES DE VALIDITÉ\n${listLines(day.validityCriteria)}`);
+  }
+  if (day.dataToRecord.length > 0) {
+    sections.push(`📋 À ENREGISTRER\n${listLines(day.dataToRecord)}`);
+  }
+  if (flag) {
+    sections.push(`⚠️ POINT DE VIGILANCE\n${flag}`);
   }
 
-  return structure;
+  return sections.join("\n\n");
 }
 
-/** Construit la `structure` du protocole natation (TFCL Pool Day™, format blocs). */
-function swimStructure(): Array<{ part: string; zones: string[]; text: string }> {
+/** Construit le texte de description du protocole natation (TFCL Pool Day™, format blocs). */
+function swimDescriptionText(): string {
   const p = getProtocolDef("pool-day");
-  const [warmupBlock, ...restBlocks] = p.blocks;
+  const sections: string[] = [p.subtitle];
 
-  const structure: Array<{ part: string; zones: string[]; text: string }> = [];
-  if (warmupBlock) {
-    structure.push({
-      part: "Échauffement",
-      zones: [],
-      text: `${warmupBlock.title} (${warmupBlock.duration})\n${warmupBlock.instructions.join("\n")}`,
-    });
+  for (const b of p.blocks) {
+    sections.push(`🏊 ${b.title.toUpperCase()} (${b.duration})\n${listLines(b.instructions)}`);
   }
-  const mainLines = restBlocks.map((b) => `${b.title} (${b.duration})\n${b.instructions.join("\n")}`);
   if (p.results.length > 0) {
-    mainLines.push(`Résultats à calculer : ${p.results.map((r) => r.metric).join(", ")}`);
+    sections.push(`📋 RÉSULTATS À CALCULER\n${listLines(p.results.map((r) => `${r.metric} (${r.unit})`))}`);
   }
-  if (mainLines.length > 0) {
-    structure.push({ part: "Travail", zones: [], text: mainLines.join("\n\n") });
-  }
-  return structure;
+
+  return sections.join("\n\n");
 }
 
 /**
@@ -133,9 +138,8 @@ export function buildCompactTriathlonNolioSessions(): TestingWeekNolioSession[] 
           sessionIndex,
           sport: "Natation",
           title: p.name,
-          objectif: p.subtitle,
+          objectif: swimDescriptionText(),
           details: p.subtitle,
-          structure: swimStructure(),
           isRest: false,
           noStructuredWorkout: true,
         });
@@ -149,9 +153,8 @@ export function buildCompactTriathlonNolioSessions(): TestingWeekNolioSession[] 
         sessionIndex,
         sport: it.sportLabel,
         title: day.title,
-        objectif: it.flag ? `${day.goal}\n\n⚠️ ${it.flag}` : day.goal,
+        objectif: dayToDescriptionText(day, it.flag),
         details: day.goal,
-        structure: dayToStructure(day),
         isRest: false,
         noStructuredWorkout: true,
       });
