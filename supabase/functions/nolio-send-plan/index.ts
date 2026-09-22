@@ -777,6 +777,18 @@ function normalizeStructuredWorkoutForNolio(
       const isRun = sportId === 2 || sportId === 52;
       const isSwim = sportId === 19;
 
+      // 🔧 Fix "consignes invisibles sur Nolio (empty_unit sans texte)" (audit coach) :
+      // `notes` N'EST PAS un champ du schéma officiel Nolio (wiki API : un step
+      // n'a que `name` et `comment` comme champs texte, `comment` étant le seul
+      // documenté comme affiché à l'athlète, avec support des retours à la ligne
+      // `\n`). Tout le pipeline interne (testingWeekNolioSessions, buildStructuredFromParts,
+      // canonicalizeStructuredShape) construit pourtant `notes` — un champ inconnu
+      // de Nolio, donc silencieusement ignoré à l'envoi : les steps arrivaient bien
+      // structurés (durée, cible) mais sans aucune consigne texte visible.
+      if (typeof src.notes === "string" && typeof src.comment !== "string") {
+        src.comment = src.notes;
+      }
+
       // ⚠️ Commentaires d'allure/CSS/zone au niveau du STEP volontairement retirés :
       // Nolio affiche déjà l'allure lisible à partir de target_value → doublon avec
       // la fiche descriptive (buildDescription). Voir issue "steps redondants".
