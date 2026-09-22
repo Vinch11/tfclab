@@ -433,7 +433,7 @@ const CSS = `
   .print-btn { position: fixed; top: 10px; right: 10px; background: #5555E0; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
   @media print { .print-btn { display: none; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 
-  .cover { min-height: 95vh; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 10px 30px; }
+  .cover { min-height: 250mm; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 10px 30px; }
   .cover-banner { background: linear-gradient(135deg, #5555E0 0%, #6C55D8 55%, #7A56C2 100%); border-radius: 16px; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
   .cover-banner .cover-brand { display: flex; align-items: center; gap: 18px; }
   .cover-banner .cover-logo-img { height: 64px; width: auto; background: white; padding: 8px; border-radius: 12px; }
