@@ -401,7 +401,7 @@ export default function DiagnosticPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0 space-y-3">
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Version papier du protocole officiel (9 jours vélo D-1 à D8, 8 jours course D-1 à D7) exactement utilisé par "Semaine de Test TFCL" et "Semaine de Test CAP" — mêmes tests, mêmes données à enregistrer que dans l'app, pour remplir le snapshot précisément.
+              Version papier du protocole officiel (9 jours vélo D-1 à D8, 9 jours course D-1 à D8) exactement utilisé par "Semaine de Test TFCL" et "Semaine de Test CAP" — mêmes tests, mêmes données à enregistrer que dans l'app, pour remplir le snapshot précisément.
             </p>
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-1.5 sm:col-span-2">
@@ -422,7 +422,7 @@ export default function DiagnosticPage() {
                   onChange={(e) => setTestingWeekSport(e.target.value as TestingWeekSport)}
                 >
                   <option value="triathlon">Triathlon (vélo + course)</option>
-                  <option value="triathlon-compact">Triathlon compact — 17 jours (+ natation)</option>
+                  <option value="triathlon-compact">Triathlon compact — 18 jours (+ natation)</option>
                   <option value="run">Course à pied seule</option>
                   <option value="bike">Vélo seul</option>
                 </select>
@@ -447,7 +447,7 @@ export default function DiagnosticPage() {
             {testingWeekSport === "triathlon-compact" && (
               <div className="mt-3 space-y-2 rounded-md border border-primary/30 bg-background/60 p-3">
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Envoie les 17 jours du calendrier compact (vélo + course + natation) dans le calendrier Nolio de <strong>{currentAthlete?.name ?? "l'athlète sélectionné"}</strong>, un par un, comme un plan classique. Aucune cible chiffrée (FTP/VMA/CSS pas encore connues) — chaque séance porte le protocole complet en description, à suivre au chronomètre.
+                  Envoie les 18 jours du calendrier compact (vélo + course + natation) dans le calendrier Nolio de <strong>{currentAthlete?.name ?? "l'athlète sélectionné"}</strong>, un par un, comme un plan classique. Aucune cible chiffrée (FTP/VMA/CSS pas encore connues) — chaque séance porte le protocole complet en description, à suivre au chronomètre.
                 </p>
                 <div className="grid gap-3 sm:grid-cols-3 items-end">
                   <div className="space-y-1.5 sm:col-span-2">

@@ -19,7 +19,7 @@ export interface CAPProtocol {
 }
 
 export interface CAPTestDay {
-  dayKey: "D-1" | "D1" | "D2" | "D3" | "D4" | "D5" | "D6" | "D7";
+  dayKey: "D-1" | "D1" | "D2" | "D3" | "D4" | "D5" | "D6" | "D7" | "D8";
   title: string;
   goal: string;
   sessionType: "TEST" | "RECOVERY" | "REST" | "VALIDATION";
@@ -43,7 +43,7 @@ export interface CAPTestingWeek {
 
 export const CAP_TESTING_WEEK: CAPTestingWeek = {
   title: "Semaine de Tests CAP TFCL™",
-  description: "Protocole de testing standardisé sur 8 jours pour calibrer VLamax CAP avec précision maximale. Chaque test alimente l'estimation de votre profil métabolique en course à pied.",
+  description: "Protocole de testing standardisé sur 9 jours pour calibrer VLamax CAP avec précision maximale. Chaque test alimente l'estimation de votre profil métabolique en course à pied. Fix coach (miroir du fix TFCL vélo \"FTP et TTE mélangés\") : l'allure seuil (D5) et le TTE (D6) sont testés sur 2 jours dédiés distincts — mesurer les deux dans le même effort est méthodologiquement bancal (pacing soutenable pour une allure seuil propre vs pacing poussé à l'échec pour une vraie TTE).",
   prerequisites: {
     equipment: [
       "Montre GPS avec précision ≤2m",
@@ -284,10 +284,10 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
     },
     {
       dayKey: "D5",
-      title: "TEST ALLURE SEUIL + TTE",
-      goal: "Mesurer l'allure seuil et le Time To Exhaustion",
+      title: "TEST ALLURE SEUIL",
+      goal: "Mesurer l'allure seuil sur un effort maximal soutenable de 30 min — dédié, sans extension. La durabilité à cette allure (TTE) se mesure séparément en D6, une fois l'allure seuil validée (mélanger les deux dans le même effort est méthodologiquement bancal : un pacing soutenable pour une allure seuil propre contredit un pacing poussé à l'échec pour une vraie TTE).",
       sessionType: "TEST",
-      durationEstimateMin: 75,
+      durationEstimateMin: 60,
       icon: "threshold",
       protocol: {
         warmup: [
@@ -297,8 +297,7 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           { durationMin: 5, intensityLabel: "Récup", notes: "Marche avant le test" }
         ],
         main: [
-          { durationMin: 30, intensityLabel: "30 min au seuil (calage allure)", notes: "Effort maximal soutenable sur 30 min. Allure régulière du début à la fin. Si vous tenez aisément 30 min, l'allure était trop basse." },
-          { durationMin: 45, intensityLabel: "Extension TTE — jusqu'à épuisement (cap 45 min)", notes: "AUDIT #2 — extension étendue de 5 à 45 min : continuer à l'allure seuil jusqu'à incapacité physique de maintenir l'allure (chute >5 s/km pendant >30 s). Arrêt obligatoire à 45 min de TTE total (30 + 15) pour éviter biais glycogénique. Cette extension permet de discriminer correctement les profils competitor (TTE 45–55 min) et elite (TTE 55–70 min), impossible avec une extension limitée à 5 min." }
+          { durationMin: 30, intensityLabel: "30 min au seuil (effort maximal soutenable)", notes: "Effort maximal soutenable sur 30 min. Allure régulière du début à la fin. Si vous tenez aisément 30 min, l'allure était trop basse. Ne pas pousser à l'échec — ce n'est pas une TTE (réservée à D6)." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Marche/footing Z1", notes: "Retour au calme" }
@@ -308,7 +307,8 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "Viser une allure constante à ±5s/km",
           "Terrain plat obligatoire",
           "Utiliser les 3 premiers km pour caler l'allure",
-          "Acceptable : finir légèrement plus vite les 2 derniers km"
+          "Acceptable : finir légèrement plus vite les 2 derniers km",
+          "NE PAS pousser à l'échec — objectif = effort maximal soutenable, pas une TTE"
         ],
         validityCriteria: [
           "Variabilité d'allure < 3%",
@@ -323,7 +323,6 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "HR moyenne",
           "HR max",
           "HR drift (%)",
-          "TTE total si extension (min)",
           "RPE (1–10)",
           "Qualité protocole (1–5)"
         ]
@@ -336,8 +335,7 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           { durationMin: 5, intensityLabel: "Récup", notes: "Marche tapis 5 km/h" }
         ],
         main: [
-          { durationMin: 25, intensityLabel: "25 min vitesse seuil FIXÉE (pente 1%)", notes: "Démarrer à 90% VMA. Vitesse imposée par tapis = pacing PARFAIT. Si tenu 'confortablement difficile' = OK." },
-          { durationMin: 45, intensityLabel: "Extension TTE — +0.3 km/h jusqu'à épuisement (cap 45 min)", notes: "AUDIT #2 — extension étendue : si encore capable de parler en mots courts à la fin des 25 min, augmenter de +0.3 km/h et tenir jusqu'à incapacité (= TTE). Cap absolu 45 min de TTE total (25 + 20) pour éviter biais glycogénique. Permet de discriminer competitor (45–55 min) vs elite (55–70 min). Si chute de vitesse impossible sur tapis : test invalide → refaire 0.3 km/h plus bas." }
+          { durationMin: 25, intensityLabel: "25 min vitesse seuil FIXÉE (pente 1%)", notes: "Démarrer à 90% VMA. Vitesse imposée par tapis = pacing PARFAIT. Si tenu 'confortablement difficile' = OK. Ne pas chercher à pousser à l'échec — ce n'est pas une TTE (réservée à D6)." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Marche tapis 5 km/h", notes: "Retour au calme + boire" }
@@ -361,7 +359,6 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "HR moyenne",
           "HR max",
           "HR drift (%)",
-          "TTE total si extension (min)",
           "RPE (1–10)",
           "Température salle (°C)",
           "Ventilateur (oui/non)",
@@ -371,6 +368,80 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
     },
     {
       dayKey: "D6",
+      title: "TEST TTE (à l'allure seuil validée D5)",
+      goal: "Mesurer le Time To Exhaustion en tenant l'allure seuil validée en D5 — un test de durabilité, distinct de la mesure de l'allure seuil elle-même. Alimente tte_observed_min_run et la cohérence globale du profil (D8).",
+      sessionType: "TEST",
+      durationEstimateMin: 60,
+      icon: "threshold",
+      protocol: {
+        warmup: [
+          { durationMin: 12, intensityLabel: "Footing Z2", notes: "Activation progressive" },
+          { durationMin: 5, intensityLabel: "Gammes", notes: "Préparation neuromusculaire" },
+          { durationMin: 5, intensityLabel: "Récup", notes: "Marche avant le test" }
+        ],
+        main: [
+          { durationMin: 45, intensityLabel: "Tenir l'allure seuil (D5) — jusqu'à épuisement (cap 45 min)", notes: "AUDIT #2 — tenir l'allure seuil mesurée en D5 le plus longtemps possible. Arrêt obligatoire si chute >5 s/km pendant >30 s (= TTE atteint), ou à 45 min de TTE total pour éviter le biais glycogénique. Discrimine les profils competitor (TTE 45–55 min) et elite (TTE 55–70 min)." }
+        ],
+        recovery: [
+          { durationMin: 10, intensityLabel: "Marche/footing Z1", notes: "Retour au calme" }
+        ],
+        pacingRules: [
+          "Cible fixe : l'allure seuil mesurée en D5 (pas de recalibration ici)",
+          "Terrain plat obligatoire",
+          "Si chute >5 s/km pendant >30 s → arrêt (= TTE)"
+        ],
+        validityCriteria: [
+          "Allure cible = celle mesurée en D5 (jamais une nouvelle estimation)",
+          "Allure stable jusqu'à l'arrêt (±5 s/km)",
+          "FC dérive logique en fin d'effort",
+          "Arrêt volontaire ou incapacité physique (pas un arrêt anticipé par prudence)"
+        ],
+        dataToRecord: [
+          "TTE total (min)",
+          "Distance totale (m)",
+          "HR moyenne",
+          "HR max",
+          "HR drift (%)",
+          "RPE (1–10)",
+          "Qualité protocole (1–5)"
+        ]
+      },
+      treadmillProtocol: {
+        warmup: [
+          { durationMin: 12, intensityLabel: "Footing Z2 tapis (pente 1%)", notes: "Activation aérobie progressive, ventilateur ON" },
+          { durationMin: 5, intensityLabel: "Gammes au sol", notes: "Hors tapis" },
+          { durationMin: 5, intensityLabel: "Récup", notes: "Marche tapis 5 km/h" }
+        ],
+        main: [
+          { durationMin: 45, intensityLabel: "Vitesse seuil FIXÉE (D5) — jusqu'à épuisement (cap 45 min)", notes: "AUDIT #2 — vitesse fixée à celle mesurée en D5 (pente 1%). Tenir jusqu'à incapacité (= TTE). Cap absolu 45 min. Si chute de vitesse impossible sur tapis : test invalide → refaire." }
+        ],
+        recovery: [
+          { durationMin: 10, intensityLabel: "Marche tapis 5 km/h", notes: "Retour au calme + boire" }
+        ],
+        pacingRules: [
+          "Pente 1% obligatoire",
+          "Ventilateur frontal puissant + temp <22°C",
+          "Vitesse FIXÉE à celle de D5 — aucune recalibration ici"
+        ],
+        validityCriteria: [
+          "Vitesse cible = celle mesurée en D5",
+          "FC dérive +5–10 bpm (acceptable jusqu'à +12 avec chaleur tapis)",
+          "RPE croissant jusqu'à l'échec"
+        ],
+        dataToRecord: [
+          "TTE total (min)",
+          "HR moyenne",
+          "HR max",
+          "HR drift (%)",
+          "RPE (1–10)",
+          "Température salle (°C)",
+          "Ventilateur (oui/non)",
+          "Qualité protocole (1–5)"
+        ]
+      }
+    },
+    {
+      dayKey: "D7",
       title: "Endurance Validation + TEST Économie de Course (RE)",
       goal: "Validation de la récupération + mesure de l'économie de course (CE en kJ/km) — AUDIT #1",
       sessionType: "VALIDATION",
@@ -450,7 +521,7 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
       }
     },
     {
-      dayKey: "D7",
+      dayKey: "D8",
       title: "OFF + COHÉRENCE CHECK",
       goal: "Repos complet + validation croisée des résultats (audit #6)",
       sessionType: "REST",
@@ -471,8 +542,9 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "• VLamax <0.40 + ratio seuil/VMA >0.88 = profil aérobie/économie (cohérent)",
           "• VLamax >0.55 + ratio seuil/VMA >0.90 = INCOHÉRENT (probable sous-estimation sprint OU surestimation seuil)",
           "• VLamax <0.40 + ratio seuil/VMA <0.83 = INCOHÉRENT (probable surestimation sprint OU sous-estimation seuil)",
-          "• TTE observé vs ambition : ultra >55 min, competitor 45–55 min, fitness 30–45 min, débutant <30 min",
-          "• HR drift Z2 D6 < 5% = récupération validée — si >8% : reporter analyse, refaire D5+D6 dans 7 j"
+          "• TTE observé (D6) vs ambition : ultra >55 min, competitor 45–55 min, fitness 30–45 min, débutant <30 min",
+          "• TTE (D6) doit avoir été mesurée à l'allure seuil validée en D5 CETTE MÊME semaine — sinon non exploitable pour la calibration",
+          "• HR drift Z2 D7 < 5% = récupération validée — si >8% : refaire D7 après repos supplémentaire"
         ],
         dataToRecord: [
           "Sensation générale (1–10)",
@@ -521,17 +593,17 @@ export function computeCAPCompletion(snapshot: {
     missingData.push("VMA (km/h)");
   }
 
-  // D5 - Allure Seuil + TTE
+  // D5 - Allure Seuil
   if (snapshot.pace_threshold_sec_per_km) {
     completedTests.push("D5 - Allure Seuil");
   } else {
     missingData.push("Allure Seuil (s/km)");
   }
-  
-  // TTE CAP = champ dédié `tte_observed_min_run` (séparé du TTE vélo)
+
+  // D6 - TTE (champ dédié `tte_observed_min_run`, séparé du TTE vélo)
   const tteCap = snapshot.tte_observed_min_run ?? null;
   if (tteCap) {
-    completedTests.push("D5 - TTE observé");
+    completedTests.push("D6 - TTE observé");
   } else {
     missingData.push("TTE observé (min)");
   }

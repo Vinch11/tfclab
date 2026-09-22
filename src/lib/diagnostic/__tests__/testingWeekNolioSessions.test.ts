@@ -3,19 +3,19 @@ import { buildCompactTriathlonNolioSessions } from "../testingWeekNolioSessions"
 
 /**
  * Fix "exporter le calendrier compact vers Nolio comme un plan" (demande
- * coach) : convertit les 17 jours du calendrier compact triathlon (vélo +
+ * coach) : convertit les 18 jours du calendrier compact triathlon (vélo +
  * course + natation) en séances au format attendu par l'edge function
  * `nolio-send-plan` (weekNumber/dayIndex 0-6, sport, title, objectif).
  *
- * Fix "FTP et TTE mélangés" (demande coach) : la semaine vélo TFCL passe de
- * 8 à 9 jours (FTP et TTE testés séparément), portant le calendrier compact
- * à 17 jours / 19 séances Nolio.
+ * Fix "FTP et TTE mélangés" (demande coach) : la semaine vélo TFCL puis la
+ * semaine course CAP passent chacune de 8 à 9 jours (seuil/FTP et TTE testés
+ * séparément), portant le calendrier compact à 18 jours / 20 séances Nolio.
  */
 describe("buildCompactTriathlonNolioSessions", () => {
   const sessions = buildCompactTriathlonNolioSessions();
 
-  it("produit 19 séances (17 jours, dont 2 jours combinant 2 séances)", () => {
-    expect(sessions).toHaveLength(19);
+  it("produit 20 séances (18 jours, dont 2 jours combinant 2 séances)", () => {
+    expect(sessions).toHaveLength(20);
   });
 
   it("n'a jamais isRest=true (sinon nolio-send-plan ignorerait silencieusement la séance)", () => {
@@ -64,11 +64,11 @@ describe("buildCompactTriathlonNolioSessions", () => {
     // Jour 8 → semaine 2, jour 0
     const jour8 = sessions.find((s) => s.title === "Récupération" && s.weekNumber === 2 && s.dayIndex === 0);
     expect(jour8).toBeDefined();
-    // Jour 17 (2 séances combinées, dernier jour) → semaine 3, jour 2
+    // Jour 18 (2 séances combinées, dernier jour) → semaine 3, jour 3
     const last = sessions[sessions.length - 1];
     const secondToLast = sessions[sessions.length - 2];
-    expect(secondToLast).toMatchObject({ weekNumber: 3, dayIndex: 2, sessionIndex: 0 });
-    expect(last).toMatchObject({ weekNumber: 3, dayIndex: 2, sessionIndex: 1 });
+    expect(secondToLast).toMatchObject({ weekNumber: 3, dayIndex: 3, sessionIndex: 0 });
+    expect(last).toMatchObject({ weekNumber: 3, dayIndex: 3, sessionIndex: 1 });
   });
 
   it("inclut les 3 sports (Vélo, Course à pied, Natation)", () => {
@@ -86,8 +86,8 @@ describe("buildCompactTriathlonNolioSessions", () => {
     expect(swim!.objectif).toContain("RÉSULTATS À CALCULER");
   });
 
-  it("signale le point de vigilance (séance à pacing contrôlé après le test TTE vélo) dans l'objectif de la séance concernée", () => {
-    const flagged = sessions.find((s) => s.objectif.includes("suit directement le test TTE vélo"));
+  it("signale le point de vigilance (séance à pacing contrôlé après les deux tests TTE) dans l'objectif de la séance concernée", () => {
+    const flagged = sessions.find((s) => s.objectif.includes("suit directement DEUX tests TTE consécutifs"));
     expect(flagged).toBeDefined();
     expect(flagged!.title).toContain("Endurance Validation");
     expect(flagged!.objectif).toContain("⚠️ POINT DE VIGILANCE");

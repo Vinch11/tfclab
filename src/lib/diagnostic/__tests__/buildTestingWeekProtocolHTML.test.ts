@@ -102,19 +102,22 @@ describe("buildTestingWeekDossierHTML — triathlon (combiné)", () => {
  *
  * Fix "FTP et TTE mélangés" (demande coach) : la semaine vélo TFCL passe de
  * 8 à 9 jours (D5 FTP dédié, D6 Z2 tampon, D7 TTE dédié testé au FTP de D5,
- * D8 OFF+cohérence) — porte le calendrier compact à 17 jours / 19 chapitres,
- * et déplace le point de vigilance (repos/séance à pacing contrôlé après
- * l'effort le plus exigeant) du jour suivant le vieux D5 combiné vers le
- * jour suivant le nouveau D7 (TTE), désormais l'effort le plus exigeant.
+ * D8 OFF+cohérence), puis la semaine course CAP est restructurée à l'identique
+ * (D5 allure seuil dédié, D6 TTE dédié testé à l'allure de D5, D7 RE, D8
+ * OFF+cohérence) — porte le calendrier compact à 18 jours / 20 chapitres,
+ * et déplace le point de vigilance (séance à pacing contrôlé après les
+ * efforts les plus exigeants) du jour suivant le seul TTE vélo vers le jour
+ * suivant les DEUX TTE consécutifs (vélo puis course), désormais les efforts
+ * les plus exigeants du protocole.
  */
-describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionné 17 jours)", () => {
+describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionné 18 jours)", () => {
   const html = buildTestingWeekDossierHTML("triathlon-compact", "Athlète Test");
 
-  it("contient les 19 chapitres (17 jours, dont 2 jours splittés en a/b) numérotés Jour 1a à Jour 17b", () => {
+  it("contient les 20 chapitres (18 jours, dont 2 jours splittés en a/b) numérotés Jour 1a à Jour 18b", () => {
     const labels = [
       "Jour 1a", "Jour 1b", "Jour 2", "Jour 3", "Jour 4", "Jour 5", "Jour 6", "Jour 7",
       "Jour 8", "Jour 9", "Jour 10", "Jour 11", "Jour 12", "Jour 13", "Jour 14", "Jour 15",
-      "Jour 16", "Jour 17a", "Jour 17b",
+      "Jour 16", "Jour 17", "Jour 18a", "Jour 18b",
     ];
     for (const label of labels) {
       expect(html).toContain(label);
@@ -150,15 +153,17 @@ describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionn�
     expect(idxTte).toBeGreaterThan(idxZ2);
   });
 
-  it("place la séance course à pacing contrôlé (Jour 16) juste après le test TTE vélo (Jour 15), et le signale explicitement", () => {
+  it("place le test TTE course (Jour 16) juste après le test TTE vélo (Jour 15), puis la séance à pacing contrôlé (Jour 17) qui suit les deux, et le signale explicitement", () => {
     const idxJour15 = html.indexOf("Jour 15");
     const idxJour16 = html.indexOf("Jour 16");
+    const idxJour17 = html.indexOf("Jour 17");
     const idxRunEconomy = html.indexOf("Endurance Validation");
     expect(idxJour15).toBeGreaterThan(-1);
     expect(idxJour16).toBeGreaterThan(idxJour15);
-    expect(idxRunEconomy).toBeGreaterThan(idxJour16);
+    expect(idxJour17).toBeGreaterThan(idxJour16);
+    expect(idxRunEconomy).toBeGreaterThan(idxJour17);
     expect(html).toContain("Point de vigilance (calendrier compact)");
-    expect(html).toContain("suit directement le test TTE vélo");
+    expect(html).toContain("suit directement DEUX tests TTE consécutifs");
   });
 
   it("mentionne la méthode de construction du calendrier compact dans les prérequis", () => {

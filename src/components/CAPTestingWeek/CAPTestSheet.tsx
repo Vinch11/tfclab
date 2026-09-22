@@ -214,18 +214,13 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
         }
         
       } else if (dayKey === "D5") {
-        testType = "TTE";
-        testName = "Test Seuil 30min + TTE";
+        testType = "THRESHOLD";
+        testName = "Test Allure Seuil";
         const paceSeconds = parsePaceToSeconds(paceThreshold);
         if (paceSeconds) {
           snapshotUpdates.pace_threshold_sec_per_km = paceSeconds;
           rawData.paceThreshold = paceSeconds;
           rawData.paceThresholdFormatted = paceThreshold;
-        }
-        if (tteObserved) {
-          // CAP TTE → champ dédié `tte_observed_min_run` (ne plus écraser le TTE vélo)
-          snapshotUpdates.tte_observed_min_run = parseInt(tteObserved);
-          rawData.tteObserved = parseInt(tteObserved);
         }
         if (runPowerMax) {
           snapshotUpdates.running_power_max = parseFloat(runPowerMax);
@@ -239,8 +234,21 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
           snapshotUpdates.run_hr_drift_pct = parseFloat(hrDrift);
           rawData.hrDrift = parseFloat(hrDrift);
         }
-        
+
       } else if (dayKey === "D6") {
+        testType = "TTE";
+        testName = "Test TTE (allure seuil D5)";
+        if (tteObserved) {
+          // CAP TTE → champ dédié `tte_observed_min_run` (ne plus écraser le TTE vélo)
+          snapshotUpdates.tte_observed_min_run = parseInt(tteObserved);
+          rawData.tteObserved = parseInt(tteObserved);
+        }
+        if (hrDrift) {
+          snapshotUpdates.run_hr_drift_pct = parseFloat(hrDrift);
+          rawData.hrDrift = parseFloat(hrDrift);
+        }
+
+      } else if (dayKey === "D7") {
         testType = "ECONOMY";
         testName = "Validation Endurance Z2";
         if (hrDrift) {
@@ -256,9 +264,9 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
       }
       
       // 2. Save as test entry for calibration (only for main test days)
-      if (testType && ["D1", "D3", "D5"].includes(dayKey)) {
+      if (testType && ["D1", "D3", "D5", "D6"].includes(dayKey)) {
         const vlamaxValue = dayKey === "D1" ? estimatedVlamax : null;
-        
+
         await addTest(
           athlete.id,
           testType,
@@ -275,7 +283,8 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
           const evidenceTypeMap: Record<string, string> = {
             D1: "SPRINT_15S",
             D3: "MAP",
-            D5: "TTE_OBS",
+            D5: "P60", // allure seuil — même convention que le fix TFCL vélo (FTP-family -> P60)
+            D6: "TTE_OBS",
           };
           await supabase.from("calibration_evidence").insert({
             athlete_id: athlete.id,
@@ -515,10 +524,10 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
             <Alert className="bg-primary/5 border-primary/20">
               <Target className="h-4 w-4 text-primary" />
               <AlertDescription className="text-sm">
-                L'allure seuil et le TTE sont critiques pour calibrer votre durabilité et vos cibles marathon.
+                L'allure seuil est critique pour calibrer vos cibles marathon. La durabilité à cette allure (TTE) se mesure séparément en D6, une fois cette allure validée.
               </AlertDescription>
             </Alert>
-            
+
             <div>
               <Label className="text-base font-medium">Allure Seuil (30 min test)</Label>
               <div className="flex gap-2 items-center mt-1">
@@ -531,23 +540,7 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
                 <span className="text-sm text-muted-foreground">/km</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Allure moyenne sur le test de 30 min (format mm:ss ou secondes)
-              </p>
-            </div>
-            
-            <div>
-              <Label className="text-base font-medium">TTE observé</Label>
-              <div className="flex gap-2 items-center mt-1">
-                <Input
-                  type="number"
-                  placeholder="Ex: 45"
-                  value={tteObserved}
-                  onChange={(e) => setTteObserved(e.target.value)}
-                />
-                <span className="text-sm text-muted-foreground">minutes</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Durée totale à l'allure seuil jusqu'à l'épuisement
+                Allure moyenne sur le test de 30 min (format mm:ss ou secondes). Ne pas pousser à l'échec — la TTE se teste en D6.
               </p>
             </div>
 
@@ -584,7 +577,7 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
               <Zap className="h-4 w-4" />
               Données de puissance (optionnel)
             </p>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Puissance Max CAP</Label>
@@ -613,8 +606,64 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
             </div>
           </div>
         );
-      
+
       case "D6":
+        return (
+          <div className="space-y-4">
+            <Alert className="bg-primary/5 border-primary/20">
+              <Target className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                Le TTE mesure votre durabilité à l'allure seuil validée en D5 — critique pour vos cibles marathon.
+              </AlertDescription>
+            </Alert>
+
+            <div>
+              <Label className="text-base font-medium">TTE observé</Label>
+              <div className="flex gap-2 items-center mt-1">
+                <Input
+                  type="number"
+                  placeholder="Ex: 45"
+                  value={tteObserved}
+                  onChange={(e) => setTteObserved(e.target.value)}
+                />
+                <span className="text-sm text-muted-foreground">minutes</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Durée totale à l'allure seuil de D5, jusqu'à l'épuisement
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>FC Moyenne</Label>
+                <div className="flex gap-2 items-center mt-1">
+                  <Input
+                    type="number"
+                    placeholder="Ex: 172"
+                    value={hrAvg}
+                    onChange={(e) => setHrAvg(e.target.value)}
+                  />
+                  <span className="text-xs text-muted-foreground">bpm</span>
+                </div>
+              </div>
+              <div>
+                <Label>Dérive FC (%)</Label>
+                <div className="flex gap-2 items-center mt-1">
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="Ex: 6.5"
+                    value={hrDrift}
+                    onChange={(e) => setHrDrift(e.target.value)}
+                  />
+                  <span className="text-xs text-muted-foreground">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "D7":
         return (
           <div className="space-y-4">
             <Alert>
@@ -623,7 +672,7 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
                 Session de validation — vérification de la récupération et cohérence du profil.
               </AlertDescription>
             </Alert>
-            
+
             <div>
               <Label>Dérive FC sur 50 min (%)</Label>
               <div className="flex gap-2 items-center mt-1">
