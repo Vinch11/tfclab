@@ -47,6 +47,7 @@ import { Label } from "@/components/ui/label";
 import { FolderDown, Send, Loader2, ClipboardCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const sections = [
   {
@@ -137,6 +138,7 @@ export default function DiagnosticPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
   const { currentAthlete } = useAthletes();
+  const { user } = useAuth();
   const [dossierSport, setDossierSport] = useState<DossierSport>("triathlon");
   const [dossierAthleteName, setDossierAthleteName] = useState<string>("");
   const [testingWeekSport, setTestingWeekSport] = useState<TestingWeekSport>("triathlon");
@@ -276,6 +278,45 @@ export default function DiagnosticPage() {
     if (!probeResult) return;
     try {
       await navigator.clipboard.writeText(probeResult);
+      toast.success("Copié dans le presse-papiers");
+    } catch {
+      toast.error("Impossible de copier automatiquement — sélectionnez le texte manuellement");
+    }
+  }
+
+  // --- Dernier(s) envoi(s) Nolio (read-only) — inspecte le payload EXACT
+  // envoyé (structured_workout inclus ou non ?) et la réponse brute de
+  // Nolio, sans re-déclencher d'envoi. Sert à diagnostiquer "je ne vois
+  // aucun changement / c'est toujours du texte continu" : permet de
+  // vérifier si structured_workout est bien dans la requête et ce que
+  // Nolio a réellement renvoyé (accepté / ignoré / erreur silencieuse).
+  const [syncLogResult, setSyncLogResult] = useState<string | null>(null);
+  const [syncLogLoading, setSyncLogLoading] = useState(false);
+
+  async function handleFetchSyncLog() {
+    if (!user) { toast.error("Non authentifié"); return; }
+    setSyncLogLoading(true);
+    setSyncLogResult(null);
+    try {
+      const { data, error } = await supabase
+        .from("nolio_sync_log")
+        .select("synced_at, status, error_message, workout_id, payload")
+        .eq("user_id", user.id)
+        .order("synced_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      setSyncLogResult(JSON.stringify(data, null, 2));
+    } catch (e) {
+      toast.error(`Erreur lecture nolio_sync_log : ${(e as Error).message ?? "inconnue"}`);
+    } finally {
+      setSyncLogLoading(false);
+    }
+  }
+
+  async function handleCopySyncLogResult() {
+    if (!syncLogResult) return;
+    try {
+      await navigator.clipboard.writeText(syncLogResult);
       toast.success("Copié dans le presse-papiers");
     } catch {
       toast.error("Impossible de copier automatiquement — sélectionnez le texte manuellement");
@@ -596,6 +637,41 @@ export default function DiagnosticPage() {
                 </div>
                 <pre className="max-h-96 overflow-auto rounded-md border border-border/40 bg-background/60 p-3 text-[10px] leading-snug whitespace-pre-wrap break-all">
                   {probeResult}
+                </pre>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Journal d'envoi Nolio (temporaire) — inspecte le payload EXACT envoyé et la réponse brute */}
+        <Card className="border-dashed border-primary/40 bg-primary/5">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FlaskConical className="h-5 w-5 text-primary" />
+              📜 Journal des derniers envois Nolio (temporaire)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Relit les 5 derniers envois enregistrés dans <code>nolio_sync_log</code> (tous athlètes confondus, pour votre compte) — le payload <strong>exact</strong> envoyé à Nolio (<code>structured_workout</code> inclus ou non ?) et la réponse brute reçue, sans rien renvoyer. Sert à diagnostiquer "aucun changement visible / toujours du texte continu" : vérifie si la structure était bien dans la requête, et ce que Nolio a réellement répondu.
+            </p>
+            <Button
+              variant="outline"
+              disabled={!user || syncLogLoading}
+              onClick={handleFetchSyncLog}
+            >
+              {syncLogLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FlaskConical className="h-4 w-4 mr-2" />}
+              Lire le journal
+            </Button>
+            {syncLogResult && (
+              <div className="space-y-2">
+                <div className="flex justify-end">
+                  <Button size="sm" variant="ghost" onClick={handleCopySyncLogResult}>
+                    Copier le JSON
+                  </Button>
+                </div>
+                <pre className="max-h-96 overflow-auto rounded-md border border-border/40 bg-background/60 p-3 text-[10px] leading-snug whitespace-pre-wrap break-all">
+                  {syncLogResult}
                 </pre>
               </div>
             )}
