@@ -175,5 +175,5 @@ export function buildConsolidatedSnapshotPayload(
       ? `Snapshot consolidé — semaine de test complète. Sources : ${sourceDates.join(", ")}.`
       : "Snapshot consolidé — semaine de test complète.",
     ...merged.fields,
-  };
+  } as Omit<DbSnapshot, "id" | "created_at" | "updated_at">;
 }
