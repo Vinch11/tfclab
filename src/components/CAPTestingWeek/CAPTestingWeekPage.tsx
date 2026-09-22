@@ -410,6 +410,7 @@ export function CAPTestingWeekPage() {
                 if (day.dayKey === "D1") hasData = !!activeSnapshot?.sprint_15s_distance;
                 else if (day.dayKey === "D3") hasData = !!activeSnapshot?.vma;
                 else if (day.dayKey === "D5") hasData = !!activeSnapshot?.pace_threshold_sec_per_km;
+                else if (day.dayKey === "D6") hasData = !!activeSnapshot?.tte_observed_min_run;
                 
                 return (
                   <CAPDayCard
