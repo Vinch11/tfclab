@@ -49,9 +49,9 @@ import {
 
 export interface NolioStepLike {
   type: "step";
-  intensity_type: "warmup" | "active" | "cooldown";
-  step_duration_type: "duration";
-  step_duration_value: number; // secondes
+  intensity_type: "warmup" | "active" | "rest" | "cooldown";
+  step_duration_type: "duration" | "distance";
+  step_duration_value: number; // secondes si "duration", mètres si "distance"
   target_type: "no_target";
   notes: string;
 }
@@ -103,6 +103,18 @@ function nolioStep(intensity: NolioStepLike["intensity_type"], durationSec: numb
     intensity_type: intensity,
     step_duration_type: "duration",
     step_duration_value: Math.max(1, Math.round(durationSec)),
+    target_type: "no_target",
+    notes: notes.slice(0, 500),
+  };
+}
+
+/** Étape en DISTANCE (mètres) — pour un effort nagé (Nolio : step_duration_type="distance" = mètres). */
+function nolioDistanceStep(intensity: NolioStepLike["intensity_type"], meters: number, notes: string): NolioStepLike {
+  return {
+    type: "step",
+    intensity_type: intensity,
+    step_duration_type: "distance",
+    step_duration_value: Math.max(1, Math.round(meters)),
     target_type: "no_target",
     notes: notes.slice(0, 500),
   };
@@ -235,24 +247,58 @@ function swimDescriptionText(): string {
   return sections.join("\n\n");
 }
 
-/** "~20 min" / "~1h30" → secondes. Repli à 20 min si rien de reconnaissable (n'arrive jamais sur les blocs réels). */
-function parseApproxDurationToSec(duration: string): number {
-  const hourMatch = duration.match(/(\d+)\s*h\s*(\d+)?/i);
-  if (hourMatch) {
-    const h = parseInt(hourMatch[1], 10);
-    const m = hourMatch[2] ? parseInt(hourMatch[2], 10) : 0;
-    return h * 3600 + m * 60;
-  }
-  const minMatch = duration.match(/(\d+)/);
-  return (minMatch ? parseInt(minMatch[1], 10) : 20) * 60;
-}
-
-/** Construit les étapes structurées du protocole natation — une par bloc (chaque bloc regroupe plusieurs consignes, pas de minutage plus fin dans la source). */
-function swimNolioSteps(): NolioStepLike[] {
-  const p = getProtocolDef("pool-day");
-  return p.blocks.map((b, i) =>
-    nolioStep(i === 0 ? "warmup" : "active", parseApproxDurationToSec(b.duration), `${b.title} — ${b.instructions.join(" ")}`),
-  );
+/**
+ * Construit les étapes structurées du protocole natation TFCL Pool Day™ —
+ * en DISTANCE (mètres) pour chaque effort nagé, jamais en minutes (demande
+ * coach : Nolio doit afficher "200m"/"400m", pas un bloc "~15 min" fourre-tout).
+ * Nolio accepte officiellement `step_duration_type:"distance"` (valeur en
+ * mètres, doc wiki Structured-Workout) — contrairement à la course à pied où
+ * ce type est explicitement refusé côté nolio-send-plan.
+ *
+ * Reprend fidèlement chaque consigne chiffrée des 4 blocs officiels
+ * (getProtocolDef("pool-day")) : distance nagée = step "distance", temps de
+ * récup annoncé = step "rest" (secondes). Les 3 séries à répétition identique
+ * (4×50m éducatifs, 4×25m progressifs, 2×25m sprint) utilisent un bloc
+ * `repetition` natif — même rendu "Nx { ... }" que le Pool Day construit à la
+ * main par le coach dans Nolio (référence d'origine de cette fonctionnalité).
+ */
+function swimNolioSteps(): (NolioStepLike | NolioRepStepLike)[] {
+  return [
+    nolioDistanceStep("warmup", 400, "Crawl progressif"),
+    {
+      type: "repetition",
+      intensity_type: "repetition",
+      value: 4,
+      steps: [
+        nolioDistanceStep("active", 50, "Éducatifs (rattrapé, polo, etc.)"),
+        nolioStep("rest", 15, "Récupération"),
+      ],
+    },
+    {
+      type: "repetition",
+      intensity_type: "repetition",
+      value: 4,
+      steps: [
+        nolioDistanceStep("active", 25, "Progressifs vite"),
+        nolioStep("rest", 20, "Récupération"),
+      ],
+    },
+    nolioStep("rest", 180, "Récupération souple avant le sprint"),
+    {
+      type: "repetition",
+      intensity_type: "repetition",
+      value: 2,
+      steps: [
+        nolioDistanceStep("active", 25, "Sprint départ plongé maximal"),
+        nolioStep("rest", 180, "Récupération"),
+      ],
+    },
+    nolioDistanceStep("active", 200, "Test CSS 200m all-out (départ dans l'eau)"),
+    nolioStep("rest", 300, "Récupération avant le 400m"),
+    nolioDistanceStep("active", 400, "Test CSS 400m all-out (départ dans l'eau)"),
+    nolioStep("rest", 300, "Récupération avant le 1500m"),
+    nolioDistanceStep("active", 1500, "1500m à allure CSS soutenable — noter les splits 500m"),
+  ];
 }
 
 /**

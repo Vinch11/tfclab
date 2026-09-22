@@ -30,11 +30,12 @@ describe("buildCompactTriathlonNolioSessions", () => {
         const steps = item.type === "repetition" ? item.steps : [item];
         for (const step of steps) {
           expect(step.type).toBe("step");
-          expect(step.step_duration_type).toBe("duration");
+          // Natation : efforts nagés en distance (mètres) ; tout le reste en durée (secondes).
+          expect(["duration", "distance"]).toContain(step.step_duration_type);
           expect(step.target_type).toBe("no_target");
           expect(step.step_duration_value).toBeGreaterThan(0);
           expect(step.notes.trim().length).toBeGreaterThan(0);
-          expect(["warmup", "active", "cooldown"]).toContain(step.intensity_type);
+          expect(["warmup", "active", "rest", "cooldown"]).toContain(step.intensity_type);
         }
       }
     }
@@ -166,10 +167,50 @@ describe("buildCompactTriathlonNolioSessions", () => {
     expect(totalSec).toBe(47.5 * 60);
   });
 
-  it("la séance natation a une étape structurée par bloc officiel (4 blocs)", () => {
+  /**
+   * Fix "structure natation en minutes au lieu de mètres" (demande coach) :
+   * chaque effort nagé doit apparaître en DISTANCE (200m, 400m, etc.), pas
+   * comme un bloc "~15 min" fourre-tout — conforme au protocole officiel
+   * (getProtocolDef("pool-day")) et au rendu Nolio natif attendu.
+   */
+  it("la séance natation exprime chaque effort nagé en DISTANCE (mètres), jamais en minutes", () => {
     const swim = sessions.find((s) => s.sport === "Natation");
     expect(swim).toBeDefined();
-    expect(swim!.structuredWorkout).toHaveLength(4);
-    expect(swim!.structuredWorkout[0].intensity_type).toBe("warmup");
+
+    const flatten = (items: (typeof swim)["structuredWorkout"]) =>
+      items.flatMap((it) => (it.type === "repetition" ? it.steps.map((s) => ({ ...s, reps: it.value })) : [{ ...it, reps: 1 }]));
+    const flat = flatten(swim!.structuredWorkout);
+
+    // Warm-up 400m crawl en tout premier, en distance.
+    expect(swim!.structuredWorkout[0]).toMatchObject({
+      type: "step",
+      intensity_type: "warmup",
+      step_duration_type: "distance",
+      step_duration_value: 400,
+    });
+
+    // Les 3 blocs de répétition officiels (4×50m éducatifs, 4×25m progressifs, 2×25m sprint).
+    const repBlocks = swim!.structuredWorkout.filter((it) => it.type === "repetition");
+    expect(repBlocks.map((r) => r.value).sort()).toEqual([2, 4, 4]);
+    for (const rep of repBlocks) {
+      const activeStep = rep.steps.find((s) => s.intensity_type === "active");
+      expect(activeStep?.step_duration_type).toBe("distance");
+    }
+
+    // Distance totale nagée (hors récup) = 400 + 4×50 + 4×25 + 2×25 + 200 + 400 + 1500 = 2850m.
+    const totalDistance = flat
+      .filter((s) => s.step_duration_type === "distance")
+      .reduce((acc, s) => acc + s.step_duration_value * s.reps, 0);
+    expect(totalDistance).toBe(2850);
+
+    // Aucun step "active"/"warmup" en minutes — seules les récupérations sont en durée.
+    const physicalSteps = flat.filter((s) => s.intensity_type === "active" || s.intensity_type === "warmup");
+    for (const s of physicalSteps) {
+      expect(s.step_duration_type).toBe("distance");
+    }
+    const recoverySteps = flat.filter((s) => s.intensity_type === "rest");
+    for (const s of recoverySteps) {
+      expect(s.step_duration_type).toBe("duration");
+    }
   });
 });
