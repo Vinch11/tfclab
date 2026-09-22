@@ -1871,12 +1871,24 @@ Deno.serve(async (req) => {
       }
 
       const sessionIndex = Number.isFinite(s.sessionIndex as number) ? Number(s.sessionIndex) : 0;
+      // Fix "aucun changement visible dans Nolio après un re-envoi" (audit coach) :
+      // id_partner incluait `new Date().getDate()` (jour du MOIS au moment de
+      // l'envoi), une composante volatile qui n'a rien à voir avec l'identité
+      // du slot (athlète + semaine + jour + index de séance). Deux envois du
+      // MÊME plan (ex. semaine de test, ou plan régénéré) à des dates
+      // d'exécution différentes produisaient donc 2 id_partner différents :
+      // le DELETE ci-dessous (par id_partner) ne trouvait jamais l'ancienne
+      // séance — elle restait dans le calendrier Nolio, ET une séance en
+      // double était créée à côté, avec la nouvelle structure. D'où le
+      // symptôme "je ne vois aucun changement" (le coach retombait sur
+      // l'ancienne séance, jamais mise à jour). id_partner est maintenant
+      // stable pour un même (athlète, semaine, jour, index) quel que soit le
+      // jour d'envoi — un ré-envoi remplace toujours la bonne séance.
       const idPartner = parseInt(
         String(body.nolio_athlete_id) +
         String(s.weekNumber).padStart(2, '0') +
         String(s.dayIndex) +
-        String(sessionIndex) +
-        String(new Date().getDate()).padStart(2, '0'),
+        String(sessionIndex),
         10,
       );
       const generatedForSport = usedGenerated && overrideKey ? generatedMap.get(overrideKey) : undefined;
