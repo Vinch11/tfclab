@@ -7,6 +7,7 @@ import type {
   FitSession,
   FitAnalysisResult,
   DetectedTestType,
+  TestTypeDetection,
 } from "./types";
 import { calculateBestEfforts, calculateNormalizedPower } from "./bestEfforts";
 import { detectTestType } from "./testDetector";
@@ -18,6 +19,22 @@ import {
 } from "./metricsCalculator";
 
 /**
+ * Une séance de course (même avec capteur de puissance course, type Stryd)
+ * n'est PAS un test vélo : FTP, TTE-au-seuil et détection de type de test
+ * sont tous calibrés pour de la puissance vélo (coefficients, laps, seuils
+ * de watts). Sans ce garde-fou, un semi-marathon avec puissance course
+ * (ex: 500-700W) était classé "FTP_20MIN" par detectTestType (qui ne
+ * regarde que la forme du signal de puissance, jamais le sport) et
+ * produisait une "FTP" de plusieurs centaines de watts, aberrante pour du
+ * vélo — bug remonté par le coach après un import de semi-marathon.
+ * L'Économie de Course (analyzeRunningEconomy, appelée séparément dans
+ * FitImportDialog) reste le chemin d'analyse dédié à la course.
+ */
+export function isRunningSession(session: FitSession): boolean {
+  return (session.sport ?? "").toLowerCase().includes("run");
+}
+
+/**
  * Analyse complète d'une session FIT
  */
 export function analyzeFitSession(
@@ -25,7 +42,9 @@ export function analyzeFitSession(
   overrideTestType?: DetectedTestType,
   existingFtp?: number
 ): FitAnalysisResult {
-  // 1. Calculer les best efforts
+  const isRun = isRunningSession(session);
+
+  // 1. Calculer les best efforts (valides pour tout sport avec capteur de puissance)
   const bestEfforts = calculateBestEfforts(session.records);
 
   // 2. Calculer NP si non présent
@@ -33,8 +52,14 @@ export function analyzeFitSession(
     session.normalizedPower = calculateNormalizedPower(session.records);
   }
 
-  // 3. Détecter le type de test
-  const detectedTestType = detectTestType(session, bestEfforts);
+  // 3. Détecter le type de test (vélo uniquement — cf. note ci-dessus)
+  const detectedTestType: TestTypeDetection = isRun
+    ? {
+        type: "UNKNOWN",
+        confidence: 0,
+        reasoning: "Séance de course — les tests FTP/TTE (vélo) ne s'appliquent pas ici.",
+      }
+    : detectTestType(session, bestEfforts);
   const effectiveTestType = overrideTestType ?? detectedTestType.type;
 
   // Mettre à jour la détection si override
@@ -42,21 +67,21 @@ export function analyzeFitSession(
     ? { ...detectedTestType, type: overrideTestType, reasoning: `Type sélectionné manuellement: ${overrideTestType}` }
     : detectedTestType;
 
-  // 4. Estimer FTP
-  const ftpEstimate = estimateFtp(effectiveTestType, bestEfforts, session);
+  // 4. Estimer FTP (vélo uniquement)
+  const ftpEstimate = isRun ? undefined : estimateFtp(effectiveTestType, bestEfforts, session);
 
-  // 5. Calculer MAP (P5min)
-  const mapEstimate = bestEfforts.p5min;
+  // 5. Calculer MAP (P5min) — concept vélo (snapshot.map5min_w)
+  const mapEstimate = isRun ? undefined : bestEfforts.p5min;
 
-  // 6. Calculer TTE observé
-  const ftpForTte = ftpEstimate?.ftpWatts ?? existingFtp;
+  // 6. Calculer TTE observé (seuil = % de FTP vélo, non applicable à la course)
+  const ftpForTte = ftpEstimate?.ftpWatts ?? (isRun ? undefined : existingFtp);
   const tteObservation = ftpForTte
     ? calculateTteObservation(session, ftpForTte)
     : undefined;
 
-  // 7. Analyse de drift (si sortie longue ou Z2)
+  // 7. Analyse de drift (Pa:HR vélo — la course a sa propre analyse dédiée)
   const driftAnalysis =
-    session.movingTimeSec >= 3600 || effectiveTestType === "Z2_DRIFT"
+    !isRun && (session.movingTimeSec >= 3600 || effectiveTestType === "Z2_DRIFT")
       ? calculateDriftAnalysis(session)
       : undefined;
 
