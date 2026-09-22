@@ -58,6 +58,17 @@ type ParsedSession = {
   objectif?: string;
   /** Alternatives terrain (trail) calculées côté client depuis la fiche bibliothèque. */
   alternatives?: TerrainAlternative[];
+  /**
+   * `structure` sert ici UNIQUEMENT à la description texte (buildDescription
+   * lit warm-up/main/cool-down pour le rendu 🔥/💪/🧘) — ne pas tenter d'en
+   * dériver un structured_workout chiffré. Nécessaire pour les séances dont
+   * chaque "part" encode une SÉQUENCE de plusieurs étapes minutées (ex.
+   * semaines de test TFCL/CAP) plutôt qu'une seule consigne : buildStructuredFromParts
+   * suppose une part = une étape, et produit des durées/cibles fausses en
+   * essayant de condenser toute la séquence en un seul step (ou en détectant
+   * à tort un pattern de répétition dans le texte concaténé).
+   */
+  noStructuredWorkout?: boolean;
 };
 
 type AthleteRefs = {
@@ -1839,7 +1850,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (structured_workout == null && sourceStructure.length > 0) {
+      if (structured_workout == null && sourceStructure.length > 0 && !s.noStructuredWorkout) {
         let built = buildStructuredFromParts(sourceStructure, athleteRefs, s.wbalProfile ?? null);
         // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
         if (built && built.length === 1 && built[0].type === "repetition") {

@@ -38,6 +38,17 @@ export interface TestingWeekNolioSession {
   details: string;
   structure: Array<{ part: string; zones: string[]; text: string }>;
   isRest: false;
+  /**
+   * `structure` sert uniquement à la description texte (nolio-send-plan
+   * la lit pour le rendu 🔥/💪/🧘) — jamais à un structured_workout chiffré.
+   * Chaque "part" ici encode une SÉQUENCE de plusieurs étapes minutées
+   * (plusieurs lignes de warmup/main/recovery concaténées), pas une seule
+   * consigne : le générateur d'intervalles de nolio-send-plan suppose une
+   * part = une étape et produisait des durées/cibles fausses (bug réel
+   * observé en prod — étapes dupliquées, mauvaises unités W/bpm) en tentant
+   * de condenser toute la séquence en un seul step programmé.
+   */
+  noStructuredWorkout: true;
 }
 
 function formatStep(s: NormStep): string {
@@ -126,6 +137,7 @@ export function buildCompactTriathlonNolioSessions(): TestingWeekNolioSession[] 
           details: p.subtitle,
           structure: swimStructure(),
           isRest: false,
+          noStructuredWorkout: true,
         });
         return;
       }
@@ -141,6 +153,7 @@ export function buildCompactTriathlonNolioSessions(): TestingWeekNolioSession[] 
         details: day.goal,
         structure: dayToStructure(day),
         isRest: false,
+        noStructuredWorkout: true,
       });
     });
   }
