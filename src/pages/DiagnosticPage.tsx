@@ -255,7 +255,18 @@ export default function DiagnosticPage() {
       if (error) throw error;
       setProbeResult(JSON.stringify(data, null, 2));
     } catch (e) {
-      toast.error(`Erreur sonde Nolio : ${(e as Error).message ?? "inconnue"}`);
+      const context = (e as { context?: Response }).context;
+      let detail = (e as Error).message ?? "inconnue";
+      if (context) {
+        try {
+          const body = await context.clone().json();
+          detail = body?.error ?? JSON.stringify(body);
+          setProbeResult(JSON.stringify(body, null, 2));
+        } catch {
+          // corps non-JSON, on garde le message générique
+        }
+      }
+      toast.error(`Erreur sonde Nolio : ${detail}`);
     } finally {
       setProbeLoading(false);
     }
