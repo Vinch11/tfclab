@@ -8637,6 +8637,10 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
   //    computeWellPreparedFromUnifiedPillars ci-dessous pour le détail du
   //    bug corrigé).
   const wellPrepared = computeWellPreparedFromUnifiedPillars(unifiedCompassPillars);
+  const aerobic = unifiedCompassPillars?.aerobic ?? null;
+  const endurance = unifiedCompassPillars?.tolerance ?? null;
+  const metabolic = unifiedCompassPillars?.metabolic ?? null;
+  const robust = unifiedCompassPillars?.robustness ?? null;
 
   // 4) TO WATCH : limiteur primaire + 2e du categoryRanking + risque blessure + fatigue
   const toWatch: string[] = [];
