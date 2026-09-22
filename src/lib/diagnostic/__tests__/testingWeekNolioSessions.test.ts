@@ -5,7 +5,7 @@ import { buildCompactTriathlonNolioSessions } from "../testingWeekNolioSessions"
  * Fix "exporter le calendrier compact vers Nolio comme un plan" (demande
  * coach) : convertit les 16 jours du calendrier compact triathlon (vélo +
  * course + natation) en séances au format attendu par l'edge function
- * `nolio-send-plan` (weekNumber/dayIndex 0-6, sport, title, structure).
+ * `nolio-send-plan` (weekNumber/dayIndex 0-6, sport, title, objectif).
  */
 describe("buildCompactTriathlonNolioSessions", () => {
   const sessions = buildCompactTriathlonNolioSessions();
@@ -60,24 +60,32 @@ describe("buildCompactTriathlonNolioSessions", () => {
     const swim = sessions.find((s) => s.sport === "Natation");
     expect(swim).toBeDefined();
     expect(swim!.title).toBe("TFCL Pool Day™");
-    const structureText = swim!.structure.map((p) => p.text).join("\n");
-    expect(structureText).toContain("Sprint 25m départ plongé maximal");
-    expect(structureText).toContain("CSS = (400");
-    expect(structureText).toContain("Résultats à calculer");
+    expect(swim!.objectif).toContain("Sprint 25m départ plongé maximal");
+    expect(swim!.objectif).toContain("RÉSULTATS À CALCULER");
   });
 
   it("signale le point de vigilance (repos après le test FTP+TTE vélo) dans l'objectif de la séance concernée", () => {
     const flagged = sessions.find((s) => s.objectif.includes("Ce repos complet suit directement le test Vélo D5"));
     expect(flagged).toBeDefined();
     expect(flagged!.title).toBe("Repos complet");
+    expect(flagged!.objectif).toContain("⚠️ POINT DE VIGILANCE");
   });
 
-  it("chaque séance a une structure non vide (rien d'envoyé vide à Nolio)", () => {
+  it("chaque séance a un objectif non vide, et jamais de champ structure (évite l'aplatissement toListLines de nolio-send-plan)", () => {
     for (const s of sessions) {
-      expect(s.structure.length).toBeGreaterThan(0);
-      for (const part of s.structure) {
-        expect(part.text.trim().length).toBeGreaterThan(0);
-      }
+      expect(s.objectif.trim().length).toBeGreaterThan(0);
+      expect("structure" in s).toBe(false);
     }
+  });
+
+  it("sépare clairement les sections d'un jour de test multi-étapes (échauffement / corps de séance / règles / critères / à enregistrer)", () => {
+    const glyco = sessions.find((s) => s.title.includes("TEST GLYCOLYTIQUE"));
+    expect(glyco).toBeDefined();
+    for (const header of ["🔥 ÉCHAUFFEMENT", "💪 CORPS DE SÉANCE", "🧭 RÈGLES DE PACING", "✅ CRITÈRES DE VALIDITÉ", "📋 À ENREGISTRER"]) {
+      expect(glyco!.objectif).toContain(header);
+    }
+    // Chaque section démarre sur sa propre ligne, séparée par une ligne vide — jamais fusionnée.
+    expect(glyco!.objectif).toMatch(/\n\n🔥 ÉCHAUFFEMENT/);
+    expect(glyco!.objectif).toMatch(/\n\n💪 CORPS DE SÉANCE/);
   });
 });
