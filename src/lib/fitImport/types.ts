@@ -67,6 +67,8 @@ export type DetectedTestType =
   | "Z2_DRIFT"
   | "TTE_THRESHOLD"
   | "RUN_ECONOMY"  // Économie de course (~60 min)
+  | "VMA_TEST"           // Test VMA course (VAMEVAL ou 6 min all-out) — CAP D3
+  | "THRESHOLD_RUN_30MIN" // Allure seuil course, effort soutenable 30 min — CAP D5
   | "UNKNOWN";
 
 // Résultat de la détection du type de test
@@ -102,6 +104,58 @@ export interface BestEfforts {
   hr60min?: number;
   // Timestamps des meilleurs efforts
   timestamps?: Record<string, Date>;
+}
+
+// Best Efforts course à pied (allure/vitesse, m/s en interne)
+export interface RunBestEfforts {
+  speed15s?: number;  // m/s
+  speed30s?: number;
+  speed60s?: number;
+  speed5min?: number;
+  speed6min?: number;
+  speed8min?: number;
+  speed12min?: number;
+  speed20min?: number;
+  speed30min?: number;
+  // HR correspondantes
+  hr15s?: number;
+  hr30s?: number;
+  hr60s?: number;
+  hr5min?: number;
+  hr6min?: number;
+  hr8min?: number;
+  hr12min?: number;
+  hr20min?: number;
+  hr30min?: number;
+  timestamps?: Record<string, Date>;
+}
+
+// Estimation de l'allure seuil (CAP D5)
+export interface PaceThresholdEstimate {
+  paceSecPerKm: number;
+  method: string;
+  basePaceSecPerKm: number;
+  confidence: number;
+  notes?: string;
+}
+
+// Estimation VMA (CAP D3)
+export interface VmaEstimate {
+  vmaKmh: number;
+  method: string;
+  confidence: number;
+  notes?: string;
+}
+
+// TTE course observée (CAP D6) — mesurée à l'allure seuil DÉJÀ validée (D5),
+// jamais une allure recalculée dans la même séance (même règle que le vélo).
+export interface RunTteObservation {
+  tteMinutes: number;
+  targetPaceSecPerKm: number;
+  continuousDurationSec: number;
+  avgPaceSecPerKmDuringTte: number;
+  confidence: number;
+  notes?: string;
 }
 
 // Résultats du calcul de drift/decoupling
@@ -166,6 +220,11 @@ export interface FitAnalysisResult {
   mapEstimate?: number;
   tteObservation?: TteObservation;
   driftAnalysis?: DriftAnalysis;
+  // Course à pied — champs distincts du vélo (unités différentes : sec/km, km/h)
+  runBestEfforts?: RunBestEfforts;
+  paceThresholdEstimate?: PaceThresholdEstimate;
+  vmaEstimate?: VmaEstimate;
+  runTteObservation?: RunTteObservation;
   protocolQuality: ProtocolQuality;
   // Métriques brutes pour stockage
   rawMetrics: {

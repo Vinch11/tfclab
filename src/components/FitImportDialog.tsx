@@ -66,7 +66,7 @@ import {
   type ProfileUpdatePreview,
   type RunningEconomyFitResult,
 } from "@/lib/fitImport";
-import { getTFCLWeekSlot, formatTFCLSlot } from "@/lib/fitImport/testDetector";
+import { getTFCLWeekSlot, formatTFCLSlot, getCAPWeekSlot, formatCAPSlot } from "@/lib/fitImport/testDetector";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import { estimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
 import { computeVLamaxBikeV2Enhanced } from "@/lib/v2/vlamaxBikeV2Enhanced";
@@ -106,6 +106,11 @@ export interface FitTestSaveData {
     p5min?: number;
     tte_observed_min?: number;
     drift_percent?: number;
+    // Course à pied — champs distincts du vélo
+    pace_threshold_sec_per_km?: number;
+    vma?: number;
+    sprint_15s_distance?: number;
+    tte_observed_min_run?: number;
   };
   bestEfforts: unknown;
   protocolQuality: number;
@@ -140,6 +145,11 @@ export interface ProfileUpdates {
   running_power_max?: number;
   running_power_threshold?: number;
   vlamax_run?: number;
+  // CAP Testing Week — champs propres au protocole (D1/D3/D5/D6)
+  sprint_15s_distance?: number;
+  vma?: number;
+  pace_threshold_sec_per_km?: number;
+  tte_observed_min_run?: number;
   // Common
   fc_max?: number;
   tte_observed_min?: number;
@@ -166,6 +176,8 @@ const TEST_TYPE_OPTIONS: { value: DetectedTestType; label: string }[] = [
   { value: "Z2_DRIFT", label: "Sortie Z2 (Drift)" },
   { value: "TTE_THRESHOLD", label: "TTE au seuil" },
   { value: "RUN_ECONOMY", label: "🏃 Économie Course" },
+  { value: "VMA_TEST", label: "🏃 Test VMA" },
+  { value: "THRESHOLD_RUN_30MIN", label: "🏃 Allure Seuil 30 min" },
   { value: "UNKNOWN", label: "Non identifié" },
 ];
 
@@ -224,7 +236,8 @@ export function FitImportDialog({
       const result = analyzeFitSession(
         session,
         undefined,
-        currentSnapshot?.ftp ?? undefined
+        currentSnapshot?.ftp ?? undefined,
+        currentSnapshot?.pace_threshold_sec_per_km ?? undefined
       );
       setAnalysis(result);
       
@@ -257,7 +270,7 @@ export function FitImportDialog({
     } finally {
       setIsLoading(false);
     }
-  }, [currentSnapshot?.ftp]);
+  }, [currentSnapshot?.ftp, currentSnapshot?.pace_threshold_sec_per_km]);
 
   useEffect(() => {
     if (open && initialFile && consumedInitialFileRef.current !== initialFile) {
@@ -292,11 +305,12 @@ export function FitImportDialog({
       const updatedAnalysis = analyzeFitSession(
         analysis.session,
         newType,
-        currentSnapshot?.ftp ?? undefined
+        currentSnapshot?.ftp ?? undefined,
+        currentSnapshot?.pace_threshold_sec_per_km ?? undefined
       );
       setAnalysis(updatedAnalysis);
     },
-    [analysis, currentSnapshot?.ftp]
+    [analysis, currentSnapshot?.ftp, currentSnapshot?.pace_threshold_sec_per_km]
   );
 
   const getProfileUpdates = useCallback((): ProfileUpdatePreview[] => {
@@ -357,6 +371,58 @@ export function FitImportDialog({
           source: "Best Effort FIT",
           willUpdate: true,
           requiresConfirmation: (snap?.running_power_threshold ?? 0) > 0,
+        });
+      }
+
+      // Champs propres au protocole Semaine Test CAP (D1/D3/D5/D6) — distincts
+      // de la puissance course ci-dessus, jamais écrits par les mêmes best
+      // efforts (cf. runBestEfforts, calculé en vitesse/allure GPS).
+      if (analysis.runBestEfforts?.speed15s) {
+        const distance15s = Math.round(analysis.runBestEfforts.speed15s * 15);
+        updates.push({
+          field: "sprint_15s_distance",
+          label: "Sprint 15s — distance (D1)",
+          currentValue: snap?.sprint_15s_distance ?? undefined,
+          newValue: distance15s,
+          source: "Best Effort FIT",
+          willUpdate: true,
+          requiresConfirmation: (snap?.sprint_15s_distance ?? 0) > 0,
+        });
+      }
+
+      if (analysis.vmaEstimate) {
+        updates.push({
+          field: "vma",
+          label: "VMA (D3)",
+          currentValue: snap?.vma ?? undefined,
+          newValue: analysis.vmaEstimate.vmaKmh,
+          source: analysis.vmaEstimate.method,
+          willUpdate: true,
+          requiresConfirmation: (snap?.vma ?? 0) > 0,
+        });
+      }
+
+      if (analysis.paceThresholdEstimate) {
+        updates.push({
+          field: "pace_threshold_sec_per_km",
+          label: "Allure Seuil (D5)",
+          currentValue: snap?.pace_threshold_sec_per_km ?? undefined,
+          newValue: analysis.paceThresholdEstimate.paceSecPerKm,
+          source: analysis.paceThresholdEstimate.method,
+          willUpdate: true,
+          requiresConfirmation: (snap?.pace_threshold_sec_per_km ?? 0) > 0,
+        });
+      }
+
+      if (analysis.runTteObservation) {
+        updates.push({
+          field: "tte_observed_min_run",
+          label: "TTE course observée (D6)",
+          currentValue: snap?.tte_observed_min_run ?? undefined,
+          newValue: Math.round(analysis.runTteObservation.tteMinutes),
+          source: "Observation FIT",
+          willUpdate: true,
+          requiresConfirmation: (snap?.tte_observed_min_run ?? 0) > 0,
         });
       }
 
@@ -455,10 +521,11 @@ export function FitImportDialog({
             if (r?.value) computedVlamaxBike = r.value;
           }
         } else {
-          // Sprint course → si distance disponible (records)
+          // Sprint course → utilise VMA/allure seuil DÉJÀ validées (snapshot),
+          // jamais une valeur fraîchement estimée dans cette même séance.
           const r = estimateVLamaxCap({
-            vma: null,
-            paceThresholdSecPerKm: null,
+            vma: currentSnapshot?.vma ?? null,
+            paceThresholdSecPerKm: currentSnapshot?.pace_threshold_sec_per_km ?? null,
             runningPowerMax: analysis.bestEfforts.p5s ?? analysis.bestEfforts.p15s ?? null,
             runningPowerThreshold: analysis.bestEfforts.p20min ?? null,
           });
@@ -480,6 +547,15 @@ export function FitImportDialog({
             ? Math.round(analysis.tteObservation.tteMinutes)
             : undefined,
           drift_percent: analysis.driftAnalysis?.driftPercent,
+          // Course à pied — champs propres au protocole Semaine Test CAP
+          pace_threshold_sec_per_km: analysis.paceThresholdEstimate?.paceSecPerKm,
+          vma: analysis.vmaEstimate?.vmaKmh,
+          sprint_15s_distance: analysis.runBestEfforts?.speed15s
+            ? Math.round(analysis.runBestEfforts.speed15s * 15)
+            : undefined,
+          tte_observed_min_run: analysis.runTteObservation
+            ? Math.round(analysis.runTteObservation.tteMinutes)
+            : undefined,
         },
         bestEfforts: analysis.bestEfforts as unknown,
         protocolQuality: analysis.protocolQuality.score,
@@ -522,6 +598,18 @@ export function FitImportDialog({
           if (analysis.session.maxPower) profileUpdates.running_power_max = analysis.session.maxPower;
           if (analysis.bestEfforts.p20min) profileUpdates.running_power_threshold = analysis.bestEfforts.p20min as unknown as number;
           if (computedVlamaxRun != null) profileUpdates.vlamax_run = Number(computedVlamaxRun.toFixed(3)) as unknown as number;
+
+          // Champs propres au protocole Semaine Test CAP (D1/D3/D5/D6)
+          if (analysis.runBestEfforts?.speed15s) {
+            profileUpdates.sprint_15s_distance = Math.round(analysis.runBestEfforts.speed15s * 15);
+          }
+          if (analysis.vmaEstimate) profileUpdates.vma = analysis.vmaEstimate.vmaKmh;
+          if (analysis.paceThresholdEstimate) {
+            profileUpdates.pace_threshold_sec_per_km = analysis.paceThresholdEstimate.paceSecPerKm;
+          }
+          if (analysis.runTteObservation) {
+            profileUpdates.tte_observed_min_run = Math.round(analysis.runTteObservation.tteMinutes);
+          }
         }
 
         // Common
@@ -697,10 +785,23 @@ export function FitImportDialog({
                     </span>
                   </div>
                 )}
+                {/* CAP Reference Week slot mapping */}
+                {selectedTestType && getCAPWeekSlot(selectedTestType) && (
+                  <div className="mt-3 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <span>
+                      Remplit le slot Semaine Test CAP™ :{" "}
+                      <strong>{formatCAPSlot(getCAPWeekSlot(selectedTestType))}</strong>
+                      {updateProfile
+                        ? " — sera enregistré dans le snapshot."
+                        : " — activez \"Mettre à jour le profil\" pour l'enregistrer."}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Best Efforts */}
+            {/* Best Efforts (vélo, ou puissance course bonus type Stryd) */}
             <Card>
               <CardHeader className="py-3">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -741,6 +842,34 @@ export function FitImportDialog({
               </CardContent>
             </Card>
 
+            {/* Best Efforts course (allure/vitesse GPS) */}
+            {analysis.runBestEfforts && (
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Footprints className="w-4 h-4 text-green-600" />
+                    Meilleures allures
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    {analysis.runBestEfforts.speed15s && (
+                      <MetricBadge label="15s" value={formatPaceDisplay(Math.round(1000 / analysis.runBestEfforts.speed15s))} />
+                    )}
+                    {analysis.runBestEfforts.speed6min && (
+                      <MetricBadge label="6min" value={`${(analysis.runBestEfforts.speed6min * 3.6).toFixed(1)} km/h`} highlight />
+                    )}
+                    {analysis.runBestEfforts.speed20min && (
+                      <MetricBadge label="20min" value={formatPaceDisplay(Math.round(1000 / analysis.runBestEfforts.speed20min))} highlight />
+                    )}
+                    {analysis.runBestEfforts.speed30min && (
+                      <MetricBadge label="30min" value={formatPaceDisplay(Math.round(1000 / analysis.runBestEfforts.speed30min))} highlight />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Key Metrics */}
             <div className="grid grid-cols-2 gap-3">
               {analysis.ftpEstimate && (
@@ -776,6 +905,59 @@ export function FitImportDialog({
                     </p>
                     <p className="text-xs text-muted-foreground">
                       ≥{Math.round(analysis.tteObservation.intensityThreshold * 100)}% FTP
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {analysis.vmaEstimate && (
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="py-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Gauge className="w-4 h-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">VMA estimée</span>
+                    </div>
+                    <p className="text-2xl font-bold text-primary">
+                      {analysis.vmaEstimate.vmaKmh} km/h
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {analysis.vmaEstimate.method}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {analysis.paceThresholdEstimate && (
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="py-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingUp className="w-4 h-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">Allure Seuil</span>
+                    </div>
+                    <p className="text-2xl font-bold text-primary">
+                      {formatPaceDisplay(analysis.paceThresholdEstimate.paceSecPerKm)}/km
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {analysis.paceThresholdEstimate.method}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {analysis.runTteObservation && (
+                <Card className="bg-orange-500/5 border-orange-500/20">
+                  <CardContent className="py-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Timer className="w-4 h-4 text-orange-500" />
+                      <span className="text-xs text-muted-foreground">
+                        TTE course observée
+                      </span>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {analysis.runTteObservation.tteMinutes.toFixed(1)} min
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      à {formatPaceDisplay(analysis.runTteObservation.targetPaceSecPerKm)}/km (allure seuil D5)
                     </p>
                   </CardContent>
                 </Card>

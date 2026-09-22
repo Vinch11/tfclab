@@ -3,7 +3,8 @@
  * Détection automatique du type de test à partir d'une session FIT
  */
 
-import type { FitSession, FitLap, BestEfforts, DetectedTestType, TestTypeDetection } from "./types";
+import type { FitSession, FitLap, BestEfforts, DetectedTestType, TestTypeDetection, RunBestEfforts } from "./types";
+import { speedToPaceSecPerKm, paceSecPerKmToSpeed } from "./runningBestEfforts";
 
 interface DetectionCandidate {
   type: DetectedTestType;
@@ -45,6 +46,38 @@ export function formatTFCLSlot(slot: TFCLWeekSlot): string {
     case "MAP5": return "MAP 5 min (D3)";
     case "FTP": return "FTP (D5)";
     case "TTE": return "TTE (D7)";
+    default: return "—";
+  }
+}
+
+/**
+ * CAP Reference-Week slots: mêmes principes que TFCLWeekSlot, côté course.
+ *  - SPRINT15 → Sprint 15s (snapshot.sprint_15s_distance) — D1
+ *  - VMA      → Test VMA   (snapshot.vma) — D3
+ *  - SEUIL    → Allure seuil (snapshot.pace_threshold_sec_per_km) — D5, dédié
+ *  - TTE      → TTE à l'allure seuil (snapshot.tte_observed_min_run) — D6, dédié
+ *    (même règle que le vélo : allure seuil et TTE sont testées sur 2 jours
+ *    distincts, jamais dans le même effort)
+ */
+export type CAPWeekSlot = "SPRINT15" | "VMA" | "SEUIL" | "TTE" | null;
+
+const CAP_SLOT_MAP: Partial<Record<DetectedTestType, CAPWeekSlot>> = {
+  SPRINT_15S: "SPRINT15",
+  VMA_TEST: "VMA",
+  THRESHOLD_RUN_30MIN: "SEUIL",
+  TTE_THRESHOLD: "TTE",
+};
+
+export function getCAPWeekSlot(type: DetectedTestType): CAPWeekSlot {
+  return CAP_SLOT_MAP[type] ?? null;
+}
+
+export function formatCAPSlot(slot: CAPWeekSlot): string {
+  switch (slot) {
+    case "SPRINT15": return "Sprint 15s (D1)";
+    case "VMA": return "VMA (D3)";
+    case "SEUIL": return "Allure Seuil (D5)";
+    case "TTE": return "TTE (D6)";
     default: return "—";
   }
 }
@@ -427,6 +460,260 @@ function detectTteThreshold(
   }
 
   return null;
+}
+
+/**
+ * Détecte le type de test course à pied à partir d'une session FIT.
+ * Miroir de detectTestType(), mais sur la vitesse/allure (jamais la
+ * puissance vélo — cf. isRunningSession dans analyzer.ts). La TTE n'est
+ * proposée comme candidat QUE si une allure seuil déjà validée est fournie
+ * (existingPaceThresholdSecPerKm) : mesurer une TTE sans seuil de référence
+ * n'a pas de sens (même règle que le vélo : jamais de TTE contre un seuil
+ * "frais", cf. calculateRunTteObservation).
+ */
+export function detectRunTestType(
+  session: FitSession,
+  runBestEfforts: RunBestEfforts,
+  existingPaceThresholdSecPerKm?: number
+): TestTypeDetection {
+  const candidates: DetectionCandidate[] = [];
+
+  const hasSpeed = session.records.some((r) => r.speed !== undefined && r.speed > 0.5);
+  if (!hasSpeed) {
+    return {
+      type: "UNKNOWN",
+      confidence: 0,
+      reasoning: "Aucune donnée de vitesse/allure disponible",
+    };
+  }
+
+  const totalMinutes = session.movingTimeSec / 60;
+
+  // === SPRINT 15s ===
+  const sprintCandidate = detectRunSprint(session, runBestEfforts);
+  if (sprintCandidate) candidates.push(sprintCandidate);
+
+  // === VMA (VAMEVAL ou 6 min all-out) ===
+  if (totalMinutes >= 10 && totalMinutes <= 30) {
+    const vmaCandidate = detectVmaTest(session, runBestEfforts);
+    if (vmaCandidate) candidates.push(vmaCandidate);
+  }
+
+  // === ALLURE SEUIL 30 min ===
+  if (totalMinutes >= 25 && totalMinutes <= 60) {
+    const thresholdCandidate = detectThresholdRun30Min(session, runBestEfforts);
+    if (thresholdCandidate) candidates.push(thresholdCandidate);
+  }
+
+  // === TTE au seuil (nécessite un seuil déjà validé) ===
+  if (existingPaceThresholdSecPerKm && totalMinutes >= 10 && totalMinutes <= 50) {
+    const tteCandidate = detectTteThresholdRun(session, existingPaceThresholdSecPerKm);
+    if (tteCandidate) candidates.push(tteCandidate);
+  }
+
+  if (candidates.length === 0) {
+    return {
+      type: "UNKNOWN",
+      confidence: 0.3,
+      reasoning: "Aucun pattern de test course reconnu dans cette séance",
+    };
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+  const best = candidates[0];
+  const alternatives = candidates
+    .slice(1, 3)
+    .filter((c) => c.score > 0.3)
+    .map((c) => c.type);
+
+  return {
+    type: best.type,
+    confidence: best.score,
+    reasoning: best.reason,
+    alternativeTypes: alternatives.length > 0 ? alternatives : undefined,
+  };
+}
+
+/**
+ * Détecte un sprint 15s course (séance courte, pic de vitesse très au-dessus
+ * de la vitesse moyenne)
+ */
+function detectRunSprint(
+  session: FitSession,
+  runBestEfforts: RunBestEfforts
+): DetectionCandidate | null {
+  const speed15s = runBestEfforts.speed15s;
+  if (!speed15s) return null;
+
+  const totalMinutes = session.movingTimeSec / 60;
+  if (totalMinutes > 30) return null;
+
+  const avgSpeed = session.records
+    .filter((r) => r.speed !== undefined && r.speed > 0.5)
+    .reduce((sum, r, _i, arr) => sum + (r.speed ?? 0) / arr.length, 0);
+
+  if (avgSpeed > 0 && speed15s / avgSpeed > 1.8) {
+    return {
+      type: "SPRINT_15S",
+      score: 0.8,
+      reason: `Sprint court détecté (vitesse 15s=${(speed15s * 3.6).toFixed(1)}km/h vs moyenne ${(avgSpeed * 3.6).toFixed(1)}km/h)`,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Détecte un test VMA (VAMEVAL progressif ou 6 min all-out — cf.
+ * capTestingWeek.ts D3, les 2 protocoles sont supportés officiellement)
+ */
+function detectVmaTest(
+  session: FitSession,
+  runBestEfforts: RunBestEfforts
+): DetectionCandidate | null {
+  const speed6min = runBestEfforts.speed6min;
+  if (!speed6min) return null;
+
+  const totalMinutes = session.movingTimeSec / 60;
+
+  // Séance courte avec un effort 6 min dominant (pas un effort de 20-30 min
+  // soutenu comme l'allure seuil) → signature VMA/VAMEVAL
+  const speed20min = runBestEfforts.speed20min;
+  if (!speed20min || speed6min / speed20min > 1.08) {
+    return {
+      type: "VMA_TEST",
+      score: 0.75,
+      reason: `Effort 6 min intense détecté (${(speed6min * 3.6).toFixed(1)} km/h) sur séance ${Math.round(totalMinutes)} min`,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Détecte un test allure seuil 30 min (effort maximal soutenable, sans
+ * extension TTE — cf. capTestingWeek.ts D5)
+ */
+function detectThresholdRun30Min(
+  session: FitSession,
+  runBestEfforts: RunBestEfforts
+): DetectionCandidate | null {
+  const speed30min = runBestEfforts.speed30min;
+  if (!speed30min) return null;
+
+  const totalMinutes = session.movingTimeSec / 60;
+  if (totalMinutes < 25) return null;
+
+  const steadySegment = findSteadySpeedSegment(session.records, 1700, speed30min);
+
+  if (steadySegment) {
+    const cv = steadySegment.cv;
+    const score = cv < 0.06 ? 0.9 : cv < 0.1 ? 0.75 : cv < 0.15 ? 0.6 : 0.4;
+
+    return {
+      type: "THRESHOLD_RUN_30MIN",
+      score,
+      reason: `Effort soutenu de ~30 min détecté (${speedToPaceLabel(steadySegment.avgSpeed)}, CV=${(cv * 100).toFixed(1)}%)`,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Détecte un test TTE course au seuil DÉJÀ validé (jamais un seuil recalculé
+ * dans la même séance — cf. calculateRunTteObservation)
+ */
+function detectTteThresholdRun(
+  session: FitSession,
+  existingPaceThresholdSecPerKm: number
+): DetectionCandidate | null {
+  const targetSpeed = paceSecPerKmToSpeed(existingPaceThresholdSecPerKm);
+  if (!targetSpeed) return null;
+
+  const steadySegment = findSteadySpeedSegment(session.records, 600, targetSpeed, 0.08);
+
+  if (steadySegment && steadySegment.durationSec >= 600) {
+    return {
+      type: "TTE_THRESHOLD",
+      score: 0.75,
+      reason: `Effort soutenu à l'allure seuil (${Math.round(steadySegment.durationSec / 60)} min à ${speedToPaceLabel(steadySegment.avgSpeed)})`,
+    };
+  }
+
+  return null;
+}
+
+function speedToPaceLabel(speedMs: number): string {
+  const paceSec = speedToPaceSecPerKm(speedMs);
+  if (!paceSec) return "—";
+  const min = Math.floor(paceSec / 60);
+  const sec = Math.round(paceSec % 60);
+  return `${min}:${sec.toString().padStart(2, "0")}/km`;
+}
+
+interface SteadySpeedSegment {
+  avgSpeed: number;
+  durationSec: number;
+  cv: number;
+  startIdx: number;
+  endIdx: number;
+}
+
+/**
+ * Trouve le segment le plus long avec vitesse stable proche d'une cible —
+ * miroir exact de findSteadySegment (vélo), sur speed au lieu de powerW.
+ */
+function findSteadySpeedSegment(
+  records: { timestamp: Date; speed?: number }[],
+  minDurationSec: number,
+  targetSpeed: number,
+  tolerance: number = 0.1
+): SteadySpeedSegment | null {
+  const speedRecords = records.filter((r) => r.speed !== undefined && r.speed > 0.5);
+  if (speedRecords.length < 10) return null;
+
+  let bestSegment: SteadySpeedSegment | null = null;
+
+  for (let start = 0; start < speedRecords.length - 10; start++) {
+    const segmentSpeeds: number[] = [];
+    let end = start;
+
+    while (end < speedRecords.length) {
+      const speed = speedRecords[end].speed!;
+      segmentSpeeds.push(speed);
+
+      const avgSpeed = segmentSpeeds.reduce((a, b) => a + b, 0) / segmentSpeeds.length;
+      const durationSec =
+        (speedRecords[end].timestamp.getTime() -
+          speedRecords[start].timestamp.getTime()) /
+        1000;
+
+      if (Math.abs(avgSpeed - targetSpeed) / targetSpeed <= tolerance) {
+        if (durationSec >= minDurationSec) {
+          const variance =
+            segmentSpeeds.reduce((sum, s) => sum + Math.pow(s - avgSpeed, 2), 0) /
+            segmentSpeeds.length;
+          const cv = Math.sqrt(variance) / avgSpeed;
+
+          if (!bestSegment || durationSec > bestSegment.durationSec) {
+            bestSegment = {
+              avgSpeed,
+              durationSec,
+              cv,
+              startIdx: start,
+              endIdx: end,
+            };
+          }
+        }
+        end++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return bestSegment;
 }
 
 interface SteadySegment {
