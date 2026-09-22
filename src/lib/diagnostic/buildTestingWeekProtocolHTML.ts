@@ -808,7 +808,7 @@ ${CSS}
     ${prereqHtml}
   </section>
 
-  ${chapterPages.join('\n<div class="page-break"></div>\n')}
+  ${chapterPages.join('\n')}
 
   <div class="page-break"></div>
 
