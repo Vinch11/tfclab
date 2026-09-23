@@ -39,7 +39,7 @@ export type SizingObjectiveKey =
   | "703" | "IM" | "TRI_SPRINT" | "TRI_OLYMPIQUE"
   | "SEMI" | "MARATHON" | "10K" | "5K" | "STARTTORUN";
 
-export type SizingAmbitionKey = "finisher" | "age_group" | "competitor" | "elite";
+export type SizingAmbitionKey = "finisher" | "age_group" | "competitor" | "elite" | "world_class";
 
 export type WeekType = "load" | "recovery" | "taper" | "race";
 
@@ -100,12 +100,26 @@ const MATRIX: Matrix = {
     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 3, max: 3 }, run: { min: 3, max: 3 }, brick: { min: 1, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 11, max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 1, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 4, max: 5 }, run: { min: 4, max: 5 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 2 }, totalSessions: { min: 15, max: 18 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
+    // world_class (top 3% AG, UI "Elite" depuis le relabeling — cf. src/types/ambitionLevel.ts)
+    // Fix "5e palier manquant" (audit coach "priorité séances/heures") : ce palier
+    // n'existait pas ici, donc normalizeSizingAmbition("world_class") retombait
+    // silencieusement sur "elite" — un athlète Elite (top 3%) recevait exactement
+    // le même quota NON NÉGOCIABLE qu'un Qualifiable (top 10%), alors que
+    // SPORT_RATIO_REFS (edge function, prompt IA) les distingue déjà clairement.
+    // Bornes dérivées de SPORT_RATIO_REFS["703"].world_class (weeklyHours [18,26],
+    // sessionsPerWeek [12,17]) — plafond horaire partagé à 34h entre les 4 formats
+    // triathlon, comme le fait déjà la ligne "elite" existante (30h partagé).
+    world_class:{ hoursMin: 18, hoursMax: 34, swim: { min: 4, max: 6 }, bike: { min: 4, max: 6 }, run: { min: 4, max: 6 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 3 }, totalSessions: { min: 17, max: 21 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
   },
   IM: {
     finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 3, max: 3 }, run: { min: 3, max: 3 }, brick: { min: 1, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 11, max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 1, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 6 }, bike: { min: 4, max: 5 }, run: { min: 4, max: 5 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 2 }, totalSessions: { min: 15, max: 18 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
+    // world_class : bornes dérivées de SPORT_RATIO_REFS.IM.world_class (weeklyHours
+    // [24,34], sessionsPerWeek [14,20]) — totalSessions.max plafonné à 21 (invariant
+    // faisabilité : (7−minFullRestDays)×maxSessionsPerDay = 7×3 = 21).
+    world_class:{ hoursMin: 18, hoursMax: 34, swim: { min: 5, max: 7 }, bike: { min: 4, max: 6 }, run: { min: 4, max: 6 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 3 }, totalSessions: { min: 18, max: 21 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
   },
   // TRI court : bike/run = 703 −1 (plancher 2), swim identique 703, brick 0-1, strength idem 703.
   TRI_SPRINT: {
@@ -113,12 +127,14 @@ const MATRIX: Matrix = {
     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 8,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 2, max: 3 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 15 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
+    world_class:{ hoursMin: 18, hoursMax: 34, swim: { min: 4, max: 6 }, bike: { min: 3, max: 5 }, run: { min: 3, max: 5 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 2 }, totalSessions: { min: 14, max: 18 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
   },
   TRI_OLYMPIQUE: {
     finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 8,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 2, max: 3 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 15 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
+    world_class:{ hoursMin: 18, hoursMax: 34, swim: { min: 4, max: 6 }, bike: { min: 3, max: 5 }, run: { min: 3, max: 5 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 2 }, totalSessions: { min: 14, max: 18 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
   },
   // CAP route — seuils horaires ajoutés (garde-fou hoursMin, cf. audit qualité plans IA :
   // jusqu'ici absents, la disponibilité déclarée par l'athlète n'ajustait jamais l'ambition
@@ -129,6 +145,7 @@ const MATRIX: Matrix = {
     age_group:  { hoursMin: 4, hoursMax: 6,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 6, hoursMax: 8,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 7, hoursMax: 12, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+    world_class:{ hoursMin: 8, hoursMax: 15, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 7, max: 9 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
   // Volumes légèrement supérieurs à SEMI à ambition égale : sortie longue marathon plus
   // exigeante en durée (cf. SL_MIN_BY_OBJECTIVE run:110 vs 90 pour SEMI) à structure de
@@ -142,18 +159,21 @@ const MATRIX: Matrix = {
     // ~3:45-4:15/km (mix EF + travail qualité plus rapide), le haut de fourchette
     // réel avoisine 13-15h — 13h était trop bas pour les coureurs au sommet du spectre.
     elite:      { hoursMin: 9, hoursMax: 15, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+    world_class:{ hoursMin: 11, hoursMax: 18, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 7, max: 9 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
   "10K": {
     finisher:   { hoursMin: 2, hoursMax: 4,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 3, hoursMax: 5,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 5, hoursMax: 7,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 6, hoursMax: 10, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+    world_class:{ hoursMin: 7, hoursMax: 12, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 7, max: 9 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
   "5K": {
     finisher:   { hoursMin: 2, hoursMax: 4,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 3, hoursMax: 5,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 5, hoursMax: 7,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 6, hoursMax: 10, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+    world_class:{ hoursMin: 7, hoursMax: 12, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 7, max: 9 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
   // Start to Run — débuter/reprendre la course (marche-course).
   // Jamais de "sortie longue" : 3 séances marche-course courtes + renfo fondation.
@@ -167,6 +187,10 @@ const MATRIX: Matrix = {
     age_group:  { hoursMin: 1, hoursMax: 3, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
     competitor: { hoursMin: 1, hoursMax: 3, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
     elite:      { hoursMin: 1, hoursMax: 3, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+    // world_class identique aux autres paliers : StartToRun plafonne volontairement
+    // toutes les ambitions élevées (débutant absolu, cf. commentaire de bloc
+    // ci-dessus et SPORT_RATIO_REFS.StartToRun côté edge function — même principe).
+    world_class:{ hoursMin: 1, hoursMax: 3, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
   },
 };
 
@@ -236,7 +260,16 @@ export function normalizeSizingObjective(objective: string | null | undefined): 
 export function normalizeSizingAmbition(ambition: string | null | undefined): SizingAmbitionKey {
   if (!ambition) return "age_group";
   const l = ambition.toLowerCase();
-  if (l === "world_class" || l === "worldclass" || l.includes("world-class")) return "elite";
+  // Fix "5e palier manquant" (audit coach "priorité séances/heures") : "world_class"
+  // (clé interne canonique, cf. src/types/ambitionLevel.ts — le palier "Elite" UI,
+  // top 3% AG, depuis le relabeling) retombait ici sur "elite" (Qualifiable, top
+  // 10%), faute de ligne MATRIX dédiée. Les appelants réels de cette fonction
+  // (useAITrainingPlan.ts, AITrainingPlanPage.tsx, sessionTextPostProcessor.ts)
+  // transmettent tous la clé interne canonique (jamais le libellé UI brut), donc
+  // contrairement à normalizeAmbKey côté edge function (sportRatioMatrix.ts), le
+  // mot nu "elite" reste ici sans ambiguïté la clé interne historique (Qualifiable)
+  // — inutile et risqué de le réassigner à world_class.
+  if (l === "world_class" || l === "worldclass" || l.includes("world-class") || l.includes("world class")) return "world_class";
   if (l === "finisher" || l === "discovery" || l.includes("decouverte") || l.includes("découverte")) return "finisher";
   if (l === "age_group" || l === "confirmed" || l.includes("confirmé") || l.includes("confirme")) return "age_group";
   if (l === "competitor" || l.includes("compétit") || l.includes("competit")) return "competitor";
@@ -244,7 +277,7 @@ export function normalizeSizingAmbition(ambition: string | null | undefined): Si
   return "age_group";
 }
 
-const AMBITION_ORDER: SizingAmbitionKey[] = ["finisher", "age_group", "competitor", "elite"];
+const AMBITION_ORDER: SizingAmbitionKey[] = ["finisher", "age_group", "competitor", "elite", "world_class"];
 
 function isTri(obj: SizingObjectiveKey): boolean {
   return obj === "703" || obj === "IM" || obj === "TRI_SPRINT" || obj === "TRI_OLYMPIQUE";
