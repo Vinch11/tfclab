@@ -155,8 +155,39 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(normalizeSizingObjective("Trail court")).toBeNull();
   });
 
-  it("normalizeSizingAmbition — world_class mappe elite", () => {
-    expect(normalizeSizingAmbition("world_class")).toBe("elite");
+  /**
+   * Fix "5e palier manquant" (audit coach "priorité séances/heures du plan") :
+   * world_class (clé interne du palier "Elite" UI, top 3% AG, cf.
+   * src/types/ambitionLevel.ts) retombait silencieusement sur "elite"
+   * (Qualifiable, top 10%), faute de ligne MATRIX dédiée — un athlète Elite
+   * recevait exactement le même quota NON NÉGOCIABLE qu'un Qualifiable, alors
+   * que SPORT_RATIO_REFS (edge function, prompt IA) les distingue déjà.
+   */
+  it("normalizeSizingAmbition — world_class reste world_class (5e palier distinct de elite)", () => {
+    expect(normalizeSizingAmbition("world_class")).toBe("world_class");
+    expect(normalizeSizingAmbition("elite")).toBe("elite");
+  });
+
+  it("world_class obtient un quota strictement supérieur à elite (IM) — les deux paliers ne sont plus confondus", () => {
+    const elite = computeWeeklySessionQuota("IRONMAN", "elite", 25, "load")!;
+    const worldClass = computeWeeklySessionQuota("IRONMAN", "world_class", 25, "load")!;
+    expect(worldClass.quota.totalSessions.max).toBeGreaterThan(elite.quota.totalSessions.max);
+    expect(worldClass.quota.totalSessions.min).toBeGreaterThan(elite.quota.totalSessions.min);
+    // 25h ≥ hoursMin world_class (18) pour IM : pas de downgrade.
+    expect(worldClass.downgraded).toBe(false);
+  });
+
+  it("world_class 703 avec seulement 16h déclarées → downgraded vers elite (hoursMin world_class=18 non atteint)", () => {
+    const r = computeWeeklySessionQuota("IRONMAN 70.3", "world_class", 16, "load")!;
+    expect(r).not.toBeNull();
+    expect(r.downgraded).toBe(true);
+    expect(r.quota.strength.min).toBe(2); // ligne "elite" (703), pas world_class
+  });
+
+  it("STARTTORUN world_class reste plafonné identique aux autres paliers (débutant absolu, jamais scalé)", () => {
+    const elite = computeWeeklySessionQuota("Start to Run", "elite", 2, "load")!;
+    const worldClass = computeWeeklySessionQuota("Start to Run", "world_class", 2, "load")!;
+    expect(worldClass.quota).toEqual(elite.quota);
   });
 
   it("inferWeekType — dernière semaine = race, sinon 4e = recovery, sinon load", () => {
@@ -208,7 +239,7 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
   it("invariant faisabilité : totalSessions.max ≤ (7−minRest)×maxPerDay ET totalSessions.min ≥ Σ mins sport", () => {
     const objectives = ["IRONMAN 70.3", "IRONMAN", "TRIATHLON SPRINT", "TRIATHLON OLYMPIQUE",
                         "SEMI-MARATHON", "MARATHON", "10K", "5K"];
-    const ambitions = ["finisher", "age_group", "competitor", "elite"];
+    const ambitions = ["finisher", "age_group", "competitor", "elite", "world_class"];
     for (const obj of objectives) {
       for (const amb of ambitions) {
         const r = computeWeeklySessionQuota(obj, amb, 15, "load");
