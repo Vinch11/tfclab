@@ -38,6 +38,7 @@ import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/pla
 import { evaluateDurationCoherence } from "@/lib/plan/recommendedPlanDuration";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
+import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksForFullPeak, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
 import { checkB12, checkB12ToValidationIssues } from "@/lib/plan/qa/checkB12";
@@ -601,6 +602,27 @@ export default function AITrainingPlanPage() {
   const updateRaceGoal = (idx: number, field: keyof RaceGoal, value: string) => {
     setRaceGoals(prev => prev.map((g, i) => i === idx ? { ...g, [field]: value } : g));
   };
+
+  // Fix "priorité des événements — 2 objectifs A" (audit coach) : le moteur
+  // (classifyMultiObjectiveGoalsClient, miroir de classifyMultiObjectiveGoals
+  // côté serveur) décide déjà si un objectif obtient un PIC COMPLET (taper
+  // dédié) uniquement à partir de l'écart calendaire jusqu'à la course
+  // suivante — jamais de l'étiquette A/B/C. On calcule cette classification en
+  // direct pour donner au coach un retour honnête ("pic complet" vs "jalon")
+  // au lieu du libellé statique trompeur ("B = toujours mini-taper").
+  const multiObjectiveClassifiableGoals = useMemo<ClassifiableRaceGoal[]>(() => {
+    const primary: ClassifiableRaceGoal = { objective, raceDate: raceDate || undefined, priority: "A" };
+    const additional: ClassifiableRaceGoal[] = raceGoals.map(g => ({
+      objective: g.objective, raceDate: g.raceDate || undefined, priority: g.priority,
+    }));
+    return [primary, ...additional];
+  }, [objective, raceDate, raceGoals]);
+  const multiObjectiveClassification = useMemo(
+    () => classifyMultiObjectiveGoalsClient(multiObjectiveClassifiableGoals),
+    [multiObjectiveClassifiableGoals],
+  );
+  const getRaceGoalClassification = (idx: number) =>
+    multiObjectiveClassification.find(c => c.goal === multiObjectiveClassifiableGoals[idx + 1]);
 
   // Plan start date: defaults to Monday of the CURRENT week, but can be
   // overridden when restoring an archived plan (so dates match the original).
@@ -2940,6 +2962,21 @@ export default function AITrainingPlanPage() {
                           ≈ <span className="font-semibold text-primary">{weeksAvailable}</span> semaines de préparation
                         </p>
                       )}
+                      {/* Objectif principal toujours étiqueté "A", mais un objectif
+                          additionnel trop proche peut quand même le reléguer en jalon
+                          (écart calendaire insuffisant) — même logique que ci-dessous. */}
+                      {isMultiObjective && raceDate && (() => {
+                        const primaryClassification = multiObjectiveClassification.find(
+                          c => c.goal === multiObjectiveClassifiableGoals[0],
+                        );
+                        if (!primaryClassification || primaryClassification.isFullPeak) return null;
+                        return (
+                          <p className="text-[10px] text-amber-600 dark:text-amber-400">
+                            ⚠️ Écart insuffisant avec l'objectif suivant pour un pic complet
+                            ({minGapWeeksForFullPeak(objective)} sem. minimum requises) — cet objectif principal restera un jalon.
+                          </p>
+                        );
+                      })()}
                     </>
                   ) : (
                     <>
@@ -3078,12 +3115,15 @@ export default function AITrainingPlanPage() {
 
 
                 {/* Multi-objective section */}
-                {raceGoals.map((goal, idx) => (
+                {raceGoals.map((goal, idx) => {
+                  const classification = getRaceGoalClassification(idx);
+                  const eligible = canBeIndependentPeak(goal.objective);
+                  return (
                   <div key={idx} className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3 relative">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-semibold flex items-center gap-1.5">
                         <Badge variant="outline" className="text-[10px] px-1.5">
-                          {goal.priority === "B" ? "🅱️ B" : "🆎 C"}
+                          {goal.priority === "A" ? "🅰️ A" : goal.priority === "B" ? "🅱️ B" : "🆎 C"}
                         </Badge>
                         Objectif {idx + 2}
                       </Label>
@@ -3116,12 +3156,34 @@ export default function AITrainingPlanPage() {
                     <Select value={goal.priority} onValueChange={v => updateRaceGoal(idx, "priority", v)}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="B">🅱️ Intermédiaire (mini-taper)</SelectItem>
-                        <SelectItem value="C">🆎 Secondaire (pas de taper)</SelectItem>
+                        <SelectItem value="A">🅰️ Objectif A (pic complet si l'écart le permet)</SelectItem>
+                        <SelectItem value="B">🅱️ Intermédiaire (mini-taper si jalon)</SelectItem>
+                        <SelectItem value="C">🆎 Secondaire (pas de taper si jalon)</SelectItem>
                       </SelectContent>
                     </Select>
+                    {/* Retour en direct : ce que le moteur décidera VRAIMENT (écart
+                        calendaire + type de course), indépendamment du libellé A/B/C
+                        choisi ci-dessus — évite de laisser croire qu'un B/C n'aura
+                        jamais de pic complet, ou qu'un A l'aura toujours. */}
+                    {goal.raceDate && classification && (
+                      classification.isFullPeak ? (
+                        <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                          🎯 Pic de forme complet — taper dédié ({classification.taperWeeks} sem.)
+                        </p>
+                      ) : !eligible ? (
+                        <p className="text-[10px] text-muted-foreground">
+                          🔹 Jalon — ce format de course n'est pas éligible à un pic indépendant.
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400">
+                          ⚠️ Écart insuffisant avec la course suivante pour un pic complet
+                          ({minGapWeeksForFullPeak(goal.objective)} sem. minimum requises pour {goal.objective}) — restera un jalon.
+                        </p>
+                      )
+                    )}
                   </div>
-                ))}
+                  );
+                })}
 
                 <Button
                   variant="outline"
