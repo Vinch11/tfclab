@@ -2087,24 +2087,37 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Pas de fractionné tant que l'athlète ne court pas 30min continu.");
   }
 
-  // Multi-objective: also emit sport coherence for B/C goals
+  // Multi-objective: also emit sport coherence for jalons (goals that do NOT
+  // get a full peak elsewhere — cf. classifyMultiObjectiveGoals/isFullPeak).
+  // Fix "rappel contradictoire multi-objectifs" (audit coach) : ce bloc
+  // filtrait auparavant sur `priority !== "A"` brut — un objectif B/C qui
+  // obtenait malgré tout un PIC DE FORME COMPLET (écart calendaire suffisant,
+  // cf. classifyMultiObjectiveGoals/minGapWeeksForFullPeak) recevait ICI un
+  // rappel contradictoire ("Mini-taper 7-10j... relance vers objectif A") en
+  // plus de sa vraie section "PIC DE FORME COMPLET" plus haut dans le prompt.
+  // Cible maintenant les vrais JALONS (isFullPeak=false), quelle que soit
+  // leur étiquette A/B/C — un 2e (ou 3e) objectif A suffisamment espacé est
+  // déjà couvert par sa propre section pic complet, jamais par ce rappel.
   if (config.raceGoals && config.raceGoals.length > 1) {
-    const otherGoals = config.raceGoals.filter((g: any) => g.priority !== "A");
+    const classificationForReminders = classifyMultiObjectiveGoals(config.raceGoals);
+    const otherGoals = classificationForReminders
+      .filter((c) => !c.isFullPeak && c.goal.raceDate)
+      .map((c) => c.goal);
     for (const goal of otherGoals) {
       const goalObjKey = normalizeObjKey(goal.objective || "");
       const goalName = goal.raceName ? ` (${goal.raceName})` : "";
       if (["Marathon", "Semi"].includes(goalObjKey)) {
-        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
-        lines.push(`- Les semaines précédant cette course B doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
+        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
+        lines.push(`- Les semaines précédant ce jalon doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
         lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
-        lines.push(`- Post-course : 1 semaine récupération avant relance vers objectif A.`);
+        lines.push(`- Post-course : 1 semaine récupération avant relance vers l'objectif principal.`);
       } else if (["IM", "703"].includes(goalObjKey)) {
-        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
-        lines.push(`- Intégrer natation + vélo + briques dans la préparation vers cette course B.`);
-        lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course B.`);
-        lines.push(`- Post-course B : 1-2 semaines récupération avant relance.`);
+        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
+        lines.push(`- Intégrer natation + vélo + briques dans la préparation vers ce jalon.`);
+        lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course.`);
+        lines.push(`- Post-course : 1-2 semaines récupération avant relance.`);
       } else {
-        lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
+        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
         lines.push(`- Inclure des séances spécifiques à cet objectif dans les semaines précédant la date de course.`);
         lines.push(`- Mini-taper 7j avant + récupération post-course.`);
       }

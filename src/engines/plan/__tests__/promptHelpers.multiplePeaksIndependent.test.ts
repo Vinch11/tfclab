@@ -109,3 +109,50 @@ describe("buildUserPrompt — multi-objectifs : plusieurs pics complets cohéren
     expect(prompt).not.toMatch(/CE N'EST PAS la dernière semaine du plan/i);
   });
 });
+
+/**
+ * Fix "rappel contradictoire multi-objectifs" (audit coach, suite de l'audit
+ * ci-dessus) : le bloc "Multi-objective: also emit sport coherence" filtrait
+ * sur `priority !== "A"` brut — un objectif B/C qui obtenait malgré tout un
+ * PIC DE FORME COMPLET (écart calendaire suffisant) recevait EN PLUS ce
+ * rappel "Mini-taper 7-10j... relance vers objectif A", contredisant sa
+ * propre section "PIC DE FORME COMPLET" générée juste au-dessus dans le même
+ * prompt. Corrigé pour cibler les vrais JALONS (isFullPeak=false) via
+ * classifyMultiObjectiveGoals, quelle que soit l'étiquette A/B/C — condition
+ * nécessaire pour que le coach puisse marquer un 2e objectif "A" (audit
+ * "priorité des événements") sans produire de prompt incohérent.
+ */
+describe("buildUserPrompt — rappel jalon multi-objectifs (cohérent avec la classification pic complet/jalon)", () => {
+  it("Marathon (A, février) + Ironman (B, juillet, ~5 mois) : l'Ironman est un pic complet, PAS de rappel 'Jalon' contradictoire", () => {
+    const config = makeConfig([
+      { objective: "Marathon", raceName: "Marathon de Paris", raceDate: "2027-02-07", priority: "A" },
+      { objective: "IM", raceName: "Ironman Nice", raceDate: "2027-07-04", priority: "B" },
+    ]);
+    const prompt = buildUserPrompt({}, config);
+    expect(prompt).not.toMatch(/RAPPEL : Jalon.*Ironman/is);
+    expect(prompt).not.toMatch(/Mini-taper 10-14j avant\. Simulation race-pace/i);
+  });
+
+  it("2e objectif marqué \"A\" mais trop proche (~6 sem, < 8 sem requises pour Marathon) : reste un jalon et reçoit le rappel, sous le libellé neutre 'Jalon' (pas 'Objectif B')", () => {
+    const config = makeConfig([
+      { objective: "Marathon", raceName: "Marathon A", raceDate: "2027-02-07", priority: "A" },
+      { objective: "IM", raceName: "Ironman A2", raceDate: "2027-03-21", priority: "A" },
+    ]);
+    const prompt = buildUserPrompt({}, config);
+    // Le Marathon (premier chronologiquement, écart insuffisant) reste un jalon
+    // malgré son étiquette "A" — il reçoit le rappel générique, jamais "Objectif B".
+    expect(prompt).toMatch(/RAPPEL : Jalon\s*\(Marathon A\) — Marathon/);
+    expect(prompt).not.toMatch(/RAPPEL : Objectif B/);
+  });
+
+  it("3 objectifs (Marathon A proche + 10K B jalon + IM A lointain, pic complet) : seul le 10K (vrai jalon) reçoit le rappel", () => {
+    const config = makeConfig([
+      { objective: "Marathon", raceName: "Marathon proche", raceDate: "2027-02-07", priority: "A" },
+      { objective: "10K", raceName: "10K prépa", raceDate: "2027-04-15", priority: "B" },
+      { objective: "IM", raceName: "Ironman lointain", raceDate: "2027-07-04", priority: "A" },
+    ]);
+    const prompt = buildUserPrompt({}, config);
+    expect(prompt).toMatch(/RAPPEL : Jalon\s*\(10K prépa\) — 10K/);
+    expect(prompt).not.toContain("RAPPEL : Jalon (Ironman lointain)");
+  });
+});
