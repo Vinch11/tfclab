@@ -45,6 +45,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ObjectifType, getObjectifLabel } from "@/types/athlete";
 import { toast } from "sonner";
+import { useCountdownTick } from "@/hooks/useCountdownTick";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -149,6 +150,16 @@ export function AthleteObjectiveManager({
     );
   }, [raceGoals]);
 
+  // Re-render périodique pour garder "next race"/J-X à jour (cf.
+  // useCountdownTick) — audit fiabilité UI (retour terrain coach : badge
+  // "J-X" figé plusieurs jours, toujours affiché après le passage réel de la
+  // course, sur le profil d'un athlète dont ce n'était même plus
+  // l'objectif). Sans dépendance temporelle dans ces memos, `raceGoals`
+  // (même référence tant que rien ne change côté Cloud) ne change jamais et
+  // "la prochaine course" reste figée sur l'ancienne valeur calculée au
+  // premier rendu, même des jours après que la course soit passée.
+  const tick = useCountdownTick();
+
   // Get next upcoming race
   const nextRace = useMemo(() => {
     const now = new Date();
@@ -156,14 +167,16 @@ export function AthleteObjectiveManager({
       .filter(g => new Date(g.race_date) >= now)
       .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
     return futureRaces[0] || null;
-  }, [raceGoals]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [raceGoals, tick]);
 
   // Days & weeks remaining to next race
   const daysRemaining = useMemo(() => {
     if (!nextRace) return null;
     const diff = Math.ceil((new Date(nextRace.race_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     return diff >= 0 ? diff : null;
-  }, [nextRace]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextRace, tick]);
 
   const weeksRemaining = useMemo(() => {
     if (daysRemaining === null) return null;

@@ -4,13 +4,14 @@
  * Auto-refresh quotidien pour garder J-X et semaines à jour
  */
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 import { differenceInDays, differenceInWeeks, format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarDays, Target, Timer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getObjectifLabel, ObjectifType } from "@/types/athlete";
+import { useCountdownTick } from "@/hooks/useCountdownTick";
 
 interface RaceGoal {
   id: string;
@@ -34,25 +35,8 @@ export function NextRaceIndicator({
   compact = false,
   onClick,
 }: NextRaceIndicatorProps) {
-  // Force re-render every hour to keep countdown fresh.
-  // Audit fiabilité UI (retour terrain coach : badge "figé" plusieurs jours) —
-  // un setInterval seul ne suffit pas : un onglet laissé en arrière-plan
-  // pendant plusieurs jours se fait throttle/suspendre par le navigateur,
-  // l'intervalle horaire peut ne jamais refirer tant que l'onglet n'est pas
-  // réactivé. Recalcul immédiat au retour au premier plan (visibilitychange)
-  // pour rattraper le retard sans attendre la prochaine heure pleine.
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const interval = setInterval(() => setTick(t => t + 1), 60 * 60 * 1000);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") setTick(t => t + 1);
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-  }, []);
+  // Force re-render périodique pour garder J-X à jour (cf. useCountdownTick).
+  const tick = useCountdownTick();
 
   // Trouver la prochaine course (future, triée par date)
   const nextRace = useMemo(() => {
