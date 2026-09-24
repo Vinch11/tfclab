@@ -211,9 +211,26 @@ function anchorRaceDays(
   for (const goal of goals) {
     if (!goal.raceDate) continue;
 
-    const targetWeekNum = getRaceWeekNumber(goal.raceDate, config.planStartDate, plan.weeks.length);
+    // Audit coach (plan Manu 40 sem) : `plan.weeks.length` était utilisé comme
+    // plafond de calcul du jour de course — sur un plan tronqué en amont
+    // (ex: 32/40 semaines réellement générées), ça faisait retomber le jour J
+    // sur la DERNIÈRE semaine PRÉSENTE au lieu de la vraie semaine de course,
+    // en désactivant de fait le garde-fou `if (!targetWeek) continue` ci-dessous
+    // (qui ne peut jamais échouer si le plafond = la longueur réelle du plan).
+    // `config.weeksAvailable` (durée INTENDUE du plan, même source que
+    // normalizeWeeksAndPhases juste au-dessus) restaure ce garde-fou : si la
+    // semaine de course n'existe pas encore dans `plan.weeks`, on ne fabrique
+    // aucun jour de course plutôt que d'en étiqueter un faux.
+    const targetWeekNum = getRaceWeekNumber(goal.raceDate, config.planStartDate, config.weeksAvailable);
     const targetWeek = plan.weeks.find(w => w.weekNumber === targetWeekNum);
-    if (!targetWeek) continue;
+    if (!targetWeek) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `race_day_skipped — S${targetWeekNum} (objectif "${goal.objective}", ${goal.raceDate}) absente du plan reçu ` +
+        `(${plan.weeks.length}/${config.weeksAvailable} semaines) — aucun jour de course fabriqué sur une semaine erronée.`,
+      );
+      continue;
+    }
 
     const priorityLabel = goal.priority === "A" ? "🅰️" : goal.priority === "B" ? "🅱️" : "🅲";
     const raceName = goal.raceName || goal.objective;
