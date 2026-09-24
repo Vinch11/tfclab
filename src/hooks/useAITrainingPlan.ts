@@ -60,6 +60,21 @@ export function computeTotalChunks(objective: string, totalWeeks: number): numbe
 }
 
 /**
+ * Titre du plan complet assemblé après une génération multi-fenêtres — ne
+ * doit JAMAIS reprendre tel quel le titre de la fenêtre 1 (ex: "...15
+ * semaines (Bloc 1)"), qui ne décrit que son propre périmètre, pas le plan
+ * entier une fois toutes les fenêtres fusionnées (cf. generatePlanWindowed).
+ */
+export function buildAssembledPlanTitle(
+  objective: string | undefined,
+  raceName: string | undefined,
+  totalWeeks: number,
+): string {
+  const goalLabel = raceName ? `${objective} — ${raceName}` : objective;
+  return `Plan TFCL™ — ${goalLabel} — ${totalWeeks} semaines`;
+}
+
+/**
  * Découpe `totalWeeks` semaines en fenêtres d'au plus `maxChunksPerWindow`
  * blocs standards chacune (cf. generatePlanWindowed — évite de dépasser le
  * délai maximal d'exécution du serveur sur un plan long).
@@ -1442,6 +1457,23 @@ export function useAITrainingPlan() {
       }
 
       if (assembled) {
+        // Audit coach (plan Manu) : `title`/`phases`/`diagnostic`/`strategicRecap`
+        // sont hérités de la fenêtre 1 par `mergeWindowIntoPlan` (qui spread
+        // `currentPlan` en premier) et restent donc figés sur SON seul
+        // périmètre (ex: titre "...15 semaines (Bloc 1)" affiché sur un plan
+        // assemblé de 40 semaines ; récap de phases ne couvrant que S1-S15,
+        // que normalizeWeeksAndPhases interpréterait comme "récap incomplet"
+        // sur le reste du plan — faux positif). On les réinitialise
+        // explicitement sur le plan complet assemblé : normalizeWeeksAndPhases
+        // (postProcessParsedPlan, en aval) régénère un récap propre sur les
+        // `totalWeeks` réels via le fallback Lorang.
+        assembled = {
+          ...assembled,
+          title: buildAssembledPlanTitle(planConfig.objective, planConfig.raceName, totalWeeks),
+          phases: [],
+          diagnostic: undefined,
+          strategicRecap: undefined,
+        };
         lastParsedPlanRef.current = assembled;
         setParsedPlan(assembled);
         toast.success(`Plan complet généré — ${windows.length} fenêtres assemblées.`);
