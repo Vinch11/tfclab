@@ -1399,7 +1399,17 @@ export default function AITrainingPlanPage() {
       clonedPlan,
       {
         ...config,
-        weeksAvailable: config.weeksAvailable ?? clonedPlan.weeks.length,
+        // Audit coach (plan Manu 39 sem) : `config.weeksAvailable` (buildConfigFromDiag)
+        // est recalculé EN DIRECT à chaque rendu depuis planStartDate/raceDate
+        // COURANTS — il peut donc dériver de la durée RÉELLEMENT générée pour
+        // CE plan (ex: 40 recalculé aujourd'hui alors que le plan affiché en
+        // fait bel et bien 39). anchorRaceDays/normalizeWeeksAndPhases doivent
+        // se caler sur le plan physiquement présent, jamais sur une valeur
+        // live recalculée pour une éventuelle PROCHAINE génération — sinon le
+        // jour de course est cherché sur une semaine qui n'existe pas et
+        // anchorRaceDays (fix #251) l'omet à raison plutôt que de le
+        // mal-placer, ce qui donne un plan sans aucun jour de course visible.
+        weeksAvailable: clonedPlan.weeks.length || config.weeksAvailable,
         mode: "ai",
       },
       athleteContext.data

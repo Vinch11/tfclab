@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeChunkSizing, computeTotalChunks, computeWindowRanges, computeObjectiveAwareWindows, MAX_CHUNKS_PER_WINDOW } from "../useAITrainingPlan";
+import { computeChunkSizing, computeTotalChunks, computeWindowRanges, computeObjectiveAwareWindows, buildAssembledPlanTitle, MAX_CHUNKS_PER_WINDOW } from "../useAITrainingPlan";
 import { buildWindowRegenConfig } from "@/engines/plan/planWindowRegen";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { RaceGoal } from "../useAITrainingPlan";
@@ -258,5 +258,26 @@ describe("computeObjectiveAwareWindows — plan multi-objectifs (Manu-like : Mar
     });
     expect(withoutCycle.config.constraints).toMatch(/Sem locale 7 \(= S22 globale\) : phase "build"/);
     expect(withoutCycle.config.windowRegenPhase).toBe("build");
+  });
+});
+
+// Régression réelle constatée sur le plan de Manu (audit coach, plan 40 sem
+// multi-objectifs) : le titre affiché était "...15 semaines (Bloc 1)" — celui
+// de la FENÊTRE 1 (buildWindowRegenConfig génère un titre scopé "fenêtre"),
+// resté figé sur le plan complet assemblé car mergeWindowIntoPlan hérite les
+// champs hors `weeks` (title, phases...) de la première fenêtre sans jamais
+// les réévaluer pour le plan entier.
+describe("buildAssembledPlanTitle", () => {
+  it("ne mentionne jamais un nombre de semaines ou un 'Bloc' partiel — reflète le vrai total assemblé", () => {
+    const title = buildAssembledPlanTitle("Ironman", undefined, 40);
+    expect(title).not.toMatch(/bloc/i);
+    expect(title).not.toContain("15 semaines");
+    expect(title).toContain("40 semaines");
+  });
+
+  it("inclut le nom de course quand fourni", () => {
+    const title = buildAssembledPlanTitle("Ironman", "Marathon Valence", 40);
+    expect(title).toContain("Marathon Valence");
+    expect(title).toContain("40 semaines");
   });
 });
