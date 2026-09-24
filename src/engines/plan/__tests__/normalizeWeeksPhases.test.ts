@@ -89,4 +89,80 @@ describe("normalizeWeeksAndPhases", () => {
     expect(stats.incompletePhaseWeeks).toEqual([]);
     expect(plan.weeks.every(w => w.phase.length > 0)).toBe(true);
   });
+
+  // Régression réelle constatée sur le plan de Manu (audit coach, "Ironman +
+  // Marathon Valence" 39 sem) : `generatePlanWindowed` vide `plan.phases`
+  // après assemblage, donc CE fallback Lorang devient la seule source de la
+  // frise de phases affichée (AIPlanViewer.tsx). Sans conscience des cycles
+  // d'objectifs, il produisait un unique arc Fondation→Affûtage sur 39
+  // semaines, masquant totalement le taper du marathon en S22.
+  describe("fallback Lorang conscient des cycles (plan multi-objectifs, Manu-like Marathon S22 + Ironman S39)", () => {
+    const PLAN_START = "2026-01-05"; // lundi
+    const addDaysIso = (iso: string, days: number): string => {
+      const [y, m, d] = iso.split("-").map(Number);
+      const utc = Date.UTC(y, m - 1, d) + days * 24 * 3600 * 1000;
+      const dt = new Date(utc);
+      return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+    };
+    const MARATHON_DATE = addDaysIso(PLAN_START, 147); // S22
+    const IRONMAN_DATE = addDaysIso(PLAN_START, 266); // S39
+    const raceGoals = [
+      { objective: "Marathon", raceDate: MARATHON_DATE, priority: "B" as const },
+      { objective: "Ironman", raceDate: IRONMAN_DATE, priority: "A" as const },
+    ];
+
+    it("plan.phases n'est plus vide et reflète les deux cycles (pas un unique arc continu)", () => {
+      const plan: PhaseNormalizable = {
+        weeks: Array.from({ length: 39 }, (_, i) => makeWeek(i + 1)),
+        phases: [],
+        totalWeeks: 39,
+      };
+      normalizeWeeksAndPhases(plan, { weeksAvailable: 39, raceGoals, planStartDate: PLAN_START });
+
+      expect(plan.phases!.length).toBeGreaterThan(0);
+      expect(plan.phases!.some(p => p.name!.includes("Marathon"))).toBe(true);
+      expect(plan.phases!.some(p => p.name!.includes("Ironman"))).toBe(true);
+    });
+
+    it("la semaine du marathon (S22) est en phase 'Affûtage' de son propre cycle, pas 'Spécifique' d'un cycle unique de 39 sem", () => {
+      const plan: PhaseNormalizable = {
+        weeks: Array.from({ length: 39 }, (_, i) => makeWeek(i + 1)),
+        phases: [],
+        totalWeeks: 39,
+      };
+      normalizeWeeksAndPhases(plan, { weeksAvailable: 39, raceGoals, planStartDate: PLAN_START });
+
+      const week22 = plan.weeks.find(w => w.weekNumber === 22)!;
+      expect(week22.phase).toContain("Affûtage");
+      expect(week22.phase).toContain("Marathon");
+    });
+
+    it("sans raceGoals/planStartDate (comportement pré-fix) : S22 tombe dans un unique cycle continu, jamais taggé Marathon", () => {
+      const plan: PhaseNormalizable = {
+        weeks: Array.from({ length: 39 }, (_, i) => makeWeek(i + 1)),
+        phases: [],
+        totalWeeks: 39,
+      };
+      normalizeWeeksAndPhases(plan, { weeksAvailable: 39 });
+
+      const week22 = plan.weeks.find(w => w.weekNumber === 22)!;
+      expect(week22.phase).not.toContain("Marathon");
+      expect(plan.phases!.some(p => p.name!.includes("Marathon"))).toBe(false);
+    });
+
+    it("plan mono-objectif : comportement inchangé (un seul cycle, aucun nom taggé 'Cycle')", () => {
+      const plan: PhaseNormalizable = {
+        weeks: Array.from({ length: 39 }, (_, i) => makeWeek(i + 1)),
+        phases: [],
+        totalWeeks: 39,
+      };
+      normalizeWeeksAndPhases(plan, {
+        weeksAvailable: 39,
+        raceGoals: [{ objective: "Ironman", raceDate: IRONMAN_DATE, priority: "A" as const }],
+        planStartDate: PLAN_START,
+      });
+
+      expect(plan.phases!.some(p => p.name!.includes("Cycle"))).toBe(false);
+    });
+  });
 });
