@@ -1112,9 +1112,15 @@ export function useAITrainingPlan() {
           OUT_OF_RANGE: "Semaines hors plage après assemblage du plan.",
           MERGE_FAIL: "Échec d'assemblage du plan généré.",
         };
-        const failLabel = FAIL_CODE_LABELS[failCode] ?? `Erreur inconnue${chunkRef} (${failCode}).`;
+        // Coupure serveur : la fonction de génération est stoppée d'office à ~400 s ;
+        // les blocs n'étant émis qu'en fin de traitement, un plan long (8 blocs ×
+        // ~70 s) finit en NO_CHUNKS sans aucun message d'erreur du serveur.
+        const serverTimeout = failCode === "NO_CHUNKS" && jsonDurMs >= 380_000;
+        const failLabel = serverTimeout
+          ? `Délai maximal du serveur dépassé (~400 s) — plan trop long (${totalWeeks} sem., ${totalChunks} blocs) pour être généré en une seule fois.`
+          : FAIL_CODE_LABELS[failCode] ?? `Erreur inconnue${chunkRef} (${failCode}).`;
         console.error(`[useAITrainingPlan] JSON generation failed hard (${failCode}: ${failMsg})`);
-        toast.error(`⚠️ Génération du plan échouée — ${failLabel} Réessaie via le bouton Générer.`);
+        toast.error(`⚠️ Génération du plan échouée — ${failLabel}${serverTimeout ? "" : " Réessaie via le bouton Générer."}`, { duration: 20000 });
         logPlanStat({
           ts: Date.now(), format: "json",
           objective: planConfig.objective ?? null,
