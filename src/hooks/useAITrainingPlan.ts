@@ -746,8 +746,10 @@ export function useAITrainingPlan() {
 
       // ─────────────────────────────────────────────────────────────────────
       // Phase 1B — JSON path : consume named SSE events, merge, expose parsedPlan.
-      // On failure : toast + auto-fallback to Markdown (relance complète), never
-      // white-screen and never a half-merged state.
+      // On failure : échec visible (toast.error identifiant le bloc/la cause),
+      // jamais de repli silencieux vers le Markdown legacy (audit coach, plan
+      // Manu 40 sem — le repli produisait un plan à l'air complet mais dégradé)
+      // et jamais un état à moitié fusionné.
       // ─────────────────────────────────────────────────────────────────────
       if (jsonMode) {
         const jsonStartTs = Date.now();
@@ -756,7 +758,7 @@ export function useAITrainingPlan() {
         let sseBuffer = "";
         const collected: PlanChunk[] = [];
         const semanticRepairs: string[] = [];
-        let fatalError: { code: string; message: string; details?: any } | null = null;
+        let fatalError: { code: string; message: string; details?: any; chunkIndex?: number } | null = null;
 
         // ─── Progression fluide semaine-par-semaine (esthétique) ──────────
         // Les événements `chunk-progress` n'arrivent qu'à la fin de chaque
@@ -826,7 +828,12 @@ export function useAITrainingPlan() {
               console.log("[TRAIL DEBUG edge→client] (aucune ligne collectée)");
             }
           } else if (event === "error") {
-            fatalError = { code: data.code ?? "UNKNOWN", message: data.message ?? "Erreur inconnue", details: data.details };
+            fatalError = {
+              code: data.code ?? "UNKNOWN",
+              message: data.message ?? "Erreur inconnue",
+              details: data.details,
+              chunkIndex: typeof data.chunkIndex === "number" ? data.chunkIndex : undefined,
+            };
           } else if (event === "warning") {
             const code = data.code ?? "warning";
             const severity = data.severity ?? "warning";
@@ -917,7 +924,7 @@ export function useAITrainingPlan() {
         let jsonSuccess = false;
         let sportIssuesCount = 0;
         let mergedLocal: ReturnType<typeof mergePlanChunks> | null = null;
-        let mergeError: { code: string; message: string; details?: any } | null = fatalError;
+        let mergeError: { code: string; message: string; details?: any; chunkIndex?: number } | null = fatalError;
         if (!fatalError && collected.length > 0) {
           try {
             // ─── PHASE 2C.4 — Réconciliateur déterministe (client) ─────────
@@ -1079,54 +1086,51 @@ export function useAITrainingPlan() {
           return;
         }
 
-        // JSON failed → automatic fallback to Markdown path (full relaunch)
+        // Audit coach (plan Manu 40 sem) : JSON en échec ne doit JAMAIS déclencher
+        // un repli silencieux vers le Markdown legacy (moins fiable, historique de
+        // troncature silencieuse remplissant des semaines de placeholders) — ça
+        // produisait un plan qui AVAIT L'AIR complet mais contenait du contenu
+        // dégradé/manquant sans que le coach ne le sache. On échoue franchement,
+        // avec un message qui identifie le bloc/la cause, et on laisse le coach
+        // relancer lui-même (bouton Générer) — ce qui retente le chemin JSON et
+        // bénéficie du retry serveur sur erreurs transitoires (generateChunkJSON.ts).
         const failCode = mergeError?.code ?? "UNKNOWN";
         const failMsg = mergeError?.message ?? "Erreur inconnue";
-        console.warn(`[useAITrainingPlan] JSON path failed (${failCode}: ${failMsg}) — falling back to Markdown.`);
-        toast.warning("Génération JSON échouée — plan généré en mode compatibilité");
+        const failChunk = mergeError?.chunkIndex;
+        const chunkRef = typeof failChunk === "number" ? ` (bloc ${failChunk + 1}/${totalChunks})` : "";
+        const FAIL_CODE_LABELS: Record<string, string> = {
+          RATE_LIMIT: `Limite de requêtes IA atteinte${chunkRef}.`,
+          CREDITS: "Crédits IA épuisés.",
+          GATEWAY_ERROR: `Erreur du service de génération IA${chunkRef}.`,
+          TRUNCATED: `Réponse IA tronquée${chunkRef} — sortie incomplète.`,
+          SCHEMA_FAIL: `Contenu IA non conforme au format attendu${chunkRef}, même après correction automatique.`,
+          SCHEMA_CLIENT_FAIL: `Contenu IA invalide détecté côté client${chunkRef}.`,
+          NO_CHUNKS: "Aucun contenu reçu du service de génération.",
+          GAP: "Semaines manquantes après assemblage du plan.",
+          DUP: "Semaines dupliquées après assemblage du plan.",
+          EMPTY: "Aucune semaine après assemblage du plan.",
+          OUT_OF_RANGE: "Semaines hors plage après assemblage du plan.",
+          MERGE_FAIL: "Échec d'assemblage du plan généré.",
+        };
+        const failLabel = FAIL_CODE_LABELS[failCode] ?? `Erreur inconnue${chunkRef} (${failCode}).`;
+        console.error(`[useAITrainingPlan] JSON generation failed hard (${failCode}: ${failMsg})`);
+        toast.error(`⚠️ Génération du plan échouée — ${failLabel} Réessaie via le bouton Générer.`);
         logPlanStat({
-          ts: Date.now(), format: "markdown-fallback-from-json",
+          ts: Date.now(), format: "json",
           objective: planConfig.objective ?? null,
           totalWeeks, totalChunks, durationMs: jsonDurMs, ok: false,
           errorCode: failCode, errorMessage: failMsg,
           schemaFailDetails: mergeError?.details,
         });
-        // Fresh Markdown request (identical body, no header, no _outputFormat flag)
-        // ⚠️ Strip `_outputFormat: "json"` from planConfig, sinon l'edge relance
-        // le chemin JSON via le flag body et le fallback échoue en boucle.
-        const { _outputFormat: _dropOutputFormat, ...planConfigMarkdown } = planConfigWithQuota as PlanConfig & { _outputFormat?: string };
-        void _dropOutputFormat;
-        const fallbackResp = await fetch(PLAN_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            athleteData, planConfig: planConfigMarkdown, phaseCatalogs,
-            chunkCatalogs: chunkCatalogs.length > 0 ? chunkCatalogs : undefined,
-            chunkSize: CHUNK_SIZE, catalogDurationStats,
-          }),
-        });
-
-        if (!fallbackResp.ok || !fallbackResp.body) {
-          throw new Error("Fallback Markdown a échoué (HTTP).");
-        }
-        // Continue in the Markdown streaming code below using this fallback body.
-        // Rebind the reader/response — reassign vars used further down.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (resp as any).__fallback_body_reader = fallbackResp.body.getReader();
-        setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
-        // fall through to Markdown streaming block
+        setIsLoading(false);
+        setChunkProgress(null);
+        return;
       }
 
 
 
       const markdownStartTs = Date.now();
-      const isFallback = !!(resp as any).__fallback_body_reader;
-      const reader = isFallback
-        ? (resp as any).__fallback_body_reader as ReadableStreamDefaultReader<Uint8Array>
-        : resp.body.getReader();
+      const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let textBuffer = "";
       let fullText = "";
@@ -1225,10 +1229,10 @@ export function useAITrainingPlan() {
           }
         }
       }
-      // Log Markdown-path success (covers both direct-Markdown and JSON-then-fallback)
+      // Log Markdown-path success (chemin direct uniquement — plus de repli JSON→Markdown).
       logPlanStat({
         ts: Date.now(),
-        format: isFallback ? "markdown-fallback-from-json" : "markdown",
+        format: "markdown",
         objective: planConfig.objective ?? null,
         totalWeeks, totalChunks,
         durationMs: Date.now() - markdownStartTs,
