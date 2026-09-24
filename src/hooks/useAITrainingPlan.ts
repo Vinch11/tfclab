@@ -470,6 +470,24 @@ export interface PlanConfig {
    */
   windowRegenPhase?: string;
   /**
+   * Objectif à utiliser pour le SCORING/FILTRAGE du catalogue de séances
+   * (`buildWorkoutCatalog`'s `objective` param — tags `goals`, cf.
+   * `normalizeGoal`), quand il diffère de `objective` (verrou sport,
+   * exclusions, texte de prompt — inchangés). Renseigné par
+   * `planWindowRegen.ts` quand la fenêtre appartient à un cycle d'objectif
+   * intermédiaire d'un plan multi-objectifs (`computeObjectiveCycleSegments`).
+   *
+   * Bug réel (audit "bibliothèque de séances", plan Manu Marathon S1-S22 +
+   * Ironman S25-S39) : sans ce champ, `buildWorkoutCatalog` était TOUJOURS
+   * appelé avec l'objectif FINAL du plan (`objective`, ex. "Ironman"), même
+   * pour les semaines du cycle Marathon intermédiaire — le taper avant le
+   * marathon piochait donc dans le pool de séances calibrées Ironman
+   * (allures/watts IM) plutôt que dans le pool marathon (allure course,
+   * taper spécifique 42km), alors que la PHASE (taper) était déjà correcte
+   * depuis le fix précédent (`windowRegenPhase`).
+   */
+  catalogObjective?: string;
+  /**
    * Fix D4 (audit "génération de plan IA") : décompte des occurrences des
    * fiches signature LCW (B_LCW_BIKE_LONG_RACE_SAT / B_LCW_RUN_OFF_LEGS_SUN)
    * déjà présentes AILLEURS dans le plan (hors de la fenêtre régénérée),
@@ -575,6 +593,12 @@ export function useAITrainingPlan() {
         planConfig.raceGoals
       );
 
+      // Objectif utilisé pour le SCORING/FILTRAGE du catalogue (tags `goals`) —
+      // distinct de `planConfig.objective` (verrou sport/exclusions ci-dessus,
+      // inchangé) quand cette fenêtre appartient à un cycle intermédiaire d'un
+      // plan multi-objectifs (cf. PlanConfig.catalogObjective).
+      const catalogObjective = planConfig.catalogObjective || planConfig.objective || "";
+
       // Compute catalog duration stats from all phases combined
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
       const usedIds = new Set<string>();
@@ -596,7 +620,7 @@ export function useAITrainingPlan() {
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];
         const catalog = buildWorkoutCatalog(
-          planConfig.objective || "",
+          catalogObjective,
           pr.start,
           pr.end,
           effTotalWeeks,
@@ -628,7 +652,7 @@ export function useAITrainingPlan() {
           // (sport × famille d'intention) avant tri par score. Marge large
           // sous la limite de contexte edge (~33k chars ≪ 64k tokens).
           const chunkCatalog = buildWorkoutCatalog(
-            planConfig.objective || "",
+            catalogObjective,
             cStart,
             cEnd,
             totalWeeks,
