@@ -259,6 +259,13 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     globalTotalWeeks,
     globalWeekOffset,
     windowRegenPhase: dominantPhase,
+    // Audit "bibliothèque de séances" : le catalogue de séances de cette
+    // fenêtre doit être scoré/filtré sur l'objectif du CYCLE (ex. "Marathon"),
+    // pas sur l'objectif final du plan (ex. "Ironman") — sans quoi le taper
+    // avant une course intermédiaire pioche des séances calibrées pour
+    // l'objectif final. N'affecte PAS `objective` lui-même (verrou sport,
+    // exclusions catalogue, texte de prompt) — cf. PlanConfig.catalogObjective.
+    catalogObjective: cycle?.objective,
     // Fix D4 (audit "génération de plan IA") : donne au filet dur côté edge
     // (applyLcwSignatureEnforcement) la même visibilité plan-entier que ce
     // rappel de prompt — cf. countLcwSignatureIdsInWeeks ci-dessus.

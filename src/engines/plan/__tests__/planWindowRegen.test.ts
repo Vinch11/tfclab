@@ -151,3 +151,40 @@ describe("planWindowRegen — périodisation globale", () => {
     expect(merged.phases).toEqual(plan.phases);
   });
 });
+
+// Régression réelle (audit "bibliothèque de séances", plan Manu Marathon
+// S1-S22 + Ironman S25-S39) : la PHASE d'une fenêtre de cycle intermédiaire
+// était déjà correcte (windowRegenPhase, fix précédent), mais le CATALOGUE de
+// séances envoyé à l'IA restait scoré/filtré sur l'objectif FINAL du plan
+// (Ironman) — le taper avant le marathon intermédiaire piochait donc des
+// séances calibrées Ironman au lieu de séances marathon. `catalogObjective`
+// porte l'objectif du CYCLE pour le scoring du catalogue (buildWorkoutCatalog),
+// sans toucher `objective` (verrou sport/exclusions, inchangé).
+describe("planWindowRegen — catalogObjective (cycle d'un plan multi-objectifs)", () => {
+  it("fenêtre appartenant à un cycle : catalogObjective = l'objectif DU CYCLE, pas l'objectif final du plan", () => {
+    const plan = makeLongPlan(39);
+    const { config } = buildWindowRegenConfig({
+      fromWeek: 16,
+      toWeek: 22,
+      currentPlan: plan,
+      athleteData,
+      baseConfig: { objective: "Ironman", weeksAvailable: 39 },
+      cycle: { objective: "Marathon", startWeek: 1, endWeek: 22 },
+    });
+    expect(config.catalogObjective).toBe("Marathon");
+    // `objective` (verrou sport / exclusions catalogue) reste l'objectif final.
+    expect(config.objective).toBe("Ironman");
+  });
+
+  it("sans cycle (régénération classique ou plan mono-objectif) : catalogObjective absent, fallback sur `objective`", () => {
+    const plan = makeLongPlan(20);
+    const { config } = buildWindowRegenConfig({
+      fromWeek: 9,
+      toWeek: 12,
+      currentPlan: plan,
+      athleteData,
+      baseConfig,
+    });
+    expect(config.catalogObjective).toBeUndefined();
+  });
+});
