@@ -440,7 +440,11 @@ export function postProcessParsedPlan(
   const normStats = normalizeWeeksAndPhases(plan, config);
   if (normStats.droppedGhostWeeks.length > 0 || normStats.phaseReassignedCount > 0 || normStats.labelCleanedCount > 0) {
     // eslint-disable-next-line no-console
-    console.log(`🧭 normalizeWeeksAndPhases — ghosts drop: [${normStats.droppedGhostWeeks.join(",")}] · phases reassignées: ${normStats.phaseReassignedCount} · labels nettoyés: ${normStats.labelCleanedCount}`);
+    console.log(`🧭 normalizeWeeksAndPhases — ghosts drop: [${normStats.droppedGhostWeeks.join(",")}] · phases reassignées: ${normStats.phaseReassignedCount} · labels nettoyés: ${normStats.labelCleanedCount}` +
+      (normStats.incompletePhaseWeeks.length > 0 ? ` · ⚠️ semaines sans bloc identifié: [${normStats.incompletePhaseWeeks.join(",")}]` : ""));
+  }
+  if (normStats.incompletePhaseWeeks.length > 0) {
+    plan.incompletePhaseWeeks = normStats.incompletePhaseWeeks;
   }
 
   anchorRaceDays(plan, config, athleteData);

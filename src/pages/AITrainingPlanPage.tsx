@@ -35,7 +35,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, getCatalogSportFilter, getCatalogExclusions, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
-import { evaluateDurationCoherence } from "@/lib/plan/recommendedPlanDuration";
+import { evaluateDurationCoherenceMultiObjective } from "@/lib/plan/recommendedPlanDuration";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
 import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksForFullPeak, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
@@ -1091,8 +1091,15 @@ export default function AITrainingPlanPage() {
   // cohérente avec l'objectif + l'ambition de l'athlète ? Demande coach —
   // signale sans jamais bloquer la génération.
   const durationCoherence = useMemo(
-    () => (weeksAvailable ? evaluateDurationCoherence(weeksAvailable, objective, ambition) : null),
-    [weeksAvailable, objective, ambition],
+    () => (weeksAvailable
+      ? evaluateDurationCoherenceMultiObjective(
+          weeksAvailable,
+          multiObjectiveClassifiableGoals,
+          format(planStartDate, "yyyy-MM-dd"),
+          ambition,
+        )
+      : null),
+    [weeksAvailable, multiObjectiveClassifiableGoals, planStartDate, ambition],
   );
 
   // Parse AI response into structured plan + apply taper volume override + validate paces.

@@ -64,6 +64,18 @@ function fallbackLorangPhases(totalWeeks: number): PhaseRange[] {
   return ranges;
 }
 
+/**
+ * Nom sentinelle pour un bloc final dont le récap `plan.phases` ne couvre pas
+ * les dernières semaines (typiquement : un chunk de génération a échoué/été
+ * tronqué et le fallback a rempli les semaines sans mettre à jour le récap).
+ * Audit coach (plan Manu 40 sem) : avant ce fix, `buildPhaseRanges` réutilisait
+ * silencieusement le nom ET le contenu (`objective`/`volume`) du DERNIER bloc
+ * réel pour couvrir ces semaines — produisant un bloc dupliqué à l'identique
+ * (ex. "Bloc 8 · Durabilité IM" sur S29-S32 ET S33-S40) qui masquait la perte
+ * de contenu au lieu de la signaler.
+ */
+export const INCOMPLETE_PHASE_LABEL = "⚠️ Phase non générée (récap incomplet)";
+
 /** Construit les plages de phases depuis `plan.phases` (recap) ou fallback. */
 function buildPhaseRanges(plan: PhaseNormalizable, totalWeeks: number): PhaseRange[] {
   const parsed: PhaseRange[] = [];
@@ -77,7 +89,9 @@ function buildPhaseRanges(plan: PhaseNormalizable, totalWeeks: number): PhaseRan
   if (parsed.length === 0) return fallbackLorangPhases(totalWeeks);
   if (parsed[0].start > 1) parsed.unshift({ name: parsed[0].name, start: 1, end: parsed[0].start - 1 });
   const last = parsed[parsed.length - 1];
-  if (last.end < totalWeeks) parsed.push({ name: last.name, start: last.end + 1, end: totalWeeks });
+  if (last.end < totalWeeks) {
+    parsed.push({ name: INCOMPLETE_PHASE_LABEL, start: last.end + 1, end: totalWeeks });
+  }
   return parsed;
 }
 
@@ -102,6 +116,13 @@ export interface NormalizeStats {
   droppedGhostWeeks: number[];
   phaseReassignedCount: number;
   labelCleanedCount: number;
+  /**
+   * Semaines couvertes par un bloc `INCOMPLETE_PHASE_LABEL` — le récap
+   * `plan.phases` ne les couvrait pas et aucun contenu de bloc réel ne leur a
+   * été attribué (cf. commentaire `INCOMPLETE_PHASE_LABEL`). Non-vide = signal
+   * à faire remonter au coach, ces semaines méritent une vérification/régénération.
+   */
+  incompletePhaseWeeks: number[];
 }
 
 /**
@@ -119,6 +140,7 @@ export function normalizeWeeksAndPhases(
     droppedGhostWeeks: [],
     phaseReassignedCount: 0,
     labelCleanedCount: 0,
+    incompletePhaseWeeks: [],
   };
 
   const totalWeeksExpected = typeof config.weeksAvailable === "number" && config.weeksAvailable > 0
@@ -139,6 +161,11 @@ export function normalizeWeeksAndPhases(
 
   // 2) Build canonical phase ranges (from recap, else Lorang fallback).
   const ranges = buildPhaseRanges(plan, totalWeeksExpected);
+  for (const r of ranges) {
+    if (r.name === INCOMPLETE_PHASE_LABEL) {
+      for (let wn = r.start; wn <= r.end; wn++) stats.incompletePhaseWeeks.push(wn);
+    }
+  }
 
   // 3) Ré-assigne phase + strip labels.
   for (const w of plan.weeks) {

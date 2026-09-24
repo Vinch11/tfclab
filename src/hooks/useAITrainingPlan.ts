@@ -967,16 +967,27 @@ export function useAITrainingPlan() {
             const merged = mergePlanChunks(collected, totalWeeks);
             mergedLocal = merged;
             // P3 — normalisation déterministe de phase (source unique) sur chemin JSON.
+            let incompletePhaseWeeks: number[] = [];
             try {
               const phaseStats = normalizeWeeksAndPhases(merged, { weeksAvailable: merged.totalWeeks });
+              incompletePhaseWeeks = phaseStats.incompletePhaseWeeks;
               console.log(
                 `🧭 [json] normalizeWeeksAndPhases — phases réassignées: ${phaseStats.phaseReassignedCount} · ` +
-                `labels nettoyés: ${phaseStats.labelCleanedCount}`,
+                `labels nettoyés: ${phaseStats.labelCleanedCount}` +
+                (incompletePhaseWeeks.length > 0 ? ` · ⚠️ semaines sans bloc identifié: [${incompletePhaseWeeks.join(",")}]` : ""),
               );
+              if (incompletePhaseWeeks.length > 0) {
+                const first = incompletePhaseWeeks[0];
+                const last = incompletePhaseWeeks[incompletePhaseWeeks.length - 1];
+                toast.warning(
+                  `⚠️ Récap de phases incomplet — semaine${incompletePhaseWeeks.length > 1 ? "s" : ""} S${first}${last !== first ? `-S${last}` : ""} sans bloc de périodisation identifié. Vérifie ce contenu avant utilisation, ou régénère le plan.`,
+                );
+              }
             } catch (nerr) {
               console.error("[useAITrainingPlan] normalizeWeeksAndPhases (json) failed:", nerr);
             }
             const parsed = jsonPlanToParsedPlan(merged);
+            if (incompletePhaseWeeks.length > 0) parsed.incompletePhaseWeeks = incompletePhaseWeeks;
             // Physiologie de référence figée à la génération (base du calcul de dérive)
             parsed.physioRefs = {
               ftp: athleteData.ftp ?? null,

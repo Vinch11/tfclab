@@ -1458,6 +1458,18 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         </Alert>
       )}
 
+      {plan.incompletePhaseWeeks && plan.incompletePhaseWeeks.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            ⚠️ Récap de phases incomplet — semaine{plan.incompletePhaseWeeks.length > 1 ? "s" : ""} S{plan.incompletePhaseWeeks[0]}
+            {plan.incompletePhaseWeeks[plan.incompletePhaseWeeks.length - 1] !== plan.incompletePhaseWeeks[0]
+              ? `-S${plan.incompletePhaseWeeks[plan.incompletePhaseWeeks.length - 1]}`
+              : ""} sans bloc de périodisation identifié (probable échec ou troncature d'une partie de la génération). Vérifie ce contenu avant utilisation, ou régénère le plan.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Aucune référence physiologique enregistrée dans le plan (plans générés
           avant l'ajout du suivi de dérive) : on propose quand même l'actualisation. */}
       {physioDrift.items.length === 0 && targetTable && (
