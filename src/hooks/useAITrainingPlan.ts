@@ -587,17 +587,33 @@ export function useAITrainingPlan() {
         { phase: "peak", start: Math.ceil(effTotalWeeks * 0.55), end: Math.ceil(effTotalWeeks * 0.85) },
         { phase: "taper", start: Math.ceil(effTotalWeeks * 0.80), end: effTotalWeeks },
       ];
-      const catalogSportFilter = getCatalogSportFilter(planConfig.objective || "");
+      // Objectif utilisé pour COMPOSER le catalogue envoyé à l'IA (sport
+      // éligible, exclusions, scoring par tags `goals`) — distinct de
+      // `planConfig.objective` (texte de prompt envoyé à l'edge function,
+      // toujours l'objectif FINAL du plan, inchangé) quand cette fenêtre
+      // appartient au cycle d'un objectif INTERMÉDIAIRE d'un plan
+      // multi-objectifs (cf. PlanConfig.catalogObjective).
+      //
+      // Bug réel corrigé (audit "bibliothèque de séances", retour coach :
+      // "très peu de CAP en préparation du marathon") : un premier fix
+      // (PR précédente) n'appliquait `catalogObjective` qu'au SCORING dans
+      // buildWorkoutCatalog, en gardant `catalogSportFilter`/exclusions basés
+      // sur l'objectif final (Ironman → sports triathlon complets). Le socle
+      // de couverture par (sport × famille) de buildWorkoutCatalog garantit
+      // une présence minimale POUR CHAQUE SPORT ÉLIGIBLE, indépendamment du
+      // score — vélo/natation gardaient donc une représentation quasi égale
+      // à la course dans le catalogue envoyé, quel que soit le bonus de score
+      // "objectif marathon". Le vrai levier est le FILTRE SPORT lui-même :
+      // en appliquant `catalogObjective` ("Marathon") à `getCatalogSportFilter`
+      // aussi, la fenêtre ne voit plus QUE des séances course/renfo pour ce
+      // cycle — cohérent avec le traitement déjà appliqué à un plan Marathon
+      // mono-objectif classique.
+      const catalogObjective = planConfig.catalogObjective || planConfig.objective || "";
+      const catalogSportFilter = getCatalogSportFilter(catalogObjective);
       const { excludeIdPatterns, excludeTags } = getCatalogExclusions(
-        planConfig.objective || "",
+        catalogObjective,
         planConfig.raceGoals
       );
-
-      // Objectif utilisé pour le SCORING/FILTRAGE du catalogue (tags `goals`) —
-      // distinct de `planConfig.objective` (verrou sport/exclusions ci-dessus,
-      // inchangé) quand cette fenêtre appartient à un cycle intermédiaire d'un
-      // plan multi-objectifs (cf. PlanConfig.catalogObjective).
-      const catalogObjective = planConfig.catalogObjective || planConfig.objective || "";
 
       // Compute catalog duration stats from all phases combined
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
