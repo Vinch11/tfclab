@@ -88,6 +88,89 @@ export interface ClassifiedRaceGoalClient {
   taperWeeks: number;
 }
 
+function parseIsoDateUtcClient(iso?: string): number | undefined {
+  if (!iso) return undefined;
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return undefined;
+  return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+/** Mirror de `computeGoalWeekForConfig` (promptHelpers.ts, serveur) — semaine
+ *  du plan (1-based) où tombe `raceDate`, calculée depuis `planStartDate`. */
+export function computeGoalWeekFromDates(planStartDate: string | undefined, raceDate: string | undefined): number | undefined {
+  const startUtc = parseIsoDateUtcClient(planStartDate);
+  const raceUtc = parseIsoDateUtcClient(raceDate);
+  if (startUtc === undefined || raceUtc === undefined) return undefined;
+  const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
+  return days >= 0 ? Math.floor(days / 7) + 1 : undefined;
+}
+
+export interface ObjectiveCycleSegment {
+  startWeek: number;
+  endWeek: number;
+  objective: string;
+  goalWeek: number;
+  isLastCycle: boolean;
+}
+
+/** Cohérent avec `MULTI_OBJECTIVE_REGEN_WEEKS_BETWEEN_PEAKS` (promptHelpers.ts,
+ *  serveur) et `ROADMAP_REGEN_WEEKS_BETWEEN_PEAKS` (strategicRoadmap.ts). */
+const OBJECTIVE_CYCLE_REGEN_WEEKS_BETWEEN_PEAKS = 2;
+
+/**
+ * Mirror client de `computeMultiObjectiveSegments` (promptHelpers.ts, serveur) —
+ * segmente un plan multi-objectifs en cycles (un par pic de forme complet
+ * daté), séparés par une vraie régénération de
+ * `OBJECTIVE_CYCLE_REGEN_WEEKS_BETWEEN_PEAKS` semaines. `totalWeeks` est la
+ * VRAIE longueur totale du plan (pas la dernière échéance datée) — le dernier
+ * cycle s'étend jusque-là, comme côté serveur.
+ *
+ * Utilisé par `generatePlanWindowed` (useAITrainingPlan.ts, audit "structure
+ * d'un plan multi-objectifs long") pour ne JAMAIS faire chevaucher une
+ * fenêtre de génération HTTP sur deux cycles d'objectifs différents — sinon
+ * une course intermédiaire (ex. Marathon en S22 d'un plan de 39 sem vers
+ * l'Ironman) reçoit un traitement "build vers l'objectif final" au lieu de
+ * son propre taper, faute pour `buildWindowRegenConfig` (planWindowRegen.ts)
+ * de connaître autre chose que l'objectif final et la longueur totale du plan.
+ *
+ * Retourne `null` si le plan est mono-objectif (ou n'a pas ≥2 pics complets
+ * datés) : l'appelant traite alors tout le plan comme un seul cycle continu
+ * (comportement historique, inchangé).
+ */
+export function computeObjectiveCycleSegments(
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+  planStartDate: string | undefined,
+  totalWeeks: number,
+): ObjectiveCycleSegment[] | null {
+  if (!Array.isArray(raceGoals) || raceGoals.length < 2) return null;
+
+  const fullPeaks = classifyMultiObjectiveGoalsClient(raceGoals)
+    .filter((c) => c.isFullPeak && c.goal.raceDate)
+    .map((c) => ({ ...c, goalWeek: computeGoalWeekFromDates(planStartDate, c.goal.raceDate) }))
+    .filter((c): c is typeof c & { goalWeek: number } => typeof c.goalWeek === "number" && c.goalWeek >= 1 && c.goalWeek <= totalWeeks)
+    .sort((a, b) => a.goalWeek - b.goalWeek);
+
+  if (fullPeaks.length < 2) return null;
+
+  const segments: ObjectiveCycleSegment[] = [];
+  let cursor = 1;
+  fullPeaks.forEach((c, i) => {
+    const isLastSegment = i === fullPeaks.length - 1;
+    const segEnd = isLastSegment ? totalWeeks : c.goalWeek;
+    if (segEnd - cursor + 1 >= 2) {
+      segments.push({
+        startWeek: cursor,
+        endWeek: segEnd,
+        objective: String(c.goal.objective || ""),
+        goalWeek: c.goalWeek,
+        isLastCycle: isLastSegment,
+      });
+    }
+    cursor = segEnd + OBJECTIVE_CYCLE_REGEN_WEEKS_BETWEEN_PEAKS + 1;
+  });
+  return segments.length > 0 ? segments : null;
+}
+
 export function classifyMultiObjectiveGoalsClient(raceGoals: ClassifiableRaceGoal[]): ClassifiedRaceGoalClient[] {
   const sorted = [...(raceGoals || [])].sort((a, b) => {
     if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);

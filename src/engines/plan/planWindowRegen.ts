@@ -107,6 +107,21 @@ export interface WindowRegenRequest {
   /** Config originale du plan (objective, weeklyHours, etc.) */
   baseConfig: PlanConfig;
   reason?: string;
+  /**
+   * Cycle objectif-conscient (plan multi-objectifs, cf.
+   * `computeObjectiveCycleSegments`, multiObjectiveClassification.ts) : quand
+   * fourni, la phase catalogue (base/build/peak/taper) et le taper de CETTE
+   * fenêtre sont calculés relativement à CE cycle (sa propre longueur, son
+   * propre objectif) plutôt qu'au plan entier vers l'objectif final — sinon
+   * une course intermédiaire (ex. Marathon en S22 d'un plan de 39 sem vers
+   * l'Ironman) tombe en plein "build" au lieu de recevoir son propre taper
+   * (bug réel constaté sur un plan coach réel, audit "structure d'un plan
+   * multi-objectifs long" — cf. `computeMultiObjectiveSegments`,
+   * promptHelpers.ts, pour l'équivalent côté génération non-fenêtrée).
+   * N'affecte PAS `windowConfig.objective` (verrou sport / catalogue
+   * d'exclusions) : le plan reste, par ex., un plan triathlon tout du long.
+   */
+  cycle?: { objective: string; startWeek: number; endWeek: number };
 }
 
 /**
@@ -135,19 +150,25 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
   // `windowSize` semaines avec son propre cycle base/build/peak/taper — ex.
   // la dernière semaine de la fenêtre serait vue comme "taper" (>80% d'un
   // cycle de 4 sem) alors qu'elle est en plein bloc Build dans le plan réel.
-  const globalTotalWeeks = req.currentPlan.totalWeeks;
-  const globalWeekOffset = req.fromWeek - 1;
+  const cycle = req.cycle;
+  const globalTotalWeeks = cycle ? (cycle.endWeek - cycle.startWeek + 1) : req.currentPlan.totalWeeks;
+  const globalWeekOffset = cycle ? (req.fromWeek - cycle.startWeek) : (req.fromWeek - 1);
+  const periodizationObjective = cycle ? cycle.objective : req.baseConfig.objective;
   const perWeekPhase: string[] = [];
   const phaseCounts: Record<string, number> = {};
   const periodizationLines: string[] = [];
   for (let i = 1; i <= windowSize; i++) {
     const globalWeek = i + globalWeekOffset;
-    const phase = catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks, req.baseConfig.objective, req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
-    const weekType = inferWeekType(globalWeek, globalTotalWeeks, req.baseConfig.objective || "", req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
+    const phase = catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks, periodizationObjective, req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
+    const weekType = inferWeekType(globalWeek, globalTotalWeeks, periodizationObjective || "", req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
     perWeekPhase.push(phase);
     phaseCounts[phase] = (phaseCounts[phase] ?? 0) + 1;
+    const planWeek = req.fromWeek + (i - 1);
+    const globalLabel = cycle
+      ? `S${planWeek} du plan (cycle "${cycle.objective}" S${cycle.startWeek}-S${cycle.endWeek}, position ${globalWeek}/${globalTotalWeeks} du cycle)`
+      : `S${globalWeek} globale`;
     periodizationLines.push(
-      `  - Sem locale ${i} (= S${globalWeek} globale) : phase "${phase}", type de semaine "${weekType}".`
+      `  - Sem locale ${i} (= ${globalLabel}) : phase "${phase}", type de semaine "${weekType}".`
     );
   }
   // Phase dominante de la fenêtre (majorité ; égalité → dernière semaine),
@@ -187,13 +208,29 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     }
   }
 
+  const scopeLabel = cycle
+    ? `dans le plan global de ${req.currentPlan.totalWeeks} semaines`
+    : `dans le plan global de ${globalTotalWeeks} semaines`;
+  const scopeReminder = cycle
+    ? `c'est un extrait du cycle "${cycle.objective}" (${globalTotalWeeks} semaines, S${cycle.startWeek}-S${cycle.endWeek} du plan complet)`
+    : `c'est un extrait d'un plan de ${globalTotalWeeks} semaines`;
+  const cycleReminderLines = cycle
+    ? [
+        "",
+        `🎯 CYCLE OBJECTIF DE CETTE FENÊTRE : "${cycle.objective}" (S${cycle.startWeek}-S${cycle.endWeek} du plan, ${globalTotalWeeks} semaines) — plan multi-objectifs, ce cycle a SON PROPRE taper avant SA course, indépendant de l'objectif final du plan.`,
+      ]
+    : [];
+
   const constraintsBlock = [
     req.baseConfig.constraints ?? "",
     "",
-    `🔄 RÉGÉNÉRATION PARTIELLE — Fenêtre ${windowSize} semaines (S${req.fromWeek}→S${req.toWeek} dans le plan global de ${globalTotalWeeks} semaines).`,
+    `🔄 RÉGÉNÉRATION PARTIELLE — Fenêtre ${windowSize} semaines (S${req.fromWeek}→S${req.toWeek} ${scopeLabel}).`,
     `Génère ces ${windowSize} semaines numérotées 1 à ${windowSize} (elles seront renumérotées).`,
+    ...cycleReminderLines,
     "",
-    `📅 PÉRIODISATION RÉELLE DE CHAQUE SEMAINE DE LA FENÊTRE (position dans le plan GLOBAL, pas un cycle isolé) :`,
+    cycle
+      ? `📅 PÉRIODISATION RÉELLE DE CHAQUE SEMAINE DE LA FENÊTRE (position dans le cycle "${cycle.objective}", pas dans un mini-plan isolé) :`
+      : `📅 PÉRIODISATION RÉELLE DE CHAQUE SEMAINE DE LA FENÊTRE (position dans le plan GLOBAL, pas un cycle isolé) :`,
     ...periodizationLines,
     ...lcwReminderLines,
     "",
@@ -205,7 +242,7 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     `⚠️ Contraintes de continuité :`,
     `- Sem 1 doit raccorder progressivement avec ce qui précède (pas de saut brutal de charge)`,
     `- Dernière sem doit préparer la transition vers le futur`,
-    `- Respecte STRICTEMENT la phase/type indiqués ci-dessus pour chaque semaine locale — ce n'est PAS un mini-plan autonome, c'est un extrait d'un plan de ${globalTotalWeeks} semaines.`,
+    `- Respecte STRICTEMENT la phase/type indiqués ci-dessus pour chaque semaine locale — ce n'est PAS un mini-plan autonome, ${scopeReminder}.`,
     req.reason ? `- Motif de la régénération : ${req.reason}` : "",
   ]
     .filter(Boolean)

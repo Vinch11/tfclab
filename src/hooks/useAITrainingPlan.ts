@@ -32,6 +32,7 @@ import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 
 import { normalizeWeeksAndPhases } from "@/engines/plan/normalizeWeeksPhases";
 import { buildWindowRegenConfig, mergeWindowIntoPlan } from "@/engines/plan/planWindowRegen";
+import { computeObjectiveCycleSegments } from "@/lib/plan/multiObjectiveClassification";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
@@ -88,6 +89,60 @@ export function computeWindowRanges(
   const windows: Array<{ from: number; to: number }> = [];
   for (let start = 1; start <= totalWeeks; start += weeksPerWindow) {
     windows.push({ from: start, to: Math.min(start + weeksPerWindow - 1, totalWeeks) });
+  }
+  return windows;
+}
+
+export interface ObjectiveAwareWindow {
+  from: number;
+  to: number;
+  /** Cycle d'objectif auquel cette fenêtre appartient (plan multi-objectifs
+   *  uniquement) — à transmettre tel quel à `buildWindowRegenConfig`. */
+  cycle?: { objective: string; startWeek: number; endWeek: number };
+}
+
+/**
+ * Découpe `totalWeeks` semaines en fenêtres HTTP (≤`maxChunksPerWindow` blocs
+ * chacune, cf. `computeWindowRanges`) sans jamais faire chevaucher une
+ * fenêtre sur deux cycles d'objectifs différents d'un plan multi-objectifs
+ * (`computeObjectiveCycleSegments`) — sinon une course intermédiaire (ex.
+ * Marathon en S22 d'un plan de 39 sem vers l'Ironman) tombe dans une fenêtre
+ * traitée comme "build vers l'objectif final" au lieu de recevoir son propre
+ * taper (bug réel constaté sur un plan coach réel, audit "structure d'un plan
+ * multi-objectifs long"). Chaque sous-plage (cycle ou intervalle de
+ * régénération entre deux cycles) est elle-même re-découpée en fenêtres de
+ * taille standard si elle dépasse `maxChunksPerWindow` blocs.
+ */
+export function computeObjectiveAwareWindows(
+  totalWeeks: number,
+  chunkSize: number,
+  raceGoals: RaceGoal[] | undefined,
+  planStartDate: string | undefined,
+  maxChunksPerWindow: number = MAX_CHUNKS_PER_WINDOW,
+): ObjectiveAwareWindow[] {
+  const cycleSegments = computeObjectiveCycleSegments(raceGoals, planStartDate, totalWeeks);
+  if (!cycleSegments) {
+    return computeWindowRanges(totalWeeks, chunkSize, maxChunksPerWindow);
+  }
+
+  const offsetWindows = (windows: Array<{ from: number; to: number }>, offset: number) =>
+    windows.map((w) => ({ from: w.from + offset, to: w.to + offset }));
+
+  const windows: ObjectiveAwareWindow[] = [];
+  let cursor = 1;
+  for (const seg of cycleSegments) {
+    if (seg.startWeek > cursor) {
+      // Intervalle de régénération inter-cycles (n'appartient à aucun des
+      // deux objectifs) — fenêtre(s) neutre(s), sans `cycle`.
+      windows.push(...offsetWindows(computeWindowRanges(seg.startWeek - cursor, chunkSize, maxChunksPerWindow), cursor - 1));
+    }
+    const cycleWeeks = seg.endWeek - seg.startWeek + 1;
+    const cycleRanges = offsetWindows(computeWindowRanges(cycleWeeks, chunkSize, maxChunksPerWindow), seg.startWeek - 1);
+    windows.push(...cycleRanges.map((r) => ({ ...r, cycle: { objective: seg.objective, startWeek: seg.startWeek, endWeek: seg.endWeek } })));
+    cursor = seg.endWeek + 1;
+  }
+  if (cursor <= totalWeeks) {
+    windows.push(...offsetWindows(computeWindowRanges(totalWeeks - cursor + 1, chunkSize, maxChunksPerWindow), cursor - 1));
   }
   return windows;
 }
@@ -1381,7 +1436,7 @@ export function useAITrainingPlan() {
       return generatePlan(athleteData, planConfig);
     }
 
-    const windows = computeWindowRanges(totalWeeks, chunkSize);
+    const windows = computeObjectiveAwareWindows(totalWeeks, chunkSize, planConfig.raceGoals, planConfig.planStartDate);
 
     setIsBatchGenerating(true);
     try {
@@ -1422,6 +1477,7 @@ export function useAITrainingPlan() {
           currentPlan: contextWithFuturePlaceholder,
           athleteData,
           baseConfig: planConfig,
+          cycle: windows[wi].cycle,
         });
         const windowConfig: PlanConfig & { _outputFormat?: "json" | "markdown" } = {
           ...windowConfigBase,
