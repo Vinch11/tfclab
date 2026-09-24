@@ -18,6 +18,7 @@
  */
 
 import type { ParsedPlan, ParsedWeek, PlanGenerationConfig } from "./types";
+import { computeObjectiveCycleSegments, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 
 /** Forme minimale commune à ParsedPlan et MergedPlan pour la normalisation de phase. */
 export interface PhaseNormalizable {
@@ -49,18 +50,63 @@ function parseWeekRange(raw: string): { start: number; end: number } | null {
   return { start: a, end: b };
 }
 
-/** Fallback Lorang standard sur totalWeeks. */
-function fallbackLorangPhases(totalWeeks: number): PhaseRange[] {
-  const w = Math.max(1, totalWeeks);
+/** Fallback Lorang standard sur une plage [start, end] (bornes GLOBALES du plan). */
+function fallbackLorangPhasesForRange(start: number, end: number, nameSuffix: string): PhaseRange[] {
+  const w = Math.max(1, end - start + 1);
+  const off = start - 1;
   const foundationEnd = Math.max(1, Math.round(w * 0.25));
   const buildEnd = Math.max(foundationEnd + 1, Math.round(w * 0.60));
   const peakEnd = Math.max(buildEnd + 1, Math.round(w * 0.90));
   const ranges: PhaseRange[] = [
-    { name: "Fondation",  start: 1, end: foundationEnd },
-    { name: "Build",      start: foundationEnd + 1, end: buildEnd },
-    { name: "Spécifique", start: buildEnd + 1, end: peakEnd },
+    { name: `Fondation${nameSuffix}`,  start: off + 1, end: off + foundationEnd },
+    { name: `Build${nameSuffix}`,      start: off + foundationEnd + 1, end: off + buildEnd },
+    { name: `Spécifique${nameSuffix}`, start: off + buildEnd + 1, end: off + peakEnd },
   ];
-  if (peakEnd < w) ranges.push({ name: "Affûtage", start: peakEnd + 1, end: w });
+  if (off + peakEnd < end) ranges.push({ name: `Affûtage${nameSuffix}`, start: off + peakEnd + 1, end });
+  return ranges;
+}
+
+/** Fallback Lorang standard sur totalWeeks (plan mono-cycle). */
+function fallbackLorangPhases(totalWeeks: number): PhaseRange[] {
+  return fallbackLorangPhasesForRange(1, Math.max(1, totalWeeks), "");
+}
+
+/**
+ * Fallback Lorang conscient des cycles d'objectifs (plan multi-objectifs) —
+ * mirror client de `computeMultiObjectiveSegments` (promptHelpers.ts, côté
+ * génération) appliqué au récap de phases AFFICHÉ, pas seulement au contenu
+ * généré. Audit coach (plan Manu, 39 sem, Ironman + Marathon Valence) :
+ * `generatePlanWindowed` vide `plan.phases` après assemblage (titre/récap de
+ * la fenêtre 1 sinon figé sur le plan entier, cf. AITrainingPlanPage.tsx) —
+ * sans ce fix, `fallbackLorangPhases` (UN SEUL cycle continu Fondation→
+ * Affûtage sur la totalité du plan) redevenait alors la seule source pour la
+ * frise de phases affichée (`AIPlanViewer.tsx`), masquant complètement les
+ * deux cycles réels (ex: Marathon S1-S22 avec son propre taper, Ironman
+ * S25-S39) derrière un unique arc générique peaking vers S35 — alors que
+ * `computeMultiObjectiveSegments` gère déjà ce cas pour le contenu réellement
+ * généré (buildStructuredDiagnosticBlock, promptHelpers.ts).
+ */
+function cycleAwareLorangPhases(
+  totalWeeks: number,
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+  planStartDate: string | undefined,
+): PhaseRange[] {
+  const segments = computeObjectiveCycleSegments(raceGoals, planStartDate, totalWeeks);
+  if (!segments) return fallbackLorangPhases(totalWeeks);
+
+  const ranges: PhaseRange[] = [];
+  let cursor = 1;
+  segments.forEach((seg, i) => {
+    if (seg.startWeek > cursor) {
+      ranges.push({ name: "Régénération post-pic", start: cursor, end: seg.startWeek - 1 });
+    }
+    const suffix = ` — Cycle ${i + 1}/${segments.length} (${seg.objective})`;
+    ranges.push(...fallbackLorangPhasesForRange(seg.startWeek, seg.endWeek, suffix));
+    cursor = seg.endWeek + 1;
+  });
+  if (cursor <= totalWeeks) {
+    ranges.push(...fallbackLorangPhasesForRange(cursor, totalWeeks, ""));
+  }
   return ranges;
 }
 
@@ -77,7 +123,12 @@ function fallbackLorangPhases(totalWeeks: number): PhaseRange[] {
 export const INCOMPLETE_PHASE_LABEL = "⚠️ Phase non générée (récap incomplet)";
 
 /** Construit les plages de phases depuis `plan.phases` (recap) ou fallback. */
-function buildPhaseRanges(plan: PhaseNormalizable, totalWeeks: number): PhaseRange[] {
+function buildPhaseRanges(
+  plan: PhaseNormalizable,
+  totalWeeks: number,
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+  planStartDate: string | undefined,
+): PhaseRange[] {
   const parsed: PhaseRange[] = [];
   for (const p of plan.phases ?? []) {
     const r = parseWeekRange(p.weeks ?? "");
@@ -86,7 +137,7 @@ function buildPhaseRanges(plan: PhaseNormalizable, totalWeeks: number): PhaseRan
     }
   }
   parsed.sort((a, b) => a.start - b.start);
-  if (parsed.length === 0) return fallbackLorangPhases(totalWeeks);
+  if (parsed.length === 0) return cycleAwareLorangPhases(totalWeeks, raceGoals, planStartDate);
   if (parsed[0].start > 1) parsed.unshift({ name: parsed[0].name, start: 1, end: parsed[0].start - 1 });
   const last = parsed[parsed.length - 1];
   if (last.end < totalWeeks) {
@@ -134,7 +185,7 @@ export interface NormalizeStats {
  */
 export function normalizeWeeksAndPhases(
   plan: PhaseNormalizable,
-  config: { weeksAvailable?: number },
+  config: { weeksAvailable?: number; raceGoals?: ClassifiableRaceGoal[]; planStartDate?: string },
 ): NormalizeStats {
   const stats: NormalizeStats = {
     droppedGhostWeeks: [],
@@ -160,7 +211,7 @@ export function normalizeWeeksAndPhases(
   plan.totalWeeks = plan.weeks.length;
 
   // 2) Build canonical phase ranges (from recap, else Lorang fallback).
-  const ranges = buildPhaseRanges(plan, totalWeeksExpected);
+  const ranges = buildPhaseRanges(plan, totalWeeksExpected, config.raceGoals, config.planStartDate);
   for (const r of ranges) {
     if (r.name === INCOMPLETE_PHASE_LABEL) {
       for (let wn = r.start; wn <= r.end; wn++) stats.incompletePhaseWeeks.push(wn);
@@ -186,18 +237,26 @@ export function normalizeWeeksAndPhases(
     }
   }
 
-  // 4) Normalise aussi `plan.phases` (aligne sur ranges canoniques si présent).
-  if (plan.phases && plan.phases.length > 0) {
-    plan.phases = ranges.map(r => {
-      const existing = plan.phases!.find(p => p.name === r.name);
-      return {
-        name: r.name,
-        weeks: `S${r.start}-S${r.end}`,
-        objective: existing?.objective,
-        volume: existing?.volume,
-      };
-    });
-  }
+  // 4) Reconstruit TOUJOURS `plan.phases` depuis les plages canoniques —
+  // recap original aligné si présent, sinon fallback Lorang (mono ou
+  // multi-cycle, cf. `ranges` ci-dessus). Audit coach (plan Manu) : avant ce
+  // fix, quand `plan.phases` démarrait vide (`generatePlanWindowed` le vide
+  // après assemblage — cf. AITrainingPlanPage.tsx), ce bloc était sauté
+  // (condition `plan.phases.length > 0` fausse) et `plan.phases` restait
+  // vide en sortie malgré le calcul de `ranges` juste au-dessus — la frise de
+  // phases affichée (AIPlanViewer.tsx) retombait alors sur son propre
+  // fallback de reconstruction par regroupement de semaines identiques,
+  // perdant l'info de cycle multi-objectifs portée par `ranges`.
+  const existingPhases = plan.phases ?? [];
+  plan.phases = ranges.map(r => {
+    const existing = existingPhases.find(p => p.name === r.name);
+    return {
+      name: r.name,
+      weeks: `S${r.start}-S${r.end}`,
+      objective: existing?.objective,
+      volume: existing?.volume,
+    };
+  });
 
   return stats;
 }
