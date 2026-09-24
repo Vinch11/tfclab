@@ -18,6 +18,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
+import { classifyMultiObjectiveGoalsClient, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 
 export interface DurationRange {
   minViable: number;
@@ -97,4 +98,71 @@ export function evaluateDurationCoherence(
     range,
     message: `✅ ${weeks} semaines est cohérent avec un objectif ${objKey} (fourchette habituelle ${range.idealMin}-${range.idealMax} sem).`,
   };
+}
+
+function parseIsoDateUtc(iso?: string): number | undefined {
+  if (!iso) return undefined;
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return undefined;
+  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
+/** Semaine (1-indexée) de la course depuis `planStartDate`, ou undefined si dates indisponibles. */
+function goalWeekFromStart(planStartDate: string | undefined, raceDate: string | undefined): number | undefined {
+  const startUtc = parseIsoDateUtc(planStartDate);
+  const raceUtc = parseIsoDateUtc(raceDate);
+  if (startUtc === undefined || raceUtc === undefined) return undefined;
+  const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
+  return days >= 0 ? Math.floor(days / 7) + 1 : undefined;
+}
+
+const DURATION_SEVERITY: Record<DurationCoherence, number> = {
+  too_short: 3,
+  short_for_ambition: 2,
+  long: 1,
+  ok: 0,
+};
+
+/**
+ * Version multi-objectifs de `evaluateDurationCoherence` (demande coach,
+ * audit plan Manu 40 sem, Marathon S1-S20 puis Ironman S21-S40) : comparer
+ * la durée TOTALE du plan à la fourchette d'un seul objectif produit un faux
+ * positif "trop long" sur un plan multi-pics légitime (40 sem > 28×1.4 pour
+ * IM, alors que chaque macrocycle pris séparément est dans sa fourchette).
+ *
+ * Segmente le plan par macrocycle en réutilisant la même classification que
+ * le fix PR #247 (`classifyMultiObjectiveGoalsClient` — seuls les objectifs
+ * "pic complet" au sens `isFullPeak` délimitent un macrocycle), puis évalue
+ * chaque macrocycle contre SON PROPRE objectif via `evaluateDurationCoherence`.
+ * Retombe sur le comportement historique (un seul objectif) si moins de 2
+ * pics complets sont détectés (raceGoals vide, ou tous B/C rapprochés).
+ */
+export function evaluateDurationCoherenceMultiObjective(
+  totalWeeks: number,
+  raceGoals: ClassifiableRaceGoal[],
+  planStartDate: string | undefined,
+  ambition: string | undefined,
+): DurationCoherenceResult {
+  const primaryObjective = raceGoals[0]?.objective;
+  const classified = classifyMultiObjectiveGoalsClient(raceGoals)
+    .filter(c => c.isFullPeak && c.goal.raceDate)
+    .map(c => ({ ...c, goalWeek: goalWeekFromStart(planStartDate, c.goal.raceDate) }))
+    .filter((c): c is typeof c & { goalWeek: number } => typeof c.goalWeek === "number" && c.goalWeek >= 1)
+    .sort((a, b) => a.goalWeek - b.goalWeek);
+
+  if (classified.length < 2) {
+    return evaluateDurationCoherence(totalWeeks, primaryObjective, ambition);
+  }
+
+  let cursor = 1;
+  const results: DurationCoherenceResult[] = [];
+  classified.forEach((c, i) => {
+    const isLast = i === classified.length - 1;
+    const segEnd = isLast ? totalWeeks : c.goalWeek;
+    const segWeeks = Math.max(0, segEnd - cursor + 1);
+    results.push(evaluateDurationCoherence(segWeeks, c.goal.objective, ambition));
+    cursor = c.goalWeek + 1;
+  });
+
+  return results.reduce((worst, r) => (DURATION_SEVERITY[r.coherence] > DURATION_SEVERITY[worst.coherence] ? r : worst), results[0]);
 }

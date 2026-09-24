@@ -69,6 +69,14 @@ export interface ParsedPlan {
     paceThresholdSecPerKm?: number | null;
     capturedAt?: string;
   };
+  /**
+   * Semaines dont le récap de phases (`phases`) ne couvrait pas la fin du
+   * plan lors de la génération (échec/troncature d'un chunk) — cf.
+   * `normalizeWeeksPhases.ts::INCOMPLETE_PHASE_LABEL`. Non-vide = ces
+   * semaines n'ont pas de bloc de périodisation identifié et méritent une
+   * vérification/régénération avant utilisation par le coach.
+   */
+  incompletePhaseWeeks?: number[];
 }
 
 const DAY_MAP: Record<string, number> = {
