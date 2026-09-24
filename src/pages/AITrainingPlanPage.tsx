@@ -398,7 +398,7 @@ export default function AITrainingPlanPage() {
   // chaque changement d'athlète, cf. PR #63 anti-fuite cross-athlète).
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlan, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -1537,7 +1537,7 @@ export default function AITrainingPlanPage() {
       config.constraints = [config.constraints || "", extraConstraints.trim()].filter(Boolean).join("\n");
     }
     if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
-    generatePlan(athleteContext.data, config);
+    generatePlanWindowed(athleteContext.data, config);
   };
 
   // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
@@ -1719,8 +1719,8 @@ export default function AITrainingPlanPage() {
     });
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
     if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
-    generatePlan(athleteContext.data, config);
-  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlan]);
+    generatePlanWindowed(athleteContext.data, config);
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed]);
 
   const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
     // eslint-disable-next-line no-console

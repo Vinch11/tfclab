@@ -31,8 +31,51 @@ import { runReconciler } from "@/lib/plan/planReconciler";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 
 import { normalizeWeeksAndPhases } from "@/engines/plan/normalizeWeeksPhases";
+import { buildWindowRegenConfig, mergeWindowIntoPlan } from "@/engines/plan/planWindowRegen";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
+
+/** Nombre maximal de blocs standards générés par requête HTTP (cf. generatePlanWindowed). */
+export const MAX_CHUNKS_PER_WINDOW = 3;
+
+/**
+ * Taille de bloc standard + seuil de chunking pour un objectif donné.
+ * Miroir de la sélection faite dans `generatePlan` ci-dessous et côté edge
+ * (jsonPlanHandler.ts) — à garder synchronisé si l'un des trois change.
+ */
+export function computeChunkSizing(objective: string, totalWeeks: number): { chunkSize: number; chunkThreshold: number } {
+  const obj = (objective || "").toUpperCase();
+  const isTriVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
+  const isTrailVerbose = /TRAIL\s*(ULTRA|MOUNTAIN|MONT|UTMB|CCC|OCC|LONG)/i.test(obj) || (/TRAIL/i.test(obj) && totalWeeks >= 12);
+  return {
+    chunkSize: isTriVerbose ? 5 : isTrailVerbose ? 6 : 4,
+    chunkThreshold: isTriVerbose ? 6 : isTrailVerbose ? 8 : 6,
+  };
+}
+
+/** Nombre de blocs standards qu'une génération de `totalWeeks` semaines produirait en une seule requête. */
+export function computeTotalChunks(objective: string, totalWeeks: number): number {
+  const { chunkSize, chunkThreshold } = computeChunkSizing(objective, totalWeeks);
+  return totalWeeks > chunkThreshold ? Math.ceil(totalWeeks / chunkSize) : 1;
+}
+
+/**
+ * Découpe `totalWeeks` semaines en fenêtres d'au plus `maxChunksPerWindow`
+ * blocs standards chacune (cf. generatePlanWindowed — évite de dépasser le
+ * délai maximal d'exécution du serveur sur un plan long).
+ */
+export function computeWindowRanges(
+  totalWeeks: number,
+  chunkSize: number,
+  maxChunksPerWindow: number = MAX_CHUNKS_PER_WINDOW,
+): Array<{ from: number; to: number }> {
+  const weeksPerWindow = maxChunksPerWindow * chunkSize;
+  const windows: Array<{ from: number; to: number }> = [];
+  for (let start = 1; start <= totalWeeks; start += weeksPerWindow) {
+    windows.push({ from: start, to: Math.min(start + weeksPerWindow - 1, totalWeeks) });
+  }
+  return windows;
+}
 
 export const getCatalogSportFilter = (objective: string): TrainingSport[] | undefined => {
   const lower = objective.trim().toLowerCase();
@@ -382,6 +425,14 @@ export interface ChunkProgress {
 export function useAITrainingPlan() {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // Audit coach (plan Manu 40 sem) : une génération longue (>3 blocs standards)
+  // dépasse le délai maximal d'exécution du serveur (~400s) avant même d'avoir
+  // pu émettre le moindre bloc au navigateur (cf. generatePlanWindowed plus
+  // bas). `isBatchGenerating` couvre TOUTE la séquence multi-requêtes, alors
+  // que `isLoading` (interne à generatePlan) se remet à `false` entre deux
+  // fenêtres — sans ce second flag, l'UI ("Générer" ré-activable) laisserait
+  // croire que c'est fini entre deux requêtes.
+  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   const [chunkProgress, setChunkProgress] = useState<ChunkProgress | null>(null);
   // Phase 1B — populated only when server ran the JSON path.
   const [parsedPlan, setParsedPlan] = useState<ParsedPlan | null>(null);
@@ -1270,6 +1321,136 @@ export function useAITrainingPlan() {
     }
   }, [isLoading]);
 
+  // Audit coach (plan Manu 40 sem) : jsonPlanHandler.ts accumule TOUS les
+  // blocs en mémoire serveur et ne les envoie au navigateur qu'à la toute fin
+  // (`enqueue("chunk-json", ...)` après le merge complet) — si la durée totale
+  // dépasse le délai maximal d'exécution du serveur (~400s, soit un plan de
+  // plus de MAX_CHUNKS_PER_WINDOW blocs standards pour la plupart des
+  // objectifs), le serveur est coupé AVANT d'avoir rien émis, même si
+  // plusieurs blocs étaient déjà générés. Le navigateur reçoit alors
+  // NO_CHUNKS après ~400s d'attente et rien ne s'affiche.
+  //
+  // Fix : découper la génération en plusieurs requêtes séquentielles d'au
+  // plus MAX_CHUNKS_PER_WINDOW blocs chacune, en réutilisant le mécanisme de
+  // régénération de fenêtre déjà en production (planWindowRegen.ts —
+  // buildWindowRegenConfig/mergeWindowIntoPlan), qui sait déjà injecter la
+  // vraie position globale (phase/périodisation correcte) et reconcaténer le
+  // résultat. Chaque requête reste sous la limite serveur ; le plan complet
+  // est assemblé côté navigateur puis post-traité normalement
+  // (postProcessParsedPlan, AITrainingPlanPage.tsx) exactement comme un plan
+  // généré en une seule requête.
+  //
+  // Les catalogues anti-répétition envoyés à l'IA sont calculés côté client
+  // AVANT l'envoi de chaque requête (buildWorkoutCatalog, dans `generatePlan`
+  // ci-dessus) — le découpage en plusieurs requêtes HTTP ne change rien à
+  // cette diversité, qui n'a jamais dépendu d'un état "live" partagé entre
+  // blocs pendant une même exécution serveur.
+  //
+  // Limite connue (acceptée pour ce fix) : `sportObjectiveIssues` et
+  // `weeklyQuotaIssues` ne reflètent que la DERNIÈRE fenêtre après une
+  // génération multi-fenêtres (chaque fenêtre les recalcule pour son propre
+  // sous-ensemble de semaines) — signaux QA informatifs uniquement, la
+  // validation qui bloque réellement (`postProcessParsedPlan` en aval) tourne
+  // elle sur le plan complet assemblé.
+  const generatePlanWindowed = useCallback(async (
+    athleteData: PlanAthleteData,
+    planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" },
+  ): Promise<void> => {
+    const totalWeeks = planConfig.weeksAvailable ?? 0;
+    const { chunkSize } = computeChunkSizing(planConfig.objective || "", totalWeeks);
+    const totalChunksForPlan = computeTotalChunks(planConfig.objective || "", totalWeeks);
+
+    if (planConfig._outputFormat !== "json" || totalChunksForPlan <= MAX_CHUNKS_PER_WINDOW) {
+      // Plan assez court (ou chemin Markdown, non concerné par la coupure
+      // serveur JSON) — comportement inchangé, une seule requête.
+      return generatePlan(athleteData, planConfig);
+    }
+
+    const windows = computeWindowRanges(totalWeeks, chunkSize);
+
+    setIsBatchGenerating(true);
+    try {
+      let assembled: ParsedPlan | null = null;
+
+      for (let wi = 0; wi < windows.length; wi++) {
+        const { from, to } = windows[wi];
+        const isLastWindow = wi === windows.length - 1;
+
+        toast.info(`Génération — fenêtre ${wi + 1}/${windows.length} (S${from}-S${to})…`, { duration: 6000 });
+
+        const currentPlanForContext: ParsedPlan = assembled ?? {
+          title: planConfig.raceName || planConfig.objective || "Plan",
+          phases: [],
+          totalWeeks,
+          weeks: [],
+        };
+        // buildWindowRegenConfig déduit son texte d'ancrage futur ("Pas de
+        // semaines après la fenêtre… la dernière semaine doit clôturer le
+        // bloc") de `currentPlan.weeks` au-delà de `to` — toujours vide ici
+        // puisque les fenêtres suivantes n'existent pas encore au moment de
+        // générer celle-ci. Sans ce placeholder, chaque fenêtre NON FINALE
+        // recevrait à tort l'instruction de clôturer le bloc (mini-taper
+        // prématuré au milieu du plan).
+        const contextWithFuturePlaceholder: ParsedPlan = isLastWindow
+          ? currentPlanForContext
+          : {
+              ...currentPlanForContext,
+              weeks: [
+                ...currentPlanForContext.weeks,
+                { weekNumber: to + 1, theme: "Suite du plan", phase: "build", sessions: [] },
+              ],
+            };
+
+        const { config: windowConfigBase } = buildWindowRegenConfig({
+          fromWeek: from,
+          toWeek: to,
+          currentPlan: contextWithFuturePlaceholder,
+          athleteData,
+          baseConfig: planConfig,
+        });
+        const windowConfig: PlanConfig & { _outputFormat?: "json" | "markdown" } = {
+          ...windowConfigBase,
+          _outputFormat: planConfig._outputFormat,
+          // buildWindowRegenConfig désactive systématiquement la rampe de
+          // volume initiale (conçu pour régénérer une fenêtre EN PLEIN
+          // MILIEU d'un plan déjà existant, jamais son tout début) — la
+          // première fenêtre d'une génération initiale démarre elle bien en
+          // semaine 1 réelle du plan : la rampe d'origine doit s'appliquer.
+          volumeRamp: wi === 0 ? planConfig.volumeRamp : windowConfigBase.volumeRamp,
+        };
+
+        await generatePlan(athleteData, windowConfig);
+
+        const windowPlan = lastParsedPlanRef.current;
+        if (!windowPlan || windowPlan.weeks.length === 0) {
+          // generatePlan a déjà affiché son propre toast.error (échec dur,
+          // identifiant le bloc/la cause) — on arrête simplement la séquence.
+          console.error(`[generatePlanWindowed] fenêtre ${wi + 1}/${windows.length} (S${from}-S${to}) — échec, séquence interrompue.`);
+          return;
+        }
+
+        assembled = assembled
+          ? mergeWindowIntoPlan(assembled, windowPlan, from, to)
+          // `windowPlan.totalWeeks` vaut la taille de CETTE fenêtre (ex: 15),
+          // pas le vrai total du plan (ex: 40) — `buildWindowRegenConfig`
+          // lit `currentPlan.totalWeeks` pour calculer `globalTotalWeeks` de
+          // la fenêtre SUIVANTE (periodisation/phase). Sans ce `totalWeeks`
+          // explicite dès la première fenêtre, les fenêtres suivantes
+          // recevraient un `globalTotalWeeks` erroné (celui de la 1ère
+          // fenêtre) et donc une phase/catalogue incorrects.
+          : { ...windowPlan, totalWeeks, weeks: windowPlan.weeks.map((w) => ({ ...w })) };
+      }
+
+      if (assembled) {
+        lastParsedPlanRef.current = assembled;
+        setParsedPlan(assembled);
+        toast.success(`Plan complet généré — ${windows.length} fenêtres assemblées.`);
+      }
+    } finally {
+      setIsBatchGenerating(false);
+    }
+  }, [generatePlan]);
+
   const reset = useCallback(() => {
     setResponse("");
     lastResponseRef.current = "";
@@ -1283,7 +1464,13 @@ export function useAITrainingPlan() {
   }, []);
 
   return {
-    response, isLoading, chunkProgress, generatePlan, reset, setResponse,
+    response,
+    // isBatchGenerating couvre toute une séquence generatePlanWindowed
+    // (isLoading, interne à generatePlan, se remet à false entre deux
+    // fenêtres) — combiné ici pour que les consommateurs existants (bouton
+    // Générer, spinner) n'aient rien à changer pour rester corrects.
+    isLoading: isLoading || isBatchGenerating,
+    chunkProgress, generatePlan, generatePlanWindowed, reset, setResponse,
     // Phase 1B — JSON-mode outputs (null when Markdown path was used).
     parsedPlan, mergedPlan, sportObjectiveIssues,
     // Phase 2A — quota hebdo moteur (validation post-merge).
