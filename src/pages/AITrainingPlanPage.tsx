@@ -2884,6 +2884,27 @@ export default function AITrainingPlanPage() {
             >
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Date de début du plan
+                  </Label>
+                  <Input
+                    type="date"
+                    value={format(planStartDate, "yyyy-MM-dd")}
+                    onChange={(e) => {
+                      if (!e.target.value) return;
+                      const d = parseISO(e.target.value);
+                      if (!isNaN(d.getTime())) setPlanStartDate(startOfWeek(d, { weekStartsOn: 1 }));
+                    }}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Ancrée au lundi de la semaine choisie — sert de référence à "≈N semaines de préparation"
+                    et aux avertissements de durée ci-dessous. Vérifie-la si ces chiffres semblent décalés :
+                    elle peut rester figée sur une ancienne configuration de cet athlète.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
                     <Target className="h-3.5 w-3.5" />
                     Objectif principal (A)
                   </Label>
