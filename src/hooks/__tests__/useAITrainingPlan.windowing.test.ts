@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { computeChunkSizing, computeTotalChunks, computeWindowRanges, MAX_CHUNKS_PER_WINDOW } from "../useAITrainingPlan";
+import { computeChunkSizing, computeTotalChunks, computeWindowRanges, computeObjectiveAwareWindows, MAX_CHUNKS_PER_WINDOW } from "../useAITrainingPlan";
 import { buildWindowRegenConfig } from "@/engines/plan/planWindowRegen";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
+import type { RaceGoal } from "../useAITrainingPlan";
 
 // Audit coach (plan Manu 40 sem, Ironman) : jsonPlanHandler.ts accumule tous
 // les blocs en mémoire serveur et ne les envoie au navigateur qu'à la toute
@@ -138,5 +139,124 @@ describe("generatePlanWindowed — propagation de totalWeeks entre fenêtres", (
       baseConfig: { objective: "Ironman", weeksAvailable: 40 },
     });
     expect(config.globalTotalWeeks).toBe(15);
+  });
+});
+
+// Régression réelle constatée sur le plan de Manu (audit coach, "Ironman +
+// Marathon Valence" 39 sem) : trop peu de séances course à pied pour préparer
+// le marathon, et la semaine avant le marathon (S21) contenait des intervalles
+// seuil + une sortie longue au lieu d'un taper. Root cause : `computeWindowRanges`
+// découpait le plan en fenêtres de taille égale (15/15/9 sem) SANS tenir
+// compte des objectifs — la fenêtre S16-S30 contenait le marathon (S22) en
+// plein milieu, et `buildWindowRegenConfig` (sans notion de cycle) calculait
+// sa phase dominante relativement au plan ENTIER (39 sem) vers l'objectif
+// FINAL (Ironman) : S22/39 ≈ 56% → "build", jamais "taper". Résultat : la
+// course intermédiaire recevait un catalogue de séances "build" au lieu de
+// "taper", contredisant directement `computeMultiObjectiveSegments`
+// (promptHelpers.ts) qui gère ce cas correctement pour la génération
+// non-fenêtrée. `computeObjectiveAwareWindows` corrige ça en interdisant à
+// toute fenêtre de chevaucher deux cycles d'objectifs.
+describe("computeObjectiveAwareWindows — plan multi-objectifs (Manu-like : Marathon S22 + Ironman S39)", () => {
+  const PLAN_START = "2026-01-05"; // lundi
+  const addDaysIso = (iso: string, days: number): string => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const utc = Date.UTC(y, m - 1, d) + days * 24 * 3600 * 1000;
+    const dt = new Date(utc);
+    return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+  };
+  // 21*7=147 jours après le début → tombe en S22 (floor(147/7)+1=22).
+  const MARATHON_DATE = addDaysIso(PLAN_START, 147);
+  // 38*7=266 jours après le début → tombe en S39 (floor(266/7)+1=39).
+  const IRONMAN_DATE = addDaysIso(PLAN_START, 266);
+
+  const raceGoals: RaceGoal[] = [
+    { objective: "Marathon", raceDate: MARATHON_DATE, priority: "B" },
+    { objective: "Ironman", raceDate: IRONMAN_DATE, priority: "A" },
+  ];
+
+  it("aucune fenêtre ne chevauche la frontière entre le cycle Marathon (S1-S22) et le cycle Ironman (S25-S39)", () => {
+    const { chunkSize } = computeChunkSizing("Ironman", 39);
+    const windows = computeObjectiveAwareWindows(39, chunkSize, raceGoals, PLAN_START);
+
+    for (const w of windows) {
+      if (w.cycle) {
+        expect(w.from).toBeGreaterThanOrEqual(w.cycle.startWeek);
+        expect(w.to).toBeLessThanOrEqual(w.cycle.endWeek);
+      }
+    }
+    // Couverture complète, sans trou ni chevauchement.
+    const covered = new Set<number>();
+    for (const w of windows) {
+      for (let wk = w.from; wk <= w.to; wk++) {
+        expect(covered.has(wk)).toBe(false);
+        covered.add(wk);
+      }
+    }
+    expect(covered.size).toBe(39);
+  });
+
+  it("la semaine du marathon (S22) est dans une fenêtre taguée cycle Marathon, pas dans une fenêtre neutre de 15 semaines", () => {
+    const { chunkSize } = computeChunkSizing("Ironman", 39);
+    const windows = computeObjectiveAwareWindows(39, chunkSize, raceGoals, PLAN_START);
+    const windowWithMarathonWeek = windows.find((w) => w.from <= 22 && 22 <= w.to);
+    expect(windowWithMarathonWeek?.cycle).toEqual({ objective: "Marathon", startWeek: 1, endWeek: 22 });
+  });
+
+  it("sans le fix (découpage à plat, ignorant les cycles) : la fenêtre contenant S22 s'étendrait jusqu'à S30, en plein cycle Ironman", () => {
+    const { chunkSize } = computeChunkSizing("Ironman", 39);
+    const flatWindows = computeWindowRanges(39, chunkSize);
+    const flatWindowWithMarathonWeek = flatWindows.find((w) => w.from <= 22 && 22 <= w.to);
+    expect(flatWindowWithMarathonWeek).toEqual({ from: 16, to: 30 });
+  });
+
+  it("plan mono-objectif (ou raceGoals absent) : comportement inchangé, identique à computeWindowRanges", () => {
+    const { chunkSize } = computeChunkSizing("Ironman", 39);
+    const flat = computeWindowRanges(39, chunkSize);
+    const objectiveAwareNoGoals = computeObjectiveAwareWindows(39, chunkSize, undefined, PLAN_START);
+    const objectiveAwareSingleGoal = computeObjectiveAwareWindows(39, chunkSize, [raceGoals[1]], PLAN_START);
+    expect(objectiveAwareNoGoals).toEqual(flat);
+    expect(objectiveAwareSingleGoal).toEqual(flat);
+  });
+
+  it("la dernière semaine locale (S22, jour du marathon) est reconnue 'taper' via le cycle, alors que sans cycle elle serait vue 'build' en plein plan Ironman", () => {
+    const currentPlan: ParsedPlan = {
+      title: "Plan",
+      phases: [],
+      totalWeeks: 39,
+      weeks: Array.from({ length: 15 }, (_, i) => ({
+        weekNumber: i + 1,
+        theme: "Fenêtre 1",
+        phase: "build",
+        sessions: [],
+      })),
+    };
+
+    const withCycle = buildWindowRegenConfig({
+      fromWeek: 16,
+      toWeek: 22,
+      currentPlan,
+      athleteData: {},
+      baseConfig: { objective: "Ironman", weeksAvailable: 39, raceGoals, planStartDate: PLAN_START },
+      cycle: { objective: "Marathon", startWeek: 1, endWeek: 22 },
+    });
+    // Sem locale 7 = S22 = dernière semaine du cycle Marathon (22/22 = 100%) → taper.
+    expect(withCycle.config.constraints).toMatch(/Sem locale 7 \(=.*\) : phase "taper"/);
+    // Sans le fix, "peak" (majorité des semaines de la fenêtre proches du pic)
+    // reste le vote dominant côté catalogue — mais JAMAIS "build" : la fenêtre
+    // approche bien un pic de forme, contrairement au calcul plein-plan ci-dessous.
+    expect(withCycle.config.windowRegenPhase).not.toBe("build");
+
+    // Même fenêtre, mais sans le contexte de cycle (comportement pré-fix) :
+    // S22 sur un plan Ironman de 39 semaines ≈ 56% → "build", jamais "taper",
+    // parce que le calcul ignore totalement l'existence du marathon en S22.
+    const withoutCycle = buildWindowRegenConfig({
+      fromWeek: 16,
+      toWeek: 22,
+      currentPlan,
+      athleteData: {},
+      baseConfig: { objective: "Ironman", weeksAvailable: 39, raceGoals, planStartDate: PLAN_START },
+    });
+    expect(withoutCycle.config.constraints).toMatch(/Sem locale 7 \(= S22 globale\) : phase "build"/);
+    expect(withoutCycle.config.windowRegenPhase).toBe("build");
   });
 });
