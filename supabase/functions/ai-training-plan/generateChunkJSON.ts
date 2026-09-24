@@ -749,8 +749,23 @@ export interface GenerateChunkJSONInput {
   weekRange?: { start: number; end: number };
 }
 
+// Audit coach (plan Manu 40 sem) : avant ce fix, RATE_LIMIT/GATEWAY_ERROR/
+// TRUNCATED n'étaient JAMAIS retentés — un seul hoquet transitoire du gateway
+// AI tuait le chunk immédiatement, ce qui déclenchait côté client le repli
+// vers le Markdown legacy (désormais supprimé, cf. useAITrainingPlan.ts).
+// CREDITS reste volontairement exclu : un épuisement de crédits ne se résout
+// pas en attendant quelques secondes.
+const TRANSIENT_RETRY_CODES = new Set<ChunkGenerationError["code"]>(["RATE_LIMIT", "GATEWAY_ERROR", "TRUNCATED"]);
+const TRANSIENT_RETRY_DELAYS_MS = [1000, 3000];
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
- * Génère un chunk JSON validé. 1 seul retry en cas d'échec Zod.
+ * Génère un chunk JSON validé. 1 seul retry en cas d'échec Zod, chaque
+ * tentative bénéficiant elle-même d'un retry court sur erreurs transitoires
+ * (cf. TRANSIENT_RETRY_CODES).
  * `repairDiag` est présent UNIQUEMENT si un filet conservateur a réparé le
  * JSON avant validation (chemin succès non silencieux).
  */
@@ -877,6 +892,22 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     };
   };
 
+  const tryOnceWithTransientRetry: typeof tryOnce = async (userPrompt: string) => {
+    for (let i = 0; ; i++) {
+      try {
+        return await tryOnce(userPrompt);
+      } catch (e) {
+        if (e instanceof ChunkGenerationError && TRANSIENT_RETRY_CODES.has(e.code) && i < TRANSIENT_RETRY_DELAYS_MS.length) {
+          const delay = TRANSIENT_RETRY_DELAYS_MS[i];
+          console.warn(`[generateChunkJSON] chunk=${input.chunkIndex} erreur transitoire (${e.code}) — retry dans ${delay}ms.`);
+          await sleep(delay);
+          continue;
+        }
+        throw e;
+      }
+    }
+  };
+
   const buildRepairDiag = (
     attempt: 1 | 2,
     diag: AttemptDiagnostic,
@@ -887,7 +918,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
   };
 
   // 1ère tentative
-  const first = await tryOnce(input.userPrompt);
+  const first = await tryOnceWithTransientRetry(input.userPrompt);
   first.diagnostic.attempt = 1;
   if (first.parsed.success) {
     return {
@@ -915,7 +946,7 @@ Rappels non négociables :
 - \`sessions[].custom=true\` ⇒ \`catalogId=null\`.
 - \`sessions[].sport="rest"\` ⇒ \`custom=true\`, \`catalogId=null\`, \`durationMin=0\`.`;
 
-  const second = await tryOnce(retryPrompt);
+  const second = await tryOnceWithTransientRetry(retryPrompt);
   second.diagnostic.attempt = 2;
   if (second.parsed.success) {
     return {
