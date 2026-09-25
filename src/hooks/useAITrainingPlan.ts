@@ -1496,6 +1496,7 @@ export function useAITrainingPlan() {
     }
 
     const windows = computeObjectiveAwareWindows(totalWeeks, chunkSize, planConfig.raceGoals, planConfig.planStartDate);
+    console.log("[windowed_probe]", JSON.stringify({ totalWeeks, chunkSize, planStartDate: planConfig.planStartDate, raceGoals: (planConfig.raceGoals || []).map((g) => ({ o: g.objective, d: g.raceDate, p: g.priority })), windows }));
 
     setIsBatchGenerating(true);
     try {
