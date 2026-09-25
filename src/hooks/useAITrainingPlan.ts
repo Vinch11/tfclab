@@ -700,7 +700,7 @@ export function useAITrainingPlan() {
             console.log(
               `[trail_probe_client] chunk=${ci} entries=${chunkCatalog.length} ` +
               `trail_entries=${trailEntries.length > 0 ? trailEntries.map((e) => e.id).join(",") : "NONE"} ` +
-              `sportFilter=[${(catalogSportFilter ?? []).join(",")}] catalogObjective=${catalogObjective} objective=${planConfig.objective}`,
+              `sportFilter=[${(catalogSportFilter ?? []).join(",")}] catalogObjective=${catalogObjective}`,
             );
           }
           // Rotation inter-chunk (P1 diversité) : on exclut désormais ~70 % des IDs
@@ -1496,7 +1496,6 @@ export function useAITrainingPlan() {
     }
 
     const windows = computeObjectiveAwareWindows(totalWeeks, chunkSize, planConfig.raceGoals, planConfig.planStartDate);
-    console.log("[windowed_probe]", JSON.stringify({ totalWeeks, chunkSize, planStartDate: planConfig.planStartDate, raceGoals: (planConfig.raceGoals || []).map((g) => ({ o: g.objective, d: g.raceDate, p: g.priority })), windows }));
 
     setIsBatchGenerating(true);
     try {
