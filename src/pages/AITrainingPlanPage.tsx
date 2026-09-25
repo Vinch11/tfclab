@@ -1714,6 +1714,15 @@ export default function AITrainingPlanPage() {
       toast.error("Durée du plan manquante — renseigne une date de course ou une durée libre.");
       return;
     }
+    // Bug réel (audit affichage) : cette génération complète ne passait jamais
+    // par `setPlanOverride(null)` (contrairement à `handleGenerate`, le bouton
+    // "Générer" classique) — si une régénération ciblée d'UNE semaine avait eu
+    // lieu plus tôt dans la session (`setPlanOverride(merged)`, l.2502/3702),
+    // ce `planOverride` figé gardait la priorité d'affichage (cf. `rawParsedPlan`
+    // l.1111) sur TOUTE nouvelle génération complète faite via ce formulaire —
+    // le coach régénérait, obtenait un plan neuf en mémoire (`jsonParsedPlan`),
+    // mais voyait indéfiniment réafficher l'ancien plan figé.
+    setPlanOverride(null);
     setLastCoachOverridesPayload(payload);
     const baseConfig = buildConfigFromDiag(athleteContext.diagnostic, undefined, objectiveOverride);
     const config = buildCoachOverrides(payload, baseConfig);
@@ -2134,6 +2143,16 @@ export default function AITrainingPlanPage() {
       toast.error("Cette version n'a pas de contenu exploitable");
       return;
     }
+    // Bug réel (audit affichage) : charger une version sauvegardée ne faisait
+    // que `setResponse(md)` — mais `rawParsedPlan` (cf. l.1111+) donne la
+    // priorité à `planOverride` PUIS à `jsonParsedPlan` (état JSON du hook)
+    // AVANT de retomber sur `response`. Si une génération JSON avait déjà eu
+    // lieu cette session (ou une régénération ciblée avait posé un
+    // `planOverride`), cette version fraîchement chargée restait invisible :
+    // le plan précédent continuait de s'afficher. `reset()` vide l'état JSON
+    // du hook pour que `response` (la version chargée) reprenne la main.
+    reset();
+    setPlanOverride(null);
     setResponse(md);
     const startAnchored = startOfWeek(startDate, { weekStartsOn: 1 });
     setPlanStartDate(startAnchored);
@@ -2160,7 +2179,7 @@ export default function AITrainingPlanPage() {
     setResultView("interactive");
     setIsSaved(true);
     toast.success("Version chargée");
-  }, [setResponse, activePlanKey]);
+  }, [setResponse, reset, activePlanKey]);
 
   const handleLoadVersion = useCallback((version: { plan_json: any }) => {
     // Ancrage calendaire automatique des plans ANCIENS : si la date de début
