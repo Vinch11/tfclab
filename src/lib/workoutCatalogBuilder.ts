@@ -512,6 +512,19 @@ export function buildWorkoutCatalog(
      * élevé du sport concerné quand ÉLEVÉ/CRITIQUE. Voir scoreWorkout (F-INJ).
      */
     injuryRisk?: { run?: "ELEVE" | "CRITIQUE"; bike?: "ELEVE" | "CRITIQUE" };
+    /**
+     * Sports à injecter en DOSE DE MAINTENANCE (≤1 séance chacun, famille
+     * "recuperation" uniquement) même quand `sportFilter` les exclut du pool
+     * principal — cf. audit "bibliothèque de séances" (retour coach) : un
+     * cycle Marathon intermédiaire d'un plan multi-objectifs vers un Ironman
+     * ne doit pas éliminer TOTALEMENT vélo/natation pendant ~20 semaines
+     * (perte de feel-for-water en natation, tolérance posturale vélo — cf.
+     * littérature désentraînement, Mujika & Padilla) : une dose minimale
+     * (1×/sem, récupération) suffit à préserver l'essentiel sans diluer le
+     * focus course de ce cycle. Contrairement à `sportFilter`, ignoré ici :
+     * la recherche se fait dans WorkoutLibrary entière, pas SourceLibrary.
+     */
+    maintenanceSports?: TrainingSport[];
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
@@ -1137,6 +1150,34 @@ export function buildWorkoutCatalog(
     }
   }
 
+  // ─── Pass 6: DOSE DE MAINTENANCE (cf. options.maintenanceSports) ───
+  // Injection plafonnée à 1 séance par sport, famille "recuperation"
+  // uniquement — ignore `options.sportFilter`/exclusions générales : la
+  // recherche part de WorkoutLibrary entière, pas SourceLibrary, car ces
+  // sports sont précisément ceux que le filtre principal exclut.
+  if (options?.maintenanceSports && options.maintenanceSports.length > 0) {
+    for (const sport of options.maintenanceSports) {
+      if (selected.some(w => w.sport === sport)) continue; // déjà présent (rotation d'un chunk précédent)
+      const candidate = WorkoutLibrary
+        .filter(w =>
+          w.sport === sport
+          && intentFamilyOf(w) === "recuperation"
+          && !isTrailWorkout(w)
+          && !selectedIds.has(w.id)
+          && (s2rGoal === (w.goals || []).includes("start_to_run"))
+          && !(prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w))
+          && (!phaseFilterEnabled || ficheCompatibleWithPhases(w, chunkPhaseSet)))
+        .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
+        .sort((a, b) => b.score - a.score)[0];
+      if (candidate) {
+        selected.push(candidate.workout);
+        selectedIds.add(candidate.workout.id);
+        console.log(`[chunk-catalog] maintenance-dose sport=${sport} id=${candidate.workout.id} (chunk=${options?.chunkIndex ?? 0})`);
+      } else {
+        console.warn(`[chunk-catalog] maintenance-dose sport=${sport} count=0 (aucune candidate "recuperation" disponible — chunk=${options?.chunkIndex ?? 0})`);
+      }
+    }
+  }
 
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (!isTrailGoal) {

@@ -3,6 +3,7 @@ import { buildWorkoutCatalog, isStructuralSession } from "@/lib/workoutCatalogBu
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheCompatibleWithPhases } from "@/lib/plan/phaseNormalization";
 import { getCatalogSportFilter } from "@/hooks/useAITrainingPlan";
+import { intentFamilyOf } from "@/lib/plan/intentFamily";
 
 const NON_TRAIL_EXCLUDE_ID_PATTERNS = [
   /^HEDGEHOG_/i, /_HEDGEHOG_/i, /^URBAN_/i, /^TRAIL_/i, /_TRAIL_/i,
@@ -205,6 +206,49 @@ describe("buildWorkoutCatalog — F-CHUNK-STRUCT structural coverage", () => {
     expect(
       withCycleObjectiveFilter.filter(e => e.sport === "natation" || e.sport === "swim").length,
     ).toBe(0);
+  });
+
+  // Suite à la question du coach ("est-ce juste scientifiquement pour
+  // quelqu'un qui prépare aussi un Ironman ?") : exclure TOTALEMENT vélo/
+  // natation pendant tout un cycle Marathon intermédiaire (~20 sem) risque
+  // une vraie perte spécifique (feel-for-water, tolérance posturale vélo)
+  // avant l'Ironman qui suit. `maintenanceSports` réinjecte une dose minimale
+  // (≤1 séance chacun, famille "recuperation" uniquement) sans revenir au mix
+  // ~1/3-1/3-1/3 d'avant le fix précédent.
+  it("maintenanceSports réinjecte ≤1 séance récupération par sport, sans revenir à une représentation équilibrée", () => {
+    const totalWeeks = 39;
+    const cat = buildWorkoutCatalog("Marathon", 16, 22, totalWeeks, {
+      maxItems: 45,
+      chunkIndex: 0,
+      excludeIds: new Set(),
+      sportFilter: getCatalogSportFilter("Marathon"),
+      maintenanceSports: ["cyclisme", "natation"],
+    });
+
+    const bikeEntries = cat.filter(e => e.sport === "cyclisme" || e.sport === "bike");
+    const swimEntries = cat.filter(e => e.sport === "natation" || e.sport === "swim");
+
+    expect(bikeEntries.length).toBeLessThanOrEqual(1);
+    expect(swimEntries.length).toBeLessThanOrEqual(1);
+
+    const byId = new Map(WorkoutLibrary.map(w => [w.id, w]));
+    for (const e of [...bikeEntries, ...swimEntries]) {
+      const fiche = byId.get(e.id);
+      expect(fiche, `fiche introuvable: ${e.id}`).toBeDefined();
+      if (fiche) expect(intentFamilyOf(fiche)).toBe("recuperation");
+    }
+  });
+
+  it("sans maintenanceSports (comportement par défaut) : toujours 0 vélo/natation", () => {
+    const totalWeeks = 39;
+    const cat = buildWorkoutCatalog("Marathon", 16, 22, totalWeeks, {
+      maxItems: 45,
+      chunkIndex: 0,
+      excludeIds: new Set(),
+      sportFilter: getCatalogSportFilter("Marathon"),
+    });
+    expect(cat.filter(e => e.sport === "cyclisme" || e.sport === "bike").length).toBe(0);
+    expect(cat.filter(e => e.sport === "natation" || e.sport === "swim").length).toBe(0);
   });
 
   it("isStructuralSession détecte SL (≥120min), race-sim et tags long", () => {

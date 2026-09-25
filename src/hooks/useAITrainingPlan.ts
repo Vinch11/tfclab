@@ -615,6 +615,25 @@ export function useAITrainingPlan() {
         planConfig.raceGoals
       );
 
+      // Dose de maintenance vélo/natation (retour coach : "est-ce juste
+      // scientifiquement pour quelqu'un qui prépare aussi un Ironman ?").
+      // Exclure TOTALEMENT vélo/natation pendant tout un cycle Marathon
+      // intermédiaire (parfois ~20 sem) risque une vraie perte spécifique
+      // avant l'Ironman qui suit — feel-for-water en natation (se dégrade en
+      // quelques semaines d'arrêt complet), tolérance posturale vélo (cf.
+      // littérature désentraînement, Mujika & Padilla : une dose minimale,
+      // pas un arrêt total, suffit à préserver l'essentiel). Ne s'applique
+      // QUE si ce cycle est un objectif INTERMÉDIAIRE (catalogObjective ≠
+      // objectif final du plan) ET que l'objectif final est lui-même un
+      // triathlon (donc vélo/natation font partie de la préparation à venir) —
+      // un vrai plan Marathon autonome garde le comportement précédent (0
+      // vélo/natation, rien à maintenir pour un objectif purement course).
+      const isIntermediateRunCycle = catalogObjective !== (planConfig.objective || "")
+        && (getCatalogSportFilter(planConfig.objective || "") ?? []).some(s => s === "cyclisme" || s === "bike" || s === "natation" || s === "swim");
+      const maintenanceSports: TrainingSport[] | undefined = isIntermediateRunCycle
+        ? (["cyclisme", "natation"] as TrainingSport[])
+        : undefined;
+
       // Compute catalog duration stats from all phases combined
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
       const usedIds = new Set<string>();
@@ -640,7 +659,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           effTotalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk) }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -672,7 +691,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk) }
+            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
