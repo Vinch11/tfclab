@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildWorkoutCatalog, isStructuralSession } from "@/lib/workoutCatalogBuilder";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheCompatibleWithPhases } from "@/lib/plan/phaseNormalization";
+import { getCatalogSportFilter } from "@/hooks/useAITrainingPlan";
 
 const NON_TRAIL_EXCLUDE_ID_PATTERNS = [
   /^HEDGEHOG_/i, /_HEDGEHOG_/i, /^URBAN_/i, /^TRAIL_/i, /_TRAIL_/i,
@@ -138,6 +139,72 @@ describe("buildWorkoutCatalog — F-CHUNK-STRUCT structural coverage", () => {
         `${e.id} injectée en semaine taper mais incompatible avec la phase "taper"`,
       ).toBe(true);
     }
+  });
+
+  // Régression réelle (retour coach : "très peu de CAP en préparation du
+  // marathon") — audit "bibliothèque de séances" : `catalogObjective` (fix
+  // précédent) passe désormais l'objectif du CYCLE ("Marathon") au lieu de
+  // l'objectif final du plan ("Ironman") pour un cycle intermédiaire d'un
+  // plan multi-objectifs. Mais `isTriGoal` (ce fichier) ne reconnaissait que
+  // "ironman"/"half" — pour goals=["marathon","semi"], le pass structurel
+  // entier était sauté : plus AUCUNE garantie de sortie longue course.
+  it("objectif Marathon (mono-objectif ou cycle intermédiaire) : chaque chunk contient ≥3 sorties longues course ≥90min, sans vélo/brick forcé", () => {
+    const totalWeeks = 12;
+    const cat = buildWorkoutCatalog("Marathon", 1, 4, totalWeeks, {
+      maxItems: 45,
+      chunkIndex: 0,
+      excludeIds: new Set(),
+      excludeIdPatterns: NON_TRAIL_EXCLUDE_ID_PATTERNS,
+      excludeTags: NON_TRAIL_EXCLUDE_TAGS,
+    });
+
+    const runLong = cat.filter(
+      e => (e.sport === "course" || e.sport === "run") && median(e.durationMin) >= 90,
+    );
+    expect(
+      runLong.length,
+      `run ≥90min: ${runLong.map(r => r.id).join(",")}`,
+    ).toBeGreaterThanOrEqual(3);
+  });
+
+  // Root cause réelle du même retour coach : même avec le fix ci-dessus, le
+  // socle de couverture par (sport × famille) de buildWorkoutCatalog garantit
+  // une présence minimale POUR CHAQUE SPORT ÉLIGIBLE, indépendamment du score
+  // "objectif marathon" — tant que `sportFilter` reste celui de l'objectif
+  // FINAL du plan (Ironman → sports triathlon complets), vélo/natation
+  // gardent une représentation quasi égale à la course dans le catalogue
+  // envoyé à l'IA (mesuré : 47 course / 45 vélo / 33 natation sur une fenêtre
+  // réelle S16-S22 d'un plan Manu-like). Le vrai levier est le filtre sport
+  // lui-même : useAITrainingPlan.ts applique désormais `catalogObjective`
+  // (pas seulement l'objectif final) à `getCatalogSportFilter`, exactement
+  // comme pour un plan Marathon mono-objectif classique.
+  it("filtre sport dérivé de l'objectif du CYCLE (Marathon) élimine vélo/natation du catalogue, contrairement au filtre de l'objectif final (Ironman)", () => {
+    const totalWeeks = 39;
+    const withFinalObjectiveFilter = buildWorkoutCatalog("Marathon", 16, 22, totalWeeks, {
+      maxItems: 45,
+      chunkIndex: 0,
+      excludeIds: new Set(),
+      sportFilter: getCatalogSportFilter("Ironman"),
+    });
+    const withCycleObjectiveFilter = buildWorkoutCatalog("Marathon", 16, 22, totalWeeks, {
+      maxItems: 45,
+      chunkIndex: 0,
+      excludeIds: new Set(),
+      sportFilter: getCatalogSportFilter("Marathon"),
+    });
+
+    const nonRun = (cat: typeof withFinalObjectiveFilter) =>
+      cat.filter(e => e.sport !== "course" && e.sport !== "run");
+
+    // Avant le fix (filtre basé sur l'objectif final) : vélo/natation bien présents.
+    expect(nonRun(withFinalObjectiveFilter).length).toBeGreaterThan(0);
+    // Avec le fix (filtre basé sur l'objectif du cycle) : plus aucun vélo/natation.
+    expect(
+      withCycleObjectiveFilter.filter(e => e.sport === "cyclisme" || e.sport === "bike").length,
+    ).toBe(0);
+    expect(
+      withCycleObjectiveFilter.filter(e => e.sport === "natation" || e.sport === "swim").length,
+    ).toBe(0);
   });
 
   it("isStructuralSession détecte SL (≥120min), race-sim et tags long", () => {

@@ -1046,6 +1046,19 @@ export function buildWorkoutCatalog(
   // Ces séances sont réinjectées même si présentes dans un chunk précédent
   // (exclusion excludeIds contournée pour les séances structurelles).
   const isTriGoal = goals.some(g => g === "ironman" || g === "half");
+  // Cycle/objectif course à pied (marathon/semi/10k) — inclut le cas d'un
+  // cycle INTERMÉDIAIRE d'un plan multi-objectifs triathlon (ex. Marathon
+  // S1-S22 avant un Ironman final) : `objective` passé ici est alors
+  // `catalogObjective` = l'objectif du cycle (cf. PlanConfig.catalogObjective),
+  // pas l'objectif final du plan. Bug réel corrigé (audit "bibliothèque de
+  // séances", retour coach : "très peu de CAP en préparation du marathon") —
+  // avant ce fix, `isTriGoal` valait FAUX pour un tel cycle (goals=["marathon",
+  // "semi"], ni "ironman" ni "half"), donc CE PASS ENTIER était sauté : plus
+  // aucune garantie structurelle de sorties longues course, alors que
+  // `catalogSportFilter` (inchangé, basé sur l'objectif FINAL du plan) laisse
+  // toujours vélo/natation pleinement éligibles dans le pool — rien ne
+  // contrebalançait plus leur présence en faveur de la course.
+  const isRunGoal = goals.some(g => g === "marathon" || g === "semi" || g === "10k");
   if (isTriGoal) {
     const median = (w: LibraryWorkout) => (w.durationMin[0] + w.durationMin[1]) / 2;
     const isSportBucket = (w: LibraryWorkout, bucket: "bike" | "run" | "brick") => {
@@ -1055,11 +1068,21 @@ export function buildWorkoutCatalog(
       if (bucket === "brick") return s === "brick";
       return false;
     };
-    const requirements: Array<{ bucket: "bike" | "run" | "brick"; minDur: number; minCount: number }> = [
-      { bucket: "bike", minDur: 120, minCount: 2 },
-      { bucket: "run", minDur: 90, minCount: 2 },
-      { bucket: "brick", minDur: 0, minCount: 1 },
-    ];
+    // Cycle course pure (marathon/semi/10k, y compris cycle intermédiaire) :
+    // pas de vélo/brick forcé (hors sujet pour cette préparation spécifique),
+    // mais un socle de sorties longues course renforcé (3 au lieu de 2) —
+    // seul filet structurel garantissant une vraie présence course dans un
+    // pool par ailleurs toujours ouvert à vélo/natation (catalogSportFilter
+    // reste basé sur l'objectif FINAL du plan, inchangé).
+    const requirements: Array<{ bucket: "bike" | "run" | "brick"; minDur: number; minCount: number }> = isTriGoal
+      ? [
+          { bucket: "bike", minDur: 120, minCount: 2 },
+          { bucket: "run", minDur: 90, minCount: 2 },
+          { bucket: "brick", minDur: 0, minCount: 1 },
+        ]
+      : [
+          { bucket: "run", minDur: 90, minCount: 3 },
+        ];
 
     // Pool des candidats (mêmes exclusions sport/trail/prohibitions/tags,
     // mais on ignore excludeIds pour permettre la répétition inter-chunks).
