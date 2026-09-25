@@ -1534,6 +1534,18 @@ export default function AITrainingPlanPage() {
     // `planStartDate` (closure figée au dernier render) — on force ici la
     // valeur fraîche calculée en tête de fonction.
     config.planStartDate = format(freshStartDate, "yyyy-MM-dd");
+    // Même closure figée pour `weeksAvailable` : calculé depuis l'ANCIENNE
+    // date de début. Si la régénération recale le début (ex. semaine
+    // courante), la durée doit être recalculée depuis la nouvelle date —
+    // sinon la course A tombe au-delà de la dernière semaine du plan et la
+    // segmentation multi-objectifs (catalogue par cycle) est ignorée.
+    if (planDurationMode === "date") {
+      const allDates = [raceDate, ...raceGoals.map(g => g.raceDate)].filter(Boolean) as string[];
+      if (allDates.length > 0) {
+        const days = differenceInCalendarDays(startOfDay(parseISO(allDates.sort().pop()!)), startOfDay(freshStartDate));
+        if (days >= 0) config.weeksAvailable = Math.floor(days / 7) + 1;
+      }
+    }
     // F-EXPRESS — inject flag if active snapshot was created via Démarrage Express
     const activeSnap = currentAthlete ? getSnapshotsForAthlete(currentAthlete.id)
       .slice()

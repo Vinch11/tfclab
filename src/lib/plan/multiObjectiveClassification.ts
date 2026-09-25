@@ -146,7 +146,14 @@ export function computeObjectiveCycleSegments(
 
   const fullPeaks = classifyMultiObjectiveGoalsClient(raceGoals)
     .filter((c) => c.isFullPeak && c.goal.raceDate)
-    .map((c) => ({ ...c, goalWeek: computeGoalWeekFromDates(planStartDate, c.goal.raceDate) }))
+    .map((c) => {
+      const raw = computeGoalWeekFromDates(planStartDate, c.goal.raceDate);
+      // Objectif final juste au-delà de la dernière semaine (décalage d'une
+      // semaine entre date de début et durée) : on le ramène sur la dernière
+      // semaine plutôt que de perdre toute la segmentation par cycle.
+      const goalWeek = c.isLast && typeof raw === "number" && raw > totalWeeks && raw <= totalWeeks + 1 ? totalWeeks : raw;
+      return { ...c, goalWeek };
+    })
     .filter((c): c is typeof c & { goalWeek: number } => typeof c.goalWeek === "number" && c.goalWeek >= 1 && c.goalWeek <= totalWeeks)
     .sort((a, b) => a.goalWeek - b.goalWeek);
 

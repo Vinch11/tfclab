@@ -700,7 +700,7 @@ export function useAITrainingPlan() {
             console.log(
               `[trail_probe_client] chunk=${ci} entries=${chunkCatalog.length} ` +
               `trail_entries=${trailEntries.length > 0 ? trailEntries.map((e) => e.id).join(",") : "NONE"} ` +
-              `sportFilter=[${(catalogSportFilter ?? []).join(",")}]`,
+              `sportFilter=[${(catalogSportFilter ?? []).join(",")}] catalogObjective=${catalogObjective}`,
             );
           }
           // Rotation inter-chunk (P1 diversité) : on exclut désormais ~70 % des IDs
