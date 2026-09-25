@@ -1405,6 +1405,23 @@ export function applyDailySessionFloorEnforcement(
 
 
 
+/**
+ * Objectif à utiliser pour construire le profil du system prompt JSON —
+ * cf. commentaire au site d'appel dans handleJSONPlanRequest.
+ *
+ * `planConfig.objective` reste TOUJOURS l'objectif FINAL du plan (design
+ * volontaire côté client, cf. PlanConfig.catalogObjective) — jamais
+ * l'objectif du cycle en cours pour une fenêtre appartenant à un cycle
+ * intermédiaire d'un plan multi-objectifs. `catalogObjective`, quand
+ * présent, porte cet objectif de cycle : c'est lui qui doit piloter le
+ * verrou sport (buildObjectiveSportLock) et les autres sections du system
+ * prompt conditionnées par l'objectif, pour que cette fenêtre reflète ce
+ * sur quoi l'athlète s'entraîne réellement pendant cette période.
+ */
+export function resolveSystemPromptObjective(planConfig: any): string | null {
+  return planConfig?.catalogObjective ?? planConfig?.objective ?? null;
+}
+
 interface HandlerInput {
   apiKey: string;
   athleteData: any;
@@ -1525,10 +1542,15 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
     corsHeaders,
   } = input;
 
+  // Audit "génération de plan IA" — retour coach : plan multi-objectifs
+  // (Marathon intermédiaire → Ironman final), le cycle Marathon gardait
+  // natation/vélo toute la semaine malgré un catalogue restreint côté client
+  // (PR #259) et aucun jour de course Marathon ne se plaçait — cf.
+  // resolveSystemPromptObjective pour la cause racine.
   const systemPrompt = getSystemPromptJSON({
     sex: athleteData?.sex ?? planConfig?._athleteSex ?? null,
     age: athleteData?.age ?? null,
-    objective: planConfig?.objective ?? null,
+    objective: resolveSystemPromptObjective(planConfig),
     expressFinisher: planConfig?._expressFinisher === true,
     s2rStrength: planConfig?._s2rStrength ?? null,
   });
