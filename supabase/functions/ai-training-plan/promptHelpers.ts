@@ -562,7 +562,13 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
 }
 
 function buildObjectiveSportLockLines(config: any): string[] {
-  const objective = String(config?.objective || "");
+  // `catalogObjective` (objectif du cycle en cours) prime sur `objective`
+  // (objectif final du plan) quand présent — même correctif que ci-dessus
+  // pour `getSportDistributionConstraint` : sans ça, cette fonction ne
+  // produisait JAMAIS de verrou "RUNNING ROUTE" pour une fenêtre du cycle
+  // Marathon d'un plan Ironman, puisque `sport` restait résolu sur
+  // "ironman" (mapObjectiveToSport) au lieu de "run_route".
+  const objective = String(config?.catalogObjective || config?.objective || "");
   const objectiveKey = normalizeObjKey(objective);
   const sport = mapObjectiveToSport(objective);
 
@@ -1416,7 +1422,23 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
 
   // === CONTRAINTE EXPLICITE : RATIOS DE RÉPARTITION SPORTIVE PAR NIVEAU D'AMBITION ===
-  const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);
+  // Bug réel (audit "génération de plan IA", plans Manu/Emanuela) : cette
+  // contrainte utilisait TOUJOURS `config.objective` (l'objectif FINAL du
+  // plan, ex. "Ironman"), même pour une fenêtre appartenant à un cycle
+  // intermédiaire (ex. "Marathon", PR #259/#263). Résultat : pour les
+  // semaines du cycle Marathon, le SYSTEM prompt disait "NATATION INTERDITE"
+  // (PR #263, cycle-aware) tandis que ce bloc du USER prompt exigeait encore
+  // "Natation minimum X%, Vélo minimum Y% — CIBLES ABSOLUES, REJETÉ si non
+  // respecté" (référentiel Ironman) — contradiction frontale, alors même que
+  // le catalogue envoyé pour ces semaines ne contient plus aucune fiche
+  // natation/vélo (PR #259). Coincé entre "0 fiche disponible" et "minimum
+  // obligatoire", le modèle invente des séances natation/vélo hors-catalogue
+  // (marquées [CUSTOM] dans les plans réels observés) au lieu de respecter
+  // l'interdiction. Fix : utiliser l'objectif du CYCLE EN COURS
+  // (`catalogObjective`, déjà calculé côté client) quand présent — même
+  // logique que `resolveSystemPromptObjective` (jsonPlanHandler.ts).
+  const sportRatioObjective = (config.catalogObjective || config.objective || "").toUpperCase();
+  const sportRatios = getSportDistributionConstraint(sportRatioObjective, (config.ambition || "").toLowerCase(), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);
   if (sportRatios) {
     lines.push(sportRatios);
   }
