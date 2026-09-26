@@ -1523,7 +1523,15 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // de la TTE observée. Évite qu'un plan 70.3/IM prescrive 82-85% FTP en race
   // alors que TTE=35' rend l'IF max soutenable ≈ 0.72-0.75.
   // ─────────────────────────────────────────────────────────────────────────────
-  const rpcObjective = (config?.objective ?? "").toString();
+  // Audit "génération de plan IA" (suite PR #263/#265/#267) : `rpcObjective`
+  // utilisait TOUJOURS `config.objective` (l'objectif FINAL du plan) — pour
+  // une fenêtre du cycle intermédiaire Marathon d'un plan Ironman/70.3, ce
+  // bloc affichait quand même une section "RACE POWER VÉLO" complète (IF
+  // bornée par TTE, cibles watts) alors que le verrou sport de cette même
+  // fenêtre interdit déjà le vélo qualité. `catalogObjective` (objectif du
+  // cycle EN COURS) prime quand présent, même logique que
+  // `resolveSystemPromptObjective` (jsonPlanHandler.ts).
+  const rpcObjective = (config?.catalogObjective ?? config?.objective ?? "").toString();
   // ⚠️ config.ambition est le libelle UI ("Elite"), pas la cle canonique : passer
   // par normalizeAmbKey (sinon "Elite" retombait sur le baseline IF "age_group"
   // faute de match dans la liste littérale ci-dessous).
@@ -1551,7 +1559,10 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // pour objectifs 70.3 / IM. Consomme capBikeRaceIF pour la race power.
   // ─────────────────────────────────────────────────────────────────────────────
   {
-    const objL = (config?.objective ?? "").toString().toLowerCase();
+    // Même correctif que rpcObjective ci-dessus : catalogObjective (cycle en
+    // cours) prime sur objective (objectif final) pour décider si cette
+    // fenêtre doit voir les zones triathlon (natation/vélo/course).
+    const objL = (config?.catalogObjective ?? config?.objective ?? "").toString().toLowerCase();
     const isTri = objL.includes("70.3") || objL === "703" || objL.includes("ironman") || objL === "im";
     if (isTri) {
       try {
@@ -2325,7 +2336,6 @@ function fmtCssPaceCanonical(secPer100m: number): string {
 export function buildCanonicalRaceCard(athleteData: any, config: any): string {
   const data = athleteData ?? {};
   const objectiveStr = (config?.objective ?? "").toString();
-  const objL = objectiveStr.toLowerCase();
   // Cle canonique normalisee (config.ambition est le libelle UI, ex. "Elite" —
   // voir normalizeAmbKey pour le detail de la collision "elite"/"Elite" corrigee).
   const ambitionStr = normalizeAmbKey((config?.ambition ?? "age_group").toString());
@@ -2353,10 +2363,17 @@ export function buildCanonicalRaceCard(athleteData: any, config: any): string {
   }
 
   // 2) Race power vélo (rpcCap)
+  // Audit "génération de plan IA" (suite PR #263/#265/#267) : contrairement à
+  // `objectiveStr` ci-dessus (allures CAP — volontairement l'objectif FINAL,
+  // "SOURCE UNIQUE inter-chunks"), la section vélo doit refléter le cycle EN
+  // COURS : sans ça, une fenêtre du cycle Marathon d'un plan Ironman/70.3
+  // affichait quand même une "CARTE DE COURSE CANONIQUE" avec race power vélo
+  // complet, contredisant le verrou sport de cette même fenêtre.
+  const bikeRaceObjective = (config?.catalogObjective ?? config?.objective ?? "").toString();
   const validAmbitions = ["finisher", "age_group", "competitor", "elite", "world_class"];
   const rpcAmb = (validAmbitions.includes(ambitionStr) ? ambitionStr : "age_group") as RaceBikeAmbition;
   const rpcCap = capBikeRaceIF({
-    objective: objectiveStr,
+    objective: bikeRaceObjective,
     ambition: rpcAmb,
     tteMin: typeof data.tte === "number" ? data.tte : (data.tte ? Number(data.tte) : null),
   });
@@ -2391,12 +2408,17 @@ export function buildCanonicalRaceCard(athleteData: any, config: any): string {
   }
 
   // ─── Race CSS natation (seulement pour 70.3 / IM) ───
-  const isTri = objL.includes("70.3") || objL === "703" || objL.includes("ironman") || objL === "im";
+  // Même correctif que bikeRaceObjective ci-dessus : dérivé de
+  // catalogObjective (cycle en cours) plutôt que de l'objectif final — sinon
+  // cette section affichait un CSS/race-pace natation canonique même pendant
+  // une fenêtre non-tri du cycle en cours.
+  const objLForSwim = bikeRaceObjective.toLowerCase();
+  const isTri = objLForSwim.includes("70.3") || objLForSwim === "703" || objLForSwim.includes("ironman") || objLForSwim === "im";
   if (isTri) {
     const cssSec = typeof data.css === "number" ? Number(data.css) : (data.css ? Number(data.css) : null);
     if (cssSec && cssSec > 0) {
       // Race pace natation : +3-5s/100m au-dessus du CSS (Ironman) ou +1-3s (70.3)
-      const isIM = objL.includes("ironman") || objL === "im";
+      const isIM = objLForSwim.includes("ironman") || objLForSwim === "im";
       const raceOffset = isIM ? 4 : 2;
       const racePace = cssSec + raceOffset;
       parts.push(``);
