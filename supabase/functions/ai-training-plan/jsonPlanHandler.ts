@@ -1879,9 +1879,16 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             mergePlanChunks(collectedChunks, mergedTotal);
           }
 
+          // Audit "génération de plan IA" (suite PR #263/#265) : `isTrailObjective`
+          // (dans applyOffsportTrailGuardToChunks) court-circuitait tout le garde-fou
+          // dès que l'objectif FINAL du plan était trail — même pour une fenêtre
+          // appartenant à un cycle intermédiaire NON trail, où du contenu trail
+          // égaré dans les séances aurait dû être détecté et substitué. Utilise
+          // `catalogObjective` (l'objectif du cycle EN COURS pour cette fenêtre)
+          // quand présent, même logique que `resolveSystemPromptObjective`.
           const guard = applyOffsportTrailGuardToChunks(
             collectedChunks,
-            planConfig?.objective ?? null,
+            planConfig?.catalogObjective ?? planConfig?.objective ?? null,
             catalogDumpsByChunk,
           );
           for (const repair of guard.repairs) {
@@ -2007,13 +2014,21 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           // Filet déterministe plancher séances/jour Elite+ (post-LCW, avant
           // value-check) — voir applyDailySessionFloorEnforcement ci-dessus.
           // No-op si l'objectif n'est pas IM/70.3 ou l'ambition < competitor.
+          // Audit "génération de plan IA" (suite PR #263/#265) : ce filet est du
+          // code SERVEUR qui peut muter le plan fusionné (insertion forcée d'une
+          // séance natation/vélo) — plus dangereux qu'une simple instruction de
+          // prompt. Il ne regardait que l'objectif FINAL du plan : pour une
+          // fenêtre du cycle intermédiaire Marathon d'un plan Ironman, il pouvait
+          // forcer l'ajout d'une séance natation/vélo dans une semaine que le
+          // verrou sport (catalogObjective-aware) restreint pourtant à la course.
+          // `catalogObjective` (objectif du cycle EN COURS) prime quand présent.
           const dailyFloorEnforced = regenerateWeek
             ? { chunks: lcwEnforced.chunks, repairs: [] as ReturnType<typeof applyDailySessionFloorEnforcement>["repairs"], traces: [] as string[] }
             : applyDailySessionFloorEnforcement(
                 lcwEnforced.chunks,
                 planConfig?._weeklyQuotas ?? null,
                 catalogDumpsByChunk,
-                planConfig?.objective ?? null,
+                planConfig?.catalogObjective ?? planConfig?.objective ?? null,
                 planConfig?.ambitionMeta?.effective ?? planConfig?.ambition ?? null,
               );
           for (const line of dailyFloorEnforced.traces) {

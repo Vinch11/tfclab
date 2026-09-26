@@ -133,11 +133,20 @@ serve(async (req) => {
       });
     }
 
+    // Audit "génération de plan IA" (suite PR #263) : `resolveSystemPromptObjective`
+    // (jsonPlanHandler.ts, chemin JSON) préfère déjà `catalogObjective` (objectif
+    // du cycle en cours pour une fenêtre d'un plan multi-objectif) sur `objective`
+    // (objectif FINAL du plan) — ce chemin Markdown legacy, lui, ne l'a jamais
+    // reçu, alors qu'il reste un FALLBACK réel (cf. commentaire LCW plus bas)
+    // utilisé quand la génération JSON échoue. Même logique ici, dupliquée
+    // plutôt qu'importée pour ne pas casser le lazy-load de jsonPlanHandler.ts
+    // (import dynamique conditionnel un peu plus haut).
+    const systemPromptObjective = planConfig?.catalogObjective ?? planConfig?.objective ?? null;
     // F-21 — Réinjection dynamique des sections spécialisées (Master >=50, Féminin/RED-S, Trail)
     const baseSystemPrompt = getSystemPrompt({
       sex: athleteData?.sex ?? planConfig?._athleteSex ?? null,
       age: athleteData?.age ?? null,
-      objective: planConfig?.objective ?? null,
+      objective: systemPromptObjective,
       expressFinisher: planConfig?._expressFinisher === true,
       s2rStrength: planConfig?._s2rStrength ?? null,
     });
@@ -145,7 +154,7 @@ serve(async (req) => {
       ? `${planConfig._expressFinisherPromptPrefix.trim()}\n\n`
       : "";
     const systemPrompt = `${expressPrefix}${baseSystemPrompt}`;
-    console.log(`📋 F-21 systemPrompt profile: sex=${athleteData?.sex ?? planConfig?._athleteSex ?? "?"} age=${athleteData?.age ?? "?"} obj=${planConfig?.objective ?? "?"} expressPrefix=${expressPrefix ? "yes" : "no"} → ${systemPrompt.length} chars`);
+    console.log(`📋 F-21 systemPrompt profile: sex=${athleteData?.sex ?? planConfig?._athleteSex ?? "?"} age=${athleteData?.age ?? "?"} obj=${systemPromptObjective ?? "?"} expressPrefix=${expressPrefix ? "yes" : "no"} → ${systemPrompt.length} chars`);
     let userPrompt: string;
     if (regenerateWeek) {
       userPrompt = `Régénère UNIQUEMENT la Semaine ${regenerateWeek.weekNumber} du plan.
