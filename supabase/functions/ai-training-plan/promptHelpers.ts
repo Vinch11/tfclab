@@ -1880,7 +1880,15 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // Sport coherence reminder based on objective
   // FIX: Use normalizeObjKey for reliable matching (was using strict === on uppercase string,
   // which NEVER matched objectives like "Ironman", "Ironman 70.3", "Semi-marathon", etc.)
-  const objKeyForRappel = normalizeObjKey(config.objective || "");
+  // Audit "génération de plan IA" (suite PR #265) : ce bloc utilisait TOUJOURS
+  // `config.objective` (l'objectif FINAL du plan) — pour une fenêtre du cycle
+  // intermédiaire d'un plan multi-objectif (ex. Marathon dans un plan Ironman),
+  // il réinjectait "RAPPEL COHÉRENCE IRONMAN" (Vélo 45-55%, natation
+  // obligatoire, IDs catalogue natation/vélo) alors même que le verrou sport
+  // (déjà corrigé, catalogObjective-aware) interdit la natation pour ce
+  // cycle — recréant exactement la contradiction de la PR #265, via un autre
+  // bloc du même prompt.
+  const objKeyForRappel = normalizeObjKey(config.catalogObjective || config.objective || "");
 
   // ─── HARD BAN TRAIL UNIVERSEL POUR TOUT PLAN TRIATHLON (IM / 70.3 / LCW) ───
   // Empêche l'IA d'inventer des séances trail/montagne/dénivelé dans un plan triathlon,
@@ -2161,7 +2169,12 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // FINISHER (else) faute de match — sous-prescription severe des doubles/triples
   // IM/70.3 pour Confirmé/Compétiteur/Qualifiable/Elite.
   const ambition = normalizeAmbKey(config.ambition || "");
-  const objKeyForTriCheck = normalizeObjKey(config.objective || "");
+  // Audit "génération de plan IA" (suite PR #265) : même bug que
+  // objKeyForRappel plus haut — `config.objective` seul (objectif FINAL)
+  // faisait imposer les doubles/triples natation+vélo+CAP même pendant une
+  // fenêtre du cycle intermédiaire d'un plan multi-objectif (ex. Marathon
+  // dans un plan Ironman), où le verrou sport interdit déjà la natation.
+  const objKeyForTriCheck = normalizeObjKey(config.catalogObjective || config.objective || "");
   const isTriathlon = ["IM", "703"].includes(objKeyForTriCheck);
   if (isTriathlon) {
     lines.push("\n### 🔥🔥🔥 DOUBLES/TRIPLES SÉANCES — RÈGLE #1 LA PLUS IMPORTANTE 🔥🔥🔥");
