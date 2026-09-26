@@ -27,7 +27,12 @@ export function buildTerrainHardBanBlock(config: any): string {
   // route (semi/marathon/10K) ou triathlon (70.3/IM) pousse le modèle à copier
   // verbatim l'ID EXPE_HORS_VILLE_SL_DPLUS dans des séances custom, ce que
   // l'audit sport-objective coherence rejette ensuite (F-21 style gating).
-  const objRaw = String(config?.objective ?? "").toLowerCase();
+  // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) : utilisait
+  // TOUJOURS `config.objective` (l'objectif FINAL) — pour une fenêtre non-trail
+  // du cycle en cours d'un plan multi-objectif dont l'objectif final EST trail
+  // (ou l'inverse), ce bloc terrain se déclenchait/s'omettait sur le mauvais
+  // objectif. `catalogObjective` (objectif du cycle EN COURS) prime quand présent.
+  const objRaw = String(config?.catalogObjective ?? config?.objective ?? "").toLowerCase();
   const isTrailObjective = /trail|utmb|ccc|occ|skyrun|hardrock|tor des|western states|mountain|montagne/.test(objRaw)
     || (objRaw.includes("ultra") && !objRaw.includes("ironman"));
   if (!isTrailObjective) return "";
@@ -240,12 +245,23 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   const lines: string[] = [];
   
   // Objective & Ambition
-  const objKey = normalizeObjKey(config?.objective || "");
+  // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) : ces 3
+  // lignes affichaient TOUJOURS l'objectif FINAL du plan, même pour une
+  // fenêtre du cycle intermédiaire — un diagnostic disant "Objectif: Ironman,
+  // Sport cible résolu: triathlon" juste avant un verrou sport disant
+  // "COURSE ROUTE, natation interdite" (catalogObjective-aware) est la même
+  // contradiction que les autres blocs déjà corrigés, même si purement
+  // informatif. `diagDerived` plus bas (cible temps/allure canonique) reste
+  // volontairement lié à l'objectif FINAL (source unique inter-chunks, comme
+  // buildCanonicalRaceCard) — seul l'AFFICHAGE ci-dessous devient cycle-aware.
+  const diagLabelObjective = config?.catalogObjective ?? config?.objective ?? "";
+  const objKey = normalizeObjKey(diagLabelObjective || "");
   const ambKey = normalizeAmbKey(config?.ambition || "");
   const resolvedSport = mapObjectiveToSport(config?.objective || "");
-  lines.push(`🎯 Objectif: ${config?.objective || "N/A"} (normalisé: ${objKey})`);
+  const resolvedSportForLabel = mapObjectiveToSport(diagLabelObjective || "");
+  lines.push(`🎯 Objectif: ${diagLabelObjective || "N/A"} (normalisé: ${objKey})`);
   lines.push(`🏅 Ambition: ${config?.ambition || "N/A"} (normalisé: ${ambKey})`);
-  lines.push(`🏷️ Sport cible résolu: ${resolvedSport}`);
+  lines.push(`🏷️ Sport cible résolu: ${resolvedSportForLabel}`);
   const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
   // Snapshot-based target (source unique). Fallback silencieux si VMA absente.
   const diagDerived = deriveRaceTargets({
@@ -327,7 +343,11 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   // AUDIT LOT #2 — GARDE-FOUS TRAIL / ULTRA / MASTER × WORLD_CLASS
   // ═══════════════════════════════════════════════════════════════════════════
   {
-    const objRaw = String(config?.objective ?? "").toLowerCase();
+    // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) :
+    // catalogObjective (cycle en cours) prime sur objective (objectif final) —
+    // sinon ces garde-fous trail/ultra se déclenchent/s'omettent sur le mauvais
+    // objectif pour une fenêtre d'un plan multi-objectif mixte trail/non-trail.
+    const objRaw = String(config?.catalogObjective ?? config?.objective ?? "").toLowerCase();
     const isTrail = objRaw.includes("trail") || objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("ccc") || objRaw.includes("occ") || objRaw.includes("skyrun") || objRaw.includes("hardrock") || objRaw.includes("western states") || objRaw.includes("tor des");
     const isUltra = objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("hardrock") || objRaw.includes("tor des") || objRaw.includes("western states");
     const isMountain = objRaw.includes("montagne") || objRaw.includes("mountain") || objRaw.includes("utmb") || objRaw.includes("ccc") || objRaw.includes("skyrun") || objRaw.includes("hardrock");
@@ -383,18 +403,23 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   // Injecté chunk 1 quand le coach déclare terrain=plat/vallonné/mixte sur un objectif trail/montagne/ultra.
   // Sans cela, l'IA prescrit des séances montagne irréalisables (frustration + non-adhérence).
   // Fonctionne MÊME SANS fiche course renseignée : on utilise des fourchettes par défaut conservatrices.
+  // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) : les 3 tests
+  // ci-dessous utilisaient `config.objective` (objectif FINAL) — catalogObjective
+  // (cycle en cours) prime désormais quand présent, même raison que le garde-fou
+  // AUDIT LOT #2 juste au-dessus.
+  const urbanGuardObjective = String(config?.catalogObjective ?? config?.objective ?? "");
   if (
     config?.terrainAvailability
     && config.terrainAvailability !== "montagne"
     && (
       // Phase 1C-A — Gating trail-only : ne jamais injecter d'EXPÉ HORS-VILLE
       // ni de vocabulaire montagne D+ pour objectifs route/triathlon.
-      /trail|utmb|ccc|occ|skyrun|hardrock|tor des|western states|mountain|montagne/i.test(String(config?.objective ?? ""))
-      || (/ultra/i.test(String(config?.objective ?? "")) && !/ironman/i.test(String(config?.objective ?? "")))
+      /trail|utmb|ccc|occ|skyrun|hardrock|tor des|western states|mountain|montagne/i.test(urbanGuardObjective)
+      || (/ultra/i.test(urbanGuardObjective) && !/ironman/i.test(urbanGuardObjective))
     )
   ) {
     const ta = config.terrainAvailability as "plat" | "vallonne" | "mixte";
-    const objRaw = String(config?.objective ?? "").toLowerCase();
+    const objRaw = urbanGuardObjective.toLowerCase();
     const isUltra = objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("hardrock") || objRaw.includes("tor des") || objRaw.includes("western states");
     // Valeur par défaut si pas de fiche course : ultra 4500m, trail montagne 2250m (fourchettes du garde-fou #1)
     const dPlusWeekly = config?.trailProfile?.weeklyDPlusPeakM ?? (isUltra ? 4500 : 2250);
@@ -1361,12 +1386,17 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       // CHANTIER doubles/triples — sport-aware pour éviter contamination triathlon
       // dans les plans running/trail. Cause historique du bug (Marathon world_class
       // recevant un exemple codé en dur en triathlon).
-      const sportForDoubles = mapObjectiveToSport(config.objective || "");
+      // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) : même
+      // classe de bug que "DOUBLES/TRIPLES SÉANCES" (déjà corrigé) — utilisait
+      // `config.objective` (objectif FINAL) seul, ce qui affichait l'exemple
+      // "Lundi matin : Natation..." (structure triathlon) pour une fenêtre du
+      // cycle intermédiaire Marathon d'un plan Ironman/70.3.
+      const sportForDoubles = mapObjectiveToSport(config.catalogObjective || config.objective || "");
       const isRunningPlan = sportForDoubles === "run_route" || sportForDoubles === "trail";
       const isTriPlan = sportForDoubles === "tri_70_3" || sportForDoubles === "ironman";
 
       // Fourchette de séances issue du référentiel (fallback : pas de minimum chiffré)
-      const objKeyForDoubles = normalizeObjKey(config.objective || "");
+      const objKeyForDoubles = normalizeObjKey(config.catalogObjective || config.objective || "");
       const ambKeyForDoubles = normalizeAmbKey(config.ambition || "");
       const spwRef = SPORT_RATIO_REFS[objKeyForDoubles]?.[ambKeyForDoubles]?.sessionsPerWeek;
       const spwMin = spwRef ? spwRef[0] : null;
@@ -1746,7 +1776,10 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // bloc générique n'a de toute façon pas de sens pour un débutant : le
   // catalogue et les règles S2R pilotent déjà ses séances clés (progression
   // RPE/impact, pas de cible métabolique), cf. enrichedWorkoutsStartToRun.ts.
-  const isStartToRunObjective = /start.?to.?run|d[ée]but/i.test(String(config?.objective || ""));
+  // catalogObjective (cycle en cours) prime — un plan Start-to-Run n'est
+  // jamais lui-même multi-objectif en pratique, mais par cohérence avec les
+  // autres correctifs "génération de plan IA" (PR #263/#265/#267/#268).
+  const isStartToRunObjective = /start.?to.?run|d[ée]but/i.test(String(config?.catalogObjective || config?.objective || ""));
   if (!isStartToRunObjective && config.identifiedLimiters && config.identifiedLimiters.length > 0) {
     lines.push("\n### 🔴 LIMITEURS IDENTIFIÉS PAR L'APP — CLASSÉS PAR IMPORTANCE — SÉANCES CLÉS OBLIGATOIRES");
     lines.push("Les limiteurs ci-dessous sont calculés et classés par le diagnostic TFCL™ (impact pondéré = importance × gap vs cible).");
