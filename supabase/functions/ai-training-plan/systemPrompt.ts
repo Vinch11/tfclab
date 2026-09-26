@@ -159,6 +159,28 @@ function buildObjectiveSportLock(profile?: SystemPromptProfile): string {
   jamais en mètres de D+ cumulé. Un plan route/tri qui contient ces marqueurs
   sera flaggé critical par la QA (sport ↔ objectif).`;
 
+  // Bug réel (audit "génération de plan IA", plan Emanuela) : sur un plan
+  // triathlon multi-chunk (39 sem.), la course à pied se retrouvait
+  // systématiquement regroupée en fin de semaine (vendredi/samedi/dimanche)
+  // tandis que mardi-mercredi-jeudi n'étaient QUE natation+vélo — 3 jours
+  // d'affilée sans aucune touche course, puis 3 jours d'affilée à fort impact
+  // (course vendredi + brique samedi + long run dimanche). Les semaines-types
+  // few-shot (Frodeno/Lucy ci-dessous) alternent pourtant déjà course/non-course
+  // tous les 2 jours — mais une simple imitation d'exemple n'a pas suffi à
+  // empêcher le modèle de dériver vers un regroupement plus marqué au fil
+  // d'une génération longue par blocs. D'où cette règle EXPLICITE, en plus de
+  // l'exemple.
+  const RUN_FREQUENCY_LOCK_TRI = `
+- 🔄 **RÉPARTITION HEBDOMADAIRE — JAMAIS 2 JOURS CONSÉCUTIFS SANS TOUCHE COURSE** :
+  ne regroupe jamais toute la natation/vélo en début de semaine (ex.
+  mardi-mercredi-jeudi) puis toute la course à pied en fin de semaine (ex.
+  vendredi-samedi-dimanche) — c'est l'erreur la plus fréquente observée en
+  pratique. Distribue au moins une touche de course (même courte, EF ou
+  technique) au maximum tous les 2 jours d'affilée sur la semaine active,
+  en alternant avec la natation/vélo comme dans les semaines-types
+  ci-dessous — jamais 2 jours de suite sans course, jamais 2 jours de suite
+  sans natation/vélo non plus.`;
+
   if (isRouteRun) {
     return `
 ## 🚨 VERROU SPORT OBJECTIF — COURSE ROUTE
@@ -189,7 +211,7 @@ Objectif reçu: ${rawObj || "N/A"}. Format court, intensité haute, volume modé
 - 3 disciplines OBLIGATOIRES : Natation ~22-28%, Vélo ~40-48%, Course ~28-34% (sur le volume total).
 - Séances clés Sprint : CSS 50/100m, VO2 30/30 course, seuil vélo court, brique bike→run rapide.
 - Long ride ≤ 2h30 (superflu Sprint), long run 45-70min max, long swim 2-3.5km.
-- Renfo/Force : Rønnestad 2-3×/sem indispensable (intensité haute Sprint = risque blessure).${VOCAB_LOCK_ROUTE_TRI}`;
+- Renfo/Force : Rønnestad 2-3×/sem indispensable (intensité haute Sprint = risque blessure).${VOCAB_LOCK_ROUTE_TRI}${RUN_FREQUENCY_LOCK_TRI}`;
   }
 
   if (isTriOlympique) {
@@ -199,7 +221,7 @@ Objectif reçu: ${rawObj || "N/A"}. Format olympique, seuil/tempo dominant, 7-14
 - 3 disciplines OBLIGATOIRES : Natation ~18-24%, Vélo ~45-52%, Course ~28-34% (sur le volume total).
 - Séances clés : CSS + endurance natation, seuil vélo 2×20min, tempo 10K, brique bike→run tempo.
 - Long ride 1h45-4h selon niveau, long run 60-110min, long swim 2.5-5km.
-- Renfo/Force + gainage 2×/sem, gut training (25-45g/h) sur SL vélo et briques.${VOCAB_LOCK_ROUTE_TRI}`;
+- Renfo/Force + gainage 2×/sem, gut training (25-45g/h) sur SL vélo et briques.${VOCAB_LOCK_ROUTE_TRI}${RUN_FREQUENCY_LOCK_TRI}`;
   }
 
   if (is703 || isIM) {
@@ -209,7 +231,7 @@ Objectif reçu: ${rawObj || "N/A"}. Format olympique, seuil/tempo dominant, 7-14
 Objectif reçu: ${rawObj || "N/A"}. Format longue distance, aérobie dominante.
 - 3 disciplines OBLIGATOIRES : natation + vélo + CAP chaque semaine active.
 - Briques bike→run OBLIGATOIRES en Build/Peak (spécificité T2).
-- Course sur ROUTE : allures cibles en %VMA/%seuil, pas de vocabulaire trail.${VOCAB_LOCK_ROUTE_TRI}`;
+- Course sur ROUTE : allures cibles en %VMA/%seuil, pas de vocabulaire trail.${VOCAB_LOCK_ROUTE_TRI}${RUN_FREQUENCY_LOCK_TRI}`;
   }
 
   return "";
@@ -231,7 +253,8 @@ const FEWSHOT_FRODENO_IM = `### Exemple : Jan Frodeno — Semaine Build IM (22h)
 | Vendredi matin | CAP | EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné. Sensation aisée |
 | Vendredi soir | Natation | Pull aérobie + OWS | Pull buoy 2500m Z2 @1:28/100m. 4×200m OWS simulation. 3200m |
 | Samedi | Vélo | Sortie longue + Gut Training | 5h Z2 vallonné (200-230W). Gut training 60g/h glucides. Dernière heure @75% FTP |
-| Dimanche | Brique | Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP (250W) + enchaînement CAP 45min @4:10/km. Gut 50g/h |`;
+| Dimanche | Brique | Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP (250W) + enchaînement CAP 45min @4:10/km. Gut 50g/h |
+⚠️ Remarque de structure : la course (CAP) revient tous les 2 jours (mercredi, vendredi, dimanche) — jamais regroupée en un seul bloc de fin de semaine pendant que mardi/jeudi ne seraient que natation+vélo. Reproduis cette alternance, ne bloque pas les sports par groupes de 3+ jours consécutifs.`;
 
 const FEWSHOT_LUCY_703 = `### Exemple : Lucy Charles-Barclay — Semaine Spécifique 70.3 (18h)
 | Jour | Sport | Séance | Détails |
@@ -245,7 +268,8 @@ const FEWSHOT_LUCY_703 = `### Exemple : Lucy Charles-Barclay — Semaine Spécif
 | Jeudi soir | Vélo | Z2 récupération | 1h30 Z2 léger (175-200W, 65% FTP). Cadence libre. Jambes fraîches |
 | Vendredi | CAP | EF + strides | 55min Z2 (4:30/km) + 8×100m accélérations progressives. 13km |
 | Samedi | Brique | Simulation 70.3 | Vélo 2h @82% FTP (230W) + CAP 30min @3:55/km immédiat. Gut 70g/h. Transition <2min |
-| Dimanche | Vélo | Sortie longue vallonnée | 3h30 Z2 (190-220W) terrain vallonné. Ravitaillement solide 40g/h |`;
+| Dimanche | Vélo | Sortie longue vallonnée | 3h30 Z2 (190-220W) terrain vallonné. Ravitaillement solide 40g/h |
+⚠️ Remarque de structure : la course (CAP) revient mercredi, vendredi et samedi (brique) — jamais plus d'1 jour d'affilée sans aucune touche course. Reproduis cette alternance, ne bloque pas les sports par groupes de 3+ jours consécutifs.`;
 
 const FEWSHOT_KIPCHOGE_MARATHON = `### Exemple : Eliud Kipchoge — Semaine Build Marathon (170km, 13h)
 | Jour | Sport | Séance | Détails |
