@@ -1994,6 +1994,14 @@ export default function AITrainingPlanPage() {
           _objective: objective,
           _raceName: raceName,
           _raceDate: raceDate,
+          // Objectifs secondaires (multi-objectif A/B/C) — cf. bug réel "Manu"
+          // (audit fiabilité génération plan IA) : ces objectifs ne vivaient
+          // QUE dans le localStorage du navigateur ayant servi à les saisir
+          // (persistKey ci-dessus), jamais en base. Régénérer depuis un autre
+          // appareil/navigateur repartait donc avec `raceGoals=[]`, et le plan
+          // redevenait 100% mono-objectif (plus de cycle Marathon, plus de
+          // catalogue restreint) sans aucun avertissement pour le coach.
+          _raceGoals: raceGoals,
         } as any,
         objective: objective || currentAthlete.goal || null,
         weeks_count: parsedPlan.weeks?.length || null,
@@ -2013,7 +2021,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate]);
+  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, raceGoals]);
 
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
@@ -2176,6 +2184,13 @@ export default function AITrainingPlanPage() {
     if (loadedObjective) setObjective(loadedObjective);
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
     if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
+    // Restaure les objectifs secondaires (multi-objectif A/B/C) sauvegardés
+    // avec cette version — cf. commentaire sur `_raceGoals` dans
+    // `persistPlanVersion`. Sans ça, charger une version multi-objectif sur
+    // un autre appareil/navigateur (ou après un cache vidé) affichait bien le
+    // plan sauvegardé, mais toute RÉGÉNÉRATION suivante repartait sans les
+    // objectifs secondaires (`raceGoals=[]`), silencieusement.
+    if (Array.isArray(pj._raceGoals)) setRaceGoals(pj._raceGoals);
     setResultView("interactive");
     setIsSaved(true);
     toast.success("Version chargée");
