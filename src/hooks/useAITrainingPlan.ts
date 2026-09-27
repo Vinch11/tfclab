@@ -770,7 +770,20 @@ export function useAITrainingPlan() {
       const quotasByChunkText: string[] = [];
       const hoursAvail = typeof planConfig.weeklyHours === "number" ? planConfig.weeklyHours : 0;
       const ambitionForQuota = typeof planConfig.ambition === "string" ? planConfig.ambition : "age_group";
-      const objectiveForQuota = planConfig.objective || "";
+      // Bug réel (audit "génération de plan IA", plan Emanuela) : ce quota
+      // hebdomadaire DÉTERMINISTE ("Le LLM n'a plus la main sur 'combien'",
+      // cf. commentaire ci-dessus) utilisait TOUJOURS `planConfig.objective`
+      // (l'objectif FINAL, ex. "Ironman") — même pour une fenêtre du cycle
+      // intermédiaire Marathon, où `catalogObjective` restreint déjà
+      // correctement le catalogue et le verrou sport côté serveur (PR #263 et
+      // suivantes) à course/renfo. Résultat : le quota imposait quand même
+      // "natation exactement 3, vélo exactement 3" dès S1 — recréant, via un
+      // mécanisme totalement distinct (calcul client, jamais touché par
+      // l'audit des prompts serveur), exactement la même contradiction
+      // "0 fiche disponible vs quota obligatoire" déjà corrigée ailleurs.
+      // Réutilise `catalogObjective` (déjà résolu plus haut dans cette
+      // fonction) au lieu de relire `planConfig.objective` directement.
+      const objectiveForQuota = catalogObjective || "";
       // Cible séances/semaine saisie (formulaire coach OU démarrage guidé) :
       // elle PRIME sur la matrice ambition×objectif, sinon le squelette imposé
       // au modèle ignorait la demande utilisateur.
