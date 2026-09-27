@@ -432,6 +432,17 @@ export interface PlanConfig {
    */
   terrainAvailability?: "plat" | "vallonne" | "montagne" | "mixte";
   /**
+   * Maintien croisé (vélo/natation) autorisé pendant les cycles course/trail
+   * (objectif résolu run_route ou trail — Marathon, Semi, 10K, 5K, Trail...).
+   * Coach-configurable (audit "asymétrie vélo/natation", plan Emanuela) : le
+   * vélo Z1 léger était toujours autorisé en récupération active mais la
+   * natation bannie à 0% sans option pour l'activer, alors que les deux sont
+   * physiologiquement valables en maintien léger. Omis = comportement
+   * historique (vélo autorisé, natation interdite) — cf.
+   * resolveCrossTrainingMaintenance (promptHelpers.ts).
+   */
+  crossTrainingMaintenance?: { velo?: boolean; natation?: boolean };
+  /**
    * Rampe de volume des premières semaines — dérivée de `trainingLevel`.
    * Contrainte dure injectée chunk 1 pour borner Sem 1 et le ramp-up.
    * Absent si `trainingLevel` non fourni ou si tss7d réel disponible (CRR prime).

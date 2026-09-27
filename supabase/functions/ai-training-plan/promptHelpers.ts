@@ -586,6 +586,35 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   return lines.join("\n");
 }
 
+/**
+ * Résout les flags de maintien croisé (coach-configurable, cf.
+ * `PlanConfig.crossTrainingMaintenance` côté client) — défaut = comportement
+ * historique (vélo Z1 récup autorisé, natation interdite) si le coach n'a
+ * rien précisé. Centralisé ici pour que le VERROU SPORT (source de vérité,
+ * `buildObjectiveSportLockLines`) et les RAPPEL COHÉRENCE texturels
+ * (Marathon/Semi/10K/5K plus bas) ne puissent jamais diverger — exactement
+ * la classe de bug (deux endroits qui répètent la même règle et finissent
+ * par se contredire) rencontrée plusieurs fois cet audit.
+ */
+function resolveCrossTrainingMaintenance(config: any): { velo: boolean; natation: boolean } {
+  const raw = config?.crossTrainingMaintenance;
+  return {
+    velo: raw?.velo !== false,
+    natation: raw?.natation === true,
+  };
+}
+
+/** Phrase standard "vélo/natation en maintien" pour les objectifs run_route/trail. */
+function buildCrossTrainingPhrase(xtrain: { velo: boolean; natation: boolean }): string {
+  const natationPart = xtrain.natation
+    ? "Natation autorisée en maintien léger uniquement (Z1 technique/CSS, 20-30min, max 1×/2 semaines), jamais en qualité, jamais pilier du plan."
+    : "Natation 0%.";
+  const veloPart = xtrain.velo
+    ? "Vélo autorisé UNIQUEMENT en récupération active Z1-Z2, max 1–2×/sem (45–75min), jamais en qualité, jamais en brique."
+    : "Vélo interdit.";
+  return `${natationPart} ${veloPart}`;
+}
+
 function buildObjectiveSportLockLines(config: any): string[] {
   // `catalogObjective` (objectif du cycle en cours) prime sur `objective`
   // (objectif final du plan) quand présent — même correctif que ci-dessus
@@ -598,24 +627,51 @@ function buildObjectiveSportLockLines(config: any): string[] {
   const sport = mapObjectiveToSport(objective);
 
   if (sport === "run_route") {
+    const xtrain = resolveCrossTrainingMaintenance(config);
+    const natationLine = xtrain.natation
+      ? `- ✅ NATATION AUTORISÉE EN MAINTIEN LÉGER UNIQUEMENT : Z1 technique/CSS, 20-30 min, max 1×/2 semaines. Jamais en qualité, jamais pilier du plan.`
+      : `- ⛔ NATATION INTERDITE : aucune ligne Sport="Natation", "Swim", "Piscine", "CSS", "crawl".`;
+    const veloLines = xtrain.velo
+      ? [
+          `- ✅ VÉLO AUTORISÉ EN RÉCUPÉRATION ACTIVE UNIQUEMENT : Z1-Z2 (≤75% FTP), 45–75 min, max 1–2×/semaine, lendemain de sortie longue ou de séance CAP qualité. Objectif = flush circulatoire + épargne articulaire.`,
+          `- ⛔ VÉLO QUALITÉ INTERDIT : aucun vélo en Z3+, seuil, VO2, SFR, intervalles, sortie longue vélo, FTP test.`,
+        ]
+      : [`- ⛔ VÉLO INTERDIT : aucune ligne Sport="Vélo", "Bike", "Cyclisme", y compris en récupération.`];
+    const sportsAutorises = [
+      "CAP/Course",
+      "Renfo/PPG/Mobilité",
+      ...(xtrain.velo ? ["Vélo Z1-Z2 récup (optionnel)"] : []),
+      ...(xtrain.natation ? ["Natation Z1 maintien (optionnel)"] : []),
+      "Repos",
+      "Course objectif",
+    ].join(", ");
+    const repartition = [
+      "CAP 82-90%",
+      "Renfo/Mobilité 8-15%",
+      xtrain.velo ? "Vélo récup 0-5%" : null,
+      xtrain.natation ? "Natation maintien 0-3%" : "Natation 0%",
+    ].filter(Boolean).join(" | ");
     return [
       `\n### 🚨 VERROU SPORT OBJECTIF — RUNNING ROUTE (${objectiveKey})`,
       `Objectif résolu: ${objective || "N/A"} → ${sport}. Ce plan est un plan **100% course à pied + renforcement/mobilité**.`,
-      `- ⛔ NATATION INTERDITE : aucune ligne Sport="Natation", "Swim", "Piscine", "CSS", "crawl".`,
-      `- ✅ VÉLO AUTORISÉ EN RÉCUPÉRATION ACTIVE UNIQUEMENT : Z1-Z2 (≤75% FTP), 45–75 min, max 1–2×/semaine, lendemain de sortie longue ou de séance CAP qualité. Objectif = flush circulatoire + épargne articulaire.`,
-      `- ⛔ VÉLO QUALITÉ INTERDIT : aucun vélo en Z3+, seuil, VO2, SFR, intervalles, sortie longue vélo, FTP test.`,
+      natationLine,
+      ...veloLines,
       `- ⛔ BRIQUES INTERDITES : aucun enchaînement vélo→CAP en séance clé, aucun swim→bike, triathlon, transition T1/T2.`,
-      `- ✅ SPORTS AUTORISÉS dans les tableaux : CAP/Course, Renfo/PPG/Mobilité, Vélo Z1-Z2 récup (optionnel), Repos, Course objectif.`,
-      `- La ligne "Répartition sport" DOIT afficher : CAP 82-90% | Renfo/Mobilité 8-15% | Vélo récup 0-5% | Natation 0%.`,
+      `- ✅ SPORTS AUTORISÉS dans les tableaux : ${sportsAutorises}.`,
+      `- La ligne "Répartition sport" DOIT afficher : ${repartition}.`,
       `- Si un exemple générique du system prompt parle de triathlon, natation, ou vélo qualité, tu DOIS l'ignorer pour cet objectif.`,
     ];
   }
 
   if (sport === "trail") {
+    const xtrain = resolveCrossTrainingMaintenance(config);
+    const natationLine = xtrain.natation
+      ? `- ✅ NATATION AUTORISÉE EN MAINTIEN LÉGER UNIQUEMENT : Z1 technique/CSS, 20-30 min, max 1×/2 semaines.`
+      : `- ⛔ NATATION INTERDITE : aucune séance piscine/CSS/crawl.`;
     return [
       `\n### 🚨 VERROU SPORT OBJECTIF — TRAIL (${objectiveKey})`,
       `Objectif résolu: ${objective || "N/A"} → ${sport}. Ce plan est un plan trail/CAP + renforcement.`,
-      `- ⛔ NATATION INTERDITE : aucune séance piscine/CSS/crawl.`,
+      natationLine,
       `- ⛔ BRIQUES TRIATHLON INTERDITES : aucun enchaînement vélo→CAP comme séance spécifique.`,
       `- Vélo seulement si récupération active Z1-Z2, max 1×/sem, jamais séance qualité ni pilier du plan.`,
       `- ✅ SPORTS AUTORISÉS : CAP/Trail, Renfo/PPG/Mobilité, Repos, Course objectif.`,
@@ -2118,13 +2174,13 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
     lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
-    lines.push("- Natation 0% : plan marathon = CAP + renfo/mobilité. Vélo autorisé UNIQUEMENT en récupération active Z1-Z2, max 1–2×/sem (45–75min), jamais en qualité, jamais en brique.");
+    lines.push(`- Plan marathon = CAP + renfo/mobilité. ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
   } else if (objKeyForRappel === "Semi") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
     lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- Accent VMA + seuil. Minimum 4-5 séances CAP/sem.");
     lines.push("- Séances types : EF Z2, Tempo allure semi, VMA 30/30, Seuil 2×20min, SL 15-20km, Fartlek, Côtes");
-    lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement");
+    lines.push(`- ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
   } else if (objKeyForRappel === "TrailUltra") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL ULTRA (>80km)");
     lines.push("- CAP/Trail 65-75% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
@@ -2157,7 +2213,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${objKeyForRappel}`);
     lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 1 seuil/tempo + 1 VMA + 1 sortie longue/sem + EF Z2");
-    lines.push("- Vélo optionnel : max 1x/sem, 45min Z1-Z2 uniquement");
+    lines.push(`- ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
   } else if (objKeyForRappel === "StartToRun") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE START TO RUN (DÉBUTANT)");
     lines.push("- PROGRAMME DÉBUTANT : alternance marche/course progressive.");
