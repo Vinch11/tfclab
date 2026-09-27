@@ -47,6 +47,7 @@ import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan, type ParsedWeek } from "@/lib/aiPlanParser";
 import { buildStartToRunTemplatePlan, type S2RStrengthDose } from "@/lib/startToRunTemplate";
+import { aiPlanCacheKeys } from "@/lib/aiPlanLocalCache";
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
@@ -506,16 +507,20 @@ export default function AITrainingPlanPage() {
     localStorage.setItem(MULTI_PERSIST_KEY, JSON.stringify(state));
   }, [isMultiMode, selectedAthleteIds, multiPlans, resultView, isBatchGenerating]);
 
+  // Clés localStorage du cache "dernier plan IA" — cf. aiPlanLocalCache.ts
+  // (partagé avec SavedPlanCalendar.tsx pour que "Tout supprimer" côté
+  // planning puisse aussi vider ce cache navigateur).
+  const localCacheKeys = currentAthlete ? aiPlanCacheKeys(currentAthlete.id) : null;
   // Persistence key per athlete
-  const persistKey = currentAthlete ? `tfcl_ai_plan_${currentAthlete.id}` : null;
+  const persistKey = localCacheKeys?.persistKey ?? null;
   // Active plan key (full plan JSON + generation timestamp, never overwritten without explicit confirmation)
-  const activePlanKey = currentAthlete ? `plan_active_${currentAthlete.id}` : null;
+  const activePlanKey = localCacheKeys?.activePlanKey ?? null;
   /**
    * Brouillon local NON sauvegardé (régénérations ciblées non encore persistées
    * en base). Sans ça, quitter l'onglet (Safari iOS recharge la page) faisait
    * perdre tout le travail de régénération.
    */
-  const draftKey = currentAthlete ? `tfcl_ai_plan_draft_${currentAthlete.id}` : null;
+  const draftKey = localCacheKeys?.draftKey ?? null;
   const [loadedFromCacheAt, setLoadedFromCacheAt] = useState<string | null>(null);
   /**
    * true si un plan était déjà présent dans activePlanKey AVANT la

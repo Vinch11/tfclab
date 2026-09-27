@@ -23,6 +23,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { toast } from "sonner";
 import { SessionEditDialog } from "@/components/SessionEditDialog";
 import { PlanHistory } from "@/components/PlanHistory";
+import { clearLocalAIPlanCache } from "@/lib/aiPlanLocalCache";
 
 interface TrainingPlanRow {
   id: string;
@@ -138,7 +139,17 @@ export function SavedPlanCalendar() {
       .delete()
       .eq("athlete_id", currentAthlete.id);
     if (error) toast.error("Erreur suppression du plan");
-    else { setSessions([]); setWeekOffset(0); toast.success("Plan entièrement supprimé"); }
+    else {
+      setSessions([]);
+      setWeekOffset(0);
+      // Bug réel (retour coach : "j'ai effacé tous les plans de Mamou mais
+      // quand je vais sur Plan il y a toujours un plan ouvert") : cette
+      // suppression ne vide QUE `training_plan` en base — le cache
+      // navigateur du dernier plan IA généré (AITrainingPlanPage.tsx),
+      // jamais informé, continuait d'afficher un plan "fantôme".
+      clearLocalAIPlanCache(currentAthlete.id);
+      toast.success("Plan entièrement supprimé");
+    }
     setDeleting(null);
   };
 
