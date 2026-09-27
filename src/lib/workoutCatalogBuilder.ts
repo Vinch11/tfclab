@@ -525,10 +525,38 @@ export function buildWorkoutCatalog(
      * la recherche se fait dans WorkoutLibrary entière, pas SourceLibrary.
      */
     maintenanceSports?: TrainingSport[];
+    /**
+     * Force les phases retenues (bypass `phasesForWeekRange`, qui n'infère
+     * que depuis la position calendaire brute weekStart/weekEnd/totalWeeks —
+     * aveugle aux segments de cycles multi-objectifs, cf.
+     * `computeObjectiveCycleSegments`). Utilisé pour construire le catalogue
+     * RESTREINT d'une semaine de régénération inter-cycles (creux volontaire
+     * entre deux pics d'un plan multi-objectifs) : `["base"]` exclut alors
+     * dur (Stage 6 `phase_filter`, sous réserve du floor de couverture par
+     * sport) les fiches build/peak-only (FTP threshold, MLSS, squat/deadlift
+     * lourd, VO2max, brick long) — cf. audit "génération de plan IA", bug
+     * "fausse régénération post-pic" (plan Emanuela).
+     */
+    phaseOverride?: PhaseTag[];
+    /**
+     * Désactive le floor de couverture par sport (Stage 6 `phase_filter` :
+     * normalement, si un sport a <5 fiches compatibles avec `phases`, TOUTES
+     * ses fiches sont réintégrées "sans contrainte de phase" pour garantir un
+     * minimum de contenu). Bug réel (audit "génération de plan IA", plan
+     * Emanuela) : ce floor défait silencieusement `phaseOverride` — pour une
+     * semaine de régénération inter-cycles (`phaseOverride:["base"]`), le
+     * pool "base" d'un sport donné peut être <5, ce qui réintègre alors des
+     * fiches build/peak intenses (ex. `BILLAT_BIKE_MLSS`, MLSS "Obligatoire")
+     * malgré l'override — recréant exactement le contenu que le fix visait à
+     * exclure. Pour une semaine de régénération, un catalogue plus mince
+     * (voire vide pour un sport) est préférable à une fuite d'intensité :
+     * `strictPhaseFilter: true` conserve le hard-exclude même sous le floor.
+     */
+    strictPhaseFilter?: boolean;
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
-  const phases = phasesForWeekRange(weekStart, weekEnd, totalWeeks);
+  const phases = options?.phaseOverride ?? phasesForWeekRange(weekStart, weekEnd, totalWeeks);
   const maxItems = options?.maxItems || 80;
 
   // ─── Isolation Start to Run ───────────────────────────────────────────────
@@ -615,13 +643,24 @@ export function buildWorkoutCatalog(
     const sportsRequired = options?.sportFilter && options.sportFilter.length > 0
       ? options.sportFilter as unknown as string[]
       : Object.keys({ ...phaseKeptBySport, ...phaseDroppedBySport });
-    for (const sport of sportsRequired) {
-      const kept = phaseKeptBySport[sport] || 0;
-      if (kept < FLOOR) {
-        relaxedFloorSports.add(sport);
-        console.warn(
-          `[catalog_filter_floor_relaxed] sport=${sport} chunk=${options?.chunkIndex ?? 0} phases=[${[...chunkPhaseSet].join(",")}] kept=${kept} < floor=${FLOOR} → réintègre fiches sans contrainte de phase`,
-        );
+    if (!options?.strictPhaseFilter) {
+      for (const sport of sportsRequired) {
+        const kept = phaseKeptBySport[sport] || 0;
+        if (kept < FLOOR) {
+          relaxedFloorSports.add(sport);
+          console.warn(
+            `[catalog_filter_floor_relaxed] sport=${sport} chunk=${options?.chunkIndex ?? 0} phases=[${[...chunkPhaseSet].join(",")}] kept=${kept} < floor=${FLOOR} → réintègre fiches sans contrainte de phase`,
+          );
+        }
+      }
+    } else {
+      for (const sport of sportsRequired) {
+        const kept = phaseKeptBySport[sport] || 0;
+        if (kept < FLOOR) {
+          console.warn(
+            `[catalog_filter_floor_bypassed_strict] sport=${sport} chunk=${options?.chunkIndex ?? 0} phases=[${[...chunkPhaseSet].join(",")}] kept=${kept} < floor=${FLOOR} → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)`,
+          );
+        }
       }
     }
   }
@@ -740,14 +779,27 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       if (!phaseFilterEnabled) return true;
-      const allowed = ficheAllowedPhases(w);
+      // Bug réel (audit "génération de plan IA", plan Emanuela) : découvert en
+      // testant `strictPhaseFilter` — `ficheAllowedPhases` retombe sur le
+      // texte libre `when` dès qu'il contient un mot-clé "fort" (build/base/
+      // peak/taper), et ÉCRASE ALORS le tag structuré `phase[]`, y compris
+      // quand ce mot apparaît dans un sens ordinaire ("Base du développement
+      // aérobie", "Après 16-24 semaines DE BASE + collines" — un PRÉREQUIS,
+      // pas la phase de LA fiche elle-même) plutôt que comme déclaration de
+      // phase. `BILLAT_BIKE_MLSS` (`when` commence par "Build" MAIS contient
+      // aussi "Base du développement…", `phase: ["build"]`) fuitait ainsi
+      // dans un catalogue phaseOverride=["base"] alors que son tag structuré
+      // ne contient PAS "base". En mode `strictPhaseFilter`, on ignore donc
+      // cette heuristique texte libre et on se fie UNIQUEMENT au tag
+      // structuré `phase[]` (vide = fiche libre, comportement inchangé).
+      const allowed = options?.strictPhaseFilter
+        ? new Set((w.phase ?? []).filter((p): p is PlanPhase => p === "base" || p === "build" || p === "peak" || p === "taper"))
+        : ficheAllowedPhases(w);
       const isUnconstrained = allowed.size === 0;
-      let keep: boolean;
-      if (relaxedFloorSports.has(w.sport)) {
-        keep = isUnconstrained || ficheCompatibleWithPhases(w, chunkPhaseSet);
-      } else {
-        keep = ficheCompatibleWithPhases(w, chunkPhaseSet);
-      }
+      const isCompatible = isUnconstrained || Array.from(allowed).some(p => chunkPhaseSet.has(p));
+      // `relaxedFloorSports` reste toujours vide en `strictPhaseFilter`
+      // (cf. plus haut) : cette branche ne s'active donc jamais dans ce mode.
+      const keep = relaxedFloorSports.has(w.sport) ? (isUnconstrained || isCompatible) : isCompatible;
       if (!keep) {
         recordAttribution(w.id, chunkIdx, "phase_filter");
         if (TRACKED_IDS.has(w.id.toUpperCase())) {

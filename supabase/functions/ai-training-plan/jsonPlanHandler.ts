@@ -1443,6 +1443,17 @@ interface HandlerInput {
   workoutCatalog?: string;
   phaseCatalogs?: Record<string, string>;
   chunkCatalogs?: string[];
+  /**
+   * Catalogue RESTREINT (phase forcée "base", donc sans fiches build/peak
+   * intenses) pour les semaines de régénération inter-cycles couvertes par
+   * chaque chunk — index aligné sur `chunkCatalogs`, chaîne vide si ce chunk
+   * ne couvre aucune semaine de régénération. Cf. useAITrainingPlan.ts
+   * (construction) et audit "génération de plan IA" (bug "fausse
+   * régénération post-pic", plan Emanuela).
+   */
+  chunkRegenCatalogs?: string[];
+  /** Numéros de semaine (locaux) couverts par `chunkRegenCatalogs[i]`, index aligné. */
+  chunkRegenWeeks?: number[][];
   catalogDurationStats?: any;
   corsHeaders: Record<string, string>;
 }
@@ -1538,7 +1549,7 @@ export function inferPhaseFromWeek(
 export function handleJSONPlanRequest(input: HandlerInput): Response {
   const {
     apiKey, athleteData, planConfig, regenerateWeek,
-    workoutCatalog, phaseCatalogs, chunkCatalogs, catalogDurationStats,
+    workoutCatalog, phaseCatalogs, chunkCatalogs, chunkRegenCatalogs, chunkRegenWeeks, catalogDurationStats,
     corsHeaders,
   } = input;
 
@@ -1666,9 +1677,37 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             ?? inferPhaseFromWeek(chunk.start, totalWeeks, planConfig?.objective, planConfig);
           const catalogDump = chunkSpecificCatalog
             ?? resolvePhaseCatalog(activePhase, phaseCatalogs, workoutCatalog);
-          catalogDumpsByChunk[ci] = catalogDump;
 
-          const allowedIds = extractCatalogIdsFromDump(catalogDump);
+          // Bug réel (audit "génération de plan IA", plan Emanuela, "Bloc 4 ·
+          // Régénération post-pic" S22-23) : `catalogDump` ci-dessus est
+          // calculé sur la position calendaire brute du CHUNK entier (5
+          // semaines) — un chunk peut donc mélanger des semaines de charge
+          // normale ET des semaines de régénération inter-cycles sans que le
+          // catalogue en tienne compte. On ajoute ici un second bloc,
+          // EXPLICITEMENT restreint aux semaines de régénération couvertes
+          // par ce chunk (déjà filtré côté client : phase forcée "base",
+          // donc sans FTP-threshold/MLSS/squat-deadlift lourd/VO2max/brick
+          // long) — sans réduire le catalogue principal, qui reste utilisé
+          // tel quel par les autres semaines du même chunk.
+          const regenWeeksForChunk = Array.isArray(chunkRegenWeeks) && Array.isArray(chunkRegenWeeks[ci])
+            ? chunkRegenWeeks[ci]
+            : [];
+          const regenCatalogDump = Array.isArray(chunkRegenCatalogs)
+            && typeof chunkRegenCatalogs[ci] === "string"
+            && chunkRegenCatalogs[ci].length > 0
+              ? chunkRegenCatalogs[ci]
+              : null;
+          const regenCatalogBlock = (regenCatalogDump && regenWeeksForChunk.length > 0)
+            ? `\n🔒 CATALOGUE RESTREINT — RÉGÉNÉRATION INTER-CYCLES (${regenWeeksForChunk.map((w) => `S${w}`).join(", ")} UNIQUEMENT) :\n` +
+              `Pour ${regenWeeksForChunk.length > 1 ? "ces semaines précisément" : "cette semaine précisément"} (creux volontaire entre deux cycles d'objectifs — vraie récupération, -40% volume, PAS d'intensité), ` +
+              `IGNORE le catalogue principal ci-dessus et choisis EXCLUSIVEMENT parmi les fiches ci-dessous (déjà filtrées : aucune fiche build/peak). ` +
+              `Les autres semaines de ce bloc continuent d'utiliser normalement le catalogue principal.\n${regenCatalogDump}\n`
+            : null;
+
+          catalogDumpsByChunk[ci] = regenCatalogBlock ? `${catalogDump}\n${regenCatalogDump}` : catalogDump;
+
+          const allowedIds = extractCatalogIdsFromDump(catalogDump)
+            .concat(regenCatalogDump ? extractCatalogIdsFromDump(regenCatalogDump) : []);
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
           {
             const trailInAllowed = allowedIds.filter((id) => isTrailCatalogId(id));
@@ -1776,6 +1815,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             baseUserPrompt,
             quotasBlock ? `\n${quotasBlock}\n` : null,
             catalogDump ? `\n${catalogDump}\n` : null,
+            regenCatalogBlock,
             historyBlock,
             diversityBlock,
             lcwSignatureBlock,

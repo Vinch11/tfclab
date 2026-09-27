@@ -701,6 +701,22 @@ export function useAITrainingPlan() {
       // dans ses 3 derniers plans (pondérées par récence).
       const historicalUsage = await fetchHistoricalCatalogUsage(planConfig.athleteId);
 
+      // Segments de cycles multi-objectifs — même calcul que celui utilisé
+      // plus bas pour le quota hebdomadaire (`cycleSegmentsForRegen`, PR
+      // #272), dupliqué ici sous un autre nom pour éviter une redéclaration
+      // dans le même scope : nécessaire ici en amont pour la construction de
+      // chunkCatalogs, avant que ce second calcul n'existe dans la fonction.
+      const cycleSegmentsForCatalog = computeObjectiveCycleSegments(
+        (planConfig as any)?.raceGoals,
+        (planConfig as any)?.planStartDate,
+        effTotalWeeks,
+      );
+      const isRegenGapWeek = (localWeek: number): boolean => {
+        const globalWeekNum = localWeek + weekOffset;
+        return !!cycleSegmentsForCatalog
+          && !cycleSegmentsForCatalog.some((seg) => globalWeekNum >= seg.startWeek && globalWeekNum <= seg.endWeek);
+      };
+
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];
         const catalog = buildWorkoutCatalog(
@@ -727,6 +743,31 @@ export function useAITrainingPlan() {
       // The edge function will prefer these over phaseCatalogs when chunking.
       // This reduces cognitive noise: AI sees only sessions relevant to *this* block.
       const chunkCatalogs: string[] = [];
+      // Bug réel (audit "génération de plan IA", plan Emanuela, "Bloc 4 ·
+      // Régénération post-pic" S22-23) : ce catalogue par chunk ne connaît
+      // QUE la position calendaire brute (cStart/cEnd/totalWeeks, via
+      // `phasesForWeekRange` dans buildWorkoutCatalog) — aucune awareness des
+      // segments de cycles multi-objectifs. Pour un chunk de 5 semaines dont
+      // le milieu calendaire tombe à ~55-65% du plan (typique d'un creux de
+      // régénération inter-cycles entre un Marathon intermédiaire et
+      // l'Ironman final), la phase calculée est ["build","peak"] — les DEUX
+      // tags les plus intenses — et boost donc exactement les fiches FTP
+      // threshold/MLSS/squat-deadlift lourd/VO2max/brick long que le prompt
+      // demande par ailleurs d'éviter. Le fix PR #272 (weeklyQuotas
+      // `isPostPeakRegenWeek`) réduit le nombre de séances de ces semaines,
+      // mais ne change rien au contenu proposé pour les remplir — d'où la
+      // persistance du bug malgré ce fix.
+      //
+      // Fix : en plus du catalogue normal du chunk (inchangé, toujours
+      // utilisé par les semaines de charge normales du même chunk), on
+      // construit un second catalogue RESTREINT (phaseOverride=["base"],
+      // donc hard-exclusion Stage 6 des fiches build/peak-only) pour les
+      // semaines de régénération inter-cycles couvertes par ce chunk. Les
+      // deux sont envoyés à l'edge function, qui les distingue clairement
+      // dans le prompt (cf. jsonPlanHandler.ts) au lieu de se substituer l'un
+      // à l'autre.
+      const chunkRegenCatalogs: string[] = [];
+      const chunkRegenWeeks: number[][] = [];
       if (needsChunking) {
         const chunkUsedIds = new Set<string>();
         for (let ci = 0; ci < totalChunks; ci++) {
@@ -752,6 +793,26 @@ export function useAITrainingPlan() {
               `sportFilter=[${(catalogSportFilter ?? []).join(",")}] catalogObjective=${catalogObjective}`,
             );
           }
+
+          const regenWeeksInChunk: number[] = [];
+          for (let w = cStart; w <= cEnd; w++) if (isRegenGapWeek(w)) regenWeeksInChunk.push(w);
+          if (regenWeeksInChunk.length > 0) {
+            const regenCatalog = buildWorkoutCatalog(
+              catalogObjective,
+              cStart,
+              cEnd,
+              totalWeeks,
+              { maxItems: 60, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, phaseOverride: ["base"], strictPhaseFilter: true }
+            );
+            chunkRegenCatalogs.push(serializeCatalogForPrompt(regenCatalog));
+            console.log(
+              `[regen_gap_catalog] chunk=${ci} weeks=[${regenWeeksInChunk.join(",")}] entries=${regenCatalog.length}`,
+            );
+          } else {
+            chunkRegenCatalogs.push("");
+          }
+          chunkRegenWeeks.push(regenWeeksInChunk);
+
           // Rotation inter-chunk (P1 diversité) : on exclut désormais ~70 % des IDs
           // du chunk précédent (au lieu de 50 %), séances structurelles INCLUSES.
           // Le bypass structurel n'est plus appliqué ici : buildWorkoutCatalog
@@ -978,6 +1039,12 @@ export function useAITrainingPlan() {
           planConfig: planConfigWithQuota,
           phaseCatalogs,
           chunkCatalogs: chunkCatalogs.length > 0 ? chunkCatalogs : undefined,
+          // Bloc catalogue restreint dédié aux semaines de régénération
+          // inter-cycles (cf. commentaire au site de construction) — index
+          // aligné sur chunkCatalogs, chaîne vide/tableau vide pour un chunk
+          // sans semaine de régénération.
+          chunkRegenCatalogs: chunkRegenCatalogs.some((c) => c.length > 0) ? chunkRegenCatalogs : undefined,
+          chunkRegenWeeks: chunkRegenWeeks.some((w) => w.length > 0) ? chunkRegenWeeks : undefined,
           chunkSize: CHUNK_SIZE,
           catalogDurationStats,
         }),
