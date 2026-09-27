@@ -281,7 +281,9 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
 
   let win: Window | null = null;
   try {
-    win = window.open(url, "_blank", "noopener,noreferrer");
+    // Pas de "noopener" : avec lui, window.open renvoie toujours null, ce qui
+    // révoquait l'URL blob avant chargement → onglet vide → PDF de 0 octet.
+    win = window.open(url, "_blank");
   } catch {
     win = null;
   }
