@@ -96,8 +96,24 @@ function parseIntensity(text: string): string | null {
 
 function parseIncline(text: string): [number, number] | null {
   // "5-8%", "à 6%", "incl. 4-7%"
+  //
+  // Bug réel (audit "génération de plan IA", plan Emanuela) : cette branche
+  // "range" n'avait AUCUNE borne de plausibilité — contrairement à la
+  // branche "valeur unique" juste en dessous, qui rejette déjà tout ce qui
+  // sort de 1-20%. Un pourcentage de ZONE PHYSIOLOGIQUE présent ailleurs
+  // dans le texte de la séance (ex. "le 'black hole' (Z3, 76-85% FCmax) est
+  // la zone à ÉVITER absolument", Sortie longue Z1 Seiler) était donc
+  // confondu avec un pourcentage d'inclinaison tapis, produisant l'alternative
+  // absurde "Tapis seuil progressif — Bloc continu 20–40 min à 76–85% incl.
+  // au seuil" — précisément la zone que le texte dit d'éviter. Un tapis de
+  // course ne dépasse jamais 20% d'inclinaison en usage réel : la même borne
+  // 1-20% que la branche valeur unique s'applique donc ici aussi.
   const range = text.match(/(\d{1,2})\s*[-–à]\s*(\d{1,2})\s*%/);
-  if (range) return [parseInt(range[1], 10), parseInt(range[2], 10)];
+  if (range) {
+    const a = parseInt(range[1], 10);
+    const b = parseInt(range[2], 10);
+    if (a >= 1 && a <= 20 && b >= 1 && b <= 20) return [a, b];
+  }
   const single = text.match(/(\d{1,2})\s*%/);
   if (single) {
     const v = parseInt(single[1], 10);

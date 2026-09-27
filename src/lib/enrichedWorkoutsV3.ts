@@ -968,7 +968,15 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     objectif: "Test TTE — Time To Exhaustion au seuil",
     necessite: "Recommandé",
     when: "Toutes les 8-12 semaines, reposé",
-    phase: ["taper"],
+    // Bug réel (audit "génération de plan IA", plan Emanuela) : taggé
+    // `["taper"]`, ce test à épuisement (100% FTP jusqu'à échec) était
+    // sélectionné 3 semaines DE SUITE pendant l'affûtage (S-3, S-2, S-1
+    // avant l'Ironman) — alors que son propre champ `when` dit explicitement
+    // "toutes les 8-12 semaines". Un effort maximal à l'échec est
+    // contradictoire avec l'objectif même du taper (dissiper la fatigue,
+    // pas la créer) — c'est un test de recalibrage FTP périodique en phase
+    // de développement, jamais une prescription de fin de préparation.
+    phase: ["build"],
     avoid: "Sans FTP récent connu",
     durationMin: [45, 75],
     metricKey: "puissance", sportKey: "cycling",

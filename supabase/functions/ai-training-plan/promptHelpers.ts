@@ -1082,24 +1082,55 @@ export function parseIsoDateUtc(iso?: string): number | undefined {
   return Date.UTC(y, m - 1, d);
 }
 
-/** Partagé (module-level) : cf. note sur `parseIsoDateUtc` ci-dessus. */
-export function computeGoalWeekForConfig(config: any, goal: any): number | undefined {
+/**
+ * Partagé (module-level) : cf. note sur `parseIsoDateUtc` ci-dessus.
+ *
+ * Bug réel corrigé (audit "génération de plan IA", plan Emanuela) : pour la
+ * DERNIÈRE course du plan (`opts.isLast`), la date de course tombe souvent
+ * UNE semaine calendaire après `weeksAvailable` (décalage d'une semaine
+ * entre date de début et durée exacte de la course — même quirk déjà
+ * documenté et corrigé dans `computeMultiObjectiveSegments` ci-dessus ET
+ * dans le mirror client `computeObjectiveCycleSegments`). Sans clamp ICI,
+ * `computeGoalWeekForConfig` renvoyait ce numéro de semaine hors-plan (ex.
+ * S40 pour un plan de 39 semaines) aux DEUX autres appelants de cette
+ * fonction ("Ancrage absolu... DERNIÈRE semaine DOIT être..." et "RAPPEL
+ * FINAL MULTI-OBJECTIFS") — qui n'avaient PAS leur propre clamp. Résultat :
+ * le prompt demandait au modèle de placer le Jour de Course sur une semaine
+ * qui n'existe jamais dans le plan généré, donc le Jour J n'apparaissait
+ * JAMAIS et le modèle répétait des ouvertures J-1 sans jamais conclure.
+ * Centralisé ICI (plutôt que dans chaque appelant) pour que les 3
+ * consommateurs de cette fonction ne puissent plus diverger — exactement la
+ * classe de bug déjà rencontrée plusieurs fois cette session.
+ */
+export function computeGoalWeekForConfig(
+  config: any,
+  goal: any,
+  opts?: { isLast?: boolean },
+): number | undefined {
+  let raw: number | undefined;
+
   // PRIORITÉ ABSOLUE: calculer depuis les dates (source de vérité)
   if (goal?.raceDate && config?.planStartDate) {
     const raceUtc = parseIsoDateUtc(goal.raceDate);
     const startUtc = parseIsoDateUtc(config.planStartDate);
     if (raceUtc !== undefined && startUtc !== undefined) {
       const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
-      if (days >= 0) return Math.floor(days / 7) + 1;
+      if (days >= 0) raw = Math.floor(days / 7) + 1;
     }
   }
 
   // Fallback uniquement si aucune date exploitable
-  if (typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
-    return Math.max(1, Math.floor(goal.weeksUntilRace));
+  if (raw === undefined && typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
+    raw = Math.max(1, Math.floor(goal.weeksUntilRace));
   }
 
-  return undefined;
+  if (raw === undefined) return undefined;
+
+  const totalWeeks = typeof config?.weeksAvailable === "number" ? config.weeksAvailable : undefined;
+  if (opts?.isLast && typeof totalWeeks === "number" && raw > totalWeeks && raw <= totalWeeks + 1) {
+    return totalWeeks;
+  }
+  return raw;
 }
 
 export function buildUserPrompt(data: any, config: any, catalogDurationStats?: CatalogDurationStats | null): string {
@@ -1118,7 +1149,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     }).format(new Date(utc));
   };
 
-  const computeGoalWeek = (goal: any): number | undefined => computeGoalWeekForConfig(config, goal);
+  const computeGoalWeek = (goal: any, isLast?: boolean): number | undefined => computeGoalWeekForConfig(config, goal, { isLast });
 
   const getWeekBounds = (weekNumber?: number): { start: string; end: string } | undefined => {
     if (!weekNumber || !config?.planStartDate) return undefined;
@@ -1189,7 +1220,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
-      const goalWeek = computeGoalWeek(goal);
+      // Bug réel corrigé (audit "génération de plan IA", plan Emanuela) :
+      // `isLast` permet à `computeGoalWeekForConfig` de clamper le décalage
+      // d'une semaine (course tombant juste après la fin du plan) UNIQUEMENT
+      // pour la dernière course chronologique — cf. sa doc.
+      const goalWeek = computeGoalWeek(goal, classifiedByGoal.get(goal)?.isLast);
       const bounds = getWeekBounds(goalWeek);
       const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
       lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}${weekAnchor}`);
@@ -2355,7 +2390,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       const prioLabel = classified.isFullPeak
         ? (fullPeaks.length > 1 ? "🎯 PIC DE FORME COMPLET" : "🅰️ OBJECTIF PRINCIPAL (pic de forme)")
         : "🅱️ JALON INTERMÉDIAIRE (mini-taper)";
-      const goalWeek = computeGoalWeek(goal);
+      const goalWeek = computeGoalWeek(goal, classified.isLast);
       const bounds = getWeekBounds(goalWeek);
       const weekInfo = goalWeek ? ` — Semaine cible: S${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
       lines.push(`- **${goal.objective}**${goal.raceName ? ` — ${goal.raceName}` : ""}${goal.raceDate ? ` — ${goal.raceDate}` : ""}${weekInfo} → ${prioLabel}`);

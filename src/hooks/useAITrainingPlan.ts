@@ -179,6 +179,28 @@ export const TRAIL_ID_PATTERNS: RegExp[] = [
   /^V3_TRAIL_/i,
 ];
 
+/**
+ * IDs de fiches "méta" (source de vérité unique) : ces entrées du catalogue
+ * décrivent la structure d'une SEMAINE ENTIÈRE (texte "LUNDI : ... MARDI :
+ * ... MERCREDI : ...") mais partagent exactement le même schéma qu'une
+ * fiche de séance normale (durationMin sur une plage de séance unique,
+ * cat "C", sans champ `goals` → traitées comme "universelles" par
+ * `scoreWorkout`, workoutCatalogBuilder.ts). Rien ne les empêchait donc
+ * d'être sélectionnées et PLANIFIÉES comme la séance d'UN SEUL jour — bug
+ * réel constaté (audit "génération de plan IA", plan Emanuela) :
+ * "Structure semaine norvégienne course" planifiée un mercredi, avec le
+ * texte "Cette séance représente le jeudi soir" affiché tel quel. Bannies
+ * pour TOUT objectif : ce sont des fiches de référence/documentation pour
+ * le LLM, jamais des séances planifiables sur un jour précis.
+ */
+export const META_WEEK_TEMPLATE_ID_PATTERNS: RegExp[] = [
+  /^NORWEGIAN_WEEK_STRUCTURE_RUN$/i,
+  /^KENYAN_WEEK_STRUCTURE_MARATHON$/i,
+  /^SEILER_WEEK_POLARIZED_RUN$/i,
+  /^SEILER_WEEK_POLARIZED_TRI$/i,
+  /^NUTRITION_CARB_PERIODIZATION_WEEK$/i,
+];
+
 export const getCatalogExclusions = (
   objective: string,
   raceGoals?: RaceGoal[]
@@ -207,7 +229,7 @@ export const getCatalogExclusions = (
       lower.includes("beginner")
     );
 
-  const excludeIdPatterns: RegExp[] = [];
+  const excludeIdPatterns: RegExp[] = [...META_WEEK_TEMPLATE_ID_PATTERNS];
   const excludeTags: string[] = [];
 
   if (isTriathlon || isRoadRunning) {
@@ -226,6 +248,22 @@ export const getCatalogExclusions = (
 
   if (isHalf && !isLCW) {
     excludeIdPatterns.push(/^A_IM_RUN_LONG_DURABILITY/i, /^B_IM_RUN_MARATHON_SPLIT/i);
+  }
+
+  // Bug réel (audit "génération de plan IA", plan Emanuela, S34 — Bloc 7
+  // Spécifique Ironman) : `B_703_BRICK_RACE_PACE` (goals:["half"], signature
+  // 70.3 EXCLUSIVE — durée 3-4h, allure/puissance calibrées 70.3, jamais
+  // Ironman) apparaissait dans un plan Ironman NON-LCW. Cause : le "goal
+  // match" (workoutCatalogBuilder.ts, scoreWorkout) ne pénalise PAS un goal
+  // non-matché ("no penalty for unmatched to maximize diversity"), donc
+  // cette fiche restait un candidat valide (juste moins bien scoré) pour le
+  // backfill structurel "≥1 séance brick" (isTriGoal) — et pouvait remonter
+  // une fois les vraies fiches brick Ironman (BR_IM_V*_PRO) déjà consommées
+  // dans les chunks précédents (exclusion diversité inter-chunks). Aucune
+  // exclusion symétrique n'existait (seul le sens inverse, IM→half deux
+  // lignes plus haut, était banni).
+  if (isTriathlon && !isHalf && !isLCW) {
+    excludeIdPatterns.push(/^B_703_BRICK_RACE_PACE$/i);
   }
 
   return { excludeIdPatterns, excludeTags };
@@ -810,10 +848,37 @@ export function useAITrainingPlan() {
       // de course. Calculé une fois hors boucle, identique pour tout le plan.
       const isLCWFormat = Array.isArray((planConfig as any)?.raceGoals)
         && (planConfig as any).raceGoals.some((g: any) => g?.raceFormat === "lcw_3day");
+      // Bug réel (audit "génération de plan IA", plan Emanuela) : "Bloc 4 ·
+      // Régénération post-pic" (S22-23, les 2 semaines de régénération inter-
+      // cycles insérées par `computeObjectiveCycleSegments`/`buildPhaseBoundsSegmentLines`
+      // entre le cycle Marathon et le cycle Ironman) affichait une semaine de
+      // charge COMPLÈTE (natation CSS, vélo ramp jusqu'à 105% FTP, brique
+      // longue, squat/deadlift lourds 4×5 @80-85% 1RM) — alors que le prompt
+      // dit explicitement "vraie récupération (-40% volume, pas d'intensité)"
+      // pour ces semaines. Cause : `inferWeekType` calcule `load`/`recovery`/
+      // `taper`/`race` UNIQUEMENT depuis la position globale (numéro de
+      // semaine % cadence de décharge, distance à la fin du plan) — il ignore
+      // totalement les segments de cycles multi-objectifs, donc une semaine
+      // de régénération inter-cycles (qui ne tombe dans AUCUN segment) reçoit
+      // le même quota "load" qu'une semaine normale de développement.
+      // Fix : toute semaine hors des segments de cycles connus (le "trou"
+      // volontaire de `OBJECTIVE_CYCLE_REGEN_WEEKS_BETWEEN_PEAKS` semaines
+      // entre deux pics complets) force `weekType="recovery"`, cohérent avec
+      // le texte du prompt pour ces mêmes semaines.
+      const cycleSegmentsForRegen = computeObjectiveCycleSegments(
+        (planConfig as any)?.raceGoals,
+        (planConfig as any)?.planStartDate,
+        effTotalWeeks,
+      );
       for (let w = 1; w <= totalWeeks; w++) {
         // Position globale : quota/taper/recovery calculés sur la vraie place
         // de la semaine dans le plan (cf. PlanConfig.globalTotalWeeks).
-        const weekType = inferWeekType(w + weekOffset, effTotalWeeks, objectiveForQuota, athleteData.age, planConfig.deloadCadenceWeeks);
+        const globalWeekNum = w + weekOffset;
+        const isPostPeakRegenWeek = !!cycleSegmentsForRegen
+          && !cycleSegmentsForRegen.some((seg) => globalWeekNum >= seg.startWeek && globalWeekNum <= seg.endWeek);
+        const weekType = isPostPeakRegenWeek
+          ? "recovery"
+          : inferWeekType(globalWeekNum, effTotalWeeks, objectiveForQuota, athleteData.age, planConfig.deloadCadenceWeeks);
         const entry = computeWeekQuotaEntry(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat, {
           sessionsPerWeek: targetSpw,
           bannedSports: bannedSportsForQuota,
