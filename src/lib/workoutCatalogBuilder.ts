@@ -95,6 +95,7 @@ export type CatalogDropStage =
   | "exclude_prev_chunk_ids"
   | "prohibitions"
   | "phase_filter"
+  | "regen_gap_load_filter"
   | "score_hard_ban"
   | "fill_sport_cap"
   | "fill_cat_cap"
@@ -114,6 +115,7 @@ const STAGE_RANK: Record<CatalogDropStage, number> = {
   exclude_prev_chunk_ids: 4,
   prohibitions: 5,
   phase_filter: 6,
+  regen_gap_load_filter: 6,
   score_hard_ban: 7,
   fill_sport_cap: 8,
   fill_cat_cap: 8,
@@ -553,6 +555,25 @@ export function buildWorkoutCatalog(
      * `strictPhaseFilter: true` conserve le hard-exclude même sous le floor.
      */
     strictPhaseFilter?: boolean;
+    /**
+     * Bug réel (audit "génération de plan IA", plan Emanuela S22-23, 3ᵉ
+     * régénération post-PR #274) : `phaseOverride:["base"] + strictPhaseFilter`
+     * filtre par PHASE, pas par CHARGE — or "base" en périodisation classique
+     * inclut légitimement des piliers à forte charge (force maximale
+     * Rønnestad `C_STR_MAX_LOWER_HEAVY` 4×4 @85-90% 1RM, sortie longue
+     * `SEILER_BIKE_Z1_LONG` jusqu'à 210min) : ces fiches ont `phase:["base",...]`
+     * à juste titre, le filtre par phase les garde donc à raison — mais une
+     * semaine de RÉGÉNÉRATION inter-cycles a besoin d'un vrai déload
+     * (charge basse), un axe orthogonal à la phase que `phaseOverride` seul
+     * ne peut pas capturer. `regenGapLoadFilter: true` ajoute donc un
+     * filtre par charge (Stage 6.5, indépendant de `strictPhaseFilter`) :
+     * exclusion des tags force max (`heavy`/`max-force`), des fiches dont
+     * une partie de structure contient une zone Z4+ (garde-fou
+     * défense-en-profondeur si une fiche build/peak-only devait fuiter par
+     * ailleurs), et plafond de durée pour les sports d'endurance — préférer
+     * un catalogue plus mince (cf. `strictPhaseFilter`) à une fuite de charge.
+     */
+    regenGapLoadFilter?: boolean;
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
@@ -809,6 +830,31 @@ export function buildWorkoutCatalog(
       return keep;
     });
     logStage("phase_filter", before, current.length);
+  }
+
+  // Stage 6.5: regen_gap_load_filter (cf. JSDoc `regenGapLoadFilter` ci-dessus)
+  const REGEN_GAP_HIGH_LOAD_TAGS = new Set(["heavy", "max-force"]);
+  const REGEN_GAP_HIGH_LOAD_ZONE = /^Z[4-6]/i;
+  const REGEN_GAP_ENDURANCE_SPORTS = new Set<TrainingSport>([
+    "bike", "cyclisme", "run", "course", "natation", "swim", "trail", "brick",
+  ]);
+  const REGEN_GAP_MAX_DURATION_MIN = 120;
+  if (options?.regenGapLoadFilter) {
+    const before = current.length;
+    current = current.filter(w => {
+      const tagHit = (w.tags || []).some(t => REGEN_GAP_HIGH_LOAD_TAGS.has(String(t).toLowerCase()));
+      const zoneHit = (w.structure || []).some(part => (part.zones || []).some(z => REGEN_GAP_HIGH_LOAD_ZONE.test(z)));
+      const durationHit = REGEN_GAP_ENDURANCE_SPORTS.has(w.sport) && w.durationMin[1] > REGEN_GAP_MAX_DURATION_MIN;
+      const drop = tagHit || zoneHit || durationHit;
+      if (drop) {
+        recordAttribution(w.id, chunkIdx, "regen_gap_load_filter");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) {
+          logDrop(w.id, "regen_gap_load_filter", `tagHit=${tagHit} zoneHit=${zoneHit} durationHit=${durationHit}(max=${w.durationMin[1]})`);
+        }
+      }
+      return !drop;
+    });
+    logStage("regen_gap_load_filter", before, current.length);
   }
 
 
@@ -1124,7 +1170,19 @@ export function buildWorkoutCatalog(
   // toujours vélo/natation pleinement éligibles dans le pool — rien ne
   // contrebalançait plus leur présence en faveur de la course.
   const isRunGoal = goals.some(g => g === "marathon" || g === "semi" || g === "10k");
-  if (isTriGoal) {
+  // Bug réel (audit "génération de plan IA", plan Emanuela S22-23) : ce
+  // backfill structurel force ≥2 sorties vélo ≥120min + ≥2 sorties course
+  // ≥90min + ≥1 brick DANS TOUS LES CAS pour un objectif tri — y compris
+  // pour la fenêtre de régénération inter-cycles, où c'est exactement le
+  // contenu à bannir (la "brique Obligatoire 120-180min" signalée dès le
+  // tout premier retour coach sur ce bug). Il pioche en plus dans
+  // `SourceLibrary` avec le filtre de phase SOUPLE (`ficheCompatibleWithPhases`,
+  // pas la version stricte de `strictPhaseFilter`) et ignore totalement
+  // `regenGapLoadFilter` — contournant donc les DEUX filtres Stage 6/6.5 en
+  // aval. On désactive ce backfill pour une fenêtre de régénération pure :
+  // un catalogue plus mince (déjà le principe de `strictPhaseFilter`) est
+  // préférable à la réinjection forcée de charge/volume.
+  if (isTriGoal && !options?.regenGapLoadFilter) {
     const median = (w: LibraryWorkout) => (w.durationMin[0] + w.durationMin[1]) / 2;
     const isSportBucket = (w: LibraryWorkout, bucket: "bike" | "run" | "brick") => {
       const s = String(w.sport || "").toLowerCase();

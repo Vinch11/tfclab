@@ -43,6 +43,12 @@ import { join } from "node:path";
  * de ce fichier). Ce test vérifie donc, en lisant le SOURCE, que cette
  * détection et cette propagation existent bien, AVANT les deux boucles de
  * construction de catalogue.
+ *
+ * Complément (3ᵉ vérification post-PR #274, plan Emanuela) : `phaseOverride`
+ * seul filtre par PHASE, pas par CHARGE — `C_STR_MAX_LOWER_HEAVY` (squat
+ * lourd) et `SEILER_BIKE_Z1_LONG` (165-210min) ont `phase:["base",...]`
+ * légitimement et fuitaient donc malgré le fix précédent. `regenGapLoadFilter`
+ * (workoutCatalogBuilder.ts) ajoute le filtre par charge manquant.
  */
 describe("useAITrainingPlan — garde-fou anti-régression : une fenêtre de régénération pure (toutes ses semaines locales) reçoit un catalogue phase='base' strict", () => {
   const source = readFileSync(
@@ -85,6 +91,17 @@ describe("useAITrainingPlan — garde-fou anti-régression : une fenêtre de ré
     expect(
       body.includes("...regenGapPhaseOptions"),
       "le catalogue principal de chunkCatalogs ne propage plus regenGapPhaseOptions",
+    ).toBe(true);
+  });
+
+  it("regenGapPhaseOptions inclut regenGapLoadFilter (filtre par charge, pas seulement par phase)", () => {
+    const optionsIdx = source.indexOf("const regenGapPhaseOptions = isPureRegenGapWindow");
+    expect(optionsIdx, "regenGapPhaseOptions est introuvable — a-t-il été renommé/déplacé ?").toBeGreaterThan(-1);
+    const optionsEndIdx = source.indexOf(";", optionsIdx);
+    const body = source.slice(optionsIdx, optionsEndIdx);
+    expect(
+      body.includes("regenGapLoadFilter: true"),
+      "regenGapPhaseOptions ne propage plus regenGapLoadFilter — le squat lourd Rønnestad et la sortie longue Z1 (légitimement 'base') redeviendraient possibles en semaine de régénération (bug plan Emanuela, 3ᵉ vérification post-PR #274)",
     ).toBe(true);
   });
 });
