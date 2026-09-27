@@ -109,6 +109,16 @@ export interface PlanFormConfig {
   terrainAvailability?: "plat" | "vallonne" | "montagne" | "mixte";
   /** Coach lock : désactive le déclassement automatique d'ambition (voir computeAmbitionEffective). */
   lockAmbition?: boolean;
+  /**
+   * Maintien croisé (vélo/natation) autorisé pendant les cycles course/trail
+   * (objectif résolu run_route ou trail — Marathon, Semi, 10K, 5K, Trail...).
+   * Coach-configurable : le vélo Z1 léger était jusqu'ici toujours autorisé en
+   * récupération active mais la natation bannie à 0% sans option pour
+   * l'activer, alors que les deux sont physiologiquement valables en
+   * maintien léger. Omis = comportement historique (vélo autorisé, natation
+   * interdite).
+   */
+  crossTrainingMaintenance?: { velo?: boolean; natation?: boolean };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -352,6 +362,7 @@ export function buildPlanConfigFromDiagnostic(
     trailProfile,
     volumeRamp,
     terrainAvailability: formConfig.terrainAvailability,
+    crossTrainingMaintenance: formConfig.crossTrainingMaintenance,
   };
 }
 

@@ -588,6 +588,12 @@ export default function AITrainingPlanPage() {
   const [trailMaxAltitudeM, setTrailMaxAltitudeM] = useState("");
   // Terrain dispo athlète (lieu de vie) — clé pour athlètes urbains préparant un trail montagne
   const [terrainAvailability, setTerrainAvailability] = useState<string>("auto");
+  // Maintien croisé (vélo/natation) pendant les cycles course/trail — coach-configurable
+  // (retour coach, plan Emanuela) : le vélo Z1 léger était toujours autorisé en
+  // récupération active mais la natation bannie à 0% sans option pour l'activer.
+  // Défauts = comportement historique (vélo autorisé, natation interdite).
+  const [crossTrainingVelo, setCrossTrainingVelo] = useState(true);
+  const [crossTrainingNatation, setCrossTrainingNatation] = useState(false);
 
   // Multi-objective state
   const [raceGoals, setRaceGoals] = useState<RaceGoal[]>([]);
@@ -690,6 +696,8 @@ export default function AITrainingPlanPage() {
     setTrailTargetTimeH("");
     setTrailMaxAltitudeM("");
     setTerrainAvailability("auto");
+    setCrossTrainingVelo(true);
+    setCrossTrainingNatation(false);
 
     if (savedState) {
       if (!activeRestored && savedState.response) setResponse(savedState.response);
@@ -715,6 +723,8 @@ export default function AITrainingPlanPage() {
       if (savedState.trailTargetTimeH) setTrailTargetTimeH(savedState.trailTargetTimeH);
       if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
       if (savedState.terrainAvailability) setTerrainAvailability(savedState.terrainAvailability);
+      if (typeof savedState.crossTrainingVelo === "boolean") setCrossTrainingVelo(savedState.crossTrainingVelo);
+      if (typeof savedState.crossTrainingNatation === "boolean") setCrossTrainingNatation(savedState.crossTrainingNatation);
     }
 
     // Ancrage calendaire : restaure la date de début du plan persistée, sinon
@@ -837,6 +847,8 @@ export default function AITrainingPlanPage() {
       trailTargetTimeH,
       trailMaxAltitudeM,
       terrainAvailability,
+      crossTrainingVelo,
+      crossTrainingNatation,
       // Ancrage calendaire du plan (sinon dates ré-ancrées au lundi courant après refresh)
       planStartDate: format(planStartDate, "yyyy-MM-dd"),
     };
@@ -871,7 +883,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -1359,12 +1371,13 @@ export default function AITrainingPlanPage() {
       trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
       terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
       lockAmbition,
+      crossTrainingMaintenance: { velo: crossTrainingVelo, natation: crossTrainingNatation },
     };
 
     const built = buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
     // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
     return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, currentAthlete?.id]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
 
 
   const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
@@ -3196,7 +3209,50 @@ export default function AITrainingPlanPage() {
                   );
                 })()}
 
-
+                {/* Maintien croisé (vélo/natation) — coach-configurable, cf. RAPPEL COHÉRENCE
+                    et VERROU SPORT OBJECTIF côté prompt (resolveCrossTrainingMaintenance).
+                    Concerne les objectifs résolus run_route/trail (Marathon, Semi, 10K,
+                    StartToRun, Trail...) — y compris comme cycle intermédiaire d'un plan
+                    multi-objectifs (ex: cycle Marathon d'un plan Ironman). */}
+                {(() => {
+                  const CROSS_TRAINING_ELIGIBLE = new Set([
+                    "Marathon", "Semi", "10K", "StartToRun", "TrailShort", "TrailMountain", "TrailUltra",
+                  ]);
+                  const eligible = CROSS_TRAINING_ELIGIBLE.has(objective) || raceGoals.some(g => CROSS_TRAINING_ELIGIBLE.has(g.objective));
+                  if (!eligible) return null;
+                  return (
+                    <div className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3">
+                      <Label className="text-xs font-semibold flex items-center gap-1.5">
+                        🔄 Maintien croisé pendant les cycles course/trail
+                      </Label>
+                      <p className="text-[10px] text-muted-foreground">
+                        Un peu de vélo et/ou natation en Z1 léger pendant un cycle 100% course (Marathon, Semi, 10K, Trail...) — jamais en qualité, jamais pilier du plan.
+                      </p>
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id="crossTrainingVelo"
+                          checked={crossTrainingVelo}
+                          onCheckedChange={(v) => setCrossTrainingVelo(v === true)}
+                          className="mt-0.5"
+                        />
+                        <Label htmlFor="crossTrainingVelo" className="text-xs font-normal cursor-pointer">
+                          🚴 Vélo en récupération active (Z1-Z2, 45-75min, max 1-2×/sem)
+                        </Label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id="crossTrainingNatation"
+                          checked={crossTrainingNatation}
+                          onCheckedChange={(v) => setCrossTrainingNatation(v === true)}
+                          className="mt-0.5"
+                        />
+                        <Label htmlFor="crossTrainingNatation" className="text-xs font-normal cursor-pointer">
+                          🏊 Natation en maintien léger (Z1 technique/CSS, 20-30min, max 1×/2 sem)
+                        </Label>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Multi-objective section */}
                 {raceGoals.map((goal, idx) => {
