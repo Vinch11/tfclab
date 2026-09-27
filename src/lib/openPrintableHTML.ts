@@ -279,9 +279,25 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
   const blob = new Blob([finalHtml], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
 
+  // Bug réel (retour coach : "j'ai un fichier de 0 octets" à l'impression) —
+  // `window.open(url, "_blank", "noopener,noreferrer")` : la spec impose que
+  // le navigateur renvoie TOUJOURS `null` quand `noopener` est passé, MÊME
+  // quand la popup s'ouvre avec succès (c'est le but de `noopener` : ne pas
+  // donner de référence à l'appelant). Le code croyait donc systématiquement
+  // la popup bloquée, et appelait `URL.revokeObjectURL(url)` immédiatement —
+  // alors que l'onglet réellement ouvert était encore en train de charger ce
+  // même blob: URL. Course perdue → onglet vide → PDF de 0 octet à l'impression.
+  // Fix : ouvrir SANS `noopener` pour récupérer une vraie référence (détection
+  // de blocage fiable), puis couper `opener` manuellement une fois la
+  // référence obtenue — même garantie de sécurité (pas de reverse-tabnabbing),
+  // sans perdre la détection. `noreferrer` était de toute façon sans effet
+  // ici : une URL blob: n'envoie jamais d'en-tête Referer.
   let win: Window | null = null;
   try {
-    win = window.open(url, "_blank", "noopener,noreferrer");
+    win = window.open(url, "_blank");
+    if (win) {
+      try { win.opener = null; } catch { /* best effort */ }
+    }
   } catch {
     win = null;
   }
