@@ -748,8 +748,18 @@ export function useAITrainingPlan() {
       // produit pas dans cette architecture.
       const isPureRegenGapWindow = totalWeeks > 0
         && Array.from({ length: totalWeeks }, (_, i) => i + 1).every(isRegenGapWeek);
+      // Bug réel (audit "génération de plan IA", plan Emanuela S22-23, 3ᵉ
+      // vérification post-PR #274) : `phaseOverride:["base"]` filtre par
+      // PHASE, pas par CHARGE — `C_STR_MAX_LOWER_HEAVY` (squat 4×4 @85-90%
+      // 1RM) et `SEILER_BIKE_Z1_LONG` (jusqu'à 210min) sont légitimement
+      // taguées `phase:["base",...]` (piliers authentiques de la phase base
+      // en périodisation classique), donc le filtre par phase seul les
+      // garde à raison — mais une semaine de régénération inter-cycles a
+      // besoin d'un vrai déload, un axe orthogonal à la phase. Ajout de
+      // `regenGapLoadFilter` (workoutCatalogBuilder.ts) pour filtrer aussi
+      // par charge (tags force max, zones Z4+, plafond de durée).
       const regenGapPhaseOptions = isPureRegenGapWindow
-        ? { phaseOverride: ["base"] as PhaseTag[], strictPhaseFilter: true }
+        ? { phaseOverride: ["base"] as PhaseTag[], strictPhaseFilter: true, regenGapLoadFilter: true }
         : {};
 
       for (let i = 0; i < phaseRanges.length; i++) {
