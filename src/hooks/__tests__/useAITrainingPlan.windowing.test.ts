@@ -261,6 +261,59 @@ describe("computeObjectiveAwareWindows — plan multi-objectifs (Manu-like : Mar
   });
 });
 
+// Bug réel (audit "génération de plan IA", plan Emanuela 39 sem, Marathon
+// S1-21 → Ironman S24-39) : retour coach — "j'avais autorisé la natation
+// pendant la prépa marathon. j'ai l'impression que le plan rattrape la
+// natation absente en première partie dans la deuxième partie". Le plan réel
+// montrait 0 séance natation sur S1-21 puis un déferlement plein volume
+// (CSS pyramide Z4, seuil vélo FTP 2x20' à 95-100%, brique "Obligatoire"
+// 120-180min) dès S22 — le "Bloc 4 · Régénération post-pic" censé être une
+// vraie semaine de récupération. Root cause : la fenêtre de régénération
+// inter-cycles (S22-23, sans `cycle`, cf. `computeObjectiveAwareWindows`
+// ci-dessus) ne fait que 2 semaines locales — toujours SOUS le seuil de
+// chunking (6 pour un objectif triathlon, cf. `computeChunkSizing`) — donc
+// le catalogue restreint additionnel (PR précédente, `chunkRegenCatalogs`,
+// gated par `if (needsChunking)` dans `useAITrainingPlan.generatePlan`) ne
+// se construit JAMAIS pour ce cas réel. Ce test verrouille la PRÉMISSE du
+// fix suivant (`isPureRegenGapWindow` dans `generatePlan`, garde-fou
+// source-read dans `useAITrainingPlan.pureRegenGapWindow.guard.test.ts`) :
+// la fenêtre de régénération existe bien, sans cycle, et sa taille est bien
+// sous le seuil de chunking.
+describe("computeObjectiveAwareWindows — plan Emanuela-like (Marathon S1-21 → régénération S22-23 → Ironman S24-39)", () => {
+  const PLAN_START = "2026-01-05"; // lundi
+  const addDaysIso = (iso: string, days: number): string => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const utc = Date.UTC(y, m - 1, d) + days * 24 * 3600 * 1000;
+    const dt = new Date(utc);
+    return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+  };
+  // 20*7=140 jours après le début → S21 (floor(140/7)+1=21).
+  const MARATHON_DATE = addDaysIso(PLAN_START, 140);
+  // 38*7=266 jours après le début → S39 (floor(266/7)+1=39).
+  const IRONMAN_DATE = addDaysIso(PLAN_START, 266);
+  const raceGoals: RaceGoal[] = [
+    { objective: "Marathon", raceDate: MARATHON_DATE, priority: "B" },
+    { objective: "Ironman", raceDate: IRONMAN_DATE, priority: "A" },
+  ];
+
+  it("produit une fenêtre neutre (sans cycle) couvrant exactement S22-23, le creux inter-cycles", () => {
+    const { chunkSize } = computeChunkSizing("Ironman", 39);
+    const windows = computeObjectiveAwareWindows(39, chunkSize, raceGoals, PLAN_START);
+    const gapWindow = windows.find((w) => !w.cycle && w.from <= 22 && 22 <= w.to);
+    expect(gapWindow, "aucune fenêtre neutre ne couvre S22 — le creux inter-cycles a-t-il disparu ?").toBeTruthy();
+    expect(gapWindow).toEqual({ from: 22, to: 23 });
+  });
+
+  it("cette fenêtre de régénération (2 semaines) est TOUJOURS sous le seuil de chunking triathlon (6) — le catalogue restreint gated sur needsChunking ne se déclenche jamais pour elle", () => {
+    const { chunkThreshold } = computeChunkSizing("Ironman", 39);
+    const { chunkSize } = computeChunkSizing("Ironman", 39);
+    const windows = computeObjectiveAwareWindows(39, chunkSize, raceGoals, PLAN_START);
+    const gapWindow = windows.find((w) => !w.cycle && w.from <= 22 && 22 <= w.to)!;
+    const gapWindowSize = gapWindow.to - gapWindow.from + 1;
+    expect(gapWindowSize).toBeLessThan(chunkThreshold);
+  });
+});
+
 // Régression réelle constatée sur le plan de Manu (audit coach, plan 40 sem
 // multi-objectifs) : le titre affiché était "...15 semaines (Bloc 1)" — celui
 // de la FENÊTRE 1 (buildWindowRegenConfig génère un titre scopé "fenêtre"),

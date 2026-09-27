@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
 import { isTrailCatalogId } from "@/lib/plan/trailMarkers";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
+import type { PhaseTag } from "@/types/workoutLibrary";
 import type { TrainingSport } from "@/types/workoutLibrary";
 import { supabase } from "@/integrations/supabase/client";
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
@@ -716,6 +717,40 @@ export function useAITrainingPlan() {
         return !!cycleSegmentsForCatalog
           && !cycleSegmentsForCatalog.some((seg) => globalWeekNum >= seg.startWeek && globalWeekNum <= seg.endWeek);
       };
+      // Bug réel (audit "génération de plan IA", plan Emanuela, S22-23 —
+      // "j'ai l'impression que le plan rattrape la natation absente en
+      // première partie dans la deuxième partie") : sur une génération
+      // fraîche multi-objectifs, `generatePlanWindowed`/
+      // `computeObjectiveAwareWindows` (lignes ~104-148) découpe le plan en
+      // FENÊTRES séparées, une par cycle + une par intervalle de
+      // régénération inter-cycles — jamais mélangées. Pour la fenêtre de
+      // régénération (S22-23), `buildWindowRegenConfig` (planWindowRegen.ts)
+      // ne fournit pas de `cycle`, donc `catalogObjective` retombe sur
+      // `planConfig.objective` (l'objectif FINAL, "Ironman" ici) : ouvrir le
+      // filtre sport complet triathlon pour "reconnecter" natation/vélo
+      // avant le cycle Ironman est cohérent avec l'intention du bloc, MAIS
+      // cette fenêtre entière (`totalWeeks` local = 2) ne déclenche jamais
+      // `needsChunking` (seuil 6-8 pour un objectif triathlon) — le
+      // catalogue restreint additionnel de la PR précédente (phaseOverride
+      // + strictPhaseFilter, gated par `if (needsChunking)` plus bas) ne se
+      // construit donc JAMAIS pour ce cas réel, et `phaseCatalogs` (utilisé
+      // à la place) reste calculé sur la position calendaire GLOBALE brute
+      // (S22-23 sur 39 semaines ≈ 56-59% → "build"/"peak") : catalogue plein
+      // volume (CSS pyramide Z4, seuil FTP 2x20 à 95-100%, drafting, brique
+      // "Obligatoire" 120-180min) au lieu d'une vraie récupération. Comme
+      // TOUTES les semaines locales d'une fenêtre de régénération pure sont
+      // par construction des semaines de régénération (aucun mélange
+      // possible avec de vraies semaines de charge dans la même fenêtre —
+      // `computeObjectiveAwareWindows` ne les mélange jamais), on force ici
+      // le catalogue ENTIER de cette fenêtre (phaseCatalogs ET chunkCatalogs
+      // ci-dessous) en phase "base" stricte, plutôt que de dépendre du
+      // mécanisme "bloc additionnel" pensé pour un chunk mixte qui ne se
+      // produit pas dans cette architecture.
+      const isPureRegenGapWindow = totalWeeks > 0
+        && Array.from({ length: totalWeeks }, (_, i) => i + 1).every(isRegenGapWeek);
+      const regenGapPhaseOptions = isPureRegenGapWindow
+        ? { phaseOverride: ["base"] as PhaseTag[], strictPhaseFilter: true }
+        : {};
 
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];
@@ -724,7 +759,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           effTotalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -781,7 +816,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports }
+            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
