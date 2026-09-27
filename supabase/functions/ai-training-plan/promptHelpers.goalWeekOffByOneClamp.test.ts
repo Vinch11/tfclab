@@ -1,5 +1,5 @@
-import { assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/assert.ts";
+import { assertStringIncludes, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
 import { computeGoalWeekForConfig, buildUserPrompt } from "./promptHelpers.ts";
 
 /**
