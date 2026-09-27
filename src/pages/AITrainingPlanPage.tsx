@@ -46,6 +46,7 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan, type ParsedWeek } from "@/lib/aiPlanParser";
+import { buildStartToRunTemplatePlan, type S2RStrengthDose } from "@/lib/startToRunTemplate";
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
@@ -635,6 +636,14 @@ export default function AITrainingPlanPage() {
   const [planStartDate, setPlanStartDate] = useState<Date>(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
+
+  // Plan Start-to-Run statique (audit "plan Mamou") : protocole standardisé,
+  // identique pour tous les athlètes débutants, construit sans appel IA —
+  // cf. startToRunTemplate.ts pour le détail du bug que ce chemin évite.
+  // Priment sur le plan IA dans la zone de résultat quand actif ; `null`
+  // restaure la vue plan IA normale.
+  const [staticTemplatePlan, setStaticTemplatePlan] = useState<ParsedPlan | null>(null);
+  const [s2rTemplateDose, setS2rTemplateDose] = useState<S2RStrengthDose>("full");
 
   // Restore persisted plan + config on athlete change (single mode only)
   useEffect(() => {
@@ -3564,7 +3573,40 @@ export default function AITrainingPlanPage() {
                   </>
                 )}
               </Button>
-            ) : (
+            ) : null}
+
+            {/* Plan Start-to-Run statique (audit "plan Mamou") — protocole
+                standardisé, sans IA : cf. startToRunTemplate.ts. */}
+            {!isMultiMode && (
+              <div className="flex items-center gap-2">
+                <Select value={s2rTemplateDose} onValueChange={(v) => setS2rTemplateDose(v as S2RStrengthDose)}>
+                  <SelectTrigger className="w-[180px] shrink-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full">Renfo complet (2×/sem)</SelectItem>
+                    <SelectItem value="light">Renfo allégé (1×/sem)</SelectItem>
+                    <SelectItem value="none">Sans renforcement</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  disabled={!currentAthlete}
+                  onClick={() => setStaticTemplatePlan(buildStartToRunTemplatePlan({ strengthDose: s2rTemplateDose }))}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Assigner le plan Start-to-Run standard (sans IA)
+                </Button>
+              </div>
+            )}
+            {!isMultiMode && staticTemplatePlan && (
+              <Button variant="ghost" size="sm" className="w-full" onClick={() => setStaticTemplatePlan(null)}>
+                ← Revenir au plan IA
+              </Button>
+            )}
+
+            {isMultiMode && (
               <div className="space-y-2">
                 <Button
                   onClick={handleBatchGenerate}
@@ -3603,7 +3645,17 @@ export default function AITrainingPlanPage() {
 
           {/* Right: Result */}
           <div className="lg:col-span-2">
-            {isMultiMode ? (
+            {staticTemplatePlan ? (
+              /* Plan Start-to-Run statique (audit "plan Mamou") — vue en
+                 lecture, sans les callbacks de régénération IA (sans objet
+                 pour un plan qui n'a jamais appelé le modèle). */
+              <AIPlanViewer
+                plan={staticTemplatePlan}
+                startDate={planStartDate}
+                athleteName={currentAthlete?.nom}
+                athleteId={currentAthlete?.id}
+              />
+            ) : isMultiMode ? (
               /* Multi-athlete results */
               multiPlans.length > 0 ? (
                 <div className="space-y-4">
