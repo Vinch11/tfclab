@@ -3581,11 +3581,15 @@ export default function AITrainingPlanPage() {
             ) : null}
 
             {/* Plan Start-to-Run statique (audit "plan Mamou") — protocole
-                standardisé, sans IA : cf. startToRunTemplate.ts. */}
+                standardisé, sans IA : cf. startToRunTemplate.ts.
+                Empilé en pleine largeur (pas côte-à-côte) : dans la colonne
+                étroite de ce panneau, un Select + un long libellé de bouton
+                sur une même ligne dépassaient de leur conteneur (whitespace-
+                nowrap du Button) — retour coach avec capture d'écran. */}
             {!isMultiMode && (
-              <div className="flex items-center gap-2">
+              <div className="space-y-2">
                 <Select value={s2rTemplateDose} onValueChange={(v) => setS2rTemplateDose(v as S2RStrengthDose)}>
-                  <SelectTrigger className="w-[180px] shrink-0">
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -3596,13 +3600,14 @@ export default function AITrainingPlanPage() {
                 </Select>
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="w-full"
                   disabled={!currentAthlete}
                   onClick={() => setStaticTemplatePlan(buildStartToRunTemplatePlan({ strengthDose: s2rTemplateDose }))}
                 >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Assigner le plan Start-to-Run standard (sans IA)
+                  <Sparkles className="h-4 w-4 mr-2 shrink-0" />
+                  Assigner Start-to-Run standard
                 </Button>
+                <p className="text-xs text-muted-foreground text-center">Protocole standardisé, sans génération IA</p>
               </div>
             )}
             {!isMultiMode && staticTemplatePlan && (
