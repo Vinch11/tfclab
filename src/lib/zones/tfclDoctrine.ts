@@ -18,8 +18,9 @@
  * 1. La PHYSIOLOGIE est la référence. Un domaine est défini par sa position
  *    relative au MLSS (vitesse seuil course / FTP vélo), jamais par un % VMA
  *    fixe : le % VMA du MLSS dépend de la VLamax et varie de ~80 à ~92 %.
- * 2. La ZONE TFCL (modèle 6 zones) est une TRADUCTION du domaine. Un domaine
- *    donné tombe toujours dans la même zone.
+ * 2. Le DOMAINE physiologique est la vérité primaire. La ZONE TFCL (modèle
+ *    6 zones) n'est qu'une ÉTIQUETTE DESCRIPTIVE : Z4 ≠ « travail au seuil ».
+ *    Seuls les domaines marqués isThresholdWork sont du travail au seuil.
  * 3. Les AUTEURS (Seiler, Billat, Canova, Lydiard, Norvégien, Coggan,
  *    Rønnestad, Lorang…) sont des MÉTHODES de construction (structure,
  *    volume, récupération), jamais des définitions d'intensité. L'intensité
@@ -66,6 +67,8 @@ export interface DoctrineDomain {
   run: FractionRange | null;
   /** Fraction de FTP (≈ MLSS) vélo. */
   bike: FractionRange | null;
+  /** Vrai seulement si le domaine est du travail AU seuil (MLSS ± 3 %). */
+  isThresholdWork: boolean;
   /** Synonymes acceptés dans les textes de séances (minuscules). */
   aliases: string[];
 }
@@ -75,66 +78,77 @@ export const TFCL_DOCTRINE: DoctrineDomain[] = [
     id: "recovery", rank: 0, metabolic: "moderate", label: "Récupération", zone: "Z1",
     anchor: "Sous LT1 — aucun stress métabolique",
     run: { min: 0, max: 0.75 }, bike: { min: 0, max: 0.55 },
+    isThresholdWork: false,
     aliases: ["récupération", "recup", "footing récup"],
   },
   {
     id: "moderate_lt1", rank: 1, metabolic: "moderate", label: "Domaine modéré (≤ LT1 / FatMax)", zone: "Z2",
     anchor: "Jusqu'à LT1 et haut de la fenêtre FatMax",
     run: { min: 0.75, max: 0.82 }, bike: { min: 0.55, max: 0.75 },
+    isThresholdWork: false,
     aliases: ["endurance fondamentale", "ef", "fatmax", "lt1", "z2"],
   },
   {
     id: "im_pace", rank: 2, metabolic: "heavy", label: "Allure / puissance Ironman", zone: "Z3",
     anchor: "À LT1 ou juste au-dessus (bas du domaine lourd) — tenable 3–8 h ; chez les moins entraînés, peut rester sous LT1",
     run: { min: 0.78, max: 0.85 }, bike: { min: 0.68, max: 0.76 },
+    isThresholdWork: false,
     aliases: ["allure im", "puissance im", "allure ironman"],
   },
   {
     id: "tempo", rank: 3, metabolic: "heavy", label: "Tempo", zone: "Z3",
-    anchor: "Entre LT1 et LT2 — lactate stable mais en hausse",
+    anchor: "Au-dessus de LT1 et sous MLSS/CP — perturbation métabolique accrue, état stable encore possible (dépend de l'intensité et de la durée)",
     run: { min: 0.82, max: 0.88 }, bike: { min: 0.76, max: 0.88 },
+    isThresholdWork: false,
     aliases: ["tempo"],
   },
   {
     id: "703_pace", rank: 4, metabolic: "heavy", label: "Allure / puissance 70.3", zone: "Z3",
     anchor: "Haut du tempo — tenable ~1h30–2h30",
     run: { min: 0.85, max: 0.92 }, bike: { min: 0.78, max: 0.85 },
+    isThresholdWork: false,
     aliases: ["allure 70.3", "puissance 70.3", "allure half"],
   },
   {
     id: "marathon_pace", rank: 5, metabolic: "heavy", label: "Allure marathon", zone: "Z4",
-    anchor: "Bas du domaine seuil — tenable 2–4 h",
+    anchor: "Domaine lourd, SOUS LT2/MLSS — ce n'est PAS du travail au seuil (étiquette Z4 bas purement descriptive) ; tenable 2–4 h",
     run: { min: 0.88, max: 0.94 }, bike: null,
+    isThresholdWork: false,
     aliases: ["allure marathon", "am"],
   },
   {
     id: "sub_threshold", rank: 6, metabolic: "heavy", label: "Sous-seuil (seuil bas norvégien)", zone: "Z4",
     anchor: "2–3 mmol/L — juste sous le MLSS, jamais LT1 (Casado 2022, Tjelta 2019)",
     run: { min: 0.92, max: 0.97 }, bike: { min: 0.88, max: 0.93 },
+    isThresholdWork: false,
     aliases: ["seuil bas norvégien", "sous-seuil", "sub-threshold", "double seuil bas"],
   },
   {
     id: "semi_pace", rank: 7, metabolic: "heavy", label: "Allure semi-marathon", zone: "Z4",
     anchor: "Juste sous le MLSS — tenable ~1–2 h",
     run: { min: 0.95, max: 1.0 }, bike: null,
+    isThresholdWork: false,
     aliases: ["allure semi", "as"],
   },
   {
     id: "mlss", rank: 8, metabolic: "heavy", label: "LT2 / MLSS", zone: "Z4",
     anchor: "MLSS ± 3 % — plus haut état stable de lactate",
     run: { min: 0.97, max: 1.03 }, bike: { min: 0.95, max: 1.03 },
+    isThresholdWork: true,
     aliases: ["mlss", "seuil", "lt2", "seuil lactique", "ftp", "sweet spot haut"],
   },
   {
     id: "vo2max", rank: 9, metabolic: "severe", label: "VO₂max", zone: "Z5",
-    anchor: "Au-dessus du MLSS jusqu'à vVO₂max / PMA",
-    run: { min: 1.03, max: 1.2 }, bike: { min: 1.05, max: 1.3 },
+    anchor: "Au-dessus de MLSS/CP jusqu'à vVO₂max / PMA — borne haute = vVO₂max/PMA de l'athlète (voir resolveVO2maxRange) ; fractions ci-dessous = SECOURS seulement",
+    run: { min: 1.03, max: 1.15 }, bike: { min: 1.05, max: 1.2 },
+    isThresholdWork: false,
     aliases: ["vo2max", "vma", "pma", "vvo2max"],
   },
   {
     id: "neuromuscular", rank: 10, metabolic: "extreme", label: "Neuromusculaire", zone: "Z6",
     anchor: "Au-dessus de vVO₂max — alactique / sprint",
     run: null, bike: null,
+    isThresholdWork: false,
     aliases: ["sprint", "neuromusculaire", "alactique"],
   },
 ];
@@ -168,6 +182,23 @@ export function isZoneConsistentWithDomain(id: DoctrineDomainId, zone: ZoneId6):
 }
 
 /**
+ * Domaine VO₂max ancré sur la physiologie de l'athlète : de MLSS/CP (+3 %)
+ * jusqu'à vVO₂max (course) ou PMA (vélo), exprimé en fraction du seuil.
+ * Si vVO₂max/PMA est inconnue → fourchette de secours, signalée estimée.
+ */
+export function resolveVO2maxRange(
+  sport: "run" | "bike",
+  vo2RefOverThreshold?: number | null,
+): { range: FractionRange; source: "athlete" | "fallback"; confidence: "high" | "low" } {
+  const d = getDoctrineDomain("vo2max");
+  const low = sport === "run" ? 1.03 : 1.05;
+  if (vo2RefOverThreshold && vo2RefOverThreshold > low && vo2RefOverThreshold < 1.6) {
+    return { range: { min: low, max: vo2RefOverThreshold }, source: "athlete", confidence: "high" };
+  }
+  return { range: (sport === "run" ? d.run : d.bike)!, source: "fallback", confidence: "low" };
+}
+
+/**
  * Frontière LT1 en fraction du seuil. Priorité : valeur MESURÉE de l'athlète
  * (lactate / VT1 / DFA-α1) ; sinon repère de population 0.82 (course) / 0.75 (vélo),
  * signalé comme estimé.
@@ -175,7 +206,21 @@ export function isZoneConsistentWithDomain(id: DoctrineDomainId, zone: ZoneId6):
 export function resolveLT1Fraction(
   sport: "run" | "bike",
   measured?: number | null,
-): { value: number; measured: boolean } {
-  if (measured && measured > 0.5 && measured < 0.95) return { value: measured, measured: true };
-  return { value: sport === "run" ? 0.82 : 0.75, measured: false };
+): {
+  value: number;
+  measured: boolean;
+  /** "population" = estimation populationnelle, JAMAIS une mesure physiologique. */
+  source: "measured" | "population";
+  confidence: "high" | "low-moderate";
+  label: string;
+} {
+  if (measured && measured > 0.5 && measured < 0.95)
+    return { value: measured, measured: true, source: "measured", confidence: "high", label: "LT1 mesuré" };
+  return {
+    value: sport === "run" ? 0.82 : 0.75,
+    measured: false,
+    source: "population",
+    confidence: "low-moderate",
+    label: "LT1 estimé (moyenne de population) — à confirmer par un test",
+  };
 }
