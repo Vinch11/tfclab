@@ -39,7 +39,7 @@ import { evaluateDurationCoherenceMultiObjective } from "@/lib/plan/recommendedP
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
 import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksForFullPeak, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
-import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
+import { validatePlan, computeMissingFinalRaceDayFix, type ValidationIssue } from "@/engines/plan/planValidator";
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
 import { checkB12, checkB12ToValidationIssues } from "@/lib/plan/qa/checkB12";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
@@ -2570,6 +2570,48 @@ export default function AITrainingPlanPage() {
     }
   }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, buildConfigWithCoachOverrides, objective, currentAthlete]);
 
+  /**
+   * Verrou Jour J à la génération (audit "plan multi-objectifs Sables
+   * d'Olonne") : le verrouillage du jour de course n'existait jusqu'ici
+   * qu'en INSTRUCTION TEXTE dans le prompt (promptHelpers.ts, "La DERNIÈRE
+   * semaine du plan DOIT être la SEMAINE DE COURSE... Jour de Course le jour
+   * exact") — rien ne l'imposait mécaniquement. `planValidator.ts` détecte
+   * déjà l'absence via la règle `race_day`, mais UNIQUEMENT au moment de
+   * cliquer "Enregistrer au plan" (handleSaveToPlan) — un plan généré sans
+   * son Jour J final (constaté sur un vrai plan Ironman 39 semaines, S39
+   * finissant sur une séance de mobilité au lieu de la compétition) restait
+   * silencieusement affiché au coach jusqu'à la sauvegarde.
+   *
+   * Ce garde-fou vérifie, dès que la génération complète se termine, que la
+   * DERNIÈRE semaine du plan contient bien le Jour J si elle est censée
+   * l'être (sa date correspond à l'objectif daté le plus tardif) — et
+   * déclenche automatiquement UNE régénération ciblée de cette seule semaine
+   * avant même que le coach n'ait besoin d'intervenir. `computeMissingFinalRaceDayFix`
+   * (planValidator.ts) est une fonction pure et testable — ce composant se
+   * contente de déclencher la régénération ciblée qu'elle retourne.
+   */
+  const raceDayAutoFixAttemptRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (isMultiMode || isLoading || isRegenerating) return;
+    if (!parsedPlan || !currentAthlete) return;
+
+    const fix = computeMissingFinalRaceDayFix(
+      parsedPlan,
+      [raceDate, ...raceGoals.map((g) => g.raceDate)],
+      format(planStartDate, "yyyy-MM-dd"),
+    );
+    if (!fix) return;
+
+    const attemptKey = `${currentAthlete.id}:${parsedPlan.totalWeeks}:${fix.weekNumber}:${fix.finalRaceDate}`;
+    if (raceDayAutoFixAttemptRef.current === attemptKey) return; // déjà tenté pour cette génération
+    raceDayAutoFixAttemptRef.current = attemptKey;
+
+    toast.warning(`Jour de course absent de la semaine finale (S${fix.weekNumber}) — correction automatique en cours…`);
+    void handleRegenerateWeek(
+      fix.weekNumber,
+      `RAPPEL CRITIQUE — VERROU JOUR J : cette semaine (S${fix.weekNumber}) est la DERNIÈRE semaine du plan et correspond à la date de l'objectif final (${fix.finalRaceDate}). Elle DOIT impérativement contenir la séance du Jour de Course (🏁 COURSE OBJECTIF / Jour J) le jour exact de la compétition, avec stratégie de pacing et consignes nutrition — ne JAMAIS l'omettre ni la remplacer par une autre séance.`,
+    );
+  }, [isMultiMode, isLoading, isRegenerating, parsedPlan, currentAthlete, raceDate, raceGoals, planStartDate, handleRegenerateWeek]);
 
   /**
    * Regenerate only future weeks (after today) while preserving past weeks.
