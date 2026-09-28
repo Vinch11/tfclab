@@ -5271,7 +5271,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Norwegian", "seuil bas", "sous-seuil", "volume", "TTE", "Tjelta"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 progressif", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "25-35 min continu à seuil bas norvégien (sous-seuil, 92-97 % de l'allure seuil) : 82-86% FCmax, RPE 6-7/10. Alternative intervalles avec récups très courtes : 3-4×8-10 min R:90s Z1. Réf : Tjelta 2019 — les meilleurs coureurs norvégiens accumulent 60-80 min/semaine au seuil bas en phase build. C'est le volume total qui crée l'adaptation, pas l'intensité de chaque répétition. Observer : FC stable (plateau) sur les 3 dernières minutes de chaque bloc = bonne intensité.", zones: ["Z3"] },
+      { part: "Main", text: "25-35 min continu à seuil bas norvégien (sous-seuil, 92-97 % de l'allure seuil) : 82-86% FCmax, RPE 6-7/10. Alternative intervalles avec récups très courtes : 3-4×8-10 min R:90s Z1. Réf : Tjelta 2019 — les meilleurs coureurs norvégiens accumulent 60-80 min/semaine au seuil bas en phase build. C'est le volume total qui crée l'adaptation, pas l'intensité de chaque répétition. Observer : FC stable (plateau) sur les 3 dernières minutes de chaque bloc = bonne intensité.", zones: ["Z4"] },
       { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
     ],
     variants: {
@@ -5379,7 +5379,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Norwegian", "seuil bas", "vélo", "LT1", "TTE", "triathlon", "Bakken"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif. Cadence 85-90 rpm.", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "4-5×8 min à 88-93% FTP (seuil bas norvégien = sous-seuil, PAS LT1) R:90s Z1. Cadence 88-95 rpm. Cible FC : 80-85% FCmax. RPE 6-7/10. La spécificité vélo de la méthode norvégienne : le vélo permet de contrôler précisément la puissance (lactatémètre moins indispensable qu'en course). Progression : S1=3×8min, S2=4×8min, S3=4×10min, S4=5×8min, S5=3×15min, S6=2×20min continu. Réf : Bakken 2019 adapté vélo — même principe cinétique lactique que la course.", zones: ["Z3"] },
+      { part: "Main", text: "4-5×8 min à 88-93% FTP (seuil bas norvégien = sous-seuil, PAS LT1) R:90s Z1. Cadence 88-95 rpm. Cible FC : 80-85% FCmax. RPE 6-7/10. La spécificité vélo de la méthode norvégienne : le vélo permet de contrôler précisément la puissance (lactatémètre moins indispensable qu'en course). Progression : S1=3×8min, S2=4×8min, S3=4×10min, S4=5×8min, S5=3×15min, S6=2×20min continu. Réf : Bakken 2019 adapté vélo — même principe cinétique lactique que la course.", zones: ["Z4"] },
       { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
     ],
     variants: {
