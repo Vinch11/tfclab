@@ -19,6 +19,7 @@ import { extractCatalogId, extractAllCatalogIds } from "@/lib/catalogIdExtractor
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { HIGH_IMPACT_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
+import { computeGoalWeekFromDates } from "@/lib/plan/multiObjectiveClassification";
 import { detectInterval, detectAllIntervals, isCyclingSession } from "./wbalPostProcessor";
 import {
   analyzeCriticalPower,
@@ -230,11 +231,68 @@ const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit
 // le thème de la semaine — un thème peut mentionner l'objectif sans que la
 // semaine soit celle de la course.
 const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
+// Bug réel (audit "plan multi-objectifs Sables d'Olonne") : un vrai plan
+// généré a omis le Jour J final et l'a remplacé par "Activation
+// Neuromusculaire & Mobilité Race Day" — RACE_DAY_PATTERNS matche "Race Day"
+// dans ce titre (simple mention descriptive d'un rituel de PRÉ-course), donc
+// `weekHasRaceDay` renvoyait `true` à tort : le validateur lui-même aurait
+// laissé passer ce plan sans avertissement. `🏁`/"course objectif"/"jour de
+// course" restent des marqueurs FORTS (jamais utilisés pour un rituel de
+// préparation), mais "jour j"/"race day"/"compétition"/"épreuve (objectif|
+// cible)" sont des marqueurs FAIBLES qu'un titre d'activation/mobilité/
+// shakeout peut légitimement contenir sans être la course elle-même.
+const RACE_DAY_STRONG_PATTERNS = /🏁|course\s*objectif|jour\s*de\s*(course|compétition)/i;
+const PRE_RACE_ACTIVATION_PATTERNS = /activation|pr[ée]paration|mobilit[ée]|shakeout|ouverture|primers?|pre-?race|d[ée]blocage|opener|veille|flush|\bj-\d/i;
 
 /** Vrai si la semaine contient une séance de jour de course réel (pas juste
- *  un thème qui mentionne l'objectif) — cf. RACE_DAY_PATTERNS ci-dessus. */
-function weekHasRaceDay(week: ParsedWeek): boolean {
-  return week.sessions.some((s) => RACE_DAY_PATTERNS.test(`${s.title || ""} ${s.details || ""} ${s.sport || ""}`));
+ *  un thème qui mentionne l'objectif, ni un rituel de préparation qui
+ *  mentionne accessoirement "race day"/"jour j") — cf. RACE_DAY_PATTERNS
+ *  ci-dessus. Exportée pour AITrainingPlanPage.tsx (verrou Jour J
+ *  post-génération, audit "plan multi-objectifs Sables d'Olonne") — même
+ *  détection que validateRaceDayPresence, sans dupliquer la regex. */
+export function weekHasRaceDay(week: ParsedWeek): boolean {
+  return week.sessions.some((s) => {
+    const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
+    if (RACE_DAY_STRONG_PATTERNS.test(text)) return true;
+    return RACE_DAY_PATTERNS.test(text) && !PRE_RACE_ACTIVATION_PATTERNS.test(text);
+  });
+}
+
+/**
+ * Verrou Jour J à la génération (audit "plan multi-objectifs Sables
+ * d'Olonne") : le verrouillage du jour de course n'existait jusqu'ici qu'en
+ * INSTRUCTION TEXTE dans le prompt (promptHelpers.ts) — rien ne l'imposait
+ * mécaniquement, et `validateRaceDayPresence` (ci-dessous) ne s'exécutait
+ * qu'au moment de la sauvegarde (handleSaveToPlan, AITrainingPlanPage.tsx),
+ * jamais juste après la génération. Constaté sur un vrai plan Ironman 39
+ * semaines : S39 (semaine de l'Ironman) finissait sur une séance de
+ * mobilité, sans aucune trace du Jour J.
+ *
+ * Fonction PURE (testable sans React) : détecte si la DERNIÈRE semaine du
+ * plan correspond à la date de l'objectif final daté le plus tardif, mais
+ * n'en contient pas la séance de compétition elle-même. Le composant
+ * appelant (AITrainingPlanPage.tsx) se contente de déclencher la
+ * régénération ciblée de la semaine retournée — aucune logique de décision
+ * dupliquée côté React.
+ */
+export function computeMissingFinalRaceDayFix(
+  plan: ParsedPlan,
+  datedRaceDates: Array<string | null | undefined>,
+  planStartDateIso: string,
+): { weekNumber: number; finalRaceDate: string } | null {
+  if (!plan || plan.weeks.length === 0) return null;
+  const dated = datedRaceDates.filter((d): d is string => !!d);
+  if (dated.length === 0) return null;
+
+  const finalRaceDate = [...dated].sort().pop()!;
+  const finalRaceWeek = computeGoalWeekFromDates(planStartDateIso, finalRaceDate);
+  if (finalRaceWeek == null) return null;
+
+  const lastWeek = plan.weeks[plan.weeks.length - 1];
+  if (finalRaceWeek !== lastWeek.weekNumber) return null; // le plan ne finit pas sur cet objectif — rien à verrouiller
+  if (weekHasRaceDay(lastWeek)) return null; // Jour J déjà présent
+
+  return { weekNumber: lastWeek.weekNumber, finalRaceDate };
 }
 
 /** Blocs explicitement nommés comme seuil concentré (méthode norvégienne
@@ -2290,10 +2348,7 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
 
     const allSessions = week.sessions || [];
     const realSessions = allSessions.filter(s => !s.isRest);
-    const hasRaceDay = allSessions.some(s => {
-      const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
-      return RACE_DAY_PATTERNS.test(text);
-    });
+    const hasRaceDay = weekHasRaceDay(week);
 
     if (!hasRaceDay) {
       issues.push({
