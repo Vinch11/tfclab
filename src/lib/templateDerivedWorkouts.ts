@@ -194,7 +194,7 @@ export const TemplateDerivedWorkouts: LibraryWorkout[] = [
     id: "TPL_SEMI_TEMPO_CONTINU",
     cat: "B",
     sport: "course",
-    objectif: "Tempo continu — 30-40' Z3/Z4a (allure marathon)",
+    objectif: "Allure marathon continue — 30-40' Z4 bas",
     necessite: "Recommandé",
     when: "Phase Seuil (S5-S7)",
     phase: ["build", "peak"],
@@ -204,12 +204,12 @@ export const TemplateDerivedWorkouts: LibraryWorkout[] = [
     sportKey: "course",
     structure: mkStructure([
       ["Warm-up", "15' WU", ["Z1", "Z2"]],
-      ["Main", "30-40' continu en Z3 haut/Z4a (Allure Marathon)", ["Z3", "Z4"]],
+      ["Main", "30-40' continu en Z4 bas (Allure Marathon)", ["Z4"]],
       ["Cool-down", "10' CD", ["Z1"]]
     ]),
     variants: {
       semi: "30' Z3/Z4a puis 40' en S7",
-      marathon: "40' Z3 haut (allure marathon)"
+      marathon: "40' Z4 bas (allure marathon)"
     },
     goals: GOALS_RUN,
     tags: ["tempo", "continu", "template-semi"]
@@ -385,7 +385,7 @@ export const TemplateDerivedWorkouts: LibraryWorkout[] = [
     id: "TPL_MAR_TEMPO_SWEET_SPOT",
     cat: "B",
     sport: "course",
-    objectif: "Tempo Sweet Spot — 2x15' → 2x20' Z3 (entre marathon et semi)",
+    objectif: "Tempo Sweet Spot — 2x15' → 2x20' Z4 (entre marathon et semi)",
     necessite: "Recommandé",
     when: "Phase Seuil/VLaMax (S9-S10)",
     phase: ["build", "peak"],
@@ -408,7 +408,7 @@ export const TemplateDerivedWorkouts: LibraryWorkout[] = [
     id: "TPL_MAR_TEMPO_XXL",
     cat: "B",
     sport: "course",
-    objectif: "Tempo XXL — 3x20' Z3 (1h à allure marathon/semi). Test de confiance",
+    objectif: "Tempo XXL — 3x20' Z4 (1h à allure marathon/semi). Test de confiance",
     necessite: "Recommandé",
     when: "Phase Seuil (S11 — Pic de Charge)",
     phase: ["peak"],

@@ -186,7 +186,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
   {
     id: "ENR_RUN_ALLURE_MARATHON_LONG",
     cat: "A", sport: "course",
-    objectif: "Sortie longue allure marathon — 2h avec 40-60' Z3 marathon incorporé. Calibrer les sensations",
+    objectif: "Sortie longue allure marathon — 2h avec 40-60' Z4 bas (allure marathon) incorporé. Calibrer les sensations",
     necessite: "Obligatoire",
     when: "Phase spécifique marathon (S12-S20)",
     phase: ["build"],
@@ -195,7 +195,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     metricKey: "allure", sportKey: "course",
     structure: mk([
       ["Warm-up", "30' Z2 progressif", ["Z2"]],
-      ["Main", "40-60' continu Z3 (Allure Marathon). Focus: cadence stable 180spm, nutrition", ["Z3"]],
+      ["Main", "40-60' continu Z4 bas (Allure Marathon). Focus: cadence stable 180spm, nutrition", ["Z4"]],
       ["Cool-down", "20-30' Z2 → Z1 décrescendo", ["Z2", "Z1"]]
     ]),
     variants: { marathon: "60' bloc Z3 (progression)", semi: "40' bloc Z3" },
@@ -941,7 +941,7 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     metricKey: "allure", sportKey: "course",
     structure: mk([
       ["Warm-up", "5km Z2 progressif", ["Z2"]],
-      ["Main", "20km allure marathon Z3. Tenue race, chaussures race, nutrition race (gels exacts). Dress rehearsal", ["Z3"]],
+      ["Main", "20km allure marathon Z4 bas. Tenue race, chaussures race, nutrition race (gels exacts). Dress rehearsal", ["Z4"]],
       ["Cool-down", "5-7km Z1 trot", ["Z1"]]
     ]),
     variants: { marathon: "32km (5+20+7)", semi: "18km (3+12+3)" },

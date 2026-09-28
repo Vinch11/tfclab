@@ -285,7 +285,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     metricKey: "allure", sportKey: "course",
     structure: mk([
       ["Warm-up", "10' trot Z1 progressif", ["Z1"]],
-      ["Main", "1h30-2h10 Z2 avec 4-6 inserts de 5' Z3 (allure marathon +10\"/km) toutes les 25-30'. Volume aérobie + rappel tempo. Nutrition 40-60g/h", ["Z2", "Z3"]],
+      ["Main", "1h30-2h10 Z2 avec 4-6 inserts de 5' Z3 tempo (allure marathon +10\"/km) toutes les 25-30'. Volume aérobie + rappel tempo. Nutrition 40-60g/h", ["Z2", "Z3"]],
       ["Cool-down", "10' trot Z1 décrescendo", ["Z1"]]
     ]),
     variants: { marathon: "6 inserts de 5' Z3 dans 2h20", semi: "4 inserts de 5' Z3 dans 1h40" },
@@ -327,7 +327,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     metricKey: "allure", sportKey: "course",
     structure: mk([
       ["Warm-up", "10' trot Z1→Z2 progressif", ["Z1", "Z2"]],
-      ["Main", "60-85' Z2/Z3 (allure marathon/IM). Ingérer gel/boisson toutes les 15-20'. Progresser de 60→90g/h sur 4-6 séances. Noter tout inconfort GI", ["Z2", "Z3"]],
+      ["Main", "60-85' Z3 (allure IM) à Z4 bas (allure marathon). Ingérer gel/boisson toutes les 15-20'. Progresser de 60→90g/h sur 4-6 séances. Noter tout inconfort GI", ["Z2", "Z3"]],
       ["Cool-down", "5' marche. Bilan tolérance digestive", ["Z1"]]
     ]),
     variants: { ironman: "90' Z2/Z3 — target 80-90g/h", marathon: "75' Z3 — target 60-80g/h" },
@@ -590,7 +590,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     structure: mk([
       ["Vélo indoor", "60' home-trainer avec 3x10' Z3/Z4 (85-95% FTP)", ["Z2", "Z3", "Z4"]],
       ["Transition", "Changer chaussures rapidement", []],
-      ["Course", "20' Z3 (allure marathon) extérieur. Focus: trouver le rythme en <500m malgré jambes lourdes", ["Z3"]]
+      ["Course", "20' Z4 bas (allure marathon) extérieur. Focus: trouver le rythme en <500m malgré jambes lourdes", ["Z4"]]
     ]),
     variants: { ironman: "60' HT + 20' CAP Z3", half: "45' HT + 15' CAP Z3/Z4" },
     goals: GOALS_TRI,
@@ -987,7 +987,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
   {
     id: "V2_RUN_KENYAN_TEMPO_LONG",
     cat: "B", sport: "course",
-    objectif: "Tempo kényan long — 40-60' continu Z3 haut (allure marathon -15\"/km). Le 'bread and butter' des Kényans",
+    objectif: "Tempo kényan long — 40-60' continu Z4 (allure marathon -15\"/km, sous-seuil). Le 'bread and butter' des Kényans",
     necessite: "Recommandé",
     when: "Build/Spécifique marathon",
     phase: ["build"],
@@ -996,7 +996,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     metricKey: "allure", sportKey: "course",
     structure: mk([
       ["Warm-up", "15' Z2 progressif", ["Z1", "Z2"]],
-      ["Main", "40-60' continu Z3 haut (allure marathon -10-15\"/km). Stable du début à la fin. Si FC dérive >8bpm → trop vite", ["Z3"]],
+      ["Main", "40-60' continu Z4 (allure marathon -10-15\"/km, sous-seuil). Stable du début à la fin. Si FC dérive >8bpm → trop vite", ["Z4"]],
       ["Cool-down", "10' Z1", ["Z1"]]
     ]),
     variants: { marathon: "60' Z3 haut continu", semi: "40' Z3 haut" },
@@ -1038,7 +1038,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
     metricKey: "allure", sportKey: "course",
     structure: mk([
       ["Warm-up", "15' Z2 + 4 accélérations", ["Z1", "Z2"]],
-      ["Main", "4 x 8' (2' allure 10km Z4 haut + 2' allure marathon Z3 x2). R:3' Z1. Apprendre à recycler le lactate", ["Z3", "Z4"]],
+      ["Main", "4 x 8' (2' allure 10km Z4 haut + 2' allure marathon Z4 bas x2). R:3' Z1. Apprendre à recycler le lactate", ["Z3", "Z4"]],
       ["Cool-down", "10' Z1", ["Z1"]]
     ]),
     variants: { marathon: "4x8' complet", semi: "3x8' + allure semi au lieu de marathon" },
