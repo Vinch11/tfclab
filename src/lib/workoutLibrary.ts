@@ -5376,7 +5376,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     metricKey: "puissance",
     sportKey: "cyclisme",
     defaultSportId: 14,
-    tags: ["Norwegian", "seuil bas", "vélo", "LT1", "TTE", "triathlon", "Bakken"],
+    tags: ["Norwegian", "seuil bas", "vélo", "TTE", "triathlon", "Bakken"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif. Cadence 85-90 rpm.", zones: ["Z1", "Z2"] },
       { part: "Main", text: "4-5×8 min à 88-93% FTP (seuil bas norvégien = sous-seuil, PAS LT1) R:90s Z1. Cadence 88-95 rpm. Cible FC : 80-85% FCmax. RPE 6-7/10. La spécificité vélo de la méthode norvégienne : le vélo permet de contrôler précisément la puissance (lactatémètre moins indispensable qu'en course). Progression : S1=3×8min, S2=4×8min, S3=4×10min, S4=5×8min, S5=3×15min, S6=2×20min continu. Réf : Bakken 2019 adapté vélo — même principe cinétique lactique que la course.", zones: ["Z4"] },

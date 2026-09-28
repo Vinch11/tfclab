@@ -4,8 +4,15 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * Ordre canonique (toujours croissant, jamais permuté) :
  *
- *   LT1 → domaine modéré → tempo → allure/puissance IM → allure marathon
- *       → allure semi → LT2/MLSS → VO₂max → neuromusculaire
+ *   domaine modéré (≤ LT1) → allure/puissance IM → tempo → allure 70.3
+ *       → allure marathon → sous-seuil norvégien → allure semi → LT2/MLSS
+ *       → VO₂max → neuromusculaire
+ *
+ * Cadre scientifique : 3 domaines métaboliques (Poole & Jones 2016 ;
+ * Jones et al. 2019) — MODÉRÉ (< LT1/GET), LOURD (LT1 → MLSS/CP), SÉVÈRE
+ * (> MLSS/CP), + EXTRÊME (> tolérance VO₂max). Les zones TFCL en sont la
+ * traduction ; les deux frontières physiologiques (LT1, MLSS) priment.
+ * Si LT1 est MESURÉ (lactate, VT1, DFA-α1), il remplace la fraction par défaut.
  *
  * Règles :
  * 1. La PHYSIOLOGIE est la référence. Un domaine est défini par sa position
@@ -30,6 +37,7 @@ export type DoctrineDomainId =
   | "im_pace"
   | "703_pace"
   | "marathon_pace"
+  | "sub_threshold"
   | "semi_pace"
   | "mlss"
   | "vo2max"
@@ -41,8 +49,12 @@ export interface FractionRange {
   max: number;
 }
 
+export type MetabolicDomain = "moderate" | "heavy" | "severe" | "extreme";
+
 export interface DoctrineDomain {
   id: DoctrineDomainId;
+  /** Domaine métabolique (Poole & Jones). */
+  metabolic: MetabolicDomain;
   /** Rang dans l'ordre canonique (croissant avec l'intensité). */
   rank: number;
   label: string;
@@ -60,61 +72,67 @@ export interface DoctrineDomain {
 
 export const TFCL_DOCTRINE: DoctrineDomain[] = [
   {
-    id: "recovery", rank: 0, label: "Récupération", zone: "Z1",
+    id: "recovery", rank: 0, metabolic: "moderate", label: "Récupération", zone: "Z1",
     anchor: "Sous LT1 — aucun stress métabolique",
     run: { min: 0, max: 0.75 }, bike: { min: 0, max: 0.55 },
     aliases: ["récupération", "recup", "footing récup"],
   },
   {
-    id: "moderate_lt1", rank: 1, label: "Domaine modéré (≤ LT1 / FatMax)", zone: "Z2",
+    id: "moderate_lt1", rank: 1, metabolic: "moderate", label: "Domaine modéré (≤ LT1 / FatMax)", zone: "Z2",
     anchor: "Jusqu'à LT1 et haut de la fenêtre FatMax",
     run: { min: 0.75, max: 0.82 }, bike: { min: 0.55, max: 0.75 },
     aliases: ["endurance fondamentale", "ef", "fatmax", "lt1", "z2"],
   },
   {
-    id: "im_pace", rank: 2, label: "Allure / puissance Ironman", zone: "Z3",
-    anchor: "Juste au-dessus de LT1 — tenable 3–8 h",
+    id: "im_pace", rank: 2, metabolic: "heavy", label: "Allure / puissance Ironman", zone: "Z3",
+    anchor: "À LT1 ou juste au-dessus (bas du domaine lourd) — tenable 3–8 h ; chez les moins entraînés, peut rester sous LT1",
     run: { min: 0.78, max: 0.85 }, bike: { min: 0.68, max: 0.76 },
     aliases: ["allure im", "puissance im", "allure ironman"],
   },
   {
-    id: "tempo", rank: 3, label: "Tempo", zone: "Z3",
+    id: "tempo", rank: 3, metabolic: "heavy", label: "Tempo", zone: "Z3",
     anchor: "Entre LT1 et LT2 — lactate stable mais en hausse",
     run: { min: 0.82, max: 0.88 }, bike: { min: 0.76, max: 0.88 },
-    aliases: ["tempo", "seuil bas norvégien"],
+    aliases: ["tempo"],
   },
   {
-    id: "703_pace", rank: 4, label: "Allure / puissance 70.3", zone: "Z3",
+    id: "703_pace", rank: 4, metabolic: "heavy", label: "Allure / puissance 70.3", zone: "Z3",
     anchor: "Haut du tempo — tenable ~1h30–2h30",
     run: { min: 0.85, max: 0.92 }, bike: { min: 0.78, max: 0.85 },
     aliases: ["allure 70.3", "puissance 70.3", "allure half"],
   },
   {
-    id: "marathon_pace", rank: 5, label: "Allure marathon", zone: "Z4",
+    id: "marathon_pace", rank: 5, metabolic: "heavy", label: "Allure marathon", zone: "Z4",
     anchor: "Bas du domaine seuil — tenable 2–4 h",
     run: { min: 0.88, max: 0.94 }, bike: null,
     aliases: ["allure marathon", "am"],
   },
   {
-    id: "semi_pace", rank: 6, label: "Allure semi-marathon", zone: "Z4",
+    id: "sub_threshold", rank: 6, metabolic: "heavy", label: "Sous-seuil (seuil bas norvégien)", zone: "Z4",
+    anchor: "2–3 mmol/L — juste sous le MLSS, jamais LT1 (Casado 2022, Tjelta 2019)",
+    run: { min: 0.92, max: 0.97 }, bike: { min: 0.88, max: 0.93 },
+    aliases: ["seuil bas norvégien", "sous-seuil", "sub-threshold", "double seuil bas"],
+  },
+  {
+    id: "semi_pace", rank: 7, metabolic: "heavy", label: "Allure semi-marathon", zone: "Z4",
     anchor: "Juste sous le MLSS — tenable ~1–2 h",
     run: { min: 0.95, max: 1.0 }, bike: null,
     aliases: ["allure semi", "as"],
   },
   {
-    id: "mlss", rank: 7, label: "LT2 / MLSS", zone: "Z4",
+    id: "mlss", rank: 8, metabolic: "heavy", label: "LT2 / MLSS", zone: "Z4",
     anchor: "MLSS ± 3 % — plus haut état stable de lactate",
     run: { min: 0.97, max: 1.03 }, bike: { min: 0.95, max: 1.03 },
     aliases: ["mlss", "seuil", "lt2", "seuil lactique", "ftp", "sweet spot haut"],
   },
   {
-    id: "vo2max", rank: 8, label: "VO₂max", zone: "Z5",
+    id: "vo2max", rank: 9, metabolic: "severe", label: "VO₂max", zone: "Z5",
     anchor: "Au-dessus du MLSS jusqu'à vVO₂max / PMA",
     run: { min: 1.03, max: 1.2 }, bike: { min: 1.05, max: 1.3 },
     aliases: ["vo2max", "vma", "pma", "vvo2max"],
   },
   {
-    id: "neuromuscular", rank: 9, label: "Neuromusculaire", zone: "Z6",
+    id: "neuromuscular", rank: 10, metabolic: "extreme", label: "Neuromusculaire", zone: "Z6",
     anchor: "Au-dessus de vVO₂max — alactique / sprint",
     run: null, bike: null,
     aliases: ["sprint", "neuromusculaire", "alactique"],
@@ -147,4 +165,17 @@ export function domainToPctVMA(
 /** Vérifie qu'une zone citée correspond bien à la zone canonique du domaine. */
 export function isZoneConsistentWithDomain(id: DoctrineDomainId, zone: ZoneId6): boolean {
   return getDoctrineDomain(id).zone === zone;
+}
+
+/**
+ * Frontière LT1 en fraction du seuil. Priorité : valeur MESURÉE de l'athlète
+ * (lactate / VT1 / DFA-α1) ; sinon repère de population 0.82 (course) / 0.75 (vélo),
+ * signalé comme estimé.
+ */
+export function resolveLT1Fraction(
+  sport: "run" | "bike",
+  measured?: number | null,
+): { value: number; measured: boolean } {
+  if (measured && measured > 0.5 && measured < 0.95) return { value: measured, measured: true };
+  return { value: sport === "run" ? 0.82 : 0.75, measured: false };
 }
