@@ -590,7 +590,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     metricKey: "allure",
     sportKey: "course",
     structure: [
-      { part: "Main", text: "3x20' Z3 (marathon pace) r=5' Z1", zones: ["Z3", "Z1"] }
+      { part: "Main", text: "3x20' Z4 bas (allure marathon) r=5' Z1", zones: ["Z4", "Z1"] }
     ],
     variants: { marathon: "Essentiel", semi: "2x15'", ironman: "—", half: "—" }
   },
@@ -2883,7 +2883,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     sportKey: "course",
     structure: [
       { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "3x5km allure marathon (Z3) r=4' trot Z1", zones: ["Z3", "Z1"] },
+      { part: "Main", text: "3x5km allure marathon (Z4 bas) r=4' trot Z1", zones: ["Z4", "Z1"] },
       { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
     ],
     variants: { marathon: "Séance clé absolue", semi: "—", "10k": "—", ironman: "—", half: "—" }
@@ -2902,7 +2902,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     sportKey: "course",
     structure: [
       { part: "Warm-up", text: "15' Z1–Z2", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "30–40' continu allure marathon (Z3). Pacing constant.", zones: ["Z3"] },
+      { part: "Main", text: "30–40' continu allure marathon (Z4 bas). Pacing constant.", zones: ["Z4"] },
       { part: "Cool-down", text: "15' Z1", zones: ["Z1"] }
     ],
     variants: { marathon: "Clé", semi: "utile (Z3 haut)", "10k": "—", ironman: "—", half: "—" }
@@ -4745,7 +4745,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Billat", "allure marathon", "spécificité", "économie", "seuil lactique"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 progressif + 4x80m strides", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "40-60-80 min à allure marathon cible (Z3 — ~75-82% VMA). Progression sur les semaines : S1 = 3×15 min à allure marathon R:3 min. S2 = 2×20 min R:4 min. S3 = 1×35 min continu. S4 = 1×45 min continu. Réf : Billat 2009 — l'allure marathon correspond exactement à l'intensité où l'oxydation des glucides et des lipides est optimale pour la durée de course. Courir systématiquement à cette allure créée une adaptation métabolique spécifique irremplaçable. Surveiller : allure exacte au GPS (±3s/km), FC stable (pas de dérive > 5 bpm sur 20 min).", zones: ["Z3"] },
+      { part: "Main", text: "40-60-80 min à allure marathon cible (Z4 bas — 88-94 % de l'allure seuil ; le % VMA dépend du profil). Progression sur les semaines : S1 = 3×15 min à allure marathon R:3 min. S2 = 2×20 min R:4 min. S3 = 1×35 min continu. S4 = 1×45 min continu. Réf : Billat 2009 — l'allure marathon correspond exactement à l'intensité où l'oxydation des glucides et des lipides est optimale pour la durée de course. Courir systématiquement à cette allure créée une adaptation métabolique spécifique irremplaçable. Surveiller : allure exacte au GPS (±3s/km), FC stable (pas de dérive > 5 bpm sur 20 min).", zones: ["Z3"] },
       { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
     ],
     variants: {
@@ -5232,7 +5232,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     id: "NORWEGIAN_RUN_THRESHOLD_LOW_AM",
     cat: "B",
     sport: "course",
-    objectif: "Seuil bas norvégien (matin) — accumulation volume au seuil aérobie contrôlé (2.0-2.5 mmol/L)",
+    objectif: "Seuil bas norvégien (matin) — accumulation volume sous-seuil contrôlé (2.0-3.0 mmol/L, ~92-97 % de l'allure seuil)",
     necessite: "Recommandé",
     when: "Build — matin du 'double threshold day'. À coupler avec NORWEGIAN_RUN_THRESHOLD_HIGH_PM le soir. 2x/semaine max.",
     phase: ["build"],
@@ -5241,10 +5241,10 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     metricKey: "allure",
     sportKey: "course",
     defaultSportId: 2,
-    tags: ["Norwegian", "double threshold", "seuil bas", "LT1", "lactatémètre", "Ingebrigtsen", "Bakken", "TTE"],
+    tags: ["Norwegian", "double threshold", "seuil bas", "sous-seuil", "lactatémètre", "Ingebrigtsen", "Bakken", "TTE"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 très progressif. Footing relâché, FC < 70% FCmax. 4×80m strides légers. Idéalement mesurer lactate après échauffement (cible : 1.0-1.5 mmol/L = bien récupéré).", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "5-6×6 min à seuil bas (LT1) avec récup active 1 min Z1 entre chaque. Cibles d'intensité (choisir selon disponibilité) : Avec lactatémètre : 2.0-2.5 mmol/L. Sans lactatémètre FC : 82-86% FCmax. Sans lactatémètre allure : ~88-90% VMA. RPE : 6-7/10 — 'difficile mais parlable (phrases courtes)'. RÈGLE CRITIQUE NORVÉGIENNE : si lactate dépasse 2.8 mmol/L ou FC dépasse 88% FCmax sur une répétition → RÉDUIRE immédiatement l'allure de 5-8s/km. L'erreur classique : aller trop vite et transformer ce travail en séance Z4 — perd tout l'intérêt de la méthode. Progression : S1=4×6min, S2=5×6min, S3=5×7min, S4=6×6min, S5=4×8min.", zones: ["Z3"] },
+      { part: "Main", text: "5-6×6 min à seuil bas norvégien (sous-seuil, ~92-97 % de l'allure seuil — PAS LT1) avec récup active 1 min Z1 entre chaque. Cibles d'intensité (choisir selon disponibilité) : Avec lactatémètre : 2.0-2.5 mmol/L. Sans lactatémètre FC : 82-86% FCmax. Sans lactatémètre allure : 92-97 % de l'allure seuil (le % VMA dépend du profil). RPE : 6-7/10 — 'difficile mais parlable (phrases courtes)'. RÈGLE CRITIQUE NORVÉGIENNE : si lactate dépasse 2.8 mmol/L ou FC dépasse 88% FCmax sur une répétition → RÉDUIRE immédiatement l'allure de 5-8s/km. L'erreur classique : aller trop vite et transformer ce travail en séance Z4 — perd tout l'intérêt de la méthode. Progression : S1=4×6min, S2=5×6min, S3=5×7min, S4=6×6min, S5=4×8min.", zones: ["Z3"] },
       { part: "Cool-down", text: "10 min Z1 footing lent. Si lactatémètre disponible : mesurer lactate 3 min après dernière répétition (cible : retour < 2.0 mmol/L). Manger dans l'heure suivante (glucides + protéines) pour préparer la séance du soir.", zones: ["Z1"] }
     ],
     variants: {
@@ -5259,7 +5259,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     id: "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
     cat: "B",
     sport: "course",
-    objectif: "Seuil bas norvégien volume — séance unique longue au seuil aérobie (sans double threshold)",
+    objectif: "Seuil bas norvégien volume — séance unique longue sous-seuil (sans double threshold)",
     necessite: "Recommandé",
     when: "Build — séance standalone quand le double threshold n'est pas possible. 1-2x/semaine.",
     phase: ["base", "build"],
@@ -5268,10 +5268,10 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     metricKey: "allure",
     sportKey: "course",
     defaultSportId: 2,
-    tags: ["Norwegian", "seuil bas", "LT1", "volume", "TTE", "Tjelta"],
+    tags: ["Norwegian", "seuil bas", "sous-seuil", "volume", "TTE", "Tjelta"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 progressif", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "25-35 min continu à seuil bas (LT1) : 82-86% FCmax, RPE 6-7/10. Alternative intervalles avec récups très courtes : 3-4×8-10 min R:90s Z1. Réf : Tjelta 2019 — les meilleurs coureurs norvégiens accumulent 60-80 min/semaine au seuil bas en phase build. C'est le volume total qui crée l'adaptation, pas l'intensité de chaque répétition. Observer : FC stable (plateau) sur les 3 dernières minutes de chaque bloc = bonne intensité.", zones: ["Z3"] },
+      { part: "Main", text: "25-35 min continu à seuil bas norvégien (sous-seuil, 92-97 % de l'allure seuil) : 82-86% FCmax, RPE 6-7/10. Alternative intervalles avec récups très courtes : 3-4×8-10 min R:90s Z1. Réf : Tjelta 2019 — les meilleurs coureurs norvégiens accumulent 60-80 min/semaine au seuil bas en phase build. C'est le volume total qui crée l'adaptation, pas l'intensité de chaque répétition. Observer : FC stable (plateau) sur les 3 dernières minutes de chaque bloc = bonne intensité.", zones: ["Z4"] },
       { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
     ],
     variants: {
@@ -5367,7 +5367,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     id: "NORWEGIAN_BIKE_THRESHOLD_LOW",
     cat: "B",
     sport: "cyclisme",
-    objectif: "Seuil bas norvégien vélo — accumulation volume au seuil aérobie vélo (75-82% FTP)",
+    objectif: "Seuil bas norvégien vélo — accumulation volume sous-seuil vélo (88-93% FTP)",
     necessite: "Recommandé",
     when: "Build — séance standalone ou matin du double threshold triathlon. 2x/semaine.",
     phase: ["build"],
@@ -5376,10 +5376,10 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     metricKey: "puissance",
     sportKey: "cyclisme",
     defaultSportId: 14,
-    tags: ["Norwegian", "seuil bas", "vélo", "LT1", "TTE", "triathlon", "Bakken"],
+    tags: ["Norwegian", "seuil bas", "vélo", "TTE", "triathlon", "Bakken"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif. Cadence 85-90 rpm.", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "4-5×8 min à 75-82% FTP (seuil bas vélo ≈ LT1) R:90s Z1. Cadence 88-95 rpm. Cible FC : 80-85% FCmax. RPE 6-7/10. La spécificité vélo de la méthode norvégienne : le vélo permet de contrôler précisément la puissance (lactatémètre moins indispensable qu'en course). Progression : S1=3×8min, S2=4×8min, S3=4×10min, S4=5×8min, S5=3×15min, S6=2×20min continu. Réf : Bakken 2019 adapté vélo — même principe cinétique lactique que la course.", zones: ["Z3"] },
+      { part: "Main", text: "4-5×8 min à 88-93% FTP (seuil bas norvégien = sous-seuil, PAS LT1) R:90s Z1. Cadence 88-95 rpm. Cible FC : 80-85% FCmax. RPE 6-7/10. La spécificité vélo de la méthode norvégienne : le vélo permet de contrôler précisément la puissance (lactatémètre moins indispensable qu'en course). Progression : S1=3×8min, S2=4×8min, S3=4×10min, S4=5×8min, S5=3×15min, S6=2×20min continu. Réf : Bakken 2019 adapté vélo — même principe cinétique lactique que la course.", zones: ["Z4"] },
       { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
     ],
     variants: {
@@ -5433,7 +5433,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Norwegian", "double threshold", "vélo", "triathlon", "seuil bas", "seuil haut"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "Bloc 1 — Seuil bas (LT1) : 3×8 min à 76-82% FTP R:2 min. Récup entre blocs : 5 min Z1. Bloc 2 — Seuil haut (LT2) : 5×4 min à 87-92% FTP R:90s. Logique : le bloc seuil bas fatigue les fibres lentes en douceur, puis le bloc seuil haut les sollicite plus intensément — même principe que le double threshold day mais condensé en une séance. Moins efficace que la vraie double journée mais très bon compromis pour athlètes avec 8-12h/semaine.", zones: ["Z3", "Z4"] },
+      { part: "Main", text: "Bloc 1 — Seuil bas (sous-seuil) : 3×8 min à 88-93% FTP R:2 min. Récup entre blocs : 5 min Z1. Bloc 2 — Seuil haut (LT2/MLSS) : 5×4 min à 95-100% FTP R:90s. Logique : le bloc seuil bas fatigue les fibres lentes en douceur, puis le bloc seuil haut les sollicite plus intensément — même principe que le double threshold day mais condensé en une séance. Moins efficace que la vraie double journée mais très bon compromis pour athlètes avec 8-12h/semaine.", zones: ["Z3", "Z4"] },
       { part: "Cool-down", text: "15 min Z1 + étirements", zones: ["Z1"] }
     ],
     variants: {
@@ -6926,7 +6926,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Kenyan", "groupe", "tempo", "dynamique collective", "Iten", "social"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 en groupe + 2-3 accélérations progressives communes", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "40-50 min tempo en groupe à allure seuil bas (87-91% VMA / Z3-Z4). RPE : 7.5/10. En groupe de 3-10 coureurs de niveau homogène. Le groupe permet de maintenir l'allure sans effort mental individuel. Les Kényans courent souvent sans montre — le rythme est dicté par les leaders naturels qui tournent. AVANTAGE COGNITIF : courir en groupe réduit le RPE perçu de 5-10% à la même intensité (Tucker 2006). Kipchoge : 'Un groupe vous pousse à donner le meilleur de vous-même sans jamais vous sentir seul.'", zones: ["Z3", "Z4"] },
+      { part: "Main", text: "40-50 min tempo en groupe à allure sous-seuil (92-97 % de l'allure seuil / Z4). RPE : 7.5/10. En groupe de 3-10 coureurs de niveau homogène. Le groupe permet de maintenir l'allure sans effort mental individuel. Les Kényans courent souvent sans montre — le rythme est dicté par les leaders naturels qui tournent. AVANTAGE COGNITIF : courir en groupe réduit le RPE perçu de 5-10% à la même intensité (Tucker 2006). Kipchoge : 'Un groupe vous pousse à donner le meilleur de vous-même sans jamais vous sentir seul.'", zones: ["Z3", "Z4"] },
       { part: "Cool-down", text: "10 min Z1 groupe + stretching collectif", zones: ["Z1"] }
     ],
     variants: {
