@@ -1106,6 +1106,31 @@ export function buildWorkoutCatalog(
     effectiveCap = socleIds.size;
   }
 
+  // ─── Headroom minimal garanti pour le remplissage (P5 diversité) ───
+  // Bug constaté : quand le socle (a) dépasse déjà maxItems (fréquent pour un
+  // sport couvrant beaucoup de familles d'intention, ex. "course" en plan
+  // marathon/semi/10k — 12 familles × jusqu'à 4-5 fiches), `effectiveCap`
+  // était relevé pile à `socleIds.size`. Or `selected.length` juste après
+  // l'insertion du socle vaut EXACTEMENT `socleIds.size` — le tout premier
+  // test du remplissage (`selected.length >= capForThis`) était donc déjà
+  // vrai avant même de démarrer, et le remplissage n'ajoutait JAMAIS rien,
+  // quels que soient les scores restants. Résultat mesuré : des fiches bien
+  // notées (score=28, rang ~25/701, à égalité stricte avec ~13 autres pour
+  // seulement 4 places de socle dans leur famille — ex. CANOVA_RUN_
+  // PROGRESSIVE_LONG, KENYAN_RUN_LONG_NEGATIVE_SPLIT) ne pouvaient JAMAIS
+  // entrer dans le catalogue, quel que soit maxItems ou rotationSeed. On
+  // garantit donc toujours une marge de remplissage AU-DELÀ du socle, même
+  // quand celui-ci dépasse déjà maxItems — impact contexte modéré (ex. +40
+  // fiches à maxItems=80 ≈ +8.8k caractères sérialisés, cf. `cap_size_estimate`
+  // ci-dessous qui situe déjà 150 fiches à ~33k caractères avec une marge
+  // large sous les 64k tokens de l'edge function). Proportionnelle à maxItems
+  // (moitié) plutôt qu'une constante fixe : un appel avec un maxItems
+  // volontairement petit (tests, sportFilter resserré) doit rester un vrai
+  // cap serré, pas être noyé par une marge pensée pour le cas de production
+  // (maxItems≈80, socle≈180+ pour un sport courant à beaucoup de familles).
+  const remplissageHeadroom = Math.ceil(maxItems * 0.5);
+  effectiveCap = Math.max(effectiveCap, socleIds.size + remplissageHeadroom);
+
   // (c-bis) F-LIM-FILL-BONUS : budget supplémentaire réservé aux fiches dont la
   // famille appartient aux limiteurs primaire/secondaire. Objectif : laisser plus
   // de fiches limiteur passer pendant la phase de remplissage sans gonfler le cap
@@ -1125,6 +1150,25 @@ export function buildWorkoutCatalog(
     catCounts[workout.cat] = (catCounts[workout.cat] || 0) + 1;
   }
   const socleFinalSize = selected.length;
+
+  // ─── Reset des compteurs sport/cat avant le remplissage (P5 diversité) ───
+  // Bug constaté : `sportCounts`/`catCounts` étaient incrémentés dès l'insertion
+  // du socle (ligne ~1124), puis réutilisés tels quels par le remplissage. Pour
+  // un sport couvrant de nombreuses familles d'intention (ex. "course" : test,
+  // race_pace, fatmax, sprint, vo2, seuil, force, technique, recuperation,
+  // endurance_fondamentale, brick, other = 12 familles × jusqu'à 4-5 fiches),
+  // le socle seul dépasse déjà les 25 sportCounts/15 catCounts du cap "souple"
+  // ci-dessous — le remplissage se retrouve donc bloqué AVANT même de démarrer,
+  // quel que soit le score des fiches restantes (mesuré : sportCounts[course]
+  // = 47 après le socle sur un plan marathon, cap déjà dépassé). Résultat :
+  // des fiches bien notées (ex. BILLAT_RUN_MARATHON_PACE, rang 28/239 sur son
+  // sport) n'entraient JAMAIS dans le catalogue, quel que soit maxItems. Le
+  // commentaire ci-dessous ("UNIQUEMENT au remplissage") documentait déjà
+  // l'intention correcte — l'implémentation ne la respectait pas. On repart
+  // donc de compteurs vides ici : les caps 25/15 bornent désormais ce que le
+  // remplissage AJOUTE en plus du socle, jamais le total socle+remplissage.
+  for (const key of Object.keys(sportCounts)) delete sportCounts[key];
+  for (const key of Object.keys(catCounts)) delete catCounts[key];
 
   // (b) Remplissage : caps sport/cat souples appliqués UNIQUEMENT au remplissage
   for (const { workout, score } of scored) {
