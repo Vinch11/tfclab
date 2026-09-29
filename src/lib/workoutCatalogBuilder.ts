@@ -77,10 +77,24 @@ export interface CatalogEntry {
 // ═══════════════════════════════════════════════════════════════════════════════
 // P3 DIVERSITÉ — pénalité de récence inter-plans (lib/plan/historicalCatalogUsage)
 // ═══════════════════════════════════════════════════════════════════════════════
+// Recalibrage (retour coach : "les plans utilisent souvent les mêmes séances") —
+// mesuré empiriquement sur un cas réel (catalogue marathon, famille dense
+// d'alternatives équivalentes) : avec l'ancien réglage (6/14), une fiche
+// réutilisée dans le seul plan précédent (poids de récence 1.0) restait
+// sélectionnable quasiment sans effet visible ; il fallait déjà accumuler
+// l'équivalent de ~1.3 plan pour commencer à la faire reculer sérieusement.
+// Avec ce réglage (7/18) : une fiche utilisée dans le seul plan précédent
+// reste disponible mais recule nettement dans le classement (jamais de
+// hard-ban sur une seule réutilisation, conforme à la philosophie P3) ;
+// utilisée dans les DEUX derniers plans consécutifs (poids cumulé ≈1.7), elle
+// sort du catalogue envoyé au modèle — un vrai effet après 2 plans de suite,
+// pas seulement après 1. Une fiche qui reste la SEULE de sa famille continue
+// d'être sélectionnée quel que soit le plafond, faute d'alternative — jamais
+// un hard-ban absolu (cf. tests workoutCatalogBuilder.diversityPenalty.test.ts).
 /** Pénalité de score par unité d'usage pondéré dans les plans précédents. */
-export const HISTORY_PENALTY_PER_USE = 6;
+export const HISTORY_PENALTY_PER_USE = 7;
 /** Plafond : une fiche « déjà vue » reste sélectionnable si elle est seule de sa famille. */
-export const HISTORY_PENALTY_CAP = 14;
+export const HISTORY_PENALTY_CAP = 18;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // B5 STAGE ATTRIBUTION — trace, par ID, l'étape la plus tardive atteinte à travers
