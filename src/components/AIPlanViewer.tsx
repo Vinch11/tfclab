@@ -350,8 +350,17 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
   );
 
   // PHASE 2B v2 — annote les intensités relatives (zones/%FTP/%VMA/CSS±s) avec les valeurs absolues athlète.
+  // Retour coach : le tag "[Zone · intention]" posé par validatePlanPaces.ts
+  // (Option A) était affiché DEUX FOIS sur la même carte — une fois éclaté en
+  // badges (parsed.tags, ci-dessous) et une seconde fois texte-à-texte dans ce
+  // titre, puisque l'enrichissement s'appliquait au titre BRUT (crochets
+  // compris) plutôt qu'au titre nettoyé. Les badges suffisent à porter cette
+  // info ; le titre affiché repart du `cleanTitle` (sans les crochets) — les
+  // tokens de zone que l'IA écrit elle-même dans le titre/détails restent
+  // annotés normalement, seul le tag ajouté en post-traitement disparaît du
+  // texte affiché ici.
   const displayTitle = useMemo(
-    () => enrichWithAbsoluteValues(session.title ?? "", targetTable, session.sport as SportKind),
+    () => enrichWithAbsoluteValues(parseSessionTitle(session.title ?? "").cleanTitle, targetTable, session.sport as SportKind),
     [session.title, session.sport, targetTable]
   );
   const displayDetails = useMemo(
