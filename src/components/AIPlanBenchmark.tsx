@@ -387,18 +387,6 @@ const PHASE_COLORS: Record<number, string> = {
   5: "#7FD3AE", // Affûtage — mint
 };
 
-/** Couleur de texte lisible (blanc ou encre) selon la luminance du fond. */
-function readableOn(hex: string): string {
-  const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-  const r = parseInt(full.slice(0, 2), 16) / 255;
-  const g = parseInt(full.slice(2, 4), 16) / 255;
-  const b = parseInt(full.slice(4, 6), 16) / 255;
-  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-  return L > 0.5 ? "#14131A" : "#FFFFFF";
-}
-
 
 const PHASE_INDEX_MAP: Record<string, number> = {
   fondation: 1, adaptation: 1, base: 1,
@@ -416,6 +404,25 @@ function getPhaseColorIdx(name: string): number {
   return 0;
 }
 
+/** Largeur mini par semaine (px) — assez pour qu'une portée "S12-S18" ne se resserre jamais. */
+const PHASE_TIMELINE_WEEK_PX = 26;
+/** Largeur mini du track (px) — un plan court garde une timeline lisible, pas écrasée. */
+const PHASE_TIMELINE_MIN_TRACK_PX = 340;
+
+/**
+ * Timeline de périodisation (carte "Grade qualité TFCL™").
+ *
+ * Bug réel (retour coach) : distinct du MiniGantt de AIPlanViewer.tsx (déjà
+ * corrigé) — même défaut, composant différent, manqué au premier passage.
+ * Le nom de phase était affiché DANS sa barre colorée, dont la largeur suit
+ * sa durée réelle (`Math.max(widthPct, 6)` — 6% de la largeur totale) : sur
+ * un plan à double périodisation (39 semaines, 9 phases), des phases de
+ * 1-2 semaines produisaient des barres de quelques px, tronquant le nom à
+ * "A.", "R." ou "Fo...". Fix (même pattern que MiniGantt) : le nom complet
+ * passe AU-DESSUS de sa barre (jamais tronqué), la portée "S{start}-S{end}"
+ * est toujours affichée à côté, et le track est scrollable horizontalement
+ * avec une largeur mini par semaine.
+ */
 function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; weeks: string; objective?: string }[]; totalWeeks: number }) {
   // Parse week ranges from phase data — tolérant à tous les séparateurs
   // ("S1-S6", "S1 → S6", "Semaines 1 à 6", "S4"…). On lit simplement les
@@ -433,67 +440,63 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
 
   // Garde-fou : si `totalWeeks` est absent/incohérent, on le déduit des phases.
   const span = Math.max(totalWeeks || 0, ...parsed.map(p => p.end), 1);
+  const trackWidthPx = Math.max(span * PHASE_TIMELINE_WEEK_PX, PHASE_TIMELINE_MIN_TRACK_PX);
 
   return (
     <div className="space-y-2 pt-2 border-t border-border">
       <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
         📊 Timeline de périodisation
       </h4>
-      <div className="space-y-1">
-        {parsed.map((phase, i) => {
-          const leftPct = ((phase.start - 1) / span) * 100;
-          const widthPct = ((phase.end - phase.start + 1) / span) * 100;
-          const fg = readableOn(phase.color);
-          return (
-            <TooltipProvider key={i}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="relative h-7 cursor-help">
-                    <div className="absolute inset-0 rounded-md bg-muted/40" />
-                    <div
-                      className="absolute rounded-md shadow-sm transition-all"
-                      style={{
-                        marginLeft: `${leftPct}%`,
-                        width: `${Math.max(widthPct, 6)}%`,
-                        backgroundColor: phase.color,
-                        height: "100%",
-                      }}
-                    >
-                      <div className="flex items-center justify-center h-full px-1.5">
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: `${trackWidthPx}px` }} className="space-y-3">
+          {parsed.map((phase, i) => {
+            const leftPct = ((phase.start - 1) / span) * 100;
+            const widthPct = ((phase.end - phase.start + 1) / span) * 100;
+            return (
+              <TooltipProvider key={i}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-1 cursor-help">
+                      <div className="flex items-baseline gap-1.5 text-xs">
                         <span
-                          className="text-[9px] sm:text-[10px] font-semibold truncate"
-                          style={{ color: fg }}
-                        >
-                          {phase.name}
-                        </span>
+                          className="inline-block w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: phase.color }}
+                        />
+                        <span className="font-medium text-foreground/90">{phase.name}</span>
+                        <span className="text-muted-foreground shrink-0">· S{phase.start}-S{phase.end}</span>
+                      </div>
+                      <div className="relative h-5 bg-muted/30 rounded-md overflow-hidden">
+                        <div
+                          className="absolute top-0.5 bottom-0.5 rounded-md"
+                          style={{
+                            left: `${leftPct}%`,
+                            width: `${Math.max(widthPct, 100 / span)}%`,
+                            backgroundColor: phase.color,
+                          }}
+                        />
                       </div>
                     </div>
-                  </div>
-                </TooltipTrigger>
+                  </TooltipTrigger>
 
-                <TooltipContent side="top" className="max-w-xs">
-                  <p className="font-semibold text-xs">{phase.name}</p>
-                  <p className="text-[10px] text-muted-foreground">Semaines {phase.start}–{phase.end} ({phase.end - phase.start + 1} sem)</p>
-                  {phase.objective && <p className="text-[10px] text-muted-foreground mt-0.5">{phase.objective}</p>}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          );
-        })}
-      </div>
-      {/* Week axis */}
-      <div className="relative h-4">
-        {Array.from({ length: span }, (_, i) => i + 1)
-          .filter(w => span <= 12 || w % 2 === 1)
-          .map(w => (
-            <span
-              key={w}
-              className="absolute text-[8px] text-muted-foreground"
-              style={{ left: `${((w - 0.5) / span) * 100}%`, transform: "translateX(-50%)" }}
-            >
-              S{w}
-            </span>
-          ))}
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p className="font-semibold text-xs">{phase.name}</p>
+                    <p className="text-[10px] text-muted-foreground">Semaines {phase.start}–{phase.end} ({phase.end - phase.start + 1} sem)</p>
+                    {phase.objective && <p className="text-[10px] text-muted-foreground mt-0.5">{phase.objective}</p>}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            );
+          })}
+
+          {/* Week header */}
+          <div className="flex items-end gap-0 pt-1">
+            {Array.from({ length: span }, (_, i) => i + 1).map(w => (
+              <div key={w} className="text-[10px] text-muted-foreground text-center shrink-0" style={{ width: `${100 / span}%` }}>
+                {w % 2 === 1 || span <= 20 ? `S${w}` : ""}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
