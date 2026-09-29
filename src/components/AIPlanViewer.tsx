@@ -119,16 +119,33 @@ function parseWeekRange(weeks: string): [number, number] | null {
 }
 
 const GANTT_COLORS = [
-  "bg-blue-500/80 text-white",
-  "bg-green-500/80 text-white",
-  "bg-purple-500/80 text-white",
-  "bg-amber-500/80 text-white",
-  "bg-cyan-500/80 text-white",
-  "bg-rose-500/80 text-white",
-  "bg-indigo-500/80 text-white",
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-purple-500",
+  "bg-amber-500",
+  "bg-cyan-500",
+  "bg-rose-500",
+  "bg-indigo-500",
 ];
 
-/** Mini Gantt chart for metabolic blocks */
+/** Largeur mini par semaine (px) — assez pour qu'un intitulé "S12-S18" ne se resserre jamais. */
+const GANTT_WEEK_PX = 26;
+/** Largeur mini du track (px) — un plan très court (ex. 4 semaines) garde un Gantt lisible, pas écrasé. */
+const GANTT_MIN_TRACK_PX = 340;
+
+/**
+ * Mini Gantt chart des blocs métaboliques.
+ *
+ * Bug réel (retour coach) : la timeline était peu lisible — libellé de phase
+ * dans une colonne fixe de 120px, tronqué deux fois (CSS `truncate` ET un
+ * `.slice(0, 20)` en dur), texte à 9-10px, et la portée de semaines masquée
+ * si la phase ne durait qu'une semaine. Fix : le nom complet de la phase
+ * passe AU-DESSUS de sa barre (jamais tronqué, retour à la ligne autorisé),
+ * la portée "S{start}-S{end}" est toujours affichée à côté du nom (plus
+ * dépendante de la largeur de la barre), et le track est scrollable
+ * horizontalement avec une largeur mini par semaine — un plan de 39
+ * semaines ne compresse plus les barres en traits illisibles.
+ */
 function MiniGantt({ phases, totalWeeks }: { phases: { name: string; weeks: string }[]; totalWeeks: number }) {
   const maxWeek = useMemo(() => {
     let max = totalWeeks;
@@ -139,63 +156,47 @@ function MiniGantt({ phases, totalWeeks }: { phases: { name: string; weeks: stri
     return max || 12;
   }, [phases, totalWeeks]);
 
-  // Generate week tick labels
   const ticks = Array.from({ length: maxWeek }, (_, i) => i + 1);
+  const trackWidthPx = Math.max(maxWeek * GANTT_WEEK_PX, GANTT_MIN_TRACK_PX);
 
   return (
-    <div className="space-y-1.5">
-      {/* Week header */}
-      <div className="flex items-end gap-0 ml-[120px]">
-        {ticks.map(w => (
-          <div key={w} className="text-[9px] text-muted-foreground text-center" style={{ width: `${100 / maxWeek}%` }}>
-            {w % 2 === 1 || maxWeek <= 16 ? `S${w}` : ""}
-          </div>
-        ))}
-      </div>
-
-      {/* Bars */}
-      {phases.map((phase, idx) => {
-        const range = parseWeekRange(phase.weeks);
-        if (!range) return null;
-        const [start, end] = range;
-        const leftPct = ((start - 1) / maxWeek) * 100;
-        const widthPct = ((end - start + 1) / maxWeek) * 100;
-        const color = GANTT_COLORS[idx % GANTT_COLORS.length];
-        // Shorten name for display
-        const shortName = phase.name
-          .replace(/^(Phase|Bloc)\s*\d+\s*[:\-–—]\s*/i, "")
-          .slice(0, 20);
-
-        return (
-          <div key={idx} className="flex items-center gap-0 h-6">
-            {/* Label */}
-            <div className="w-[120px] flex-shrink-0 text-[10px] font-medium truncate text-right pr-2 text-muted-foreground" title={phase.name}>
-              {shortName}
-            </div>
-            {/* Track */}
-            <div className="flex-1 relative h-full bg-muted/30 rounded-sm overflow-hidden">
-              <div
-                className={`absolute top-0.5 bottom-0.5 rounded-sm flex items-center justify-center text-[9px] font-semibold ${color}`}
-                style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 3)}%` }}
-              >
-                {end - start + 1 >= 2 && `S${start}-S${end}`}
-              </div>
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Today marker area - bottom scale */}
-      <div className="flex items-start gap-0 ml-[120px]">
-        <div className="flex-1 relative h-2 border-t border-border/50">
+    <div className="overflow-x-auto">
+      <div style={{ minWidth: `${trackWidthPx}px` }} className="space-y-4">
+        {/* Week header */}
+        <div className="flex items-end gap-0">
           {ticks.map(w => (
-            <div
-              key={w}
-              className="absolute top-0 w-px h-1.5 bg-border/40"
-              style={{ left: `${((w - 0.5) / maxWeek) * 100}%` }}
-            />
+            <div key={w} className="text-[10px] text-muted-foreground text-center shrink-0" style={{ width: `${100 / maxWeek}%` }}>
+              {w % 2 === 1 || maxWeek <= 20 ? `S${w}` : ""}
+            </div>
           ))}
         </div>
+
+        {/* Phase rows — nom complet au-dessus de sa barre, jamais tronqué */}
+        {phases.map((phase, idx) => {
+          const range = parseWeekRange(phase.weeks);
+          if (!range) return null;
+          const [start, end] = range;
+          const leftPct = ((start - 1) / maxWeek) * 100;
+          const widthPct = ((end - start + 1) / maxWeek) * 100;
+          const color = GANTT_COLORS[idx % GANTT_COLORS.length];
+          const cleanName = phase.name.replace(/^(Phase|Bloc)\s*\d+\s*[:\-–—]\s*/i, "");
+
+          return (
+            <div key={idx} className="space-y-1">
+              <div className="flex items-baseline gap-1.5 text-xs">
+                <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${color}`} />
+                <span className="font-medium text-foreground/90">{cleanName}</span>
+                <span className="text-muted-foreground shrink-0">· S{start}-S{end}</span>
+              </div>
+              <div className="relative h-5 bg-muted/30 rounded-md overflow-hidden">
+                <div
+                  className={`absolute top-0.5 bottom-0.5 rounded-md ${color}`}
+                  style={{ left: `${leftPct}%`, width: `${Math.max(widthPct, 100 / maxWeek)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
