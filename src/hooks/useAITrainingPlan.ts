@@ -701,6 +701,13 @@ export function useAITrainingPlan() {
       // P3 diversité — mémoire inter-plans : fiches déjà servies à cet athlète
       // dans ses 3 derniers plans (pondérées par récence).
       const historicalUsage = await fetchHistoricalCatalogUsage(planConfig.athleteId);
+      // P4 diversité — départage des égalités de score (retour coach : "avec
+      // le catalogue étoffé qu'on a, ce serait dommage que les plans soient
+      // réduits à quelques séances type"). Un seed par génération (pas par
+      // chunk) : les égalités varient d'une régénération à l'autre, mais
+      // restent cohérentes entre les chunks d'UNE MÊME génération. Cf.
+      // `rotationSeed` dans buildWorkoutCatalog (workoutCatalogBuilder.ts).
+      const rotationSeed = Date.now();
 
       // Segments de cycles multi-objectifs — même calcul que celui utilisé
       // plus bas pour le quota hebdomadaire (`cycleSegmentsForRegen`, PR
@@ -769,7 +776,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           effTotalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, ...regenGapPhaseOptions }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -826,7 +833,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, ...regenGapPhaseOptions }
+            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -847,7 +854,7 @@ export function useAITrainingPlan() {
               cStart,
               cEnd,
               totalWeeks,
-              { maxItems: 60, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, phaseOverride: ["base"], strictPhaseFilter: true }
+              { maxItems: 60, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, phaseOverride: ["base"], strictPhaseFilter: true }
             );
             chunkRegenCatalogs.push(serializeCatalogForPrompt(regenCatalog));
             console.log(
