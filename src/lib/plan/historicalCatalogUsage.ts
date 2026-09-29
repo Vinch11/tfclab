@@ -16,8 +16,16 @@
 import { supabase } from "@/integrations/supabase/client";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 
-/** Poids de récence appliqués aux N derniers plans (index 0 = plus récent). */
-export const RECENCY_WEIGHTS = [1, 0.6, 0.35];
+/**
+ * Poids de récence appliqués aux N derniers plans (index 0 = plus récent).
+ *
+ * Recalibrage (retour coach : "les plans utilisent souvent les mêmes
+ * séances") — avec seulement 3 plans de mémoire, une fiche réutilisée au
+ * plan n-4 repartait avec un poids de zéro, comme si elle n'avait jamais
+ * été servie. Fenêtre élargie à 5 plans, décroissance plus progressive
+ * (au lieu d'une coupure nette à zéro après 3).
+ */
+export const RECENCY_WEIGHTS = [1, 0.7, 0.5, 0.3, 0.15];
 
 /** Nombre de versions de plan remontées. */
 export const HISTORY_PLAN_LIMIT = RECENCY_WEIGHTS.length;
