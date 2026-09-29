@@ -1053,6 +1053,14 @@ export function useAITrainingPlan() {
           ambition: planConfig.ambitionMeta?.effective ?? planConfig.ambition ?? null,
           weeklyHours: planConfig.weeklyHours ?? null,
           trainingLevel: planConfig.ambitionMeta?.trainingLevel ?? null,
+          // Bug réel (ChatGPT, plan 10K "Vince") : sans ce champ, l'allure
+          // "cible course" injectée dans le prompt (tblBlock ci-dessous, à
+          // CHAQUE chunk) venait uniquement du palier d'ambition, ignorant un
+          // temps cible explicite saisi par le coach pour cet objectif —
+          // cf. deriveRaceTargets.ts pour le détail du mécanisme.
+          targetTimeMinutes: (Array.isArray(planConfig.raceGoals)
+            ? planConfig.raceGoals.find(g => g?.objective === planConfig.objective)?.targetTimeMinutes
+            : null) ?? null,
         });
         const tblBlock = formatTargetTableBlock(targetTable);
         // Injecter dans chaque chunk (rappel de la table à chaque appel LLM)

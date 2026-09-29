@@ -30,6 +30,30 @@ describe("buildTargetTable", () => {
     expect(t.racePaceRange![1] - t.racePaceRange![0]).toBe(10);
   });
 
+  /**
+   * Bug réel (ChatGPT, plan 10K "Vince") : `racePaceSecPerKm` (allure "cible
+   * course" annotée sur les séances via enrichWithAbsoluteValues) venait
+   * TOUJOURS du palier d'ambition × VMA, même quand un temps cible explicite
+   * avait été saisi pour cette course précise — un athlète visant 38min sur
+   * 10K (≈96%VMA) recevait des séances annotées à l'allure "sub/compétiteur"
+   * (88-92%VMA, ≈242s/km), un écart de 15-20s/km avec l'objectif réel.
+   */
+  it("targetTimeMinutes explicite prime sur le palier d'ambition pour l'allure cible course", () => {
+    const withoutOverride = buildTargetTable({
+      vma: 16.5, objective: "10K", ambition: "competitor",
+    });
+    // Palier "sub/compétiteur" (88-92%VMA, milieu 90%) → ≈242s/km (4:02/km).
+    expect(withoutOverride.racePaceSecPerKm).toBeGreaterThan(235);
+
+    const withOverride = buildTargetTable({
+      vma: 16.5, objective: "10K", ambition: "competitor",
+      targetTimeMinutes: 38,
+    });
+    // 38min/10km = 228s/km (3:48/km) — nettement plus rapide que le palier d'ambition.
+    expect(withOverride.racePaceSecPerKm).toBe(Math.round(38 * 60 / 10));
+    expect(withOverride.racePaceSecPerKm!).toBeLessThan(withoutOverride.racePaceSecPerKm!);
+  });
+
   it("CSS ±3s/100m", () => {
     const t = buildTargetTable({
       ftp: 250, vma: 17, css: 95, fcMax: 190,

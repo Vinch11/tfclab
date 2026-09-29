@@ -70,6 +70,14 @@ export interface BuildTargetTableInput {
   objective?: string | null;
   ambition?: string | null;
   weeklyHours?: number | null;
+  /**
+   * Temps cible EXPLICITE saisi par le coach pour cette course (en minutes).
+   * Transmis tel quel à `deriveRaceTargets`, où il prime sur le palier
+   * d'ambition — évite que l'allure "cible course" annotée sur les séances
+   * (enrichWithAbsoluteValues) diverge de l'objectif réellement visé quand un
+   * temps cible a été saisi pour cet objectif précis.
+   */
+  targetTimeMinutes?: number | null;
   trainingLevel?: "untrained" | "light" | "trained" | "highly_trained" | null;
   /** Physiologie pour les zones dérivées (repli grille standard si absente). */
   vlamax?: number | null;
@@ -204,6 +212,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
       weeklyHours: input.weeklyHours ?? null,
       trainingLevel: input.trainingLevel ?? null,
       sport: mapObjectiveToSport(input.objective),
+      targetTimeMinutes: input.targetTimeMinutes ?? null,
     });
     if (derived.paceTargets) {
       racePaceSecPerKm = derived.paceTargets.allureSemiCible;

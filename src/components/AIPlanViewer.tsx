@@ -1058,6 +1058,19 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     tlimMin: nolioRefs.tlimMin,
   }), [nolioRefs]);
 
+  // Bug réel (ChatGPT, plan 10K "Vince") : le TargetTable dérivait l'allure
+  // "cible course" (racePaceSecPerKm → enrichWithAbsoluteValues) uniquement
+  // depuis le palier d'ambition, sans jamais regarder si le coach avait saisi
+  // un temps cible EXPLICITE pour cet objectif précis — l'allure annotée sur
+  // les séances pouvait donc diverger nettement de l'objectif réellement visé.
+  // On retrouve ce temps cible dans `raceGoals` (même objectif que le
+  // TargetTable) quand il existe.
+  const targetTimeMinutesForObjective = useMemo(() => {
+    if (!gapContext?.objective) return null;
+    const match = (raceGoals || []).find((g) => g.objective === gapContext.objective);
+    return match?.targetTimeMinutes ?? null;
+  }, [raceGoals, gapContext?.objective]);
+
   // PHASE 2B v2 — TargetTable pour annoter les intensités relatives à l'affichage
   const targetTable = useMemo(() => {
     if (!nolioRefs.ftp && !nolioRefs.vma && !nolioRefs.css) return null;
@@ -1075,11 +1088,12 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         weightKg: nolioRefs.weightKg,
         objective: gapContext?.objective ?? null,
         ambition: gapContext?.ambition ?? null,
+        targetTimeMinutes: targetTimeMinutesForObjective,
       });
     } catch {
       return null;
     }
-  }, [nolioRefs, gapContext?.objective, gapContext?.ambition]);
+  }, [nolioRefs, gapContext?.objective, gapContext?.ambition, targetTimeMinutesForObjective]);
 
   // ─── Dérive physiologique : plan généré avec d'anciennes valeurs ? ───
   const currentPhysioRefs = useMemo(() => ({
