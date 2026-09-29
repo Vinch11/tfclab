@@ -155,6 +155,13 @@ export interface DeriveRaceTargetsInput {
   trainingLevel?: "untrained" | "light" | "trained" | "highly_trained" | null;
   /** Type d'épreuve (source des plafonds). Fallback "run_route" + console.warn. */
   sport?: RaceSport | null;
+  /**
+   * Temps cible EXPLICITE saisi par le coach pour cette course précise (en
+   * minutes). Quand fourni et positif, prime ABSOLUMENT sur le calcul par
+   * palier d'ambition (`fractionVMAForAmbition`) — même logique de priorité
+   * que F-26 dans promptHelpers.ts pour l'annonce du jour de course.
+   */
+  targetTimeMinutes?: number | null;
 }
 
 export interface PaceTargets {
@@ -280,7 +287,24 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
   const thr = typeof input.thresholdPaceSecPerKm === "number" && input.thresholdPaceSecPerKm > 0
     ? input.thresholdPaceSecPerKm : null;
 
-  if (!distanceKm || (!vma && !thr)) {
+  // Bug réel (ChatGPT, plan 10K "Vince") : cette fonction dérivait TOUJOURS
+  // l'allure course cible depuis le palier d'ambition × VMA
+  // (fractionVMAForAmbition), même quand un temps cible EXPLICITE avait été
+  // saisi par le coach pour cette course — une source de vérité distincte et
+  // prioritaire (cf. F-26, promptHelpers.ts, qui la respecte déjà pour
+  // l'annonce du jour de course). Résultat : "allure cible 10K" affichée sur
+  // les séances d'entraînement (via targetTable.ts → enrichWithAbsoluteValues)
+  // pouvait correspondre à un palier bien plus modeste que l'objectif
+  // réellement visé — ex. 88-92%VMA ("sub/compétiteur") affiché pendant que
+  // le temps cible entré implique 96%VMA ("world_class") — un écart de
+  // 15-20s/km entre l'allure travaillée à l'entraînement et l'allure de
+  // course visée. Le temps cible explicite prime désormais absolument sur le
+  // palier d'ambition quand il est fourni.
+  const explicitTargetTimeSec = typeof input.targetTimeMinutes === "number" && input.targetTimeMinutes > 0
+    ? input.targetTimeMinutes * 60
+    : null;
+
+  if (!distanceKm || (!explicitTargetTimeSec && !vma && !thr)) {
     return {
       source: "insufficient_data",
       distanceKm,
@@ -299,33 +323,47 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     };
   }
 
-  const scenarios = computeRaceScenarios(
-    { vmaKmh: vma, thresholdPaceSecPerKm: thr },
-    distanceKm,
-  );
-  if ("error" in scenarios) {
-    return {
-      source: "insufficient_data",
-      distanceKm,
-      ambition: amb,
-      pctVMAUsed: ambDef.pctVMA,
-      racePaceSecPerKm: null,
-      raceTimeSec: null,
-      paceRange: null,
-      timeRange: null,
-      literatureRangeSec,
-      divergencePct: null,
-      vmaRequiredForLiterature: null,
-      warning: null,
-      humanSummary: `Cible course non calculée : ${scenarios.error}.`,
-      ...structural,
-    };
-  }
+  let pace: number;
+  let time: number;
+  let fracUsed: number;
+  let sourceSuffix: string;
 
-  const row = scenarios.find(s => s.ambition === amb) ?? scenarios[1];
-  const pace = row.paceSecPerKm;
-  const time = row.timeSec;
-  const fracUsed = fractionVMAForAmbition(ambDef, distanceKm);
+  if (explicitTargetTimeSec) {
+    time = explicitTargetTimeSec;
+    pace = explicitTargetTimeSec / distanceKm;
+    // %VMA informatif seulement (pas utilisé pour dériver l'allure elle-même) :
+    // permet d'alerter dans le humanSummary si le temps cible est irréaliste.
+    fracUsed = vma ? (distanceKm / (time / 3600)) / vma : ambDef.pctVMA;
+    sourceSuffix = "temps cible coach";
+  } else {
+    const scenarios = computeRaceScenarios(
+      { vmaKmh: vma, thresholdPaceSecPerKm: thr },
+      distanceKm,
+    );
+    if ("error" in scenarios) {
+      return {
+        source: "insufficient_data",
+        distanceKm,
+        ambition: amb,
+        pctVMAUsed: ambDef.pctVMA,
+        racePaceSecPerKm: null,
+        raceTimeSec: null,
+        paceRange: null,
+        timeRange: null,
+        literatureRangeSec,
+        divergencePct: null,
+        vmaRequiredForLiterature: null,
+        warning: null,
+        humanSummary: `Cible course non calculée : ${scenarios.error}.`,
+        ...structural,
+      };
+    }
+    const row = scenarios.find(s => s.ambition === amb) ?? scenarios[1];
+    pace = row.paceSecPerKm;
+    time = row.timeSec;
+    fracUsed = fractionVMAForAmbition(ambDef, distanceKm);
+    sourceSuffix = `snapshot : VMA ${vma?.toFixed(1) ?? "?"} km/h × ${(fracUsed * 100).toFixed(0)}% [famille ${distanceFamilyFromKm(distanceKm)}]`;
+  }
 
   let divergencePct: number | null = null;
   let vmaRequired: number | null = null;
@@ -341,8 +379,7 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     }
   }
 
-  const fam = distanceFamilyFromKm(distanceKm);
-  const humanSummary = `${formatSecToTime(time)} · allure ${formatSecPerKm(pace)} (source snapshot : VMA ${vma?.toFixed(1) ?? "?"} km/h × ${(fracUsed * 100).toFixed(0)}% [famille ${fam}])`;
+  const humanSummary = `${formatSecToTime(time)} · allure ${formatSecPerKm(pace)} (source ${sourceSuffix})`;
 
   const paceTargets = buildPaceTargets(pace, vma);
   console.log("🎯 deriveRaceTargets paceTargets", paceTargets);
