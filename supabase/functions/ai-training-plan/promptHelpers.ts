@@ -1773,9 +1773,23 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   const ftpW = data.ftp ? Number(data.ftp) : null;
   const fcMaxBpm = data.fcMax ? Number(data.fcMax) : null;
 
-  lines.push(`\n#### ⚠️ GRILLE ZONES D'ENTRAÎNEMENT TFCL™ Z1→Z7 (RÉFÉRENCE OBLIGATOIRE)`);
-  lines.push(`Ces zones sont les leviers physiologiques utilisés par le coach. Tu DOIS prescrire les séances en utilisant UNIQUEMENT ces zones.`);
-  lines.push(`Les valeurs ci-dessous sont calculées à partir du profil de l'athlète. NE PAS inventer d'autres valeurs.\n`);
+  lines.push(`\n#### ⚠️ GRILLE ZONES D'ENTRAÎNEMENT TFCL™ Z1→Z7 (VOCABULAIRE DE RÉFÉRENCE)`);
+  lines.push(`Ces zones sont les leviers physiologiques utilisés par le coach. Tu DOIS prescrire les séances en utilisant UNIQUEMENT ces zones (Z1..Z7, Z4a/Z4b toujours distingués).`);
+  // Bug réel (audit "plan multi-objectifs Sables d'Olonne", relayé via revue
+  // ChatGPT — "trop de science décorative") : ce bloc affirmait "tu DOIS...
+  // NE PAS inventer d'autres valeurs" puis listait plus bas des allures
+  // ABSOLUES calculées sur un %VMA de POPULATION fixe (ex: "Allure Marathon
+  // (Z4a) : 4'15-4'20/km" pour tout le monde) — alors que le bloc Phase 2B
+  // "INTENSITÉS — RELATIF UNIQUEMENT" (formatTargetTableBlock, même prompt
+  // final, cf. jsonPlanHandler.ts) dit l'inverse : "INTERDIT d'écrire des...
+  // absolus... l'application les calcule pour l'athlète" via renderIntensities.ts
+  // (Phase 2B v2, résolution individualisée au rendu depuis la targetTable
+  // réelle). Les deux instructions se contredisaient dans le MÊME prompt.
+  // Fix : ce tableau redevient un simple repère de lecture (comme le fait déjà
+  // le bloc Phase 2B pour sa propre table TRAINING_ZONES) ; le texte des
+  // séances reste 100% RELATIF, seule source de vérité pour les valeurs
+  // absolues = la targetTable individualisée, appliquée au rendu.
+  lines.push(`⛔ Les colonnes FC/VMA/FTP/Allure ci-dessous sont un REPÈRE DE LECTURE, PAS un texte à recopier : le plan reste 100% RELATIF (cf. bloc INTENSITÉS — RELATIF UNIQUEMENT). N'écris JAMAIS d'allure/puissance/FC absolue dans le title/details d'une séance — uniquement le LABEL de zone (ex: "Z4a"). L'application calcule et affiche la valeur individualisée de l'athlète au rendu.\n`);
 
   // Zone definitions: [name, description, fcLow, fcHigh, vmaLow, vmaHigh, ftpLow, ftpHigh]
   const zones: [string, string, number, number, number, number, number, number][] = [
@@ -1813,14 +1827,6 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
   // Explicit pace hierarchy rule
   if (vmaKmh && vmaKmh > 0) {
-    const seuilPace = 3600 / (vmaKmh * 0.90); // Z5 low bound
-    lines.push(`\n**Allures spécifiques calculées :**`);
-    lines.push(`- Allure EF/Z2 : ${formatPace(3600 / (vmaKmh * 0.65))}-${formatPace(3600 / (vmaKmh * 0.70))}/km`);
-    lines.push(`- Allure Marathon (Z4a) : ${formatPace(3600 / (vmaKmh * 0.83))}-${formatPace(3600 / (vmaKmh * 0.78))}/km`);
-    lines.push(`- Allure Semi (Z4b) : ${formatPace(3600 / (vmaKmh * 0.88))}-${formatPace(3600 / (vmaKmh * 0.83))}/km`);
-    lines.push(`- Allure Seuil (Z5) : ${formatPace(3600 / (vmaKmh * 0.92))}-${formatPace(3600 / (vmaKmh * 0.88))}/km`);
-    lines.push(`- Allure VMA (Z6) : ${formatPace(3600 / (vmaKmh * 1.05))}-${formatPace(3600 / (vmaKmh * 0.95))}/km`);
-
     // ── ANCRAGE SEUIL RUN INDIVIDUALISÉ (TFCL™ Modèle C, RMSE 2.64%) ───────
     // Si pace_threshold observé OU prédit via VLamax run + CE → ancrer Z5 sur cette valeur
     const mlssPct = data.runMLSSEffectivePct ? Number(data.runMLSSEffectivePct) : null;
@@ -1828,12 +1834,12 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     const observedPaceSec = data.paceThresholdSecPerKm ? Number(data.paceThresholdSecPerKm) : null;
     if (observedPaceSec && observedPaceSec > 0) {
       lines.push(`\n🎯 **Allure seuil INDIVIDUALISÉE (test de terrain observé)** : ${formatPace(observedPaceSec)}/km`);
-      lines.push(`→ Cette valeur PRIME sur la fourchette Z5 générique ci-dessus. Ancrer toutes les séances de seuil long / Norvégienne / MLSS sur cette allure (±5 sec/km).`);
+      lines.push(`→ Cette valeur PRIME sur la fourchette Z5 générique ci-dessus pour TA compréhension de où se situe le seuil de cet athlète. Séances de seuil long / Norvégienne / MLSS = label "Z5" dans le texte (jamais cette allure chiffrée, cf. règle 100% RELATIF ci-dessus) — l'application affiche cette allure individualisée au rendu.`);
     } else if (mlssPct && mlssPct > 0 && mlssSource === "predicted") {
       const predictedSpeedKmh = vmaKmh * mlssPct / 100;
       const predictedPaceSec = 3600 / predictedSpeedKmh;
       lines.push(`\n🧪 **Allure seuil ESTIMÉE (Modèle C — VLamax run + Économie, RMSE ±2.64%)** : ${formatPace(predictedPaceSec)}/km (≈ ${mlssPct.toFixed(1)}% VMA)`);
-      lines.push(`→ Pas de test de seuil disponible : utilise cette estimation comme point d'ancrage Z5. À confirmer par un test 30min ou MLSS de terrain.`);
+      lines.push(`→ Pas de test de seuil disponible : utilise cette estimation comme repère de calibration Z5 (pas de test 30min ou MLSS terrain effectué). Le texte des séances reste "Z5" — jamais cette allure chiffrée.`);
     }
 
     lines.push(`\n🚨 HIÉRARCHIE INVIOLABLE (du plus lent au plus rapide) : Z2 > Z4a Marathon > Z4b Semi > Z5 Seuil > Z6 VMA`);
