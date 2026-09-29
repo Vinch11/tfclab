@@ -587,6 +587,20 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
 }
 
 /**
+ * Vrai seulement si VLamax élevée ou FatMax bas a été RÉELLEMENT identifié
+ * comme limiteur de cet athlète — jamais un réflexe par objectif ou par
+ * défaut. Centralisé ici pour que les DEUX endroits du prompt qui peuvent
+ * prescrire du Train Low (le rappel de cohérence Ironman plus bas, et
+ * l'audit durabilité F-24 ci-dessous) restent alignés sur la même condition
+ * — exactement la classe de bug (deux endroits qui répètent la même règle
+ * et finissent par diverger) rencontrée plusieurs fois cet audit.
+ */
+function hasVlamaxOrFatMaxLimiter(config: any): boolean {
+  return Array.isArray(config?.identifiedLimiters)
+    && config.identifiedLimiters.some((l: string) => /vlamax|fatmax/i.test(String(l)));
+}
+
+/**
  * Résout les flags de maintien croisé (coach-configurable, cf.
  * `PlanConfig.crossTrainingMaintenance` côté client) — défaut = comportement
  * historique (vélo Z1 récup autorisé, natation interdite) si le coach n'a
@@ -1249,13 +1263,30 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
           } else if (shortMin <= 30) {
             lines.push(`→ 🟠 **Durabilité INSUFFISANTE (carence ${shortMin} min)** : TTE ${tteVal} min vs cible ${durabilityTarget} min pour ${tFmt}.`);
             lines.push(`   • Sortie longue Z2 obligatoire 1×/sem, progression +10-15 min/sem jusqu'à ≥ ${Math.round(raceDurMin * 0.75)} min en pic.`);
-            lines.push(`   • Ajouter 1 séance hebdo de Train Low (Z2 à jeun 60-90 min) pour FatMax + économie glycogène.`);
+            // Bug réel (ChatGPT, plan 10K "Vince") : cette ligne prescrivait du
+            // Train Low pour TOUT objectif dès qu'un écart TTE était détecté —
+            // y compris un 10K (30-45min de course, où le "mur" glycogénique
+            // n'est pas le facteur limitant), sans jamais vérifier si VLamax/
+            // FatMax avait été identifié comme limiteur de CET athlète. Même
+            // fix que le rappel de cohérence Ironman plus bas (cf.
+            // hasVlamaxOrFatMaxLimiter) : le jeûne n'est plus un réflexe
+            // générique "carence de durabilité", seulement une réponse à un
+            // limiteur physiologique réellement diagnostiqué.
+            if (hasVlamaxOrFatMaxLimiter(config)) {
+              lines.push(`   • Ajouter 1 séance hebdo de Train Low (Z2 à jeun 60-90 min) pour FatMax + économie glycogène (limiteur VLamax/FatMax identifié).`);
+            } else {
+              lines.push(`   • PAS de Train Low par défaut ici — aucun limiteur VLamax/FatMax identifié chez cet athlète. Combler la carence par du volume Z2 alimenté normalement.`);
+            }
             if (isTriOrBrick) lines.push(`   • Inclure 1 BRICK vélo→course chaque 10-14 jours pour transfert spécifique de durabilité.`);
             else lines.push(`   • Bloc spécifique en pré-compétition : 1 SL à allure course progressive (40-60% du temps cible en finissant à pace).`);
           } else {
             lines.push(`→ 🔴 **DURABILITÉ = LIMITEUR MAJEUR (carence ${shortMin} min)** : TTE ${tteVal} min très en dessous de la cible ${durabilityTarget} min pour ${tFmt}. Risque de DNF / mur métabolique élevé.`);
             lines.push(`   • PRIORITÉ #1 du plan : volume aérobie soutenu. SL Z2 hebdomadaire OBLIGATOIRE, progression jusqu'à ≥ ${Math.round(raceDurMin * 0.80)} min en pic.`);
-            lines.push(`   • 2 séances/sem Train Low (Z2 60-120 min à jeun) → adaptation FatMax + résistance fatigue.`);
+            if (hasVlamaxOrFatMaxLimiter(config)) {
+              lines.push(`   • 2 séances/sem Train Low (Z2 60-120 min à jeun) → adaptation FatMax + résistance fatigue (limiteur VLamax/FatMax identifié).`);
+            } else {
+              lines.push(`   • PAS de Train Low par défaut ici — aucun limiteur VLamax/FatMax identifié chez cet athlète. Combler la carence par du volume Z2 alimenté normalement, pas par la restriction glucidique.`);
+            }
             if (isTriOrBrick) lines.push(`   • BRICK vélo→course 1×/sem en bloc spécifique (transfert durabilité pluri-disciplinaire).`);
             else lines.push(`   • Bloc spécifique : 2 SL à allure course progressive (50-70% temps cible en finissant à pace) + 1 simulation longue (75% durée course).`);
             lines.push(`   • Réduire l'intensité haute (Z5/Z6) à 1 séance/sem max pendant le bloc base, pour libérer du volume aérobie.`);
@@ -2085,9 +2116,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     // pas un pilier systématique de l'endurance", cohérent avec la réserve
     // déjà exprimée plus haut sur les leviers VLamax "plausibles mais non
     // démontrés" (Hansen & Rønnestad 2017).
-    const hasVlamaxOrFatMaxLimiter = Array.isArray(config.identifiedLimiters)
-      && config.identifiedLimiters.some((l: string) => /vlamax|fatmax/i.test(String(l)));
-    if (hasVlamaxOrFatMaxLimiter) {
+    if (hasVlamaxOrFatMaxLimiter(config)) {
       lines.push("- Train Low : limiteur VLamax/FatMax identifié → applique la fréquence de la matrice ci-dessus, jamais plus (pas de cumul avec une consigne générique).");
     } else {
       lines.push("- Train Low : PAS un réflexe systématique \"Ironman\" — seulement si VLamax élevée ou FatMax bas est identifié comme limiteur (aucun ici). Sinon, aucune séance à jeun prescrite par défaut.");
