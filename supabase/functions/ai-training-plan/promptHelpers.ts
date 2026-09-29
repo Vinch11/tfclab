@@ -2069,7 +2069,29 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Vélo 45-55% | CAP 25-35% | Natation 15-20% | Renfo 5-10%");
     lines.push("- Min 3 natation/sem (technique + CSS + OWS), 4 vélo/sem, 3 CAP/sem");
     lines.push("- Briques vélo→CAP 1-2x/sem en phase spécifique");
-    lines.push("- Train Low 2-3x/sem en phase base");
+    // Bug réel (audit "trop de fasted/train-low", ChatGPT sur le plan multi-
+    // objectifs Séville→Sables d'Olonne, point #6) : cette ligne mandatait le
+    // Train Low 2-3×/sem en phase base pour TOUT plan Ironman, sans jamais
+    // regarder si VLamax élevée ou FatMax bas étaient réellement identifiés
+    // comme limiteurs de CET athlète (cf. matrice "SÉANCE CLÉ × LIMITEUR ×
+    // PHASE" ci-dessus, qui prescrit déjà le Train Low de façon ciblée quand
+    // c'est indiqué). Un athlète dont les limiteurs réels sont ailleurs
+    // (Économie, Pmax, TTE...) recevait quand même l'injonction "Ironman =
+    // jeûne" — et un athlète AVEC VLamax/FatMax en limiteur cumulait cette
+    // ligne ET la prescription de la matrice, doublant la fréquence réelle de
+    // jeûne. Fix : le Train Low n'est plus un réflexe "Ironman" par défaut,
+    // seulement une conséquence d'un limiteur physiologique réellement
+    // identifié (déjà couvert par la matrice) — "une petite dose ponctuelle,
+    // pas un pilier systématique de l'endurance", cohérent avec la réserve
+    // déjà exprimée plus haut sur les leviers VLamax "plausibles mais non
+    // démontrés" (Hansen & Rønnestad 2017).
+    const hasVlamaxOrFatMaxLimiter = Array.isArray(config.identifiedLimiters)
+      && config.identifiedLimiters.some((l: string) => /vlamax|fatmax/i.test(String(l)));
+    if (hasVlamaxOrFatMaxLimiter) {
+      lines.push("- Train Low : limiteur VLamax/FatMax identifié → applique la fréquence de la matrice ci-dessus, jamais plus (pas de cumul avec une consigne générique).");
+    } else {
+      lines.push("- Train Low : PAS un réflexe systématique \"Ironman\" — seulement si VLamax élevée ou FatMax bas est identifié comme limiteur (aucun ici). Sinon, aucune séance à jeun prescrite par défaut.");
+    }
     lines.push("- Gut Training progressif obligatoire");
 
     // ─── DURABILITÉ RUN IM — OBLIGATOIRE BUILD/PEAK (élite/competitor) ───
