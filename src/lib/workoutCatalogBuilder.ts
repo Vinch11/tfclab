@@ -97,6 +97,30 @@ export const HISTORY_PENALTY_PER_USE = 7;
 export const HISTORY_PENALTY_CAP = 18;
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// P4 DIVERSITÉ — hash de départage d'égalités (cf. `rotationSeed` ci-dessus)
+// ═══════════════════════════════════════════════════════════════════════════════
+/**
+ * Hash déterministe (FNV-1a 32 bits) → nombre dans [0, 1). Utilisé UNIQUEMENT
+ * pour départager deux fiches à score STRICTEMENT ÉGAL — jamais mélangé au
+ * score lui-même (qui doit rester un entier exact : plusieurs comparaisons
+ * ailleurs dans ce fichier testent `score <= -1000` pour le hard-ban).
+ */
+function tieBreakHash(id: string, seed: number): number {
+  // Le seed est mélangé dans l'accumulateur INITIAL (pas juste ajouté en
+  // suffixe de chaîne) pour qu'il se propage sur tout le calcul — deux seeds
+  // proches (1, 2, 3...) doivent produire des ordres nettement différents,
+  // pas seulement une perturbation locale du dernier caractère traité.
+  let h = (0x811c9dc5 ^ seed) >>> 0;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  h ^= seed;
+  h = Math.imul(h, 0x01000193);
+  return (h >>> 0) / 0xffffffff;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // B5 STAGE ATTRIBUTION — trace, par ID, l'étape la plus tardive atteinte à travers
 // tous les appels de buildWorkoutCatalog d'une génération de plan. Consommé par
 // checks.ts B5 pour catégoriser précisément chaque fiche absente de l'union.
@@ -518,6 +542,25 @@ export function buildWorkoutCatalog(
     /** Hard-exclude workouts whose tags include any of these values (applied pre-scoring). */
     excludeTags?: string[];
     /**
+     * P4 diversité — départage des ÉGALITÉS de score (retour coach : "avec le
+     * catalogue étoffé qu'on a, ce serait dommage que les plans soient réduits
+     * à seulement quelques séances type"). `Array.prototype.sort` étant stable,
+     * deux fiches à score IDENTIQUE conservaient jusqu'ici l'ordre de
+     * concaténation de `WorkoutLibrary` (Pro Pack → Templates → Enriched → V2
+     * → ... → Hedgehog → IM Run Durability → ...) — un accident d'historique
+     * de fichier source, pas un choix de pertinence. Mesuré empiriquement :
+     * ~15% du catalogue (137/896 fiches, ex. les 10 variantes quasi-
+     * identiques `BR_HALF_V1_PRO`...`BR_HALF_V10_PRO`) n'était JAMAIS
+     * sélectionnable, quel que soit l'objectif/phase/limiteur/historique
+     * testé — toujours dominé par la même fiche plus ancienne à égalité
+     * stricte. `rotationSeed` (fourni par l'appelant, ex. un timestamp
+     * généré une fois par génération de plan) fait varier le départage
+     * PUREMENT SUR LES ÉGALITÉS — ne change jamais le résultat d'un écart de
+     * score réel — d'une génération à l'autre. Absent (0 par défaut) :
+     * comportement déterministe pour les tests.
+     */
+    rotationSeed?: number;
+    /**
      * P3 diversité — usage pondéré des fiches dans les DERNIERS PLANS de l'athlète
      * (id → poids de récence). Appliqué en pénalité de score, jamais en exclusion.
      */
@@ -882,6 +925,7 @@ export function buildWorkoutCatalog(
     return Math.min(HISTORY_PENALTY_CAP, w * HISTORY_PENALTY_PER_USE);
   };
 
+  const rotationSeed = options?.rotationSeed ?? 0;
   const scored = current
     .map(w => ({
       workout: w,
@@ -890,7 +934,13 @@ export function buildWorkoutCatalog(
         return base <= -1000 ? base : base - historyPenalty(w.id);
       })(),
     }))
-    .sort((a, b) => b.score - a.score);
+    // P4 diversité : à score strictement égal, départage par hash(id, rotationSeed)
+    // plutôt que l'ordre de concaténation de WorkoutLibrary (cf. commentaire
+    // `rotationSeed` dans les options de buildWorkoutCatalog).
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return tieBreakHash(b.workout.id, rotationSeed) - tieBreakHash(a.workout.id, rotationSeed);
+    });
 
   if (historyUsage && historyUsage.size > 0) {
     const penalized = scored.filter(s => historyPenalty(s.workout.id) > 0).length;

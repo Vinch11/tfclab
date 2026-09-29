@@ -325,6 +325,10 @@ async function buildRegenCatalog(
       excludeIdPatterns,
       excludeTags,
       historicalUsage,
+      // P4 diversité : un seed par appel — une régénération répétée de la
+      // même semaine doit pouvoir départager différemment les égalités de
+      // score (cf. rotationSeed, workoutCatalogBuilder.ts).
+      rotationSeed: Date.now(),
       injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
     },
   );
@@ -354,6 +358,9 @@ async function buildRegenPhaseCatalogs(
     : undefined;
   const historicalUsage = await fetchHistoricalCatalogUsage(athleteId);
   resetCatalogAttribution();
+  // P4 diversité : un seed par régénération, partagé entre les 4 phases de
+  // cet appel (cf. rotationSeed, workoutCatalogBuilder.ts).
+  const rotationSeed = Date.now();
 
   const phaseRanges = [
     { phase: "base", start: 1, end: Math.ceil(weeksAvailable * 0.25) },
@@ -379,6 +386,7 @@ async function buildRegenPhaseCatalogs(
         excludeIdPatterns,
         excludeTags,
         historicalUsage,
+        rotationSeed,
         injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
       },
     );
