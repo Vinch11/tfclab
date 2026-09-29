@@ -77,19 +77,55 @@ const VARIANT_KEY_TO_GOAL: Record<string, WorkoutGoal> = {
   trail_long: "trail_long",
 };
 
+// Marqueurs de priorité explicite dans le texte d'un variant — convention déjà
+// utilisée par les auteurs des fiches "méthode" (Billat/Canova/Seiler/Coggan)
+// pour indiquer LEQUEL des objectifs documentés est l'usage principal de la
+// fiche ("PRIORITÉ ABSOLUE", "CLEF —", "pilier de la préparation marathon",
+// "SÉANCE CANOVA SIGNATURE"...), les autres n'étant que des adaptations
+// possibles. Sans ce signal, `inferGoalsFromVariants` traitait TOUT texte non
+// trivial comme une adhésion pleine et entière à l'objectif — y compris des
+// notes clairement secondaires ("Support secondaire", "1x/14j uniquement si
+// VO2max est limiteur") — produisant des `goals` bien trop larges (souvent
+// les 4 objectifs ironman/half/marathon/semi) qui privent ces fiches, au
+// scoring (workoutCatalogBuilder.scoreWorkout), du bonus "objectif étroit"
+// (+4) et "tous les objectifs demandés matchent" (+3) — un écart de 5 à 7
+// points qui suffit à les exclure systématiquement du catalogue injecté face
+// à des fiches génériques bien notées mais moins riches en contenu (mesuré :
+// BILLAT_RUN_MARATHON_PACE et CANOVA_RUN_PROGRESSIVE_LONG, toutes deux
+// "Obligatoire" et explicitement prioritaires pour marathon dans leur propre
+// texte, n'apparaissaient JAMAIS dans le catalogue injecté d'un plan
+// marathon, quel que soit maxItems).
+const STRONG_VARIANT_MARKER = /\bpriorit|\bclef\b|\bcl[ée]\b|\bpilier\b|\bsignature\b/i;
+
+// Marqueurs explicites d'usage secondaire/non recommandé — reconnus même
+// quand ils ne sont pas l'unique contenu de la valeur (l'ancien filtre ne
+// reconnaissait que "—"/"rare"/"optionnel"/"légère" en correspondance EXACTE,
+// ratant par ex. "Non recommandé — trop glycolytique pour IM", "Support
+// secondaire", "Non prioritaire" — cause d'un vrai bug de données : sans ce
+// fix, BILLAT_RUN_LACTATE_TOLERANCE héritait du goal "ironman" alors que son
+// propre texte dit explicitement "Non recommandé — trop glycolytique pour IM").
+const WEAK_VARIANT_MARKER = /\bnon[-\s]?recommand[ée]|\bnon[-\s]?applicable\b|\bnon[-\s]?priorit|\brare\b|\bsecondaire\b|^support\b|\bpas\s*(la\s*)?priorit|\boptionnel\b|\bl[ée]g[èe]re\b/i;
+
 function inferGoalsFromVariants(w: LibraryWorkout): WorkoutGoal[] {
   if (!w.variants) return [];
-  const goals: WorkoutGoal[] = [];
-  for (const [key, value] of Object.entries(w.variants)) {
-    const goal = VARIANT_KEY_TO_GOAL[key];
-    if (!goal) continue;
-    // Only add if variant value is meaningful (not "—", not empty)
+  const entries = Object.entries(w.variants).filter(([key]) => VARIANT_KEY_TO_GOAL[key]);
+
+  const isMeaningful = (value: string | undefined): boolean => {
     const val = (value || "").trim();
-    if (val && val !== "—" && val !== "-" && val !== "rare" && val !== "optionnel" && val !== "légère") {
-      goals.push(goal);
-    }
+    return !!val && val !== "—" && val !== "-" && !WEAK_VARIANT_MARKER.test(val);
+  };
+
+  // 1. Si au moins un variant porte un marqueur de priorité explicite, ne
+  //    retenir QUE ceux-là — les autres variants documentés ne sont que des
+  //    adaptations possibles, pas l'usage principal de la fiche.
+  const priority = entries.filter(([, value]) => isMeaningful(value) && STRONG_VARIANT_MARKER.test(value || ""));
+  if (priority.length > 0) {
+    return priority.map(([key]) => VARIANT_KEY_TO_GOAL[key]);
   }
-  return goals;
+
+  // 2. Sinon, comportement existant : tout variant "significatif" (ni vide,
+  //    ni marqué comme secondaire/non recommandé) compte.
+  return entries.filter(([, value]) => isMeaningful(value)).map(([key]) => VARIANT_KEY_TO_GOAL[key]);
 }
 
 // ─── GOAL INFERENCE FROM OBJECTIF TEXT ───────────────────────────────────────
