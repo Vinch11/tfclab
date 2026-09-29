@@ -93,6 +93,37 @@ export function buildWeeklySlotLayout(
   targets.brick = Math.min(targets.brick, quota.brick.max);
   targets.strength = Math.min(targets.strength, quota.strength.max);
 
+  // ─── ENFORCEMENT quota.totalSessions.max ─────────────────────────────────
+  // Bug réel (audit "trop de séances empilées", ChatGPT sur le plan multi-
+  // objectifs Séville→Sables d'Olonne) : chaque cible sport ci-dessus n'est
+  // clampée qu'à SON PROPRE max — rien ne vérifiait la SOMME contre
+  // `quota.totalSessions`, alors déclaré par la matrice (sessionSizingMatrix.ts)
+  // comme le plafond hebdo voulu. Exemple concret : palier IM "competitor"
+  // (swim 3-4, bike 3-4, run 3-4, brick 1, strength 2, totalSessions déclaré
+  // 12) produit 4+4+4+1+2=15 séances via les midpoints — 3 de plus que le
+  // plafond que la matrice elle-même déclare. Fix : si la somme dépasse
+  // `totalSessions.max`, on retranche jusqu'à la respecter, jamais sous le
+  // min propre de chaque sport ni sous les planchers coach (natation/renfo).
+  // Priorité de retrait CAP > vélo > natation > renfo > brick — brick (SL
+  // vélo/course) et renfo sont les stimuli les plus structurants/rares.
+  const sportFloor: Record<LayoutSport, number> = {
+    swim: Math.max(floors.minSwimPerWeek ?? 0, quota.swim.min),
+    bike: quota.bike.min,
+    run: quota.run.min,
+    brick: quota.brick.min,
+    strength: Math.max(floors.minStrengthPerWeek, quota.strength.min),
+  };
+  const TRIM_ORDER: LayoutSport[] = ["run", "bike", "swim", "strength", "brick"];
+  let totalTarget = targets.swim + targets.bike + targets.run + targets.brick + targets.strength;
+  let trimGuard = 0;
+  while (totalTarget > quota.totalSessions.max && trimGuard < 50) {
+    trimGuard++;
+    const trimmable = TRIM_ORDER.find((s) => targets[s] > sportFloor[s]);
+    if (!trimmable) break; // planchers déjà atteints — on ne descend pas plus bas
+    targets[trimmable]--;
+    totalTarget--;
+  }
+
   const days: DayLayout[] = DAY_ORDER.map(d => ({ dayName: d, isRest: false, slots: [] }));
   const findDay = (d: DayName) => days.find(x => x.dayName === d)!;
   const canAdd = (d: DayName): boolean => findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest;

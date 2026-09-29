@@ -206,6 +206,7 @@ describe("plancher fréquence course taper/race", () => {
   const quota = {
     swim: { min: 1, max: 2 }, bike: { min: 1, max: 2 }, run: { min: 0, max: 1 },
     brick: { min: 0, max: 0 }, strength: { min: 0, max: 0 },
+    totalSessions: { min: 2, max: 5 },
     maxSessionsPerDay: 2, minFullRestDays: 1,
   } as any;
   const floors = { minSwimPerWeek: 1, minStrengthPerWeek: 0, longRideWeekly: false, longRunWeekly: false } as any;
@@ -294,5 +295,75 @@ describe("weeklySlotLayout — fillSwim pose isKeySession (audit génération de
     const dayLabelMap: Record<string, string> = { lundi: "Lun", mardi: "Mar", mercredi: "Mer", jeudi: "Jeu", vendredi: "Ven", samedi: "Sam", dimanche: "Dim" };
     const segment = line.split(" · ").find(s => s.startsWith(`${dayLabelMap[swimDay.dayName]}:`));
     expect(segment).toContain("(qualité)");
+  });
+
+  /**
+   * Bug réel (audit "trop de séances empilées", ChatGPT sur le plan multi-
+   * objectifs Séville→Sables d'Olonne) : chaque cible sport n'était clampée
+   * qu'à SON PROPRE max (quota.swim.max, quota.bike.max, ...) — rien ne
+   * vérifiait la SOMME contre `quota.totalSessions`, le plafond hebdo que la
+   * matrice (sessionSizingMatrix.ts) déclare pourtant elle-même. Exemple
+   * concret trouvé : palier IM "competitor" (swim 3-4, bike 3-4, run 3-4,
+   * brick 1, strength 2, totalSessions déclaré {12,12}) produisait
+   * 4+4+4+1+2=15 séances via les midpoints de chaque fourchette — 3 de plus
+   * que le plafond déclaré par la matrice elle-même.
+   */
+  describe("plafond quota.totalSessions.max toujours respecté", () => {
+    function totalSlots(l: ReturnType<typeof build>): number {
+      return l.days.reduce((n, d) => n + d.slots.length, 0);
+    }
+
+    it("IM competitor load : ne dépasse plus le plafond déclaré (repro : 15 séances pour un plafond de 12 avant fix)", () => {
+      const r = computeWeeklySessionQuota("IRONMAN", "competitor", 13, "load", false)!;
+      const l = buildWeeklySlotLayout(r.quota, r.floors, "load");
+      expect(totalSlots(l)).toBeLessThanOrEqual(r.quota.totalSessions.max);
+    });
+
+    it("IM elite load : ne dépasse plus le plafond déclaré (repro : 19 séances pour un plafond de 18 avant fix)", () => {
+      const r = computeWeeklySessionQuota("IRONMAN", "elite", 20, "load", false)!;
+      const l = buildWeeklySlotLayout(r.quota, r.floors, "load");
+      expect(totalSlots(l)).toBeLessThanOrEqual(r.quota.totalSessions.max);
+    });
+
+    it("invariant général : pour une sélection large objectif × ambition (semaines de charge), le total de créneaux ne dépasse jamais quota.totalSessions.max", () => {
+      // Seul "load" est testé ICI à dessein — c'est le weekType du bug ChatGPT
+      // (semaines de développement/build empilant trop de séances, pas
+      // l'affûtage). recovery/taper/race sont exclus car
+      // `computeWeeklySessionQuota` (sessionSizingMatrix.ts) y recalcule déjà
+      // `totalSessions` de façon indépendante des ajustements par sport (ex:
+      // recovery applique un ×0.7 global au total ET des ajustements ad hoc
+      // par sport séparément) — un mésalignement déclaratif distinct, propre à
+      // ces branches, qui reste à corriger séparément dans
+      // `computeWeeklySessionQuota` plutôt que dans `buildWeeklySlotLayout`
+      // (qui ne peut pas retrancher sous un plancher par sport déjà atteint).
+      const objectives = ["IRONMAN", "IRONMAN 70.3", "MARATHON", "TRIATHLON SPRINT"];
+      const ambitions = ["finisher", "age_group", "competitor", "elite", "world_class"];
+      const weekTypes: Array<"load"> = ["load"];
+      for (const objective of objectives) {
+        for (const ambition of ambitions) {
+          for (const weekType of weekTypes) {
+            const r = computeWeeklySessionQuota(objective, ambition, 15, weekType, false);
+            if (!r) continue;
+            const l = buildWeeklySlotLayout(r.quota, r.floors, weekType);
+            expect(
+              totalSlots(l),
+              `${objective}/${ambition}/${weekType} : ${totalSlots(l)} séances pour un plafond de ${r.quota.totalSessions.max}`,
+            ).toBeLessThanOrEqual(r.quota.totalSessions.max);
+          }
+        }
+      }
+    });
+
+    it("le retrait respecte les planchers (min de chaque sport, planchers coach natation/renfo) même s'il ne suffit pas à atteindre le plafond", () => {
+      // Cas dégénéré : min déjà au-dessus du plafond déclaré — le trim ne doit
+      // jamais descendre sous les minimums individuels, même s'il ne peut pas
+      // atteindre le plafond total.
+      const r = computeWeeklySessionQuota("IRONMAN", "elite", 20, "load", false)!;
+      const l = buildWeeklySlotLayout(r.quota, r.floors, "load");
+      expect(l.targetsBySport.swim).toBeGreaterThanOrEqual(r.quota.swim.min);
+      expect(l.targetsBySport.bike).toBeGreaterThanOrEqual(r.quota.bike.min);
+      expect(l.targetsBySport.run).toBeGreaterThanOrEqual(r.quota.run.min);
+      expect(l.targetsBySport.strength).toBeGreaterThanOrEqual(r.quota.strength.min);
+    });
   });
 });
