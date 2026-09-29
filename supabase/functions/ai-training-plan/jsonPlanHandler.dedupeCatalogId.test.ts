@@ -121,6 +121,56 @@ Deno.test("applyReconciler — aucune alternative dans le dump du chunk courant,
   assert(repair, "repair duplicate_catalog_id_replaced attendu (repli global réussi)");
 });
 
+// Fix B4 (audit "génération de plan IA") : l'ancien filtre acceptait
+// N'IMPORTE QUELLE classe de remplacement dès que la classe de la VICTIME
+// était "unknown" (texte non reconnu par classifyIntensity) — une séance clé
+// dupliquée dont le texte ne matche aucun marqueur d'intensité connu pouvait
+// ainsi être silencieusement dégradée en récupération. Le fix : sans classe
+// de confiance sur l'original, on ne devine plus — la séance d'origine est
+// conservée telle quelle plutôt que remplacée à l'aveugle.
+function mkUnknownClassSession(day: string): any {
+  return {
+    day,
+    sport: "bike",
+    title: "Séance signature propriétaire",
+    details: "Protocole confidentiel — voir coach pour le détail.",
+    isKeySession: true,
+    custom: false,
+    catalogId: "V3_BIKE_UNKNOWN_PROTOCOL",
+    durationMin: 80,
+    zones: [],
+  };
+}
+
+Deno.test("applyReconciler — victime classe 'unknown' : occurrence dupliquée CONSERVÉE telle quelle, jamais remplacée par une classe devinée (recovery incluse)", () => {
+  // Dump avec une alternative "recovery" — exactement le scénario risqué que
+  // l'ancien filtre permissif aurait accepté (dégradation silencieuse d'une
+  // séance clé en récupération).
+  const dumpWithRecoveryAlternative = `#### Vélo
+| ID | Cat | Titre | Phase | Durée | Structure |
+| V3_BIKE_UNKNOWN_PROTOCOL | B | Protocole propriétaire | Base/Build | 70-90 | Protocole confidentiel — voir coach. |
+| V3_BIKE_RECOVERY_SPIN | B | Récup spin | Base/Build | 40-60 | Récupération active [Z1]. |
+`;
+  const chunk = mkChunk([mkUnknownClassSession("jeudi"), mkUnknownClassSession("vendredi")]);
+  const { chunks, repairs } = applyReconciler([chunk], BASE_QUOTA, [dumpWithRecoveryAlternative], null);
+
+  const sessions = chunks[0].weeks[0].sessions;
+  const ids = sessions.map((s: any) => s.catalogId);
+  // Les 2 occurrences restent IDENTIQUES — pas de substitution hasardeuse.
+  assertEquals(ids[0], "V3_BIKE_UNKNOWN_PROTOCOL");
+  assertEquals(ids[1], "V3_BIKE_UNKNOWN_PROTOCOL");
+  // isKeySession n'est jamais dégradé (aucune mutation de la séance).
+  assertEquals(sessions[1].isKeySession, true);
+
+  assert(
+    !repairs.some((r) => r.code === "duplicate_catalog_id_replaced"),
+    "aucun remplacement ne doit être tenté pour une victime de classe unknown",
+  );
+  const unresolved = repairs.find((r) => r.code === "duplicate_catalog_id_unresolved");
+  assert(unresolved, "repair duplicate_catalog_id_unresolved attendu (visibilité QA du doublon conservé)");
+  assertEquals(unresolved!.sport, "bike");
+});
+
 Deno.test("applyReconciler — 3 occurrences du même catalogId : les 2 dernières remplacées, la 1re intacte", () => {
   const dump = `#### Vélo
 | ID | Cat | Titre | Phase | Durée | Structure |
