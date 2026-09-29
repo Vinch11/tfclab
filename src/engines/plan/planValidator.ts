@@ -760,16 +760,45 @@ function validateWeeklyHardDayDensity(plan: ParsedPlan): { issues: ValidationIss
     const protectedDays = DAYS_IN_WEEK - hardDays;
 
     checked++;
+    let weekCompliant = true;
     if (protectedDays <= 1) {
+      weekCompliant = false;
       issues.push({
         rule: "polarization",
         severity: "warning",
         week: week.weekNumber,
         message: `S${week.weekNumber}: ${hardDays}/7 jours avec un stimulus modéré/dur (>${HARD_DAY_THRESHOLD_MIN}min) — seulement ${protectedDays} jour(s) réellement protégé(s) dans la semaine, risque de surcharge malgré un ratio temps low/mid/high polarisé`,
       });
-    } else {
-      compliant++;
     }
+
+    // Bug réel (ChatGPT, plan 10K "Vince") : la densité totale ci-dessus peut
+    // rester dans les clous (ex. 2 jours protégés en tout début de semaine)
+    // alors que 4 jours DURS s'enchaînent SANS AUCUNE coupure (ex. Mer-Jeu-
+    // Ven-Sam, avant une sortie longue le dimanche) — un problème de séquence,
+    // pas de volume total, que le comptage ci-dessus ne peut pas voir (il ne
+    // regarde jamais où les jours durs tombent dans la semaine, seulement
+    // combien il y en a). Limite connue : ne détecte pas un enchaînement à
+    // cheval sur deux semaines (ex. Ven-Sam-Dim-Lun) — dayIndex est borné à
+    // la semaine courante (0=Lundi..6=Dimanche, cf. aiPlanParser.ts).
+    const MAX_CONSECUTIVE_HARD_DAYS = 3;
+    let longestStreak = 0;
+    let currentStreak = 0;
+    for (let d = 0; d < DAYS_IN_WEEK; d++) {
+      const isHard = (hardMinutesByDay.get(d) ?? 0) > HARD_DAY_THRESHOLD_MIN;
+      currentStreak = isHard ? currentStreak + 1 : 0;
+      if (currentStreak > longestStreak) longestStreak = currentStreak;
+    }
+    if (longestStreak > MAX_CONSECUTIVE_HARD_DAYS) {
+      weekCompliant = false;
+      issues.push({
+        rule: "polarization",
+        severity: "warning",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: ${longestStreak} jours consécutifs avec un stimulus modéré/dur (>${HARD_DAY_THRESHOLD_MIN}min), sans jour facile intercalé (max recommandé: ${MAX_CONSECUTIVE_HARD_DAYS}) — risque de surcharge/blessure malgré un ratio ou un total hebdomadaire conformes`,
+      });
+    }
+
+    if (weekCompliant) compliant++;
   }
 
   return { issues, score: checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100))) };

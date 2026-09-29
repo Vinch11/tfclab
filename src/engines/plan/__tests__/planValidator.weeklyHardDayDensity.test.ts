@@ -79,3 +79,50 @@ describe("validatePolarization — densité de jours qualité dans la semaine", 
     expect(result.issues.filter((i) => i.rule === "polarization" && /jour\(s\) réellement protégé/i.test(i.message))).toHaveLength(0);
   });
 });
+
+/**
+ * Bug réel signalé par ChatGPT sur un plan 10K généré ("Vince") : la densité
+ * hebdomadaire totale ci-dessus peut rester conforme (≥2 jours protégés dans
+ * la semaine) alors que 4 jours DURS s'enchaînent sans AUCUNE coupure —
+ * exactement l'exemple cité : Mer (5×3min @100%VMA + pliométrie), Jeu (6×5min
+ * seuil haut), Ven (8×60s côte), Sam (pyramide 95-105%VMA), puis une sortie
+ * longue le dimanche. Lundi+Mardi protégés en tête de semaine suffisent à
+ * passer le contrôle de densité totale, alors que l'enchaînement lui-même
+ * (aucun jour facile intercalé sur 4 jours consécutifs) est le vrai problème
+ * de récupération — un angle mort distinct, non couvert par le comptage
+ * total.
+ */
+describe("validatePolarization — jours durs consécutifs (enchaînement, pas volume total)", () => {
+  it("flague 5 jours durs consécutifs même avec 2 jours protégés en tête de semaine (densité totale conforme)", () => {
+    const week = makeWeek(
+      7,
+      [EASY(0), EASY(1), HARD(2), HARD(3), HARD(4), HARD(5), HARD(6)],
+      "Chantier",
+      "build",
+    );
+    const result = validatePlan(makePlan([week]));
+    // La densité totale ne doit PAS se déclencher ici (5 jours protégés : L, Ma + les 2 EASY comptent comme non-hard).
+    expect(result.issues.filter((i) => i.rule === "polarization" && /jour\(s\) réellement protégé/i.test(i.message))).toHaveLength(0);
+    const streakIssue = result.issues.find((i) => i.rule === "polarization" && i.week === 7 && /consécutifs/i.test(i.message));
+    expect(streakIssue).toBeDefined();
+    expect(streakIssue?.message).toMatch(/5 jours consécutifs/);
+  });
+
+  it("ne flague pas 3 jours durs consécutifs (seuil toléré, ex. microcycle 3 jours on / 1 off)", () => {
+    const week = makeWeek(3, [HARD(0), HARD(1), HARD(2), EASY(3), HARD(4), EASY(5), REST(6)], "Chantier", "build");
+    const result = validatePlan(makePlan([week]));
+    expect(result.issues.filter((i) => i.rule === "polarization" && /consécutifs/i.test(i.message))).toHaveLength(0);
+  });
+
+  it("ne flague pas des jours durs isolés, même nombreux, s'ils sont espacés d'un jour facile", () => {
+    const week = makeWeek(3, [HARD(0), EASY(1), HARD(2), EASY(3), HARD(4), EASY(5), HARD(6)], "Chantier", "build");
+    const result = validatePlan(makePlan([week]));
+    expect(result.issues.filter((i) => i.rule === "polarization" && /consécutifs/i.test(i.message))).toHaveLength(0);
+  });
+
+  it("n'applique pas ce contrôle à une semaine de décharge", () => {
+    const week = makeWeek(3, [HARD(0), HARD(1), HARD(2), HARD(3), HARD(4), HARD(5), HARD(6)], "Décharge", "build");
+    const result = validatePlan(makePlan([week]));
+    expect(result.issues.filter((i) => i.rule === "polarization" && /consécutifs/i.test(i.message))).toHaveLength(0);
+  });
+});
