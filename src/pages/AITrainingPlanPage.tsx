@@ -61,6 +61,7 @@ import { LegacyTaperBanner } from "@/components/plan/LegacyTaperBanner";
 
 import { isJsonBetaEnabled, setJsonBetaEnabled } from "@/lib/plan/planGenerationStats";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
+import { shouldAutoEnableNatationMaintenance } from "@/lib/plan/crossTrainingNatationDefault";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
@@ -535,6 +536,16 @@ export default function AITrainingPlanPage() {
    */
   const hadExistingActivePlanRef = useRef(false);
 
+  /**
+   * Verrou "coach a déjà tranché" pour l'auto-défaut natation en maintien
+   * (cf. `crossTrainingNatationAutoDefault` ci-dessous). Passe à `true` dès
+   * qu'un choix réel existe (valeur restaurée depuis un brouillon sauvegardé,
+   * ou case cochée/décochée à la main) — l'auto-défaut ne doit jamais
+   * écraser une décision du coach, seulement proposer une valeur de départ
+   * sensée quand rien n'a encore été choisi pour cet athlète/session.
+   */
+  const crossTrainingNatationTouchedRef = useRef(false);
+
 
   // Form state — restore from localStorage if available
   const savedState = useMemo(() => {
@@ -712,6 +723,7 @@ export default function AITrainingPlanPage() {
     setTerrainAvailability("auto");
     setCrossTrainingVelo(true);
     setCrossTrainingNatation(false);
+    crossTrainingNatationTouchedRef.current = false;
 
     if (savedState) {
       if (!activeRestored && savedState.response) setResponse(savedState.response);
@@ -738,7 +750,12 @@ export default function AITrainingPlanPage() {
       if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
       if (savedState.terrainAvailability) setTerrainAvailability(savedState.terrainAvailability);
       if (typeof savedState.crossTrainingVelo === "boolean") setCrossTrainingVelo(savedState.crossTrainingVelo);
-      if (typeof savedState.crossTrainingNatation === "boolean") setCrossTrainingNatation(savedState.crossTrainingNatation);
+      if (typeof savedState.crossTrainingNatation === "boolean") {
+        setCrossTrainingNatation(savedState.crossTrainingNatation);
+        // Valeur persistée = un choix réel du coach (même si c'était "false") —
+        // l'auto-défaut ne doit plus jamais y toucher pour cet athlète.
+        crossTrainingNatationTouchedRef.current = true;
+      }
     }
 
     // Ancrage calendaire : restaure la date de début du plan persistée, sinon
@@ -809,6 +826,37 @@ export default function AITrainingPlanPage() {
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
+
+  /**
+   * Auto-défaut "Natation en maintien" pour un plan multi-objectifs dont
+   * l'objectif FINAL est un triathlon (IM/703) mais qui contient un objectif
+   * intermédiaire 100% course (Marathon/Semi/10K/StartToRun) — ex: Marathon
+   * de Séville → Ironman Les Sables d'Olonne.
+   *
+   * Bug réel (audit "science décorative" ChatGPT, PR #281) : `crossTraining-
+   * Natation` démarre décoché par défaut — comportement voulu pour un plan
+   * mono-objectif course/trail — mais rien ne re-proposait `true` pour CE
+   * cas précis, où le cycle intermédiaire course prépare aussi un Ironman :
+   * la natation restait totalement absente pendant tout le cycle Marathon
+   * si le coach ne pensait pas lui-même à cocher la case. PR #281 a corrigé
+   * la contradiction de prompt qui bannissait la natation même case cochée —
+   * ceci corrige le défaut en amont, pour que la case soit cochée d'emblée
+   * dans ce scénario précis.
+   *
+   * Ne s'exécute qu'une fois par athlète/session : verrouillé dès qu'une
+   * valeur réelle existe pour le coach (restaurée depuis un brouillon
+   * sauvegardé, ou cochée/décochée à la main — cf.
+   * `crossTrainingNatationTouchedRef`), et le garde `if (crossTrainingNatation)
+   * return` évite toute réévaluation une fois la case déjà à `true` (jamais
+   * de bascule silencieuse après coup, y compris si l'objectif intermédiaire
+   * est ensuite retiré).
+   */
+  useEffect(() => {
+    if (crossTrainingNatationTouchedRef.current || crossTrainingNatation) return;
+    if (shouldAutoEnableNatationMaintenance(objective, raceGoals)) {
+      setCrossTrainingNatation(true);
+    }
+  }, [objective, raceGoals, crossTrainingNatation]);
 
 
   // Persiste le brouillon non sauvegardé (régénérations ciblées) à chaque
@@ -3299,7 +3347,10 @@ export default function AITrainingPlanPage() {
                         <Checkbox
                           id="crossTrainingNatation"
                           checked={crossTrainingNatation}
-                          onCheckedChange={(v) => setCrossTrainingNatation(v === true)}
+                          onCheckedChange={(v) => {
+                            crossTrainingNatationTouchedRef.current = true;
+                            setCrossTrainingNatation(v === true);
+                          }}
                           className="mt-0.5"
                         />
                         <Label htmlFor="crossTrainingNatation" className="text-xs font-normal cursor-pointer">
