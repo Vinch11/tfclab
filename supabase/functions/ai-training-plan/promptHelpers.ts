@@ -1510,10 +1510,24 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         lines.push(`    Samedi : Sortie longue CAP (Z2 + progressif)`);
         lines.push(`    Dimanche : CAP EF + strides OU jour repos complet`);
         lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum renfo/core, mobilité ou footing Z1 récup.`);
+        // Bug réel (audit "plan multi-objectifs Sables d'Olonne", relayé via
+        // revue ChatGPT) : ce bloc interdisait TOUJOURS la natation ici
+        // ("INTERDICTION ABSOLUE : AUCUNE séance de natation"), sans jamais
+        // consulter `resolveCrossTrainingMaintenance` — alors que
+        // `buildObjectiveSportLockLines` (même fichier) sait déjà dire
+        // "✅ NATATION AUTORISÉE EN MAINTIEN LÉGER" quand le coach l'a coché
+        // (crossTrainingMaintenance.natation, AITrainingPlanPage.tsx). Sur un
+        // cycle Marathon intermédiaire d'un plan Ironman, les deux blocs se
+        // contredisaient frontalement dans le MÊME prompt — le modèle a
+        // suivi l'interdiction absolue, la natation est restée totalement
+        // absente pendant 21 semaines malgré la case cochée. Fix : même
+        // source de vérité (`resolveCrossTrainingMaintenance`), aucune
+        // logique dupliquée.
+        const xtrainDoubles = resolveCrossTrainingMaintenance(config);
         if (sportForDoubles === "run_route") {
-          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation, AUCUN vélo en qualité (Z3+/seuil/VO2/intervalles/SFR), AUCUNE brique triathlon. ✅ Vélo Z1-Z2 récupération autorisé max 1–2×/sem (45–75min, lendemain SL/qualité). Doubles/triples = CAP + renfo/mobilité principalement.`);
+          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUN vélo en qualité (Z3+/seuil/VO2/intervalles/SFR), AUCUNE brique triathlon. ${buildCrossTrainingPhrase(xtrainDoubles)} Doubles/triples = CAP + renfo/mobilité principalement.`);
         } else {
-          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation dans ce plan. Vélo UNIQUEMENT en récupération Z1-Z2, max 1×/sem, 40-60min, jamais en séance qualité. Toute brique ou séance vélo qualité = erreur bloquante.`);
+          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE brique triathlon, AUCUN vélo qualité. ${buildCrossTrainingPhrase(xtrainDoubles)} Toute brique ou séance vélo qualité = erreur bloquante.`);
         }
       } else if (isTriPlan) {
         lines.push(`  → Exemple de structure semaine type TRIATHLON avec 1 jour repos :`);
