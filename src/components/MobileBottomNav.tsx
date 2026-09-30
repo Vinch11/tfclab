@@ -141,10 +141,21 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
             );
           })}
 
-          {/* Staff/Settings button — tap for menu, long press for expert mode */}
+          {/* Staff/Settings button — tap for menu, long press for expert mode.
+              Bug réel (coach, iPhone/Safari) : "Exporter un rapport" (dans ce
+              menu "Plus") semblait ne déclencher AUCUNE action au tap. Cause :
+              `onTouchEnd` sans `preventDefault()` laisse Safari émettre sa
+              séquence de souris de compatibilité (mousedown/mouseup/click)
+              ~300ms après le touch — `onMouseUp` ci-dessous ré-appelait alors
+              `handleSettingsTap()` une SECONDE fois pour le même tap. Comme
+              `handleSettingsTap` fait un toggle (`setShowMoreMenu(v => !v)`),
+              le menu "Plus" s'ouvrait puis se refermait aussitôt tout seul —
+              invisible pour l'utilisateur, qui ne pouvait donc jamais
+              atteindre "Exporter un rapport" en dessous. Fix : `preventDefault()`
+              sur `touchend` supprime la séquence souris de compatibilité. */}
           <button
             onTouchStart={handlePressStart}
-            onTouchEnd={(e) => { handlePressEnd(); handleSettingsTap(); }}
+            onTouchEnd={(e) => { e.preventDefault(); handlePressEnd(); handleSettingsTap(); }}
             onTouchCancel={handlePressEnd}
             onMouseDown={handlePressStart}
             onMouseUp={(e) => { handlePressEnd(); handleSettingsTap(); }}
