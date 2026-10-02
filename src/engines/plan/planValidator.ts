@@ -1134,7 +1134,11 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 // SPORT RATIO VALIDATION (Rule 5)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [number, number]; run?: [number, number] }> = {
+// Exported (pas seulement interne) pour permettre un test de couverture
+// "Definition of Done" par objectif (cf. objectiveCoverage.definitionOfDone.
+// test.ts) : vérifie mécaniquement qu'aucun objectif de ObjectifType n'est
+// jamais oublié ici, plutôt que de compter sur un audit manuel ponctuel.
+export const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [number, number]; run?: [number, number] }> = {
   IM:       { swim: [15, 20], bike: [45, 55], run: [25, 35] },
   "703":    { swim: [15, 20], bike: [40, 50], run: [30, 40] },
   // Audit fix — absents jusqu'ici : le contrôle de ratio par sport retombait

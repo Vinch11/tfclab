@@ -458,7 +458,12 @@ const FEWSHOT_MARATHON_AGEGROUP = `### Exemple : Marathon Age Group — Semaine 
  * Un plan Marathon ne verra JAMAIS Frodeno/Lucy (contamination triathlon).
  * Un plan IM ne verra pas Kipchoge/Ingebrigtsen (contamination running).
  */
-function buildFewShotExamples(profile?: SystemPromptProfile): string {
+// Exporté (pas seulement interne) pour permettre un test de couverture
+// "Definition of Done" par objectif (cf. objectiveCoverage.definitionOfDone.
+// test.ts, src/) : vérifie mécaniquement qu'aucun objectif n'est jamais
+// oublié ici (retombée silencieuse sur le panel générique "objectif
+// inconnu") plutôt que de compter sur un audit manuel ponctuel.
+export function buildFewShotExamples(profile?: SystemPromptProfile): string {
   const obj = (profile?.objective ?? "").toUpperCase();
   const isIM = /\bIM\b|IRONMAN/.test(obj);
   const is703 = /70\.?3|HALF ?IRONMAN/.test(obj);
