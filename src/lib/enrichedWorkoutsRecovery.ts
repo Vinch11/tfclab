@@ -15,8 +15,8 @@
 
 import { LibraryWorkout, WorkoutGoal } from "@/types/workoutLibrary";
 
-const GOALS_ALL: WorkoutGoal[] = ["ironman", "half", "marathon", "semi", "10k"];
-const GOALS_TRI: WorkoutGoal[] = ["ironman", "half"];
+const GOALS_ALL: WorkoutGoal[] = ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k"];
+const GOALS_TRI: WorkoutGoal[] = ["ironman", "half", "sprint", "olympic"];
 const GOALS_TRAIL: WorkoutGoal[] = ["trail_short", "trail_mountain", "trail_long", "trail_ultra"];
 
 function mk(parts: [string, string, string[]][]) {

@@ -18,7 +18,7 @@ export interface WorkoutStructurePart {
 }
 
 // Variantes par objectif
-export type WorkoutVariants = Partial<Record<"ironman" | "half" | "marathon" | "semi" | "10k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long", string>>;
+export type WorkoutVariants = Partial<Record<"ironman" | "half" | "sprint" | "olympic" | "marathon" | "semi" | "10k" | "5k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long", string>>;
 
 // Niveau de nécessité
 export type NecessityLevel = "Obligatoire" | "Recommandé" | "Optionnel";
@@ -27,7 +27,12 @@ export type NecessityLevel = "Obligatoire" | "Recommandé" | "Optionnel";
 export type DPlusTarget = number | { min: number; max: number };
 
 // Goals pour filtrage
-export type WorkoutGoal = "ironman" | "half" | "marathon" | "semi" | "10k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long" | "start_to_run";
+// "sprint"/"olympic" (triathlon courts) et "5k" ont été ajoutés après un audit
+// coach — avant ce fix, aucune fiche n'était taguée pour ces trois objectifs
+// (ni dans `variants`, ni dans `goals`), qui retombaient silencieusement sur
+// le pool "half" (Sprint/Olympic) ou "10k" (5K) sans jamais bénéficier du
+// bonus de score "objectif documenté" (workoutCatalogBuilder.scoreWorkout).
+export type WorkoutGoal = "ironman" | "half" | "sprint" | "olympic" | "marathon" | "semi" | "10k" | "5k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long" | "start_to_run";
 
 // =============================================
 // PROFIL W'bal — Recalcul automatique des temps de repos

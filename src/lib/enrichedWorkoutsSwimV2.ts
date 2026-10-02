@@ -5,8 +5,8 @@
 
 import { LibraryWorkout, WorkoutGoal } from "@/types/workoutLibrary";
 
-const GOALS_TRI: WorkoutGoal[] = ["ironman", "half"];
-const GOALS_ALL: WorkoutGoal[] = ["ironman", "half", "marathon", "semi", "10k"];
+const GOALS_TRI: WorkoutGoal[] = ["ironman", "half", "sprint", "olympic"];
+const GOALS_ALL: WorkoutGoal[] = ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k"];
 
 function mk(parts: [string, string, string[]][]) {
   return parts.map(([part, text, zones]) => ({ part, text, zones }));

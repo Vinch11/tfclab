@@ -5,9 +5,9 @@
 
 import { LibraryWorkout, WorkoutGoal } from "@/types/workoutLibrary";
 
-const GOALS_TRI: WorkoutGoal[] = ["ironman", "half"];
+const GOALS_TRI: WorkoutGoal[] = ["ironman", "half", "sprint", "olympic"];
 const GOALS_RUN: WorkoutGoal[] = ["marathon", "semi"];
-const GOALS_ALL: WorkoutGoal[] = ["ironman", "half", "marathon", "semi"];
+const GOALS_ALL: WorkoutGoal[] = ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k"];
 const GOALS_SEMI: WorkoutGoal[] = ["semi"];
 const GOALS_MAR: WorkoutGoal[] = ["marathon"];
 const GOALS_IM: WorkoutGoal[] = ["ironman"];

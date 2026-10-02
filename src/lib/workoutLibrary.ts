@@ -7123,8 +7123,8 @@ export function getCatColor(cat: SessionType): { bg: string; text: string; label
 // PRO PACK – ~160 SÉANCES ADDITIONNELLES
 // =============================================
 
-const GOALS_ALL: ("ironman" | "half" | "marathon" | "semi" | "trail_short" | "trail_long")[] = 
-  ["ironman", "half", "marathon", "semi", "trail_short", "trail_long"];
+const GOALS_ALL: ("ironman" | "half" | "sprint" | "olympic" | "marathon" | "semi" | "10k" | "5k" | "trail_short" | "trail_long")[] =
+  ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k", "trail_short", "trail_long"];
 
 function mkStructure(parts: [string, string, string[]][]): { part: string; text: string; zones: string[] }[] {
   return parts.map(p => ({ part: p[0], text: p[1], zones: p[2] || [] }));
@@ -8462,6 +8462,17 @@ import { EnrichedWorkoutsStartToRun } from "./enrichedWorkoutsStartToRun";
 WorkoutLibrary.push(...EnrichedWorkoutsStartToRun);
 
 // =============================================
+// SHORT FORMATS — Triathlon Sprint / Olympique / 5K (bike, run, brick, swim
+// calibrés sur la durée/intensité propre à chaque format, pas des fiches
+// 70.3/10K génériques reconduites). Comble la lacune identifiée par audit
+// coach : ces trois objectifs n'avaient jusqu'ici aucun tag `goals`/`variants`
+// dédié (voir normalizeGoal + defaultGoalsForSport, workoutCatalogBuilder.ts
+// / workoutGoalsEnricher.ts).
+// =============================================
+import { EnrichedWorkoutsShortFormats } from "./enrichedWorkoutsShortFormats";
+WorkoutLibrary.push(...EnrichedWorkoutsShortFormats);
+
+// =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
@@ -8469,5 +8480,5 @@ enrichWorkoutGoals(WorkoutLibrary);
 import { widenEndurancePhases } from "./plan/phaseWidener";
 widenEndurancePhases(WorkoutLibrary);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Recovery: ${EnrichedWorkoutsRecovery.length} | Swim+: ${EnrichedWorkoutsSwim.length} | SwimV2: ${EnrichedWorkoutsSwimV2.length} | StrengthV2: ${EnrichedWorkoutsStrengthV2.length} | Hedgehog: ${EnrichedWorkoutsHedgehog.length} | IM Run Durability: ${EnrichedWorkoutsIMRunDurability.length} | 70.3 Podium: ${EnrichedWorkouts703PodiumDurability.length} | LCW: ${EnrichedWorkoutsLCW.length} | Run Hills: ${EnrichedWorkoutsRunHills.length} | Total: ${WorkoutLibrary.length}`);
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Recovery: ${EnrichedWorkoutsRecovery.length} | Swim+: ${EnrichedWorkoutsSwim.length} | SwimV2: ${EnrichedWorkoutsSwimV2.length} | StrengthV2: ${EnrichedWorkoutsStrengthV2.length} | Hedgehog: ${EnrichedWorkoutsHedgehog.length} | IM Run Durability: ${EnrichedWorkoutsIMRunDurability.length} | 70.3 Podium: ${EnrichedWorkouts703PodiumDurability.length} | LCW: ${EnrichedWorkoutsLCW.length} | Run Hills: ${EnrichedWorkoutsRunHills.length} | Short Formats: ${EnrichedWorkoutsShortFormats.length} | Total: ${WorkoutLibrary.length}`);
 
