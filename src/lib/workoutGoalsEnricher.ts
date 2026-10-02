@@ -28,6 +28,11 @@ const ID_GOAL_PATTERNS: Array<{ pattern: RegExp; goals: WorkoutGoal[] }> = [
   { pattern: /^A_SEMI_|^B_SEMI_|^C_SEMI_|^D_SEMI_|_SEMI_|TPL_SEMI_|ENR_.*SEMI/i, goals: ["semi"] },
   // 10K specific
   { pattern: /^A_10K_|^B_10K_|^C_10K_|^D_10K_|_10K_|TPL_10K_|ENR_.*10K|V[23]_.*10K/i, goals: ["10k"] },
+  // 5K specific
+  { pattern: /^A_5K_|^B_5K_|^C_5K_|^D_5K_|_5K_|TPL_5K_|ENR_.*5K|V[23456]_.*5K/i, goals: ["5k"] },
+  // Triathlon courts spécifiques (Sprint/Olympique)
+  { pattern: /^A_SPRINT_TRI|^B_SPRINT_TRI|^C_SPRINT_TRI|_SPRINT_TRI_/i, goals: ["sprint"] },
+  { pattern: /^A_OLY_|^B_OLY_|^C_OLY_|_OLY_/i, goals: ["olympic"] },
   // Trail 50km / Trail Short
   { pattern: /^A_TR50_|^B_TR50_|^C_TR50_|^D_TR50_|TPL_TR50_/i, goals: ["trail_short"] },
   // Trail generic (includes short, mountain, ultra)
@@ -39,13 +44,13 @@ const ID_GOAL_PATTERNS: Array<{ pattern: RegExp; goals: WorkoutGoal[] }> = [
   { pattern: /^BRICK_ACTIVATION/i, goals: ["ironman", "half"] },
   // Swim triathlon
   { pattern: /^A_SWIM_TRI_|^B_SWIM_TRI_|^C_SWIM_TRI_|^D_SWIM_TRI_|ENR_SWIM_TRI_|V[23]_SWIM_TRI_/i, goals: ["ironman", "half"] },
-  // Taper
-  { pattern: /^D_TAPER_|TAPER/i, goals: ["ironman", "half", "marathon", "semi", "10k", "trail_short", "trail_mountain"] },
+  // Taper — universel par nature (toute course a une semaine d'affûtage)
+  { pattern: /^D_TAPER_|TAPER/i, goals: ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k", "trail_short", "trail_mountain"] },
   // ─── Keyword-based patterns for ENR_/V2_/V3_ sessions ───
-  // VMA / VO2max → running goals
-  { pattern: /VMA|VO2/i, goals: ["10k", "semi", "marathon"] },
-  // Seuil / Threshold / Tempo → mid-distance
-  { pattern: /SEUIL|THRESHOLD|TEMPO/i, goals: ["semi", "marathon", "half"] },
+  // VMA / VO2max → running goals (5K/Sprint = formats où le VO2max domine)
+  { pattern: /VMA|VO2/i, goals: ["10k", "5k", "sprint", "semi", "marathon"] },
+  // Seuil / Threshold / Tempo → mid-distance (Olympique = seuil/tempo dominant)
+  { pattern: /SEUIL|THRESHOLD|TEMPO/i, goals: ["semi", "marathon", "half", "olympic"] },
   // FatMax / Train Low / Endurance → long-distance
   { pattern: /FATMAX|TRAIN_LOW|FASTED/i, goals: ["ironman", "half", "marathon", "trail_long"] },
   // SFR / Force → cycling power goals
@@ -68,9 +73,12 @@ const ID_GOAL_PATTERNS: Array<{ pattern: RegExp; goals: WorkoutGoal[] }> = [
 const VARIANT_KEY_TO_GOAL: Record<string, WorkoutGoal> = {
   ironman: "ironman",
   half: "half",
+  sprint: "sprint",
+  olympic: "olympic",
   marathon: "marathon",
   semi: "semi",
   "10k": "10k",
+  "5k": "5k",
   trail_short: "trail_short",
   trail_mountain: "trail_mountain",
   trail_ultra: "trail_ultra",
@@ -136,10 +144,17 @@ const OBJECTIF_GOAL_PATTERNS: Array<{ pattern: RegExp; goals: WorkoutGoal[] }> =
   { pattern: /\bmarathon\b/i, goals: ["marathon"] },
   { pattern: /\bsemi[-\s]?marathon\b|\bsemi\b/i, goals: ["semi"] },
   { pattern: /\b10[kK]\b|\b10km\b/i, goals: ["10k"] },
+  { pattern: /\b5[kK]\b|\b5km\b/i, goals: ["5k"] },
   { pattern: /\btrail\s*ultra\b|\bultra\b|\bUTMB\b/i, goals: ["trail_ultra"] },
   { pattern: /\btrail\s*mont/i, goals: ["trail_mountain"] },
   { pattern: /\btrail\s*court\b|\btrail\s*short\b|\b20-50km\b/i, goals: ["trail_short"] },
   { pattern: /\btrail\b/i, goals: ["trail_short", "trail_mountain"] },
+  // Triathlon courts — ces motifs sont additifs (la boucle ci-dessous teste
+  // TOUS les patterns, pas de court-circuit) : un texte qui nomme explicitement
+  // "Triathlon Sprint"/"Triathlon Olympique" récupère aussi "sprint"/"olympic"
+  // en plus d'ironman/half via le pattern générique ci-dessous.
+  { pattern: /\btriathlon\b.*\bsprint\b|\bsprint\b.*\btriathlon\b/i, goals: ["sprint"] },
+  { pattern: /\btriathlon\b.*\bolymp|\bolymp\w*\b.*\btriathlon\b/i, goals: ["olympic"] },
   { pattern: /\btriathlon\b/i, goals: ["ironman", "half"] },
 ];
 
@@ -156,21 +171,28 @@ function inferGoalsFromObjectif(w: LibraryWorkout): WorkoutGoal[] {
 
 // ─── SPORT-BASED DEFAULT GOALS ──────────────────────────────────────────────
 
+// AUDIT (combler lacune Sprint/Olympique/5K) : avant ce fix, aucune des
+// branches ci-dessous ne retournait "sprint"/"olympic"/"5k" — toute fiche
+// historique de natation/brick/cyclisme/course/renforcement SANS goals[]
+// explicite (le cas le plus fréquent dans workoutLibrary.ts "Pro Pack")
+// était donc invisible au bonus de score "objectif documenté" pour ces trois
+// objectifs, qui ne piochaient jamais dans ce contenu générique pourtant
+// tout aussi pertinent pour eux que pour ironman/half/marathon/semi/10k.
 function defaultGoalsForSport(w: LibraryWorkout): WorkoutGoal[] {
   switch (w.sport) {
     case "natation":
-      return ["ironman", "half"];
+      return ["ironman", "half", "sprint", "olympic"];
     case "brick":
-      return ["ironman", "half"];
+      return ["ironman", "half", "sprint", "olympic"];
     case "cyclisme":
       // Generic cycling sessions are useful for triathlon + trail support
-      return ["ironman", "half"];
+      return ["ironman", "half", "sprint", "olympic"];
     case "course":
       // Generic running sessions apply broadly
-      return ["ironman", "half", "marathon", "semi", "10k"];
+      return ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k"];
     case "strength":
       // Strength is universal
-      return ["ironman", "half", "marathon", "semi", "10k", "trail_short", "trail_mountain", "trail_ultra"];
+      return ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k", "trail_short", "trail_mountain", "trail_ultra"];
     default:
       return [];
   }

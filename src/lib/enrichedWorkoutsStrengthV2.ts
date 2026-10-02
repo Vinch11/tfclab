@@ -31,8 +31,8 @@
 
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 
-const GOALS_ALL: ("ironman" | "half" | "marathon" | "semi" | "trail_short" | "trail_long")[] =
-  ["ironman", "half", "marathon", "semi", "trail_short", "trail_long"];
+const GOALS_ALL: ("ironman" | "half" | "sprint" | "olympic" | "marathon" | "semi" | "10k" | "5k" | "trail_short" | "trail_long")[] =
+  ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k", "trail_short", "trail_long"];
 
 const mk = (parts: [string, string, string[]][]) =>
   parts.map(([part, text, zones]) => ({ part, text, zones }));

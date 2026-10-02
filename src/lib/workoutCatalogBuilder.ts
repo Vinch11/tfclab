@@ -203,19 +203,27 @@ export function normalizeGoal(objective: string): WorkoutGoal[] {
   if (lower.includes("semi")) return ["semi", "10k"];
   if (lower.includes("marathon")) return ["marathon", "semi"];
   if (lower.includes("10k") || lower.includes("10km") || lower.includes("10 km")) return ["10k", "semi"];
-  if (lower.includes("5k") || lower.includes("5km") || lower.includes("5 km")) return ["10k"];
+  // 5K — tague désormais sa propre clé dédiée en plus de "10k" (repli structurel
+  // le plus proche). Avant ce fix : `return ["10k"]` seul, donc AUCUNE fiche du
+  // catalogue ne pouvait jamais documenter de variant/goal "5k" spécifique — un
+  // plan 5K ne bénéficiait jamais du bonus "objectif documenté" et héritait
+  // silencieusement d'un texte calibré 10K (allure, volumes) même quand une
+  // fiche dédiée 5K existait (ex: EnrichedWorkoutsShortFormats).
+  if (lower.includes("5k") || lower.includes("5km") || lower.includes("5 km")) return ["5k", "10k"];
   // Start to run / débutant → catalogue dédié UNIQUEMENT (plus de repli sur 10k :
   // les fiches 10k supposent un athlète capable de courir 30-45min en continu).
   if (lower.includes("start") || lower.includes("débutant") || lower.includes("beginner")) return ["start_to_run"];
-  // Triathlon courts (Sprint/Olympique) — pas de tag WorkoutGoal dédié (grain
-  // trop fin dans le catalogue), alignés sur "half" (70.3), le référentiel
-  // structurel le plus proche en intensité/durée — pas "ironman" (volumes hors
-  // calibre pour un format 1-3.5h). Même choix que buildFewShotExamples
-  // (systemPrompt.ts, edge function) pour la même raison. Avant ce fix :
-  // aucune branche ne matchait "Sprint"/"Olympic" (valeurs UI littérales,
-  // audit Batch 2) → repli sur `return []` plus bas, cassant silencieusement
-  // le bonus de score goal-match pour ces plans.
-  if (lower.includes("sprint") || lower.includes("olymp")) return ["half"];
+  // Triathlon courts (Sprint/Olympique) — taguent désormais leur propre clé
+  // dédiée ("sprint"/"olympic") EN PLUS de "half" (70.3, gardé comme repli
+  // structurel pour conserver l'accès au pool existant). Avant ce fix :
+  // `return ["half"]` seul — aucune fiche ne pouvait jamais documenter de
+  // variant/goal "sprint" ou "olympic" spécifique (même limite que 5K
+  // ci-dessus), alors que ces deux formats ont des calibrages de durée/
+  // intensité propres (Sprint ~55min-1h20, Olympique ~2h-2h30) distincts du
+  // 70.3. Même repli "half" que buildFewShotExamples (systemPrompt.ts, edge
+  // function) pour la même raison structurelle — inchangé.
+  if (lower.includes("sprint")) return ["sprint", "half"];
+  if (lower.includes("olymp")) return ["olympic", "half"];
   // Triathlon generic
   if (lower.includes("triathlon") || lower.includes("tri")) return ["ironman", "half"];
   return [];

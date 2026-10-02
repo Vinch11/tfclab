@@ -1104,7 +1104,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
       { part: "Cool-down", text: "10' trot Z1", zones: ["Z1"] }
     ],
     variants: {},
-    goals: ["half", "10k"],
+    goals: ["half", "10k", "sprint"],
     tags: ["brick", "intense", "neuromusculaire", "courte"]
   },
   {

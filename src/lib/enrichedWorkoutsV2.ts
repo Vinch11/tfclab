@@ -7,8 +7,8 @@
 
 import { LibraryWorkout, WorkoutGoal } from "@/types/workoutLibrary";
 
-const GOALS_ALL: WorkoutGoal[] = ["ironman", "half", "marathon", "semi"];
-const GOALS_TRI: WorkoutGoal[] = ["ironman", "half"];
+const GOALS_ALL: WorkoutGoal[] = ["ironman", "half", "sprint", "olympic", "marathon", "semi", "10k", "5k"];
+const GOALS_TRI: WorkoutGoal[] = ["ironman", "half", "sprint", "olympic"];
 const GOALS_RUN: WorkoutGoal[] = ["marathon", "semi"];
 const GOALS_IM: WorkoutGoal[] = ["ironman"];
 const GOALS_703: WorkoutGoal[] = ["half"];
@@ -228,7 +228,10 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
       ["Cool-down", "10' Z1", ["Z1"]]
     ]),
     variants: { semi: "12x200m rappel vitesse", marathon: "10x200m rappel" },
-    goals: [...GOALS_RUN, "half"],
+    // Fiche historique taguée "5k" dans `tags` (décoratif) mais jamais dans
+    // `goals` (fonctionnel pour le scoring) — invisible au bonus "objectif
+    // documenté" pour un plan 5K malgré son nom et son contenu explicitement 5K.
+    goals: [...GOALS_RUN, "half", "5k", "sprint"],
     tags: ["5k", "vma", "200m", "vitesse", "relâchement"]
   },
   {
@@ -247,7 +250,7 @@ export const EnrichedWorkoutsV2: LibraryWorkout[] = [
       ["Cool-down", "10' Z1", ["Z1"]]
     ]),
     variants: { semi: "Rappel vitesse 3x1000m Z5", marathon: "2x1000m Z5 rappel" },
-    goals: [...GOALS_RUN, "half"],
+    goals: [...GOALS_RUN, "half", "5k", "sprint"],
     tags: ["5k", "allure-spécifique", "1000m", "métronome"]
   },
   {

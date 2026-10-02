@@ -49,12 +49,13 @@ const RUN_HILLS: LibraryWorkout[] = [
     ],
     variants: {
       "10k": "10×10s pente 6-8% + 1× ligne droite 60m sprint en fin de série",
+      "5k": "10×10s pente 6-8% + 1× ligne droite 60m sprint en fin de série",
       semi: "8×12s pente 5-7%",
       marathon: "8×10s pente 4-6% (dose plus modérée)",
       half: "8×10s pente 5-7%",
       ironman: "6×10s pente 5-7% (maintien plus que développement)",
     },
-    goals: ["10k", "semi", "marathon", "half", "ironman"],
+    goals: ["10k", "5k", "semi", "marathon", "half", "ironman"],
     tags: ["run", "hill", "route", "sprint", "neuromuscular", "economy", "Daniels", "Magness"],
     notes: "Stimulus route classique (Daniels R-pace en côte, Magness hill sprints). Aucune spécificité trail : côte routière courte, effort neuromusculaire pur. Sécurise la fréquence de foulée et l'économie sans traumatisme du sprint sur plat."
   },
@@ -79,12 +80,13 @@ const RUN_HILLS: LibraryWorkout[] = [
     ],
     variants: {
       "10k": "8×90s pente 5-6%",
+      "5k": "8×90s pente 5-6%",
       semi: "6×90s pente 4-6%",
       marathon: "6×60s pente 4-5%",
       half: "6×75s pente 5-6%",
       ironman: "5×60s pente 4-5% (dose maintenance)"
     },
-    goals: ["10k", "semi", "marathon", "half", "ironman"],
+    goals: ["10k", "5k", "semi", "marathon", "half", "ironman"],
     tags: ["run", "hill", "route", "vo2max", "vo2", "power", "Daniels", "Pfitzinger"],
     notes: "Substitut légitime au fractionné VO2 plat (Daniels I-pace). La côte impose une intensité neuromusculaire supérieure à FC équivalente et protège les tendons (moins d'impact excentrique). Objet ROUTE — ne matche aucun pattern trail."
   },
@@ -109,12 +111,13 @@ const RUN_HILLS: LibraryWorkout[] = [
     ],
     variants: {
       "10k": "3×6min pente 4-5%",
+      "5k": "3×6min pente 4-5%",
       semi: "3×8min pente 3-5%",
       marathon: "2×12min pente 3-4%",
       half: "3×8min pente 4-5%",
       ironman: "2×10min pente 3-4% (dose 70.3/IM run)"
     },
-    goals: ["10k", "semi", "marathon", "half", "ironman"],
+    goals: ["10k", "5k", "semi", "marathon", "half", "ironman"],
     tags: ["run", "hill", "route", "threshold", "tempo", "seuil", "Pfitzinger", "Lorang"],
     notes: "Séance tempo-en-côte classique route (Pfitzinger LT hill workouts). Substitut légitime au seuil plat quand le profil de course inclut du dénivelé modéré (semi/marathon urbains vallonnés, 70.3 avec faux-plats). Aucune spécificité trail."
   },
@@ -139,12 +142,13 @@ const RUN_HILLS: LibraryWorkout[] = [
     ],
     variants: {
       "10k": "8×15s pente 4-5%",
+      "5k": "8×15s pente 4-5%",
       semi: "6×15s pente 3-5%",
       marathon: "6×12s pente 3-4%",
       half: "6×15s pente 3-5%",
       ironman: "6×12s pente 3-4%"
     },
-    goals: ["10k", "semi", "marathon", "half", "ironman"],
+    goals: ["10k", "5k", "semi", "marathon", "half", "ironman"],
     tags: ["run", "hill", "route", "strides", "economy", "neuromuscular", "easy"],
     notes: "Entretien neuromusculaire léger, à greffer sur une sortie facile. Alternative propre aux strides plat quand le parcours inclut naturellement une petite bosse. Objet ROUTE — préfixe A_RUN_HILL_, aucun tag trail."
   },
