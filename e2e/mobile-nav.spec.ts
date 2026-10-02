@@ -14,12 +14,13 @@ import { test, expect, type Page } from "@playwright/test";
  * voir le commentaire de ce fichier pour pourquoi (Index.tsx dépend d'une
  * vraie session Supabase, indisponible en CI sans compte de test).
  *
- * Limite honnête : Chromium n'a pas la séquence souris de compatibilité
- * spécifique à WebKit/Safari — ces tests ne reproduisent donc PAS le
- * mécanisme exact du bug. Ils vérifient que NI le chemin tactile NI le
- * chemin souris ne déclenchent seuls un double appel, en dispatchant les
- * événements directement (pas de dépendance à `hasTouch` du contexte,
- * fonctionne sur tous les projets configurés).
+ * Tourne sur le project "Mobile Safari" (playwright.config.ts), qui utilise
+ * réellement le moteur WebKit — le même que sur un vrai iPhone. Les
+ * événements sont dispatchés directement (pas de dépendance à `hasTouch`
+ * du contexte) pour tester indépendamment le chemin tactile (`onTouchEnd`)
+ * et le chemin souris (`onMouseUp`) : si l'un des deux ré-appelle
+ * `handleSettingsTap()` une seconde fois (le bug original), le menu se
+ * referme dans la fenêtre de 600ms et le test échoue.
  */
 
 const HARNESS_URL = "/__e2e/mobile-nav";

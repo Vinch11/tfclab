@@ -8,12 +8,13 @@ import { defineConfig, devices } from "@playwright/test";
  * jsdom/happy-dom — cf. le bug "Exporter un rapport ne fait rien" sur iOS
  * Safari (menu mobile "Plus" qui se rouvrait/refermait seul).
  *
- * Limite honnête : seul Chromium est disponible dans certains environnements
- * d'exécution (pas de WebKit) — ces tests ne reproduisent donc PAS le bug
- * WebKit exact (séquence souris de compatibilité émise ~300ms après un
- * touchend sans preventDefault(), spécifique à Safari). Ils vérifient que
- * NI le chemin tactile NI le chemin souris ne déclenchent seuls un double
- * appel — un filet fonctionnel, pas une reproduction du moteur WebKit.
+ * Le project "Mobile Safari" (`devices["iPhone 13"]`) tourne sous WebKit —
+ * pas Chromium — car `defaultBrowserType` de ce device est "webkit" (un
+ * vrai iPhone ne tourne jamais sous Chrome). C'est volontaire : WebKit est
+ * le seul moteur qui reproduit le mécanisme réel du bug #296 (séquence
+ * souris de compatibilité ~300ms après un touchend sans preventDefault(),
+ * spécifique à Safari) — CI installe donc chromium ET webkit (voir
+ * .github/workflows/ci.yml).
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -34,7 +35,7 @@ export default defineConfig({
       testIgnore: /mobile-nav\.spec\.ts/,
     },
     {
-      name: "Mobile Chrome",
+      name: "Mobile Safari",
       use: { ...devices["iPhone 13"] },
     },
   ],

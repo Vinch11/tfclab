@@ -48,7 +48,15 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      - run: bunx playwright install --with-deps chromium
+      # chromium (Desktop Chrome) + webkit (Mobile Safari, devices["iPhone 13"]
+      # — son `defaultBrowserType` est webkit, pas chromium : un vrai iPhone
+      # tourne sous Safari/WebKit, jamais sous Chrome). webkit est ce qui
+      # permet de reproduire le mécanisme RÉEL du bug #296 (séquence souris
+      # de compatibilité ~300ms après touchend, spécifique à WebKit) — pas
+      # disponible dans l'environnement de dev utilisé pour la validation
+      # manuelle de cette PR (sandbox restreint à chromium), mais installable
+      # normalement ici.
+      - run: bunx playwright install --with-deps chromium webkit
       - run: bunx playwright test
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
