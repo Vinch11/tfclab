@@ -23,6 +23,7 @@ import {
 import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
 import { useQARunner } from "@/lib/plan/qa/useQARunner";
+import { QA_PROFILES } from "@/lib/plan/qa/syntheticProfiles";
 import { TrailProbePanel } from "@/components/debug/TrailProbePanel";
 import { LiveLogsPanel } from "@/components/debug/LiveLogsPanel";
 import { buildQAReport, readQASessions, readQASessionsCloud, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
@@ -456,9 +457,9 @@ export default function PlanQAPage() {
       {/* Phase 0 — Run complet 3 profils × N */}
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-base">Run complet — 3 profils synthétiques × N</CardTitle>
+          <CardTitle className="text-base">Run complet — {QA_PROFILES.length} profils synthétiques × N</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Génère les plans B-70.3 · B-SEMI · B-SPRINT en mode JSON forcé et applique les checks B1-B7.
+            Génère les {QA_PROFILES.length} plans ({QA_PROFILES.map(p => p.id).join(" · ")}) en mode JSON forcé et applique les checks B1-B12.
             Chaque itération consomme des crédits IA (~1 génération complète). Séquentiel, pas de parallèle.
           </p>
         </CardHeader>
@@ -477,7 +478,7 @@ export default function PlanQAPage() {
               </Button>
             ))}
             <span className="text-xs text-muted-foreground">
-              → {3 * qaN} génération{3 * qaN > 1 ? "s" : ""} totales
+              → {QA_PROFILES.length * qaN} génération{QA_PROFILES.length * qaN > 1 ? "s" : ""} totales
             </span>
             <Button
               size="sm"
@@ -516,7 +517,7 @@ export default function PlanQAPage() {
               }}
               disabled={qa.progress.running || !runnerReady}
             >
-              {qa.progress.running ? "En cours…" : `Lancer (${3 * qaN} plans)`}
+              {qa.progress.running ? "En cours…" : `Lancer (${QA_PROFILES.length * qaN} plans)`}
             </Button>
           </div>
           <TrailProbePanel />

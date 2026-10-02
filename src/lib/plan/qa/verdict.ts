@@ -12,12 +12,13 @@
 import type { CheckResult } from "./checks";
 import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import type { TestResult } from "@/lib/plan/mergeTests";
+import type { QAProfileId } from "./syntheticProfiles";
 
 export type Verdict = "🟢" | "🟠" | "🔴";
 
 export interface QARunRecord {
   ts: number;
-  profileId: "B-70.3" | "B-SEMI" | "B-SPRINT";
+  profileId: QAProfileId;
   runIndex: number;                 // 1..N
   totalRuns: number;                // N choisi
   checks: CheckResult[];
