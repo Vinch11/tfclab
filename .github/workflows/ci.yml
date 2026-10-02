@@ -12,6 +12,15 @@ name: CI
 # sur chaque push/PR, la suite vitest (frontend) ET la suite Deno (edge
 # functions) — sans lui, ces fichiers restent des tests seulement sur le
 # papier.
+#
+# Job playwright (ajouté — audit "produit fini") : `@playwright/test` était
+# déjà une dépendance mais jamais configuré ni exécuté (aucun .spec.ts,
+# aucune config) — trouvé en auditant le bug "Exporter un rapport ne fait
+# rien" (menu mobile "Plus", iOS Safari, PR #296). Un test unitaire jsdom ne
+# peut PAS voir ce type de bug (interaction tactile réelle dans un vrai
+# moteur de rendu) ; ce job rejoue le scénario dans un vrai navigateur
+# (Chromium — pas de WebKit disponible en CI standard, donc pas une
+# reproduction exacte du quirk Safari, mais un vrai filet fonctionnel).
 on:
   push:
     branches: [main]
@@ -29,6 +38,24 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bunx tsc --noEmit -p tsconfig.json
       - run: bun run vitest run
+
+  playwright:
+    name: Playwright E2E (Chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+      - run: bunx playwright test
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
 
   deno-test:
     name: Deno test (edge functions)
