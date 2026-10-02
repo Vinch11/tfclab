@@ -59,6 +59,7 @@ const TriTestDayPage = lazy(() => import("./pages/TriTestDayPage"));
 const TrailSimulationPage = lazy(() => import("./pages/TrailSimulationPage"));
 const EvolutionPage = lazy(() => import("./pages/EvolutionPage"));
 const PlanQAPage = lazy(() => import("./pages/PlanQAPage"));
+const MobileNavHarness = lazy(() => import("./pages/__e2e/MobileNavHarness"));
 
 const queryClient = new QueryClient();
 
@@ -142,6 +143,8 @@ export default function App() {
                   <Route path="/planning" element={<ProtectedRoute><PlanningPage /></ProtectedRoute>} />
                   <Route path="/planning/ai-plan" element={<ProtectedRoute><AITrainingPlanPage /></ProtectedRoute>} />
                   <Route path="/debug/plan-qa" element={<ProtectedRoute><PlanQAPage /></ProtectedRoute>} />
+                  {/* Dev-only — harness Playwright, jamais dans un build de prod (import.meta.env.DEV statiquement false). Pas de ProtectedRoute : exprès, voir MobileNavHarness.tsx. */}
+                  {import.meta.env.DEV && <Route path="/__e2e/mobile-nav" element={<MobileNavHarness />} />}
                   <Route path="/planning/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
                   <Route path="/planning/running-guidance" element={<ProtectedRoute><RunningGuidancePage /></ProtectedRoute>} />
                   <Route path="/planning/library" element={<ProtectedRoute><WorkoutLibraryBrowserPage /></ProtectedRoute>} />

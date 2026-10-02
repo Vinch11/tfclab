@@ -52,7 +52,12 @@ export interface RunningFocusModeContextType {
   getMetricLabel: (originalLabel: string) => string;
 }
 
-const RunningFocusModeContext = createContext<RunningFocusModeContextType | undefined>(undefined);
+// Exporté (pas seulement interne) pour permettre à des harnais de test
+// (ex. src/pages/__e2e/MobileNavHarness.tsx) de fournir une valeur mock
+// directement via `<RunningFocusModeContext.Provider>`, sans devoir monter
+// toute la chaîne de providers réels (AthleteProvider → Supabase) dont
+// dépend `RunningFocusModeProvider` via `useAthletes()`.
+export const RunningFocusModeContext = createContext<RunningFocusModeContextType | undefined>(undefined);
 
 // Labels lisibles
 const RACE_LABELS: Record<RunningRaceType, string> = {
