@@ -2,18 +2,19 @@
  * Configuration Page - Gestion des thèmes et préférences utilisateur
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2, RefreshCw, AlertCircle, Download } from "lucide-react";
+import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2, RefreshCw, AlertCircle, Download, Image, Upload, RotateCcw } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { AdvancedLayoutEditor } from "./AdvancedLayoutEditor";
 import { ReportSectionOrderEditor } from "./ReportSectionOrderEditor";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { useGettingStartedVisibility } from "./GettingStartedChecklist";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,53 @@ export function ConfigurationPage() {
   const { preferences, setPreference } = useUserPreferences();
   const gettingStartedVisibility = useGettingStartedVisibility();
   const { user, session } = useAuth();
+  const { logoUrl, isCustom: hasCustomLogo, setLogo } = useAppLogo();
+  const [logoUploading, setLogoUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_LOGO_SIZE_BYTES = 1_000_000; // 1 Mo — stocké en base64 dans la ligne profil
+
+  const handleLogoFileChange = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Format non supporté", description: "Choisissez un fichier image (PNG, JPG, SVG...).", variant: "destructive" });
+      return;
+    }
+    if (file.size > MAX_LOGO_SIZE_BYTES) {
+      toast({ title: "Fichier trop volumineux", description: "Le logo doit faire moins de 1 Mo.", variant: "destructive" });
+      return;
+    }
+    setLogoUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        await setLogo(reader.result as string);
+        toast({ title: "Logo mis à jour", description: "Le nouveau logo s'affiche désormais dans l'application et vos rapports exportés." });
+      } catch (err) {
+        console.error("Failed to save custom logo", err);
+        toast({ title: "Erreur", description: "Impossible d'enregistrer le logo.", variant: "destructive" });
+      } finally {
+        setLogoUploading(false);
+      }
+    };
+    reader.onerror = () => {
+      setLogoUploading(false);
+      toast({ title: "Erreur", description: "Impossible de lire le fichier.", variant: "destructive" });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoReset = async () => {
+    setLogoUploading(true);
+    try {
+      await setLogo(null);
+      toast({ title: "Logo par défaut restauré" });
+    } catch (err) {
+      console.error("Failed to reset logo", err);
+      toast({ title: "Erreur", description: "Impossible de réinitialiser le logo.", variant: "destructive" });
+    } finally {
+      setLogoUploading(false);
+    }
+  };
 
   const [nolioConnected, setNolioConnected] = useState(false);
   const [nolioLoading, setNolioLoading] = useState(false);
@@ -386,6 +434,67 @@ export function ConfigurationPage() {
                 </button>
               );
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section Logo de l'application */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Image className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Logo de l'application</CardTitle>
+          </div>
+          <CardDescription>
+            Remplacez le logo affiché dans l'application et sur vos rapports exportés
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-lg border bg-card flex items-center justify-center overflow-hidden shrink-0">
+              <img src={logoUrl} alt="Logo actuel" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">
+                {hasCustomLogo ? "Logo personnalisé actif" : "Logo par défaut TFCLab"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                PNG ou JPG recommandé, 1 Mo maximum
+              </p>
+            </div>
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleLogoFileChange(f);
+                e.target.value = "";
+              }}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={logoUploading}
+              onClick={() => logoInputRef.current?.click()}
+              className="gap-2 shrink-0"
+            >
+              <Upload className="w-4 h-4" />
+              Changer
+            </Button>
+            {hasCustomLogo && (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={logoUploading}
+                onClick={handleLogoReset}
+                className="gap-2 shrink-0 text-muted-foreground"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Réinitialiser
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

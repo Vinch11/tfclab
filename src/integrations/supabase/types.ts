@@ -1166,6 +1166,7 @@ export type Database = {
           display_name: string | null
           id: string
           layout_preferences: Json | null
+          logo_url: string | null
           onboarding_completed: boolean
           role: string
           updated_at: string
@@ -1177,6 +1178,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           layout_preferences?: Json | null
+          logo_url?: string | null
           onboarding_completed?: boolean
           role?: string
           updated_at?: string
@@ -1188,6 +1190,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           layout_preferences?: Json | null
+          logo_url?: string | null
           onboarding_completed?: boolean
           role?: string
           updated_at?: string

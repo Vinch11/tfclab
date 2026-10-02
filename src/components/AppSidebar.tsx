@@ -37,8 +37,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import logo from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
 import { Footprints, FlaskConical } from "lucide-react";
 
@@ -75,6 +75,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
   const navigate = useNavigate();
   const { state, isMobile } = useSidebar();
   const { user, signOut } = useAuth();
+  const { logoUrl } = useAppLogo();
   const isRunningOnly = useIsRunningOnly();
   const collapsed = isMobile ? false : state === "collapsed";
 
@@ -99,7 +100,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
       <SidebarHeader className="p-3 sm:p-4 border-b border-sidebar-border/40 safe-area-inset-top">
         <div className="flex items-center gap-3">
           <div className={cn("tfcl-sidebar-logo shrink-0", collapsed && "tfcl-sidebar-logo--collapsed")}>
-            <img src={logo} alt="2FC Lab" className="h-full w-full object-contain" />
+            <img src={logoUrl} alt="2FC Lab" className="h-full w-full object-contain" />
           </div>
           {!collapsed && (
             <div className="min-w-0">

@@ -9,10 +9,10 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { VersionBadge } from "@/components/VersionBadge";
-import logo from "@/assets/logo-2fc.png";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAppLogo } from "@/hooks/useAppLogo";
 
 interface SidebarLayoutProps {
   children: ReactNode;
@@ -32,6 +32,7 @@ export function SidebarLayout({
   onExportClick,
 }: SidebarLayoutProps) {
   const isMobile = useIsMobile();
+  const { logoUrl } = useAppLogo();
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
@@ -52,7 +53,7 @@ export function SidebarLayout({
 
             {/* Mobile: show logo + app title */}
             <div className="md:hidden flex items-center gap-1.5">
-              <img src={logo} alt="TFCLab" className="h-5 w-5 rounded-sm" />
+              <img src={logoUrl} alt="TFCLab" className="h-5 w-5 rounded-sm" />
               <span className="text-sm font-semibold text-foreground/90 tracking-tight">TFCLab</span>
             </div>
 
