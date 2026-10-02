@@ -13,6 +13,7 @@ interface UseProfileReturn {
   error: Error | null;
   updateRole: (role: UserRole) => Promise<void>;
   completeOnboarding: () => Promise<void>;
+  updateLogo: (logoUrl: string | null) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -87,12 +88,25 @@ export function useProfile(): UseProfileReturn {
     setProfile((prev) => (prev ? { ...prev, onboarding_completed: true } : null));
   };
 
+  const updateLogo = async (logoUrl: string | null) => {
+    if (!user || !profile) return;
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ logo_url: logoUrl })
+      .eq("user_id", user.id);
+
+    if (updateError) throw updateError;
+    setProfile((prev) => (prev ? { ...prev, logo_url: logoUrl } : null));
+  };
+
   return {
     profile,
     loading,
     error,
     updateRole,
     completeOnboarding,
+    updateLogo,
     refetch: fetchProfile,
   };
 }

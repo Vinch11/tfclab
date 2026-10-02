@@ -42,8 +42,7 @@ import { computeCAPInjuryRiskIndex, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, interpretVLamaxByAge, getAgeNutritionAdjustment, getAgeAdjustedVLamaxProfil, getVLamaxAgeStatus, type VLamaxProfil } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getTargetsForAmbition, getVLamaxRange, AMBITION_TARGETS } from "@/lib/physiologicalTargets";
-import logoUrl from "@/assets/logo-2fc.png";
-import profileReportLogoAsset from "@/assets/logo-24c.png.asset.json";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { buildChartePageHTML } from "@/data/charteInterpretation";
 // ✅ NEW: Import Compass Scoring et CRR
 import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
@@ -9859,6 +9858,7 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
 // =============================================
 
 export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION, calibrationEvidences = [], open: controlledOpen, onOpenChange }: ExportToolsProps) {
+  const { logoUrl } = useAppLogo();
   // Charger les sections depuis le localStorage via la fonction utilitaire
   const [sections, setSections] = useState<ReportSections>(getSectionVisibility);
   
@@ -9964,7 +9964,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       description: "Un nouvel onglet va s'ouvrir.",
     });
     try {
-      const logoBase64 = await imageToBase64(profileReportLogoAsset.url);
+      const logoBase64 = await imageToBase64(logoUrl);
       const input = mapExportPayloadToProfileReport(payload, {
         ambitionLabel: payload.ambition?.label ?? "—",
         generatedAt: new Date().toLocaleDateString("fr-FR", {
@@ -10004,7 +10004,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       description: "Un nouvel onglet va s'ouvrir.",
     });
     try {
-      const logoBase64 = await imageToBase64(profileReportLogoAsset.url);
+      const logoBase64 = await imageToBase64(logoUrl);
       const input = computePerformanceReport(payload, {
         ambitionLabel: payload.ambition?.label ?? "—",
         generatedAt: new Date().toLocaleDateString("fr-FR", {

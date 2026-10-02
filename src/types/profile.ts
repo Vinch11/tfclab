@@ -10,6 +10,7 @@ export interface UserProfile {
   role: UserRole;
   onboarding_completed: boolean;
   display_name: string | null;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }
