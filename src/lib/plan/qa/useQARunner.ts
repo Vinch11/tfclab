@@ -16,7 +16,7 @@
  */
 import { useCallback, useRef, useState } from "react";
 import { useAITrainingPlan } from "@/hooks/useAITrainingPlan";
-import { QA_PROFILES } from "./syntheticProfiles";
+import { QA_PROFILES, type QAProfileId } from "./syntheticProfiles";
 import { runAllChecks, type CheckResult } from "./checks";
 import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { readPlanStats, type PlanGenerationStat } from "@/lib/plan/planGenerationStats";
@@ -71,7 +71,7 @@ export function useQARunner() {
   issuesRef.current = plan.sportObjectiveIssues;
   quotaIssuesRef.current = plan.weeklyQuotaIssues;
 
-  const runFullSuite = useCallback(async (N: 1 | 3 | 5, profileFilter?: Array<"B-70.3" | "B-SEMI" | "B-SPRINT">): Promise<QASession> => {
+  const runFullSuite = useCallback(async (N: 1 | 3 | 5, profileFilter?: QAProfileId[]): Promise<QASession> => {
     if (isLoadingRef.current) throw new Error("Une génération est déjà en cours — attendez la fin.");
     const activeProfiles = profileFilter && profileFilter.length > 0
       ? QA_PROFILES.filter(p => profileFilter.includes(p.id))

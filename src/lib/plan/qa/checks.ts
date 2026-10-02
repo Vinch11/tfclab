@@ -23,6 +23,7 @@ import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX, isTrailCatalogId }
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { checkB10, checkB11 } from "./checksB10B11";
 import { checkB12 } from "./checkB12";
+import type { QAProfileId } from "./syntheticProfiles";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { getCatalogAttribution } from "@/lib/workoutCatalogBuilder";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
@@ -191,10 +192,49 @@ export function checkB4_semi(plan: MergedPlan): CheckResult {
   return { id: "B4", label: "SEMI — 0 swim, 0 brick, vélo Z1-Z2 ≤75 min", level: "critical", pass, details };
 }
 
-/** Sprint : swim+bike+run présents chaque semaine active (comme 70.3 mais raccourci). */
-export function checkB4_sprint(plan: MergedPlan): CheckResult {
-  const res = checkB4_703(plan);
-  return { ...res, label: "SPRINT — swim/bike/run chaque semaine active" };
+/**
+ * Dispatch exhaustif B4 par profil QA — généralise le câblage 3-profils
+ * d'origine (703/SEMI/SPRINT) aux 12 profils "Definition of Done"
+ * (2026-10-02). `assertNeverProfileId` force une erreur TypeScript si
+ * `QAProfileId` (syntheticProfiles.ts) gagne un membre non câblé ici — même
+ * garde-fou que `COVERAGE_GUARD` dans
+ * objectiveCoverage.definitionOfDone.test.ts, appliqué à la QA E2E plutôt
+ * qu'au routage catalogue/physio.
+ *
+ * Deux familles seulement, pas une par objectif :
+ *   - "multi-sport" (703/IM/Sprint/Olympic) : swim+bike+run chaque semaine
+ *     active (checkB4_703) — tous des formats triathlon complet.
+ *   - "course à pied + cross-training limité" (Semi/Marathon/10K/5K/
+ *     StartToRun/Trail*) : 0 swim, 0 brick, vélo ≤75min Z1-Z2 uniquement
+ *     (checkB4_semi) — aucun de ces objectifs n'est un triathlon.
+ */
+function assertNeverProfileId(id: never): never {
+  throw new Error(`checkB4For: profil QA non câblé — ${String(id)}`);
+}
+
+export function checkB4For(profileId: QAProfileId, plan: MergedPlan): CheckResult {
+  switch (profileId) {
+    case "B-70.3":
+    case "B-IM":
+    case "B-SPRINT":
+    case "B-OLYMPIC": {
+      const res = checkB4_703(plan);
+      return { ...res, label: `${profileId} — swim/bike/run chaque semaine active` };
+    }
+    case "B-SEMI":
+    case "B-MARATHON":
+    case "B-10K":
+    case "B-5K":
+    case "B-STARTTORUN":
+    case "B-TRAIL-SHORT":
+    case "B-TRAIL-MOUNTAIN":
+    case "B-TRAIL-ULTRA": {
+      const res = checkB4_semi(plan);
+      return { ...res, label: `${profileId} — 0 swim, 0 brick, vélo Z1-Z2 ≤75 min` };
+    }
+    default:
+      return assertNeverProfileId(profileId);
+  }
 }
 
 export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, objective?: string): CheckResult {
@@ -576,7 +616,7 @@ export function checkB9(semanticRepairs: string[] | undefined): CheckResult {
 }
 
 export function runAllChecks(args: {
-  profileId: "B-70.3" | "B-SEMI" | "B-SPRINT";
+  profileId: QAProfileId;
   merged: MergedPlan;
   parsed: ParsedPlan;
   allowedCatalogIds: string[] | undefined;
@@ -587,11 +627,7 @@ export function runAllChecks(args: {
   quotasByWeek?: Record<number, WeekQuotaEntry>;
   identifiedLimiters?: string[] | null;
 }): CheckResult[] {
-  const b4 = args.profileId === "B-70.3"
-    ? checkB4_703(args.merged)
-    : args.profileId === "B-SEMI"
-      ? checkB4_semi(args.merged)
-      : checkB4_sprint(args.merged);
+  const b4 = checkB4For(args.profileId, args.merged);
   return [
     checkB1({ stat: args.stat, parsedPresent: !!args.parsed }),
     checkB2(args.merged),
