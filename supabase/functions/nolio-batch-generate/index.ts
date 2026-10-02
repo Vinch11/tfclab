@@ -194,6 +194,36 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Audit sécurité (revue RLS/edge functions) — avant ce fix, cette fonction
+    // n'exigeait AUCUNE identité d'appelant (contrairement à ses 9 fonctions
+    // soeurs nolio-*, qui vérifient toutes un JWT via `getClaims`). `verify_jwt`
+    // (supabase/config.toml, true par défaut ici) bloque un appel totalement
+    // dépourvu de token, mais la clé "anon" publique (exposée côté client,
+    // VITE_SUPABASE_PUBLISHABLE_KEY) EST elle-même un JWT valide — n'importe
+    // qui pouvant la lire dans le bundle JS pouvait donc appeler cet endpoint
+    // service-role (écriture DB) et faire consommer les crédits LLM du
+    // propriétaire (LOVABLE_API_KEY), sans jamais s'être connecté. Fix : exiger
+    // un VRAI utilisateur authentifié, comme le reste des fonctions nolio-*.
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(
+      authHeader.replace("Bearer ", ""),
+    );
+    if (claimsErr || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
