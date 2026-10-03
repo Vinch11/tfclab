@@ -10,22 +10,22 @@ const REDIRECT_URI =
 const APP_URL = Deno.env.get("APP_URL") || "https://tfclab.lovable.app";
 
 
-function randomString(len = 24): string {
+export function randomString(len = 24): string {
   const bytes = new Uint8Array(len);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function b64urlEncode(s: string): string {
+export function b64urlEncode(s: string): string {
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-function b64urlDecode(s: string): string {
+export function b64urlDecode(s: string): string {
   s = s.replace(/-/g, "+").replace(/_/g, "/");
   while (s.length % 4) s += "=";
   return atob(s);
 }
 
-function appOrigin(req: Request): string {
+export function appOrigin(req: Request): string {
   const origin = req.headers.get("origin") || req.headers.get("referer");
   if (origin) {
     try {

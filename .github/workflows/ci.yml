@@ -90,3 +90,32 @@ jobs:
         # utilisé par Supabase Edge Functions en production), sans dépendre
         # du package.json racine.
         run: deno test -A --node-modules-dir=none
+      - name: Run Deno tests (other edge functions)
+        # Jusqu'ici, SEUL ai-training-plan/ tournait en CI — les 21 autres
+        # edge functions n'avaient aucun test automatisé (audit "produit
+        # fini", oct. 2026). Cette étape découvre et exécute tout *.test.ts
+        # ajouté dans n'importe quel dossier supabase/functions/*/ (sauf
+        # ai-training-plan, déjà couvert ci-dessus, et _shared, qui n'est pas
+        # une fonction) — un nouveau fichier de test y est donc automatiquement
+        # exécuté en CI sans retoucher ce workflow.
+        #
+        # --no-check (contrairement à l'étape ai-training-plan) : plusieurs de
+        # ces fichiers index.ts, jamais type-checkés avant cette CI, contiennent
+        # des erreurs de type préexistantes sans rapport avec les tests ajoutés
+        # (conflits de génériques sur le client `npm:@supabase/supabase-js@2`
+        # résolu à des versions différentes selon les fichiers). Les corriger
+        # est un chantier de typage à part — hors scope ici, où l'objectif est
+        # un filet de régression comportemental, pas un audit de types.
+        run: |
+          set -e
+          for dir in supabase/functions/*/; do
+            name=$(basename "$dir")
+            if [ "$name" = "ai-training-plan" ] || [ "$name" = "_shared" ]; then
+              continue
+            fi
+            if ls "$dir"*.test.ts >/dev/null 2>&1; then
+              echo "::group::deno test $name"
+              (cd "$dir" && deno test -A --no-check --node-modules-dir=none)
+              echo "::endgroup::"
+            fi
+          done
