@@ -408,7 +408,7 @@ export default function AITrainingPlanPage() {
   // le bouton local (celui-ci reste volontairement remis à "continuous" à
   // chaque changement d'athlète, cf. PR #63 anti-fuite cross-athlète).
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
-  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot } = useCloudDataContext();
+  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
   const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
@@ -445,6 +445,20 @@ export default function AITrainingPlanPage() {
 
   // QUICK-START WIZARD — Questionnaire guidé pour coach/athlète débutant.
   const [wizardOpen, setWizardOpen] = useState(false);
+  /**
+   * Bug réel (audit "démarrage guidé") : enchaîner persistWizardChronos()
+   * (écrit en base + met à jour l'état local de façon asynchrone) puis
+   * handleCoachFormGenerate() dans la même fonction utilisait un
+   * `athleteContext` figé AVANT la persistance des chronos — le plan généré
+   * ignorait silencieusement le chrono que l'athlète venait de saisir.
+   * Même classe de bug que F-EXPRESS ci-dessus (pendingExpressGen) : on
+   * diffère la génération jusqu'à ce que `athleteContext` reflète vraiment
+   * le nouveau snapshot, au lieu de l'utiliser immédiatement.
+   */
+  const [pendingWizardGenerate, setPendingWizardGenerate] = useState<{
+    payload: CoachProfileFormPayload;
+    objective: string;
+  } | null>(null);
 
   // Handle navigation from PlanSyncAlert or ProfileChoiceDialog
   useEffect(() => {
@@ -1140,6 +1154,18 @@ export default function AITrainingPlanPage() {
     void handleGenerate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingExpressGen, snapshots, athleteContext, currentAthlete]);
+
+  // QUICK-START WIZARD — même logique que F-EXPRESS ci-dessus : attend que
+  // athleteContext reflète le snapshot/chrono fraîchement persisté par
+  // persistWizardChronos() avant de lancer la génération, au lieu de la
+  // lancer immédiatement sur un athleteContext figé (pré-chrono).
+  useEffect(() => {
+    if (!pendingWizardGenerate || !currentAthlete || !athleteContext) return;
+    const { payload, objective: pendingObjective } = pendingWizardGenerate;
+    setPendingWizardGenerate(null);
+    handleCoachFormGenerate(payload, pendingObjective);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingWizardGenerate, athleteContext, currentAthlete]);
 
   const weeksAvailable = useMemo(() => {
     // Use the latest race date across all goals (primary A + additional B/C), relative to plan start week
@@ -1878,19 +1904,26 @@ export default function AITrainingPlanPage() {
         update[fields.date] = val.date;
       }
       if (Object.keys(update).length > 0) {
-        await supabase.from("snapshots").update(update).eq("id", snapshotId);
+        // updateSnapshot() (et non supabase.from(...).update() en direct) —
+        // c'est ce qui rafraîchit aussi `snapshots` en mémoire (setSnapshots),
+        // sans quoi athleteContext ne reflète jamais le chrono qu'on vient
+        // de saisir, même après un rechargement complet de la page.
+        await updateSnapshot(snapshotId, update);
       }
     } catch (e) {
       console.warn("[QuickStartWizard] persistWizardChronos failed:", e);
     }
-  }, [currentAthlete?.id, snapshots, addSnapshot]);
+  }, [currentAthlete?.id, snapshots, addSnapshot, updateSnapshot]);
 
   const handleWizardGenerate = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
     setObjective(result.objective);
     await persistWizardChronos(result.extras);
-    // On passe l'objectif explicitement : setObjective n'est pas encore appliqué ici.
-    handleCoachFormGenerate(result.payload, result.objective);
-  }, [handleCoachFormGenerate, persistWizardChronos]);
+    // Ne PAS appeler handleCoachFormGenerate ici directement : athleteContext
+    // (capturé dans sa closure) est encore celui d'AVANT la persistance du
+    // chrono ci-dessus — cf. pendingWizardGenerate/useEffect plus haut, qui
+    // attend que athleteContext reflète vraiment le nouveau snapshot.
+    setPendingWizardGenerate({ payload: result.payload, objective: result.objective });
+  }, [persistWizardChronos]);
 
 
   const handleWizardReview = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
