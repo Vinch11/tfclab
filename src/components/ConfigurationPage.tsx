@@ -54,7 +54,12 @@ export function ConfigurationPage() {
         toast({ title: "Logo mis à jour", description: "Le nouveau logo s'affiche désormais dans l'application et vos rapports exportés." });
       } catch (err) {
         console.error("Failed to save custom logo", err);
-        toast({ title: "Erreur", description: "Impossible d'enregistrer le logo.", variant: "destructive" });
+        const detail = (err as { message?: string })?.message;
+        toast({
+          title: "Erreur",
+          description: detail ? `Impossible d'enregistrer le logo : ${detail}` : "Impossible d'enregistrer le logo.",
+          variant: "destructive",
+        });
       } finally {
         setLogoUploading(false);
       }
@@ -73,7 +78,12 @@ export function ConfigurationPage() {
       toast({ title: "Logo par défaut restauré" });
     } catch (err) {
       console.error("Failed to reset logo", err);
-      toast({ title: "Erreur", description: "Impossible de réinitialiser le logo.", variant: "destructive" });
+      const detail = (err as { message?: string })?.message;
+      toast({
+        title: "Erreur",
+        description: detail ? `Impossible de réinitialiser le logo : ${detail}` : "Impossible de réinitialiser le logo.",
+        variant: "destructive",
+      });
     } finally {
       setLogoUploading(false);
     }
