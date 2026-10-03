@@ -44,7 +44,7 @@ const META_KEY_MAP: Record<string, string> = {
 //     • raw < 100  → déjà en secondes/100m (ex 96 = 1:36/100m) → valeur brute
 //   Résultat exprimé en s/100m (référence TFCLab).
 // - fc_repos / fc_max : entiers bpm.
-function convertNolioValue(snapCol: string, raw: number): number {
+export function convertNolioValue(snapCol: string, raw: number): number {
   if (snapCol === "css") {
     if (raw >= 100) {
       const minutes = Math.floor(raw / 100);
@@ -59,7 +59,7 @@ function convertNolioValue(snapCol: string, raw: number): number {
   return raw;
 }
 
-function toNum(v: unknown): number | null {
+export function toNum(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? n : null;
@@ -165,7 +165,7 @@ async function fetchAthleteMeta(opts: {
 }
 
 /** Garde la valeur la plus récente non-null d’un tableau Nolio meta. */
-function latestMetaValue(entries: NolioMetaValue[]): number | null {
+export function latestMetaValue(entries: NolioMetaValue[]): number | null {
   for (const e of entries) {
     const v = toNum(e.value);
     if (v !== null) return v;
@@ -173,7 +173,7 @@ function latestMetaValue(entries: NolioMetaValue[]): number | null {
   return null;
 }
 
-function diffExceeds(prev: number | null | undefined, next: number, pct = 0.005): boolean {
+export function diffExceeds(prev: number | null | undefined, next: number, pct = 0.005): boolean {
   if (prev === null || prev === undefined) return true;
   if (prev === 0) return next !== 0;
   return Math.abs(next - prev) / Math.abs(prev) > pct;

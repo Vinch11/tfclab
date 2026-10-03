@@ -21,7 +21,7 @@ const NOLIO_TRAINING_URL = "https://www.nolio.io/api/get/training/";
 type SupabaseAdmin = ReturnType<typeof createClient>;
 type SportBucket = "swim" | "bike" | "run" | "other" | "global";
 
-function nolioSportIdToBucket(sportId: number | null | undefined): SportBucket {
+export function nolioSportIdToBucket(sportId: number | null | undefined): SportBucket {
   const id = Number(sportId);
   if (id === 19) return "swim";
   if (id === 14 || id === 18) return "bike";
@@ -29,7 +29,7 @@ function nolioSportIdToBucket(sportId: number | null | undefined): SportBucket {
   return "other";
 }
 
-function pickTss(t: Record<string, unknown>): number | null {
+export function pickTss(t: Record<string, unknown>): number | null {
   const cog = Number(t.load_coggan);
   if (Number.isFinite(cog) && cog > 0) return cog;
   const fos = Number(t.load_foster);
@@ -37,7 +37,7 @@ function pickTss(t: Record<string, unknown>): number | null {
   return null;
 }
 
-function extractDate(t: Record<string, unknown>): string | null {
+export function extractDate(t: Record<string, unknown>): string | null {
   const raw =
     (t.date_start as string | undefined) ??
     (t.date as string | undefined) ??
@@ -164,7 +164,7 @@ async function fetchAllTrainings(opts: {
   return { items };
 }
 
-function aggregate(items: Array<Record<string, unknown>>): Map<string, { tss: number; count: number }> {
+export function aggregate(items: Array<Record<string, unknown>>): Map<string, { tss: number; count: number }> {
   // key = `${date}|${bucket}` and `${date}|global`
   const out = new Map<string, { tss: number; count: number }>();
   for (const t of items) {

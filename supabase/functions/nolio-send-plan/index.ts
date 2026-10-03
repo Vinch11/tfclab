@@ -94,14 +94,14 @@ type AthleteRefs = {
 };
 
 /** Watts pour un %FTP de la grille standard — passe par les zones dérivées si dispo. */
-function wattsFromStandardPct(pct: number, refs: AthleteRefs): number | null {
+export function wattsFromStandardPct(pct: number, refs: AthleteRefs): number | null {
   if (refs.derivedBikeWatts) return Math.round(refs.derivedBikeWatts(pct));
   if (!refs.ftp) return null;
   return Math.round((refs.ftp * pct) / 100);
 }
 
 /** Allure (s/km) pour un %VMA de la grille standard — via zones dérivées si dispo. */
-function paceSecFromStandardPct(pct: number, refs: AthleteRefs): number | null {
+export function paceSecFromStandardPct(pct: number, refs: AthleteRefs): number | null {
   const kmh = refs.derivedRunSpeedKmh
     ? refs.derivedRunSpeedKmh(pct)
     : refs.vma
@@ -143,7 +143,7 @@ type NolioRepStep = {
 
 type NolioStructuredItem = NolioStep | NolioRepStep;
 
-function mapTargetType(ref: WbalIntensityRef): NolioStep["target_type"] {
+export function mapTargetType(ref: WbalIntensityRef): NolioStep["target_type"] {
   switch (ref) {
     case "FTP":
     case "CP":
@@ -159,7 +159,7 @@ function mapTargetType(ref: WbalIntensityRef): NolioStep["target_type"] {
   }
 }
 
-function computeTargetValue(
+export function computeTargetValue(
   ref: WbalIntensityRef,
   intensityPct: number,
   refs: AthleteRefs,
@@ -186,7 +186,7 @@ function computeTargetValue(
 }
 
 /** Parse "30min", "20 min", "1h", "1h30", "45'", "45 s" → secondes. Retourne null si aucun match. */
-function parseDurationToSec(text: string): number | null {
+export function parseDurationToSec(text: string): number | null {
   if (!text) return null;
   const t = text.toLowerCase();
   // 1h30 / 1h
@@ -212,11 +212,11 @@ function parseDurationToSec(text: string): number | null {
   return null;
 }
 
-function normalizeStr(s: string): string {
+export function normalizeStr(s: string): string {
   return (s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-function mapPartToIntensity(part: string): "warmup" | "active" | "cooldown" {
+export function mapPartToIntensity(part: string): "warmup" | "active" | "cooldown" {
   const p = normalizeStr(part);
   if (p.includes("warm") || p.includes("echauffement")) return "warmup";
   if (p.includes("cool") || p.includes("retour") || p.includes("recup finale")) return "cooldown";
@@ -224,7 +224,7 @@ function mapPartToIntensity(part: string): "warmup" | "active" | "cooldown" {
 }
 
 /** Cherche un range "127-149 bpm" / "127 - 149 bpm" / "200-250 W" / "4:30-4:00/km" */
-function parseRange(text: string, unitPattern: string): { min: number; max: number } | null {
+export function parseRange(text: string, unitPattern: string): { min: number; max: number } | null {
   const re = new RegExp(`(\\d+(?:[.:]\\d+)?)\\s*[-–—]\\s*(\\d+(?:[.:]\\d+)?)\\s*${unitPattern}`, "i");
   const m = text.match(re);
   if (!m) return null;
@@ -240,7 +240,7 @@ function parseRange(text: string, unitPattern: string): { min: number; max: numb
   return { min: Math.min(a, b), max: Math.max(a, b) };
 }
 
-function parsePctRange(text: string): { min: number; max: number } | null {
+export function parsePctRange(text: string): { min: number; max: number } | null {
   const m = text.match(/(\d+)\s*[-–—]\s*(\d+)\s*%/);
   if (!m) return null;
   const a = parseInt(m[1], 10);
@@ -340,7 +340,7 @@ const HR_ZONE_PCT: Record<string, [number, number]> = {
   "6": [95, 100],
 };
 
-function hrTargetFromPct(
+export function hrTargetFromPct(
   pctLo: number,
   pctHi: number,
   refs?: AthleteRefs,
@@ -360,7 +360,7 @@ function hrTargetFromPct(
   };
 }
 
-function highestZonePct(text?: string): [number, number] | null {
+export function highestZonePct(text?: string): [number, number] | null {
   const norm = normalizeStr(text ?? "");
   const matches = Array.from(norm.matchAll(/\bz\s*([1-6])\s*([ab])?\b/g));
   if (matches.length === 0) return null;
@@ -379,7 +379,7 @@ function highestZonePct(text?: string): [number, number] | null {
 }
 
 /** Détecte une cible depuis le texte libre : "100-108% FTP", "85% FTP", "Z2", "5:25/km", "4:30-4:45/km". */
-function buildTargetFromText(
+export function buildTargetFromText(
   text: string,
   refs: AthleteRefs,
 ): Pick<NolioStep, "target_type" | "target_value_min" | "target_value_max" | "target_value"> {
@@ -480,7 +480,7 @@ function buildTargetFromText(
 }
 
 /** Détecte NxM' ou N×M' dans le texte, et extrait la récup après "/". */
-function parseRepetitionPattern(text: string): {
+export function parseRepetitionPattern(text: string): {
   reps: number;
   workSec: number;
   restSec: number | null;
@@ -531,7 +531,7 @@ function cleanTargetFields(src: Record<string, unknown>) {
   ]) delete src[key];
 }
 
-function vmaPctToHrZone(pct: number): [number, number] {
+export function vmaPctToHrZone(pct: number): [number, number] {
   if (pct < 60) return [50, 60];
   if (pct < 75) return [60, 70];
   if (pct < 85) return [70, 80];
@@ -541,7 +541,7 @@ function vmaPctToHrZone(pct: number): [number, number] {
   return [95, 100];
 }
 
-function cssPctToHrZone(pct: number): [number, number] {
+export function cssPctToHrZone(pct: number): [number, number] {
   if (pct >= 115) return [50, 60];
   if (pct >= 108) return [60, 70];
   if (pct >= 103) return [70, 80];
@@ -572,7 +572,7 @@ function defaultHrZoneForStep(src: Record<string, unknown>): [number, number] {
  * partent tels quels et la cible `pace` reste sur des steps natation →
  * Nolio répond `400 Structured workout format error`.
  */
-function canonicalizeStructuredShape(input: unknown): unknown {
+export function canonicalizeStructuredShape(input: unknown): unknown {
   if (Array.isArray(input)) return input.map(canonicalizeStructuredShape);
   if (!input || typeof input !== "object") return input;
   const src = { ...(input as Record<string, unknown>) };
@@ -1028,7 +1028,7 @@ function normalizeStructuredWorkoutForNolio(
 }
 
 /** True si tous les steps (récursivement) ont target_type="no_target". */
-function isAllNoTargetStructure(input: unknown): boolean {
+export function isAllNoTargetStructure(input: unknown): boolean {
   const visit = (node: unknown): boolean => {
     if (Array.isArray(node)) return node.every(visit);
     if (node && typeof node === "object") {
@@ -1042,7 +1042,7 @@ function isAllNoTargetStructure(input: unknown): boolean {
 }
 
 /** Cherche une note nutrition courte dans un texte libre. */
-function extractNutritionNote(text?: string): string | null {
+export function extractNutritionNote(text?: string): string | null {
   if (!text) return null;
   const n = text.trim();
   const hasKeyword = /cho|glucides|hydratation|nutrition|g\/h|g\s+CHO|boire|gel|isotonique|protéines|carbs/i.test(n);
@@ -1072,7 +1072,7 @@ function extractNutritionNote(text?: string): string | null {
  * Ces athlètes débutants n'ont ni FTP, ni VMA, ni FCmax fiable :
  * l'intensité est pilotée exclusivement au RPE (échelle 1-10).
  */
-function isStartToRunSession(s: ParsedSession): boolean {
+export function isStartToRunSession(s: ParsedSession): boolean {
   const haystack = `${s.id ?? ""} ${s.title ?? ""} ${s.details ?? ""}`;
   return /\bS2R_/i.test(haystack);
 }
@@ -1292,7 +1292,7 @@ function buildStructuredFromParts(
 
 // Mapping basé sur les vrais sport_id Nolio découverts via GET /api/get/training/
 // 2=Course à pied, 14=Vélo Route, 18=Vélo Home Trainer, 19=Natation, 20=Renforcement, 52=Trail
-function detectSportId(text: string): number | null {
+export function detectSportId(text: string): number | null {
   const s = normalizeStr(text);
   if (!s) return null;
   // Ordre important : trail avant run, home trainer avant bike, natation avant rien
@@ -1306,7 +1306,7 @@ function detectSportId(text: string): number | null {
   return null;
 }
 
-function mapSport(sport: string, title?: string, id?: string | null): number {
+export function mapSport(sport: string, title?: string, id?: string | null): number {
   const fromSport = detectSportId(sport);
   if (fromSport !== null) return fromSport;
   const fromTitle = detectSportId(title ?? "");
@@ -1322,14 +1322,14 @@ function mapSport(sport: string, title?: string, id?: string | null): number {
  * et la debug trace ; seul le `name:` envoyé à Nolio est nettoyé.
  * Aligné avec src/lib/parseSessionTitle.ts (helper front).
  */
-function stripTitleTags(raw: string | null | undefined): string {
+export function stripTitleTags(raw: string | null | undefined): string {
   if (!raw) return "";
   const cleaned = raw.replace(/^\s*(?:\[[^\]]+\]\s*)+/, "").trim();
   return cleaned || raw;
 }
 
 
-function addDaysYMD(startYMD: string, days: number): string {
+export function addDaysYMD(startYMD: string, days: number): string {
   const [y, m, d] = startYMD.split("-").map((v) => parseInt(v, 10));
   const dt = new Date(Date.UTC(y, m - 1, d));
   dt.setUTCDate(dt.getUTCDate() + days);
@@ -1346,7 +1346,7 @@ function addDaysYMD(startYMD: string, days: number): string {
  */
 const SWIM_BLOCK_REST_SEC = 60;
 
-function isRestNode(node: unknown): boolean {
+export function isRestNode(node: unknown): boolean {
   if (!node || typeof node !== "object") return false;
   const n = node as Record<string, unknown>;
   return n.type === "step" && String(n.intensity_type ?? "") === "rest";
@@ -1364,7 +1364,7 @@ function makeSwimBlockRest(): Record<string, unknown> {
   };
 }
 
-function insertSwimBlockRests(input: unknown): unknown {
+export function insertSwimBlockRests(input: unknown): unknown {
   const withRests = (steps: unknown[]): unknown[] => {
     const out: unknown[] = [];
     steps.forEach((step, i) => {
@@ -1386,7 +1386,7 @@ function insertSwimBlockRests(input: unknown): unknown {
 
 
 
-function summarizeStructuredWorkout(input: unknown): { durationSec: number; distanceMeters: number } {
+export function summarizeStructuredWorkout(input: unknown): { durationSec: number; distanceMeters: number } {
   const visit = (node: unknown): { durationSec: number; distanceMeters: number } => {
     if (Array.isArray(node)) {
       return node.reduce(

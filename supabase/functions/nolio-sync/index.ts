@@ -15,7 +15,7 @@ type NolioAthlete = {
   teams?: unknown[];
 };
 
-function normName(s: string | undefined | null): string {
+export function normName(s: string | undefined | null): string {
   return (s ?? "").trim().toLowerCase();
 }
 

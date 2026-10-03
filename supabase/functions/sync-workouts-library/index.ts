@@ -125,7 +125,7 @@ const PHASE_DURATION_WEIGHT: Record<Phase, number> = {
   taper: 0.1,
 };
 
-function durationBounds(w: any): [number, number] {
+export function durationBounds(w: any): [number, number] {
   const d = w?.durationMin;
   if (Array.isArray(d)) {
     const lo = Number(d[0]) || 0;
@@ -136,12 +136,12 @@ function durationBounds(w: any): [number, number] {
   return [v, v];
 }
 
-function roundDuration(min: number): number {
+export function roundDuration(min: number): number {
   const step = min >= 120 ? 10 : 5;
   return Math.round(min / step) * step;
 }
 
-function resolveCanonicalDuration(w: any, phase: Phase): number {
+export function resolveCanonicalDuration(w: any, phase: Phase): number {
   const [lo, hi] = durationBounds(w);
   const explicit = w?.durationByPhase?.[phase];
   if (typeof explicit === "number" && Number.isFinite(explicit) && explicit > 0) {
@@ -153,7 +153,7 @@ function resolveCanonicalDuration(w: any, phase: Phase): number {
   return Math.min(hi, Math.max(lo, roundDuration(raw)));
 }
 
-function buildDurationByPhase(w: any): Record<string, number> {
+export function buildDurationByPhase(w: any): Record<string, number> {
   const out: Record<string, number> = {};
   for (const p of PHASES) {
     const v = resolveCanonicalDuration(w, p);
@@ -162,14 +162,14 @@ function buildDurationByPhase(w: any): Record<string, number> {
   return out;
 }
 
-function extractIntensity(w: any): string | null {
+export function extractIntensity(w: any): string | null {
   if (!w.structure || !Array.isArray(w.structure)) return w.metricKey || null;
   const mainPart = w.structure.find((s: any) => s.part === "Main");
   if (mainPart?.zones?.length) return mainPart.zones[0];
   return w.metricKey || null;
 }
 
-function buildDescription(w: any): string {
+export function buildDescription(w: any): string {
   const parts: string[] = [];
   if (w.objectif) parts.push(w.objectif);
   if (w.when) parts.push(`Quand: ${w.when}`);

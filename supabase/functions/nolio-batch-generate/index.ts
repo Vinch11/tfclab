@@ -163,10 +163,10 @@ interface WorkoutPayload {
 
 const REST_ID_RE = /^REST_|^REPOS_|^D_.*RECOVERY$|^REST$|^REPOS$/i;
 const PURE_REST_IDS = new Set(["REST_FULL_DAY", "REPOS_COMPLET"]);
-function isRestWorkout(w: WorkoutPayload): boolean {
+export function isRestWorkout(w: WorkoutPayload): boolean {
   return w.isRest === true || REST_ID_RE.test(w.workout_id ?? "");
 }
-function isPureRest(w: WorkoutPayload): boolean {
+export function isPureRest(w: WorkoutPayload): boolean {
   return PURE_REST_IDS.has(w.workout_id ?? "");
 }
 
@@ -175,7 +175,7 @@ interface BatchBody {
   force_regenerate?: boolean;
 }
 
-async function sha256Hex(input: string): Promise<string> {
+export async function sha256Hex(input: string): Promise<string> {
   const buf = new TextEncoder().encode(input);
   const hash = await crypto.subtle.digest("SHA-256", buf);
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -186,7 +186,7 @@ function sleep(ms: number) {
 }
 
 // Gemini 3.1 Pro Preview pricing (Lovable AI Gateway) : $2/M in, $12/M out
-function estimateCost(tokensIn: number, tokensOut: number) {
+export function estimateCost(tokensIn: number, tokensOut: number) {
   return (tokensIn / 1_000_000) * 2 + (tokensOut / 1_000_000) * 12;
 }
 

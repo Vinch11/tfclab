@@ -16,7 +16,7 @@ const NOLIO_TRAINING_URL = "https://www.nolio.io/api/get/training/";
 type SupabaseAdmin = ReturnType<typeof createClient<any>>;
 type SportBucket = "swim" | "bike" | "run" | "other" | "global";
 
-function nolioSportIdToBucket(sportId: number | null | undefined): SportBucket {
+export function nolioSportIdToBucket(sportId: number | null | undefined): SportBucket {
   const id = Number(sportId);
   if (id === 19) return "swim";
   if (id === 14 || id === 18) return "bike";
@@ -24,7 +24,7 @@ function nolioSportIdToBucket(sportId: number | null | undefined): SportBucket {
   return "other";
 }
 
-function pickTss(t: Record<string, unknown>): number | null {
+export function pickTss(t: Record<string, unknown>): number | null {
   const cog = Number(t.load_coggan);
   if (Number.isFinite(cog) && cog > 0) return cog;
   const fos = Number(t.load_foster);
@@ -32,7 +32,7 @@ function pickTss(t: Record<string, unknown>): number | null {
   return null;
 }
 
-function extractDate(t: Record<string, unknown>): string | null {
+export function extractDate(t: Record<string, unknown>): string | null {
   const raw = (t.date_start as string | undefined) ?? (t.date as string | undefined) ?? null;
   if (!raw) return null;
   const s = String(raw);
@@ -41,7 +41,7 @@ function extractDate(t: Record<string, unknown>): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
 }
 
-async function refreshToken(
+export async function refreshToken(
   admin: SupabaseAdmin, userId: string, refreshTokenStr: string,
 ): Promise<string | null> {
   const clientSecret = Deno.env.get("NOLIO_CLIENT_SECRET");
@@ -69,7 +69,7 @@ async function refreshToken(
   return json.access_token;
 }
 
-async function refreshIfNeeded(
+export async function refreshIfNeeded(
   admin: SupabaseAdmin, userId: string,
   cur: { access_token: string; refresh_token: string | null; expires_at: string | null },
 ): Promise<string> {
@@ -80,7 +80,7 @@ async function refreshIfNeeded(
   return fresh ?? cur.access_token;
 }
 
-async function fetchTrainingsSince(
+export async function fetchTrainingsSince(
   accessTokenRef: { current: string },
   nolioId: number,
   fromDate: string,
