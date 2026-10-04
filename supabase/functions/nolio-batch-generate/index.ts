@@ -23,7 +23,15 @@ Chaque step DOIT respecter EXACTEMENT ce schéma plat :
   "target_type": "power" | "pace" | "heartrate" | "no_target",
   "target_value_min": <integer | null>,
   "target_value_max": <integer | null>,
-  "comment": <string | null>
+  "comment": <string | null>,
+  "pct_ftp_min": <integer | null>,
+  "pct_ftp_max": <integer | null>,
+  "pct_vma_min": <integer | null>,
+  "pct_vma_max": <integer | null>,
+  "pct_hrmax_min": <integer | null>,
+  "pct_hrmax_max": <integer | null>,
+  "pct_css_min": <integer | null>,
+  "pct_css_max": <integer | null>
 }
 
 Pour type="repetition" : ajouter "value": <integer> (nombre de répétitions, spec officielle — JAMAIS "repeat_count") et "steps": [<sub-steps>].
@@ -31,12 +39,19 @@ Pour type="repetition" : ajouter "value": <integer> (nombre de répétitions, sp
 ⚠️ NOMBRE DE RÉPÉTITIONS :
 - "value" = exactement le nombre du texte. "12x45s" → value:12. Plage "10-15x" → maximum (15). Jamais inventer.
 
+⚠️ CHAMPS pct_* — TOUJOURS REMPLIR LA PAIRE CORRESPONDANT À target_type (sinon null) :
+- target_type="power" → pct_ftp_min/max (le % FTP que tu as utilisé pour calculer target_value_min/max). Les 4 autres pct_* à null.
+- target_type="pace" (course) → pct_vma_min/max. Les 4 autres pct_* à null.
+- target_type="pace" (natation) → pct_css_min/max. Les 4 autres pct_* à null.
+- target_type="heartrate" → pct_hrmax_min/max. Les 4 autres pct_* à null.
+- target_type="no_target" → les 8 pct_* à null.
+Cette structure sert à RECALCULER les watts/allure/bpm pour chaque athlète qui recevra cette même fiche plus tard, avec SES propres refs (FTP/VMA/CSS/FCmax réels, pas ceux fournis ici) — cette fiche est partagée entre plusieurs athlètes, elle n'est pas générée une fois par destinataire. Sans ces champs, tous les destinataires recevraient figées les valeurs calculées ici pour CET athlète-ci.
+
 ═══════════════════════════════════════════════════════════
 🚫 INTERDICTIONS ABSOLUES (prouvées par tests API Nolio)
 ═══════════════════════════════════════════════════════════
 
-- ❌ JAMAIS de champ "step_percent_low" ni "step_percent_high" — Nolio n'affiche AUCUNE valeur si on utilise step_percent seul. Prouvé par test terrain. On prescrit UNIQUEMENT en valeurs absolues.
-- ❌ JAMAIS de pct_ftp_*, pct_vma_*, pct_hrmax_*, pct_css_* dans la sortie. Utilise-les pour CALCULER target_value_min/max, mais ne les émets PAS.
+- ❌ JAMAIS de champ "step_percent_low" ni "step_percent_high" — un champ Nolio natif DIFFÉRENT des pct_* ci-dessus : Nolio n'affiche AUCUNE valeur avec step_percent seul (prouvé par test terrain). Les pct_* ci-dessus ne sont PAS step_percent_low/high : ce sont des champs internes TFCLab, recalculés puis retirés avant l'envoi réel à Nolio (qui ne reçoit jamais que target_value_min/max en absolu).
 - ❌ JAMAIS d'allure lisible ("4:30/km", "1:36/100m") dans target_value_*. L'allure peut aller dans "comment" uniquement.
 - ❌ JAMAIS target_type="speed" ni "duration" ni "empty_unit". Seuls power/pace/heartrate/no_target sont valides.
 - ❌ JAMAIS target_value seul (sans _min/_max). Pas d'objet imbriqué "target": {...}.
@@ -88,51 +103,51 @@ MATRICE DE CIBLES PAR SPORT ET INTENSITÉ (STRICT)
 - sport_id principal=2.
 
 ═══════════════════════════════════════════════════════════
-EXEMPLES (à reproduire tel quel — aucun step_percent, aucun pct_*)
+EXEMPLES (à reproduire tel quel — aucun step_percent, pct_* toujours renseignés selon la règle ci-dessus)
 ═══════════════════════════════════════════════════════════
 
 VÉLO 3x8' 90-95% FTP r=4' (ftp=280) :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"power","target_value_min":140,"target_value_max":196,"comment":"Z1-Z2 échauffement"},
+  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"power","target_value_min":140,"target_value_max":196,"comment":"Z1-Z2 échauffement","pct_ftp_min":50,"pct_ftp_max":70,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
   {"type":"repetition","value":3,"steps":[
-    {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":480,"target_type":"power","target_value_min":252,"target_value_max":266,"comment":"Seuil 90-95% FTP"},
-    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":240,"target_type":"power","target_value_min":126,"target_value_max":154,"comment":"Récup Z1"}
+    {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":480,"target_type":"power","target_value_min":252,"target_value_max":266,"comment":"Seuil 90-95% FTP","pct_ftp_min":90,"pct_ftp_max":95,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
+    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":240,"target_type":"power","target_value_min":126,"target_value_max":154,"comment":"Récup Z1","pct_ftp_min":45,"pct_ftp_max":55,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
   ]},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"power","target_value_min":112,"target_value_max":154,"comment":"Retour au calme"}
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"power","target_value_min":112,"target_value_max":154,"comment":"Retour au calme","pct_ftp_min":40,"pct_ftp_max":55,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
 ]
 
-RUN travail — 5x1000m à 95% VMA r=90s (vma=18) — VITESSE en m/s :
+RUN travail — 5x1000m à 95% VMA r=90s (vma=18, fcMax=185) — VITESSE en m/s :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"heartrate","target_value_min":111,"target_value_max":144,"comment":"Z1-Z2 échauffement"},
+  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"heartrate","target_value_min":111,"target_value_max":144,"comment":"Z1-Z2 échauffement","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":60,"pct_hrmax_max":78,"pct_css_min":null,"pct_css_max":null},
   {"type":"repetition","value":5,"steps":[
-    {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":210,"target_type":"pace","target_value_min":4.75,"target_value_max":4.75,"comment":"95% VMA — allure spécifique"},
-    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":90,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Récup marche/trot"}
+    {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":210,"target_type":"pace","target_value_min":4.75,"target_value_max":4.75,"comment":"95% VMA — allure spécifique","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":95,"pct_vma_max":95,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
+    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":90,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Récup marche/trot","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
   ]},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":144,"comment":"Retour au calme"}
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":144,"comment":"Retour au calme","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":60,"pct_hrmax_max":78,"pct_css_min":null,"pct_css_max":null}
 ]
 
 RUN endurance Z2 60min (vma=18, fcMax=185) — FC en bpm :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":130,"comment":"Z1 échauffement"},
-  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":2400,"target_type":"heartrate","target_value_min":130,"target_value_max":144,"comment":"Z2 endurance fondamentale"},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":130,"comment":"Retour au calme"}
+  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":130,"comment":"Z1 échauffement","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":60,"pct_hrmax_max":70,"pct_css_min":null,"pct_css_max":null},
+  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":2400,"target_type":"heartrate","target_value_min":130,"target_value_max":144,"comment":"Z2 endurance fondamentale","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":70,"pct_hrmax_max":78,"pct_css_min":null,"pct_css_max":null},
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":130,"comment":"Retour au calme","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":60,"pct_hrmax_max":70,"pct_css_min":null,"pct_css_max":null}
 ]
 
 NATATION 400 WU + 10x100m CSS r=20s + 200 CD (css=95) — VITESSE en m/s :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"distance","step_duration_value":400,"target_type":"pace","target_value_min":0.916,"target_value_max":1.003,"comment":"Z1-Z2 échauffement"},
+  {"type":"step","intensity_type":"warmup","step_duration_type":"distance","step_duration_value":400,"target_type":"pace","target_value_min":0.916,"target_value_max":1.003,"comment":"Z1-Z2 échauffement","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":115,"pct_css_max":105},
   {"type":"repetition","value":10,"steps":[
-    {"type":"step","intensity_type":"active","step_duration_type":"distance","step_duration_value":100,"target_type":"pace","target_value_min":1.003,"target_value_max":1.053,"comment":"100% CSS"},
-    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":20,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Récup"}
+    {"type":"step","intensity_type":"active","step_duration_type":"distance","step_duration_value":100,"target_type":"pace","target_value_min":1.003,"target_value_max":1.053,"comment":"100% CSS","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":105,"pct_css_max":100},
+    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":20,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Récup","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
   ]},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"distance","step_duration_value":200,"target_type":"pace","target_value_min":0.916,"target_value_max":1.003,"comment":"Retour au calme"}
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"distance","step_duration_value":200,"target_type":"pace","target_value_min":0.916,"target_value_max":1.003,"comment":"Retour au calme","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":115,"pct_css_max":105}
 ]
 
 RENFO 45min :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Mobilité"},
-  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":1800,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Circuit PPG"},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":300,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Étirements"}
+  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Mobilité","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
+  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":1800,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Circuit PPG","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":300,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Étirements","pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
 ]
 
 ═══════════════════════════════════════════════════════════
