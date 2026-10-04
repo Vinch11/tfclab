@@ -265,10 +265,20 @@ const WEEKS: WeekSpec[] = [
 export interface StartToRunTemplateOptions {
   /** "full" (2 séances/sem, défaut) · "light" (1 séance/sem) · "none" (aucune, coach l'a désactivé). */
   strengthDose?: S2RStrengthDose;
+  /**
+   * Semaine du calendrier canonique (1-12) à laquelle entrer dans le
+   * protocole — PAS une réécriture du plan par athlète : même déroulé fixe
+   * pour tout le monde, seul le point d'entrée varie selon la capacité de
+   * course continue déjà déclarée (cf. S2R_START_WEEK_BY_EXPERIENCE,
+   * AITrainingPlanPage.tsx). Défaut 1 (programme complet, jamais de saut
+   * pour qui n'a pas d'historique). Hors bornes → ramené dans [1, 12].
+   */
+  startWeek?: number;
 }
 
 /**
- * Construit le plan Start-to-Run 12 semaines complet — déterministe, sans IA.
+ * Construit le plan Start-to-Run — déterministe, sans IA — à partir de la
+ * semaine `startWeek` du calendrier canonique 12 semaines (incluse).
  * Ne prend pas de date de départ : les séances sont indexées par
  * weekNumber/dayIndex (cf. ParsedSession), les dates calendaires réelles
  * sont calculées à l'affichage par le consommateur (ex. `mapSessionsToDates`,
@@ -278,8 +288,10 @@ export function buildStartToRunTemplatePlan(
   options: StartToRunTemplateOptions = {},
 ): ParsedPlan {
   const dose: S2RStrengthDose = options.strengthDose ?? "full";
+  const startWeek = Math.min(Math.max(Math.round(options.startWeek ?? 1), 1), WEEKS.length);
+  const sourceWeeks = WEEKS.slice(startWeek - 1);
 
-  const weeks: ParsedWeek[] = WEEKS.map((spec, idx) => {
+  const weeks: ParsedWeek[] = sourceWeeks.map((spec, idx) => {
     const weekNumber = idx + 1;
     const sessions: ParsedSession[] = [];
 
@@ -318,8 +330,33 @@ export function buildStartToRunTemplatePlan(
     };
   });
 
+  // Blocs du calendrier canonique (numérotation ORIGINALE 1-12), reprojetés
+  // sur la numérotation du plan effectivement renvoyé (1-N depuis startWeek).
+  // Pour startWeek=1 (défaut), ceci reproduit exactement S1-S4/S5-S8/S9-S12.
+  const BLOCKS = [
+    { name: "Bloc 1 · Initiation", start: 1, end: 4, objective: "Marche-course, tolérance à l'impact" },
+    { name: "Bloc 2 · Construction", start: 5, end: 8, objective: "Inversion du ratio marche/course" },
+    { name: "Bloc 3 · Continu", start: 9, end: 12, objective: "Course continue, validation 30min" },
+  ] as const;
+  const phases = BLOCKS
+    .filter((b) => b.end >= startWeek)
+    .map((b) => {
+      const from = Math.max(b.start, startWeek) - startWeek + 1;
+      const to = b.end - startWeek + 1;
+      return { name: b.name, weeks: from === to ? `S${from}` : `S${from}-S${to}`, objective: b.objective };
+    });
+
+  const totalWeeks = sourceWeeks.length;
+  const entryNote = startWeek > 1
+    ? ` Démarrage directement au palier "${WEEKS[startWeek - 1].theme}" (S${startWeek} du calendrier ` +
+      `canonique 12 semaines) — déroulé identique pour tous, seul le point d'entrée varie selon la ` +
+      `capacité de course continue déjà déclarée, jamais de régression vers un palier déjà acquis.`
+    : "";
+
   return {
-    title: "Plan TFCL™ — Start to Run (12 semaines)",
+    title: startWeek > 1
+      ? `Plan TFCL™ — Start to Run (${totalWeeks} semaines, entrée au palier S${startWeek})`
+      : "Plan TFCL™ — Start to Run (12 semaines)",
     diagnostic:
       "Protocole standard TFCL™ de mise en course progressive (marche-course → course continue), " +
       "identique pour tous les athlètes débutants. Intensité plafonnée en Z1-Z2 conversationnelle, " +
@@ -327,13 +364,9 @@ export function buildStartToRunTemplatePlan(
       "semaines (S4, S8, S12), jamais 2 jours de course consécutifs, renforcement musculo-squelettique " +
       "systématique (le vrai limiteur d'un débutant n'est pas aérobie). " +
       "Objectif final : 30min de course continue (≈4-5km), porte d'entrée vers un plan course spécifique " +
-      "(5K/10K/semi) généré séparément une fois ce cycle terminé.",
-    phases: [
-      { name: "Bloc 1 · Initiation", weeks: "S1-S4", objective: "Marche-course, tolérance à l'impact" },
-      { name: "Bloc 2 · Construction", weeks: "S5-S8", objective: "Inversion du ratio marche/course" },
-      { name: "Bloc 3 · Continu", weeks: "S9-S12", objective: "Course continue, validation 30min" },
-    ],
+      "(5K/10K/semi) généré séparément une fois ce cycle terminé." + entryNote,
+    phases,
     weeks,
-    totalWeeks: WEEKS.length,
+    totalWeeks,
   };
 }

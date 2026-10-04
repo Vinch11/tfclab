@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { FinisherQuickStartDialog, type FinisherExpressPayload } from "@/components/FinisherQuickStartDialog";
 import { CoachProfileForm, type CoachProfileFormPayload, type CoachProfilePrefill, type MetabolicProfile } from "@/components/CoachProfileForm";
-import { QuickStartWizard } from "@/components/QuickStartWizard";
+import { QuickStartWizard, type QuickStartS2RExtras, type S2RExperience } from "@/components/QuickStartWizard";
 import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -110,6 +110,24 @@ const OBJECTIVE_OPTIONS = [
   { value: "TrailMountain", label: "Trail montagne (40-80 km)" },
   { value: "TrailUltra", label: "Ultra trail (80 km+)" },
 ];
+
+/**
+ * Audit "démarrage guidé" : le wizard posait "combien de temps peux-tu
+ * courir sans t'arrêter ?" en la présentant comme LA donnée qui fixe le
+ * palier de départ, puis générait quand même via l'IA (chemin qui a motivé
+ * la création du template statique startToRunTemplate.ts) sans jamais lire
+ * la réponse. Le wizard assigne désormais directement ce template (jamais
+ * l'IA pour Start-to-Run) et choisit la semaine d'entrée du calendrier
+ * canonique selon cette réponse — toujours déterministe, jamais de
+ * régression vers un palier déjà acquis.
+ */
+const S2R_START_WEEK_BY_EXPERIENCE: Record<S2RExperience, number> = {
+  none: 1,
+  walk_only: 1,
+  under10: 5,
+  "10to20": 9,
+  "20plus": 10,
+};
 
 // Source unique : AMBITION_DEFINITIONS (5 paliers "Parcours athlète", clés canoniques lowercase).
 // Évite la dérive vs dashboard (Découverte/Confirmé/Compétiteur/Qualifiable/Elite).
@@ -682,6 +700,22 @@ export default function AITrainingPlanPage() {
   // restaure la vue plan IA normale.
   const [staticTemplatePlan, setStaticTemplatePlan] = useState<ParsedPlan | null>(null);
   const [s2rTemplateDose, setS2rTemplateDose] = useState<S2RStrengthDose>("full");
+
+  const assignStartToRunTemplateFromWizard = useCallback((s2r: QuickStartS2RExtras) => {
+    if (!currentAthlete) {
+      toast.error("Sélectionnez un athlète d'abord.");
+      return;
+    }
+    const startWeek = S2R_START_WEEK_BY_EXPERIENCE[s2r.experience] ?? 1;
+    setS2rTemplateDose(s2r.strength);
+    const plan = buildStartToRunTemplatePlan({ strengthDose: s2r.strength, startWeek });
+    setStaticTemplatePlan(plan);
+    toast.success(
+      startWeek > 1
+        ? `Plan Start-to-Run assigné — démarrage direct au palier S${startWeek}/12 selon le niveau déclaré.`
+        : "Plan Start-to-Run assigné — protocole standard 12 semaines.",
+    );
+  }, [currentAthlete]);
 
   // Restore persisted plan + config on athlete change (single mode only)
   useEffect(() => {
@@ -1917,17 +1951,31 @@ export default function AITrainingPlanPage() {
 
   const handleWizardGenerate = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
     setObjective(result.objective);
+    // Start-to-Run : jamais l'IA, toujours le template statique déterministe
+    // (cf. S2R_START_WEEK_BY_EXPERIENCE) — extras.chronos est de toute façon
+    // toujours vide sur cette branche (le wizard ne pose pas la question).
+    if (result.extras.s2r) {
+      assignStartToRunTemplateFromWizard(result.extras.s2r);
+      return;
+    }
     await persistWizardChronos(result.extras);
     // Ne PAS appeler handleCoachFormGenerate ici directement : athleteContext
     // (capturé dans sa closure) est encore celui d'AVANT la persistance du
     // chrono ci-dessus — cf. pendingWizardGenerate/useEffect plus haut, qui
     // attend que athleteContext reflète vraiment le nouveau snapshot.
     setPendingWizardGenerate({ payload: result.payload, objective: result.objective });
-  }, [persistWizardChronos]);
+  }, [persistWizardChronos, assignStartToRunTemplateFromWizard]);
 
 
   const handleWizardReview = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
     setObjective(result.objective);
+    // Start-to-Run : pas de limiteurs Lorang à "vérifier" (CoachProfileForm
+    // ne s'applique pas à ce protocole) — même comportement que "Générer
+    // directement", cf. handleWizardGenerate ci-dessus.
+    if (result.extras.s2r) {
+      assignStartToRunTemplateFromWizard(result.extras.s2r);
+      return;
+    }
     await persistWizardChronos(result.extras);
     // Pré-remplit CoachProfileForm via localStorage (même clé que le form utilise pour restore).
     try {
@@ -1949,7 +1997,7 @@ export default function AITrainingPlanPage() {
       window.localStorage.setItem(key, JSON.stringify(draft));
     } catch { /* ignore */ }
     setCoachFormOpen(true);
-  }, [currentAthlete?.nom, persistWizardChronos]);
+  }, [currentAthlete?.nom, persistWizardChronos, assignStartToRunTemplateFromWizard]);
 
   // Multi-athlete batch generation
   const handleBatchGenerate = useCallback(async () => {
