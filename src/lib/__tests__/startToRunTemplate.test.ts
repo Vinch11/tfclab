@@ -190,3 +190,73 @@ describe("startToRunTemplate — plan Start-to-Run statique 12 semaines", () => 
     expect(week11).toBeGreaterThan(week9);
   });
 });
+
+describe("startToRunTemplate — option startWeek (saut de palier selon l'expérience déclarée)", () => {
+  it("startWeek=1 (défaut) est strictement identique à l'appel sans options", () => {
+    const withDefault = buildStartToRunTemplatePlan();
+    const withExplicit1 = buildStartToRunTemplatePlan({ startWeek: 1 });
+    expect(withExplicit1).toEqual(withDefault);
+  });
+
+  it("startWeek=5 renvoie 8 semaines renumérotées 1..8, en commençant par le contenu de la S5 canonique", () => {
+    const full = buildStartToRunTemplatePlan();
+    const sliced = buildStartToRunTemplatePlan({ startWeek: 5 });
+    expect(sliced.totalWeeks).toBe(8);
+    expect(sliced.weeks.map((w) => w.weekNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    // Même thème/contenu que la semaine 5 canonique, juste renumérotée en semaine 1.
+    expect(sliced.weeks[0].theme).toBe(full.weeks[4].theme);
+    expect(sliced.weeks[0].sessions.map((s) => s.catalogId)).toEqual(
+      full.weeks[4].sessions.map((s) => s.catalogId),
+    );
+  });
+
+  it("startWeek=10 renvoie les 3 dernières semaines (bloc continu), jamais de régression vers le marche-course", () => {
+    const sliced = buildStartToRunTemplatePlan({ startWeek: 10 });
+    expect(sliced.totalWeeks).toBe(3);
+    const WALK_RUN = /^S2R_WALK_RUN/;
+    for (const week of sliced.weeks) {
+      for (const session of week.sessions) {
+        if (session.catalogId) expect(WALK_RUN.test(session.catalogId)).toBe(false);
+      }
+    }
+  });
+
+  it("startWeek=12 renvoie uniquement la semaine de validation finale", () => {
+    const sliced = buildStartToRunTemplatePlan({ startWeek: 12 });
+    expect(sliced.totalWeeks).toBe(1);
+    expect(sliced.weeks[0].sessions.some((s) => s.catalogId === "S2R_CONTINUOUS_30_LONG")).toBe(true);
+  });
+
+  it("valeurs hors bornes (0, négatif, >12, décimal) sont ramenées dans [1, 12]", () => {
+    expect(buildStartToRunTemplatePlan({ startWeek: 0 }).totalWeeks).toBe(12);
+    expect(buildStartToRunTemplatePlan({ startWeek: -5 }).totalWeeks).toBe(12);
+    expect(buildStartToRunTemplatePlan({ startWeek: 99 }).totalWeeks).toBe(1);
+    expect(buildStartToRunTemplatePlan({ startWeek: 4.9 }).weeks[0].weekNumber).toBe(1);
+  });
+
+  it("les phases (blocs) sont reprojetées sur la nouvelle numérotation et n'incluent pas un bloc déjà dépassé", () => {
+    const sliced = buildStartToRunTemplatePlan({ startWeek: 6 });
+    // Bloc 1 (S1-S4 canoniques) entièrement dépassé à startWeek=6 → absent.
+    expect(sliced.phases.some((p) => p.name.includes("Bloc 1"))).toBe(false);
+    // Bloc 2 (S5-S8) partiellement couvert (S6-S8) → reprojeté en S1-S3.
+    const bloc2 = sliced.phases.find((p) => p.name.includes("Bloc 2"));
+    expect(bloc2?.weeks).toBe("S1-S3");
+  });
+
+  it("le titre et le diagnostic mentionnent le palier d'entrée quand startWeek > 1, pas quand startWeek = 1", () => {
+    const full = buildStartToRunTemplatePlan();
+    const sliced = buildStartToRunTemplatePlan({ startWeek: 9 });
+    expect(full.title).not.toMatch(/palier/i);
+    expect(sliced.title).toMatch(/palier S9/);
+    expect(sliced.diagnostic).toMatch(/Démarrage directement au palier/);
+  });
+
+  it("strengthDose reste appliqué correctement en combinaison avec startWeek", () => {
+    const sliced = buildStartToRunTemplatePlan({ startWeek: 5, strengthDose: "none" });
+    for (const week of sliced.weeks) {
+      for (const session of week.sessions) {
+        expect(session.catalogId?.startsWith("S2R_STR_")).not.toBe(true);
+      }
+    }
+  });
+});
