@@ -41,6 +41,9 @@ import {
   type MergedTestingSnapshot,
 } from "@/lib/testingWeekSnapshotMerge";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { ProfilExpressDialog, type ProfilExpressSubmitPayload } from "@/components/ProfilExpressDialog";
+import { buildProfilExpressSnapshotPayload } from "@/lib/profilExpressSnapshot";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,20 +52,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-const sections = [
-  {
-    id: "tests",
-    title: "Tests & Protocoles",
-    description: "Import FIT, détection protocole, calcul FTP, analyse dérive cardiaque",
-    icon: FlaskConical,
-    route: "/diagnostic/tests",
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
+type SectionTier = "long" | "court" | "outil";
+
+const TIER_LABELS: Record<SectionTier, { title: string; subtitle: string }> = {
+  long: {
+    title: "Testing long — calibrage de précision",
+    subtitle: "Plusieurs jours, FTP/VMA mesurés directement : la référence quand le temps ne manque pas.",
   },
+  court: {
+    title: "Testing court — 1 à 2 séances",
+    subtitle: "Du profil complet condensé (2h/discipline) au limiteur principal en quelques efforts.",
+  },
+  outil: {
+    title: "Outils",
+    subtitle: "Analyse, suivi et références — pas des protocoles à faire passer à l'athlète.",
+  },
+};
+
+const sections = [
+  // --- Testing long ---
   {
     id: "testing-week-tfcl",
+    tier: "long" as SectionTier,
     title: "Semaine de Test TFCL",
-    description: "Protocole vélo : 5 jours pour calibrer votre profil métabolique",
+    description: "Protocole vélo : plusieurs jours pour calibrer votre profil métabolique",
+    objectif: "FTP mesuré directement (pas estimé) + VLamax + MAP + TTE — avant un bloc structuré ou un objectif majeur où la précision des zones compte plus que la rapidité.",
     icon: Bike,
     route: "/diagnostic/testing-week-tfcl",
     color: "text-orange-500",
@@ -70,17 +84,33 @@ const sections = [
   },
   {
     id: "testing-week-cap",
+    tier: "long" as SectionTier,
     title: "Semaine de Test CAP",
     description: "Tests VMA, seuil, économie de course et durabilité",
+    objectif: "VMA/seuil mesurés par paliers + VLamax + durabilité + économie de course — avant un bloc structuré ou un objectif majeur (marathon, trail long) où la précision des zones compte plus que la rapidité.",
     icon: Footprints,
     route: "/diagnostic/testing-week-cap",
     color: "text-green-500",
     bgColor: "bg-green-500/10",
   },
+  // --- Testing court ---
+  {
+    id: "profil-rapide",
+    tier: "court" as SectionTier,
+    title: "⚡ Profil Rapide",
+    description: "1 séance par discipline (sprint + 1500m ou sprint + 5min MAP)",
+    objectif: "Identifier le limiteur principal (aérobie / anaérobie / seuil) en quelques heures, sans mesurer durabilité ni économie — pour démarrer un plan tout de suite quand le protocole complet n'est pas encore envisageable (nouvel athlète, engagement pas encore acquis).",
+    icon: Zap,
+    route: null,
+    color: "text-amber-500",
+    bgColor: "bg-amber-500/10",
+  },
   {
     id: "track-day",
+    tier: "court" as SectionTier,
     title: "TFCL Track Day™",
     description: "Protocole piste complet en 2h — VMA, VLamax, Seuil, TTE en une seule séance",
+    objectif: "Profil complet (4 axes, TTE inclus) en une seule séance, quand l'athlète n'a qu'une disponibilité limitée mais que la durabilité reste nécessaire pour la suite.",
     icon: Timer,
     route: "/diagnostic/track-day",
     color: "text-purple-500",
@@ -88,8 +118,10 @@ const sections = [
   },
   {
     id: "bike-track-day",
+    tier: "court" as SectionTier,
     title: "🚴 TFCL Bike Day™",
     description: "Protocole vélo 2h — FTP, VLamax, MAP, W' en une séance",
+    objectif: "Équivalent vélo du Track Day — profil complet en une séance quand étaler les tests sur une semaine n'est pas possible.",
     icon: BikeIcon,
     route: "/diagnostic/bike-track-day",
     color: "text-orange-600",
@@ -97,8 +129,10 @@ const sections = [
   },
   {
     id: "swim-pool-day",
+    tier: "court" as SectionTier,
     title: "🏊 TFCL Pool Day™",
     description: "Protocole piscine 1h30 — CSS, VLamax nage, capacité aérobie",
+    objectif: "Seule option de test natation de l'app — à utiliser systématiquement pour la natation, qu'on soit en testing long ou court côté vélo/course.",
     icon: Waves,
     route: "/diagnostic/swim-pool-day",
     color: "text-cyan-500",
@@ -106,17 +140,33 @@ const sections = [
   },
   {
     id: "tri-test-day",
+    tier: "court" as SectionTier,
     title: "⚡ TFCL Tri Test Day™",
-    description: "Protocole triathlon combiné — profil complet en 2 séances",
+    description: "Protocole triathlon combiné — profil complet en 2-3 séances",
+    objectif: "Profil complet des 3 disciplines condensé sur un stage ou un week-end, pour un triathlète pressé qui veut quand même un profil complet (pas juste le limiteur principal du Profil Rapide).",
     icon: Zap,
     route: "/diagnostic/tri-test-day",
     color: "text-red-500",
     bgColor: "bg-red-500/10",
   },
+  // --- Outils ---
+  {
+    id: "tests",
+    tier: "outil" as SectionTier,
+    title: "Tests & Protocoles",
+    description: "Import FIT, détection protocole, calcul FTP, analyse dérive cardiaque",
+    objectif: "Analyser des données déjà enregistrées (fichiers FIT importés) — pas un protocole à faire passer, un outil d'analyse post-séance.",
+    icon: FlaskConical,
+    route: "/diagnostic/tests",
+    color: "text-blue-500",
+    bgColor: "bg-blue-500/10",
+  },
   {
     id: "coach-checklist",
+    tier: "outil" as SectionTier,
     title: "Checklist Coach",
     description: "Tests à faire passer & données à encoder par sport (Run / Tri / Trail), cochable et imprimable",
+    objectif: "Suivre quels tests ont été faits et ce qui reste à encoder, par sport — un outil de suivi, pas un test en soi.",
     icon: ClipboardList,
     route: "/diagnostic/coach-checklist",
     color: "text-amber-500",
@@ -124,8 +174,10 @@ const sections = [
   },
   {
     id: "cohort-literature",
+    tier: "outil" as SectionTier,
     title: "Cohorte Littérature (IA)",
     description: "Extraction IA de profils de référence depuis la littérature scientifique (Mader, Heck, Beneke…)",
+    objectif: "Comparer un athlète à des valeurs publiées dans la littérature scientifique — un outil de référence, pas un test athlète.",
     icon: BookOpen,
     route: "/diagnostic/cohort-literature",
     color: "text-purple-500",
@@ -145,6 +197,7 @@ export default function DiagnosticPage() {
   const [nolioId, setNolioId] = useState<number | null>(null);
   const [nolioDay1Date, setNolioDay1Date] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [nolioSending, setNolioSending] = useState(false);
+  const [profilRapideOpen, setProfilRapideOpen] = useState(false);
 
   useEffect(() => {
     setDossierAthleteName(currentAthlete?.name ?? "");
@@ -204,6 +257,23 @@ export default function DiagnosticPage() {
 
   // --- Consolidation semaine de test → snapshot unique ---
   const { snapshots, addSnapshot, setActiveSnapshot } = useCloudDataContext();
+
+  async function handleProfilRapideSubmit(data: ProfilExpressSubmitPayload) {
+    if (!currentAthlete) { toast.error("Sélectionnez un athlète"); return; }
+    try {
+      const newSnap = await addSnapshot(buildProfilExpressSnapshotPayload(currentAthlete.id, data));
+      if (!newSnap?.id) {
+        toast.error("Échec: " + (newSnap === null ? "snapshot null - voir console" : "ok"));
+        return;
+      }
+      toast.success("Profil Rapide enregistré — estimation provisoire, à affiner si besoin.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Erreur création snapshot: " + msg);
+      throw e;
+    }
+  }
+
   const [consolidationSince, setConsolidationSince] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() - 21);
@@ -347,36 +417,73 @@ export default function DiagnosticPage() {
           </div>
         </div>
 
-        {/* Section Cards - single column on mobile */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {sections.map((section) => {
-            const Icon = section.icon;
-            return (
-              <Card
-                key={section.id}
-                className="group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
-                onClick={() => navigate(section.route)}
-              >
-                <CardHeader className="p-3 sm:p-4 pb-1.5 sm:pb-2">
-                  <div className="flex items-center sm:items-start justify-between">
-                    <div className="flex items-center gap-2.5 sm:block">
-                      <div className={`p-1.5 sm:p-2 rounded-lg ${section.bgColor}`}>
-                        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${section.color}`} />
-                      </div>
-                      <CardTitle className="text-sm sm:text-base sm:mt-3">{section.title}</CardTitle>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                  </div>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4 pt-0 sm:pt-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    {section.description}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        {/* Section Cards, groupées par tier (long / court / outil) */}
+        {(["long", "court", "outil"] as SectionTier[]).map((tier) => {
+          const tierSections = sections.filter((s) => s.tier === tier);
+          if (tierSections.length === 0) return null;
+          const { title: tierTitle, subtitle: tierSubtitle } = TIER_LABELS[tier];
+          return (
+            <div key={tier} className="space-y-2.5 sm:space-y-3">
+              <div>
+                <h2 className="text-sm sm:text-base font-semibold text-foreground">{tierTitle}</h2>
+                <p className="text-xs text-muted-foreground">{tierSubtitle}</p>
+              </div>
+              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {tierSections.map((section) => {
+                  const Icon = section.icon;
+                  return (
+                    <Card
+                      key={section.id}
+                      className="group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+                      onClick={() => {
+                        if (section.id === "profil-rapide") {
+                          if (!currentAthlete) {
+                            toast.error("Sélectionnez un athlète");
+                            return;
+                          }
+                          setProfilRapideOpen(true);
+                          return;
+                        }
+                        navigate(section.route);
+                      }}
+                    >
+                      <CardHeader className="p-3 sm:p-4 pb-1.5 sm:pb-2">
+                        <div className="flex items-center sm:items-start justify-between">
+                          <div className="flex items-center gap-2.5 sm:block">
+                            <div className={`p-1.5 sm:p-2 rounded-lg ${section.bgColor}`}>
+                              <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${section.color}`} />
+                            </div>
+                            <CardTitle className="text-sm sm:text-base sm:mt-3">{section.title}</CardTitle>
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-3 sm:p-4 pt-0 sm:pt-0 space-y-1.5">
+                        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                          {section.description}
+                        </p>
+                        {section.objectif && (
+                          <p className="text-xs leading-relaxed border-t pt-1.5 mt-1.5">
+                            <span className="font-medium text-foreground">Objectif : </span>
+                            <span className="text-muted-foreground">{section.objectif}</span>
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        <ProfilExpressDialog
+          open={profilRapideOpen}
+          onOpenChange={setProfilRapideOpen}
+          athleteName={currentAthlete?.name}
+          defaultWeightKg={getEffectiveRefs(currentAthlete, snapshots).weightKg}
+          onSubmit={handleProfilRapideSubmit}
+        />
 
         {/* Export dossier complet PDF (page de garde + fiches + synthèse) */}
         <Card className="border-primary/30 bg-primary/5">

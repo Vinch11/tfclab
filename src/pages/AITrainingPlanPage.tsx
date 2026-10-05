@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { FinisherQuickStartDialog, type FinisherExpressPayload } from "@/components/FinisherQuickStartDialog";
 import { ProfilExpressDialog } from "@/components/ProfilExpressDialog";
+import { buildProfilExpressSnapshotPayload } from "@/lib/profilExpressSnapshot";
 import { CoachProfileForm, type CoachProfileFormPayload, type CoachProfilePrefill, type MetabolicProfile } from "@/components/CoachProfileForm";
 import { QuickStartWizard, type QuickStartS2RExtras, type S2RExperience } from "@/components/QuickStartWizard";
 import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
@@ -1645,25 +1646,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     try {
-      const newSnap = await addSnapshot({
-        athlete_id: currentAthlete.id,
-        date: new Date().toISOString().slice(0, 10),
-        source: "profil_express",
-        confidence: data.confidence,
-        weight_kg: data.weightKg,
-        vo2max: data.vo2max,
-        ...(data.sport === "run"
-          ? {
-              vlamax_run: data.vlamax,
-              vma: data.vma,
-              pace_threshold_sec_per_km: data.paceThresholdSecPerKm,
-            }
-          : {
-              vlamax: data.vlamax,
-              ftp: data.ftp,
-            }),
-        coach_notes: `Profil Rapide (${data.sport === "run" ? "course" : "vélo"}) — estimé depuis 2 efforts de terrain, confiance ${Math.round(data.confidence * 100)}%. ${data.warnings.join(" ")}`.trim(),
-      } as Omit<import("@/hooks/useCloudData").DbSnapshot, "id" | "created_at" | "updated_at">);
+      const newSnap = await addSnapshot(buildProfilExpressSnapshotPayload(currentAthlete.id, data));
 
       if (!newSnap?.id) {
         toast.error("Échec: " + (newSnap === null ? "snapshot null - voir console" : "ok"));
