@@ -14,7 +14,7 @@
  * par défaut inventée", src/lib/effectiveRefs.ts).
  */
 import { useState } from "react";
-import { AlertTriangle, Bike, CheckCircle2, Footprints, Info, Zap } from "lucide-react";
+import { AlertTriangle, Bike, CheckCircle2, Footprints, Info, Printer, Zap } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,7 @@ import {
   type ProfilExpressRunResult,
   type ProfilExpressBikeResult,
 } from "@/lib/v2/profilExpress";
+import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 
 export interface ProfilExpressSubmitPayload {
   sport: "run" | "bike";
@@ -155,6 +156,16 @@ export function ProfilExpressDialog({ open, onOpenChange, athleteName, defaultWe
             <strong>estimé</strong>, à affiner ensuite si besoin.
           </DialogDescription>
         </DialogHeader>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 w-fit"
+          onClick={() => openDiagnosticProtocolPrint("profil-rapide", athleteName)}
+        >
+          <Printer className="h-4 w-4" />
+          Imprimer le protocole détaillé (PDF)
+        </Button>
 
         <Tabs defaultValue="run">
           <TabsList className="grid w-full grid-cols-2">
