@@ -27,6 +27,7 @@ import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticPro
 import { NolioImportPeriodDialog } from "@/components/NolioImportPeriodDialog";
 import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
 import { Trash2 } from "lucide-react";
+import { computeVLamaxBikeV2Enhanced } from "@/lib/v2/vlamaxBikeV2Enhanced";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -203,19 +204,6 @@ export default function BikeTrackDayPage() {
     const ftpKg = ftp > 0 && massKg > 0 ? ftp / massKg : 0;
     const fractUtil = map > 0 && ftp > 0 ? ftp / map : 0;
 
-    // VLamax glycolytique (sprints) — Score G sur p10s/p30s relatif au poids
-    const p10kg = massKg > 0 ? p10 / massKg : 0;
-    const p30kg = massKg > 0 ? p30 / massKg : 0;
-    const refs10 = 22, refs30 = 12;
-    const sScore = [
-      p10kg > 0 ? Math.min(1, p10kg / refs10) : null,
-      p30kg > 0 ? Math.min(1, p30kg / refs30) : null,
-    ].filter((v): v is number => v != null);
-    const sprintScore = sScore.length > 0 ? sScore.reduce((a, b) => a + b, 0) / sScore.length : 0;
-    const ratioInv = fractUtil > 0 ? Math.max(0, Math.min(1, (0.85 - fractUtil) / 0.15)) : 0.5;
-    const scoreG = sprintScore * 0.6 + ratioInv * 0.4;
-    const vlamaxEst = ftp > 0 ? 0.30 + scoreG * 0.55 : 0;
-
     const fcD = num(fcDebutZ2), fcF = num(fcFinZ2);
     const driftPct = fcD > 0 ? ((fcF - fcD) / fcD) * 100 : 0;
     const ratioZ2Ftp = num(puissanceZ2) > 0 && ftp > 0 ? num(puissanceZ2) / ftp : 0;
@@ -226,10 +214,34 @@ export default function BikeTrackDayPage() {
     // VO2max estimé depuis MAP — Hawley & Noakes 1992 : VO2max ≈ MAP × 10.8 / poids + 7
     const vo2maxEst = map > 0 && massKg > 0 ? (map * 10.8) / massKg + 7 : 0;
 
+    // VLamax vélo — moteur complet (Mader MLSS/TTE, CP/W', Score G avec
+    // garde-fous physiologiques), pas une formule locale simplifiée. Avant
+    // ce fix, Bike Day calculait son propre Score G ad-hoc et l'écrivait
+    // directement dans le snapshot, sans jamais passer par ce moteur déjà
+    // utilisé ailleurs dans l'app (vlamaxResolver.ts lit snapshot.vlamax
+    // tel quel, sans jamais le recalculer) — la même "figeage d'une
+    // estimation locale" que Track Day évite explicitement en déférant
+    // à vlamaxCapEstimator plutôt que d'écrire sa propre estimation.
+    const vlamaxResult = computeVLamaxBikeV2Enhanced({
+      ftp,
+      p30s_w: p30 > 0 ? p30 : null,
+      p60s_w: p60 > 0 ? p60 : null,
+      map5min_w: map > 0 ? map : null,
+      tte_min: tteEst > 0 ? tteEst : null,
+      pmax_5s: p10 > 0 ? p10 : null, // sprint 10s en approximation du Pmax 5s
+      weight_kg: massKg > 0 ? massKg : null,
+      vo2max: vo2maxEst > 0 ? vo2maxEst : null,
+    });
+    const vlamaxEst = vlamaxResult.value;
+
     return {
       p10, p30, p60, map, cp3, ratioCp3Map,
       ftp20, ftpRampe, ftp, ftpKg, wPrime, fractUtil,
-      vlamaxEst, scoreG, vo2maxEst,
+      vlamaxEst, vo2maxEst,
+      vlamaxConfidence: vlamaxResult.confidence,
+      vlamaxConfidenceLabel: vlamaxResult.confidenceLabel,
+      vlamaxFormula: vlamaxResult.formulaLabel,
+      vlamaxWarnings: vlamaxResult.warnings,
       driftPct, ratioZ2Ftp, fatMaxPct, tteEst,
     };
   }, [setup, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, map5min, cp3min, p20min, rampeLast, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
@@ -263,7 +275,7 @@ export default function BikeTrackDayPage() {
       p30s_w: calc.p30 || null,
       p60s_w: calc.p60 || null,
       tte_observed_min: calc.tteEst || null,
-      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
+      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min${heightCm > 0 ? ` · taille ${heightCm}cm` : ""} · VLamax [${calc.vlamaxFormula}, confiance ${calc.vlamaxConfidenceLabel.toLowerCase()}]${calc.vlamaxWarnings.length > 0 ? ` (⚠ ${calc.vlamaxWarnings.join(" · ")})` : ""}`,
     } as any);
     if (snap) {
       clearStorageOnly();
@@ -602,6 +614,12 @@ export default function BikeTrackDayPage() {
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
               <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
             </div>
+            {calc.vlamaxEst > 0 && (
+              <p className="text-[10px] text-amber-700 dark:text-amber-400">
+                <b>VLamax</b> = {calc.vlamaxFormula} — <b>Estimé — confiance : {calc.vlamaxConfidenceLabel.toLowerCase()}</b>
+                {calc.vlamaxWarnings.length > 0 && ` · ⚠ ${calc.vlamaxWarnings.join(" · ")}`}
+              </p>
+            )}
             {calc.vo2maxEst > 0 && (
               <p className="text-[10px] text-amber-700 dark:text-amber-400">
                 <b>VO2max</b> = MAP × 10.8 / poids + 7 (Hawley &amp; Noakes 1992) — <b>Estimé — confiance : moyenne (±3 ml/kg/min)</b>
