@@ -5,6 +5,7 @@
 // =============================================
 
 import { Athlete, AthleteRefs } from "./athlete";
+import { vo2maxFromCooper12min, vlamaxRunFromSprintRatio } from "@/lib/v2/profilExpressFormulas";
 
 // Type de test: VLAMAX (modèle) ou REF (références seulement)
 export type TestType = "VLAMAX" | "REF";
@@ -298,7 +299,7 @@ export const TestLibrary: TestProtocol[] = [
     compute: (athlete, input) => {
       const dist = Number(input.distance);
       if (!dist || dist <= 0) return { ok: false, msg: "Distance invalide", raw: { distance: dist || 0 }, note: "" };
-      const vo2max = (dist - 504.9) / 44.73;
+      const vo2max = vo2maxFromCooper12min(dist);
       if (!athlete.vo2max) athlete.vo2max = Math.round(vo2max * 10) / 10;
       return { ok: true, vlamax: null, raw: { distance: dist, vo2max_est: Math.round(vo2max * 10) / 10 }, note: `VO2max estimé: ${vo2max.toFixed(1)} mL/kg/min` };
     }
@@ -343,12 +344,9 @@ export const TestLibrary: TestProtocol[] = [
       
       // Sprint Ratio course
       const srRun = v15 / v12;
-      
-      // Formule VLamax_run
-      const normalized = Math.max(0, Math.min(1, (srRun - 1.55) / 0.35));
-      let vlamax = 0.25 + 0.55 * normalized;
-      vlamax = Math.max(0.25, Math.min(0.95, vlamax));
-      
+
+      const vlamax = vlamaxRunFromSprintRatio(v15, v12);
+
       return { 
         ok: true, 
         vlamax, 

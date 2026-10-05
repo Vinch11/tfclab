@@ -5,7 +5,7 @@
  * L'ancien "Démarrage Express" (qui devinait le profil FC-only) est remplacé
  * par CoachProfileForm : le coach SAIT, on ne devine plus.
  */
-import { UserCog, FlaskConical, Wand2 } from "lucide-react";
+import { UserCog, FlaskConical, Wand2, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -46,9 +46,16 @@ export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName
     navigate("/diagnostic");
   };
 
+  const handleProfilExpress = () => {
+    onOpenChange(false);
+    navigate("/planning/ai-plan", {
+      state: { openProfilExpress: true, athleteId },
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Choix du profil{athleteName ? ` — ${athleteName}` : ""}</DialogTitle>
           <DialogDescription>
@@ -56,7 +63,7 @@ export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Option 0 — Débutant guidé (wizard) */}
           <div className="rounded-lg border border-teal-500/40 bg-teal-500/5 p-4 flex flex-col gap-3">
             <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400">
@@ -97,6 +104,24 @@ export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName
             >
               <UserCog className="h-4 w-4" />
               Saisie coach
+            </Button>
+          </div>
+
+          {/* Option 1.5 — Profil Rapide (estimation terrain) */}
+          <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <Zap className="h-5 w-5" />
+              <span className="text-base font-semibold">⚡ Profil Rapide</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium">L'athlète peut faire 2 efforts courts</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                1 séance par discipline (sprint + effort court) · Limiteur identifié · Estimé, pas mesuré
+              </p>
+            </div>
+            <Button onClick={handleProfilExpress} variant="secondary" className="mt-auto gap-2">
+              <Zap className="h-4 w-4" />
+              Profil Rapide
             </Button>
           </div>
 
