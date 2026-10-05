@@ -23,16 +23,23 @@ function athlete(objectif: string) {
   return { id: "a1", nom: "Test", objectif, active_snapshot_id: "s1", dateNaissance: "1990-01-01" };
 }
 
-// Fixture donnant une VLamax résolue déterministe (0.46) quel que soit
-// l'objectif — vérifié empiriquement : avec ftp/poids/vo2max fixes, le
+// Fixture donnant une VLamax résolue déterministe (0.24) quel que soit
+// l'objectif — vérifié empiriquement : avec vma/allure seuil fixes, le
 // moteur VLamax Effectif V2 résout toujours à la même valeur pour ce
 // snapshot, ce qui permet de comparer le SCORE (qui dépend de la cible,
 // donc de l'objectif) à VLamax constante.
+//
+// Utilise vma + pace_threshold_sec_per_km (données course, estimateur CAP
+// unifié) et non ftp (donnée vélo) : depuis le correctif anti-contamination
+// croisée (vlamaxEffectif.ts, blocs C1/C2 réservés à sport !== "cap"), un
+// snapshot sport_main="run" sans donnée course dédiée résout en "unknown"
+// plutôt que de dériver la VLamax depuis le FTP — ce que cette fixture
+// faisait par accident avant le correctif.
 function snapshot() {
   return {
     id: "s1", athlete_id: "a1", date: "2026-01-01",
     vlamax: null, vlamax_run: null, sport_main: "run",
-    ftp: 250, weight_kg: 70, vo2max: 55,
+    vma: 16, pace_threshold_sec_per_km: 240, weight_kg: 70, vo2max: 55,
     tss_7d: 400, tte_mode: "LOAD", tte_observed_min: null,
     fatigue_state: "ok",
   };
