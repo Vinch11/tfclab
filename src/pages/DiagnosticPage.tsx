@@ -18,11 +18,14 @@ import {
   Bike as BikeIcon,
   Waves,
   Zap,
+  Table2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
 import { ScientificAuditReportButton } from "@/components/ScientificAuditReportButton";
 import { InscydPoffe2024ValidationCard } from "@/components/InscydPoffe2024ValidationCard";
+import { CollapsibleCard } from "@/components/ui/collapsible-card";
+import { TestingProtocolsMatrix } from "@/components/TestingProtocolsMatrix";
 import { useAthletes } from "@/contexts/AthleteContext";
 import {
   openFullDiagnosticDossierPrint,
@@ -416,6 +419,15 @@ export default function DiagnosticPage() {
             <p className="text-xs sm:text-sm text-muted-foreground">Analyses physiologiques & protocoles</p>
           </div>
         </div>
+
+        <CollapsibleCard
+          title="Vue d'ensemble — données obtenues par protocole"
+          icon={<Table2 className="h-4 w-4 text-primary" />}
+          defaultOpen
+          storageKey="diagnostic-testing-matrix"
+        >
+          <TestingProtocolsMatrix />
+        </CollapsibleCard>
 
         {/* Section Cards, groupées par tier (long / court / outil) */}
         {(["long", "court", "outil"] as SectionTier[]).map((tier) => {
