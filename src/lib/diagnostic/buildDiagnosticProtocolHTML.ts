@@ -27,7 +27,7 @@ async function imageToBase64(url: string): Promise<string> {
   }
 }
 
-export type DiagnosticProtocol = "track-day" | "bike-day" | "pool-day" | "tri-day";
+export type DiagnosticProtocol = "track-day" | "bike-day" | "pool-day" | "tri-day" | "profil-rapide";
 
 type Block = {
   title: string;
@@ -656,6 +656,154 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         "Version 4 h (au lieu de 2 jours) : Vélo FTP 8' (au lieu de 20') + Sprint 25m + Test 400m nage + Course 3 km. TTE non exploitable.",
         "Version « profil rapide » : FTP 8' vélo + 1500m piste + 400m nage — permet MLSS et VMA, VLamax en approximation.",
         "Si un seul créneau : Vélo 5' MAP + 1500m course + 400m nage (bloc VLamax reporté).",
+      ],
+    },
+  },
+
+  "profil-rapide": {
+    name: "⚡ Profil Rapide",
+    emoji: "⚡",
+    subtitle: "1 séance par discipline — identifier le limiteur principal sans le protocole complet",
+    material: ["Chronomètre", "Piste 400m ou terrain plat mesuré (course)", "Home-trainer / capteur de puissance (vélo)", "Cardiofréquencemètre (optionnel)"],
+    blocks: [
+      {
+        title: "Course — Sprint 15s ×2",
+        duration: "~15 min (récup incluse)",
+        instructions: [
+          "Échauffement 15-20 min progressif (footing + 4×20s progressif).",
+          "Sprint 1 : 15s all-out départ LANCÉ (jamais arrêté — sous-estime la distance).",
+          "Récupération complète 5-6 min marche/trot très léger.",
+          "Sprint 2 : 15s all-out départ lancé, même protocole.",
+          "Mesurer précisément la distance parcourue sur chaque sprint (plots tous les 5m ou GPS).",
+        ],
+        rows: [
+          { measure: "Sprint 1 — distance", unit: "m" },
+          { measure: "Sprint 2 — distance", unit: "m" },
+          { measure: "FC pic post-sprint", unit: "bpm" },
+        ],
+      },
+      {
+        title: "Course — 1500m piste",
+        duration: "~20 min (récup + test)",
+        instructions: [
+          "Récupération complète 8-10 min easy après les sprints.",
+          "1500m à allure maximale STABLE et soutenable — pas de départ trop rapide.",
+          "Idéalement sur piste 400m (3 tours + 300m) pour un chronométrage précis.",
+          "Noter le temps total et, si possible, les tours intermédiaires.",
+        ],
+        rows: [
+          { measure: "Temps 1500m", unit: "min:sec" },
+          { measure: "FC moyenne", unit: "bpm" },
+          { measure: "FC pic", unit: "bpm" },
+        ],
+      },
+      {
+        title: "Vélo — Sprint 30s",
+        duration: "~20 min (échauffement inclus)",
+        instructions: [
+          "Échauffement 15 min progressif (Z2 → 2×30s rythme).",
+          "Sprint maximal 30s départ lancé (60rpm Z2 puis all-out immédiat, cadence libre).",
+          "Noter la puissance MOYENNE des 30s (pas le pic).",
+          "Récupération complète 10 min Z1 avant le bloc suivant.",
+        ],
+        rows: [
+          { measure: "Sprint 30s — P moyenne", unit: "watts" },
+          { measure: "FC pic", unit: "bpm" },
+        ],
+      },
+      {
+        title: "Vélo — MAP 5min",
+        duration: "~15 min",
+        instructions: [
+          "Test 5 min all-out à puissance soutenable maximale — pacing stable, pas de sprint final.",
+          "Cadence libre, position identique à la position d'entraînement habituelle.",
+          "Noter la puissance moyenne.",
+        ],
+        rows: [
+          { measure: "Test 5min — P moyenne", unit: "watts" },
+          { measure: "FC moyenne", unit: "bpm" },
+          { measure: "FC pic", unit: "bpm" },
+        ],
+      },
+    ],
+    results: [
+      { metric: "VMA estimée", unit: "km/h" },
+      { metric: "VLamax course estimée", unit: "mmol/L/s" },
+      { metric: "Allure seuil course estimée", unit: "min/km" },
+      { metric: "VO2max course estimé", unit: "ml/kg/min" },
+      { metric: "FTP vélo estimé", unit: "W" },
+      { metric: "VLamax vélo estimée", unit: "mmol/L/s" },
+      { metric: "VO2max vélo estimé", unit: "ml/kg/min" },
+    ],
+    detailed: [
+      {
+        title: "Préparation 24-48h avant",
+        items: [
+          "Pas de séance intense la veille — repos ou Z1-Z2 léger max 30 min.",
+          "Hydratation normale, repas habituel 2-3h avant chaque bloc.",
+          "Sommeil ≥ 7h la nuit précédente, RPE matinal ≤ 3/10.",
+          "Les 2 disciplines peuvent être testées des jours différents — aucune contrainte d'enchaînement entre course et vélo.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Sprints course et vélo : départ LANCÉ (jamais arrêté) — un départ arrêté sous-estime systématiquement la distance/puissance et fausse le VLamax vers le bas.",
+          "1500m : allure stable du début à la fin (variation <3%/tour) — un pacing positif (trop vite au départ) majore artificiellement le temps final.",
+          "Vélo : les deux efforts (30s et MAP5min) doivent être réellement all-out — un effort sous-maximal sur l'un des deux fausse le modèle Critical Power/W' utilisé pour dériver FTP et VLamax.",
+          "Écart entre les 2 sprints course <3% pour une confiance correcte (au-delà de 6%, le profil est marqué « confiance faible »).",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "VMA (km/h) = distance_1500m / temps_1500m × 3.6 × 1.02 (correction piste extérieure).",
+          "VLamax course = −0.5066 + 0.0142 × distance_sprint15s (meilleur des 2 sprints).",
+          "VO2max course = VMA × 3.5 (Léger-Mercier).",
+          "Seuil course (allure) = dérivé du modèle Mader (VO2max, VLamax, poids) — ESTIMÉ, pas mesuré directement.",
+          "VO2max vélo = puissance_MAP5min / poids × 10.8 + 7 (Jeukendrup 1997).",
+          "VLamax vélo = W' / (poids × 320), W' calculé par régression Critical Power sur les 2 points de puissance (30s + MAP5min).",
+          "FTP vélo = dérivé du modèle Mader (VO2max, VLamax, poids) — ESTIMÉ, pas mesuré directement.",
+        ],
+      },
+      {
+        title: "Ce que ce protocole ne mesure PAS",
+        items: [
+          "Durabilité / TTE — aucun effort long n'est testé ici.",
+          "FC max réelle — non requise par ce protocole (contrairement à Track Day™/Bike Day™).",
+          "Seuil et FTP sont ESTIMÉS (modèle Mader), pas mesurés par un effort dédié de 20 min — pour une calibration de précision, utiliser Track Day™/Bike Day™ ou la semaine de test complète.",
+          "Avec seulement 2 points de puissance vélo, le modèle Critical Power signale systématiquement une confiance réduite (« peu de points de régression »).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Sprint 15s départ arrêté au lieu de lancé → distance sous-estimée, VLamax faussée vers le bas.",
+          "1500m parti trop vite (excitation du test) → ralentissement en fin de course, temps final dégradé.",
+          "Sprint vélo 30s non maximal (retenue) → W' sous-estimé, FTP dérivé optimiste.",
+          "MAP5min avec un final en sprint → puissance moyenne artificiellement élevée, VO2max surestimé.",
+        ],
+      },
+      {
+        title: "Sécurité & arrêt du test",
+        items: [
+          "Arrêt immédiat si douleur thoracique, vertige, ou essoufflement anormal.",
+          "Échauffement complet obligatoire avant chaque bloc all-out — ne jamais sprinter à froid.",
+          "Récupération active 5-10 min en fin de séance (marche/pédalage très léger).",
+        ],
+      },
+    ],
+    alternatives: {
+      material: [
+        "Pas de plots/GPS fiables pour les sprints course : utiliser une piste 400m étalonnée.",
+        "Pas de capteur de puissance vélo : ce protocole n'est pas réalisable pour le volet vélo — utiliser Bike Day™ (FC) à la place.",
+      ],
+      terrain: [
+        "Vent > 15 km/h ou sol mouillé : reporter les sprints course (biais de mesure).",
+        "Home-trainer non étalonné : vérifier le zero-offset avant le bloc vélo.",
+      ],
+      short: [
+        "Pas de version plus courte que celle-ci — c'est déjà le format le plus condensé de l'app. Pour aller plus vite encore, utiliser « Saisie coach » (déclaratif, sans mesure).",
       ],
     },
   },
