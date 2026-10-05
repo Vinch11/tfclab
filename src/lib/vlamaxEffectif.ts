@@ -475,21 +475,25 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     
     // =============================================
     // C1) V2 ENHANCED BIKE (P30s, P60s, MAP, TTE) — meilleure estimation
+    // ⚠️ Réservé à sport !== "cap" : ftp/p30s_w/p60s_w/map5min_w/tte_observed_min
+    // sont des champs vélo (écrits par Bike Day). Pour un objectif course, ne
+    // JAMAIS en dériver une VLamax — mieux vaut "unknown" (bloc D) qu'une
+    // estimation glycolytique vélo faussement présentée comme une VLamax course.
     // =============================================
-    const hasV2Data = ftp != null && ftp > 0 && (
+    const hasV2Data = sport !== "cap" && ftp != null && ftp > 0 && (
       (effectiveSnapshot.p30s_w != null && effectiveSnapshot.p30s_w > 0) ||
       (effectiveSnapshot.p60s_w != null && effectiveSnapshot.p60s_w > 0) ||
       (effectiveSnapshot.map5min_w != null && effectiveSnapshot.map5min_w > 0) ||
       (effectiveSnapshot.tte_observed_min != null && effectiveSnapshot.tte_observed_min > 0)
     );
-    
+
     const v2EnhancedDataCount = [
       effectiveSnapshot.p30s_w != null && effectiveSnapshot.p30s_w > 0,
       effectiveSnapshot.p60s_w != null && effectiveSnapshot.p60s_w > 0,
       effectiveSnapshot.map5min_w != null && effectiveSnapshot.map5min_w > 0,
       effectiveSnapshot.tte_observed_min != null && effectiveSnapshot.tte_observed_min > 0,
     ].filter(Boolean).length;
-    
+
     if (hasV2Data && v2EnhancedDataCount >= 2) {
       const v2Enhanced = computeVLamaxBikeV2Enhanced({
         ftp: ftp!,
@@ -531,8 +535,10 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     
     // =============================================
     // C2) LEGACY estimation (FTP/kg + Pmax/kg)
+    // ⚠️ Même garde-fou que C1 : FTP/Pmax sont des métriques vélo, réservées
+    // à sport !== "cap".
     // =============================================
-    const hasMinimumData = ftp != null && weight_kg != null && weight_kg > 0;
+    const hasMinimumData = sport !== "cap" && ftp != null && weight_kg != null && weight_kg > 0;
     
     if (hasMinimumData) {
       const ftpKg = ftp! / weight_kg!;

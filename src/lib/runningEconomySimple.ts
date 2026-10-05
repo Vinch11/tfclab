@@ -221,7 +221,9 @@ export function resolveRunningEconomyFromSnapshot(
     measuredScore: snapshot.run_economy_score ?? null,
     vmaKmh: snapshot.vma ?? null,
     pace30MinSecPerKm: snapshot.pace_threshold_sec_per_km ?? null,
-    vlamaxRun: snapshot.vlamax_run ?? snapshot.vlamax ?? null,
+    // Ne jamais retomber sur snapshot.vlamax (VLamax vélo) — glycolyse vélo
+    // et course ne sont pas interchangeables. Sans vlamax_run, pas de pénalité.
+    vlamaxRun: snapshot.vlamax_run ?? null,
   });
 }
 
@@ -244,7 +246,9 @@ export function enrichSnapshotWithRunEconomy<T extends Record<string, any>>(
     measuredScore: null,
     vmaKmh: snapshot.vma ?? null,
     pace30MinSecPerKm: snapshot.pace_threshold_sec_per_km ?? null,
-    vlamaxRun: snapshot.vlamax_run ?? snapshot.vlamax ?? null,
+    // Ne jamais retomber sur snapshot.vlamax (VLamax vélo) — même garde-fou
+    // que resolveRunningEconomyFromSnapshot ci-dessus.
+    vlamaxRun: snapshot.vlamax_run ?? null,
   });
   if (!resolved) return snapshot;
   return {
