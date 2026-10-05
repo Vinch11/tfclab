@@ -50,6 +50,7 @@ import {
   getAgeAdjustedVLamaxThresholds,
   computeAgeAdjustmentIndex,
 } from "@/lib/ageAdjustment";
+import { vlamaxRunFromSprintRatio } from "@/lib/v2/profilExpressFormulas";
 
 interface VLamaxRunFieldTestProps {
   athlete: Athlete | null;
@@ -63,7 +64,8 @@ const TEST_ID = "run_vlamax_sprint15_12min";
 const TEST_NOM = "VLamax CAP – Sprint 15s + 12 min";
 const TEST_FIABILITE = 0.80;
 
-// Calcul VLamax selon formule officielle
+// Calcul VLamax selon formule officielle (source unique : profilExpressFormulas.ts,
+// partagée avec testLibrary.ts et le moteur Profil Express)
 function computeVLamaxRun(
   distSprint1: number,
   distSprint2: number,
@@ -77,10 +79,7 @@ function computeVLamaxRun(
   // Sprint Ratio course
   const srRun = v15 / v12;
 
-  // Formule VLamax_run
-  const normalized = Math.max(0, Math.min(1, (srRun - 1.55) / 0.35));
-  let vlamax = 0.25 + 0.55 * normalized;
-  vlamax = Math.max(0.25, Math.min(0.95, vlamax));
+  const vlamax = vlamaxRunFromSprintRatio(v15, v12);
 
   return { vlamax, v15, v12, srRun };
 }

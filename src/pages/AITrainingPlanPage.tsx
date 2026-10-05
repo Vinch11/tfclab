@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { FinisherQuickStartDialog, type FinisherExpressPayload } from "@/components/FinisherQuickStartDialog";
+import { ProfilExpressDialog } from "@/components/ProfilExpressDialog";
 import { CoachProfileForm, type CoachProfileFormPayload, type CoachProfilePrefill, type MetabolicProfile } from "@/components/CoachProfileForm";
 import { QuickStartWizard, type QuickStartS2RExtras, type S2RExperience } from "@/components/QuickStartWizard";
 import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
@@ -458,6 +459,12 @@ export default function AITrainingPlanPage() {
   const [pendingExpressGen, setPendingExpressGen] = useState(false);
   const expressFlagRef = useRef(false);
 
+  // PROFIL EXPRESS — estimation physiologique rapide (1 séance/discipline),
+  // distinct de F-EXPRESS ci-dessus (profil déclaratif grossier) : ici on
+  // dérive VO2max/VLamax/seuil depuis de vraies mesures de terrain courtes
+  // via le modèle Mader/Critical Power (cf. src/lib/v2/profilExpress.ts).
+  const [profilExpressDialogOpen, setProfilExpressDialogOpen] = useState(false);
+
   // COACH FORM — Saisie manuelle des limiteurs Lorang (remplace Express Finisher).
   const [coachFormOpen, setCoachFormOpen] = useState(false);
 
@@ -486,6 +493,7 @@ export default function AITrainingPlanPage() {
       openExpress?: boolean;
       openCoachForm?: boolean;
       openQuickWizard?: boolean;
+      openProfilExpress?: boolean;
     } | null;
     if (navState?.athleteId && navState?.autoRegenerate) {
       setSelectedAthleteId(navState.athleteId);
@@ -505,6 +513,11 @@ export default function AITrainingPlanPage() {
     if (navState?.openQuickWizard) {
       if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
       setWizardOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+    if (navState?.openProfilExpress) {
+      if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
+      setProfilExpressDialogOpen(true);
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSelectedAthleteId]);
@@ -1617,6 +1630,49 @@ export default function AITrainingPlanPage() {
       toast.success("Profil Express créé — génération du plan en cours…");
     } catch (e: any) {
       toast.error("Erreur création snapshot: " + (e?.message ?? e));
+      throw e;
+    }
+  };
+
+  // PROFIL RAPIDE — submit depuis ProfilExpressDialog → snapshot marqué
+  // "profil_express" (estimé, pas mesuré). Ne déclenche PAS de génération
+  // automatique de plan (contrairement à F-EXPRESS) : le coach reste
+  // libre de choisir ensuite CoachProfileForm / wizard / génération directe
+  // avec ce nouveau profil.
+  const handleProfilExpressSubmit = async (data: import("@/components/ProfilExpressDialog").ProfilExpressSubmitPayload) => {
+    if (!currentAthlete) {
+      toast.error("Sélectionnez un athlète");
+      return;
+    }
+    try {
+      const newSnap = await addSnapshot({
+        athlete_id: currentAthlete.id,
+        date: new Date().toISOString().slice(0, 10),
+        source: "profil_express",
+        confidence: data.confidence,
+        weight_kg: data.weightKg,
+        vo2max: data.vo2max,
+        ...(data.sport === "run"
+          ? {
+              vlamax_run: data.vlamax,
+              vma: data.vma,
+              pace_threshold_sec_per_km: data.paceThresholdSecPerKm,
+            }
+          : {
+              vlamax: data.vlamax,
+              ftp: data.ftp,
+            }),
+        coach_notes: `Profil Rapide (${data.sport === "run" ? "course" : "vélo"}) — estimé depuis 2 efforts de terrain, confiance ${Math.round(data.confidence * 100)}%. ${data.warnings.join(" ")}`.trim(),
+      } as Omit<import("@/hooks/useCloudData").DbSnapshot, "id" | "created_at" | "updated_at">);
+
+      if (!newSnap?.id) {
+        toast.error("Échec: " + (newSnap === null ? "snapshot null - voir console" : "ok"));
+        return;
+      }
+      toast.success("Profil Rapide enregistré — estimation provisoire, à affiner si besoin.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error("Erreur création snapshot: " + msg);
       throw e;
     }
   };
@@ -4238,6 +4294,13 @@ export default function AITrainingPlanPage() {
         onOpenChange={setExpressDialogOpen}
         defaultObjectif={currentAthlete?.objectif}
         onSubmit={handleExpressSubmit}
+      />
+      <ProfilExpressDialog
+        open={profilExpressDialogOpen}
+        onOpenChange={setProfilExpressDialogOpen}
+        athleteName={currentAthlete?.nom}
+        defaultWeightKg={athleteContext?.data?.weightKg ?? null}
+        onSubmit={handleProfilExpressSubmit}
       />
       <CoachProfileForm
         open={coachFormOpen}
