@@ -3,8 +3,10 @@
  * ────────────────────────────────────────────────────────────────────────
  * Alternative au protocole complet multi-jours (TFCL/CAP) pour un athlète
  * qui veut démarrer vite : 2 efforts courts de terrain par discipline
- * (sprint + effort 5-12min), traités par le même modèle Mader/Critical
- * Power que le reste de l'app (computeMLSS, analyzeCriticalPower).
+ * (sprint + 1500m piste côté course, sprint + 5min MAP côté vélo — mêmes
+ * tests que la fiche TFCL Track/Bike Day™, variante "profil rapide"),
+ * traités par le même modèle Mader/Critical Power que le reste de l'app
+ * (computeMLSS, analyzeCriticalPower).
  *
  * Toute valeur produite est une ESTIMATION — jamais affichée ni enregistrée
  * comme une mesure directe. Le snapshot créé porte source="profil_express"
@@ -71,7 +73,7 @@ export function ProfilExpressDialog({ open, onOpenChange, athleteName, defaultWe
   // --- Course à pied ---
   const [distSprint1, setDistSprint1] = useState("");
   const [distSprint2, setDistSprint2] = useState("");
-  const [dist12min, setDist12min] = useState("");
+  const [time1500m, setTime1500m] = useState("");
   const [weightRun, setWeightRun] = useState(defaultWeightKg ? String(defaultWeightKg) : "");
   const [runResult, setRunResult] = useState<ProfilExpressRunResult | null>(null);
   const [runSaving, setRunSaving] = useState(false);
@@ -87,7 +89,7 @@ export function ProfilExpressDialog({ open, onOpenChange, athleteName, defaultWe
     const result = computeProfilExpressRun({
       distSprint1M: Number(distSprint1),
       distSprint2M: Number(distSprint2),
-      dist12MinM: Number(dist12min),
+      time1500mSec: Number(time1500m),
       weightKg: Number(weightRun),
     });
     setRunResult(result);
@@ -148,8 +150,8 @@ export function ProfilExpressDialog({ open, onOpenChange, athleteName, defaultWe
             Profil Rapide{athleteName ? ` — ${athleteName}` : ""}
           </DialogTitle>
           <DialogDescription>
-            1 séance par discipline (sprint court + effort 5-12min) pour identifier le
-            limiteur principal sans le protocole complet. Résultat marqué comme{" "}
+            1 séance par discipline (sprint + 1500m piste ou sprint + 5min MAP) pour identifier
+            le limiteur principal sans le protocole complet. Résultat marqué comme{" "}
             <strong>estimé</strong>, à affiner ensuite si besoin.
           </DialogDescription>
         </DialogHeader>
@@ -165,22 +167,23 @@ export function ProfilExpressDialog({ open, onOpenChange, athleteName, defaultWe
               <Info className="h-4 w-4" />
               <AlertTitle>Protocole</AlertTitle>
               <AlertDescription>
-                Échauffement 15-20min + 2×15s sprint all-out (5-6min récup) + 10-12min récup facile
-                + 12min all-out régulier. Mesurer les 3 distances.
+                Échauffement 15-20min + 2×15s sprint lancé all-out (récup marche entre les 2, 8min
+                récup complète après) + 1500m piste à allure maximale stable. Mesurer les 2 distances
+                sprint et le temps du 1500m (protocole TFCL Track Day™).
               </AlertDescription>
             </Alert>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Sprint 1 (m)</Label>
+                <Label>Sprint 1 lancé (m)</Label>
                 <Input type="number" value={distSprint1} onChange={e => setDistSprint1(e.target.value)} placeholder="90" />
               </div>
               <div className="space-y-1.5">
-                <Label>Sprint 2 (m)</Label>
+                <Label>Sprint 2 lancé (m)</Label>
                 <Input type="number" value={distSprint2} onChange={e => setDistSprint2(e.target.value)} placeholder="92" />
               </div>
               <div className="space-y-1.5">
-                <Label>Distance 12min (m)</Label>
-                <Input type="number" value={dist12min} onChange={e => setDist12min(e.target.value)} placeholder="2800" />
+                <Label>Temps 1500m piste (sec)</Label>
+                <Input type="number" value={time1500m} onChange={e => setTime1500m(e.target.value)} placeholder="330" />
               </div>
               <div className="space-y-1.5">
                 <Label>Poids (kg)</Label>
