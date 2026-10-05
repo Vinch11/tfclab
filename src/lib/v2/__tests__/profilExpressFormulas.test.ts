@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { vo2maxFromCooper12min, vlamaxRunFromSprintRatio } from "../profilExpressFormulas";
+import {
+  vo2maxFromCooper12min,
+  vlamaxRunFromSprintRatio,
+  vmaFromTrack1500m,
+  vlamaxRunFromSprint15Distance,
+} from "../profilExpressFormulas";
 
 describe("vo2maxFromCooper12min", () => {
   it("reproduit la formule de Cooper (1968)", () => {
@@ -42,5 +47,38 @@ describe("vlamaxRunFromSprintRatio", () => {
         expect(vlamax).toBeLessThanOrEqual(0.95);
       }
     }
+  });
+});
+
+describe("vmaFromTrack1500m", () => {
+  it("reproduit la formule Track Day™ (distance/temps × 3.6 × correction +2% piste)", () => {
+    // 1500m en 5min30 (330s)
+    const vMs = 1500 / 330;
+    expect(vmaFromTrack1500m(330)).toBeCloseTo(vMs * 3.6 * 1.02, 5);
+  });
+
+  it("est décroissante avec le temps (plus lent = VMA plus basse)", () => {
+    expect(vmaFromTrack1500m(300)).toBeGreaterThan(vmaFromTrack1500m(360));
+  });
+
+  it("donne une VMA physiologiquement plausible pour un coureur entraîné (5min30 au 1500m)", () => {
+    const vma = vmaFromTrack1500m(330);
+    expect(vma).toBeGreaterThan(14);
+    expect(vma).toBeLessThan(20);
+  });
+});
+
+describe("vlamaxRunFromSprint15Distance", () => {
+  it("reproduit la régression Track Day™ (−0.5066 + 0.0142 × distance)", () => {
+    expect(vlamaxRunFromSprint15Distance(90)).toBeCloseTo(-0.5066 + 0.0142 * 90, 5);
+  });
+
+  it("est strictement croissante avec la distance sprint", () => {
+    expect(vlamaxRunFromSprint15Distance(100)).toBeGreaterThan(vlamaxRunFromSprint15Distance(80));
+  });
+
+  it("reste dans les bornes physiologiques [0.15, 1.10] même pour des distances extrêmes", () => {
+    expect(vlamaxRunFromSprint15Distance(10)).toBeGreaterThanOrEqual(0.15);
+    expect(vlamaxRunFromSprint15Distance(200)).toBeLessThanOrEqual(1.10);
   });
 });

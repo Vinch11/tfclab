@@ -9,8 +9,10 @@
 // appliquées à des efforts courts de terrain au lieu des tests dédiés.
 //
 // Chaîne de calcul :
-//   Course : sprint 15s×2 + 12min → VLamax (sprint ratio) + VO2max (Cooper)
-//            → computeMLSS → seuil (% VO2max → vitesse via VMA bootstrap)
+//   Course : sprint 15s lancé (best of 2) + 1500m piste → VMA (pace directe,
+//            Track Day™ Bloc 3) + VLamax (régression distance_15s, Track
+//            Day™ Bloc 2) → VO2max (Léger-Mercier depuis VMA) → computeMLSS
+//            → seuil
 //   Vélo   : sprint court + MAP 5min → CP/W' (analyzeCriticalPower, FTP exclu
 //            de la régression) → VLamax implicite (W'/poids/320) + VO2max
 //            (Jeukendrup depuis MAP) → computeMLSS → seuil (watts)
@@ -20,43 +22,39 @@
 // "profil_express", confidence réduite) et ne jamais l'afficher comme un FTP
 // ou une VMA "mesurés".
 //
+// Côté course, les formules reprennent EXACTEMENT celles déjà documentées et
+// imprimées dans la fiche TFCL Track Day™ (buildDiagnosticProtocolHTML.ts,
+// variante "profil rapide" du protocole) plutôt que de les mélanger avec une
+// référence différente (ex. ratio sprint/12min, calibré contre une vitesse
+// ~90-95% VMA, pas contre la VMA elle-même) — voir le commentaire sur
+// vmaFromTrack1500m dans profilExpressFormulas.ts.
+//
 // Références : Mader (2003), Heck & Schulz (2002) — computeMLSS ;
 // Monod & Scherrer (1965), Jones (2019) — Critical Power ;
-// Cooper (1968) — VO2max terrain ; Jeukendrup (1997) — VO2 depuis puissance ;
-// Joyner (1991) — VMA depuis VO2max/économie de course.
+// Léger-Boucher — VMA 1500m piste ; Léger & Mercier (1984) — VO2max/VMA ;
+// Jeukendrup (1997) — VO2 depuis puissance.
 
 import { computeMLSS } from "./maderMetabolicModel";
 import { analyzeCriticalPower } from "./criticalPowerModel";
-import { vo2maxFromCooper12min, vlamaxRunFromSprintRatio } from "./profilExpressFormulas";
-
-// NOTE : runningEconomyModel.ts expose `vma_predicted_from_RE(re, vo2max)`
-// (= (vo2max/re)×16.67) comme relation "VO2max → VMA", mais cette fonction
-// n'est appelée nulle part en prod (code mort, aucun test) et son commentaire
-// "retourne un résultat en km/h" est incorrect par analyse dimensionnelle —
-// (ml/kg/min)/(ml/kg/km)×16.67 donne des m/s, pas des km/h (il manque un
-// facteur ×3.6). Plutôt que de propager ce bug latent, on utilise ici la
-// relation de Léger-Mercier déjà validée et utilisée ailleurs dans l'app
-// (trailSimulation.ts:332, `vo2maxMader = vmaForMader × 3.5`) sous sa forme
-// inverse — strictement équivalente à vma_predicted_from_RE avec RE=210
-// (moyenne population, Daniels 2005), mais sans l'ambiguïté d'unité.
+import { vmaFromTrack1500m, vlamaxRunFromSprint15Distance } from "./profilExpressFormulas";
 
 // =============================================
 // COURSE À PIED
 // =============================================
 
 export interface ProfilExpressRunInput {
-  /** Meilleure des 2 distances sprint 15s all-out (mètres). */
+  /** Meilleure des 2 distances sprint 15s lancé all-out (mètres). */
   distSprint1M: number;
   distSprint2M: number;
-  /** Distance parcourue sur l'effort 12min all-out (mètres). */
-  dist12MinM: number;
+  /** Temps pour parcourir 1500m piste à allure maximale stable (secondes). */
+  time1500mSec: number;
   weightKg: number;
 }
 
 export interface ProfilExpressRunResult {
   vo2max: number; // ml/kg/min
   vlamax: number; // mmol/L/s
-  /** VMA estimée (km/h) — amorcée depuis VO2max + économie de course moyenne population. */
+  /** VMA estimée (km/h) — pace directe du 1500m piste, corrigée +2% extérieur. */
   vma: number;
   /** Vitesse de seuil (sec/km), ou null si non calculable (profil Mader hors bornes). */
   thresholdPaceSecPerKm: number | null;
@@ -72,24 +70,22 @@ function isPosFinite(v: number): boolean {
 }
 
 export function computeProfilExpressRun(input: ProfilExpressRunInput): ProfilExpressRunResult | null {
-  const { distSprint1M, distSprint2M, dist12MinM, weightKg } = input;
-  if (![distSprint1M, distSprint2M, dist12MinM, weightKg].every(isPosFinite)) return null;
+  const { distSprint1M, distSprint2M, time1500mSec, weightKg } = input;
+  if (![distSprint1M, distSprint2M, time1500mSec, weightKg].every(isPosFinite)) return null;
 
   const bestD15 = Math.max(distSprint1M, distSprint2M);
-  const v15 = bestD15 / 15; // m/s
-  const v12 = dist12MinM / 720; // m/s (12 min = 720s)
 
-  const vlamax = vlamaxRunFromSprintRatio(v15, v12);
-  const vo2max = vo2maxFromCooper12min(dist12MinM);
+  const vma = vmaFromTrack1500m(time1500mSec);
+  const vlamax = vlamaxRunFromSprint15Distance(bestD15);
 
-  if (!isPosFinite(vo2max)) return null;
+  if (!isPosFinite(vma)) return null;
 
-  // VMA amorcée depuis VO2max — Léger & Mercier 1984 (VO2max ≈ 3,5 × VMA_kmh),
-  // même relation que trailSimulation.ts:332, forme inverse.
-  const vma = vo2max / 3.5;
+  // VO2max depuis VMA — Léger & Mercier 1984 (VO2max ≈ 3,5 × VMA_kmh), même
+  // relation que trailSimulation.ts:332.
+  const vo2max = vma * 3.5;
 
   const warnings: string[] = [];
-  const sources = ["Cooper 12min (VO2max)", "Sprint 15s×2 (VLamax)"];
+  const sources = ["1500m piste (VMA)", "Sprint 15s lancé (VLamax)"];
 
   let thresholdPaceSecPerKm: number | null = null;
   let thresholdIntensityPctVo2max: number | null = null;

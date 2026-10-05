@@ -5,39 +5,38 @@ import {
   type ProfilExpressRunInput,
   type ProfilExpressBikeInput,
 } from "../profilExpress";
-import { vo2maxFromCooper12min, vlamaxRunFromSprintRatio } from "../profilExpressFormulas";
+import { vmaFromTrack1500m, vlamaxRunFromSprint15Distance } from "../profilExpressFormulas";
 
 describe("computeProfilExpressRun", () => {
   const validInput: ProfilExpressRunInput = {
     distSprint1M: 90,
     distSprint2M: 92,
-    dist12MinM: 2800,
+    time1500mSec: 330,
     weightKg: 70,
   };
 
   it("retourne null si une entrée est manquante, nulle ou négative", () => {
     expect(computeProfilExpressRun({ ...validInput, distSprint1M: 0 })).toBeNull();
-    expect(computeProfilExpressRun({ ...validInput, dist12MinM: -100 })).toBeNull();
+    expect(computeProfilExpressRun({ ...validInput, time1500mSec: -100 })).toBeNull();
     expect(computeProfilExpressRun({ ...validInput, weightKg: NaN })).toBeNull();
   });
 
-  it("calcule VO2max via la formule de Cooper (source unique profilExpressFormulas)", () => {
+  it("calcule la VMA via le 1500m piste (source unique profilExpressFormulas, protocole Track Day™)", () => {
     const result = computeProfilExpressRun(validInput);
     expect(result).not.toBeNull();
-    const expectedVo2max = Math.round(vo2maxFromCooper12min(validInput.dist12MinM) * 10) / 10;
-    expect(result!.vo2max).toBeCloseTo(expectedVo2max, 5);
+    const expectedVma = Math.round(vmaFromTrack1500m(validInput.time1500mSec) * 10) / 10;
+    expect(result!.vma).toBeCloseTo(expectedVma, 5);
   });
 
-  it("calcule VLamax via le sprint ratio (meilleure distance des 2 sprints)", () => {
+  it("calcule VLamax via la distance du meilleur sprint 15s lancé (régression Track Day™, pas de ratio)", () => {
     const result = computeProfilExpressRun(validInput);
-    const v15 = Math.max(validInput.distSprint1M, validInput.distSprint2M) / 15;
-    const v12 = validInput.dist12MinM / 720;
-    expect(result!.vlamax).toBeCloseTo(vlamaxRunFromSprintRatio(v15, v12), 5);
+    const bestD15 = Math.max(validInput.distSprint1M, validInput.distSprint2M);
+    expect(result!.vlamax).toBeCloseTo(vlamaxRunFromSprint15Distance(bestD15), 5);
   });
 
-  it("dérive la VMA depuis VO2max (Léger-Mercier, VO2max ≈ 3.5 × VMA)", () => {
+  it("dérive VO2max depuis la VMA (Léger-Mercier, VO2max ≈ 3.5 × VMA)", () => {
     const result = computeProfilExpressRun(validInput);
-    expect(result!.vma).toBeCloseTo(result!.vo2max / 3.5, 1);
+    expect(result!.vo2max).toBeCloseTo(result!.vma * 3.5, 1);
   });
 
   it("le seuil dérivé est toujours plus lent (allure en sec/km plus grande) que l'allure VMA", () => {
@@ -62,8 +61,8 @@ describe("computeProfilExpressRun", () => {
 
   it("liste les sources utilisées", () => {
     const result = computeProfilExpressRun(validInput);
-    expect(result!.sources).toContain("Cooper 12min (VO2max)");
-    expect(result!.sources).toContain("Sprint 15s×2 (VLamax)");
+    expect(result!.sources).toContain("1500m piste (VMA)");
+    expect(result!.sources).toContain("Sprint 15s lancé (VLamax)");
     expect(result!.sources).toContain("Mader MLSS (seuil dérivé)");
   });
 });
