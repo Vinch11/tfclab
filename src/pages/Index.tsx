@@ -84,7 +84,7 @@ import { LeviersSection } from "@/components/simplified/LeviersSection";
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { estimateFromRaceChronos, type RaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
-import { predictRaceDurationMin } from "@/lib/raceTimePredictor";
+import { predictRaceDurationMin, AMBITION_LEVEL_TO_PREDICTOR } from "@/lib/raceTimePredictor";
 
 // ✅ Cycle Intelligence Engine™
 import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
@@ -675,7 +675,7 @@ const Index = () => {
     };
     return predictRaceDurationMin({
       objective: currentAthlete.goal || null,
-      ambition: currentAmbition as any,
+      ambition: AMBITION_LEVEL_TO_PREDICTOR[currentAmbition],
       raceChronos: chronos,
       vmaKmh: effectiveCloudSnapshot?.vma ?? null,
       thresholdPaceSecPerKm: (effectiveCloudSnapshot as any)?.pace_threshold_sec_km ?? null,
