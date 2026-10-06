@@ -7,6 +7,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { UserProfile, UserRole } from "@/types/profile";
 
+// Clé localStorage lue par le script inline de l'écran de chargement
+// (index.html) — affiché avant même que React/Supabase ne démarrent, donc
+// sans accès au profil. On met en cache le dernier logo connu pour que le
+// prochain chargement sur cet appareil montre déjà le bon logo.
+const CACHED_LOGO_KEY = "tfcl_cached_logo_url";
+
+function cacheLogoUrl(logoUrl: string | null) {
+  try {
+    if (logoUrl) localStorage.setItem(CACHED_LOGO_KEY, logoUrl);
+    else localStorage.removeItem(CACHED_LOGO_KEY);
+  } catch {
+    /* ignore (storage indisponible/plein) */
+  }
+}
+
 interface UseProfileReturn {
   profile: UserProfile | null;
   loading: boolean;
@@ -50,8 +65,10 @@ export function useProfile(): UseProfileReturn {
 
         if (insertError) throw insertError;
         setProfile(newProfile as UserProfile);
+        cacheLogoUrl((newProfile as UserProfile).logo_url ?? null);
       } else {
         setProfile(data as UserProfile);
+        cacheLogoUrl((data as UserProfile).logo_url ?? null);
       }
     } catch (err) {
       setError(err as Error);
@@ -98,6 +115,7 @@ export function useProfile(): UseProfileReturn {
 
     if (updateError) throw updateError;
     setProfile((prev) => (prev ? { ...prev, logo_url: logoUrl } : null));
+    cacheLogoUrl(logoUrl);
   };
 
   return {

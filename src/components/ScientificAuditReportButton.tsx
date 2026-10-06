@@ -12,10 +12,13 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { gatherScientificAuditData, buildScientificAuditHTML } from "@/lib/audit/buildScientificAuditHTML";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
+import { imageToBase64 } from "@/lib/imageToBase64";
 
 export function ScientificAuditReportButton() {
   const { currentAthlete } = useAthletes();
   const { user } = useAuth();
+  const { logoUrl } = useAppLogo();
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
@@ -25,14 +28,17 @@ export function ScientificAuditReportButton() {
     }
     setLoading(true);
     try {
-      const data = await gatherScientificAuditData({
-        athleteId: currentAthlete.id,
-        athleteName: currentAthlete.nom ?? currentAthlete.name ?? "Athlète",
-        sport: currentAthlete.sport_principal ?? currentAthlete.sport ?? null,
-        objectif: currentAthlete.objectif ?? null,
-        generatedBy: user?.email ?? "Coach TFCL",
-      });
-      const html = buildScientificAuditHTML(data);
+      const [data, logoBase64] = await Promise.all([
+        gatherScientificAuditData({
+          athleteId: currentAthlete.id,
+          athleteName: currentAthlete.nom ?? currentAthlete.name ?? "Athlète",
+          sport: currentAthlete.sport_principal ?? currentAthlete.sport ?? null,
+          objectif: currentAthlete.objectif ?? null,
+          generatedBy: user?.email ?? "Coach TFCL",
+        }),
+        imageToBase64(logoUrl),
+      ]);
+      const html = buildScientificAuditHTML({ ...data, logoBase64 });
       openPrintableHTML(html, {
         filenameHint: `Audit scientifique — ${data.athlete.name}`,
         autoPrint: false,

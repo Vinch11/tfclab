@@ -985,8 +985,10 @@ export function buildDiagnosticProtocolHTML(
 export async function openDiagnosticProtocolPrint(
   protocol: DiagnosticProtocol,
   athleteName?: string,
+  /** Logo custom du coach (useAppLogo().logoUrl) — défaut packagé si omis. */
+  customLogoUrl?: string,
 ): Promise<void> {
-  const logoBase64 = await imageToBase64(logoUrl);
+  const logoBase64 = await imageToBase64(customLogoUrl || logoUrl);
   const html = buildDiagnosticProtocolHTML(protocol, athleteName, logoBase64);
   openPrintableHTML(html, { filenameHint: athleteName ? `Protocole — ${athleteName}` : "Protocole", includeInstructions: false });
 }
@@ -1544,8 +1546,10 @@ export function buildFullDiagnosticDossierHTML(
 export async function openFullDiagnosticDossierPrint(
   athleteName?: string,
   sport: DossierSport = "triathlon",
+  /** Logo custom du coach (useAppLogo().logoUrl) — défaut packagé si omis. */
+  customLogoUrl?: string,
 ): Promise<void> {
-  const logoBase64 = await imageToBase64(logoUrl);
+  const logoBase64 = await imageToBase64(customLogoUrl || logoUrl);
   const html = buildFullDiagnosticDossierHTML(athleteName, sport, logoBase64);
   openPrintableHTML(html, { filenameHint: "Dossier diagnostic", includeInstructions: false });
 }

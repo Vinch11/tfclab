@@ -36,6 +36,7 @@ import {
   type ProfilExpressBikeResult,
 } from "@/lib/v2/profilExpress";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
 
 export interface ProfilExpressSubmitPayload {
   sport: "run" | "bike";
@@ -71,6 +72,7 @@ function confidenceBadge(confidence: number) {
 }
 
 export function ProfilExpressDialog({ open, onOpenChange, athleteName, defaultWeightKg, onSubmit }: Props) {
+  const { logoUrl } = useAppLogo();
   // --- Course à pied ---
   const [distSprint1, setDistSprint1] = useState("");
   const [distSprint2, setDistSprint2] = useState("");
@@ -161,7 +163,7 @@ export function ProfilExpressDialog({ open, onOpenChange, athleteName, defaultWe
           variant="outline"
           size="sm"
           className="gap-2 w-fit"
-          onClick={() => openDiagnosticProtocolPrint("profil-rapide", athleteName)}
+          onClick={() => openDiagnosticProtocolPrint("profil-rapide", athleteName, logoUrl)}
         >
           <Printer className="h-4 w-4" />
           Imprimer le protocole détaillé (PDF)

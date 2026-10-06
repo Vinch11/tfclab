@@ -39,6 +39,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
 import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadiness/computeRaceReadiness";
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
+import { imageToBase64 } from "@/lib/imageToBase64";
 import { buildReadinessRadarSVG } from "@/lib/raceReadiness/buildReadinessRadarSVG";
 import { getPeerReference, peerVerdict } from "@/lib/raceReadiness/peerReference";
 import { getReadinessVerdict } from "@/lib/raceReadiness/readinessVerdict";
@@ -81,6 +83,7 @@ export function RaceReadinessReportDialog({
   const [aiMessage, setAiMessage] = useState<string>("");
   const [loadingAI, setLoadingAI] = useState(false);
   const [coachTone, setCoachTone] = useState<CoachToneId>("fire");
+  const { logoUrl } = useAppLogo();
 
   const compassResult = useMemo(
     () => (compassInput ? computeCoachingCompass(compassInput) : null),
@@ -234,8 +237,10 @@ export function RaceReadinessReportDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, readiness]);
 
-  function handleExportPDF() {
+  async function handleExportPDF() {
     if (!readiness) return;
+
+    const logoBase64 = await imageToBase64(logoUrl);
 
     // Construction de la stratégie Plan A & Plan B (si coch et données dispo)
     let strategyBodyHtml: string | null = null;
@@ -282,6 +287,7 @@ export function RaceReadinessReportDialog({
       aiMessage: aiMessage || "Message non généré.",
       peerRef,
       strategyBodyHtml,
+      logoBase64,
     });
     openPrintableHTML(html, {
       filenameHint: `Bilan pré-objectif - ${athleteName}`,

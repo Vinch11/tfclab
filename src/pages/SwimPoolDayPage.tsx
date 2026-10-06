@@ -22,6 +22,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
 import { Trash2 } from "lucide-react";
 
@@ -39,6 +40,7 @@ const fmtPace = (secPer100: number): string => {
 
 export default function SwimPoolDayPage() {
   const navigate = useNavigate();
+  const { logoUrl } = useAppLogo();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { addSnapshot, snapshots } = useCloudDataContext() as any;
 
@@ -206,7 +208,7 @@ export default function SwimPoolDayPage() {
             variant="outline"
             size="sm"
             className="ml-auto"
-            onClick={() => openDiagnosticProtocolPrint("pool-day", currentAthlete?.name)}
+            onClick={() => openDiagnosticProtocolPrint("pool-day", currentAthlete?.name, logoUrl)}
           >
             📄 Version papier
           </Button>

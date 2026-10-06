@@ -29,6 +29,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { CAP_TESTING_WEEK, computeCAPCompletion } from "@/data/capTestingWeek";
 import { openTestingWeekDossierPrint } from "@/lib/diagnostic/buildTestingWeekProtocolHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { Printer } from "lucide-react";
 import { CAPDayCard } from "./CAPDayCard";
 import { CAPTestSheet } from "./CAPTestSheet";
@@ -40,6 +41,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 
 export function CAPTestingWeekPage() {
   const navigate = useNavigate();
+  const { logoUrl } = useAppLogo();
   const { athletes, selectedAthleteId, setSelectedAthleteId } = useAthletes();
   const { snapshots, getSnapshotsForAthlete, tests } = useCloudDataContext();
   
@@ -158,7 +160,7 @@ export function CAPTestingWeekPage() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5"
-                onClick={() => openTestingWeekDossierPrint("run", selectedAthlete?.name)}
+                onClick={() => openTestingWeekDossierPrint("run", selectedAthlete?.name, logoUrl)}
               >
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">Imprimer</span>

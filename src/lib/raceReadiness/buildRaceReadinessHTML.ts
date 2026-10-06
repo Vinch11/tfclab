@@ -23,6 +23,8 @@ interface BuildOpts {
   peerRef?: PeerReference | null;
   /** Corps HTML (inner <body>) de la carte Stratégie TFCL Plan A & Plan B à joindre. */
   strategyBodyHtml?: string | null;
+  /** Logo custom du coach (useAppLogo().logoUrl → imageToBase64) — défaut packagé si omis. */
+  logoBase64?: string | null;
 }
 
 const axisInterpretation: Record<string, string> = {
@@ -55,8 +57,9 @@ const mdToHtml = (md: string) =>
     .replace(/\n/g, "<br/>");
 
 export function buildRaceReadinessHTML(opts: BuildOpts): string {
-  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, strategyBodyHtml, peerRef } = opts;
+  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, strategyBodyHtml, peerRef, logoBase64 } = opts;
   const dateFR = new Date(raceDateISO).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  const logoSrc = logoBase64 || `${typeof window !== "undefined" ? window.location.origin : ""}/logo-tfc.png`;
   const verdict = getReadinessVerdict(result.scorePct);
 
   const strategyHTML = strategyBodyHtml
@@ -113,7 +116,7 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
 </style></head>
 <body>
   <div style="display:flex; align-items:center; gap:14pt; margin-bottom:6pt;">
-    <img src="${typeof window !== "undefined" ? window.location.origin : ""}/logo-tfc.png" alt="TFC Lab" style="height:48pt; width:auto;" />
+    <img src="${logoSrc}" alt="TFC Lab" style="height:48pt; width:auto;" />
     <h1 style="margin:0;">Bilan pré-objectif TFCL</h1>
   </div>
   <div class="meta">

@@ -54,6 +54,7 @@ import { FolderDown, Send, Loader2, ClipboardCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAppLogo } from "@/hooks/useAppLogo";
 
 type SectionTier = "long" | "court" | "outil";
 
@@ -190,6 +191,7 @@ const sections = [
 
 export default function DiagnosticPage() {
   const navigate = useNavigate();
+  const { logoUrl } = useAppLogo();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
   const { currentAthlete } = useAthletes();
@@ -539,6 +541,7 @@ export default function DiagnosticPage() {
                 openFullDiagnosticDossierPrint(
                   dossierAthleteName.trim() || undefined,
                   dossierSport,
+                  logoUrl,
                 )
               }
             >
@@ -594,6 +597,7 @@ export default function DiagnosticPage() {
                 openTestingWeekDossierPrint(
                   testingWeekSport,
                   dossierAthleteName.trim() || undefined,
+                  logoUrl,
                 )
               }
             >
