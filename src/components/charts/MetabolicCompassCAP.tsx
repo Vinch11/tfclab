@@ -60,18 +60,13 @@ interface MetabolicCompassCAPProps {
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// Seuils alignés sur ceux de computeCompassCAPScores() (compassScoringCAP.ts)
+// — un score de 65-69 doit rester vert ("Bon Équilibre CAP"), pas ambre.
 const getScoreColor = (score: number): string => {
   if (score >= 80) return "hsl(142, 76%, 36%)";
-  if (score >= 70) return "hsl(142, 71%, 45%)";
+  if (score >= 65) return "hsl(142, 71%, 45%)";
   if (score >= 50) return "hsl(45, 93%, 47%)";
   return "hsl(0, 84%, 60%)";
-};
-
-const getScoreLabel = (score: number): string => {
-  if (score >= 85) return "Excellent";
-  if (score >= 70) return "Prêt";
-  if (score >= 50) return "En progression";
-  return "À développer";
 };
 
 const SCORE_GRADIENTS = {
@@ -83,7 +78,7 @@ const SCORE_GRADIENTS = {
 
 const getScoreGradient = (score: number): string => {
   if (score >= 80) return SCORE_GRADIENTS.excellent;
-  if (score >= 70) return SCORE_GRADIENTS.good;
+  if (score >= 65) return SCORE_GRADIENTS.good;
   if (score >= 50) return SCORE_GRADIENTS.moderate;
   return SCORE_GRADIENTS.low;
 };
@@ -231,13 +226,16 @@ export function MetabolicCompassCAP({
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
               <p className="text-sm font-semibold mt-1" style={{ color: globalColor }}>
-                {getScoreLabel(scores.globalScore)}
+                {scores.globalLabel}
               </p>
             </div>
             <Badge variant="outline" className="text-xs bg-primary/10 border-primary/30">
               🏃 CAP
             </Badge>
           </div>
+          <p className="text-[10px] text-muted-foreground/80 mt-2">
+            Potentiel physiologique — indépendant de la fraîcheur du jour
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -334,6 +332,9 @@ export function MetabolicCompassCAP({
                     {ambDef.icon} {ambDef.shortLabel}
                   </Badge>
                 </div>
+                <p className="text-[10px] text-muted-foreground/80 mt-1">
+                  Potentiel physiologique — indépendant de la fraîcheur du jour
+                </p>
               </div>
             </div>
 
