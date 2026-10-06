@@ -4007,6 +4007,42 @@ export default function AITrainingPlanPage() {
                               const sport = resolvePlanNutritionSport(String(goalLabel));
                               const vlaEffectif = athleteContext?.diagnostic.effectifs.vlamax ?? null;
                               const tteEffectifResolved = athleteContext?.diagnostic.effectifs.tte ?? null;
+                              // Bug réel corrigé (audit "estimations physiologiques", chantier
+                              // nutrition) : resolvePlanNutritionSport() ne retourne jamais que
+                              // "velo" ou "cap" — pour un objectif triathlon (IM/70.3), cette fiche
+                              // n'affichait donc QUE le protocole course à pied, en ignorant
+                              // entièrement le segment vélo (~5h pour un IM, jusqu'à 90 g/h,
+                              // hydratation ~8.5 ml/kg/h). Le Dashboard (Index.tsx) et la page
+                              // Simulation affichent déjà 2 cartes séparées (vélo + course) pour ce
+                              // même athlète — même principe repris ici, avec le même repli simple
+                              // snapshot.vlamax_run/tte_observed_min_run déjà utilisé par Index.tsx
+                              // pour le segment course (pas de durée de segment réelle disponible
+                              // à ce point pour une résolution plus fine).
+                              const isTriGoal = ["IM", "Ironman", "70.3", "703", "TriathlonLD"].includes(String(goalLabel));
+                              if (isTriGoal) {
+                                return (
+                                  <div className="space-y-4">
+                                    <NutritionUnifiedCard
+                                      vlamaxValue={vlaEffectif?.value ?? null}
+                                      vlamaxConfidence={vlaEffectif?.confidence ?? 0.7}
+                                      vo2max={snap?.vo2max ?? null}
+                                      tteMin={tteEffectifResolved?.tte_min ?? null}
+                                      sport="velo"
+                                      objectif={String(goalLabel)}
+                                      weightKg={snap?.weight_kg ?? null}
+                                    />
+                                    <NutritionUnifiedCard
+                                      vlamaxValue={snap?.vlamax_run ?? vlaEffectif?.value ?? null}
+                                      vlamaxConfidence={vlaEffectif?.confidence ?? 0.7}
+                                      vo2max={snap?.vo2max ?? null}
+                                      tteMin={snap?.tte_observed_min_run ?? tteEffectifResolved?.tte_min ?? null}
+                                      sport="cap"
+                                      objectif={String(goalLabel)}
+                                      weightKg={snap?.weight_kg ?? null}
+                                    />
+                                  </div>
+                                );
+                              }
                               return (
                                 <NutritionUnifiedCard
                                   vlamaxValue={vlaEffectif?.value ?? null}
