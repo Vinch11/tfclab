@@ -39,6 +39,43 @@ jobs:
       - run: bunx tsc --noEmit -p tsconfig.json
       - run: bun run vitest run
 
+  lint-changed-files:
+    name: ESLint (fichiers modifiés uniquement)
+    runs-on: ubuntu-latest
+    # Le repo a ~1230 erreurs eslint préexistantes (dette non liée à ce
+    # workflow) — faire tourner `bun run lint` sur tout le repo en étape
+    # bloquante casserait la CI immédiatement pour tout le monde. Ce job
+    # reproduit plutôt la méthode suivie manuellement PR par PR tout au long
+    # de l'audit "estimations physiologiques" (sept/oct 2026, PR #317-#334) :
+    # lint uniquement les fichiers *.ts/*.tsx touchés par le diff, pour
+    # empêcher la dette de grossir sans devoir la rembourser d'un coup.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Déterminer les fichiers modifiés
+        id: diff
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+          # Premier push d'une branche (before = 40 zéros) ou base absente :
+          # rien à comparer, on se contente du commit courant seul.
+          if [ -z "$BASE" ] || [[ "$BASE" =~ ^0+$ ]] || ! git cat-file -e "$BASE" 2>/dev/null; then
+            BASE="${{ github.sha }}~1"
+          fi
+          FILES=$(git diff --name-only --diff-filter=ACMR "$BASE" "${{ github.sha }}" -- '*.ts' '*.tsx' | tr '\n' ' ')
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+      - name: ESLint sur les fichiers modifiés
+        if: steps.diff.outputs.files != ''
+        run: bunx eslint ${{ steps.diff.outputs.files }}
+
   playwright:
     name: Playwright E2E (Chromium)
     runs-on: ubuntu-latest
