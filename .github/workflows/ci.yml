@@ -49,6 +49,16 @@ jobs:
     # de l'audit "estimations physiologiques" (sept/oct 2026, PR #317-#334) :
     # lint uniquement les fichiers *.ts/*.tsx touchés par le diff, pour
     # empêcher la dette de grossir sans devoir la rembourser d'un coup.
+    #
+    # Bug réel corrigé (trouvé en direct sur PR #336, juste après le merge de
+    # ce job en #335) : la première version comparait seulement "y a-t-il une
+    # erreur ?" sur les fichiers modifiés, pas "y a-t-il une NOUVELLE erreur ?"
+    # — elle échouait donc dès qu'un fichier touché (ex. Index.tsx, des
+    # dizaines d'erreurs préexistantes) faisait partie du diff, même sans
+    # aucune régression. Compare maintenant le nombre d'erreurs par fichier
+    # avant/après (via un worktree sur la base, node_modules partagé par
+    # symlink pour éviter un second `bun install`) et ne fait échouer le job
+    # que si le total augmente.
     steps:
       - uses: actions/checkout@v4
         with:
@@ -72,9 +82,40 @@ jobs:
           fi
           FILES=$(git diff --name-only --diff-filter=ACMR "$BASE" "${{ github.sha }}" -- '*.ts' '*.tsx' | tr '\n' ' ')
           echo "files=$FILES" >> "$GITHUB_OUTPUT"
-      - name: ESLint sur les fichiers modifiés
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+      - name: ESLint — comparer les erreurs avant/après sur les fichiers modifiés
         if: steps.diff.outputs.files != ''
-        run: bunx eslint ${{ steps.diff.outputs.files }}
+        run: |
+          FILES="${{ steps.diff.outputs.files }}"
+          BASE="${{ steps.diff.outputs.base }}"
+
+          HEAD_JSON=$(bunx eslint $FILES --format json || true)
+          HEAD_ERRORS=$(echo "$HEAD_JSON" | jq '[.[].errorCount] | add // 0')
+
+          # Seuls les fichiers qui existaient déjà à la base peuvent être
+          # lintés là-bas (un fichier nouvellement créé n'a pas d'erreurs
+          # "préexistantes" à comparer).
+          BASE_FILES=""
+          for f in $FILES; do
+            if git cat-file -e "$BASE:$f" 2>/dev/null; then
+              BASE_FILES="$BASE_FILES $f"
+            fi
+          done
+
+          if [ -n "$BASE_FILES" ]; then
+            git worktree add /tmp/lint-base "$BASE" --quiet
+            ln -s "$(pwd)/node_modules" /tmp/lint-base/node_modules
+            BASE_JSON=$(cd /tmp/lint-base && bunx eslint $BASE_FILES --format json || true)
+            BASE_ERRORS=$(echo "$BASE_JSON" | jq '[.[].errorCount] | add // 0')
+          else
+            BASE_ERRORS=0
+          fi
+
+          echo "Erreurs eslint — base: $BASE_ERRORS, après ce diff: $HEAD_ERRORS"
+          if [ "$HEAD_ERRORS" -gt "$BASE_ERRORS" ]; then
+            echo "::error::Ce diff introduit $((HEAD_ERRORS - BASE_ERRORS)) nouvelle(s) erreur(s) eslint (dette préexistante tolérée, régression non)."
+            exit 1
+          fi
 
   playwright:
     name: Playwright E2E (Chromium)
