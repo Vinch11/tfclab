@@ -210,11 +210,15 @@ describe("PASSE 3 — VLamax Resolver", () => {
 describe("PASSE 3 — TTE Effectif (F33 age propagation)", () => {
   it("greg (42 ans, OBSERVED 48 min) → source observed, target ajustée masters", () => {
     const p = byName("greg");
+    // greg est un profil running (objectif "semi", sport "run") — son TTE
+    // observé doit passer par tte_observed_min_run, pas tte_observed_min
+    // (champ vélo). Depuis le correctif anti-contamination croisée, un
+    // objectif running-only ignore tte_observed_min même si présent.
     const r = computeTTEEffectif({
       ftp: p.ftp,
       tss_7d: p.tss_7d,
       tte_mode: "OBSERVED",
-      tte_observed_min: p.tte_observed_min,
+      tte_observed_min_run: p.tte_observed_min,
       objectif: p.objectif,
       age: p.age,
     });
