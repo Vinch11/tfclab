@@ -16,10 +16,12 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
 
 export default function TriTestDayPage() {
   const navigate = useNavigate();
+  const { logoUrl } = useAppLogo();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { addSnapshot } = useCloudDataContext() as any;
   const [activeTab, setActiveTab] = useState("diagnostic");
@@ -136,7 +138,7 @@ export default function TriTestDayPage() {
             variant="outline"
             size="sm"
             className="ml-auto"
-            onClick={() => openDiagnosticProtocolPrint("tri-day", currentAthlete?.name)}
+            onClick={() => openDiagnosticProtocolPrint("tri-day", currentAthlete?.name, logoUrl)}
           >
             📄 Version papier
           </Button>

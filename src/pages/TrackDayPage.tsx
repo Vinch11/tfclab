@@ -25,6 +25,7 @@ import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { NolioImportPeriodDialog } from "@/components/NolioImportPeriodDialog";
 import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
 import { Trash2 } from "lucide-react";
@@ -56,6 +57,7 @@ const paceMinKm = (vKmh: number): string => {
 
 export default function TrackDayPage() {
   const navigate = useNavigate();
+  const { logoUrl } = useAppLogo();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { addSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
 
@@ -377,7 +379,7 @@ export default function TrackDayPage() {
             variant="outline"
             size="sm"
             className="ml-auto"
-            onClick={() => openDiagnosticProtocolPrint("track-day", currentAthlete?.name)}
+            onClick={() => openDiagnosticProtocolPrint("track-day", currentAthlete?.name, logoUrl)}
           >
             📄 Version papier
           </Button>

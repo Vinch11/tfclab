@@ -31,6 +31,8 @@ export interface ScientificAuditData {
   coachOverrides: any[];
   literatureVersion: { version: string; total_profiles: number; total_studies: number; model: string } | null;
   signature: string;
+  /** Logo custom du coach (useAppLogo().logoUrl → imageToBase64) — défaut packagé si omis. */
+  logoBase64?: string | null;
 }
 
 async function sha256Hex(input: string): Promise<string> {
@@ -102,7 +104,8 @@ function fmtNum(n: number | null | undefined, digits = 2): string {
 }
 
 export function buildScientificAuditHTML(data: ScientificAuditData): string {
-  const { athlete, vlamaxTraces, runMLSSTraces, calibrationSnapshots, fieldEvidences, coachOverrides, literatureVersion, signature } = data;
+  const { athlete, vlamaxTraces, runMLSSTraces, calibrationSnapshots, fieldEvidences, coachOverrides, literatureVersion, signature, logoBase64 } = data;
+  const logoSrc = logoBase64 || new URL("../../assets/logo-2fc.png", import.meta.url).href;
 
   const vlamaxRows = vlamaxTraces
     .map(
@@ -222,7 +225,7 @@ export function buildScientificAuditHTML(data: ScientificAuditData): string {
 
 <div class="header">
   <div style="display:flex;align-items:center;gap:14px;">
-    <img src="${new URL("../../assets/logo-2fc.png", import.meta.url).href}" alt="TFC Lab" style="height:56px;width:auto;" crossorigin="anonymous" />
+    <img src="${logoSrc}" alt="TFC Lab" style="height:56px;width:auto;" crossorigin="anonymous" />
     <div>
       <h1>Audit scientifique consolidé</h1>
       <div class="small">Potentiel Physiologique TFCL™ — Rapport signé</div>

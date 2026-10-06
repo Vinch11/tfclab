@@ -842,8 +842,10 @@ ${CSS}
 export async function openTestingWeekDossierPrint(
   sport: TestingWeekSport,
   athleteName?: string,
+  /** Logo custom du coach (useAppLogo().logoUrl) — défaut packagé si omis. */
+  customLogoUrl?: string,
 ): Promise<void> {
-  const logoBase64 = await imageToBase64(logoUrl);
+  const logoBase64 = await imageToBase64(customLogoUrl || logoUrl);
   const html = buildTestingWeekDossierHTML(sport, athleteName, logoBase64);
   openPrintableHTML(html, {
     filenameHint: athleteName ? `Semaine de test — ${athleteName}` : "Semaine de test",

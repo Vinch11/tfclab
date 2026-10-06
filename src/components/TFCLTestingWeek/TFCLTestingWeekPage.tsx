@@ -25,6 +25,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TFCL_TESTING_WEEK, computeTFCLCompletion } from "@/data/tfclTestingWeek";
 import { openTestingWeekDossierPrint } from "@/lib/diagnostic/buildTestingWeekProtocolHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { Printer } from "lucide-react";
 import { TFCLDayCard } from "./TFCLDayCard";
 import { TFCLTestSheet } from "./TFCLTestSheet";
@@ -35,6 +36,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 
 export function TFCLTestingWeekPage() {
   const navigate = useNavigate();
+  const { logoUrl } = useAppLogo();
   const { athletes, selectedAthleteId, setSelectedAthleteId } = useAthletes();
   const { snapshots, getSnapshotsForAthlete, addSnapshot, updateSnapshot } = useCloudDataContext();
   
@@ -105,7 +107,7 @@ export function TFCLTestingWeekPage() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5"
-                onClick={() => openTestingWeekDossierPrint("bike", selectedAthlete?.name)}
+                onClick={() => openTestingWeekDossierPrint("bike", selectedAthlete?.name, logoUrl)}
               >
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">Imprimer</span>

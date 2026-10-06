@@ -94,9 +94,10 @@
           border-radius: 50%;
           animation: pulse-glow 2s ease-in-out infinite;
         "></div>
-        <img 
-          src="/src/assets/logo-2fc.png" 
-          alt="Two For Coaching Lab" 
+        <img
+          id="splash-logo-img"
+          src="/src/assets/logo-2fc.png"
+          alt="Two For Coaching Lab"
           style="
             position: relative;
             width: 300px;
@@ -107,6 +108,21 @@
           "
         />
       </div>
+      <script>
+        // Logo custom du coach (si déjà connecté une fois sur cet appareil) :
+        // mis en cache par useAppLogo lors du dernier chargement du profil pour
+        // que l'écran de chargement, affiché avant même que React/Supabase ne
+        // démarrent, puisse l'utiliser sans attendre de requête réseau.
+        (function () {
+          try {
+            var cached = localStorage.getItem("tfcl_cached_logo_url");
+            if (cached) {
+              var img = document.getElementById("splash-logo-img");
+              if (img) img.src = cached;
+            }
+          } catch (e) {}
+        })();
+      </script>
       
       <!-- Loading indicator -->
       <div style="position: relative; z-index: 10; margin-top: 40px;">

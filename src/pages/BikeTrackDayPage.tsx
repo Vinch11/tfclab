@@ -24,6 +24,7 @@ import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useAppLogo } from "@/hooks/useAppLogo";
 import { NolioImportPeriodDialog } from "@/components/NolioImportPeriodDialog";
 import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
 import { Trash2 } from "lucide-react";
@@ -46,6 +47,7 @@ function powerFromSpeed(massKg: number, speedKmh: number, slopePct: number): num
 
 export default function BikeTrackDayPage() {
   const navigate = useNavigate();
+  const { logoUrl } = useAppLogo();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { addSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
 
@@ -311,7 +313,7 @@ export default function BikeTrackDayPage() {
             variant="outline"
             size="sm"
             className="ml-auto"
-            onClick={() => openDiagnosticProtocolPrint("bike-day", currentAthlete?.name)}
+            onClick={() => openDiagnosticProtocolPrint("bike-day", currentAthlete?.name, logoUrl)}
           >
             📄 Version papier
           </Button>

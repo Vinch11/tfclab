@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import logo from "@/assets/logo-2fc.png";
+import { useAppLogo } from "@/hooks/useAppLogo";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -8,6 +8,7 @@ interface SplashScreenProps {
 
 export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenProps) {
   const [isAnimating, setIsAnimating] = useState(true);
+  const { logoUrl } = useAppLogo();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -66,13 +67,13 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           {/* Logo ping effect */}
           <div className="absolute inset-0 animate-ping opacity-10">
             <img
-              src={logo}
+              src={logoUrl}
               alt=""
               className="w-[300px] h-[300px] object-contain"
             />
           </div>
           <img
-            src={logo}
+            src={logoUrl}
             alt="Two For Coaching Lab"
             className="relative w-[300px] h-[300px] object-contain animate-[fadeInScale_0.8s_ease-out] drop-shadow-[0_0_30px_rgba(59,130,246,0.5)]"
           />
