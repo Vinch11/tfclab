@@ -51,7 +51,6 @@ import { VLamaxProfileScale } from "@/components/VLamaxProfileScale";
 import { NolioAnalysisCard } from "@/components/NolioAnalysisCard";
 import { VLamaxZoneConfidenceChart } from "@/components/charts/VLamaxZoneConfidenceChart";
 import { VLamaxEstimationWidget } from "@/components/charts/VLamaxEstimationWidget";
-import { Phase3Dashboard } from "@/components/Phase3Dashboard";
 import { LorangTestChecklist } from "@/components/LorangTestChecklist";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
