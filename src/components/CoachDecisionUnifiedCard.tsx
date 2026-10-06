@@ -163,8 +163,14 @@ export function CoachDecisionUnifiedCard({
           <LazyTabsContent value="symptoms" activeValue={activeTab} className="px-4 pb-4 mt-0">
             <TFCLDecisionMatrixTable
               metrics={{
+                // ✅ VO2max/cible issus du même gapAnalysis que le reste de l'app
+                // (unifiedLimiterDetection.ts, cible via getVo2maxTarget()) — avant,
+                // la cible était approximée par ftp_kg_min * 15, une formule ad hoc
+                // sans rapport avec la cible VO2max réelle (ajustée par objectif/
+                // ambition/âge), pouvant afficher "optimal"/"limitant" à contre-sens
+                // de ce que montrent les autres cartes pour le même athlète.
                 vo2max: diagnostic.limiter.gapAnalysis.find(g => g.metric === "VO2max")?.value ?? null,
-                vo2maxTarget: diagnostic.targets.current.ftp_kg_min * 15,
+                vo2maxTarget: diagnostic.limiter.gapAnalysis.find(g => g.metric === "VO2max")?.target ?? 50,
                 vlamax: diagnostic.effectifs.vlamax.value,
                 vlamaxTarget: diagnostic.targets.vlamaxRange.optimal,
                 tte: diagnostic.effectifs.tte.tte_min,
