@@ -1514,7 +1514,7 @@ function buildExportPayload(
   });
   const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
     ? effectiveRefs.ftp / effectiveRefs.weightKg
-    : 4.0;
+    : null;
   const cpResultForPayload = analyzeCriticalPower({
     pmax_5s: effectiveSnapshot?.pmax_5s ?? null,
     p30s_w: effectiveSnapshot?.p30s_w ?? null,
