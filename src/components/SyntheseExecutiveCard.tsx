@@ -37,6 +37,15 @@ interface SyntheseExecutiveCardProps {
   ambition?: AmbitionLevel;
   athleteAge?: number | null;
   sportFocus?: "bike" | "run" | "tri" | string | null;
+  /**
+   * Potentiel Physiologique — SOURCE UNIQUE (moteur riche 4 piliers,
+   * dashDiagnostic.readiness via adaptPotentielV2ToLegacyShape). Bug réel
+   * corrigé : cette carte calculait auparavant son propre score local (3
+   * piliers dérivés de gapAnalysis) totalement indépendant du moteur utilisé
+   * par TwoForCoachingAnalysis — verdict opposé possible pour le même
+   * athlète au même moment ("Prêt" ici, "En progression" là, ou l'inverse).
+   */
+  potentielPhysiologique: { score: number; label: string; color: string } | null;
 }
 
 // Map metric names from gapAnalysis to pillar groups
@@ -122,18 +131,10 @@ function computePillarScore(
   return Math.round((totalScore / counted) * 10) / 10;
 }
 
-
-function computeGlobalScore(pillarScores: (number | null)[]): number {
-  const valid = pillarScores.filter((v): v is number => v !== null);
-  if (valid.length === 0) return 0;
-  const total = valid.reduce((s, v) => s + v, 0);
-  const maxTotal = valid.length * 25;
-  return Math.round((total / maxTotal) * 100);
-}
-
 export function SyntheseExecutiveCard({
   athleteName, objectif, vlamaxEffectif, tteEffectif, tteEffectifRun, limiterResult,
-  ftp, poids, vo2max, completude, ambition = DEFAULT_AMBITION, athleteAge, sportFocus
+  ftp, poids, vo2max, completude, ambition = DEFAULT_AMBITION, athleteAge, sportFocus,
+  potentielPhysiologique,
 }: SyntheseExecutiveCardProps) {
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
   const ftpKgStr = ftpKg !== null ? ftpKg.toFixed(2) : null;
@@ -232,21 +233,26 @@ export function SyntheseExecutiveCard({
     score: computePillarScore(limiterResult, pillar.metrics, availableMetrics),
   }));
 
-  const globalScore = computeGlobalScore(pillarScores.map(p => p.score));
-
-  // The weakest pillar (parmi ceux ayant des données)
+  // The weakest pillar (parmi ceux ayant des données) — reste dérivé de
+  // gapAnalysis, cohérent avec "Axe de développement prioritaire" ci-dessous
+  // (même alignedLimiterResult partout). Seul le score/label/couleur GLOBAL
+  // vient désormais de potentielPhysiologique (source unique, cf. prop).
   const scoredPillars = pillarScores.filter(p => p.score !== null);
   const weakestPillar = scoredPillars.length > 0
     ? scoredPillars.reduce((min, p) => (p.score! < min.score! ? p : min), scoredPillars[0])
     : null;
 
-  // Global score labels
-  const scoreColor = globalScore >= 80 ? "text-green-600 dark:text-green-400"
-    : globalScore >= 60 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400";
-  const scoreBg = globalScore >= 80 ? "bg-green-500/10 border-green-500/30"
-    : globalScore >= 60 ? "bg-amber-500/10 border-amber-500/30" : "bg-red-500/10 border-red-500/30";
-  const scoreLabel = globalScore >= 80 ? "Profil aligné"
-    : globalScore >= 60 ? "En progression" : "Préparation requise";
+  const globalScore = potentielPhysiologique?.score ?? 0;
+  const scoreLabel = potentielPhysiologique?.label ?? "Données insuffisantes";
+  const colorClasses: Record<string, { text: string; bg: string }> = {
+    success: { text: "text-green-600 dark:text-green-400", bg: "bg-green-500/10 border-green-500/30" },
+    warning: { text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10 border-amber-500/30" },
+    destructive: { text: "text-red-600 dark:text-red-400", bg: "bg-red-500/10 border-red-500/30" },
+    muted: { text: "text-muted-foreground", bg: "bg-muted border-border" },
+  };
+  const resolvedColor = colorClasses[potentielPhysiologique?.color ?? "muted"] ?? colorClasses.muted;
+  const scoreColor = resolvedColor.text;
+  const scoreBg = resolvedColor.bg;
 
   // Cross-reference: show the unified limiter's primary for coherence badge
   const limiterLabel = limiterResult.limiterLabel;

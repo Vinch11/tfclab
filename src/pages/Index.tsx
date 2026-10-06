@@ -1822,6 +1822,7 @@ const Index = () => {
                 ambition={currentAmbition}
                 athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                 sportFocus={dashDiagnostic?.sportFocus ?? (isRunningOnly ? "run" : "bike")}
+                potentielPhysiologique={potentielPhysiologiqueEffectif}
               />
             ) : null,
           },
@@ -2229,6 +2230,7 @@ const Index = () => {
                 ambition={currentAmbition}
                 athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                 sportFocus={dashDiagnostic?.sportFocus ?? (isRunningOnly ? "run" : "bike")}
+                potentielPhysiologique={potentielPhysiologiqueEffectif}
               />
             ),
           },
