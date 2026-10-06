@@ -225,9 +225,11 @@ export function TwoForCoachingAnalysis({
   // F38: pas de fake 45 min — 0 = données insuffisantes (cf. memory `insufficient-data-no-fake-defaults`)
   const tte = tteEffectif.tte_min ?? 0;
 
-  // ✅ FTP/kg
+  // ✅ FTP/kg — F38/politique "no fake defaults" (même convention que vlamax/tte
+  // ci-dessus : 0 = données insuffisantes). L'ancien fallback 4.0 affichait une
+  // valeur plausible d'athlète élite alors qu'aucune donnée n'existait.
   const ftp_kg = useMemo(() => {
-    if (!snapshot?.ftp || !snapshot?.poids) return 4.0;
+    if (!snapshot?.ftp || !snapshot?.poids) return 0;
     return snapshot.ftp / snapshot.poids;
   }, [snapshot]);
   const [analysis, setAnalysis] = useState<ReglesTwoForCoachingResult>({
