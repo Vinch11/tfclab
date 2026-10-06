@@ -267,6 +267,24 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
       : race_readiness_state === "ORANGE" ? 65
       : 45;
 
+  // Bug réel corrigé (audit "estimations physiologiques", chantier pacing
+  // envelope) : readinessScoreApprox (dérivé de computePotentielRun —
+  // fraîcheur du jour : sommeil/fatigue/courbatures, ZÉRO donnée
+  // physiologique) était passé dans le slot potentielPhysiologiqueScore de
+  // computePacingEnvelope, qui l'interprète comme le potentiel
+  // PHYSIOLOGIQUE pur (VLamax/TTE/FTP/VO2max — exactement ce que
+  // RaceSimulationPage/ExportTools/RaceReadinessReportDialog y passent).
+  // Pour un même athlète le même jour, le couloir de pacing se resserrait
+  // ou non de façon incohérente selon l'écran. fatigueIndex (0-100, plus
+  // haut = plus fatigué) est le slot correct pour ce signal — resté à
+  // `null` jusqu'ici, donc la fraîcheur du jour n'avait AUCUN effet réel
+  // sur l'ajustement readinessAdjustment (seul le terme potentielPhysio
+  // l'utilisait, à tort). Pas de score de capacité physiologique pure
+  // disponible sur cette page pour le pacing run — potentielPhysiologiqueScore
+  // reste `null` (donnée insuffisante) plutôt que d'y réinjecter la même
+  // valeur mal attribuée.
+  const fatigueIndexFromDailyReadiness = 100 - readinessScoreApprox;
+
   const VCS_OVER_VMA = 0.90;
 
   const vlamaxEffectifBridge =
@@ -282,8 +300,8 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     vlamaxEffectif: vlamaxEffectifBridge as never,
     tteEffectif: tteEffectifBridge as never,
     fatmax: null,
-    potentielPhysiologiqueScore: readinessScoreApprox,
-    fatigueIndex: null,
+    potentielPhysiologiqueScore: null,
+    fatigueIndex: fatigueIndexFromDailyReadiness,
     raceObjective: RACE_OBJ_MAP[distance],
     sport: "run",
     vma: inputs.vma ?? null,
