@@ -159,7 +159,13 @@ export function SyntheseExecutiveCard({
       availableMetrics.add("Durabilité");
     }
   }
-  if (ftpKg !== null) availableMetrics.add("FTP/kg");
+  // FTP/kg est une métrique vélo — réservée à sportFocus !== "run", même
+  // garde-fou que le moteur de limiteur unifié (VMA remplace FTP/kg en mode
+  // running). Sans ce filtre, un FTP résiduel d'un ancien Bike Day était
+  // comparé à une cible vélo pour un objectif course pur, et comptait dans
+  // le pilier "Puissance Aérobie" — même catégorie de contamination croisée
+  // que #315/#316.
+  if (ftpKg !== null && sportFocus !== "run") availableMetrics.add("FTP/kg");
   if (vo2max) availableMetrics.add("VO2max");
 
   // Guard: données insuffisantes — aucune métrique mesurée disponible
@@ -217,7 +223,7 @@ export function SyntheseExecutiveCard({
     }
   }
   
-  if (ftpKgStr) {
+  if (ftpKgStr && sportFocus !== "run") {
     const eval_ = evaluateFtpKg(ftpKg, objectif, ambition, athleteAge);
     items.push({ label: "FTP/kg", value: `${ftpKgStr} W/kg`, status: eval_.status, source: "snapshot", target: eval_.target });
   }
