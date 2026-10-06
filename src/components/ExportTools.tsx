@@ -1495,6 +1495,12 @@ function buildExportPayload(
   const athleteAge = calculateAge(athleteBirthDate);
   const objectifForLimiter = athlete.goal || "IM";
 
+  // Sport résolu AVANT tteLegacy (pas après) pour pouvoir le lui passer
+  // explicitement — sans ça, tteLegacy laissait tteEffectif.ts inférer le
+  // sport via sa propre regex interne, qui peut diverger de
+  // determineSportFocusForLimiter (déjà la référence pour le reste de cet
+  // export) pour un objectif limite.
+  const sportFocusForLimiter = determineSportFocusForLimiter(objectifForLimiter);
   // Calculer TTE effectif (legacy) — F33: âge propagé
   const tteLegacy = computeTTEEffectif({
     ftp: effectiveRefs.ftp,
@@ -1502,10 +1508,10 @@ function buildExportPayload(
     tte_mode: effectiveSnapshot?.tte_mode,
     tte_observed_min: effectiveSnapshot?.tte_observed_min,
     tte_observed_min_run: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
+    sport: sportFocusForLimiter === "run" ? "run" : "bike",
     objectif: athlete.goal || "IM",
     age: athleteAge,
   });
-  const sportFocusForLimiter = determineSportFocusForLimiter(objectifForLimiter);
   const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
     ? effectiveRefs.ftp / effectiveRefs.weightKg
     : 4.0;
