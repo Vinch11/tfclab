@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { computeCoachingCompass, getDurabilityTargetMinutes, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
 import { LimiterImpactCard } from "@/components/LimiterImpactCard";
 import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
-import { getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
+import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -430,6 +430,14 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
   // "cible atteinte" pendant que cette grille disait "X points manquants"
   // sur la même carte. Les deux utilisent désormais la même source.
   const vo2Target = getVo2maxTarget(objectif, ambition, input.athleteAge ?? null);
+  // Même correctif que vo2Target ci-dessus, étendu à FTP/kg (manquant lors du
+  // fix initial) : evaluateFtpKg (ambitionThresholds.ts, utilisée par
+  // SyntheseExecutiveCard) ajuste déjà ftp_kg_min par l'âge — cette grille ne
+  // le faisait pas, donc les deux cartes pouvaient afficher une cible FTP/kg
+  // différente pour un même athlète masters.
+  const ftpKgTarget = targets.ftp_kg_min != null
+    ? Math.round(targets.ftp_kg_min * getPerformanceAgeFactor(input.athleteAge ?? null) * 100) / 100
+    : targets.ftp_kg_min;
   const durabilityTargets: Record<string, number> = { finisher: 60, age_group: 70, competitor: 80, elite: 90 };
   const economyTargets: Record<string, number> = { finisher: 55, age_group: 65, competitor: 75, elite: 85 };
   const fatmaxTargets: Record<string, number> = { finisher: 120, age_group: 160, competitor: 200, elite: 240 };
@@ -438,8 +446,8 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
   const metricTargets: Record<string, { target: number | null; inverse?: boolean }> = {
     "VO₂max": { target: vo2Target },
     "VLamax": { target: vlamaxRange.optimal, inverse: true },
-    "FTP": { target: input.poids && targets.ftp_kg_min ? Math.round(targets.ftp_kg_min * input.poids) : null },
-    "FTP/kg": { target: targets.ftp_kg_min },
+    "FTP": { target: input.poids && ftpKgTarget ? Math.round(ftpKgTarget * input.poids) : null },
+    "FTP/kg": { target: ftpKgTarget },
     "VMA": { target: vmaTarget },
     "TTE": { target: getDurabilityTargetMinutes(objectif) },
     "FatMax": { target: fatmaxTargets[ambition] || 160 },
