@@ -243,4 +243,17 @@ export interface CoachingCompassInput {
   ambition: string;
   sportFocus: "bike" | "run" | "triathlon" | null;
   athleteAge: number | null;
+
+  /**
+   * Temps de course cible prédit (src/lib/raceTimePredictor.ts — Riegel sur
+   * chronos saisis, Daniels/scenarios sur VMA+ambition, ou split
+   * physiologique triathlon). Null si aucune source disponible (ex. trail,
+   * données manquantes) — jamais une valeur devinée sans données.
+   */
+  targetRacePrediction?: {
+    targetRaceDurationMin: number;
+    source: "riegel_chrono" | "daniels_scenario" | "triathlon_baseline" | "triathlon_physio_split";
+    confidence: number;
+    reference?: string;
+  } | null;
 }

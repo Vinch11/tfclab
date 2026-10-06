@@ -669,7 +669,10 @@ const Index = () => {
       thresholdPaceSecPerKm: (effectiveCloudSnapshot as any)?.pace_threshold_sec_km ?? null,
       ftp: effectiveCloudSnapshot?.ftp ?? null,
       weightKg: (effectiveCloudSnapshot as any)?.weight_kg ?? null,
-      vlamaxRun: (effectiveCloudSnapshot as any)?.vlamax_run ?? (effectiveCloudSnapshot as any)?.vlamax ?? null,
+      // Ne jamais retomber sur snapshot.vlamax (VLamax vélo) — même garde-fou
+      // qu'en #315/#316 : sans vlamax_run, pas de pénalité plutôt qu'une
+      // pénalité calculée depuis l'autre discipline.
+      vlamaxRun: (effectiveCloudSnapshot as any)?.vlamax_run ?? null,
     });
   }, [currentAthlete, effectiveCloudSnapshot, currentAmbition]);
   const targetRaceDurationMin = targetRacePrediction?.targetRaceDurationMin ?? null;
@@ -1003,8 +1006,9 @@ const Index = () => {
         ? "run"
         : resolveCompassSportFocus(effectiveCloudSnapshot, { goal: currentAthlete.goal }, "triathlon"),
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+      targetRacePrediction,
     };
-  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly]);
+  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction]);
 
   const { markAsReferenceWeek } = useDecisionReliability();
 
