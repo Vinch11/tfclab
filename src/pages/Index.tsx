@@ -8,7 +8,6 @@ import { DerivedTrainingZonesCard } from "@/components/DerivedTrainingZonesCard"
 import { TestProtocols } from "@/components/TestProtocols";
 import { VLamaxTestingPage } from "@/components/VLamaxTestingPage";
 import { RaceChecklist } from "@/components/RaceChecklist";
-import { NolioMapping } from "@/components/NolioMapping";
 import { AthleteProfile } from "@/components/AthleteProfile";
 import { FeedbackNolioManager } from "@/components/FeedbackNolioManager";
 import { TwoForCoachingAnalysis } from "@/components/TwoForCoachingAnalysis";
@@ -2389,8 +2388,6 @@ const Index = () => {
             )}
 
             <RaceChecklist />
-
-            <NolioMapping />
           </div>
         );
       }
