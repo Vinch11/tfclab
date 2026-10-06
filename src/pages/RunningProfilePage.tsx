@@ -140,6 +140,12 @@ export default function RunningProfilePage() {
     return computeVLamaxEffectif({
       athleteId: currentAthlete.id,
       objectif: athleteGoal,
+      // Page 100% running (même intention que le tteEffectif ci-dessous) —
+      // sans ce override, un triathlète avec objectif IM/70.3 et pas de
+      // sport_main="run" sur son snapshot voyait son VLamax VÉLO affiché
+      // comme "VLamax CAP" sur cette page. Même garde-fou que
+      // RaceSimulationPage.tsx (vlamaxRunEffectif, segment course du tri).
+      sportOverride: "cap",
       activeSnapshotId: currentAthlete.active_snapshot_id,
       tests: tests.map(t => ({
         athlete_id: t.athlete_id,
