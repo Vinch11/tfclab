@@ -93,10 +93,15 @@ export function CoachDecisionUnifiedCard({
         </div>
 
         {/* Summary row: Limiteur + Levier + Sprint Ban */}
+        {/* ✅ Limiteur toujours issu du moteur unifié (diagnostic.limiter) — jamais de
+            TFCLDecisionMatrix, qui calcule sa propre analyse indépendamment (sans
+            connaître diagnostic.limiter.primaryLimiter) et peut désigner un domaine
+            différent pour le même athlète. Évite qu'un coach lise un limiteur ici et
+            un autre sur SyntheseExecutiveCard/TwoForCoaching pour le même diagnostic. */}
         <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
           <div className="flex items-center gap-1.5">
-            <span className="text-base">{matrixResult?.limitingFactorEmoji ?? "🔍"}</span>
-            <span className="font-medium">{matrixResult?.limitingFactorLabel ?? diagnostic.limiter.limiterLabel}</span>
+            <span className="text-base">{diagnostic.limiter.limiterEmoji}</span>
+            <span className="font-medium">{diagnostic.limiter.limiterLabel}</span>
           </div>
           <span className="text-muted-foreground">→</span>
           <div className="flex items-center gap-1.5">
@@ -133,12 +138,19 @@ export function CoachDecisionUnifiedCard({
           {/* Diagnostic Tab — Pass the matrix input from prescription internals */}
           <AnimatedTabsContent value="diagnostic" activeValue={activeTab} className="px-4 pb-4 mt-0">
             {strategy._matrixInput ? (
-              <TFCLDecisionMatrixCard
-                input={strategy._matrixInput}
-                compact={compact}
-                showDomainDetails={staffMode}
-                className="border-0 shadow-none"
-              />
+              <>
+                <p className="text-[10px] text-muted-foreground/80 mb-2 px-1">
+                  Analyse détaillée par domaine (pondération propre à cet outil) — le
+                  domaine le plus limitant ici peut différer du limiteur affiché en
+                  en-tête, qui reste la référence pour le reste de l'app.
+                </p>
+                <TFCLDecisionMatrixCard
+                  input={strategy._matrixInput}
+                  compact={compact}
+                  showDomainDetails={staffMode}
+                  className="border-0 shadow-none"
+                />
+              </>
             ) : (
               <div className="py-6 text-center text-muted-foreground text-sm">
                 <p className="font-medium">{diagnostic.synthesis.headline}</p>
