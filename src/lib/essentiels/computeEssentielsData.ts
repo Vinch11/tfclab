@@ -12,6 +12,7 @@ import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
 import { fatigueStateToScore100 } from "@/lib/fatigueStateMapping";
 import { getVLamaxRange } from "@/lib/physiologicalTargets";
 import { scoreRelativeToTargetInverse } from "@/lib/coachingCompass";
+import { deduceSportMainFromGoal } from "@/lib/sportMainDeduction";
 
 export interface PillarMetric {
   label: string;
@@ -98,9 +99,17 @@ export function computeEssentielsData(args: {
 
   const age = calculateAge(athlete.dateNaissance);
 
+  // Sport résolu via la fonction canonique (sportMainDeduction.ts) plutôt
+  // que de laisser vlamaxEffectif.ts/tteEffectif.ts inférer chacun de son
+  // côté via leur propre regex sur l'objectif — ces inférences indépendantes
+  // peuvent diverger entre cette page/export et le Dashboard pour certains
+  // objectifs limites, même catégorie que les correctifs #322-#325.
+  const isRunGoal = deduceSportMainFromGoal(athlete.objectif) === "run";
+
   const vlamaxEff = computeVLamaxEffectif({
     athleteId: athlete.id,
     objectif: athlete.objectif || "IM",
+    sportOverride: isRunGoal ? "cap" : undefined,
     activeSnapshotId: athlete.active_snapshot_id,
     tests: (tests || []).map((t: any) => ({
       athlete_id: t.athlete_id,
@@ -119,6 +128,7 @@ export function computeEssentielsData(args: {
         tte_mode: (effectiveSnapshot.tte_mode as any) ?? "LOAD",
         tte_observed_min: effectiveSnapshot.tte_observed_min ?? null,
         tte_observed_min_run: (effectiveSnapshot as any).tte_observed_min_run ?? null,
+        sport: isRunGoal ? "run" : "bike",
         objectif: athlete.objectif || "IM",
         age,
       })
