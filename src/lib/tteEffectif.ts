@@ -72,17 +72,19 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
   //   2. présence exclusive de tte_observed_min_run (et pas de bike) → "run"
   //   3. défaut historique → "bike"
   // Cela évite qu'un caller "oublié" retombe silencieusement sur bike pour un coureur.
+  //
+  // ⚠️ Un objectif run-only force TOUJOURS sport="run", même si un TTE vélo
+  // existe par ailleurs (résidu d'un ancien Bike Day) — un TTE vélo mesuré n'a
+  // aucun sens pour un objectif course et ne doit jamais masquer l'absence de
+  // donnée course. Même garde-fou que vlamaxEffectif.ts (#315) : on préfère
+  // "donnée manquante" à une valeur de l'autre discipline présentée comme fiable.
   let sport: "bike" | "run" = params.sport ?? "bike";
   if (params.sport == null) {
     const objLower = (objectif ?? "").toLowerCase();
     const runOnlyObjective =
       /marathon|semi|10\s?k|5\s?k|trail|ultra|start\s?to\s?run|utmb|ccc|occ|skyrun|sky\s?run|vk\s|hardrock|western\s?states/.test(objLower);
     const hasRunOnly = (params.tte_observed_min_run ?? null) != null && (params.tte_observed_min ?? null) == null;
-    const hasBikeOnly = (params.tte_observed_min ?? null) != null && (params.tte_observed_min_run ?? null) == null;
-    // Priorité aux données présentes : si seul le TTE bike est fourni, on reste bike
-    // même sur un objectif run (caller legacy). Ne bascule run que si donnée run explicite
-    // ou objectif run sans aucun TTE bike concurrent.
-    if (hasRunOnly || (runOnlyObjective && !hasBikeOnly)) sport = "run";
+    if (runOnlyObjective || hasRunOnly) sport = "run";
   }
   const observedRaw = sport === "run"
     ? (params.tte_observed_min_run ?? null)
@@ -158,7 +160,9 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
   }
 
   // C) FTP-based fallback
-  if (ftp != null && ftp > 0) {
+  // ⚠️ FTP est une métrique vélo — réservé à sport !== "run" (même garde-fou
+  // que ci-dessus : jamais de donnée vélo pour estimer un TTE course).
+  if (sport !== "run" && ftp != null && ftp > 0) {
     // Estimation grossière basée sur FTP seul
     // FTP élevé suggère meilleure endurance, mais confiance faible
     const estimatedTTE = Math.min(60, Math.max(35, Math.round(35 + (ftp - 200) * 0.05)));
