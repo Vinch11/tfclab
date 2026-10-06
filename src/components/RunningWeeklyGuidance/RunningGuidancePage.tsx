@@ -68,6 +68,10 @@ export function RunningGuidancePage() {
     return computeVLamaxEffectif({
       athleteId: currentAthlete.id,
       objectif: currentAthlete.goal || "Marathon",
+      // Page 100% running guidance — même garde-fou que RunningProfilePage.tsx
+      // et RaceSimulationPage.tsx : sans ça, un triathlète objectif IM/70.3
+      // verrait sa VLamax vélo utilisée pour une décision hebdomadaire course.
+      sportOverride: "cap",
       activeSnapshotId: currentAthlete.active_snapshot_id,
       tests,
       snapshots,
@@ -97,7 +101,9 @@ export function RunningGuidancePage() {
     // afficher "Données insuffisantes" au lieu d'un profil déguisé.
     const vo2Value = activeSnapshot?.vo2max ?? currentAthlete.vo2max ?? null;
     const vlaValue = vlamaxEffectif?.value ?? null;
-    const tteValue = activeSnapshot?.tte_observed_min ?? null;
+    // Durabilité COURSE : tte_observed_min_run, jamais tte_observed_min
+    // (champ vélo) — cette page est 100% dédiée à la course.
+    const tteValue = activeSnapshot?.tte_observed_min_run ?? null;
     return createRunningPhysioProfile({
       athlete_id: currentAthlete.id,
       objective_distance: objective,
