@@ -29,6 +29,29 @@ export const V_SEUIL_FRACTION_BY_AMBITION: Record<RunSplitAmbition, { half: numb
   finisher: { half: 0.75, full: 0.70 },
 };
 
+/**
+ * Normalise une valeur d'ambition brute (AmbitionLevel à 5 paliers, incluant
+ * "world_class") vers les 4 paliers de ce module.
+ *
+ * Bug réel corrigé (audit "estimations physiologiques", chantier simulation
+ * de course) : RaceSimulationPage.tsx castait `selectedAthlete.ambition`
+ * directement `as RunSplitAmbition` sans passer par cette fonction — pour
+ * "world_class" (absent de RunSplitAmbition/BikeAmbition), le lookup dans
+ * V_SEUIL_FRACTION_BY_AMBITION échouait silencieusement et retombait sur
+ * "age_group" (fraction 0.76/0.82), alors que raceTimePredictor.ts (Coaching
+ * Compass) traite déjà "world_class" comme "elite" (0.89/0.95) — jusqu'à 17%
+ * d'écart de temps de course prédit entre les deux écrans pour un athlète
+ * Elite top 3%. "world_class" est ici collapsé sur "elite" pour rester
+ * cohérent avec ce traitement existant côté raceTimePredictor.ts — PAS une
+ * nouvelle calibration physiologique propre à "world_class" (qui resterait à
+ * valider séparément si ce palier doit un jour être distingué ici aussi).
+ */
+export function normalizeToRunSplitAmbition(raw: string | null | undefined): RunSplitAmbition {
+  if (raw === "world_class") return "elite";
+  if (raw === "finisher" || raw === "age_group" || raw === "competitor" || raw === "elite") return raw;
+  return "age_group";
+}
+
 export interface RunSplitInput {
   distanceKm: number;
   /** Allure au seuil lactique (sec/km) — mesurée, snapshot, ou dérivée de chronos. */

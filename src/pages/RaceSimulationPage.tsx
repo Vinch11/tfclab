@@ -44,7 +44,7 @@ import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibi
 import { computePacingEnvelope } from '@/lib/v2/pacingEnvelopeEngine';
 import { analyzeCriticalPower } from '@/lib/v2/criticalPowerModel';
 import { estimateBikeSplit } from '@/lib/v2/bikeSplitEstimator';
-import { estimateRunSplitMin, V_SEUIL_FRACTION_BY_AMBITION, type RunSplitAmbition } from '@/lib/v2/runSplitEstimator';
+import { estimateRunSplitMin, V_SEUIL_FRACTION_BY_AMBITION, normalizeToRunSplitAmbition } from '@/lib/v2/runSplitEstimator';
 
 import { buildRaceChronosFromSnapshot } from '@/lib/v2/buildRaceChronosFromSnapshot';
 import { generateDisciplineRules } from '@/lib/v2/pacingDisciplineRules';
@@ -394,8 +394,8 @@ export default function RaceSimulationPage() {
     // par estimateRunSplitMin (pénalité -1.5% si >1.04, -3% si >1.08).
     const durIdx = raceChronoEstimate?.durabilityIndex;
 
-    const ambition = ((selectedAthlete as any)?.ambition ?? 'age_group') as RunSplitAmbition;
-    const fractions = V_SEUIL_FRACTION_BY_AMBITION[ambition] ?? V_SEUIL_FRACTION_BY_AMBITION.age_group;
+    const ambition = normalizeToRunSplitAmbition((selectedAthlete as any)?.ambition);
+    const fractions = V_SEUIL_FRACTION_BY_AMBITION[ambition];
 
     const computeRunMin = (distanceKm: number, vSeuilFraction: number): number | null =>
       estimateRunSplitMin({ distanceKm, thresholdPaceSecPerKm: paceThr, vSeuilFraction, vlamaxRun: vlamaxRunVal, durabilityIndex: durIdx });
@@ -444,7 +444,7 @@ export default function RaceSimulationPage() {
       distanceKm,
       ftp: activeSnapshot?.ftp ?? null,
       weightKg: activeSnapshot?.weight_kg ?? null,
-      ambition: ((selectedAthlete as any)?.ambition ?? 'age_group'),
+      ambition: normalizeToRunSplitAmbition((selectedAthlete as any)?.ambition),
       position: 'tri',
     });
   }, [raceObjective, activeSnapshot, selectedAthlete]);

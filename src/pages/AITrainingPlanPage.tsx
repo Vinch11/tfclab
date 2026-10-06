@@ -94,7 +94,7 @@ import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
-import { predictRaceDurationMin } from "@/lib/raceTimePredictor";
+import { predictRaceDurationMin, AMBITION_LEVEL_TO_PREDICTOR } from "@/lib/raceTimePredictor";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NutritionUnifiedCard } from "@/components/NutritionUnifiedCard";
@@ -1092,7 +1092,7 @@ export default function AITrainingPlanPage() {
     };
     const targetRaceDurationMin = predictRaceDurationMin({
       objective: obj,
-      ambition: normalizeAmbitionLevel(amb) as any,
+      ambition: AMBITION_LEVEL_TO_PREDICTOR[normalizeAmbitionLevel(amb)],
       raceChronos,
       vmaKmh: refs.vma ?? null,
       thresholdPaceSecPerKm: (activeSnap as any).pace_threshold_sec_km ?? activeSnap.pace_threshold_sec_per_km ?? null,

@@ -16,8 +16,39 @@ import { estimateFromRaceChronos, type RaceChronos } from "@/engines/diagnostic/
 import { computeRaceScenarios, type Ambition } from "@/lib/raceAnalysis";
 import { estimateBikeSplit } from "@/lib/v2/bikeSplitEstimator";
 import { estimateRunSplitMin, V_SEUIL_FRACTION_BY_AMBITION, type RunSplitAmbition } from "@/lib/v2/runSplitEstimator";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 const RIEGEL_EXP = 1.06;
+
+/**
+ * Pont AmbitionLevel (référentiel canonique, src/types/ambitionLevel.ts) →
+ * Ambition (littéraux internes à ce module/raceAnalysis.ts).
+ *
+ * Bug réel corrigé (audit "estimations physiologiques", chantier simulation
+ * de course) : plusieurs appelants (Index.tsx, AITrainingPlanPage.tsx)
+ * passaient leur valeur AmbitionLevel ("finisher"/"age_group"/"competitor"/
+ * "elite"/"world_class") directement dans le champ `ambition` de
+ * RaceTimePredictorInput via un cast `as any`, alors que ce module attend
+ * les littéraux "finish"/"perf"/"sub"/"elite"/"world_class". Seuls "elite"
+ * et "world_class" coïncidaient par hasard — pour les 3 autres paliers,
+ * AMBITION_TRI_MULT[input.ambition] et le filtre de scénario Daniels
+ * (sc.find(s => s.ambition === input.ambition)) ne matchaient jamais,
+ * retombant silencieusement sur le palier "age_group"/scénario par défaut
+ * quel que soit le palier réel de l'athlète — jusqu'à ~17% d'écart de temps
+ * de course prédit avec la page Simulation de course (qui elle utilise déjà
+ * AmbitionLevel directement) pour le même athlète.
+ *
+ * Même mapping que AMBITION_TO_PREDICTOR dans pacingEnvelopeEngine.ts (déjà
+ * correct là-bas, dupliqué ici en littéraux minuscules pour les appelants
+ * qui ont directement un AmbitionLevel sous la main).
+ */
+export const AMBITION_LEVEL_TO_PREDICTOR: Record<AmbitionLevel, Ambition> = {
+  finisher: "finish",
+  age_group: "perf",
+  competitor: "sub",
+  elite: "elite",
+  world_class: "world_class",
+};
 
 const RUN_OBJECTIVE_DIST_KM: Record<string, number> = {
   "5K": 5,
