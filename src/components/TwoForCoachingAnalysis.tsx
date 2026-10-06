@@ -23,6 +23,8 @@ import { getTargetsForAmbition, getVLamaxRange, normalizeObjective } from "@/lib
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import { getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
+import { calculateAge } from "@/lib/ageAdjustment";
 import { ProfileAuditDialog } from "@/components/ProfileAuditDialog";
 
 interface TwoForCoachingAnalysisProps {
@@ -264,7 +266,12 @@ export function TwoForCoachingAnalysis({
   // la cible réelle affichée ailleurs (Dashboard) pour le même objectif.
   const vlamaxRange = useMemo(() => getVLamaxRange(normalizedObj), [normalizedObj]);
 
-  const ftpTarget = targets.ftp_kg_min;
+  // Ajusté par âge (même fonction que evaluateFtpKg dans ambitionThresholds.ts
+  // et que CoachingCompassCard.tsx) — sans ça, cette carte pouvait afficher
+  // une cible FTP/kg différente de SyntheseExecutiveCard pour un même
+  // athlète masters.
+  const athleteAge = calculateAge(athlete.dateNaissance ?? null);
+  const ftpTarget = Math.round(targets.ftp_kg_min * getPerformanceAgeFactor(athleteAge) * 100) / 100;
   const tteTarget = targets.tte_min;
   const vlamaxMin = vlamaxRange.min;
   const vlamaxMax = vlamaxRange.max;
