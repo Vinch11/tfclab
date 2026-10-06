@@ -320,6 +320,16 @@ function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }
 // Seul le Fatigue Warning (issu du snapshot) est conservé.
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// TEMPS DE COURSE CIBLE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function formatTargetRaceDuration(totalMin: number): string {
+  const h = Math.floor(totalMin / 60);
+  const m = Math.round(totalMin % 60);
+  return h > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${m} min`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // FATIGUE WARNING
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -687,6 +697,25 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
         {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
           <div className="mb-3">
             <FatigueWarning warning={compass.fatigueWarning} />
+          </div>
+        )}
+
+        {/* ─── Temps de course cible (src/lib/raceTimePredictor.ts) ─── */}
+        {input.targetRacePrediction && (
+          <div className="mb-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 flex items-center justify-between gap-2 print:break-inside-avoid">
+            <div className="flex items-center gap-2 min-w-0">
+              <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Temps de course cible</p>
+                <p className="text-sm font-semibold truncate">
+                  {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)}
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="text-[9px] shrink-0">
+              {input.targetRacePrediction.confidence >= 0.7 ? "Fiabilité élevée" : input.targetRacePrediction.confidence >= 0.5 ? "Fiabilité modérée" : "Fiabilité limitée"}
+              {" · "}{Math.round(input.targetRacePrediction.confidence * 100)}%
+            </Badge>
           </div>
         )}
 
