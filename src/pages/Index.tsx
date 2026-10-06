@@ -576,15 +576,28 @@ const Index = () => {
         status_message: "Aucune donnée"
       };
     }
+    // Sport explicite (aligné sur dashDiagnostic/computeTTEFromInput, qui
+    // reçoit sportFocus=isRunningOnly via diagnosticInput) — sans ça, cette
+    // instance retombait sur l'inférence par regex de tteEffectif.ts, qui
+    // peut diverger du toggle Running Focus Mode pour un triathlon (ex.
+    // objectif "70.3" avec tte_observed_min ET tte_observed_min_run tous
+    // deux renseignés). Cette valeur alimente directement
+    // unifiedLimiterResult/fatigueEffectifForCompass/compassInputMemo, donc
+    // la divergence était visible sur plusieurs cartes du même Dashboard.
     return computeTTEEffectif({
       ftp: effectiveCloudSnapshot.ftp ?? null,
       tss_7d: effectiveCloudSnapshot.tss_7d ?? null,
       tte_mode: effectiveCloudSnapshot.tte_mode ?? "LOAD",
       tte_observed_min: effectiveCloudSnapshot.tte_observed_min ?? null,
+      tte_observed_min_run: (effectiveCloudSnapshot as any).tte_observed_min_run ?? null,
+      tte_proxy_min_run: runDurabilityProxy?.tteMin ?? null,
+      tte_proxy_confidence: runDurabilityProxy?.confidence ?? null,
+      tte_proxy_label: runDurabilityProxy?.label ?? null,
+      sport: isRunningOnly ? "run" : "bike",
       objectif: currentAthlete.goal || "IM",
       age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null, // F33
     });
-  }, [effectiveCloudSnapshot, currentAthlete]);
+  }, [effectiveCloudSnapshot, currentAthlete, isRunningOnly, runDurabilityProxy]);
 
   // TTE CAP (run) séparé : alimente la durabilité du Compass pour triathlon (min bike/run).
   const tteEffectifRun = useMemo(() => {
