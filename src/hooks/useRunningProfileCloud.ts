@@ -78,9 +78,12 @@ function snapshotToRunningProfile(
     source,
   };
 
+  // Durabilité COURSE : tte_observed_min_run, jamais tte_observed_min (champ
+  // vélo) — même contamination croisée que #315/#316, ici sur un hook de
+  // lecture ET d'écriture (voir runningProfileToSnapshotUpdate ci-dessous).
   const durability_run: LockedMetric = {
-    value: snapshot.tte_observed_min ?? 0,
-    confidence: snapshot.tte_observed_min != null ? confidence * 0.9 : 0,
+    value: snapshot.tte_observed_min_run ?? 0,
+    confidence: snapshot.tte_observed_min_run != null ? confidence * 0.9 : 0,
     source,
   };
 
@@ -142,7 +145,8 @@ function runningProfileToSnapshotUpdate(profile: RunningPhysioProfile): Partial<
   return {
     vlamax_run: profile.vlamax_run.value,
     vo2max: profile.vo2max_run.value,
-    tte_observed_min: Math.round(profile.durability_run.value),
+    // Jamais tte_observed_min (vélo) — ce profil est exclusivement course.
+    tte_observed_min_run: Math.round(profile.durability_run.value),
     run_economy_score: profile.economy_run?.value ?? null,
     confidence: profile.vo2max_run.confidence,
     cycle_tag: profile.objective_distance,
@@ -314,7 +318,7 @@ export function useRunningProfileCloud(athleteId: string | null) {
         return false;
       }
       return updateSnapshot(activeSnapshot.id, {
-        tte_observed_min: Math.round(tteMinutes),
+        tte_observed_min_run: Math.round(tteMinutes),
         updated_at: new Date().toISOString(),
       });
     },
