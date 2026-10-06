@@ -7,6 +7,38 @@
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 import { getTemplateProfiles, getClosestProfile, type TemplateProfile, type TemplateProfilePair } from "@/data/templateProfiles";
 import { taperWeeksForObjective } from "@/engines/plan/sessionSizingMatrix";
+import { getVLamaxThreshold } from "@/lib/physiologicalTargets";
+
+/**
+ * Seuils VLamax "warning"/"critical" ancrés sur la cible canonique
+ * (getVLamaxThreshold, source unique utilisée par diag.limiter partout
+ * ailleurs dans l'app) plutôt que des valeurs codées en dur.
+ *
+ * Bug réel corrigé (audit "estimations physiologiques", chantier génération
+ * de plan) : les tables ci-dessous utilisaient des seuils VLamax totalement
+ * indépendants de la cible canonique — ex. IM703_THRESHOLDS.vlamax_warning =
+ * 0.50 alors que la cible canonique vélo 70.3 est 0.38. Un athlète dont le
+ * Centre Décisionnel désignait déjà VLamax comme limiteur n°1 (VLamax 0.42 >
+ * 0.34-0.38 canonique) pouvait ne déclencher AUCUNE annotation sur la page
+ * Templates (/planning/templates) pour ce même point — contradiction directe
+ * entre deux écrans du même flux de génération de plan.
+ *
+ * "critical" = canonique + 0.10 : marge reprise de la quasi-totalité des
+ * tables existantes (IMFULL/IM/MARATHON_ELITE/IM703 : 0.50→0.60, SEMI :
+ * 0.70→0.80 — déjà +0.10 partout sauf MARATHON qui utilisait +0.15,
+ * incohérence mineure non reprise ici), pas une nouvelle calibration
+ * inventée.
+ *
+ * MARATHON_ELITE réutilise volontairement le même seuil que MARATHON : la
+ * cible canonique ne varie pas par ambition (getVLamaxRange ignore ce
+ * paramètre — "C'est l'IMPORTANCE du levier qui varie selon l'ambition, pas
+ * la cible elle-même", cf. vlamaxTargets.ts) — distinguer les deux ici
+ * aurait nécessité d'inventer un multiplicateur "elite" sans source.
+ */
+const VLAMAX_WARNING_IM_BIKE = getVLamaxThreshold("IM", undefined, "bike");
+const VLAMAX_WARNING_703_BIKE = getVLamaxThreshold("703", undefined, "bike");
+const VLAMAX_WARNING_SEMI_RUN = getVLamaxThreshold("Semi", undefined, "run");
+const VLAMAX_WARNING_MARATHON_RUN = getVLamaxThreshold("Marathon", undefined, "run");
 
 // ============= TYPES =============
 
@@ -81,9 +113,9 @@ export interface SessionClassification {
 // ============= IRONMAN FULL DISTANCE SPECIFIC THRESHOLDS =============
 
 const IMFULL_THRESHOLDS = {
-  // VLamax thresholds (stricter than IM Kona)
-  vlamax_warning: 0.50,
-  vlamax_critical: 0.60,
+  // VLamax thresholds — ancrées sur la cible canonique vélo IM (cf. note en tête de fichier)
+  vlamax_warning: VLAMAX_WARNING_IM_BIKE,
+  vlamax_critical: VLAMAX_WARNING_IM_BIKE + 0.10,
   // TTE thresholds (higher requirements)
   tte_warning: 50,
   tte_critical: 45,
@@ -111,8 +143,8 @@ const IMFULL_THRESHOLDS = {
 
 // Legacy IM thresholds (alias for backwards compatibility)
 const IM_THRESHOLDS = {
-  vlamax_warning: 0.45,
-  vlamax_critical: 0.55,
+  vlamax_warning: VLAMAX_WARNING_IM_BIKE,
+  vlamax_critical: VLAMAX_WARNING_IM_BIKE + 0.10,
   tte_warning: 50,
   tte_critical: 45,
   tss7d_high: 500,
@@ -125,8 +157,8 @@ const IM_THRESHOLDS = {
 // ============= SEMI-MARATHON SPECIFIC THRESHOLDS (Two For Coaching Lab™) =============
 
 const SEMI_THRESHOLDS = {
-  vlamax_warning: 0.70,
-  vlamax_critical: 0.80,
+  vlamax_warning: VLAMAX_WARNING_SEMI_RUN,
+  vlamax_critical: VLAMAX_WARNING_SEMI_RUN + 0.10,
   tte_warning: 45,
   tte_critical: 40,
   weekly_volume_km_warning: 90,
@@ -142,8 +174,8 @@ const SEMI_THRESHOLDS = {
 // ============= MARATHON SPECIFIC THRESHOLDS (Two For Coaching Lab™) =============
 
 const MARATHON_THRESHOLDS = {
-  vlamax_warning: 0.60,
-  vlamax_critical: 0.75,
+  vlamax_warning: VLAMAX_WARNING_MARATHON_RUN,
+  vlamax_critical: VLAMAX_WARNING_MARATHON_RUN + 0.10,
   tte_warning: 50,
   tte_critical: 45,
   tss7d_warning: 450,
@@ -164,8 +196,8 @@ const MARATHON_THRESHOLDS = {
 
 // Marathon ELITE thresholds (stricter)
 const MARATHON_ELITE_THRESHOLDS = {
-  vlamax_warning: 0.50,
-  vlamax_critical: 0.60,
+  vlamax_warning: VLAMAX_WARNING_MARATHON_RUN,
+  vlamax_critical: VLAMAX_WARNING_MARATHON_RUN + 0.10,
   tte_warning: 55,
   tte_critical: 50,
   economy_score_min: 85,
@@ -174,8 +206,8 @@ const MARATHON_ELITE_THRESHOLDS = {
 // ============= IRONMAN 70.3 SPECIFIC THRESHOLDS =============
 
 const IM703_THRESHOLDS = {
-  vlamax_warning: 0.50,
-  vlamax_critical: 0.60,
+  vlamax_warning: VLAMAX_WARNING_703_BIKE,
+  vlamax_critical: VLAMAX_WARNING_703_BIKE + 0.10,
   tte_warning: 45,
   tte_critical: 40,
   tss7d_bike_warning: 450,
@@ -678,7 +710,7 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
         message: isCritical 
           ? "VLamax beaucoup trop élevé pour un Ironman Full. Le coût glucidique sera excessif sur 8-17h. Risque DNF très élevé."
           : "Risque de dépendance glucidique élevé sur une durée de 8-17h. La gestion énergétique sera le facteur limitant.",
-        why: `VLamax = ${vlamaxValue.toFixed(2)} mmol/L/s > seuil IM ${IMFULL_THRESHOLDS.vlamax_warning} (${isCritical ? "CRITIQUE >0.60" : "Warning"}). Cible perf IM: 0.25-0.40.`,
+        why: `VLamax = ${vlamaxValue.toFixed(2)} mmol/L/s > seuil IM ${IMFULL_THRESHOLDS.vlamax_warning.toFixed(2)} (${isCritical ? `CRITIQUE >${IMFULL_THRESHOLDS.vlamax_critical.toFixed(2)}` : "Warning"}). Cible IM vélo (canonique) : max ${VLAMAX_WARNING_IM_BIKE.toFixed(2)}.`,
         options: [
           "Supprimer toutes séances VO2/sprints en phase spécifique",
           "Renforcer Z2 ultra-long (4h+ vélo) + force basse cadence (50-60 rpm)",
@@ -889,7 +921,7 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
         riskScore,
         title: "Profil trop glycolytique pour marathon",
         message: "VLamax élevé → dépendance glucidique importante. Risque de 'mur' augmenté significativement.",
-        why: `VLamax = ${vlamaxValue.toFixed(2)} > seuil marathon ${MARATHON_THRESHOLDS.vlamax_warning} (${isCritical ? "CRITIQUE >0.60" : "Warning"}). Cible perf: 0.30-0.45.`,
+        why: `VLamax = ${vlamaxValue.toFixed(2)} > seuil marathon ${MARATHON_THRESHOLDS.vlamax_warning.toFixed(2)} (${isCritical ? `CRITIQUE >${MARATHON_THRESHOLDS.vlamax_critical.toFixed(2)}` : "Warning"}). Cible marathon course (canonique) : max ${VLAMAX_WARNING_MARATHON_RUN.toFixed(2)}.`,
         options: [
           "Augmenter volume Z2 longue + tempo bas (Z3)",
           "Limiter séances VO2/vitesse denses",
@@ -1024,7 +1056,7 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
         riskScore,
         title: "Profil trop glycolytique pour semi-marathon",
         message: "VLamax élevé → risque de surconsommation glucidique sur 1h20-2h d'effort au seuil.",
-        why: `VLamax = ${vlamaxValue.toFixed(2)} > seuil semi ${SEMI_THRESHOLDS.vlamax_warning} (${isCritical ? "CRITIQUE" : "Warning"}). Cible perf: 0.40-0.65.`,
+        why: `VLamax = ${vlamaxValue.toFixed(2)} > seuil semi ${SEMI_THRESHOLDS.vlamax_warning.toFixed(2)} (${isCritical ? `CRITIQUE >${SEMI_THRESHOLDS.vlamax_critical.toFixed(2)}` : "Warning"}). Cible semi course (canonique) : max ${VLAMAX_WARNING_SEMI_RUN.toFixed(2)}.`,
         options: [
           "Réduire intervalles courts (200-400m)",
           "Augmenter volume Z2 stable",
@@ -1162,7 +1194,7 @@ export function generateTemplateAnnotationsV2(params: AnnotationEngineV2Params):
         riskScore,
         title: "Profil trop glycolytique pour 70.3",
         message: "VLamax élevé → coût glucidique élevé, baisse de durabilité sur les 4-6h de course.",
-        why: `VLamax = ${vlamaxValue.toFixed(2)} > seuil 70.3 ${IM703_THRESHOLDS.vlamax_warning} (${isCritical ? "CRITIQUE" : "Warning"}). Cible perf: 0.28-0.45.`,
+        why: `VLamax = ${vlamaxValue.toFixed(2)} > seuil 70.3 ${IM703_THRESHOLDS.vlamax_warning.toFixed(2)} (${isCritical ? `CRITIQUE >${IM703_THRESHOLDS.vlamax_critical.toFixed(2)}` : "Warning"}). Cible 70.3 vélo (canonique) : max ${VLAMAX_WARNING_703_BIKE.toFixed(2)}.`,
         options: [
           "Augmenter volume Z2 vélo long",
           "Ajouter force basse cadence (50-60 rpm)",
