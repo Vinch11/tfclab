@@ -161,11 +161,20 @@ const CustomTooltip = ({ active, payload, cap }: any) => {
 };
 
 // Estimation durée en minutes depuis l'objectif (fallback si non fourni)
+//
+// Bug réel corrigé (audit "estimations physiologiques", chantier nutrition,
+// finding #1) : pour sport="triathlon" (IM/70.3), cette fonction retournait
+// la durée du seul segment vélo (540/270 min) au lieu de la course complète
+// — gonflant à tort getExogenousFraction() (palier >360min au lieu de
+// 180-360) pour un format qui ne dépasse en réalité cette borne que sur IM.
+// Alignées sur TRI_BASELINE_MIN (raceTimePredictor.ts, même constat déjà
+// corrigé là pour la prédiction de temps de course — IM=660min/11h,
+// 70.3=330min/5h30, swim+T1+bike+T2+run inclus).
 function inferDurationMin(objectif: string, sport: "velo" | "cap" | "triathlon"): number {
   const o = (objectif || "").toUpperCase();
   if (o.includes("ULTRA")) return 600;
-  if (o.includes("IM") || o.includes("IRONMAN")) return sport === "cap" ? 210 : 540;
-  if (o.includes("70.3") || o.includes("703") || o.includes("HALF")) return sport === "cap" ? 105 : 270;
+  if (o.includes("IM") || o.includes("IRONMAN")) return sport === "cap" ? 210 : sport === "triathlon" ? 660 : 540;
+  if (o.includes("70.3") || o.includes("703") || o.includes("HALF")) return sport === "cap" ? 105 : sport === "triathlon" ? 330 : 270;
   if (o.includes("MARATHON") && !o.includes("SEMI")) return 210;
   if (o.includes("TRAIL")) return 240;
   if (o.includes("SEMI")) return 100;
@@ -179,7 +188,19 @@ export function NutritionPredictiveChart({
   vo2max,
   weightKg,
   durationMin,
-  gutTrainingLevel = "trained",
+  // Bug réel corrigé (audit "estimations physiologiques", chantier nutrition,
+  // finding #1) : ce graphique (onglet Profil, mode staff) et NutritionUnifiedCard
+  // (onglet Stratégie) affichent chacun un besoin glucidique pour le même
+  // athlète, mais ce composant défaultait sur "trained" (plafond vélo 120 g/h)
+  // sans jamais lire/synchroniser le toggle "Gut Training avancé" de
+  // NutritionUnifiedCard (advancedGutTraining, jamais câblé par aucun appelant
+  // → toujours false en pratique, cf. computeNutritionUnified: plafond réel
+  // 90 g/h vélo / 75 g/h CAP sans gut training avancé). "developing" (90 g/h
+  // vélo) est le palier le plus proche de ce plafond réel — pas une
+  // unification complète des deux moteurs (modèles de calcul différents,
+  // courbe continue Mader ici vs protocole par palier là-bas), seulement un
+  // défaut moins trompeur.
+  gutTrainingLevel = "developing",
   staffMode = false,
   className,
 }: NutritionPredictiveChartProps) {
