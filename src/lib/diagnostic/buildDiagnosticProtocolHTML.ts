@@ -895,7 +895,13 @@ export function buildDiagnosticProtocolHTML(
 <meta charset="utf-8" />
 <title>${escapeHtml(p.name)} — Protocole papier</title>
 <style>
-  @page { size: A4 portrait; margin: 15mm 15mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "${escapeHtml(BRAND_MAIN)} · ${escapeHtml(p.name)}"; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } }
+  /* Pas de marges "bottom-right" / "bottom-left" (CSS Paged Media) : non supportées
+     par Safari/WebKit, qui semble alors ignorer TOUT le bloc @page — y compris
+     size/margin pourtant basiques — et pagine n'importe comment (des centaines
+     de pages quasi vides sur iPhone, pour un document d'une vingtaine de pages
+     sous Chromium). On perd la numérotation automatique en pied de page, mais
+     le document redevient imprimable. */
+  @page { size: A4 portrait; margin: 15mm 15mm 20mm; }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.4; }
   .header { display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 2px solid #5555E0; padding-bottom: 8px; margin-bottom: 12px; }
@@ -1300,7 +1306,13 @@ export function buildFullDiagnosticDossierHTML(
 <meta charset="utf-8" />
 <title>${escapeHtml(BRAND_MAIN)} — Dossier de Tests Physiologiques — ${escapeHtml(athleteName || "Athlète")}</title>
 <style>
-  @page { size: A4 portrait; margin: 14mm 14mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "${escapeHtml(BRAND_MAIN)} · Dossier de Tests Physiologiques"; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 9pt; color: #555; } }
+  /* Pas de marges "bottom-right" / "bottom-left" (CSS Paged Media) : non supportées
+     par Safari/WebKit, qui semble alors ignorer TOUT le bloc @page — y compris
+     size/margin pourtant basiques — et pagine n'importe comment (des centaines
+     de pages quasi vides sur iPhone, pour un document d'une vingtaine de pages
+     sous Chromium). On perd la numérotation automatique en pied de page, mais
+     le document redevient imprimable. */
+  @page { size: A4 portrait; margin: 14mm 14mm 20mm; }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.45; }
 

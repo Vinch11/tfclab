@@ -111,3 +111,29 @@ describe("buildDiagnosticProtocolHTML (track-day, Bloc 1) — le tableau de mesu
     expect(html).toContain("My Jump 2");
   });
 });
+
+/**
+ * Bug réel (retour coach : "pdf de 400 pages avec juste une entête" sur
+ * iPhone, alors que le même document s'imprime correctement en ~20 pages
+ * sous Chromium — vérifié via Playwright/page.pdf()). Cause probable :
+ * `@page { ... @bottom-right {...} @bottom-left {...} }` (marges de pagination
+ * CSS Paged Media) n'est pas supporté par Safari/WebKit, qui semble alors
+ * ignorer tout le bloc @page — y compris `size`/`margin` pourtant basiques —
+ * et pagine n'importe comment. Verrouille l'absence de cette syntaxe dans
+ * tous les documents générés par ce module.
+ */
+describe("buildDiagnosticProtocolHTML / buildFullDiagnosticDossierHTML — pas de marges @page non supportées par Safari", () => {
+  it("buildDiagnosticProtocolHTML n'utilise pas @bottom-right/@bottom-left dans @page", () => {
+    const html = buildDiagnosticProtocolHTML("bike-day", "Athlète Test");
+    expect(html).not.toContain("@bottom-right");
+    expect(html).not.toContain("@bottom-left");
+    expect(html).toContain("@page");
+  });
+
+  it("buildFullDiagnosticDossierHTML n'utilise pas @bottom-right/@bottom-left dans @page", () => {
+    const html = buildFullDiagnosticDossierHTML("Athlète Test", "triathlon");
+    expect(html).not.toContain("@bottom-right");
+    expect(html).not.toContain("@bottom-left");
+    expect(html).toContain("@page");
+  });
+});
