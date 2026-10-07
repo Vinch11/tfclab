@@ -448,25 +448,17 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
   // vide et on y écrit le document : c'est une page normale, que Safari
   // imprime / exporte en PDF correctement (Partager → Imprimer). Si l'ouverture
   // est bloquée, repli sur la surcouche interne.
+  // iPhone/iPad : l'impression Safari est trop peu fiable (onglet vide en app
+  // installée, pagination cassée dans une iframe). On fabrique directement un
+  // vrai fichier PDF sur le téléphone puis on propose Partager → Enregistrer.
+  // En cas d'échec de génération, repli sur l'aperçu imprimable interne.
   if (isIOSDevice()) {
-    let w: Window | null = null;
-    try {
-      w = window.open("", "_blank");
-    } catch {
-      w = null;
-    }
-    if (w && w.document) {
-      try {
-        w.document.open();
-        w.document.write(finalHtml);
-        w.document.close();
-        if (options.filenameHint) w.document.title = options.filenameHint;
-        return;
-      } catch {
-        try { w.close(); } catch { /* ignore */ }
-      }
-    }
-    openInlineOverlay(finalHtml, options.filenameHint);
+    import("@/lib/print/iosPdfExport")
+      .then(({ exportPdfOnIOS }) => exportPdfOnIOS(finalHtml, options.filenameHint))
+      .catch((err) => {
+        if (import.meta.env.DEV) console.error("[iosPdfExport]", err);
+        openInlineOverlay(finalHtml, options.filenameHint);
+      });
     return;
   }
 

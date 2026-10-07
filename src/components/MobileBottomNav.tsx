@@ -224,7 +224,13 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
               </button>
               <div className="h-px bg-border/40" />
               <button
-                onClick={() => { if (onExportClick) onExportClick(); setShowMoreMenu(false); }}
+                onClick={() => {
+                  // Les pages hors Dashboard (AppLayout, etc.) ne fournissent pas
+                  // onExportClick : sans ce repli, le bouton ne faisait RIEN.
+                  if (onExportClick) onExportClick();
+                  else navigate("/", { state: { openExport: true } });
+                  setShowMoreMenu(false);
+                }}
                 className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
               >
                 <FileDown className="w-4 h-4 text-primary" />
