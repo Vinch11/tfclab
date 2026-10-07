@@ -44,6 +44,43 @@ window.addEventListener("unhandledrejection", (e) => {
 // After a stable period, clear the guard so a future stale deploy can recover.
 window.setTimeout(() => sessionStorage.removeItem(RELOAD_FLAG), 20000);
 
+// --- PWA update checks ------------------------------------------------------
+// iOS home-screen apps are rarely killed, so the service worker almost never
+// re-checks for a new deploy on its own. Explicitly check on launch, every time
+// the app comes back to the foreground, and every 15 min; when a new version is
+// found, activate it and reload immediately (registerType: "autoUpdate").
+// Skipped inside the Lovable editor iframe / dev to avoid stale-preview issues.
+const isInIframe = (() => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+})();
+if (import.meta.env.PROD && !isInIframe && "serviceWorker" in navigator) {
+  import("virtual:pwa-register")
+    .then(({ registerSW }) => {
+      const updateSW = registerSW({
+        immediate: true,
+        onNeedRefresh() {
+          void updateSW(true);
+        },
+        onRegisteredSW(_url, registration) {
+          if (!registration) return;
+          const check = () => {
+            if (navigator.onLine) void registration.update().catch(() => {});
+          };
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") check();
+          });
+          window.addEventListener("focus", check);
+          window.setInterval(check, 15 * 60 * 1000);
+        },
+      });
+    })
+    .catch(() => {});
+}
+
 
 
 // Hide splash screen when React is ready
