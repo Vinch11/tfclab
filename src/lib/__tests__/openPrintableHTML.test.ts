@@ -125,6 +125,29 @@ describe("openPrintableHTML (iOS) — ouvre un vrai onglet en priorité, surcouc
     expect(document.getElementById("tfc-print-overlay")).toBeNull();
   });
 
+  /**
+   * Bug réel (retour coach, toujours "des centaines de pages" même après
+   * avoir retiré les marges @page non supportées par Safari) : aucun
+   * document généré ne fixe de largeur de rendu. Mobile Safari n'imprime
+   * pas en reflowant selon `@page` : il découpe une capture du rendu écran
+   * en tranches de la hauteur d'une page. Un onglet ouvert via
+   * `window.open` + `document.write` peut hériter de la largeur étroite de
+   * l'écran plutôt que la largeur ~980px que Safari utilise par défaut pour
+   * les pages sans viewport déclaré — le contenu (mis en page pour ~820px)
+   * reflow alors sur une hauteur démesurée, tranchée en centaines de pages.
+   */
+  it("fixe une largeur de rendu (viewport) au document écrit dans l'onglet — indépendante de la largeur d'écran réelle", () => {
+    const fakeDoc = { open: vi.fn(), write: vi.fn(), close: vi.fn(), title: "" };
+    const fakeWin = { document: fakeDoc } as unknown as Window;
+    window.open = vi.fn().mockReturnValue(fakeWin) as typeof window.open;
+
+    openPrintableHTML("<html><head></head><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    const written = fakeDoc.write.mock.calls[0][0] as string;
+    expect(written).toMatch(/<meta name="viewport" content="width=\d+">/);
+    expect(written).not.toContain("device-width");
+  });
+
   it("quand le popup est bloqué (retourne null), bascule sur la surcouche interne", () => {
     window.open = vi.fn().mockReturnValue(null) as typeof window.open;
 
