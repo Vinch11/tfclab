@@ -182,12 +182,37 @@ export async function exportPdfOnIOS(html: string, filenameHint?: string): Promi
     nodes.push(shareBtn);
   }
 
-  const openLink = el("a", BTN + "display:block;text-decoration:none;color:#111;background:#fff;", "Ouvrir le PDF") as HTMLAnchorElement;
-  openLink.href = url;
-  openLink.target = "_blank";
-  openLink.rel = "noopener";
-  openLink.download = fileName;
-  nodes.push(openLink);
+  // Bug réel (iPhone) : un <a download target=_blank> vers un blob: ne fait
+  // RIEN sur iOS (l'attribut download sur blob est ignoré, surtout dans une
+  // iframe). On ouvre explicitement le PDF dans le visualiseur natif d'iOS
+  // (qui a son propre bouton Partager → Enregistrer dans Fichiers).
+  const note = el("p", "margin:0;font-size:12px;line-height:1.4;color:#7a4b00;display:none;");
+  const openBtn = el("button", BTN + "background:" + (canShare ? "#fff;color:#111;" : "#111;color:#fff;"), "Ouvrir le PDF");
+  openBtn.onclick = () => {
+    let w: Window | null = null;
+    try {
+      w = window.open(url, "_blank");
+    } catch {
+      w = null;
+    }
+    if (w) return;
+    const inFrame = (() => {
+      try {
+        return window.top !== window.self;
+      } catch {
+        return true;
+      }
+    })();
+    if (!inFrame) {
+      // Ouvre le PDF à la place de la page (bouton retour pour revenir).
+      window.location.assign(url);
+      return;
+    }
+    note.textContent =
+      "Ouverture bloquée dans cet aperçu. Ouvre l'app depuis son adresse (tfcl.twoforcoaching.be) pour enregistrer le PDF.";
+    note.style.display = "block";
+  };
+  nodes.push(openBtn, note);
 
   const closeBtn = el("button", BTN + "background:#fff;color:#111;", "Fermer");
   closeBtn.onclick = close;
