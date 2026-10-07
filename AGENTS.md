@@ -99,3 +99,5 @@ webkit).
   pas seul, la clé anon publique est elle-même un JWT valide (cf. PR #301).
 - `/debug/plan-qa` et les profils QA ne tournent jamais en CI (coût IA réel
   à chaque run) — c'est un outil manuel, pas un gate automatique.
+
+- On iPhone/iPad, `openPrintableHTML` builds a real PDF file on-device (`src/lib/print/iosPdfExport.ts`, html2canvas + jsPDF) and offers it via the native share sheet, falling back to the inline overlay only on failure. Why: Safari print is unreliable on iOS (blank tab in installed app, broken pagination in iframes).
