@@ -510,21 +510,17 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const priorityCount = known.filter(g => signedGapPct(g) < -15).length;
   const onTargetCount = known.filter(g => signedGapPct(g) >= -5).length;
 
-  // Score global : moyenne pondérée douce des gaps → 0-100
-  const scoreValue = (() => {
-    if (known.length === 0) return null;
-    const scores = known.map(g => {
-      // Clamp gap dans [-30, +15] et remappe 0..100
-      const clamped = Math.max(-30, Math.min(15, signedGapPct(g)));
-      return ((clamped + 30) / 45) * 100;
-    });
-    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-  })();
+  // Score global : même score que le headline (synthesis.globalScore, dérivé
+  // du readiness canonique) — pas une moyenne locale recalculée à partir des
+  // gaps, sinon le badge peut contredire le headline (ex. "Prêt" affiché à
+  // côté d'un score "À développer") alors que les deux décrivent le même
+  // diagnostic. Seul cas où on affiche "—" : aucune métrique mesurée du tout.
+  const scoreValue = known.length === 0 ? null : synthesis.globalScore;
   const scoreTone: StatusTone = scoreValue == null
     ? "unknown"
-    : scoreValue >= 75 ? "excellent"
-    : scoreValue >= 55 ? "on_target"
-    : scoreValue >= 35 ? "developing"
+    : synthesis.globalCategory === "ready" ? "excellent"
+    : synthesis.globalCategory === "solid" ? "on_target"
+    : synthesis.globalCategory === "developing" ? "developing"
     : "priority";
   const scoreStyle = TONE_STYLES[scoreTone];
 
