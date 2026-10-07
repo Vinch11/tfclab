@@ -131,6 +131,8 @@ const KEY_MESSAGES = {
 const RACE_CORRIDOR_PHRASES: Record<RaceObjective, string> = {
   IM: "Rester dans le vert pendant tout le vélo est la clé du marathon.",
   "70.3": "Rester dans le vert au début, c'est construire ta performance finale.",
+  Sprint: "Le vélo sprint se joue vite — rester dans le vert évite l'explosion sur les 5 km de course.",
+  Olympic: "Les 10 premiers kilomètres de vélo dans le vert préparent un 10 km de course solide.",
   Marathon: "Les 10 premiers kilomètres dans le vert = les 10 derniers dans la force.",
   Semi: "Rester dans le vert les 15 premiers km, puis libérer.",
   "10km": "2 premiers kilomètres dans le vert, puis progression contrôlée.",

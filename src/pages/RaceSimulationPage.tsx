@@ -59,12 +59,21 @@ import { computeBaseRateMader } from '@/lib/v2/nutritionUnified';
 /**
  * Distance réelle (km) simulée pour un objectif × discipline donnés — mêmes
  * distances canoniques que segmentDurationMin/bikeSplitInfo/targetKm dans ce
- * fichier (180.2/90.1 vélo, 42.195/21.0975 run). `discipline` ne désambiguïse
- * que IM/70.3 (vélo vs course) ; les objectifs course pure sont sans ambiguïté.
+ * fichier (180.2/90.1/40/20 vélo, 42.195/21.0975/10/5 run). `discipline` ne
+ * désambiguïse que les formats triathlon (vélo vs course) ; les objectifs
+ * course pure sont sans ambiguïté.
+ *
+ * Sprint/Olympic ajoutés (audit "estimations physiologiques", chantier
+ * simulation de course) : distances standard World Triathlon (20km/5km,
+ * 40km/10km) — avant leur ajout, ces 2 objectifs (réellement sélectionnables
+ * dans l'UI, cf. ObjectifType) retombaient sur le défaut 'IM' de cette
+ * fonction (180.2km/42.195km).
  */
 export function resolveRaceDistanceKm(raceObjective: RaceObjective, discipline: 'bike' | 'run'): number {
   if (raceObjective === 'IM') return discipline === 'bike' ? 180.2 : 42.195;
   if (raceObjective === '70.3') return discipline === 'bike' ? 90.1 : 21.0975;
+  if (raceObjective === 'Olympic') return discipline === 'bike' ? 40 : 10;
+  if (raceObjective === 'Sprint') return discipline === 'bike' ? 20 : 5;
   if (raceObjective === 'Marathon') return 42.195;
   if (raceObjective === 'Semi') return 21.0975;
   if (raceObjective === '10km') return 10;
@@ -247,6 +256,12 @@ export default function RaceSimulationPage() {
     if (objectif.includes('Semi')) return 'Semi';
     if (objectif.includes('10km') || objectif.includes('10k')) return '10km';
     if (objectif === '703' || objectif === '70.3' || objectif.includes('70.3')) return '70.3';
+    // Bug réel corrigé (audit "estimations physiologiques", chantier simulation
+    // de course) : Sprint/Olympic (ObjectifType, réellement sélectionnables dans
+    // l'UI) retombaient ici sur le défaut 'IM' — un sprinteur recevait un couloir
+    // de pacing calculé pour 180km de vélo / 42km de course.
+    if (objectif.includes('Sprint')) return 'Sprint';
+    if (objectif.includes('Olympic')) return 'Olympic';
     return 'IM';
   }, [objectif]);
 
@@ -353,7 +368,9 @@ export default function RaceSimulationPage() {
 
   // Triathlon → afficher pacing vélo ET course (segments séparés)
   // En mode LCW, chaque segment est une épreuve SOLO → isTriathlon=false.
-  const isTriathlon = !lcwActive && (raceObjective === 'IM' || raceObjective === '70.3');
+  // Sprint/Olympic ajoutés (audit "estimations physiologiques", chantier
+  // simulation de course) — même traitement dual-segment que IM/70.3.
+  const isTriathlon = !lcwActive && (raceObjective === 'IM' || raceObjective === '70.3' || raceObjective === 'Sprint' || raceObjective === 'Olympic');
 
   // Discipline "principale" pour modules legacy (simulation, nutrition…)
   const defaultRunObjective = raceObjective === 'Marathon' || raceObjective === 'Semi' || raceObjective === '10km';
@@ -418,6 +435,20 @@ export default function RaceSimulationPage() {
       const runMin = computeRunMin(21.1, fractions.half) ?? 105;
       return { bike: bikeSplit(90.1)?.durationMin ?? 165, run: Math.round(runMin) };
     }
+    // Sprint/Olympic : fraction vSeuil extrapolée depuis le même pas déjà
+    // établi par la branche '10km' ci-dessous (fractions.half + 0.05 pour un
+    // 10km courru frais) — pas une nouvelle calibration indépendante. 5km
+    // (Sprint) ajoute un pas supplémentaire cohérent (effort plus court, plus
+    // proche de vVO2max). Fallback (105/45min) = baseline forfaitaire déjà
+    // utilisée ailleurs (TRI_BASELINE_MIN/RACE_TYPICAL_DURATION_MIN).
+    if (raceObjective === 'Olympic') {
+      const runMin = computeRunMin(10, Math.min(0.99, fractions.half + 0.05)) ?? 45;
+      return { bike: bikeSplit(40)?.durationMin ?? 80, run: Math.round(runMin) };
+    }
+    if (raceObjective === 'Sprint') {
+      const runMin = computeRunMin(5, Math.min(0.99, fractions.half + 0.09)) ?? 22;
+      return { bike: bikeSplit(20)?.durationMin ?? 35, run: Math.round(runMin) };
+    }
 
     // Courses à pied pures — durée cohérente calculée (allure seuil × ambition),
     // plus de baseline 180/180 arbitraire qui contaminait nutrition & fiche route.
@@ -438,7 +469,7 @@ export default function RaceSimulationPage() {
 
   // Détail de l'estimation vélo (affiché pour transparence : NP, %FTP, vitesse).
   const bikeSplitInfo = React.useMemo(() => {
-    const distanceKm = raceObjective === 'IM' ? 180.2 : raceObjective === '70.3' ? 90.1 : null;
+    const distanceKm = isTriathlon ? resolveRaceDistanceKm(raceObjective, 'bike') : null;
     if (!distanceKm) return null;
     return estimateBikeSplit({
       distanceKm,
@@ -447,7 +478,7 @@ export default function RaceSimulationPage() {
       ambition: normalizeToRunSplitAmbition((selectedAthlete as any)?.ambition),
       position: 'tri',
     });
-  }, [raceObjective, activeSnapshot, selectedAthlete]);
+  }, [raceObjective, isTriathlon, activeSnapshot, selectedAthlete]);
 
 
   const raceDurationMin = React.useMemo(() => {
