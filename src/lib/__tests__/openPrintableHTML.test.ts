@@ -86,21 +86,72 @@ describe("openPrintableHTML — ouverture popup pour impression/PDF", () => {
 });
 
 /**
- * Bug réel (retour coach, capture d'écran) : dans la surcouche iOS, le
- * bouton "Imprimer / PDF" ouvrait bien le dialogue d'impression, mais avec
- * une pagination délirante ("Pages 1-457" pour un rapport d'une poignée de
- * pages). Cause : il appelait `frame.contentWindow.print()`, qui imprime le
- * document DE L'IFRAME — lequel porte un `transform: scale(...)` posé pour
- * l'aperçu écran (mise à l'échelle dans la largeur mobile). Safari iOS
- * pagine sur cette boîte transformée au lieu du rendu visuel réel. Le fix
- * imprime la fenêtre top-level à la place, avec une feuille de style qui
- * masque tout sauf la surcouche et neutralise le scale/position/overflow
- * d'aperçu.
+ * Sur iOS, `openPrintableHTML` essaie d'abord un vrai onglet (`window.open`
+ * + `document.write`, sans URL blob:) avant de retomber sur la surcouche
+ * interne — un onglet réel s'imprime nativement de façon fiable (comme sur
+ * desktop), sans les complications de l'iframe mise à l'échelle. La
+ * surcouche reste le repli pour le cas où ce popup est bloqué.
  */
-describe("openPrintableHTML (iOS, surcouche interne) — le bouton Imprimer n'imprime plus l'iframe transformée", () => {
+describe("openPrintableHTML (iOS) — ouvre un vrai onglet en priorité, surcouche seulement si bloqué", () => {
+  const originalUserAgent = navigator.userAgent;
+  const originalPlatform = navigator.platform;
+  const originalOpen = window.open;
+
+  beforeEach(() => {
+    Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
+    Object.defineProperty(navigator, "userAgent", {
+      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
+    Object.defineProperty(navigator, "userAgent", { value: originalUserAgent, configurable: true });
+    window.open = originalOpen;
+    document.getElementById("tfc-print-overlay")?.remove();
+    vi.restoreAllMocks();
+  });
+
+  it("quand le popup s'ouvre, écrit le document dedans et n'affiche PAS la surcouche interne", () => {
+    const fakeDoc = { open: vi.fn(), write: vi.fn(), close: vi.fn(), title: "" };
+    const fakeWin = { document: fakeDoc } as unknown as Window;
+    window.open = vi.fn().mockReturnValue(fakeWin) as typeof window.open;
+
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    expect(fakeDoc.write).toHaveBeenCalledTimes(1);
+    expect(fakeDoc.write.mock.calls[0][0]).toContain("Rapport");
+    expect(document.getElementById("tfc-print-overlay")).toBeNull();
+  });
+
+  it("quand le popup est bloqué (retourne null), bascule sur la surcouche interne", () => {
+    window.open = vi.fn().mockReturnValue(null) as typeof window.open;
+
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    expect(document.getElementById("tfc-print-overlay")).not.toBeNull();
+  });
+});
+
+/**
+ * Bug réel (retour coach, capture d'écran) : dans la surcouche iOS (repli
+ * quand le popup ci-dessus est bloqué), le bouton "Imprimer / PDF" ouvrait
+ * bien le dialogue d'impression, mais avec une pagination délirante ("Pages
+ * 1-457" pour un rapport d'une poignée de pages). Cause : il appelait
+ * `frame.contentWindow.print()`, qui imprime le document DE L'IFRAME —
+ * lequel porte un `transform: scale(...)` posé pour l'aperçu écran (mise à
+ * l'échelle dans la largeur mobile). Safari iOS pagine sur cette boîte
+ * transformée au lieu du rendu visuel réel. `doPrint` retire d'abord ce
+ * scale avant d'imprimer l'iframe, et si ça échoue quand même, retombe sur
+ * l'impression de la fenêtre top-level avec une feuille de style qui masque
+ * tout sauf la surcouche et neutralise le scale/position/overflow d'aperçu.
+ */
+describe("openPrintableHTML (iOS, surcouche interne — popup bloqué) — le bouton Imprimer n'imprime plus l'iframe transformée telle quelle", () => {
   const originalUserAgent = navigator.userAgent;
   const originalPlatform = navigator.platform;
   const originalPrint = window.print;
+  const originalOpen = window.open;
 
   beforeEach(() => {
     Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
@@ -109,12 +160,17 @@ describe("openPrintableHTML (iOS, surcouche interne) — le bouton Imprimer n'im
       configurable: true,
     });
     window.print = vi.fn();
+    // iOS essaie d'abord un vrai onglet (window.open + document.write) avant
+    // de retomber sur la surcouche interne — on simule un popup bloqué pour
+    // exercer ce repli, celui que ces tests couvrent.
+    window.open = vi.fn().mockReturnValue(null) as typeof window.open;
   });
 
   afterEach(() => {
     Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
     Object.defineProperty(navigator, "userAgent", { value: originalUserAgent, configurable: true });
     window.print = originalPrint;
+    window.open = originalOpen;
     document.getElementById("tfc-print-overlay")?.remove();
     document.getElementById("tfc-print-overlay-style")?.remove();
     vi.restoreAllMocks();
