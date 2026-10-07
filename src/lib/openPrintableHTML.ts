@@ -258,6 +258,31 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
 
 }
 
+function stripScripts(html: string): string {
+  return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+}
+
+/**
+ * Imprime la page actuellement affichée (boutons "Imprimer" qui utilisent les
+ * classes Tailwind `print:*` sur la page en cours, plutôt qu'un rapport HTML
+ * généré à part). Sur iOS en mode standalone (app installée sur l'écran
+ * d'accueil), `window.print()` ne produit AUCUNE UI (cf. isStandalonePWA) —
+ * c'est la cause de "je ne sais plus imprimer" quand ces boutons ne font
+ * visiblement rien. Dans ce cas, on bascule sur un instantané statique de la
+ * page affichée dans la même surcouche robuste (bouton Imprimer + repli
+ * Partager) que les rapports générés, plutôt que de laisser le clic sans
+ * aucun effet visible.
+ */
+export function printCurrentDocument(filenameHint?: string): void {
+  if (isIOSDevice() && isStandalonePWA()) {
+    const baseTag = `<base href="${window.location.href}">`;
+    const snapshot = injectBefore(stripScripts(document.documentElement.outerHTML), "</head>", baseTag);
+    openInlineOverlay(`<!doctype html>${snapshot}`, filenameHint);
+    return;
+  }
+  window.print();
+}
+
 /**
  * Opens a printable HTML document in a new tab/window, with a robust fallback for popup blockers.
  * Uses a Blob URL (avoids URL-length limits). Sur iOS (et si le popup est bloqué),

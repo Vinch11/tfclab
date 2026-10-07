@@ -48,7 +48,7 @@ import { Badge } from "@/components/ui/badge";
 import { UNIFIED_TARGETS } from "@/lib/physiologicalTargets";
 import { AmbitionTargetsTable } from "@/components/AmbitionTargetsTable";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
+import { openPrintableHTML } from "@/lib/openPrintableHTML";
 
 
 // Catégories d'objectifs pour le filtre
@@ -156,26 +156,12 @@ const generateTargetsPdfHtml = () => {
 
 const handlePrintTargets = () => {
   const html = generateTargetsPdfHtml();
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.write(applyBevelPrintTheme(html));
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 250);
-  }
+  openPrintableHTML(html, { filenameHint: "Cibles physiologiques par objectif" });
 };
 
 const handleDownloadTargetsPdf = () => {
   const html = generateTargetsPdfHtml();
-  const printWindow = window.open('', '_blank');
-  if (printWindow) {
-    printWindow.document.write(applyBevelPrintTheme(html));
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 250);
-  }
+  openPrintableHTML(html, { filenameHint: "Cibles physiologiques par objectif" });
 };
 
 // Données de la table des constantes physiologiques

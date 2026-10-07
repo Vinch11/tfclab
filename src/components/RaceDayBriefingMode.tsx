@@ -23,6 +23,7 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { printCurrentDocument } from "@/lib/openPrintableHTML";
 
 import {
   generateRaceDayBriefing,
@@ -83,7 +84,7 @@ export function RaceDayBriefingMode({
 
   // Print function
   const handlePrint = () => {
-    window.print();
+    printCurrentDocument(`Briefing Jour J — ${athleteName}`);
   };
 
   return (

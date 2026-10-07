@@ -25,6 +25,7 @@ import { TFCLTestingWeekStatusCard } from "@/components/coach/TFCLTestingWeekSta
 import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { toast } from "sonner";
 import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
+import { printCurrentDocument } from "@/lib/openPrintableHTML";
 
 /**
  * Field mapping vers une colonne snapshot.
@@ -1043,7 +1044,7 @@ export default function CoachChecklistPage() {
             <Button variant="outline" size="sm" onClick={reset}>
               <RotateCcw className="h-4 w-4 mr-1.5" /> Reset
             </Button>
-            <Button size="sm" onClick={() => window.print()}>
+            <Button size="sm" onClick={() => printCurrentDocument(`Checklist Coach — ${athleteName}`)}>
               <Printer className="h-4 w-4 mr-1.5" /> Imprimer / PDF
             </Button>
           </div>
