@@ -1,4 +1,4 @@
-import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import { openPrintableHTML, EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 import logoUrl from "@/assets/logo-2fc.png";
 import { TFCL_TESTING_WEEK, type TFCLTestDay } from "@/data/tfclTestingWeek";
 import { CAP_TESTING_WEEK, type CAPTestDay } from "@/data/capTestingWeek";
@@ -750,7 +750,7 @@ export function buildTestingWeekDossierHTML(
 ${CSS}
 </head>
 <body>
-  <button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
+  <button class="print-btn" onclick="${EMBEDDED_PRINT_ONCLICK}">🖨️ Imprimer / PDF</button>
 
   <section class="cover">
     <div class="cover-banner">

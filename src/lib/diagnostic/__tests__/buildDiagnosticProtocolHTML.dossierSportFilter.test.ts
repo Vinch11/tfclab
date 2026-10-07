@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildFullDiagnosticDossierHTML } from "../buildDiagnosticProtocolHTML";
+import { buildFullDiagnosticDossierHTML, buildDiagnosticProtocolHTML } from "../buildDiagnosticProtocolHTML";
+import { EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 
 /**
  * Bug réel corrigé : le dossier complet incluait systématiquement la fiche
@@ -52,5 +53,27 @@ describe("buildFullDiagnosticDossierHTML — synthèse finale filtrée par sport
     expect(html).toContain(">FTP<");
     expect(html).toContain(">VMA<");
     expect(html).toContain(">CSS<");
+  });
+});
+
+/**
+ * Bug réel (retour coach, persistant après avoir corrigé le bouton générique
+ * de la surcouche iOS) : le bouton "🖨️ Imprimer / PDF" embarqué DANS ces
+ * documents générés appelait encore `window.print()` en dur — qui, une fois
+ * ce HTML injecté dans l'iframe de la surcouche iOS, imprime la fenêtre de
+ * l'IFRAME (transformée pour l'aperçu écran) plutôt que la page hôte,
+ * reproduisant la pagination délirante déjà vue une fois (457 pages).
+ */
+describe("buildDiagnosticProtocolHTML / buildFullDiagnosticDossierHTML — bouton Imprimer embarqué", () => {
+  it('buildDiagnosticProtocolHTML : le bouton embarqué utilise EMBEDDED_PRINT_ONCLICK, pas window.print() en dur', () => {
+    const html = buildDiagnosticProtocolHTML("bike-day", "Athlète Test");
+    expect(html).toContain(EMBEDDED_PRINT_ONCLICK);
+    expect(html).not.toContain('onclick="window.print()"');
+  });
+
+  it('buildFullDiagnosticDossierHTML : le bouton embarqué utilise EMBEDDED_PRINT_ONCLICK, pas window.print() en dur', () => {
+    const html = buildFullDiagnosticDossierHTML("Athlète Test", "triathlon");
+    expect(html).toContain(EMBEDDED_PRINT_ONCLICK);
+    expect(html).not.toContain('onclick="window.print()"');
   });
 });

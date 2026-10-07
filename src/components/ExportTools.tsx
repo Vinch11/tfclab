@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { PDFPreviewPanel } from "./PDFPreviewPanel";
-import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import { openPrintableHTML, EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 import { isRunningFocusModeActive } from "@/lib/runningFocusMode";
 // ✅ NEW: Import Calibration Layer
@@ -8507,7 +8507,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${buildExecutiveSummaryHTML(payload)}
         
         <div class="noPrint" style="padding:16px;background:#EDEDFC;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <button onclick="window.print()" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#5555E0;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+          <button onclick="${EMBEDDED_PRINT_ONCLICK}" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#5555E0;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
             🖨️ Imprimer / Enregistrer en PDF
           </button>
           <span class="muted" style="font-size:13px;">💡 <b>Conseil :</b> Dans le dialogue d'impression, sélectionnez <b>"Enregistrer en PDF"</b> comme destination pour créer un fichier PDF.</span>

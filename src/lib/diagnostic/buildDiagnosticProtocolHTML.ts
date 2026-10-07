@@ -1,4 +1,4 @@
-import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import { openPrintableHTML, EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 import logoUrl from "@/assets/logo-2fc.png";
 /**
  * buildDiagnosticProtocolHTML — Génère une page HTML imprimable (A4 portrait)
@@ -926,7 +926,7 @@ export function buildDiagnosticProtocolHTML(
 </style>
 </head>
 <body>
-  <button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
+  <button class="print-btn" onclick="${EMBEDDED_PRINT_ONCLICK}">🖨️ Imprimer / PDF</button>
 
   <div class="header">
     <div class="header-brand">
@@ -1417,7 +1417,7 @@ export function buildFullDiagnosticDossierHTML(
 </style>
 </head>
 <body>
-  <button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
+  <button class="print-btn" onclick="${EMBEDDED_PRINT_ONCLICK}">🖨️ Imprimer / PDF</button>
 
   <!-- ============================ 1 · COUVERTURE ============================ -->
   <section class="cover">

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { openPrintableHTML, printCurrentDocument } from "../openPrintableHTML";
+import { openPrintableHTML, printCurrentDocument, EMBEDDED_PRINT_ONCLICK } from "../openPrintableHTML";
 
 /**
  * Bug réel (retour coach : "dès que je veux imprimer un document en PDF j'ai
@@ -157,6 +157,44 @@ describe("openPrintableHTML (iOS, surcouche interne) — le bouton Imprimer n'im
     getOverlayButton("Fermer").click();
     expect(document.getElementById("tfc-print-overlay-style")).toBeNull();
     expect(document.getElementById("tfc-print-overlay")).toBeNull();
+  });
+
+  /**
+   * Bug réel (retour coach, PERSISTANT après le fix ci-dessus et un
+   * re-déploiement confirmé) : plusieurs rapports générés
+   * (buildDiagnosticProtocolHTML.ts, buildTestingWeekProtocolHTML.ts,
+   * ExportTools.tsx, ObjectiveStrategyCard.tsx) embarquent LEUR PROPRE
+   * bouton "🖨️ Imprimer / PDF" dans le HTML généré — plus visible à
+   * l'écran (badge flottant sur le document) que le bouton générique de la
+   * barre d'outils, donc celui que le coach presse en pratique. Ce bouton
+   * appelait encore `window.print()` en dur, qui dans l'iframe de la
+   * surcouche désigne la fenêtre de l'iframe (transformée) — reproduisant
+   * EXACTEMENT le bug des 457 pages, alors que seul le bouton de la barre
+   * d'outils avait été corrigé. `window.__tfcPrint` est le point d'ancrage
+   * que ces boutons embarqués utilisent (via `window.top.__tfcPrint`,
+   * cf. EMBEDDED_PRINT_ONCLICK) pour déclencher le MÊME print top-level
+   * correctement préparé.
+   */
+  it("expose window.__tfcPrint pendant que la surcouche est ouverte (point d'ancrage pour les boutons Imprimer embarqués dans le HTML généré)", () => {
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    expect(typeof (window as unknown as Record<string, unknown>).__tfcPrint).toBe("function");
+
+    (window as unknown as { __tfcPrint: () => void }).__tfcPrint();
+    expect(window.print).toHaveBeenCalledTimes(1);
+    expect(document.getElementById("tfc-print-overlay-style")).not.toBeNull();
+  });
+
+  it("retire window.__tfcPrint à la fermeture (pas de fuite globale une fois la surcouche fermée)", () => {
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+    getOverlayButton("Fermer").click();
+
+    expect((window as unknown as Record<string, unknown>).__tfcPrint).toBeUndefined();
+  });
+
+  it("EMBEDDED_PRINT_ONCLICK délègue à window.top.__tfcPrint quand il existe, sinon retombe sur window.print() normal", () => {
+    expect(EMBEDDED_PRINT_ONCLICK).toContain("window.top.__tfcPrint");
+    expect(EMBEDDED_PRINT_ONCLICK).toContain("window.print()");
   });
 });
 
