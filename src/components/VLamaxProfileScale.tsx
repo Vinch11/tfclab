@@ -108,7 +108,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: 
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            Profil VLamax — Échelle des spécialités
+            Type métabolique VLamax — Échelle des spécialités
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -129,7 +129,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: 
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Activity className="h-4 w-4 text-primary" />
-          Profil VLamax — Échelle des spécialités
+          Type métabolique VLamax — Échelle des spécialités
         </CardTitle>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Badge variant="outline" className="text-[11px]">{sportLabel}</Badge>
@@ -178,11 +178,11 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: 
           </div>
         </div>
 
-        {/* Carte du profil actuel */}
+        {/* Carte du type métabolique actuel */}
         <div className={`rounded-md border p-3 bg-muted/30`}>
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
-              <p className={`text-sm font-bold ${currentBand.text}`}>Profil détecté : {currentBand.label}</p>
+              <p className={`text-sm font-bold ${currentBand.text}`}>Type métabolique détecté : {currentBand.label}</p>
               <p className="text-[11px] text-muted-foreground">VLamax {currentBand.shortLabel} mmol/L/s</p>
             </div>
           </div>
@@ -193,7 +193,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: 
         {/* Légende complète repliée façon liste compacte */}
         <details className="text-xs">
           <summary className="cursor-pointer text-muted-foreground hover:text-foreground font-medium">
-            Voir les 5 profils complets
+            Voir les 5 types métaboliques complets
           </summary>
           <ul className="mt-2 space-y-2">
             {BANDS.map((b) => (
