@@ -105,19 +105,30 @@ async function renderPdf(html: string, onProgress: (txt: string) => void): Promi
       onProgress(`Page ${i + 1} / ${pageCount}…`);
       const y = i * PAGE_HEIGHT;
       const h = Math.min(PAGE_HEIGHT, totalHeight - y);
-      const canvas = await html2canvas(body, {
+      // IMPORTANT : windowHeight doit rester la hauteur d'UNE SEULE page (pas
+      // totalHeight). html2canvas alloue en interne un canvas de la taille du
+      // "window" simulé ; avec windowHeight=totalHeight sur un rapport long
+      // (15-30k px), ce canvas dépasse la limite de taille de canvas du
+      // navigateur (constatée y compris sous Chromium desktop), ce qui
+      // produit des pages vides/corrompues au-delà de la première — c'est le
+      // bug "PDF de 400 pages avec juste une entête". En gardant
+      // windowHeight=PAGE_HEIGHT et en décalant la fenêtre de capture via
+      // scrollY (au lieu de cropper après coup avec y), chaque appel ne
+      // construit jamais un canvas plus grand qu'une page — vérifié par
+      // rendu réel (Playwright+Chromium) sur un rapport de 14 pages.
+      const canvas = await html2canvas(doc.documentElement, {
         backgroundColor: "#ffffff",
         scale: RENDER_SCALE,
         useCORS: true,
         logging: false,
         windowWidth: DOC_WIDTH,
-        windowHeight: totalHeight,
+        windowHeight: PAGE_HEIGHT,
         width: DOC_WIDTH,
         height: h,
         x: 0,
-        y,
+        y: 0,
         scrollX: 0,
-        scrollY: 0,
+        scrollY: -y,
         ignoreElements: ignore,
       });
       const img = canvas.toDataURL("image/jpeg", 0.92);

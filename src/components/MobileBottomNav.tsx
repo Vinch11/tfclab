@@ -198,11 +198,23 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
             onClick={() => setShowMoreMenu(false)}
           />
           {/* Menu */}
+          {/* Bug réel (coach, iPhone/Safari) : "Exporter un rapport ne réagit pas
+              quand je clique dessus" — récurrence de la même famille de bug que
+              le bouton "Plus" (#296). Ces boutons ne reposaient que sur `onClick`,
+              qui sur iOS ne se déclenche qu'après la séquence de souris de
+              compatibilité de Safari (~300ms après le touchend) — une fenêtre
+              pendant laquelle le menu peut déjà avoir été refermé/démonté (ex.
+              par le backdrop), empêchant le clic différé de jamais atteindre le
+              bouton. Fix : même pattern que le bouton "Plus" — `onTouchEnd` avec
+              `preventDefault()` déclenche l'action immédiatement au doigt levé
+              et supprime la séquence souris différée (onClick reste pour un vrai
+              clic souris sur desktop, jamais déclenché deux fois pour un tap). */}
           <div className="md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
             <div className="bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden min-w-[180px]">
               {isRunningOnly && (
                 <>
                   <button
+                    onTouchEnd={(e) => { e.preventDefault(); navigate("/running-profile"); setShowMoreMenu(false); }}
                     onClick={() => { navigate("/running-profile"); setShowMoreMenu(false); }}
                     className={cn(
                       "flex items-center gap-3 w-full px-4 py-3 text-sm font-medium transition-colors",
@@ -216,6 +228,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
                 </>
               )}
               <button
+                onTouchEnd={(e) => { e.preventDefault(); navigate("/"); onTabChange("configuration"); setShowMoreMenu(false); }}
                 onClick={() => { navigate("/"); onTabChange("configuration"); setShowMoreMenu(false); }}
                 className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
               >
@@ -224,9 +237,15 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
               </button>
               <div className="h-px bg-border/40" />
               <button
-                onClick={() => {
+                onTouchEnd={(e) => {
+                  e.preventDefault();
                   // Les pages hors Dashboard (AppLayout, etc.) ne fournissent pas
                   // onExportClick : sans ce repli, le bouton ne faisait RIEN.
+                  if (onExportClick) onExportClick();
+                  else navigate("/", { state: { openExport: true } });
+                  setShowMoreMenu(false);
+                }}
+                onClick={() => {
                   if (onExportClick) onExportClick();
                   else navigate("/", { state: { openExport: true } });
                   setShowMoreMenu(false);
@@ -238,6 +257,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
               </button>
               <div className="h-px bg-border/40" />
               <button
+                onTouchEnd={(e) => { e.preventDefault(); navigate("/mini-rapport"); setShowMoreMenu(false); }}
                 onClick={() => { navigate("/mini-rapport"); setShowMoreMenu(false); }}
                 className={cn(
                   "flex items-center gap-3 w-full px-4 py-3 text-sm font-medium transition-colors",
@@ -250,7 +270,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
               <div className="h-px bg-border/40" />
               <button
                 onTouchStart={(e) => { e.stopPropagation(); handlePressStart(); }}
-                onTouchEnd={(e) => { e.stopPropagation(); handlePressEnd(); }}
+                onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); handlePressEnd(); onStaffModeChange?.(!staffMode); setShowMoreMenu(false); }}
                 onClick={() => { onStaffModeChange?.(!staffMode); setShowMoreMenu(false); }}
                 className={cn(
                   "flex items-center gap-3 w-full px-4 py-3 text-sm font-medium transition-colors",

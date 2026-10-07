@@ -64,4 +64,31 @@ test.describe("MobileBottomNav — bouton Plus (menu more-menu)", () => {
     await page.getByText("Exporter un rapport").click();
     await expect(page.getByTestId("export-click-count")).toHaveText("1");
   });
+
+  /**
+   * Régression — bug coach (iPhone/Safari), de retour : "le bouton Exporter
+   * un rapport ne réagit pas quand je clique dessus". "Exporter un rapport"
+   * (comme Configuration, Mini rapport, Mode Expert) ne reposait que sur
+   * `onClick`, qui sur iOS n'arrive qu'après la séquence de souris de
+   * compatibilité de Safari (~300ms après le touchend) — une fenêtre
+   * pendant laquelle le bouton peut déjà avoir disparu (menu refermé/démonté
+   * par le backdrop ou une autre interaction), empêchant le clic différé de
+   * jamais atteindre le bouton. Ce test exerce le chemin TACTILE seul (pas
+   * de `.click()` de secours) : avant le fix, "Exporter un rapport" n'avait
+   * aucun handler tactile, donc un touchend seul ne déclenchait rien.
+   */
+  test("taper Plus (tactile) puis Exporter un rapport (tactile seul, sans clic de secours) déclenche onExportClick", async ({ page }) => {
+    await page.goto(HARNESS_URL);
+    await expect(page.getByTestId("export-click-count")).toHaveText("0");
+
+    const plus = plusButton(page);
+    await plus.dispatchEvent("touchstart", { touches: [{ identifier: 0, clientX: 1, clientY: 1 }] });
+    await plus.dispatchEvent("touchend", { changedTouches: [{ identifier: 0, clientX: 1, clientY: 1 }] });
+
+    const exportBtn = page.getByText("Exporter un rapport");
+    await exportBtn.dispatchEvent("touchstart", { touches: [{ identifier: 1, clientX: 1, clientY: 1 }] });
+    await exportBtn.dispatchEvent("touchend", { changedTouches: [{ identifier: 1, clientX: 1, clientY: 1 }] });
+
+    await expect(page.getByTestId("export-click-count")).toHaveText("1");
+  });
 });
