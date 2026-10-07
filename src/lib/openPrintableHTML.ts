@@ -1,5 +1,29 @@
 import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
+/**
+ * Bug réel (retour coach, persistant même après un re-déploiement confirmé) :
+ * plusieurs rapports générés (buildDiagnosticProtocolHTML.ts,
+ * buildTestingWeekProtocolHTML.ts, ExportTools.tsx, ObjectiveStrategyCard.tsx)
+ * embarquent LEUR PROPRE bouton "🖨️ Imprimer / PDF" dans le HTML généré
+ * (`onclick="window.print()"`) — plus visible à l'écran que le bouton
+ * générique de la barre d'outils de la surcouche iOS, donc celui que le
+ * coach presse en pratique. Sur desktop, ce document s'ouvre comme un vrai
+ * onglet top-level : `window.print()` y est correct. Mais dans la surcouche
+ * iOS (`openInlineOverlay`), ce même HTML est injecté dans une IFRAME —
+ * `window` y désigne alors la fenêtre de l'iframe, pas la page hôte, et son
+ * impression hérite du `transform: scale(...)` posé pour l'aperçu écran,
+ * d'où la pagination délirante déjà vue une fois (457 pages) et jamais
+ * vraiment corrigée pour CE bouton-ci (seul celui de la barre d'outils avait
+ * été corrigé). Ce snippet, à utiliser à la place de `window.print()` dans
+ * TOUT bouton/script embarqué dans un document généré, délègue à
+ * `window.top.__tfcPrint` quand il existe (posé par `openInlineOverlay`,
+ * qui applique la feuille de style d'impression correcte avant d'imprimer le
+ * top-level) — et retombe sur `window.print()` normal sinon (onglet
+ * desktop réel, pas de framing).
+ */
+export const EMBEDDED_PRINT_ONCLICK =
+  "(window.top && window.top.__tfcPrint ? window.top.__tfcPrint() : window.print())";
+
 export interface OpenPrintableHTMLOptions {
   /** Shown in the helper banner (not used for downloads). */
   filenameHint?: string;
@@ -272,10 +296,17 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
 
   const originalTitle = document.title;
   const restoreTitle = () => { document.title = originalTitle; };
-  printBtn.onclick = () => {
+  const doPrint = () => {
     injectPrintOnlyStyle(filenameHint);
     window.print();
   };
+  // Exposé sur `window` pour que le bouton "🖨️ Imprimer / PDF" BAKED DANS LE
+  // DOCUMENT GÉNÉRÉ lui-même (buildDiagnosticProtocolHTML.ts et consorts —
+  // visible dans l'aperçu, pas le bouton de la barre d'outils) puisse
+  // déclencher le MÊME print top-level plutôt que `window.print()` sur sa
+  // propre fenêtre d'iframe (cf. PRINT_BUTTON_SNIPPET dans ce fichier).
+  (window as unknown as Record<string, unknown>).__tfcPrint = doPrint;
+  printBtn.onclick = doPrint;
   shareBtn.onclick = () => {
     void shareReportFile(html, filenameHint);
   };
@@ -284,6 +315,7 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
     restoreTitle();
     removePrintOnlyStyle();
     window.removeEventListener("afterprint", restoreTitle);
+    delete (window as unknown as Record<string, unknown>).__tfcPrint;
     overlay.remove();
   };
   window.addEventListener("afterprint", restoreTitle);

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildTestingWeekDossierHTML } from "../buildTestingWeekProtocolHTML";
 import { TFCL_TESTING_WEEK } from "@/data/tfclTestingWeek";
 import { CAP_TESTING_WEEK } from "@/data/capTestingWeek";
+import { EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 
 /**
  * Bug réel corrigé (audit coach) : le "dossier complet" imprimable ne
@@ -189,5 +190,18 @@ describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionn�
 
   it("ajoute une carte prérequis et une ligne de synthèse dédiées à la natation", () => {
     expect(html).toContain("Profil natation");
+  });
+
+  /**
+   * Bug réel (retour coach, persistant après avoir corrigé le bouton
+   * générique de la surcouche iOS) : le bouton "🖨️ Imprimer / PDF" embarqué
+   * DANS ce dossier généré appelait encore `window.print()` en dur — qui,
+   * une fois ce HTML injecté dans l'iframe de la surcouche iOS, imprime la
+   * fenêtre de l'IFRAME (transformée pour l'aperçu écran) plutôt que la
+   * page hôte, reproduisant la pagination délirante déjà vue une fois.
+   */
+  it('le bouton "Imprimer / PDF" embarqué utilise EMBEDDED_PRINT_ONCLICK, pas window.print() en dur', () => {
+    expect(html).toContain(EMBEDDED_PRINT_ONCLICK);
+    expect(html).not.toContain('onclick="window.print()"');
   });
 });

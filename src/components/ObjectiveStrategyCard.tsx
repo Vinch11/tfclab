@@ -1,4 +1,4 @@
-import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import { openPrintableHTML, EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * CARTE STRATÉGIE OBJECTIF TFCL™
@@ -1146,13 +1146,13 @@ export function buildStrategyHtml(
   .noprint button { padding: 6px 12px; background: #5555E0; color: white; border: 0; border-radius: 4px; cursor: pointer; font-size: 12px; }
 </style></head>
 <body>
-<div class="noprint"><button onclick="window.print()">Imprimer / PDF</button></div>
+<div class="noprint"><button onclick="${EMBEDDED_PRINT_ONCLICK}">Imprimer / PDF</button></div>
 <h1>Stratégie TFCL Plan A & Plan B</h1>
 <div class="meta">Généré le ${new Date().toLocaleDateString("fr-FR")} · Potentiel Physiologique TFCL™</div>
 ${conditionsBanner}
 ${getPlans(raceObjective).map(planSection).join("")}
 <div class="footer">Calibrations : Pacing Envelope™ TFCL · Nutrition Mader-Heck (g CHO/h) · Negative split = Hanley 2020 / Casado 2021.</div>
-<script>setTimeout(() => window.print(), 400);</script>
+<script>setTimeout(() => ${EMBEDDED_PRINT_ONCLICK}, 400);</script>
 </body></html>`;
 }
 
