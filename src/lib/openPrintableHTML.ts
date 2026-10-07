@@ -118,9 +118,66 @@ function escapeHtml(s: string): string {
  * (iframe srcdoc) avec une barre d'actions Imprimer / Fermer.
  * iOS Safari refuse d'ouvrir une URL blob: dans un onglet, d'où cette approche.
  */
+const PRINT_OVERLAY_STYLE_ID = "tfc-print-overlay-style";
+
+/**
+ * Bug réel (retour coach, capture d'écran) : le bouton "Imprimer / PDF" de la
+ * surcouche ouvrait bien le dialogue d'impression iOS, mais avec une
+ * pagination délirante (457 pages pour un rapport d'une poignée de pages).
+ * Cause : `frame.contentWindow.print()` imprime le document DE L'IFRAME, qui
+ * porte le `transform: scale(...)` appliqué par `syncHeight()` pour
+ * l'aperçu écran (mise à l'échelle dans la largeur mobile) — Safari iOS
+ * calcule la pagination sur cette boîte transformée au lieu du rendu
+ * visuel réel, explosant le nombre de pages. On imprime donc la fenêtre
+ * TOP-LEVEL (dont l'impression est fiable, cf. le bouton "Imprimer" déjà
+ * robuste de `CoachChecklistPage`), avec une feuille de style imprimée qui
+ * masque tout sauf la surcouche et neutralise le scale/position/overflow
+ * posés pour l'aperçu écran (sinon l'iframe serait rognée à la hauteur de
+ * l'écran au lieu de son contenu réel).
+ */
+function injectPrintOnlyStyle(filenameHint?: string): void {
+  document.getElementById(PRINT_OVERLAY_STYLE_ID)?.remove();
+  const style = document.createElement("style");
+  style.id = PRINT_OVERLAY_STYLE_ID;
+  style.textContent = `
+    @media print {
+      body > *:not(#tfc-print-overlay) { display: none !important; }
+      #tfc-print-overlay {
+        position: static !important;
+        inset: auto !important;
+        height: auto !important;
+        display: block !important;
+      }
+      #tfc-print-overlay .tfc-print-bar,
+      #tfc-print-overlay .tfc-print-hint { display: none !important; }
+      #tfc-print-overlay .tfc-print-scroller {
+        position: static !important;
+        overflow: visible !important;
+        height: auto !important;
+      }
+      #tfc-print-overlay .tfc-print-stage {
+        width: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      #tfc-print-overlay .tfc-print-frame {
+        transform: none !important;
+        position: static !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+  if (filenameHint) document.title = filenameHint;
+}
+
+function removePrintOnlyStyle(): void {
+  document.getElementById(PRINT_OVERLAY_STYLE_ID)?.remove();
+}
+
 function openInlineOverlay(html: string, filenameHint?: string): void {
   const existing = document.getElementById("tfc-print-overlay");
   if (existing) existing.remove();
+  removePrintOnlyStyle();
 
   const overlay = document.createElement("div");
   overlay.id = "tfc-print-overlay";
@@ -128,6 +185,7 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
     "position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;flex-direction:column;";
 
   const bar = document.createElement("div");
+  bar.className = "tfc-print-bar";
   bar.style.cssText =
     "flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));border-bottom:1px solid rgba(0,0,0,.12);background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;";
 
@@ -164,6 +222,7 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   // code) — on le signale clairement et on met en avant "Partager" (Web
   // Share API), qui lui fonctionne en standalone.
   const hint = document.createElement("div");
+  hint.className = "tfc-print-hint";
   if (isStandalonePWA()) {
     hint.textContent = "📱 Depuis l'app installée, \"Imprimer\" peut ne rien faire (limitation iOS). Utilise plutôt \"Partager\" → Enregistrer dans Fichiers, puis ouvre le fichier et imprime/exporte en PDF depuis là.";
     hint.style.cssText =
@@ -173,6 +232,7 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   // iOS Safari ne scrolle pas à l'intérieur d'une iframe : on l'étire à la
   // hauteur du contenu et on scrolle le conteneur parent à la place.
   const scroller = document.createElement("div");
+  scroller.className = "tfc-print-scroller";
   scroller.style.cssText =
     "flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#fff;";
 
@@ -181,9 +241,11 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   // et on la réduit visuellement pour l'écran.
   const DOC_WIDTH = 820;
   const stage = document.createElement("div");
+  stage.className = "tfc-print-stage";
   stage.style.cssText = "position:relative;width:100%;overflow:hidden;";
 
   const frame = document.createElement("iframe");
+  frame.className = "tfc-print-frame";
   frame.style.cssText = `display:block;width:${DOC_WIDTH}px;border:0;background:#fff;transform-origin:top left;`;
   frame.setAttribute("scrolling", "no");
   frame.setAttribute("title", filenameHint ?? "Rapport");
@@ -208,21 +270,23 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   };
 
 
+  const originalTitle = document.title;
+  const restoreTitle = () => { document.title = originalTitle; };
   printBtn.onclick = () => {
-    try {
-      frame.contentWindow?.focus();
-      frame.contentWindow?.print();
-    } catch {
-      window.print();
-    }
+    injectPrintOnlyStyle(filenameHint);
+    window.print();
   };
   shareBtn.onclick = () => {
     void shareReportFile(html, filenameHint);
   };
   closeBtn.onclick = () => {
     document.body.style.overflow = "";
+    restoreTitle();
+    removePrintOnlyStyle();
+    window.removeEventListener("afterprint", restoreTitle);
     overlay.remove();
   };
+  window.addEventListener("afterprint", restoreTitle);
 
   bar.append(title, printBtn, ...(canShareFiles ? [shareBtn] : []), closeBtn);
   overlay.append(bar);

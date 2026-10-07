@@ -86,6 +86,81 @@ describe("openPrintableHTML — ouverture popup pour impression/PDF", () => {
 });
 
 /**
+ * Bug réel (retour coach, capture d'écran) : dans la surcouche iOS, le
+ * bouton "Imprimer / PDF" ouvrait bien le dialogue d'impression, mais avec
+ * une pagination délirante ("Pages 1-457" pour un rapport d'une poignée de
+ * pages). Cause : il appelait `frame.contentWindow.print()`, qui imprime le
+ * document DE L'IFRAME — lequel porte un `transform: scale(...)` posé pour
+ * l'aperçu écran (mise à l'échelle dans la largeur mobile). Safari iOS
+ * pagine sur cette boîte transformée au lieu du rendu visuel réel. Le fix
+ * imprime la fenêtre top-level à la place, avec une feuille de style qui
+ * masque tout sauf la surcouche et neutralise le scale/position/overflow
+ * d'aperçu.
+ */
+describe("openPrintableHTML (iOS, surcouche interne) — le bouton Imprimer n'imprime plus l'iframe transformée", () => {
+  const originalUserAgent = navigator.userAgent;
+  const originalPlatform = navigator.platform;
+  const originalPrint = window.print;
+
+  beforeEach(() => {
+    Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
+    Object.defineProperty(navigator, "userAgent", {
+      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+      configurable: true,
+    });
+    window.print = vi.fn();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
+    Object.defineProperty(navigator, "userAgent", { value: originalUserAgent, configurable: true });
+    window.print = originalPrint;
+    document.getElementById("tfc-print-overlay")?.remove();
+    document.getElementById("tfc-print-overlay-style")?.remove();
+    vi.restoreAllMocks();
+  });
+
+  function getOverlayButton(label: string): HTMLButtonElement {
+    const overlay = document.getElementById("tfc-print-overlay");
+    const btn = Array.from(overlay?.querySelectorAll("button") ?? []).find(
+      (b) => b.textContent === label
+    );
+    if (!btn) throw new Error(`Bouton "${label}" introuvable dans la surcouche`);
+    return btn as HTMLButtonElement;
+  }
+
+  it('clique sur "Imprimer / PDF" → imprime la fenêtre top-level (window.print), pas l\'iframe transformée', () => {
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    getOverlayButton("Imprimer / PDF").click();
+
+    expect(window.print).toHaveBeenCalledTimes(1);
+  });
+
+  it('injecte une feuille de style imprimée qui masque tout sauf la surcouche et neutralise le scale posé pour l\'aperçu écran', () => {
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    getOverlayButton("Imprimer / PDF").click();
+
+    const style = document.getElementById("tfc-print-overlay-style");
+    expect(style).not.toBeNull();
+    expect(style?.textContent).toMatch(/body > \*:not\(#tfc-print-overlay\)/);
+    expect(style?.textContent).toMatch(/transform:\s*none\s*!important/);
+  });
+
+  it('"Fermer" retire la feuille de style imprimée (pas de fuite sur le reste de la session)', () => {
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    getOverlayButton("Imprimer / PDF").click();
+    expect(document.getElementById("tfc-print-overlay-style")).not.toBeNull();
+
+    getOverlayButton("Fermer").click();
+    expect(document.getElementById("tfc-print-overlay-style")).toBeNull();
+    expect(document.getElementById("tfc-print-overlay")).toBeNull();
+  });
+});
+
+/**
  * Bug réel (retour coach, récurrent : "je ne sais de nouveau pas imprimer en
  * PDF via iPhone") — plusieurs boutons "Imprimer" (Briefing Jour J, Checklist
  * Coach) appellent `window.print()` directement sur la page affichée. Sur
