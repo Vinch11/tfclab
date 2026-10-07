@@ -22,6 +22,19 @@ function cacheLogoUrl(logoUrl: string | null) {
   }
 }
 
+/**
+ * Dernier logo custom connu sur cet appareil, lu de façon synchrone — pour
+ * les écrans affichés AVANT que useProfile() n'ait eu le temps de récupérer
+ * le profil (gates d'auth/onboarding, splash). Même cache que index.html.
+ */
+export function getCachedLogoUrl(): string | null {
+  try {
+    return localStorage.getItem(CACHED_LOGO_KEY);
+  } catch {
+    return null;
+  }
+}
+
 interface UseProfileReturn {
   profile: UserProfile | null;
   loading: boolean;

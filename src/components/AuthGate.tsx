@@ -7,6 +7,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import logo from "@/assets/logo-2fc.png";
+import { getCachedLogoUrl } from "@/hooks/useProfile";
 
 interface AuthGateProps {
   children: ReactNode;
@@ -19,9 +20,9 @@ export function AuthGate({ children }: AuthGateProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
-          <img 
-            src={logo} 
-            alt="24C Lab" 
+          <img
+            src={getCachedLogoUrl() || logo}
+            alt="24C Lab"
             className="h-36 w-auto animate-pulse"
           />
           <div className="flex items-center gap-2">
