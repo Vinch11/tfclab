@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { openPrintableHTML } from "../openPrintableHTML";
+import { openPrintableHTML, printCurrentDocument } from "../openPrintableHTML";
 
 /**
  * Bug réel (retour coach : "dès que je veux imprimer un document en PDF j'ai
@@ -82,5 +82,74 @@ describe("openPrintableHTML — ouverture popup pour impression/PDF", () => {
 
     expect(revokeSpy).toHaveBeenCalledWith("blob:mock-url");
     expect(document.getElementById("tfc-print-overlay")).not.toBeNull();
+  });
+});
+
+/**
+ * Bug réel (retour coach, récurrent : "je ne sais de nouveau pas imprimer en
+ * PDF via iPhone") — plusieurs boutons "Imprimer" (Briefing Jour J, Checklist
+ * Coach) appellent `window.print()` directement sur la page affichée. Sur
+ * iOS, quand l'app est installée sur l'écran d'accueil (mode standalone),
+ * `window.print()` ne produit AUCUNE UI — ni dialogue, ni erreur — alors que
+ * la même limitation avait déjà été identifiée et contournée pour les
+ * rapports HTML générés (surcouche interne + repli Partager). `printCurrentDocument`
+ * doit appliquer le même contournement à l'impression de la page en cours.
+ */
+describe("printCurrentDocument — impression de la page affichée (pas d'un rapport généré à part)", () => {
+  const originalPlatform = navigator.platform;
+  const originalUserAgent = navigator.userAgent;
+  const originalPrint = window.print;
+
+  beforeEach(() => {
+    window.print = vi.fn();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
+    Object.defineProperty(navigator, "userAgent", { value: originalUserAgent, configurable: true });
+    window.print = originalPrint;
+    document.getElementById("tfc-print-overlay")?.remove();
+    vi.restoreAllMocks();
+  });
+
+  it("sur desktop, appelle window.print() directement (comportement natif inchangé)", () => {
+    Object.defineProperty(navigator, "platform", { value: "Win32", configurable: true });
+    Object.defineProperty(navigator, "userAgent", {
+      value: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      configurable: true,
+    });
+
+    printCurrentDocument("Test");
+
+    expect(window.print).toHaveBeenCalledTimes(1);
+    expect(document.getElementById("tfc-print-overlay")).toBeNull();
+  });
+
+  it("sur iPhone en mode standalone (app installée), N'appelle PAS window.print() (no-op silencieux côté iOS) — bascule sur la surcouche interne à la place", () => {
+    Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
+    Object.defineProperty(navigator, "userAgent", {
+      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+      configurable: true,
+    });
+    Object.defineProperty(navigator, "standalone", { value: true, configurable: true });
+
+    printCurrentDocument("Test");
+
+    expect(window.print).not.toHaveBeenCalled();
+    expect(document.getElementById("tfc-print-overlay")).not.toBeNull();
+  });
+
+  it("sur iPhone en Safari normal (pas standalone), appelle window.print() directement (le dialogue natif fonctionne hors app installée)", () => {
+    Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
+    Object.defineProperty(navigator, "userAgent", {
+      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+      configurable: true,
+    });
+    Object.defineProperty(navigator, "standalone", { value: false, configurable: true });
+
+    printCurrentDocument("Test");
+
+    expect(window.print).toHaveBeenCalledTimes(1);
+    expect(document.getElementById("tfc-print-overlay")).toBeNull();
   });
 });

@@ -8,7 +8,7 @@ import {
   getAxisLabel,
   WahooCategory,
 } from "@/data/wahooMapping";
-import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
+import { openPrintableHTML } from "@/lib/openPrintableHTML";
 
 const CATEGORY_ORDER: WahooCategory[] = [
   "RECOVERY",
@@ -92,32 +92,11 @@ export function WahooPrintableList() {
   };
 
   const handlePrint = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    printWindow.document.write(applyBevelPrintTheme(getHtmlContent()));
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 250);
+    openPrintableHTML(getHtmlContent(), { filenameHint: "Bibliothèque Wahoo SYSTM" });
   };
 
   const handleDownloadPDF = () => {
-    // Open in new window with print dialog - user can save as PDF
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    const htmlWithPdfInstructions = getHtmlContent().replace(
-      "</body>",
-      `<p style="text-align: center; margin-top: 30px; padding: 15px; background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; font-size: 12px;">
-        <strong>💡 Pour sauvegarder en PDF :</strong> Utilisez Ctrl+P (ou Cmd+P sur Mac) puis sélectionnez "Enregistrer au format PDF" comme destination.
-      </p></body>`
-    );
-
-    printWindow.document.write(applyBevelPrintTheme(htmlWithPdfInstructions));
-    printWindow.document.close();
-    printWindow.focus();
+    openPrintableHTML(getHtmlContent(), { filenameHint: "Bibliothèque Wahoo SYSTM" });
   };
 
   const getEffectClass = (effect: "down" | "up" | "neutral") => {

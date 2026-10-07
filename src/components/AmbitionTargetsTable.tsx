@@ -31,7 +31,7 @@ import {
   AMBITION_DEFINITIONS,
   getAmbitionDefinition 
 } from "@/types/ambitionLevel";
-import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
+import { openPrintableHTML } from "@/lib/openPrintableHTML";
 
 // =============================================
 // TYPES
@@ -171,12 +171,7 @@ export function AmbitionTargetsTable({ className }: AmbitionTargetsTableProps) {
 
   const handlePrint = () => {
     const html = generatePrintHtml(filteredObjectives, ambitionFilter);
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(applyBevelPrintTheme(html));
-      printWindow.document.close();
-      setTimeout(() => printWindow.print(), 250);
-    }
+    openPrintableHTML(html, { filenameHint: "Exigences par objectif et ambition" });
   };
 
   return (
