@@ -296,9 +296,28 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
 
   const originalTitle = document.title;
   const restoreTitle = () => { document.title = originalTitle; };
+  // Imprime le document DE L'IFRAME, après avoir retiré la mise à l'échelle
+  // d'aperçu (cause des 457 pages). Imprimer la page hôte contenant l'iframe
+  // n'est pas fiable sur iOS (iframe rognée → pages blanches).
   const doPrint = () => {
-    injectPrintOnlyStyle(filenameHint);
-    window.print();
+    const prevTransform = frame.style.transform;
+    frame.style.transform = "none";
+    const restore = () => {
+      frame.style.transform = prevTransform;
+      syncHeight();
+    };
+    try {
+      const w = frame.contentWindow;
+      if (!w) throw new Error("no frame window");
+      w.addEventListener("afterprint", restore, { once: true });
+      w.focus();
+      w.print();
+      setTimeout(restore, 1500);
+    } catch {
+      restore();
+      injectPrintOnlyStyle(filenameHint);
+      window.print();
+    }
   };
   // Exposé sur `window` pour que le bouton "🖨️ Imprimer / PDF" BAKED DANS LE
   // DOCUMENT GÉNÉRÉ lui-même (buildDiagnosticProtocolHTML.ts et consorts —
@@ -391,8 +410,28 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
     ? themed
     : withPrintHelper(themed, options.filenameHint);
 
-  // iOS ne sait pas naviguer vers une URL blob: → surcouche interne directement.
+  // iOS ne sait pas naviguer vers une URL blob: → on ouvre une vraie page
+  // vide et on y écrit le document : c'est une page normale, que Safari
+  // imprime / exporte en PDF correctement (Partager → Imprimer). Si l'ouverture
+  // est bloquée, repli sur la surcouche interne.
   if (isIOSDevice()) {
+    let w: Window | null = null;
+    try {
+      w = window.open("", "_blank");
+    } catch {
+      w = null;
+    }
+    if (w && w.document) {
+      try {
+        w.document.open();
+        w.document.write(finalHtml);
+        w.document.close();
+        if (options.filenameHint) w.document.title = options.filenameHint;
+        return;
+      } catch {
+        try { w.close(); } catch { /* ignore */ }
+      }
+    }
     openInlineOverlay(finalHtml, options.filenameHint);
     return;
   }
