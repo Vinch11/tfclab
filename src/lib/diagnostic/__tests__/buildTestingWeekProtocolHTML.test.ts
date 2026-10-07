@@ -205,3 +205,21 @@ describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionn�
     expect(html).not.toContain('onclick="window.print()"');
   });
 });
+
+/**
+ * Bug réel (retour coach : "pdf de 400 pages avec juste une entête" sur
+ * iPhone, alors que le même document s'imprime correctement en ~20 pages
+ * sous Chromium — vérifié via Playwright/page.pdf()). Cause probable :
+ * `@page { ... @bottom-right {...} @bottom-left {...} }` (marges de pagination
+ * CSS Paged Media) n'est pas supporté par Safari/WebKit, qui semble alors
+ * ignorer tout le bloc @page — y compris `size`/`margin` pourtant basiques —
+ * et pagine n'importe comment.
+ */
+describe("buildTestingWeekDossierHTML — pas de marges @page non supportées par Safari", () => {
+  it("n'utilise pas @bottom-right/@bottom-left dans @page", () => {
+    const html = buildTestingWeekDossierHTML("bike", "Athlète Test");
+    expect(html).not.toContain("@bottom-right");
+    expect(html).not.toContain("@bottom-left");
+    expect(html).toContain("@page");
+  });
+});
