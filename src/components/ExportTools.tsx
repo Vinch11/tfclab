@@ -2338,9 +2338,14 @@ function computePacingEnvelopeForExport(payload: ExportPayload): PacingEnvelopeR
   const { effectiveSnapshot, effectiveRefs, vlamax, tte, potentielPhysiologique, athlete, ambition, fatmaxTFCL } = payload;
   const objectif = athlete.goal || "Marathon";
   const raceObjective = RACE_OBJECTIVE_MAP_E[objectif] ?? "Marathon";
-  const sport: "bike" | "run" =
-    objectif.includes("km") || objectif.includes("Marathon") || objectif.includes("Semi") || objectif.includes("Trail") || objectif.includes("Ultra")
-      ? "run" : "bike";
+  // Bug réel corrigé (audit "estimations physiologiques", chantier pacing
+  // envelope, finding secondaire) : regex ad hoc locale au lieu de
+  // determineSportFocusForLimiter (déjà la référence pour le reste de cet
+  // export) — impact non confirmé par l'audit (ce PDF ne calcule qu'une
+  // seule enveloppe "principale"), corrigé par cohérence avec le reste du
+  // fichier plutôt qu'un bug visible avéré.
+  const sportFocusForPacing = determineSportFocusForLimiter(objectif);
+  const sport: "bike" | "run" = sportFocusForPacing === "run" ? "run" : "bike";
 
   const ftp = effectiveRefs.ftp ?? null;
   const weight = (effectiveSnapshot as any)?.weight_kg ?? null;
