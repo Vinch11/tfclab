@@ -46,6 +46,7 @@ type ProtocolAlternatives = {
   material?: string[];   // Matériel manquant → substitutions ou mesures dégradées
   terrain?: string[];    // Terrain / environnement dégradé (météo, piste indispo, bassin…)
   short?: string[];      // Format allégé (moins de temps, blocs prioritaires)
+  extended?: string[];   // Mesures additionnelles optionnelles (si matériel/temps en plus) — jamais dans `rows`, qui ne doit lister que ce que les `instructions` produisent réellement
 };
 
 export type ProtocolDef = {
@@ -82,11 +83,6 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         rows: [
           { measure: "Sprint 30m (essai 1)", unit: "secondes" },
           { measure: "Sprint 30m (essai 2)", unit: "secondes" },
-          { measure: "Sprint 100m", unit: "secondes" },
-          { measure: "Sprint 200m", unit: "secondes" },
-          { measure: "CMJ hauteur (My Jump 2)", unit: "cm" },
-          { measure: "P1s estimée", unit: "W/kg" },
-          { measure: "5 bonds horizontaux", unit: "mètres" },
           { measure: "FC max atteinte", unit: "bpm" },
         ],
       },
@@ -205,7 +201,7 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         "Pas de GPS fiable : utiliser piste 400m étalonnée + chrono manuel (double chronométreur si possible).",
         "Pas de cardio thoracique : remplacer par montre optique poignet (précision ±5-8 bpm sur pics) — ne pas retenir la FC pic instantanée.",
         "Pas de lactate portable : conserver le protocole, la VLamax reste estimée par la distance 15s lancé (RMSE 0.073).",
-        "Pas de cônes : marquer 30m et 100m au sol avec adhésif ou peinture temporaire.",
+        "Pas de cônes : marquer 30m au sol avec adhésif ou peinture temporaire.",
       ],
       terrain: [
         "Piste 400m indispo : boucle route plate 1500m (variations dénivelé < 1 %) — corriger VMA −2 % vs piste.",
@@ -217,6 +213,11 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         "Version 60 min : Échauffement + Sprint 15s lancé + Test 1500m VMA (sprint 30m, 5 km TTE retirés). VLamax + VMA seulement.",
         "Version « profil rapide » (75 min) : Échauffement + Sprint 30m + 15s lancé + 1500m VMA (5 km TTE reporté à J+3).",
         "Si athlète débutant / masters : retirer sprint 30m départ arrêté et 5 km tempo ; garder 15s lancé + 1500m.",
+      ],
+      extended: [
+        "Tapis de saut disponible (My Jump 2 ou équivalent) : ajouter un CMJ (3 essais, meilleur gardé) après le Bloc 1 → CMJ hauteur (cm) et P1s estimée (formule Sayers) en complément du profil neuromusculaire.",
+        "Piste dégagée en plus des 30m : ajouter Sprint 100m et Sprint 200m lancés (récup complète entre chaque) après le Bloc 1, pour un profil vitesse-endurance plus complet.",
+        "Espace dégagé disponible : ajouter 5 bonds horizontaux (élan nul, meilleur essai gardé) → distance en mètres, en complément du CMJ.",
       ],
     },
   },
@@ -868,11 +869,12 @@ export function buildDiagnosticProtocolHTML(
     )
     .join("");
 
-  // Variantes & adaptations (matériel / terrain / format allégé) — bloc simple pour la version papier.
+  // Variantes & adaptations (matériel / terrain / format allégé / mesures en plus) — bloc simple pour la version papier.
   const altSections: Array<{ title: string; icon: string; items?: string[] }> = [
     { title: "Matériel manquant — substitutions",     icon: "🧰", items: p.alternatives?.material },
     { title: "Terrain / environnement dégradé",        icon: "🌦️", items: p.alternatives?.terrain },
     { title: "Format allégé (temps ou profil limité)", icon: "⏱️", items: p.alternatives?.short },
+    { title: "Mesures additionnelles (si matériel/temps en plus)", icon: "➕", items: p.alternatives?.extended },
   ].filter((s) => s.items && s.items.length > 0);
   const alternativesHtml = altSections
     .map(
@@ -1088,11 +1090,12 @@ function buildProtocolChapter(
     })
     .join("");
 
-  // Variantes & adaptations : matériel manquant / terrain dégradé / format allégé.
-  const altGroups: Array<{ key: "material" | "terrain" | "short"; title: string; icon: string; items?: string[] }> = [
+  // Variantes & adaptations : matériel manquant / terrain dégradé / format allégé / mesures en plus.
+  const altGroups: Array<{ key: "material" | "terrain" | "short" | "extended"; title: string; icon: string; items?: string[] }> = [
     { key: "material", title: "Matériel manquant — substitutions",     icon: "🧰", items: p.alternatives?.material },
     { key: "terrain",  title: "Terrain / environnement dégradé",        icon: "🌦️", items: p.alternatives?.terrain },
     { key: "short",    title: "Format allégé (temps ou profil limité)", icon: "⏱️", items: p.alternatives?.short },
+    { key: "extended", title: "Mesures additionnelles (si matériel/temps en plus)", icon: "➕", items: p.alternatives?.extended },
   ];
   const alternativesHtml = altGroups
     .filter((g) => g.items && g.items.length > 0)
