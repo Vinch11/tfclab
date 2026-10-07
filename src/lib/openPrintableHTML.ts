@@ -1,5 +1,8 @@
 import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
+/** Largeur (px) pour laquelle les rapports générés sont mis en page (~A4). */
+const DOC_WIDTH = 820;
+
 /**
  * Bug réel (retour coach, persistant même après un re-déploiement confirmé) :
  * plusieurs rapports générés (buildDiagnosticProtocolHTML.ts,
@@ -76,6 +79,37 @@ function injectBefore(html: string, needle: string, insertion: string): string {
   const idx = html.toLowerCase().lastIndexOf(needle.toLowerCase());
   if (idx === -1) return html + insertion;
   return html.slice(0, idx) + insertion + html.slice(idx);
+}
+
+/**
+ * Bug réel (retour coach, persistant même après avoir retiré les marges
+ * @page non supportées par Safari — toujours "des centaines de pages") :
+ * aucun des documents générés ne déclare de `<meta name="viewport">` (sauf
+ * ExportTools.tsx, qui déclare `width=device-width` — tout aussi
+ * problématique). Ces documents sont mis en page pour une largeur ~A4
+ * (DOC_WIDTH, 820px), pas pour un écran de
+ * téléphone. Mobile Safari n'imprime pas en reflowant selon `@page` comme
+ * un moteur de pagination classique : il découpe une CAPTURE du rendu
+ * écran en tranches de la hauteur d'une page papier. Sans largeur fixée,
+ * l'onglet ouvert par `window.open()` + `document.write()` (surtout sans
+ * navigation réelle) peut hériter de la largeur ÉTROITE de l'écran du
+ * téléphone plutôt que la largeur virtuelle ~980px que Safari utilise
+ * d'habitude pour les pages "desktop" sans viewport déclaré — le texte
+ * reflow alors sur une hauteur totale démesurée, qui une fois tranchée en
+ * pages A4 donne des centaines de pages quasi vides. Fixe la largeur de
+ * rendu à celle pour laquelle le document est réellement mis en page,
+ * indépendamment de la largeur d'écran réelle.
+ */
+function ensureFixedViewport(html: string, width: number): string {
+  const meta = `<meta name="viewport" content="width=${width}">`;
+  const existingMatch = html.match(/<meta[^>]+name=["']viewport["'][^>]*>/i);
+  if (existingMatch) {
+    return html.replace(existingMatch[0], meta);
+  }
+  if (html.toLowerCase().includes("</head>")) {
+    return injectBefore(html, "</head>", meta);
+  }
+  return meta + html;
 }
 
 function withPrintHelper(html: string, filenameHint?: string): string {
@@ -263,7 +297,6 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   // Le document est mis en page pour une largeur A4 : on force cette largeur
   // dans l'iframe (sinon Safari imprime la mise en page « mobile » écrasée)
   // et on la réduit visuellement pour l'écran.
-  const DOC_WIDTH = 820;
   const stage = document.createElement("div");
   stage.className = "tfc-print-stage";
   stage.style.cssText = "position:relative;width:100%;overflow:hidden;";
@@ -406,9 +439,10 @@ export function printCurrentDocument(filenameHint?: string): void {
 export function openPrintableHTML(html: string, options: OpenPrintableHTMLOptions = {}): void {
   // Socle de design Bevel commun à tous les rapports exportés.
   const themed = applyBevelPrintTheme(html);
+  const withViewport = ensureFixedViewport(themed, DOC_WIDTH);
   const finalHtml = options.includeInstructions === false
-    ? themed
-    : withPrintHelper(themed, options.filenameHint);
+    ? withViewport
+    : withPrintHelper(withViewport, options.filenameHint);
 
   // iOS ne sait pas naviguer vers une URL blob: → on ouvre une vraie page
   // vide et on y écrit le document : c'est une page normale, que Safari
