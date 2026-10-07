@@ -28,7 +28,14 @@ import type { RaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type RaceObjective = "IM" | "70.3" | "Marathon" | "Semi" | "10km";
+// "Sprint"/"Olympic" ajoutés (audit "estimations physiologiques", chantier
+// simulation de course) : ObjectifType (types/athlete.ts) les propose déjà
+// comme objectifs réellement sélectionnables dans l'UI (AthleteEditPage,
+// AthleteObjectiveManager) — avant leur ajout ici, RaceSimulationPage.tsx
+// retombait silencieusement sur 'IM' pour ces objectifs : un athlète Sprint
+// recevait un couloir de pacing calculé pour 180km de vélo / 42km de course
+// au lieu de 20km/5km.
+export type RaceObjective = "IM" | "70.3" | "Sprint" | "Olympic" | "Marathon" | "Semi" | "10km";
 export type EnvelopeZone = "UNDEREXPLOITATION" | "OPTIMAL" | "TOLERATED" | "FORBIDDEN";
 export type EnvelopeConfidenceLevel = "HIGH" | "MEDIUM" | "LOW";
 export type PacingProfile = "sensitive" | "balanced" | "tolerant";
@@ -254,6 +261,8 @@ export interface PacingEnvelopeResult {
 const RACE_TYPICAL_DURATION_MIN: Record<RaceObjective, number> = {
   IM: 600,        // ~10h moyenne
   "70.3": 300,    // ~5h
+  Sprint: 80,     // ~1h20 — même valeur que TRI_BASELINE_MIN.sprint (raceTimePredictor.ts)
+  Olympic: 145,   // ~2h25 — même valeur que TRI_BASELINE_MIN.olympique (raceTimePredictor.ts)
   Marathon: 210,  // ~3h30
   Semi: 105,      // ~1h45
   "10km": 45,     // ~45min

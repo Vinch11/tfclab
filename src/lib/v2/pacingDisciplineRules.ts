@@ -193,6 +193,46 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
       source: "Format 70.3 — run",
     },
   ],
+  Sprint: [
+    {
+      id: "sprint_controlled_start",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Départ contrôlé",
+      message: "20 km vélo, aucune marge pour une erreur de rythme au départ — plafond respecté dès les premières minutes.",
+      icon: "📈",
+      source: "Format Sprint",
+    },
+    {
+      id: "sprint_run_no_explosion",
+      category: "prohibition",
+      priority: "critical",
+      title: "Pas d'explosion en sortie de vélo",
+      message: "5 km de course ne pardonnent aucun excès vélo — jambes qui lâchent = course perdue dès le 1er km.",
+      icon: "🚫",
+      source: "Format Sprint — run",
+    },
+  ],
+  Olympic: [
+    {
+      id: "olympic_controlled_start",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Départ contrôlé",
+      message: "40 km vélo à gérer avant 10 km de course — départ trop rapide se paie entièrement au run.",
+      icon: "📈",
+      source: "Format Olympique",
+    },
+    {
+      id: "olympic_run_even_split",
+      category: "tactical",
+      priority: "important",
+      title: "Even split course",
+      message: "Premiers 3 km de course à allure cible exacte, progression seulement si fraîcheur intacte.",
+      icon: "🏃",
+      source: "Format Olympique — run",
+    },
+  ],
   Marathon: [
     // marathon_negative_split injecté dynamiquement (delta calibré VLamax + TTE)
     {
