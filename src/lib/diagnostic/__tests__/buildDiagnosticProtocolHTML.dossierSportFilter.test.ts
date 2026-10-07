@@ -77,3 +77,37 @@ describe("buildDiagnosticProtocolHTML / buildFullDiagnosticDossierHTML — bouto
     expect(html).not.toContain('onclick="window.print()"');
   });
 });
+
+/**
+ * Bug réel (retour coach, capture d'écran) : le "Bloc 1 — Neuromusculaire" de
+ * TFCL Track Day™ listait, dans le tableau "mesures à reporter", des mesures
+ * (Sprint 100m, Sprint 200m, CMJ hauteur, P1s estimée, 5 bonds horizontaux)
+ * qu'aucune étape des `instructions` ne produit — le protocole décrit
+ * uniquement un échauffement + sprint 30m ×2. Contrairement à TFCL Bike
+ * Day™ (Sprint 10s → Pmax/P moy/FC max, exactement ce que décrivent les
+ * instructions), ce bloc listait des mesures orphelines. Elles sont
+ * déplacées en mesures optionnelles (alternatives.extended), jamais dans le
+ * tableau obligatoire.
+ */
+describe("buildDiagnosticProtocolHTML (track-day, Bloc 1) — le tableau de mesures ne liste que ce que le protocole décrit", () => {
+  const html = buildDiagnosticProtocolHTML("track-day", "Athlète Test");
+
+  it("ne liste plus Sprint 100m/200m, CMJ, P1s ou 5 bonds horizontaux comme LIGNES du tableau de mesures obligatoires", () => {
+    expect(html).not.toContain("<td>Sprint 100m</td>");
+    expect(html).not.toContain("<td>Sprint 200m</td>");
+    expect(html).not.toContain("<td>CMJ hauteur (My Jump 2)</td>");
+    expect(html).not.toContain("<td>P1s estimée</td>");
+    expect(html).not.toContain("<td>5 bonds horizontaux</td>");
+  });
+
+  it("garde uniquement les mesures produites par les instructions (Sprint 30m ×2 + FC max) comme lignes du tableau", () => {
+    expect(html).toContain("<td>Sprint 30m (essai 1)</td>");
+    expect(html).toContain("<td>Sprint 30m (essai 2)</td>");
+    expect(html).toContain("<td>FC max atteinte</td>");
+  });
+
+  it("propose les mesures retirées comme optionnelles dans les alternatives, pas comme obligatoires", () => {
+    expect(html).toContain("Mesures additionnelles");
+    expect(html).toContain("My Jump 2");
+  });
+});
