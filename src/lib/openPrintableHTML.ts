@@ -232,7 +232,7 @@ function removePrintOnlyStyle(): void {
   document.getElementById(PRINT_OVERLAY_STYLE_ID)?.remove();
 }
 
-function openInlineOverlay(html: string, filenameHint?: string): void {
+function openInlineOverlay(html: string, filenameHint?: string, errorNote?: string): void {
   const existing = document.getElementById("tfc-print-overlay");
   if (existing) existing.remove();
   removePrintOnlyStyle();
@@ -285,6 +285,19 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
     hint.textContent = "📱 Depuis l'app installée, \"Imprimer\" peut ne rien faire (limitation iOS). Utilise plutôt \"Partager\" → Enregistrer dans Fichiers, puis ouvre le fichier et imprime/exporte en PDF depuis là.";
     hint.style.cssText =
       "flex:0 0 auto;padding:6px 12px;font-size:11.5px;line-height:1.4;color:#7a4b00;background:#fff6e5;border-bottom:1px solid rgba(0,0,0,.08);";
+  }
+
+  // Diagnostic : la génération PDF directe (iosPdfExport.ts) échouait
+  // silencieusement en production (erreur avalée par un `if
+  // (import.meta.env.DEV)`), donc impossible de savoir POURQUOI sans accès
+  // à un vrai iPhone. On affiche désormais le message d'erreur réel ici,
+  // visible et copiable par le coach, pour pouvoir enfin corriger la vraie
+  // cause au lieu de deviner.
+  const errorHint = document.createElement("div");
+  if (errorNote) {
+    errorHint.textContent = `⚠️ Génération PDF directe indisponible (${errorNote}). Aperçu imprimable ci-dessous à la place.`;
+    errorHint.style.cssText =
+      "flex:0 0 auto;padding:6px 12px;font-size:11px;line-height:1.4;color:#7a1f1f;background:#fdeceb;border-bottom:1px solid rgba(0,0,0,.08);user-select:text;-webkit-user-select:text;";
   }
 
   // iOS Safari ne scrolle pas à l'intérieur d'une iframe : on l'étire à la
@@ -392,6 +405,7 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
 
   bar.append(title, printBtn, ...(canShareFiles ? [shareBtn] : []), closeBtn);
   overlay.append(bar);
+  if (errorHint.textContent) overlay.append(errorHint);
   if (hint.textContent) overlay.append(hint);
   stage.append(frame);
   scroller.append(stage);
@@ -488,7 +502,13 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
       .then(({ exportPdfOnIOS }) => exportPdfOnIOS(finalHtml, options.filenameHint))
       .catch((err) => {
         if (import.meta.env.DEV) console.error("[iosPdfExport]", err);
-        openInlineOverlay(finalHtml, options.filenameHint);
+        // Diagnostic : cette génération a échoué à chaque test réel
+        // rapporté par le coach (toujours un repli sur cette surcouche,
+        // jamais l'écran "PDF prêt" attendu), sans qu'on sache pourquoi —
+        // l'erreur était avalée silencieusement en production. Affichée
+        // ici en clair pour casser ce cycle de corrections à l'aveugle.
+        const message = err instanceof Error ? err.message : String(err);
+        openInlineOverlay(finalHtml, options.filenameHint, message);
       });
     return;
   }

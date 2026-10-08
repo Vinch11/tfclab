@@ -164,6 +164,23 @@ describe("openPrintableHTML (iOS) — génère le PDF nativement (iosPdfExport),
 
     await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
   });
+
+  /**
+   * Bug réel : cette génération échouait silencieusement en production sur
+   * chaque test réel du coach (toujours un repli sur la surcouche, jamais
+   * l'écran "PDF prêt" attendu) — mais l'erreur n'était loguée qu'en dev
+   * (`if (import.meta.env.DEV)`), impossible donc de savoir POURQUOI sans
+   * accès à un vrai iPhone. Le message d'erreur réel doit être visible dans
+   * la surcouche de repli pour casser ce cycle de corrections à l'aveugle.
+   */
+  it("affiche le message d'erreur réel dans la surcouche de repli", async () => {
+    mockedExportPdfOnIOS.mockRejectedValue(new Error("raison précise de l'échec"));
+
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
+    expect(document.getElementById("tfc-print-overlay")?.textContent).toContain("raison précise de l'échec");
+  });
 });
 
 /**
