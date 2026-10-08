@@ -462,40 +462,34 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
     ? withViewport
     : withPrintHelper(withViewport, options.filenameHint);
 
-  // Retour coach, explicite : la génération PDF par capture d'écran
-  // (html2canvas, src/lib/print/iosPdfExport.ts) — tentée ici en priorité
-  // sur iOS un temps — produit une mise en page "catastrophique" (aucune
-  // marge, aucun saut de page propre) comparée à l'impression native
-  // d'avant : une capture d'écran ne respecte jamais les règles CSS
-  // d'impression (@page, marges, sauts de page), alors que l'impression
-  // native les applique correctement.
+  // Historique complet (voir AGENTS.md / commentaires de iosPdfExport.ts
+  // pour le détail) : QUATRE mécanismes d'impression native sur iOS ont
+  // chacun échoué de façon catastrophique, par des causes différentes —
+  // document.write (pagination qui explose), navigation blob: HTML (onglet
+  // qui n'affiche que l'entête), et même la surcouche interne une fois ces
+  // deux-là écartés (boucle de rétroaction de hauteur mesurée à plus de
+  // 280 000px pour un document réel d'environ 18 000px, corrigée, puis
+  // retour coach : "dossier de 430 pages blanches" à l'impression malgré
+  // cette correction — cause non identifiée, probablement interne au
+  // moteur d'impression de Mobile Safari lui-même).
   //
-  // Sur iOS, DEUX mécanismes d'ouverture d'un vrai onglet ont ensuite
-  // chacun reproduit le bug ORIGINEL de ce dossier ("centaines de pages,
-  // juste une entête"), avec des symptômes différents :
-  // 1. `window.open("", "_blank")` + `document.write(...)` (l'état
-  //    d'origine) → pagination qui explose. document.write dans une
-  //    fenêtre déjà ouverte n'est pas une vraie navigation : le
-  //    `<meta name="viewport">` injecté par ensureFixedViewport risque de
-  //    ne pas s'appliquer comme au chargement réel d'une page.
-  // 2. Navigation vers une URL blob: de type text/html (identique au
-  //    chemin desktop ci-dessous) → onglet qui s'ouvre mais n'affiche que
-  //    l'entête. Vérifié : le contenu de la blob lui-même est complet
-  //    (rendu réel Playwright/Chromium, body non tronqué) — donc pas une
-  //    corruption du HTML généré, mais bien une limitation de Mobile
-  //    Safari pour la navigation vers un blob: HTML dans un nouvel onglet
-  //    (contrairement à un blob: PDF, qui passe par le lecteur PDF natif
-  //    et fonctionne — cf. le bouton "Ouvrir le PDF" de iosPdfExport.ts).
-  //
-  // On va donc directement à la surcouche interne sur iOS, sans tenter
-  // d'onglet réel : elle fixe la largeur du document via le style CSS
-  // direct de l'iframe (`frame.style.cssText = "width:820px..."`, dans
-  // openInlineOverlay ci-dessous), pas via une balise meta dont
-  // l'application dépend du type de navigation — et son impression
-  // (window top-level, scale neutralisé) a déjà sa propre correction
-  // dédiée contre l'explosion de pagination (#347, #348).
+  // Seule la génération PDF par capture d'écran (html2canvas, jsPDF) a été
+  // PROUVÉE fonctionner par un test réel (Playwright+Chromium, module
+  // bundlé tel quel, pas une réplique) : contenu complet et correct sur
+  // les 14 pages d'un rapport réel, de façon reproductible. Son seul
+  // défaut réel (pas de marges) est maintenant corrigé (marge de 12mm sur
+  // chaque page). Elle redevient donc le chemin principal sur iOS — un
+  // résultat fonctionnel avec des marges est strictement préférable à une
+  // impression "native" qui produit des centaines de pages vides. Repli
+  // sur la surcouche interne (elle aussi fiabilisée entre-temps) en cas
+  // d'échec de la génération.
   if (isIOSDevice()) {
-    openInlineOverlay(finalHtml, options.filenameHint);
+    import("@/lib/print/iosPdfExport")
+      .then(({ exportPdfOnIOS }) => exportPdfOnIOS(finalHtml, options.filenameHint))
+      .catch((err) => {
+        if (import.meta.env.DEV) console.error("[iosPdfExport]", err);
+        openInlineOverlay(finalHtml, options.filenameHint);
+      });
     return;
   }
 

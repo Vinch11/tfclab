@@ -1,6 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { openPrintableHTML, printCurrentDocument, EMBEDDED_PRINT_ONCLICK } from "../openPrintableHTML";
 
+// Sur iOS, openPrintableHTML essaie d'abord la génération PDF native
+// (src/lib/print/iosPdfExport.ts, dynamic import — html2canvas + jsPDF,
+// seul mécanisme PROUVÉ fonctionnel par rendu réel après l'échec répété de
+// plusieurs mécanismes d'impression native, cf. le commentaire au-dessus de
+// l'appel dans openPrintableHTML.ts) avant de retomber sur la surcouche
+// interne. On contrôle ce mock par test (résolu = succès, rejeté = repli
+// sur la surcouche) — ces tests couvrent l'orchestration et la surcouche,
+// pas la génération PDF elle-même (testée séparément via de vrais rendus
+// Playwright/Chromium, html2canvas n'étant pas simulable fidèlement en
+// jsdom).
+vi.mock("@/lib/print/iosPdfExport", () => ({
+  exportPdfOnIOS: vi.fn(),
+}));
+import { exportPdfOnIOS } from "@/lib/print/iosPdfExport";
+const mockedExportPdfOnIOS = vi.mocked(exportPdfOnIOS);
+
 /**
  * Bug réel (retour coach : "dès que je veux imprimer un document en PDF j'ai
  * un fichier de seulement 0 octets") — `window.open(url, "_blank",
@@ -86,38 +102,33 @@ describe("openPrintableHTML — ouverture popup pour impression/PDF", () => {
 });
 
 /**
- * Sur iOS, `openPrintableHTML` va directement à la surcouche interne, sans
- * tenter d'onglet réel.
+ * Sur iOS, `openPrintableHTML` essaie d'abord la génération PDF native
+ * (html2canvas + jsPDF, src/lib/print/iosPdfExport.ts), avec repli sur la
+ * surcouche interne si ça échoue.
  *
- * Historique (deux fausses pistes successives à ne pas reproduire) :
- * 1. Une génération par capture d'écran (html2canvas,
- *    src/lib/print/iosPdfExport.ts) a été essayée en priorité un temps —
- *    retour coach : "mise en page catastrophique, pas de marges, pas de
- *    saut de page". Une capture d'écran ne respecte jamais les règles CSS
- *    d'impression ; seule l'impression native les applique.
- * 2. `window.open("", "_blank")` + `document.write(...)` (l'état d'origine)
- *    → retour coach : "PDF de 400 pages avec juste une entête". document.write
- *    dans une fenêtre déjà ouverte n'est pas une vraie navigation, le
- *    `<meta name="viewport">` injecté risque de ne pas s'appliquer comme au
- *    chargement réel d'une page.
- * 3. Navigation vers une URL blob: de type text/html (identique au chemin
- *    desktop) — retour coach : "le pdf s'ouvre mais il n'y a que l'entête".
- *    Vérifié par rendu réel (Playwright/Chromium, user-agent iPhone) : le
- *    contenu de la blob est complet (body non tronqué, ~18k caractères) —
- *    donc pas une corruption du HTML généré, mais une limitation de Mobile
- *    Safari pour CE type de navigation (blob: HTML, par opposition à un
- *    blob: PDF qui passe par le lecteur natif et fonctionne, cf. le bouton
- *    "Ouvrir le PDF" de iosPdfExport.ts).
+ * Historique (plusieurs mécanismes d'impression native essayés tour à
+ * tour, chacun ayant échoué de façon catastrophique pour une cause
+ * différente — voir le commentaire au-dessus de l'appel dans
+ * openPrintableHTML.ts) :
+ * 1. Capture d'écran en priorité un temps — retour coach : "mise en page
+ *    catastrophique, pas de marges, pas de saut de page". Corrigé depuis
+ *    (marges ajoutées) — c'est la génération testée ici.
+ * 2. `window.open("", "_blank")` + `document.write(...)` → "PDF de 400
+ *    pages avec juste une entête".
+ * 3. Navigation vers une URL blob: de type text/html → "le pdf s'ouvre
+ *    mais il n'y a que l'entête".
+ * 4. Surcouche interne seule (sans la génération PDF en priorité) → boucle
+ *    de rétroaction de hauteur (corrigée), puis malgré cette correction :
+ *    "dossier de 430 pages blanches" à l'impression — cause non identifiée,
+ *    probablement interne au moteur d'impression de Mobile Safari.
  *
- * La surcouche fixe la largeur du document via le style CSS direct de
- * l'iframe (pas une balise meta dont l'application dépend du type de
- * navigation) et a sa propre correction dédiée contre l'explosion de
- * pagination à l'impression (#347, #348).
+ * La génération par capture d'écran est la SEULE approche prouvée
+ * fonctionner par un rendu réel (Playwright/Chromium, module bundlé tel
+ * quel) de façon reproductible.
  */
-describe("openPrintableHTML (iOS) — va directement à la surcouche interne, sans tenter d'onglet réel", () => {
+describe("openPrintableHTML (iOS) — génère le PDF nativement (iosPdfExport), surcouche seulement si ça échoue", () => {
   const originalUserAgent = navigator.userAgent;
   const originalPlatform = navigator.platform;
-  const originalOpen = window.open;
 
   beforeEach(() => {
     Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
@@ -125,36 +136,33 @@ describe("openPrintableHTML (iOS) — va directement à la surcouche interne, sa
       value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
       configurable: true,
     });
+    mockedExportPdfOnIOS.mockReset();
   });
 
   afterEach(() => {
     Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
     Object.defineProperty(navigator, "userAgent", { value: originalUserAgent, configurable: true });
-    window.open = originalOpen;
     document.getElementById("tfc-print-overlay")?.remove();
     vi.restoreAllMocks();
   });
 
-  it("affiche la surcouche interne directement, sans jamais appeler window.open", () => {
-    const openSpy = vi.fn();
-    window.open = openSpy as typeof window.open;
+  it("appelle exportPdfOnIOS avec le document préparé et n'affiche PAS la surcouche interne", async () => {
+    mockedExportPdfOnIOS.mockResolvedValue(undefined);
 
     openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
 
-    expect(openSpy).not.toHaveBeenCalled();
-    expect(document.getElementById("tfc-print-overlay")).not.toBeNull();
+    await vi.waitFor(() => expect(mockedExportPdfOnIOS).toHaveBeenCalledTimes(1));
+    expect(mockedExportPdfOnIOS.mock.calls[0][0]).toContain("Rapport");
+    expect(mockedExportPdfOnIOS.mock.calls[0][1]).toBe("Test");
+    expect(document.getElementById("tfc-print-overlay")).toBeNull();
   });
 
-  it("même en mode app installée (standalone), affiche la surcouche directement", () => {
-    const originalMatchMedia = window.matchMedia;
-    Object.defineProperty(navigator, "standalone", { value: true, configurable: true });
+  it("si exportPdfOnIOS échoue, bascule sur la surcouche interne", async () => {
+    mockedExportPdfOnIOS.mockRejectedValue(new Error("échec simulé"));
 
     openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
 
-    expect(document.getElementById("tfc-print-overlay")).not.toBeNull();
-
-    Object.defineProperty(navigator, "standalone", { value: undefined, configurable: true });
-    window.matchMedia = originalMatchMedia;
+    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
   });
 });
 
@@ -184,9 +192,11 @@ describe("openPrintableHTML (iOS, surcouche interne) — le bouton Imprimer n'im
       configurable: true,
     });
     window.print = vi.fn();
-    // iOS va directement à la surcouche interne (aucun onglet réel tenté) —
-    // window.open n'est normalement jamais appelé ici, mocké par précaution.
-    window.open = vi.fn().mockReturnValue(null) as typeof window.open;
+    // iOS essaie d'abord la génération PDF native (exportPdfOnIOS) avant de
+    // retomber sur la surcouche interne — on simule un échec pour exercer ce
+    // repli, celui que ces tests couvrent.
+    mockedExportPdfOnIOS.mockReset();
+    mockedExportPdfOnIOS.mockRejectedValue(new Error("échec simulé"));
   });
 
   afterEach(() => {
