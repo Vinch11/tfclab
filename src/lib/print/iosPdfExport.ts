@@ -95,7 +95,14 @@ async function renderPdf(html: string, onProgress: (txt: string) => void): Promi
 
     const totalHeight = Math.max(body.scrollHeight, doc.documentElement.scrollHeight, PAGE_HEIGHT);
     const pageCount = Math.max(1, Math.ceil(totalHeight / PAGE_HEIGHT));
-    frame.style.height = `${totalHeight}px`;
+    // NE PAS agrandir l'iframe à totalHeight : scrollY (plus bas) a besoin
+    // que l'iframe reste à la hauteur d'UNE page pour que le document ait
+    // réellement un overflow défilable. Avec l'iframe déjà aussi haute que
+    // tout le document, il n'y a plus rien à faire défiler : scrollY=-y n'a
+    // aucun effet et chaque "page" recapture le même haut de document — bug
+    // constaté (coach, retour réel) : "15 pages mais 15 fois la page de
+    // garde", après un premier correctif qui avait réglé les pages blanches
+    // mais introduit celui-ci par la même ligne laissée en place.
 
     const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
     const pageW = pdf.internal.pageSize.getWidth();
