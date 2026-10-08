@@ -1393,7 +1393,12 @@ export function buildFullDiagnosticDossierHTML(
   @media print { .print-btn { display: none; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 
   /* ---- Couverture : même bannière dégradée + logo que les rapports staff/athlète ---- */
-  .cover { min-height: 95vh; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 10px 30px; }
+  /* min-height en px fixe (pas vh — boucle avec la hauteur de l'iframe
+     d'impression iOS, cf. syncHeight dans src/lib/openPrintableHTML.ts :
+     retour coach "le pdf s'ouvre mais il n'y a que l'entête", iframe
+     mesurée à plus de 280 000px pour un document réel d'environ 18 000px) :
+     ~95% de la hauteur d'une page A4 pour une largeur de rendu de 820px. */
+  .cover { min-height: 1100px; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 10px 30px; }
   .cover-banner { background: linear-gradient(135deg, #5555E0 0%, #6C55D8 55%, #7A56C2 100%); border-radius: 16px; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
   .cover-banner .cover-brand { display: flex; align-items: center; gap: 18px; }
   .cover-banner .cover-logo-img { height: 64px; width: auto; background: white; padding: 8px; border-radius: 12px; }

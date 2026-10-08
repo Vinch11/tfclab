@@ -311,11 +311,29 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
     try {
       const d = frame.contentDocument;
       if (!d?.body) return;
-      const h = Math.max(
-        d.body.scrollHeight,
-        d.documentElement?.scrollHeight ?? 0,
-        d.body.offsetHeight,
-      );
+      // Bug réel trouvé (vérifié par rendu réel, user-agent iPhone, retour
+      // coach "le pdf s'ouvre mais il n'y a que l'entête") : scrollHeight
+      // d'un body/html sans hauteur explicite "plancher" à la hauteur déjà
+      // posée sur CETTE iframe (son propre viewport interne), pas à la
+      // hauteur réelle du contenu, dès que le contenu est plus court que ce
+      // plancher — reproduit isolément : une iframe forcée à 50 000px fait
+      // immédiatement remonter body.scrollHeight à 50 000, pour un contenu
+      // de quelques pixels. Comme ce handler augmente justement
+      // frame.style.height à chaque appel, et se redéclenche à chaque
+      // redimensionnement du body (ResizeObserver), chaque mesure lit AU
+      // MOINS la hauteur posée au tour précédent : boucle de rétroaction
+      // sans convergence, qui a fait grimper l'iframe à plus de 280 000px
+      // pour un document réel d'environ 18 000px — bien au-delà de ce
+      // qu'un moteur d'impression peut raisonnablement rendre, d'où un PDF
+      // qui n'affiche plus qu'une entête une fois cette hauteur imprimée.
+      // Fix : mesurer la position du bas du contenu réel (getBoundingClientRect
+      // de chaque enfant direct de body, insensible à la hauteur déjà posée
+      // sur l'iframe) plutôt que scrollHeight/offsetHeight.
+      let h = 0;
+      for (const child of Array.from(d.body.children)) {
+        h = Math.max(h, child.getBoundingClientRect().bottom);
+      }
+      if (h <= 0) h = d.body.scrollHeight;
       if (h > 0) frame.style.height = `${h + 40}px`;
       const available = stage.clientWidth || scroller.clientWidth || DOC_WIDTH;
       const scale = Math.min(1, available / DOC_WIDTH);
@@ -448,31 +466,39 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
   // (html2canvas, src/lib/print/iosPdfExport.ts) — tentée ici en priorité
   // sur iOS un temps — produit une mise en page "catastrophique" (aucune
   // marge, aucun saut de page propre) comparée à l'impression native
-  // d'avant, qui "marchait impeccablement" : une capture d'écran ne respecte
-  // jamais les règles CSS d'impression (@page, marges, sauts de page), alors
-  // que l'impression native via un vrai onglet les applique correctement.
+  // d'avant : une capture d'écran ne respecte jamais les règles CSS
+  // d'impression (@page, marges, sauts de page), alors que l'impression
+  // native les applique correctement.
   //
-  // En mode app installée (standalone), window.print() ne produit AUCUNE UI
-  // → surcouche interne directement (elle imprime aussi nativement, pas par
-  // capture).
-  if (isIOSDevice() && isStandalonePWA()) {
+  // Sur iOS, DEUX mécanismes d'ouverture d'un vrai onglet ont ensuite
+  // chacun reproduit le bug ORIGINEL de ce dossier ("centaines de pages,
+  // juste une entête"), avec des symptômes différents :
+  // 1. `window.open("", "_blank")` + `document.write(...)` (l'état
+  //    d'origine) → pagination qui explose. document.write dans une
+  //    fenêtre déjà ouverte n'est pas une vraie navigation : le
+  //    `<meta name="viewport">` injecté par ensureFixedViewport risque de
+  //    ne pas s'appliquer comme au chargement réel d'une page.
+  // 2. Navigation vers une URL blob: de type text/html (identique au
+  //    chemin desktop ci-dessous) → onglet qui s'ouvre mais n'affiche que
+  //    l'entête. Vérifié : le contenu de la blob lui-même est complet
+  //    (rendu réel Playwright/Chromium, body non tronqué) — donc pas une
+  //    corruption du HTML généré, mais bien une limitation de Mobile
+  //    Safari pour la navigation vers un blob: HTML dans un nouvel onglet
+  //    (contrairement à un blob: PDF, qui passe par le lecteur PDF natif
+  //    et fonctionne — cf. le bouton "Ouvrir le PDF" de iosPdfExport.ts).
+  //
+  // On va donc directement à la surcouche interne sur iOS, sans tenter
+  // d'onglet réel : elle fixe la largeur du document via le style CSS
+  // direct de l'iframe (`frame.style.cssText = "width:820px..."`, dans
+  // openInlineOverlay ci-dessous), pas via une balise meta dont
+  // l'application dépend du type de navigation — et son impression
+  // (window top-level, scale neutralisé) a déjà sa propre correction
+  // dédiée contre l'explosion de pagination (#347, #348).
+  if (isIOSDevice()) {
     openInlineOverlay(finalHtml, options.filenameHint);
     return;
   }
 
-  // Ancienne branche iOS séparée (document.write dans une fenêtre
-  // about:blank) supprimée : "iOS ne sait pas naviguer vers une URL blob:"
-  // était une hypothèse jamais revérifiée — iosPdfExport.ts navigue déjà
-  // avec succès vers une URL blob: sur iOS pour son propre bouton "Ouvrir
-  // le PDF". document.write dans une fenêtre déjà ouverte n'est PAS une
-  // vraie navigation : le <meta name="viewport"> injecté par
-  // ensureFixedViewport ci-dessus risque fort de ne pas s'appliquer de la
-  // même façon qu'au chargement réel d'une page — explication la plus
-  // probable du retour du bug "centaines de pages, juste une entête" une
-  // fois cette branche réintroduite. Un vrai onglet (URL blob:, identique
-  // au chemin desktop ci-dessous, déjà fiabilisé par #277) est une
-  // navigation réelle : le viewport et les règles d'impression s'appliquent
-  // normalement.
   const blob = new Blob([finalHtml], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
 
