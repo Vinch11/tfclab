@@ -52,7 +52,7 @@ function safeFileName(hint?: string): string {
   return (base.replace(/[^a-zA-Z0-9-_ ]+/g, "_").trim() || "rapport") + ".pdf";
 }
 
-async function renderPdf(html: string, onProgress: (txt: string) => void): Promise<Blob> {
+export async function renderPdf(html: string, onProgress: (txt: string) => void): Promise<Blob> {
   const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
     import("html2canvas"),
     import("jspdf"),
