@@ -444,21 +444,43 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
     ? withViewport
     : withPrintHelper(withViewport, options.filenameHint);
 
-  // iOS ne sait pas naviguer vers une URL blob: → on ouvre une vraie page
-  // vide et on y écrit le document : c'est une page normale, que Safari
-  // imprime / exporte en PDF correctement (Partager → Imprimer). Si l'ouverture
-  // est bloquée, repli sur la surcouche interne.
-  // iPhone/iPad : l'impression Safari est trop peu fiable (onglet vide en app
-  // installée, pagination cassée dans une iframe). On fabrique directement un
-  // vrai fichier PDF sur le téléphone puis on propose Partager → Enregistrer.
-  // En cas d'échec de génération, repli sur l'aperçu imprimable interne.
+  // Retour coach, explicite : la génération PDF par capture d'écran
+  // (html2canvas, src/lib/print/iosPdfExport.ts) — tentée ici en priorité
+  // sur iOS un temps — produit une mise en page "catastrophique" (aucune
+  // marge, aucun saut de page propre) comparée à l'impression native
+  // d'avant, qui "marchait impeccablement" : une capture d'écran ne respecte
+  // jamais les règles CSS d'impression (@page, marges, sauts de page), alors
+  // que l'impression native via un vrai onglet les applique correctement.
+  // Le seul vrai problème historique sur iPhone était que cet onglet ne
+  // s'ouvrait pas de façon fiable — pas la qualité du rendu une fois ouvert.
+  // On revient donc à l'onglet réel en priorité (iOS ne sait pas naviguer
+  // vers une URL blob: → on ouvre une page vide et on y écrit le document,
+  // que Safari imprime/exporte en PDF nativement via Partager → Imprimer),
+  // avec repli sur la surcouche interne (qui imprime aussi nativement, pas
+  // par capture) si le popup est bloqué ou en mode app installée.
   if (isIOSDevice()) {
-    import("@/lib/print/iosPdfExport")
-      .then(({ exportPdfOnIOS }) => exportPdfOnIOS(finalHtml, options.filenameHint))
-      .catch((err) => {
-        if (import.meta.env.DEV) console.error("[iosPdfExport]", err);
-        openInlineOverlay(finalHtml, options.filenameHint);
-      });
+    if (isStandalonePWA()) {
+      openInlineOverlay(finalHtml, options.filenameHint);
+      return;
+    }
+    let w: Window | null = null;
+    try {
+      w = window.open("", "_blank");
+    } catch {
+      w = null;
+    }
+    if (w && w.document) {
+      try {
+        w.document.open();
+        w.document.write(finalHtml);
+        w.document.close();
+        if (options.filenameHint) w.document.title = options.filenameHint;
+        return;
+      } catch {
+        try { w.close(); } catch { /* ignore */ }
+      }
+    }
+    openInlineOverlay(finalHtml, options.filenameHint);
     return;
   }
 
