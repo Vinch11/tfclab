@@ -117,6 +117,14 @@ export async function renderPdf(
     pdf.setProperties({ title: safeFileName(filenameHint).replace(/\.pdf$/i, "") });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
+    // Retour coach ("pas de marges") : chaque page était placée plein
+    // cadre (x=0, y=0, largeur = toute la page). Marge uniforme de 12mm —
+    // l'image garde son ratio d'origine (déjà celui d'une page A4, via
+    // PAGE_HEIGHT), donc une simple mise à l'échelle depuis la largeur
+    // utile suffit à conserver les proportions.
+    const MARGIN_MM = 12;
+    const usableW = pageW - 2 * MARGIN_MM;
+    const marginScale = usableW / pageW;
 
     // Décalage de page SANS dépendre du défilement.
     // Historique : l'option `scrollY` de html2canvas est ignorée sur Safari
@@ -154,7 +162,8 @@ export async function renderPdf(
         });
         const img = canvas.toDataURL("image/jpeg", 0.92);
         if (i > 0) pdf.addPage();
-        pdf.addImage(img, "JPEG", 0, 0, pageW, (h / PAGE_HEIGHT) * pageH);
+        const imgH = (h / PAGE_HEIGHT) * pageH * marginScale;
+        pdf.addImage(img, "JPEG", MARGIN_MM, MARGIN_MM, usableW, imgH);
         canvas.width = 0;
         canvas.height = 0;
       }
