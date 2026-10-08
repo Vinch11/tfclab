@@ -451,39 +451,28 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
   // d'avant, qui "marchait impeccablement" : une capture d'écran ne respecte
   // jamais les règles CSS d'impression (@page, marges, sauts de page), alors
   // que l'impression native via un vrai onglet les applique correctement.
-  // Le seul vrai problème historique sur iPhone était que cet onglet ne
-  // s'ouvrait pas de façon fiable — pas la qualité du rendu une fois ouvert.
-  // On revient donc à l'onglet réel en priorité (iOS ne sait pas naviguer
-  // vers une URL blob: → on ouvre une page vide et on y écrit le document,
-  // que Safari imprime/exporte en PDF nativement via Partager → Imprimer),
-  // avec repli sur la surcouche interne (qui imprime aussi nativement, pas
-  // par capture) si le popup est bloqué ou en mode app installée.
-  if (isIOSDevice()) {
-    if (isStandalonePWA()) {
-      openInlineOverlay(finalHtml, options.filenameHint);
-      return;
-    }
-    let w: Window | null = null;
-    try {
-      w = window.open("", "_blank");
-    } catch {
-      w = null;
-    }
-    if (w && w.document) {
-      try {
-        w.document.open();
-        w.document.write(finalHtml);
-        w.document.close();
-        if (options.filenameHint) w.document.title = options.filenameHint;
-        return;
-      } catch {
-        try { w.close(); } catch { /* ignore */ }
-      }
-    }
+  //
+  // En mode app installée (standalone), window.print() ne produit AUCUNE UI
+  // → surcouche interne directement (elle imprime aussi nativement, pas par
+  // capture).
+  if (isIOSDevice() && isStandalonePWA()) {
     openInlineOverlay(finalHtml, options.filenameHint);
     return;
   }
 
+  // Ancienne branche iOS séparée (document.write dans une fenêtre
+  // about:blank) supprimée : "iOS ne sait pas naviguer vers une URL blob:"
+  // était une hypothèse jamais revérifiée — iosPdfExport.ts navigue déjà
+  // avec succès vers une URL blob: sur iOS pour son propre bouton "Ouvrir
+  // le PDF". document.write dans une fenêtre déjà ouverte n'est PAS une
+  // vraie navigation : le <meta name="viewport"> injecté par
+  // ensureFixedViewport ci-dessus risque fort de ne pas s'appliquer de la
+  // même façon qu'au chargement réel d'une page — explication la plus
+  // probable du retour du bug "centaines de pages, juste une entête" une
+  // fois cette branche réintroduite. Un vrai onglet (URL blob:, identique
+  // au chemin desktop ci-dessous, déjà fiabilisé par #277) est une
+  // navigation réelle : le viewport et les règles d'impression s'appliquent
+  // normalement.
   const blob = new Blob([finalHtml], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
 
