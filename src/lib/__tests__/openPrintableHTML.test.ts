@@ -86,25 +86,34 @@ describe("openPrintableHTML — ouverture popup pour impression/PDF", () => {
 });
 
 /**
- * Sur iOS, `openPrintableHTML` essaie d'abord un vrai onglet (`window.open`
- * + `document.write`, sans URL blob:) avant de retomber sur la surcouche
- * interne — un onglet réel s'imprime nativement de façon fiable (comme sur
- * desktop : vraies marges CSS @page, vrais sauts de page), sans les
- * complications de l'iframe mise à l'échelle. La surcouche reste le repli
- * pour le cas où ce popup est bloqué.
+ * Sur iOS, `openPrintableHTML` ouvre un vrai onglet via une URL blob: —
+ * EXACTEMENT le même mécanisme que sur desktop — avant de retomber sur la
+ * surcouche interne si le popup est bloqué.
  *
- * Historique : une génération par capture d'écran (html2canvas,
- * src/lib/print/iosPdfExport.ts) a été essayée ici en priorité un temps —
- * retour coach, explicite : "mise en page catastrophique, pas de marges,
- * pas de saut de page" par rapport à l'impression native d'avant, qui
- * "marchait impeccablement". Une capture d'écran ne respecte jamais les
- * règles CSS d'impression ; seule l'impression native (onglet réel ou
- * surcouche) les applique. Revenu à l'onglet réel en priorité.
+ * Historique (deux fausses pistes successives à ne pas reproduire) :
+ * 1. Une génération par capture d'écran (html2canvas,
+ *    src/lib/print/iosPdfExport.ts) a été essayée en priorité un temps —
+ *    retour coach : "mise en page catastrophique, pas de marges, pas de
+ *    saut de page". Une capture d'écran ne respecte jamais les règles CSS
+ *    d'impression ; seule l'impression native les applique.
+ * 2. En revenant à l'impression native, une branche iOS séparée utilisait
+ *    `window.open("", "_blank")` + `document.write(...)` plutôt qu'une
+ *    URL blob:, sur la foi d'un commentaire jamais revérifié ("iOS ne sait
+ *    pas naviguer vers une URL blob:"). Retour coach : le bug ORIGINEL
+ *    ("PDF de 400 pages avec juste une entête") est réapparu. Cause très
+ *    probable : `document.write` dans une fenêtre déjà ouverte n'est pas
+ *    une vraie navigation — le `<meta name="viewport">` injecté ne
+ *    s'applique pas de la même façon qu'au chargement réel d'une page,
+ *    d'où un reflow à la largeur étroite de l'écran plutôt qu'à la largeur
+ *    du document. `iosPdfExport.ts` navigue déjà avec succès vers une URL
+ *    blob: sur iOS pour son propre bouton "Ouvrir le PDF" : ce mécanisme
+ *    EST fiable sur iOS, document.write ne l'est pas.
  */
-describe("openPrintableHTML (iOS) — ouvre un vrai onglet en priorité, surcouche seulement si bloqué", () => {
+describe("openPrintableHTML (iOS) — ouvre un vrai onglet (URL blob:, comme desktop) en priorité, surcouche seulement si bloqué", () => {
   const originalUserAgent = navigator.userAgent;
   const originalPlatform = navigator.platform;
   const originalOpen = window.open;
+  let createSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
@@ -112,6 +121,8 @@ describe("openPrintableHTML (iOS) — ouvre un vrai onglet en priorité, surcouc
       value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
       configurable: true,
     });
+    createSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock-url");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -122,15 +133,16 @@ describe("openPrintableHTML (iOS) — ouvre un vrai onglet en priorité, surcouc
     vi.restoreAllMocks();
   });
 
-  it("quand le popup s'ouvre, écrit le document dedans et n'affiche PAS la surcouche interne", () => {
-    const fakeDoc = { open: vi.fn(), write: vi.fn(), close: vi.fn(), title: "" };
-    const fakeWin = { document: fakeDoc } as unknown as Window;
-    window.open = vi.fn().mockReturnValue(fakeWin) as typeof window.open;
+  it("quand le popup s'ouvre, navigue vers une URL blob: (pas document.write) et n'affiche PAS la surcouche interne", async () => {
+    const fakeWin = { focus: vi.fn(), print: vi.fn(), opener: {} } as unknown as Window;
+    const openSpy = vi.fn().mockReturnValue(fakeWin);
+    window.open = openSpy as typeof window.open;
 
     openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
 
-    expect(fakeDoc.write).toHaveBeenCalledTimes(1);
-    expect(fakeDoc.write.mock.calls[0][0]).toContain("Rapport");
+    expect(openSpy).toHaveBeenCalledWith("blob:mock-url", "_blank");
+    const blobArg = createSpy.mock.calls[0][0] as Blob;
+    expect(await blobArg.text()).toContain("Rapport");
     expect(document.getElementById("tfc-print-overlay")).toBeNull();
   });
 
@@ -139,20 +151,19 @@ describe("openPrintableHTML (iOS) — ouvre un vrai onglet en priorité, surcouc
    * avoir retiré les marges @page non supportées par Safari) : aucun
    * document généré ne fixe de largeur de rendu. Mobile Safari n'imprime
    * pas en reflowant selon `@page` : il découpe une capture du rendu écran
-   * en tranches de la hauteur d'une page. Un onglet ouvert via
-   * `window.open` + `document.write` peut hériter de la largeur étroite de
-   * l'écran plutôt que la largeur ~980px que Safari utilise par défaut pour
-   * les pages sans viewport déclaré — le contenu (mis en page pour ~820px)
-   * reflow alors sur une hauteur démesurée, tranchée en centaines de pages.
+   * en tranches de la hauteur d'une page. Le document naviguable doit fixer
+   * sa propre largeur plutôt que d'hériter de la largeur étroite de
+   * l'écran — le contenu (mis en page pour ~820px) reflow alors sur une
+   * hauteur démesurée, tranchée en centaines de pages.
    */
-  it("fixe une largeur de rendu (viewport) au document écrit dans l'onglet — indépendante de la largeur d'écran réelle", () => {
-    const fakeDoc = { open: vi.fn(), write: vi.fn(), close: vi.fn(), title: "" };
-    const fakeWin = { document: fakeDoc } as unknown as Window;
+  it("fixe une largeur de rendu (viewport) sur le document de l'onglet — indépendante de la largeur d'écran réelle", async () => {
+    const fakeWin = { focus: vi.fn(), print: vi.fn(), opener: {} } as unknown as Window;
     window.open = vi.fn().mockReturnValue(fakeWin) as typeof window.open;
 
     openPrintableHTML("<html><head></head><body>Rapport</body></html>", { filenameHint: "Test" });
 
-    const written = fakeDoc.write.mock.calls[0][0] as string;
+    const blobArg = createSpy.mock.calls[0][0] as Blob;
+    const written = await blobArg.text();
     expect(written).toMatch(/<meta name="viewport" content="width=\d+">/);
     expect(written).not.toContain("device-width");
   });
@@ -192,8 +203,8 @@ describe("openPrintableHTML (iOS, surcouche interne — popup bloqué) — le bo
       configurable: true,
     });
     window.print = vi.fn();
-    // iOS essaie d'abord un vrai onglet (window.open + document.write) avant
-    // de retomber sur la surcouche interne — on simule un popup bloqué pour
+    // iOS essaie d'abord un vrai onglet (URL blob:, comme desktop) avant de
+    // retomber sur la surcouche interne — on simule un popup bloqué pour
     // exercer ce repli, celui que ces tests couvrent.
     window.open = vi.fn().mockReturnValue(null) as typeof window.open;
   });
