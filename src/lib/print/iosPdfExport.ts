@@ -52,6 +52,25 @@ function safeFileName(hint?: string): string {
   return (base.replace(/[^a-zA-Z0-9-_ ]+/g, "_").trim() || "rapport") + ".pdf";
 }
 
+/** Vrai si la tranche capturée ne contient que du blanc (échantillon réduit). */
+function isBlankCanvas(canvas: HTMLCanvasElement): boolean {
+  try {
+    const s = document.createElement("canvas");
+    s.width = 64;
+    s.height = 90;
+    const ctx = s.getContext("2d");
+    if (!ctx) return false;
+    ctx.drawImage(canvas, 0, 0, s.width, s.height);
+    const d = ctx.getImageData(0, 0, s.width, s.height).data;
+    for (let p = 0; p < d.length; p += 4) {
+      if (d[p] < 245 || d[p + 1] < 245 || d[p + 2] < 245) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function renderPdf(
   html: string,
   filenameHint: string | undefined,
@@ -160,6 +179,14 @@ export async function renderPdf(
           scrollY: 0,
           ignoreElements: ignore,
         });
+        // Le clone html2canvas est souvent plus compact que la mesure live
+        // (WebKit : ~25 % plus court) → pages finales entièrement blanches.
+        // Dès qu'une tranche est vide, tout le reste l'est aussi : on arrête.
+        if (i > 0 && isBlankCanvas(canvas)) {
+          canvas.width = 0;
+          canvas.height = 0;
+          break;
+        }
         const img = canvas.toDataURL("image/jpeg", 0.92);
         if (i > 0) pdf.addPage();
         const imgH = (h / PAGE_HEIGHT) * pageH * marginScale;
