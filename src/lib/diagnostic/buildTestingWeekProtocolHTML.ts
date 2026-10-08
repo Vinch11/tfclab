@@ -386,7 +386,7 @@ const CSS = `
   .instructions { margin: 0 0 0 20px; padding: 0; font-size: 10.5pt; }
   .instructions li { margin-bottom: 3px; }
 
-  table { width: 100%; border-collapse: collapse; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 2px; page-break-inside: avoid; }
   th, td { border: 1px solid #DAD6CC; padding: 7px 9px; font-size: 10pt; text-align: left; vertical-align: middle; }
   th { background: #F2F0E9; color: #3C3CB8; font-weight: 600; }
   .results-table th { background: #FBF0DA; color: #8a6d14; }

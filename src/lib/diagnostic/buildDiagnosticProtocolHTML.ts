@@ -914,7 +914,7 @@ export function buildDiagnosticProtocolHTML(
   h2 { font-size: 12pt; color: #5555E0; border-bottom: 1px solid #5555E0; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px; }
   h3 { font-size: 11pt; color: #5555E0; margin: 10px 0 4px; }
   h3 .duration { color: #666; font-weight: normal; font-size: 10pt; }
-  table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; page-break-inside: avoid; }
   th, td { border: 1px solid #bbb; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
   th { background: #F2F0E9; color: #3C3CB8; font-weight: 600; }
   td.fill { height: 32px; background: repeating-linear-gradient(transparent, transparent 28px, #ccc 28px, #ccc 29px); }
@@ -1324,7 +1324,12 @@ export function buildFullDiagnosticDossierHTML(
   .mini-label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; color: #555; font-weight: 600; margin-bottom: 4px; }
 
   /* ---- Tableaux génériques ---- */
-  table { width: 100%; border-collapse: collapse; margin-top: 2px; }
+  /* page-break-inside: avoid — retour coach (photo d'impression réelle) :
+     tableau "X.D — Résultats calculés" coupé en plein milieu entre deux
+     pages. Ces tableaux (5-6 lignes) tiennent largement sur une page ; sans
+     cette règle, un tableau qui démarre près du bas de la page restante se
+     scinde ligne par ligne au lieu de passer en bloc à la page suivante. */
+  table { width: 100%; border-collapse: collapse; margin-top: 2px; page-break-inside: avoid; }
   th, td { border: 1px solid #DAD6CC; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
   th { background: #F2F0E9; color: #3C3CB8; font-weight: 600; }
   .kv-table th { width: 28%; }
