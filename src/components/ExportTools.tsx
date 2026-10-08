@@ -4313,7 +4313,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       .alertSuccess { background: rgba(22,163,74,0.1); border-left: 4px solid var(--success); }
       .alertInfo { background: rgba(37,99,235,0.1); border-left: 4px solid var(--primary); }
       .footer { margin-top: 30px; font-size: 11px; color: var(--muted); border-top: 2px solid var(--border); padding-top: 15px; }
-      .cover { min-height: 90vh; display:flex; flex-direction:column; justify-content:space-between; position: relative; overflow:hidden; margin-bottom: 24px; background: var(--bg); }
+      /* min-height en px fixe (pas vh — boucle avec la hauteur de l'iframe
+         d'impression iOS, cf. syncHeight dans src/lib/openPrintableHTML.ts) :
+         ~90% de la hauteur d'une page A4 pour une largeur de rendu de 820px. */
+      .cover { min-height: 1040px; display:flex; flex-direction:column; justify-content:space-between; position: relative; overflow:hidden; margin-bottom: 24px; background: var(--bg); }
       .coverBanner { background: linear-gradient(135deg, #2B2933 0%, #2c5282 50%, #2B2933 100%); padding: 40px 32px; border-radius: 18px; margin-bottom: 24px; position: relative; overflow: hidden; }
       .coverBanner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat; opacity: 0.3; }
       .coverBannerContent { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; }
@@ -9194,7 +9197,9 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
           background: linear-gradient(135deg, #FAF9F5 0%, #E7E4DC 100%);
-          min-height: 100vh;
+          /* Pas de min-height en vh — boucle avec la hauteur de l'iframe
+             d'impression iOS (voir le commentaire de syncHeight dans
+             src/lib/openPrintableHTML.ts). */
           padding: 40px 20px;
           line-height: 1.6;
           color: #2B2933;
@@ -9522,7 +9527,9 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
           background: linear-gradient(135deg, #FBF0DA 0%, #fce7f3 50%, #EDEDFC 100%);
-          min-height: 100vh;
+          /* Pas de min-height en vh — boucle avec la hauteur de l'iframe
+             d'impression iOS (voir le commentaire de syncHeight dans
+             src/lib/openPrintableHTML.ts). */
           padding: 32px 16px;
           line-height: 1.7;
           color: #2B2933;
