@@ -107,6 +107,7 @@ export async function renderPdf(
 
     const totalHeight = Math.max(body.scrollHeight, doc.documentElement.scrollHeight, PAGE_HEIGHT);
     const pageCount = Math.max(1, Math.ceil(totalHeight / PAGE_HEIGHT));
+    if ((window as any).__dbg) console.log("dbg", body.scrollHeight, doc.documentElement.scrollHeight, body.getBoundingClientRect().height, doc.documentElement.getBoundingClientRect().height);
 
     const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
     // Bug réel (iPhone) : le fichier enregistré depuis le visualiseur PDF
