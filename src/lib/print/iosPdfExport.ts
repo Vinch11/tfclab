@@ -52,7 +52,11 @@ function safeFileName(hint?: string): string {
   return (base.replace(/[^a-zA-Z0-9-_ ]+/g, "_").trim() || "rapport") + ".pdf";
 }
 
-async function renderPdf(html: string, onProgress: (txt: string) => void): Promise<Blob> {
+async function renderPdf(
+  html: string,
+  filenameHint: string | undefined,
+  onProgress: (txt: string) => void,
+): Promise<Blob> {
   const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
     import("html2canvas"),
     import("jspdf"),
@@ -85,11 +89,20 @@ async function renderPdf(html: string, onProgress: (txt: string) => void): Promi
 
     const body = doc.body;
     // Éléments réservés à l'écran : bandeau d'aide, boutons imprimer.
+    // .page-break (page-break-after: always) est une directive d'impression
+    // native, sans effet utile ici — on pagine nous-mêmes par hauteur fixe.
+    // Retour coach (iPhone) : bannière de chapitre chevauchant le texte qui
+    // la précède, uniquement à l'endroit où un <div class="page-break">
+    // suit immédiatement un élément à bordure (.footer) — pas reproduit
+    // sous Chromium, probablement une particularité WebKit de calcul de
+    // boîte autour de ces divs de fragmentation CSS vides. On les neutralise
+    // avant capture plutôt que de dépendre de ce comportement.
     const ignore = (node: Element) =>
       node.classList?.contains("tfc-print-helper") ||
       node.classList?.contains("no-print") ||
+      node.classList?.contains("page-break") ||
       node.tagName === "BUTTON";
-    doc.querySelectorAll(".tfc-print-helper, .no-print, button").forEach((n) => {
+    doc.querySelectorAll(".tfc-print-helper, .no-print, .page-break, button").forEach((n) => {
       (n as HTMLElement).style.display = "none";
     });
 
@@ -105,6 +118,12 @@ async function renderPdf(html: string, onProgress: (txt: string) => void): Promi
     // mais introduit celui-ci par la même ligne laissée en place.
 
     const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+    // Bug réel (iPhone) : le fichier enregistré depuis le visualiseur PDF
+    // natif ("Ouvrir le PDF" → Partager → Enregistrer dans Fichiers) se
+    // nommait "Unknown.pdf" — une URL blob: n'a pas de nom de fichier, et
+    // c'est le titre interne du PDF que ce visualiseur utilise comme nom
+    // suggéré à l'enregistrement.
+    pdf.setProperties({ title: safeFileName(filenameHint).replace(/\.pdf$/i, "") });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
 
@@ -165,7 +184,7 @@ export async function exportPdfOnIOS(html: string, filenameHint?: string): Promi
 
   let blob: Blob;
   try {
-    blob = await renderPdf(html, (t) => (status.textContent = t));
+    blob = await renderPdf(html, filenameHint, (t) => (status.textContent = t));
   } catch (err) {
     overlay.root.remove();
     throw err;
@@ -173,7 +192,10 @@ export async function exportPdfOnIOS(html: string, filenameHint?: string): Promi
 
   const fileName = safeFileName(filenameHint);
   const file = new File([blob], fileName, { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
+  // Objet URL dérivé du File nommé (pas du Blob brut) : certains
+  // visualiseurs utilisent le nom du File associé à l'URL blob: comme nom
+  // suggéré à l'enregistrement.
+  const url = URL.createObjectURL(file);
   const close = () => {
     overlay.root.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
