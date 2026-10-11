@@ -1064,6 +1064,70 @@ export const STAFF_SESSIONS: StaffSession[] = [
     tags: ["RACE_SIM", "SPECIFIC"],
     level: "elite",
     duration_min: 50
+  },
+
+  // ============================
+  // 🏆 MÉTHODES RECONNUES (4)
+  // Principes physiologiques de protocoles publics documentés — pas de
+  // contenu propriétaire, pas d'association commerciale. Chaque séance
+  // vérifiée distincte des entrées existantes (ex: le double seuil
+  // norvégien est déjà couvert par elite_bike_01/02 et elite_run_01/02).
+  // ============================
+  {
+    id: "elite_bike_08_im_brick_long",
+    sport: "velo",
+    title: "Brick longue distance — Façon Ironman (Sutton/Filliol)",
+    objective: "Préparer la transition vélo→course sur un format long, spécifique Ironman.",
+    why: "Les coachs longue distance (Brett Sutton, Joel Filliol) construisent la robustesse de fin de course via des bricks longs plutôt que des simulations courtes — le corps apprend à courir fatigué, pas frais.",
+    when: "Spécifique IM, 6–3 semaines avant course. 1x/2–3 sem max (très sollicitant).",
+    structure: "Vélo 3h–4h30 @ puissance cible IM (dernière heure à l'allure course précise) + Transition rapide (<5') + 45–60' course @ allure cible IM, nutrition identique au jour J.",
+    indicators: ["Allure course stable malgré la fatigue vélo", "Pas de dérive FC excessive en course", "Gestion nutrition/hydratation réussie"],
+    risks: ["Récupération 48–72h nécessaire", "Risque de surcharge si enchaîné avec une autre séance qualité dans la semaine", "Ne jamais faire ce format à moins de 10 jours de la course"],
+    tags: ["RACE_SIM", "SPECIFIC", "TTE"],
+    level: "elite",
+    duration_min: 300
+  },
+  {
+    id: "elite_run_08_canova_marathon_blocks",
+    sport: "course",
+    title: "Blocs spécifiques marathon — Façon Canova",
+    objective: "Développer la capacité à répéter l'allure marathon par blocs, avec récupération active entre blocs plutôt qu'un seul effort continu.",
+    why: "Renato Canova structure ses longues sorties en blocs d'allure cible séparés de récupération, pour accumuler plus de volume à allure spécifique qu'une sortie progressive classique, sans accroître le risque de craquage.",
+    when: "Spécifique marathon, cycle final (8–3 semaines avant). 1x/10–14j.",
+    structure: "20' Z1–Z2 échauffement + 3×(5km allure marathon cible + 1km récup Z1) + 10' retour au calme. Distance totale ~28–30km.",
+    indicators: ["Allure marathon tenue sur chaque bloc sans dérive", "Récupération FC rapide pendant les km de transition", "Sensation de contrôle, pas d'épuisement en fin de dernier bloc"],
+    risks: ["Très exigeant — réserver aux coureurs avec base solide (>80km/sem)", "Terrain plat/régulier nécessaire pour fiabilité de l'allure", "Espacer d'au moins 10 jours d'une autre séance spécifique lourde"],
+    tags: ["SPECIFIC", "RACE_SIM", "TTE"],
+    level: "elite",
+    duration_min: 150
+  },
+  {
+    id: "elite_run_09_lydiard_hill_circuit",
+    sport: "course",
+    title: "Circuit de côtes — Façon Lydiard",
+    objective: "Développer la force spécifique de course et la puissance aérobie via un circuit continu, pas des répétitions isolées.",
+    why: "Arthur Lydiard (méthode à l'origine de plusieurs champions olympiques néo-zélandais) utilisait un circuit continu (montée en bondissant, descente relâchée, plat en accélération) plutôt que des répétitions à VMA avec récupération complète — stimulus différent : force-endurance et relâchement, moins épuisant nerveusement que des répétitions maximales.",
+    when: "Base avancée / pré-build. 1x/sem, cycle de 4–6 semaines.",
+    structure: "15' footing Z2 + Circuit continu répété 4–6x : montée 60–90s en bondissant genoux hauts (Z3–Z4) + descente trot relâché (Z1) + 200m plat en accélération progressive (Z3) + 10' retour au calme.",
+    indicators: ["Amplitude de bondissement maintenue sur tout le circuit", "Relâchement complet en descente", "Pas de raideur mollets/ischios le lendemain au-delà du normal"],
+    risks: ["Terrain en descente = risque Achille/mollet si pente trop raide ou chaussures inadaptées", "Progressivité impérative sur le nombre de tours (commencer à 3–4)", "À éviter si antécédent tendineux récent"],
+    tags: ["NEURO", "ENDURANCE", "SPECIFIC"],
+    level: "elite",
+    duration_min: 55
+  },
+  {
+    id: "elite_swim_07_lactate_profile_set",
+    sport: "natation",
+    title: "Série profil lactate — Façon Olbrecht",
+    objective: "Cartographier/entraîner la courbe lactate individuelle par paliers d'allure croissante, plutôt que de s'appuyer uniquement sur le CSS.",
+    why: "Jan Olbrecht (biochimiste/coach ayant travaillé avec de nombreux nageurs olympiques) construit l'entraînement autour de la courbe lactate-vitesse propre à chaque nageur — deux nageurs au même CSS peuvent avoir des courbes très différentes, donc des zones d'entraînement différentes.",
+    when: "Test de profil : début de cycle ou tous les 2–3 mois. Version entraînement (sans prise de sang) : 1x/10–14j en build.",
+    structure: "Échauffement 400m + 5×200m à allure croissante (seuil -10%, seuil -5%, seuil, seuil +3%, seuil +6%), récup 45–60'' entre paliers. Version staff avec lactatemètre : prise de sang 1' après chaque palier. + 200m récup.",
+    indicators: ["Temps cohérents sur chaque palier (pas de dérive technique)", "Si lactate dispo : identification du point d'inflexion de la courbe", "Dernier palier soutenable sans décomposition technique"],
+    risks: ["Sans lactatemètre, repose sur le ressenti — moins précis mais toujours utile pour calibrer les zones", "Ne pas répéter trop souvent (coût métabolique élevé du dernier palier)"],
+    tags: ["METABOLIC", "SPECIFIC", "TTE"],
+    level: "elite",
+    duration_min: 50
   }
 ];
 
