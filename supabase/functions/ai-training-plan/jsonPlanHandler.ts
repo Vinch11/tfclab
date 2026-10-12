@@ -603,7 +603,8 @@ export function applySLFloorEnforcement(
 // PHASE 2A.3 — Réconciliateur post-merge (rebalance + insert)
 // ─────────────────────────────────────────────────────────────────────────────
 type ReconcilerRepairCode = "day_rebalanced" | "session_inserted" | "insert_unresolved" | "rest_floor_breached"
-  | "duplicate_catalog_id_replaced" | "duplicate_catalog_id_unresolved";
+  | "duplicate_catalog_id_replaced" | "duplicate_catalog_id_unresolved"
+  | "fasted_session_cap_replaced" | "fasted_session_cap_unresolved";
 interface ReconcilerRepair {
   code: ReconcilerRepairCode;
   severity: "warning" | "critical";
@@ -973,16 +974,55 @@ export function applyReconciler(
       // le réconciliateur ne vérifiait que les min/max par sport et par jour, jamais
       // la répétition d'un même ID au sein d'une semaine. Tourne APRÈS (b) : une
       // séance insérée par (b) peut elle-même dupliquer un ID déjà présent.
+      //
+      // Angle mort comblé (retour ChatGPT, même plan "Vince" — Test tlim@vVO2max
+      // Billat généré 2× en semaine 2, à 2 jours d'écart, malgré "Éviter : moins
+      // de 2 jours depuis dernière séance intense" sur sa propre fiche) : ce
+      // dédoublonnage ne regardait QUE `catalogId`, donc une 2e occurrence réécrite
+      // en texte libre (`custom:true`) — même protocole, même titre — passait
+      // inaperçue. Pour les protocoles de TEST à effort maximal (diagnostic, tlim,
+      // 1RM...), on détecte aussi les doublons par signature de titre normalisée,
+      // indépendamment de `catalogId`/`custom` — un effort maximal répété à <48h
+      // est un vrai risque (fatigue, fiabilité de la mesure), contrairement à une
+      // séance d'entraînement ordinaire où la répétition est parfois voulue.
+      const ONE_TIME_TEST_TITLE_PATTERN = /\btest\b|\btlim\b|diagnostic|\b1\s*rm\b|contre[- ]la[- ]montre.*test/i;
+      const normalizeTestTitleKey = (title: string): string =>
+        title
+          .toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, " ")
+          .trim();
+      const dedupeKeyForSession = (s: PlanSession): string | null => {
+        const id = (s as any).catalogId as string | null;
+        const isCustom = (s as any).custom === true;
+        if (id && !isCustom) return `id:${id}`;
+        const title = (s as any).title as string | undefined;
+        if (title && ONE_TIME_TEST_TITLE_PATTERN.test(title)) {
+          const norm = normalizeTestTitleKey(title);
+          return norm ? `test:${norm}` : null;
+        }
+        return null;
+      };
       const idOccurrencesThisWeek = new Map<string, PlanSession[]>();
       for (const s of week.sessions ?? []) {
-        const id = (s as any).catalogId as string | null;
-        if (!id || (s as any).custom === true || s.sport === "rest") continue;
-        if (!idOccurrencesThisWeek.has(id)) idOccurrencesThisWeek.set(id, []);
-        idOccurrencesThisWeek.get(id)!.push(s);
+        if (s.sport === "rest") continue;
+        const key = dedupeKeyForSession(s);
+        if (!key) continue;
+        if (!idOccurrencesThisWeek.has(key)) idOccurrencesThisWeek.set(key, []);
+        idOccurrencesThisWeek.get(key)!.push(s);
       }
-      const usedIdsThisWeek = new Set(idOccurrencesThisWeek.keys());
-      for (const [dupId, occurrences] of idOccurrencesThisWeek) {
+      const usedIdsThisWeek = new Set(
+        [...idOccurrencesThisWeek.keys()]
+          .filter((k) => k.startsWith("id:"))
+          .map((k) => k.slice(3)),
+      );
+      for (const [dupKey, occurrences] of idOccurrencesThisWeek) {
         if (occurrences.length < 2) continue;
+        // Étiquette lisible pour les traces/reasons — enlève le préfixe interne
+        // ("id:"/"test:"). Le champ `session.catalogId` des repairs ci-dessous
+        // lit toujours `(victim as any).catalogId` directement (jamais `dupKey`),
+        // qui doit rester un catalogId réel ou null.
+        const dupLabel = dupKey.startsWith("id:") ? dupKey.slice(3) : dupKey.startsWith("test:") ? `[test] ${dupKey.slice(5)}` : dupKey;
         // Garde la 1re occurrence intacte (probablement la mieux placée / la plus
         // intentionnelle), remplace les suivantes par une alternative du catalogue
         // du même sport et de la même classe d'intensité, non déjà utilisée cette semaine.
@@ -1002,15 +1042,15 @@ export function applyReconciler(
           // conservée telle quelle (le doublon de catalogId reste, mais
           // aucune dégradation de contenu n'est risquée).
           if (victimClass === "unknown") {
-            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupId}(x${occurrences.length}) → occurrence #${i + 1} conservée telle quelle (classe victime=unknown, pas de remplacement fiable)`);
+            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupLabel}(x${occurrences.length}) → occurrence #${i + 1} conservée telle quelle (classe victime=unknown, pas de remplacement fiable)`);
             repairs.push({
               code: "duplicate_catalog_id_unresolved",
               severity: "warning",
               chunkIndex: ci,
               weekNumber: week.weekNumber,
               sport,
-              session: { title: victim.title ?? "", catalogId: dupId, durationMin: victim.durationMin ?? 0 },
-              reason: `catalogId ${dupId} utilisé ${occurrences.length}× dans S${week.weekNumber} — classe d'intensité de la séance non reconnue (unknown), remplacement non tenté pour éviter une dégradation silencieuse (ex. vers recovery)`,
+              session: { title: victim.title ?? "", catalogId: (victim as any).catalogId ?? null, durationMin: victim.durationMin ?? 0 },
+              reason: `${dupLabel} utilisé ${occurrences.length}× dans S${week.weekNumber} — classe d'intensité de la séance non reconnue (unknown), remplacement non tenté pour éviter une dégradation silencieuse (ex. vers recovery)`,
             });
             continue;
           }
@@ -1030,7 +1070,7 @@ export function applyReconciler(
             (victim as any).details = `${alt.structure || alt.title}. [ID: ${alt.id}]`;
             (victim as any).zones = alt.zones;
             usedIdsThisWeek.add(alt.id);
-            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupId}(x${occurrences.length}) → occurrence #${i + 1} remplacée par ${alt.id}`);
+            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupLabel}(x${occurrences.length}) → occurrence #${i + 1} remplacée par ${alt.id}`);
             repairs.push({
               code: "duplicate_catalog_id_replaced",
               severity: "warning",
@@ -1038,18 +1078,90 @@ export function applyReconciler(
               weekNumber: week.weekNumber,
               sport,
               session: { title: alt.title, catalogId: alt.id, durationMin: victim.durationMin ?? 0 },
-              reason: `catalogId ${dupId} utilisé ${occurrences.length}× dans S${week.weekNumber} — occurrence "${beforeTitle}" remplacée par ${alt.id}`,
+              reason: `${dupLabel} utilisé ${occurrences.length}× dans S${week.weekNumber} — occurrence "${beforeTitle}" remplacée par ${alt.id}`,
             });
           } else {
-            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupId}(x${occurrences.length}) → action=unresolved_no_alternative`);
+            traces.push(`[RECONCILER] S${week.weekNumber} dedupe sport=${sport} ${dupLabel}(x${occurrences.length}) → action=unresolved_no_alternative`);
             repairs.push({
               code: "duplicate_catalog_id_unresolved",
               severity: "warning",
               chunkIndex: ci,
               weekNumber: week.weekNumber,
               sport,
-              session: { title: victim.title ?? "", catalogId: dupId, durationMin: victim.durationMin ?? 0 },
-              reason: `catalogId ${dupId} utilisé ${occurrences.length}× dans S${week.weekNumber}, aucune alternative catalogue disponible (sport=${sport}, classe=${victimClass})`,
+              session: { title: victim.title ?? "", catalogId: (victim as any).catalogId ?? null, durationMin: victim.durationMin ?? 0 },
+              reason: `${dupLabel} utilisé ${occurrences.length}× dans S${week.weekNumber}, aucune alternative catalogue disponible (sport=${sport}, classe=${victimClass})`,
+            });
+          }
+        }
+      }
+
+      // ────────── (c2) PLAFOND cumul séances "à jeun" (Sleep Low / Train Low / Fasted) ──────────
+      // Retour ChatGPT (même plan "Vince") : chaque fiche individuelle respecte
+      // son propre plafond déclaratif ("1x/sem max" pour Sleep Low, "1-2x/sem
+      // max" pour Train Low) mais rien ne plafonnait le CUMUL de deux
+      // protocoles DIFFÉRENTS de jeûne/déplétion glycogénique dans la même
+      // semaine — observé plusieurs fois (S1, S2, S4) : Sleep Low ET Train Low
+      // Fasted la même semaine. Pire : la seule fiche catalogue "Sleep Low"
+      // (FATMAX_SLEEP_LOW_PROTOCOL) est taguée vélo — une "Sleep Low → Run AM"
+      // générée en texte libre pour un plan course n'a même pas de plafond
+      // individuel, catalogue ou pas. On détecte par motif de texte (titre +
+      // détails), indépendamment de catalogId/custom, pour couvrir ce cas.
+      const FASTED_SESSION_PATTERN = /\bjeun\b|fasted|sleep[\s_-]*low|train[\s_-]*low/i;
+      const fastedSessionsThisWeek = (week.sessions ?? []).filter(
+        (s) => s.sport !== "rest" && FASTED_SESSION_PATTERN.test(`${(s as any).title ?? ""} ${(s as any).details ?? ""}`),
+      );
+      if (fastedSessionsThisWeek.length > 1) {
+        for (let i = 1; i < fastedSessionsThisWeek.length; i++) {
+          const victim = fastedSessionsThisWeek[i];
+          const sport = victim.sport;
+          const victimClass = classifyIntensity(victim.zones, `${victim.title} ${victim.details ?? ""}`);
+          if (victimClass === "unknown") {
+            traces.push(`[RECONCILER] S${week.weekNumber} fasted-cap sport=${sport} (x${fastedSessionsThisWeek.length}) → occurrence #${i + 1} conservée telle quelle (classe victime=unknown, pas de remplacement fiable)`);
+            repairs.push({
+              code: "fasted_session_cap_unresolved",
+              severity: "warning",
+              chunkIndex: ci,
+              weekNumber: week.weekNumber,
+              sport,
+              session: { title: victim.title ?? "", catalogId: (victim as any).catalogId ?? null, durationMin: victim.durationMin ?? 0 },
+              reason: `${fastedSessionsThisWeek.length} séances à jeun/train low/sleep low cumulées dans S${week.weekNumber} (max recommandé : 1/sem) — classe d'intensité non reconnue, remplacement non tenté`,
+            });
+            continue;
+          }
+          const findAltNonFasted = (pool: typeof candidates) => pool
+            .filter(c => c.sport === sport && !usedIdsThisWeek.has(c.id) && !FASTED_SESSION_PATTERN.test(`${c.title ?? ""} ${c.structure ?? ""}`))
+            .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
+            .filter(x => x.cls === victimClass || x.cls === "unknown")
+            .sort((a, b) => Math.abs(a.c.durationMedian - (victim.durationMin ?? 0)) - Math.abs(b.c.durationMedian - (victim.durationMin ?? 0)))[0]?.c
+            ?? null;
+          const alt = findAltNonFasted(candidates) ?? findAltNonFasted(allCandidatesAllChunks);
+          if (alt) {
+            const beforeTitle = victim.title ?? "";
+            (victim as any).catalogId = alt.id;
+            (victim as any).title = alt.title;
+            (victim as any).details = `${alt.structure || alt.title}. [ID: ${alt.id}]`;
+            (victim as any).zones = alt.zones;
+            usedIdsThisWeek.add(alt.id);
+            traces.push(`[RECONCILER] S${week.weekNumber} fasted-cap sport=${sport} (x${fastedSessionsThisWeek.length}) → occurrence #${i + 1} remplacée par ${alt.id}`);
+            repairs.push({
+              code: "fasted_session_cap_replaced",
+              severity: "warning",
+              chunkIndex: ci,
+              weekNumber: week.weekNumber,
+              sport,
+              session: { title: alt.title, catalogId: alt.id, durationMin: victim.durationMin ?? 0 },
+              reason: `${fastedSessionsThisWeek.length} séances à jeun/train low/sleep low cumulées dans S${week.weekNumber} (max recommandé : 1/sem) — occurrence "${beforeTitle}" remplacée par ${alt.id}`,
+            });
+          } else {
+            traces.push(`[RECONCILER] S${week.weekNumber} fasted-cap sport=${sport} (x${fastedSessionsThisWeek.length}) → action=unresolved_no_alternative`);
+            repairs.push({
+              code: "fasted_session_cap_unresolved",
+              severity: "warning",
+              chunkIndex: ci,
+              weekNumber: week.weekNumber,
+              sport,
+              session: { title: victim.title ?? "", catalogId: (victim as any).catalogId ?? null, durationMin: victim.durationMin ?? 0 },
+              reason: `${fastedSessionsThisWeek.length} séances à jeun/train low/sleep low cumulées dans S${week.weekNumber}, aucune alternative non-fasted disponible (sport=${sport}, classe=${victimClass})`,
             });
           }
         }

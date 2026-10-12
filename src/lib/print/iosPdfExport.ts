@@ -71,11 +71,22 @@ function isBlankCanvas(canvas: HTMLCanvasElement): boolean {
   }
 }
 
+export interface RenderPdfResult {
+  blob: Blob;
+  /** Nombre de pages réellement écrites dans le PDF final. */
+  pagesWritten: number;
+  /** Nombre de pages estimé en amont (mesure DOM live) — peut légitimement
+   *  dépasser `pagesWritten` (rendu html2canvas plus compact, cf. commentaire
+   *  dans la boucle de capture) ; un écart important reste un signal utile à
+   *  afficher au coach plutôt que de rester invisible. */
+  pagesExpected: number;
+}
+
 export async function renderPdf(
   html: string,
   filenameHint: string | undefined,
   onProgress: (txt: string) => void,
-): Promise<Blob> {
+): Promise<RenderPdfResult> {
   const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
     import("html2canvas"),
     import("jspdf"),
@@ -157,6 +168,25 @@ export async function renderPdf(
     const prevTop = body.style.top;
     body.style.position = "relative";
 
+    // Bug réel (retour coach, plan 10K "Vince" — 32 pages au lieu des ~40+
+    // attendues sur 10 semaines, contenu coupé net en pleine semaine 8, sans
+    // erreur ni avertissement) : le clone html2canvas est souvent plus
+    // compact que la mesure live (WebKit : ~25 % plus court), donc des
+    // tranches BLANCHES mais LÉGITIMES (marge de fin réelle) sont normales.
+    // Mais une semaine d'affûtage/course (volume réduit à 60%/35%, cf.
+    // taperVolumeOverride.ts) produit un contenu simplement CLAIRSEMÉ, pas
+    // vide — et `isBlankCanvas` (échantillon 64×90, tolérance quasi-blanc)
+    // peut classer cette page clairsemée comme blanche par erreur. S'arrêter
+    // dès la 1re tranche blanche perdait alors tout le contenu réel restant
+    // (ici : les semaines 9-10 entières). Un faux positif isolé est
+    // désormais simplement IGNORÉ (page sautée, pas insérée) plutôt que de
+    // stopper tout l'export — on ne s'arrête qu'après plusieurs tranches
+    // blanches CONSÉCUTIVES, signe qu'on est vraiment arrivé en fin de
+    // document.
+    const BLANK_STREAK_TO_STOP = 3;
+    let consecutiveBlanks = 0;
+    let pagesWritten = 0;
+
     try {
       for (let i = 0; i < pageCount; i++) {
         onProgress(`Page ${i + 1} / ${pageCount}…`);
@@ -179,18 +209,19 @@ export async function renderPdf(
           scrollY: 0,
           ignoreElements: ignore,
         });
-        // Le clone html2canvas est souvent plus compact que la mesure live
-        // (WebKit : ~25 % plus court) → pages finales entièrement blanches.
-        // Dès qu'une tranche est vide, tout le reste l'est aussi : on arrête.
         if (i > 0 && isBlankCanvas(canvas)) {
           canvas.width = 0;
           canvas.height = 0;
-          break;
+          consecutiveBlanks++;
+          if (consecutiveBlanks >= BLANK_STREAK_TO_STOP) break;
+          continue; // tranche sautée (pas ajoutée au PDF), on continue d'explorer
         }
+        consecutiveBlanks = 0;
         const img = canvas.toDataURL("image/jpeg", 0.92);
-        if (i > 0) pdf.addPage();
+        if (pagesWritten > 0) pdf.addPage();
         const imgH = (h / PAGE_HEIGHT) * pageH * marginScale;
         pdf.addImage(img, "JPEG", MARGIN_MM, MARGIN_MM, usableW, imgH);
+        pagesWritten++;
         canvas.width = 0;
         canvas.height = 0;
       }
@@ -199,7 +230,7 @@ export async function renderPdf(
       body.style.top = prevTop;
     }
 
-    return pdf.output("blob");
+    return { blob: pdf.output("blob"), pagesWritten, pagesExpected: pageCount };
   } finally {
     frame.remove();
   }
@@ -217,13 +248,14 @@ export async function exportPdfOnIOS(html: string, filenameHint?: string): Promi
     status,
   ]);
 
-  let blob: Blob;
+  let result: RenderPdfResult;
   try {
-    blob = await renderPdf(html, filenameHint, (t) => (status.textContent = t));
+    result = await renderPdf(html, filenameHint, (t) => (status.textContent = t));
   } catch (err) {
     overlay.root.remove();
     throw err;
   }
+  const { blob, pagesWritten, pagesExpected } = result;
 
   const fileName = safeFileName(filenameHint);
   const file = new File([blob], fileName, { type: "application/pdf" });
@@ -241,8 +273,21 @@ export async function exportPdfOnIOS(html: string, filenameHint?: string): Promi
 
   const nodes: Node[] = [
     el("p", "margin:0;font-size:16px;font-weight:700;", "PDF prêt"),
-    el("p", "margin:0;font-size:13px;color:#555;", `${fileName} · ${(blob.size / 1024).toFixed(0)} Ko`),
+    el("p", "margin:0;font-size:13px;color:#555;", `${fileName} · ${pagesWritten} page${pagesWritten > 1 ? "s" : ""} · ${(blob.size / 1024).toFixed(0)} Ko`),
   ];
+  // Retour coach (plan 10K "Vince") : export tronqué en plein milieu du
+  // contenu, sans aucun signal. Le rendu html2canvas étant normalement ~25%
+  // plus compact que la mesure live (voir renderPdf), un écart modéré est
+  // attendu et ne justifie aucun avertissement — on ne signale qu'un écart
+  // important (<60% des pages estimées), plus probablement révélateur d'un
+  // contenu réellement perdu que d'une simple compaction de rendu.
+  if (pagesExpected > 0 && pagesWritten < pagesExpected * 0.6) {
+    nodes.push(el(
+      "p",
+      "margin:0;font-size:12px;line-height:1.4;color:#7a4b00;background:#fff7e6;border-radius:8px;padding:8px 10px;",
+      `⚠️ ${pagesWritten} page(s) écrite(s) sur ~${pagesExpected} estimée(s) — vérifie que le PDF contient bien tout le contenu attendu avant de l'envoyer.`,
+    ));
+  }
 
   if (canShare) {
     const shareBtn = el("button", BTN + "background:#111;color:#fff;", "Enregistrer / partager le PDF");

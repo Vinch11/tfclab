@@ -5580,7 +5580,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "6-8 km à allure run IM -5s/km (légèrement plus vite que Z2-Z3)",
       half: "8 km à allure semi-marathon -10s/km",
       marathon: "PRIORITÉ — 8-10 km à allure marathon -10s/km. Pilier de la phase Introductive.",
-      semi: "6 km à allure semi-marathon -10s/km"
+      semi: "6 km à allure semi-marathon -10s/km",
+      "10k": "4-5 km à allure 10K -5 à -8s/km. Introduction très précoce de l'allure cible, sur distance courte."
   }
   },
   {
@@ -5606,7 +5607,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "12 km à allure run IM ou légèrement plus vite",
       half: "12-14 km à allure semi-marathon -5s/km",
       marathon: "14-18 km à allure marathon -5s/km. Cœur de la phase Fundamental.",
-      semi: "10-12 km à allure semi-marathon -5s/km"
+      semi: "10-12 km à allure semi-marathon -5s/km",
+      "10k": "6-8 km à allure 10K -5s/km"
   }
   },
   {
@@ -5632,7 +5634,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "20-25 km : P1=10km Z2, P2=8km Z3, P3=derniers km allure run IM",
       half: "18-22 km : P1=8km Z2, P2=7km Z3, P3=3-4km allure semi",
       marathon: "PILIER ABSOLU — 28-32 km avec derniers 6-8 km à allure marathon ou plus vite",
-      semi: "16-20 km : P1=7km Z2, P2=7km Z3, P3=derniers 4km allure semi"
+      semi: "16-20 km : P1=7km Z2, P2=7km Z3, P3=derniers 4km allure semi",
+      "10k": "12-16 km : P1=6km Z2, P2=5km Z3, P3=derniers 3-4km allure 10K"
   }
   },
   {
@@ -5658,7 +5661,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "14 km : 8 km Z2 + 6 km progression allure run IM",
       half: "14 km : 8 km Z2 + 6 km progression allure semi",
       marathon: "16-18 km : 10 km Z2 + 6-8 km progression allure marathon",
-      semi: "14 km : 8 km Z2 + 6 km progression allure semi"
+      semi: "14 km : 8 km Z2 + 6 km progression allure semi",
+      "10k": "10-12 km : 6 km Z2 + 4-6 km progression allure 10K"
   }
   },
   {
@@ -5684,7 +5688,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "4×[2 km allure run IM + 1 km allure marathon] — transition métabolique",
       half: "5×[1.5 km allure semi + 500m allure 10km]",
       marathon: "SÉANCE CANOVA SIGNATURE — 6×(2 km marathon + 1 km semi)",
-      semi: "5×[1 km allure semi + 500m allure 10km]"
+      semi: "5×[1 km allure semi + 500m allure 10km]",
+      "10k": "6×[600m allure 10K + 400m allure 5K] — alternance pour habituer à soutenir l'allure cible sous variation métabolique"
   }
   },
   {
@@ -5710,7 +5715,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "3h : alternance 20 min run Z2 + 2 min marche — simulation run IM",
       half: "Non applicable",
       marathon: "2h30 : alternance 25 min run + 3 min marche (semaines 1-2) → 30 min run + 2 min marche (semaines 3-4)",
-      semi: "Non applicable"
+      semi: "Non applicable",
+      "10k": "Non applicable"
   }
   },
   {
@@ -5736,7 +5742,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "12 km à allure run IM -5s/km",
       half: "12 km à allure semi -10s/km",
       marathon: "15-20 km à allure marathon -10s/km",
-      semi: "10 km à allure semi -10s/km"
+      semi: "10 km à allure semi -10s/km",
+      "10k": "6-8 km à allure 10K -8 à -10s/km"
   }
   },
   {
@@ -5762,7 +5769,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "8 km : 5 km Z2 + 3 km progression allure run IM",
       half: "10 km : 5 km Z2-Z3 + 5 km progression allure semi",
       marathon: "12 km : 7 km Z2-Z3 + 5 km progression jusqu'à allure marathon",
-      semi: "10 km : 5 km Z2 + 5 km progression allure semi"
+      semi: "10 km : 5 km Z2 + 5 km progression allure semi",
+      "10k": "6-8 km : 3-4 km Z2 + 3-4 km progression allure 10K"
   }
   },
   {
@@ -5788,7 +5796,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "4×[2 km run IM + 1 km marathon]",
       half: "5×[1.5 km semi + 500m 10km]",
       marathon: "6×[2 km marathon + 1 km semi] — séance signature Canova",
-      semi: "5×[1 km semi + 500m 10km]"
+      semi: "5×[1 km semi + 500m 10km]",
+      "10k": "6×[600m allure 10K + 400m allure 5K] — en terrain naturel"
   }
   },
   {
@@ -5814,7 +5823,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "3×[3 km run IM + 1 km marathon + 1 km Z2]",
       half: "4×[2 km semi + 500m 10km + 1 km Z2]",
       marathon: "4×[3 km marathon + 1 km semi + 1 km Z2]",
-      semi: "4×[1.5 km semi + 500m 10km + 1 km Z2]"
+      semi: "4×[1.5 km semi + 500m 10km + 1 km Z2]",
+      "10k": "5×[800m allure 10K + 400m allure 5K + 600m Z2]"
   }
   },
   {
@@ -5840,7 +5850,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "4×4 min à allure run IM + 2 min trot",
       half: "5×3 min à allure semi + 2 min trot",
       marathon: "6×3 min à allure marathon + 2 min trot — premier contact spécificité",
-      semi: "5×3 min à allure semi + 2 min trot"
+      semi: "5×3 min à allure semi + 2 min trot",
+      "10k": "5-6×2-3 min à allure 10K exacte + 2 min trot — premier contact spécificité"
   }
   },
   {
@@ -5866,7 +5877,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "2×6 km à allure run IM R:4 min — simulation partielle du run IM",
       half: "2×5 km à allure semi R:3 min",
       marathon: "2-3×6-8 km à allure marathon R:4 min — élite Canova",
-      semi: "3×3 km à allure semi R:3 min"
+      semi: "3×3 km à allure semi R:3 min",
+      "10k": "3-4×2 km à allure 10K R:2-3 min"
   }
   },
   {
@@ -5892,7 +5904,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       ironman: "3×4 min allure run IM — rappel avant course",
       half: "3×5 min allure semi — rappel",
       marathon: "3×5 min allure marathon — rappel Canova J-7 ou J-10",
-      semi: "3×4 min allure semi — rappel"
+      semi: "3×4 min allure semi — rappel",
+      "10k": "3×3-4 min allure 10K exacte — rappel"
   }
   },
   {

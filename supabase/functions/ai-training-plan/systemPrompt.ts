@@ -1084,6 +1084,7 @@ Pour 5K, 10K, Semi, Marathon, Trail : CAP 75-85% volume. Vélo = 5-10% max, Z1-Z
 - **Gut Training**: 30→90g/h progressif en SL. Test en entraînement.
 - **FATMAX_BIKE_LONG_FASTED** ou **FATMAX_RUN_LONG_FASTED** : 1x/sem weekend en Base.
 - **FATMAX_TRAIN_HIGH_GUT** : obligatoire Build IM/70.3.
+- ⚠️ **PLAFOND CUMULÉ "à jeun" (CRITIQUE)** : Train Low, Sleep Low, Fasted run/bike sont TOUS la même stratégie physiologique (glycogène bas) sous des noms différents. Peu importe combien de protocoles distincts existent dans le catalogue, l'athlète ne fait JAMAIS plus d'1 séance à jeun/déplétion par semaine, toutes catégories confondues. Si un Train Low est déjà placé cette semaine, NE JAMAIS ajouter un Sleep Low (ou l'inverse) la même semaine.
 - **Carb Loading**: 8-12g/kg/j, J-3 à J-1.
 - **Caféine**: 3-6mg/kg, 60min avant.
 
