@@ -44,6 +44,30 @@ export const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
 };
 
 /**
+ * Libellés courts (FR, affichage coach) pour les clés de `LIMITER_SESSION_PATTERNS`
+ * — même namespace que `resolveLimiterKey`/`computePhaseLimiterFocus`
+ * (planValidator.ts). Ne pas confondre avec `LIMITER_KEY_LABELS` de
+ * AIPlanBenchmark.tsx, qui couvre un namespace différent (`UnifiedLimiter`,
+ * ex: "aerobic_engine") — celui-ci couvre les clés DE CE FICHIER uniquement.
+ */
+export const LIMITER_KEY_LABELS: Record<string, string> = {
+  vo2max: "VO2max",
+  vlamax: "VLamax",
+  tte: "TTE",
+  fatmax: "FatMax",
+  "économie": "Économie",
+  ftp: "FTP",
+  durabilit: "Durabilité",
+  sprint: "Sprint",
+  pmax: "Pmax",
+};
+
+/** Libellé court lisible pour une clé de `LIMITER_SESSION_PATTERNS`. */
+export function limiterKeyLabel(key: string): string {
+  return LIMITER_KEY_LABELS[key] || key;
+}
+
+/**
  * Retourne la clé de pattern matchant un libellé de limiteur brut
  * (ex: "VO2max" → "vo2max", "Durabilité" → "durabilit", "Économie de course" → "économie").
  * Retourne `undefined` si aucun pattern connu ne matche.

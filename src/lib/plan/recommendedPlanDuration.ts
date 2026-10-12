@@ -19,6 +19,7 @@
  */
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import { classifyMultiObjectiveGoalsClient, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
+import type { LimiterGapLike } from "@/engines/plan/planValidator";
 
 export interface DurationRange {
   minViable: number;
@@ -165,4 +166,134 @@ export function evaluateDurationCoherenceMultiObjective(
   });
 
   return results.reduce((worst, r) => (DURATION_SEVERITY[r.coherence] > DURATION_SEVERITY[worst.coherence] ? r : worst), results[0]);
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * DURÉE MINIMALE POUR TRAITER LES LIMITEURS DÉCLARÉS
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * Demande coach (plan 10K/10 sem, audit "limiteurs #3/#4 jamais vraiment
+ * traités") : `evaluateDurationCoherence` ci-dessus ne regarde que
+ * objectif×ambition — un plan 10K de 10 sem passe ce test alors même que le
+ * diagnostic a identifié 3-4 limiteurs. Le moteur de génération (voir
+ * planConfigBuilder.ts RÈGLE DE PÉRIODISATION SÉQUENTIELLE : limiteur #1 =
+ * priorité absolue Base/Build, #2 = priorité haute, #3+ = "intégré dans les
+ * phases Build/Spécifique" seulement) a besoin de plus de semaines pour
+ * donner à CHAQUE limiteur déclaré une vraie fenêtre de travail plutôt que de
+ * laisser les rangs 3+ dépendre de synergies incertaines.
+ *
+ * Heuristique volontairement simple et non-bloquante (même esprit que
+ * `computeChantierDurationWeeks`/`computeFondationDurationWeeks` dans
+ * planConfigBuilder.ts, dont elle reprend le barème statut→semaines pour le
+ * rang #1) :
+ *   - Rang #1 : bloc dédié complet — 5 sem si "limiting", 4 si "acceptable", 3 sinon.
+ *   - Rang #2 : partage ce bloc (séance clé #2 dès la Base) — delta de 1-2 sem.
+ *   - Rang #3/#4 : fenêtre "Phase Spécifique" dédiée minimale — 2 sem chacun,
+ *     cohérent avec le plancher PHASE_DURATION_RANGE existant plutôt qu'un
+ *     simple "intégré en synergie".
+ *   - +1 semaine d'affûtage, toujours nécessaire.
+ * Ce n'est pas une mesure physiologique exacte — un signal d'alerte, à
+ * l'image du message objectif×ambition existant.
+ */
+export interface LimiterDurationRequirement {
+  rank: number;
+  metric: string;
+  status: string | undefined;
+  weeksContribution: number;
+}
+
+export interface MinPlanWeeksForLimitersResult {
+  minWeeks: number;
+  limiterCount: number;
+  breakdown: LimiterDurationRequirement[];
+}
+
+const LIMITER_TAPER_FLOOR_WEEKS = 1;
+
+function weeksForLimiterAtRank(rank: number, status: string | undefined): number {
+  if (rank === 1) {
+    return status === "limiting" ? 5 : status === "acceptable" ? 4 : 3;
+  }
+  if (rank === 2) {
+    return status === "limiting" ? 2 : 1;
+  }
+  // Rang 3+ : fenêtre Phase Spécifique minimale (cf. planConfigBuilder.ts
+  // RÈGLE DE PÉRIODISATION — ces rangs ne sont jamais ciblés avant cette phase).
+  return 2;
+}
+
+/**
+ * Calcule le nombre minimal de semaines pour donner à chaque limiteur
+ * identifié (classé par impact, ou par `coachLimiterOrder` si fourni — même
+ * logique que `deriveLimiterKeysFromGapAnalysis`) une fenêtre de travail
+ * réelle, jusqu'à 4 limiteurs (même plafond que le reste du pipeline).
+ * Retourne `null` si aucun limiteur n'est identifié (pas de contrainte).
+ */
+export function computeMinPlanWeeksForLimiters(
+  gapAnalysis: LimiterGapLike[] | undefined,
+  coachLimiterOrder?: string[],
+): MinPlanWeeksForLimitersResult | null {
+  if (!gapAnalysis || gapAnalysis.length === 0) return null;
+
+  let ranked = [...gapAnalysis]
+    .filter((g) => g.weightedImpact > 0 && g.status !== "unknown")
+    .sort((a, b) => b.weightedImpact - a.weightedImpact);
+
+  if (coachLimiterOrder && coachLimiterOrder.length > 0) {
+    ranked = ranked.sort((a, b) => {
+      const idxA = coachLimiterOrder.indexOf(a.metric);
+      const idxB = coachLimiterOrder.indexOf(b.metric);
+      const posA = idxA >= 0 ? idxA : 999;
+      const posB = idxB >= 0 ? idxB : 999;
+      if (posA !== posB) return posA - posB;
+      return b.weightedImpact - a.weightedImpact;
+    });
+  }
+
+  ranked = ranked.slice(0, 4);
+  if (ranked.length === 0) return null;
+
+  const breakdown: LimiterDurationRequirement[] = ranked.map((g, i) => ({
+    rank: i + 1,
+    metric: g.metric,
+    status: g.status,
+    weeksContribution: weeksForLimiterAtRank(i + 1, g.status),
+  }));
+
+  const minWeeks = breakdown.reduce((sum, b) => sum + b.weeksContribution, 0) + LIMITER_TAPER_FLOOR_WEEKS;
+
+  return { minWeeks, limiterCount: ranked.length, breakdown };
+}
+
+export interface LimiterDurationCoherenceResult {
+  tooShort: boolean;
+  message: string;
+  result: MinPlanWeeksForLimitersResult | null;
+}
+
+/**
+ * Évalue si `weeksAvailable` suffit pour les limiteurs identifiés. Message
+ * non-bloquant (même esprit que `evaluateDurationCoherence`) — jamais une
+ * interdiction de générer.
+ */
+export function evaluateLimiterDurationCoherence(
+  weeksAvailable: number | null | undefined,
+  gapAnalysis: LimiterGapLike[] | undefined,
+  coachLimiterOrder?: string[],
+): LimiterDurationCoherenceResult {
+  const result = computeMinPlanWeeksForLimiters(gapAnalysis, coachLimiterOrder);
+  if (!result || !Number.isFinite(weeksAvailable) || !weeksAvailable || weeksAvailable <= 0) {
+    return { tooShort: false, message: "", result };
+  }
+  if (weeksAvailable >= result.minWeeks) {
+    return { tooShort: false, message: "", result };
+  }
+  const detail = result.breakdown
+    .map((b) => `#${b.rank} ${b.metric} (≈${b.weeksContribution} sem)`)
+    .join(", ");
+  return {
+    tooShort: true,
+    result,
+    message: `⚠️ ${result.limiterCount} limiteur(s) détecté(s) — ${detail}. Une prise en charge sérieuse de tous nécessite généralement ≥${result.minWeeks} semaines (plan actuel : ${weeksAvailable}). Au-delà du rang #2, les limiteurs risquent de rester peu travaillés sur un plan aussi court.`,
+  };
 }

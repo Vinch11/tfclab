@@ -33,7 +33,8 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
 import { buildTargetTable } from "@/lib/plan/targetTable";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
-import { derivePhasesFromWeeks } from "@/engines/plan/planValidator";
+import { derivePhasesFromWeeks, computePhaseLimiterFocus } from "@/engines/plan/planValidator";
+import { limiterKeyLabel } from "@/lib/limiterSessionPatterns";
 import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
 import { computePhysioDrift, refreshPlanAbsoluteValues, DRIFT_ALERT_PCT } from "@/lib/plan/refreshPlanValues";
 import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
@@ -888,9 +889,17 @@ interface AIPlanViewerProps {
     vmaKmh?: number | null;
     thresholdPaceSecPerKm?: number | null;
   };
+  /**
+   * Limiteurs identifiés, classés par priorité (même ordre que
+   * `identifiedLimitersRaw`/`deriveLimiterKeysFromGapAnalysis`). Permet
+   * d'afficher dans la timeline quels limiteurs sont réellement travaillés
+   * par bloc (calcul dérivé des vraies séances — `computePhaseLimiterFocus`),
+   * sans dépendre du `strategicRecap` optionnel écrit par l'IA.
+   */
+  identifiedLimiterKeys?: string[];
 }
 
-export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
   // Régénération avec contraintes ponctuelles (imprévus : piscine fermée, etc.)
   const [regenDialog, setRegenDialog] = useState<null | { scope: RegenerationScope; label: string; run: (extra: string) => void }>(null);
   // Persist selected week per athlete (restored on mount/athlete change)
@@ -946,6 +955,21 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     () => buildPhaseLabelMap(effectivePhases, plan.strategicRecap?.limiters),
     [effectivePhases, plan.strategicRecap],
   );
+
+  // "Chantiers attaqués pendant le bloc" (demande coach) : calculé à partir
+  // des VRAIES séances (quels limiteurs les séances clés de ce bloc
+  // servent réellement), pas du strategicRecap optionnel de l'IA — ne rate
+  // jamais un bloc dont le récap serait absent/incomplet, et peut montrer
+  // plusieurs limiteurs par bloc (contrairement au badge "Bloc N · <nom>").
+  const phaseLimiterFocusByName = useMemo(() => {
+    const focus = computePhaseLimiterFocus(plan, identifiedLimiterKeys);
+    const map = new Map<string, typeof focus[number]>();
+    for (const f of focus) {
+      const key = f.phaseName.toLowerCase().trim();
+      if (!map.has(key)) map.set(key, f);
+    }
+    return map;
+  }, [plan, identifiedLimiterKeys]);
 
   // --- Replace dialog state ---
   const [replaceTarget, setReplaceTarget] = useState<ParsedSession | null>(null);
@@ -1814,11 +1838,25 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
           {/* Phase overview */}
           <div className="flex flex-wrap gap-2">
-            {plan.phases.map((phase, i) => (
-              <Badge key={i} className={`text-[10px] ${getPhaseColor(phase.name)}`}>
-                {displayPhase(phase.name, phaseLabelMap)} {phase.weeks && `(S${phase.weeks})`}
-              </Badge>
-            ))}
+            {plan.phases.map((phase, i) => {
+              const focus = phaseLimiterFocusByName.get(phase.name.toLowerCase().trim());
+              return (
+                <div key={i} className="flex flex-col items-start gap-1">
+                  <Badge className={`text-[10px] ${getPhaseColor(phase.name)}`}>
+                    {displayPhase(phase.name, phaseLabelMap)} {phase.weeks && `(S${phase.weeks})`}
+                  </Badge>
+                  {focus && focus.breakdown.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pl-1">
+                      {focus.breakdown.slice(0, 3).map((b) => (
+                        <Badge key={b.key} variant="outline" className="text-[9px] px-1.5 py-0 font-normal text-muted-foreground">
+                          {limiterKeyLabel(b.key)} {b.pct}%
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {sortedRaceGoals.length > 0 && (
