@@ -87,16 +87,26 @@ export function mergePlanChunks(chunks: PlanChunk[], totalWeeks: number): Merged
   }
 
   // 1) Récupère métadonnées "chunk 1" au premier chunk qui les fournit.
+  // `phases` fait exception : seul le chunk 1 est PROMPTÉ pour le récap
+  // complet, mais si un chunk ultérieur en fournit aussi (retry ciblé,
+  // patch de complétion), on les ACCUMULE au lieu de ne garder que le
+  // premier non-vide — sinon un récap partiel resterait figé tel quel.
   let title: string | undefined;
   let diagnostic: string | undefined;
   let strategicRecap: PlanChunk["strategicRecap"] | undefined;
-  let phases: NonNullable<PlanChunk["phases"]> = [];
+  const phaseSeen = new Set<string>();
+  const phases: NonNullable<PlanChunk["phases"]> = [];
 
   for (const c of chunks) {
     if (!title && c.title) title = c.title;
     if (!diagnostic && c.diagnostic) diagnostic = c.diagnostic;
     if (!strategicRecap && c.strategicRecap) strategicRecap = c.strategicRecap;
-    if (phases.length === 0 && c.phases && c.phases.length > 0) phases = c.phases;
+    for (const p of c.phases ?? []) {
+      const key = `${p.name}|${p.weeks}`;
+      if (phaseSeen.has(key)) continue;
+      phaseSeen.add(key);
+      phases.push(p);
+    }
   }
 
   // 2) Aplati / trie / vérifie couverture.

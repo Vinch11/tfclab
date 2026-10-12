@@ -89,6 +89,32 @@ Deno.test("mergePlanChunks — hors bornes → OUT_OF_RANGE", () => {
   assertEquals((err as MergePlanError).code, "OUT_OF_RANGE");
 });
 
+// Bug réel (audit "génération de plan IA") : seul le chunk 1 est prompté
+// pour `phases` (systemPromptJSON.ts), mais le merge ne regardait QUE le
+// premier chunk non-vide — un patch de complétion ciblé (generatePhasesPatch.ts)
+// qui ajoute `phases` à un AUTRE chunk était donc silencieusement ignoré.
+// Fix : accumulation sur tous les chunks, dédoublonnée par (name, weeks).
+Deno.test("mergePlanChunks — accumule les `phases` de TOUS les chunks, pas seulement le premier", () => {
+  const chunks: PlanChunk[] = [
+    { phases: [{ name: "Base", weeks: "S1-S4" }], weeks: [makeWeek(1), makeWeek(2), makeWeek(3), makeWeek(4)] },
+    { phases: [{ name: "Build", weeks: "S5-S8" }], weeks: [makeWeek(5), makeWeek(6), makeWeek(7), makeWeek(8)] },
+  ];
+  const merged = mergePlanChunks(chunks, 8);
+  assertEquals(merged.phases, [
+    { name: "Base", weeks: "S1-S4" },
+    { name: "Build", weeks: "S5-S8" },
+  ]);
+});
+
+Deno.test("mergePlanChunks — dédoublonne les entrées `phases` identiques (name, weeks) entre chunks", () => {
+  const chunks: PlanChunk[] = [
+    { phases: [{ name: "Base", weeks: "S1-S4" }], weeks: [makeWeek(1), makeWeek(2)] },
+    { phases: [{ name: "Base", weeks: "S1-S4" }], weeks: [makeWeek(3), makeWeek(4)] },
+  ];
+  const merged = mergePlanChunks(chunks, 4);
+  assertEquals(merged.phases, [{ name: "Base", weeks: "S1-S4" }]);
+});
+
 Deno.test("mergePlanChunks — rest session → isRest=true, dayIndex correct", () => {
   const chunks: PlanChunk[] = [{
     weeks: [{
