@@ -53,6 +53,15 @@ const LIMITER_KEY_TO_FAMILIES: Record<string, IntentFamily[]> = {
   pmax: ["sprint"],
 };
 
+/**
+ * Bonus de score (F-LIM) par rang de limiteur, dégressif. #1/#2 inchangés
+ * (18/8) ; #3/#4 passent de 0 à 4 — assez pour départager deux fiches à
+ * score égal en faveur de celle qui adresse un limiteur identifié, sans
+ * jamais rivaliser avec #1/#2 (cf. RÈGLE DE PÉRIODISATION SÉQUENTIELLE,
+ * planConfigBuilder.ts — #1/#2 restent strictement prioritaires).
+ */
+const LIMITER_BONUS_BY_RANK = [18, 8, 4, 4];
+
 /** Compact session representation for the AI prompt */
 export interface CatalogEntry {
   id: string;
@@ -320,7 +329,12 @@ function scoreWorkout(
   w: LibraryWorkout,
   goals: WorkoutGoal[],
   phases: PhaseTag[],
-  limiterKeys?: { primary?: string; secondary?: string },
+  /**
+   * Clés de limiteurs résolues, dans l'ORDRE de priorité (index 0 = #1).
+   * Jusqu'à 4 rangs (même plafond que `deriveLimiterKeysFromGapAnalysis`) —
+   * voir LIMITER_BONUS_BY_RANK ci-dessous pour le barème par rang.
+   */
+  limiterKeys?: string[],
   /**
    * Risque blessure calculé (via PlanConfig.injuryRisk — run vient de
    * runInjuryRisk.ts, bike vient de injuryRiskUnified.ts, cf.
@@ -459,22 +473,27 @@ function scoreWorkout(
 
 
   // ─── Limiter bonus (F-LIM) ───
-  // Boost sessions whose text matches the diagnosed primary/secondary limiter.
-  // Text = objectif + structure (all parts) + tags — même surface que planValidator.
-  if (limiterKeys?.primary || limiterKeys?.secondary) {
+  // Boost sessions whose text matches a diagnosed limiter, dégressif par
+  // rang. Text = objectif + structure (all parts) + tags — même surface que
+  // planValidator. Jusqu'ici seuls les rangs #1/#2 recevaient un bonus
+  // (18/8), les rangs #3/#4 un bonus de 0 — audit coach (plan 10K/10 sem) :
+  // au-delà du rang #2, aucun bonus de score ne les distinguait d'une fiche
+  // sans rapport, alors même qu'ils sont identifiés par le diagnostic.
+  // Priority dedup (même principe que planValidator.validateLimiterCoherence) :
+  // une fiche ne compte que pour le rang le plus prioritaire qu'elle matche.
+  if (limiterKeys && limiterKeys.length > 0) {
     const structureText = (w.structure || [])
       .map(s => `${s.part} ${s.text} ${s.zones.join(" ")}`)
       .join(" ");
     const tagsText = (w.tags || []).join(" ");
     const matchText = `${w.objectif} ${structureText} ${tagsText}`;
 
-    const primaryPattern = limiterKeys.primary ? LIMITER_SESSION_PATTERNS[limiterKeys.primary] : undefined;
-    const secondaryPattern = limiterKeys.secondary ? LIMITER_SESSION_PATTERNS[limiterKeys.secondary] : undefined;
-
-    if (primaryPattern && primaryPattern.test(matchText)) {
-      score += 18;
-    } else if (secondaryPattern && secondaryPattern.test(matchText)) {
-      score += 8;
+    for (let i = 0; i < limiterKeys.length; i++) {
+      const pattern = LIMITER_SESSION_PATTERNS[limiterKeys[i]];
+      if (pattern && pattern.test(matchText)) {
+        score += LIMITER_BONUS_BY_RANK[i] ?? LIMITER_BONUS_BY_RANK[LIMITER_BONUS_BY_RANK.length - 1];
+        break;
+      }
     }
   }
 
@@ -653,10 +672,17 @@ export function buildWorkoutCatalog(
     w => s2rGoal === (w.goals || []).includes("start_to_run"),
   );
 
-  // Résolution des limiteurs (labels bruts → clés de patterns)
-  const primaryKey = resolveLimiterKey(options?.limiters?.[0]);
-  const secondaryKey = resolveLimiterKey(options?.limiters?.[1]);
-  const limiterKeys = (primaryKey || secondaryKey) ? { primary: primaryKey, secondary: secondaryKey } : undefined;
+  // Résolution des limiteurs (labels bruts → clés de patterns), dans l'ORDRE
+  // de priorité reçu. Jusqu'ici seuls les index 0/1 (#1/#2) étaient résolus
+  // — un #3/#4 présent dans `options.limiters` était silencieusement perdu
+  // avant même d'atteindre scoreWorkout (audit coach, plan 10K/10 sem).
+  const resolvedLimiterKeys: string[] = [];
+  for (const raw of options?.limiters ?? []) {
+    const key = resolveLimiterKey(raw);
+    if (key && !resolvedLimiterKeys.includes(key)) resolvedLimiterKeys.push(key);
+    if (resolvedLimiterKeys.length >= 4) break;
+  }
+  const limiterKeys = resolvedLimiterKeys.length > 0 ? resolvedLimiterKeys : undefined;
 
   // ─── PROHIBITIONS : filtre d'exclusion pré-scoring (F-PROH) ───
   const activeProhibitionKeys = resolveProhibitionKeys(options?.prohibitions);
@@ -1075,10 +1101,10 @@ export function buildWorkoutCatalog(
   const SOCLE_SECONDARY_LIMITER = 4;
 
   const primaryFamilies = new Set<IntentFamily>(
-    limiterKeys?.primary ? (LIMITER_KEY_TO_FAMILIES[limiterKeys.primary] || []) : []
+    limiterKeys?.[0] ? (LIMITER_KEY_TO_FAMILIES[limiterKeys[0]] || []) : []
   );
   const secondaryFamilies = new Set<IntentFamily>(
-    limiterKeys?.secondary ? (LIMITER_KEY_TO_FAMILIES[limiterKeys.secondary] || []) : []
+    limiterKeys?.[1] ? (LIMITER_KEY_TO_FAMILIES[limiterKeys[1]] || []) : []
   );
   const boostedFamilyCounts: Record<string, number> = {};
   const socleIds = new Set<string>();
@@ -1098,7 +1124,7 @@ export function buildWorkoutCatalog(
   if (Object.keys(boostedFamilyCounts).length > 0) {
     console.log(
       `[socle_limiter_boost] chunk=${options?.chunkIndex ?? 0} ` +
-      `primary=${limiterKeys?.primary ?? "-"} secondary=${limiterKeys?.secondary ?? "-"} ` +
+      `primary=${limiterKeys?.[0] ?? "-"} secondary=${limiterKeys?.[1] ?? "-"} ` +
       `boost=${Object.entries(boostedFamilyCounts).map(([f, n]) => `${f}+${n}`).join(" ")}`,
     );
   }

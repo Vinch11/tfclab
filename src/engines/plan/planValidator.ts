@@ -2178,39 +2178,18 @@ export function deriveLimiterKeysFromGapAnalysis(
   return limiterKeys;
 }
 
-function validateLimiterCoherence(
-  plan: ParsedPlan,
-  identifiedLimiters?: string[],
-  identifiedLimiterKeys?: string[]
-): { issues: ValidationIssue[]; score: number; coverage: LimiterCoverageItem[] } {
-  const issues: ValidationIssue[] = [];
-  const coverage: LimiterCoverageItem[] = [];
-
-  if (((!identifiedLimiters || identifiedLimiters.length === 0) && (!identifiedLimiterKeys || identifiedLimiterKeys.length === 0)) || plan.weeks.length < 3) {
-    return { issues, score: 100, coverage };
-  }
-
-  const limiterKeys: string[] = [];
-
-  if (identifiedLimiterKeys && identifiedLimiterKeys.length > 0) {
-    for (const key of identifiedLimiterKeys) {
-      if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-      if (limiterKeys.length >= 4) break;
-    }
-  } else if (identifiedLimiters) {
-    // Fallback for legacy callers: extract from prompt text
-    for (const limText of identifiedLimiters) {
-      const key = detectLimiterKeyFromText(limText);
-      if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-      if (limiterKeys.length >= 4) break;
-    }
-  }
-
-  if (limiterKeys.length === 0) return { issues, score: 80, coverage };
-
-  // Count sessions that match each limiter's expected patterns
-  // Priority dedup: each session is assigned to the HIGHEST-PRIORITY limiter it matches (L1 > L2 > L3 > L4)
-  // EXCEPTION: Proven synergies allow double-counting (e.g. seuil long → TTE + VLamax, SFR → Économie + VLamax)
+/**
+ * Compte, parmi les séances clés d'un ensemble de semaines données, combien
+ * matchent chaque limiteur (priority dedup L1>L2>L3>L4 + synergies prouvées
+ * VLamax/TTE/FTP — voir commentaires inline). Extrait de `validateLimiterCoherence`
+ * pour être réutilisable PAR BLOC (`computePhaseLimiterFocus` ci-dessous),
+ * sans dupliquer cette logique de matching (source unique avec le scoring
+ * catalogue — `LIMITER_SESSION_PATTERNS`, `limiterSessionPatterns.ts`).
+ */
+function computeLimiterHitsForWeeks(
+  weeks: ParsedWeek[],
+  limiterKeys: string[]
+): { limiterHits: Record<string, number>; totalKeySessions: number } {
   const limiterHits: Record<string, number> = {};
   let totalKeySessions = 0;
 
@@ -2230,7 +2209,7 @@ function validateLimiterCoherence(
   const hasFtpLimiter = limiterKeys.includes("ftp");
   const hasTteLimiter = limiterKeys.includes("tte");
 
-  for (const week of plan.weeks) {
+  for (const week of weeks) {
     for (const session of week.sessions) {
       if (session.isRest) continue;
       const rawText = `${session.title} ${session.details}`;
@@ -2289,6 +2268,109 @@ function validateLimiterCoherence(
       }
     }
   }
+
+  return { limiterHits, totalKeySessions };
+}
+
+/**
+ * Calcule, PAR BLOC (regroupement de semaines contiguës de même `week.phase`
+ * — même logique que `derivePhasesFromWeeks`), quels limiteurs identifiés
+ * sont réellement travaillés par les séances clés générées. Demande coach
+ * (plan 10K/10 sem — "j'aimerais que la timeline donne aussi les chantiers
+ * attaqués pendant le bloc") : calcul DÉRIVÉ des vraies séances plutôt que
+ * dépendant du `strategicRecap` optionnel écrit par l'IA (potentiellement
+ * incomplet, jamais vérifié après coup) — même source de vérité que la
+ * validation `validateLimiterCoherence` ci-dessous, appliquée bloc par bloc
+ * au lieu de sur tout le plan.
+ */
+export interface PhaseLimiterFocus {
+  phaseName: string;
+  startWeek: number;
+  endWeek: number;
+  weeksLabel: string;
+  /** Classé par nombre de hits décroissant, limiteurs sans aucun hit exclus. */
+  breakdown: { key: string; hits: number; pct: number }[];
+}
+
+export function computePhaseLimiterFocus(
+  plan: ParsedPlan,
+  limiterKeys: string[] | undefined
+): PhaseLimiterFocus[] {
+  if (!limiterKeys || limiterKeys.length === 0 || plan.weeks.length === 0) return [];
+  const rankedKeys = limiterKeys.slice(0, 4);
+
+  const groups: { name: string; weeks: ParsedWeek[] }[] = [];
+  for (const w of plan.weeks) {
+    const name = (w.phase || "").trim();
+    if (!name) continue;
+    const last = groups[groups.length - 1];
+    if (last && last.name.toLowerCase() === name.toLowerCase()) {
+      last.weeks.push(w);
+    } else {
+      groups.push({ name, weeks: [w] });
+    }
+  }
+
+  return groups.map((group) => {
+    const startWeek = group.weeks[0].weekNumber;
+    const endWeek = group.weeks[group.weeks.length - 1].weekNumber;
+    const { limiterHits, totalKeySessions } = computeLimiterHitsForWeeks(group.weeks, rankedKeys);
+
+    const breakdown = totalKeySessions === 0
+      ? []
+      : rankedKeys
+          .map((key) => ({
+            key,
+            hits: limiterHits[key] || 0,
+            pct: Math.round(((limiterHits[key] || 0) / totalKeySessions) * 100),
+          }))
+          .filter((b) => b.hits > 0)
+          .sort((a, b) => b.hits - a.hits);
+
+    return {
+      phaseName: group.name,
+      startWeek,
+      endWeek,
+      weeksLabel: startWeek === endWeek ? `S${startWeek}` : `S${startWeek}-S${endWeek}`,
+      breakdown,
+    };
+  });
+}
+
+function validateLimiterCoherence(
+  plan: ParsedPlan,
+  identifiedLimiters?: string[],
+  identifiedLimiterKeys?: string[]
+): { issues: ValidationIssue[]; score: number; coverage: LimiterCoverageItem[] } {
+  const issues: ValidationIssue[] = [];
+  const coverage: LimiterCoverageItem[] = [];
+
+  if (((!identifiedLimiters || identifiedLimiters.length === 0) && (!identifiedLimiterKeys || identifiedLimiterKeys.length === 0)) || plan.weeks.length < 3) {
+    return { issues, score: 100, coverage };
+  }
+
+  const limiterKeys: string[] = [];
+
+  if (identifiedLimiterKeys && identifiedLimiterKeys.length > 0) {
+    for (const key of identifiedLimiterKeys) {
+      if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
+      if (limiterKeys.length >= 4) break;
+    }
+  } else if (identifiedLimiters) {
+    // Fallback for legacy callers: extract from prompt text
+    for (const limText of identifiedLimiters) {
+      const key = detectLimiterKeyFromText(limText);
+      if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
+      if (limiterKeys.length >= 4) break;
+    }
+  }
+
+  if (limiterKeys.length === 0) return { issues, score: 80, coverage };
+
+  // Count sessions that match each limiter's expected patterns
+  // Priority dedup: each session is assigned to the HIGHEST-PRIORITY limiter it matches (L1 > L2 > L3 > L4)
+  // EXCEPTION: Proven synergies allow double-counting (e.g. seuil long → TTE + VLamax, SFR → Économie + VLamax)
+  const { limiterHits, totalKeySessions } = computeLimiterHitsForWeeks(plan.weeks, limiterKeys);
 
   if (totalKeySessions === 0) return { issues, score: 50, coverage };
 

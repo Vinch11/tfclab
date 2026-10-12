@@ -37,7 +37,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, getCatalogSportFilter, getCatalogExclusions, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
-import { evaluateDurationCoherenceMultiObjective } from "@/lib/plan/recommendedPlanDuration";
+import { evaluateDurationCoherenceMultiObjective, evaluateLimiterDurationCoherence } from "@/lib/plan/recommendedPlanDuration";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
 import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksForFullPeak, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
@@ -1256,6 +1256,19 @@ export default function AITrainingPlanPage() {
         )
       : null),
     [weeksAvailable, multiObjectiveClassifiableGoals, planStartDate, ambition],
+  );
+
+  // Message non-bloquant complémentaire : la durée choisie suffit-elle pour
+  // donner à CHAQUE limiteur identifié (pas seulement le #1) une vraie
+  // fenêtre de travail ? (demande coach — plan 10K/10 sem où seul le
+  // limiteur #1 était réellement adressé).
+  const limiterDurationCoherence = useMemo(
+    () => evaluateLimiterDurationCoherence(
+      weeksAvailable,
+      athleteContext?.diagnostic.limiter.gapAnalysis,
+      coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
+    ),
+    [weeksAvailable, athleteContext, coachLimiterOrder],
   );
 
   // Parse AI response into structured plan + apply taper volume override + validate paces.
@@ -3339,6 +3352,12 @@ export default function AITrainingPlanPage() {
                       {durationCoherence.message}
                     </p>
                   )}
+
+                  {limiterDurationCoherence.tooShort && (
+                    <p className="text-[11px] rounded px-2 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                      {limiterDurationCoherence.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Trail-specific profile (distance + D+ + time + altitude) */}
@@ -4211,6 +4230,7 @@ export default function AITrainingPlanPage() {
                             ? buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections
                             : undefined
                         }
+                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined) : undefined}
                         gapContext={(() => {
                           const ambRes = computeAmbitionEffective({
                             ambitionSaisie: ambition,
