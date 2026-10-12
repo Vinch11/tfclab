@@ -139,11 +139,30 @@ function buildPhaseRanges(
   parsed.sort((a, b) => a.start - b.start);
   if (parsed.length === 0) return cycleAwareLorangPhases(totalWeeks, raceGoals, planStartDate);
   if (parsed[0].start > 1) parsed.unshift({ name: parsed[0].name, start: 1, end: parsed[0].start - 1 });
-  const last = parsed[parsed.length - 1];
-  if (last.end < totalWeeks) {
-    parsed.push({ name: INCOMPLETE_PHASE_LABEL, start: last.end + 1, end: totalWeeks });
+
+  // Comble aussi les trous INTERNES (entre deux blocs réels, ex: Bloc 2 finit
+  // S6, Bloc 3 commence S8 → S7 orphelin) — même traitement que le trou de
+  // fin ci-dessous : jamais hériter silencieusement du nom/contenu d'un bloc
+  // voisin (cf. commentaire INCOMPLETE_PHASE_LABEL), sentinelle visible à la
+  // place. Avant ce fix, seul le trou de FIN était comblé ; un trou au milieu
+  // (chunk de génération manquant une plage intermédiaire) laissait les
+  // semaines concernées sans aucun bloc, retombant sur le fallback brut
+  // `w.phase` (ex. "build") au lieu d'un nom de bloc résolu.
+  const withGapsFilled: PhaseRange[] = [parsed[0]];
+  for (let i = 1; i < parsed.length; i++) {
+    const prevEnd = withGapsFilled[withGapsFilled.length - 1].end;
+    const next = parsed[i];
+    if (next.start > prevEnd + 1) {
+      withGapsFilled.push({ name: INCOMPLETE_PHASE_LABEL, start: prevEnd + 1, end: next.start - 1 });
+    }
+    withGapsFilled.push(next);
   }
-  return parsed;
+
+  const last = withGapsFilled[withGapsFilled.length - 1];
+  if (last.end < totalWeeks) {
+    withGapsFilled.push({ name: INCOMPLETE_PHASE_LABEL, start: last.end + 1, end: totalWeeks });
+  }
+  return withGapsFilled;
 }
 
 /** Retourne le nom de phase pour un weekNumber donné. */
