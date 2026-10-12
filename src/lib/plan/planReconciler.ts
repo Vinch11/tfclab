@@ -82,6 +82,14 @@ export interface ReconcilerCounters {
   /** Même détection, mais aucune alternative disponible — doublon conservé
    *  tel quel, signalé plutôt que dégradé au hasard. */
   week_duplicate_unresolved?: number;
+  /** Cumul de séances "à jeun" (Train Low/Sleep Low/Fasted) détecté DANS LA
+   *  MÊME SEMAINE — introduit par les substitutions ci-dessus, qui n'ont
+   *  aucune notion de ce plafond (contrairement au réconciliateur serveur) —
+   *  remplacé par une alternative non-fasted. */
+  week_fasted_cap_replaced?: number;
+  /** Même détection, mais aucune alternative non-fasted disponible — cumul
+   *  conservé tel quel, signalé plutôt que dégradé au hasard. */
+  week_fasted_cap_unresolved?: number;
 
 }
 
@@ -235,6 +243,18 @@ function limiterMatchRank(w: LibraryWorkout, keywordsByRank: string[][]): number
 const LIMITER_MATCH_BONUS = 100_000;
 const LIMITER_RANK_DECAY = 1_000;
 
+// Même motif que le réconciliateur SERVEUR (jsonPlanHandler.ts, bloc (c2)) :
+// Train Low, Sleep Low, Fasted run/bike sont TOUS la même stratégie
+// physiologique (glycogène bas) sous des noms différents.
+const FASTED_SESSION_PATTERN = /\bjeun\b|fasted|sleep[\s_-]*low|train[\s_-]*low/i;
+function ficheIsFastedPattern(w: LibraryWorkout): boolean {
+  const text = `${w.objectif ?? w.id} ${(w.structure || []).map(p => p.text).join(" ")}`;
+  return FASTED_SESSION_PATTERN.test(text);
+}
+function sessionIsFastedPattern(s: PlanSession): boolean {
+  return FASTED_SESSION_PATTERN.test(`${s.title ?? ""} ${s.details ?? ""}`);
+}
+
 interface FindOpts {
   sport: NormSport;
   weekPhase: PlanPhase;
@@ -257,6 +277,10 @@ interface FindOpts {
    *  une fois multiplié ×100), cette exclusion garantit qu'un remplacement
    *  ne réintroduit jamais un doublon dans la même semaine. */
   excludeIdsThisWeek?: Set<string>;
+  /** Exclut tout candidat matchant FASTED_SESSION_PATTERN (Train Low/Sleep
+   *  Low/Fasted) — utilisé par dedupeFastedWithinWeek pour ne jamais
+   *  réintroduire un cumul de séances à jeun en cherchant un remplacement. */
+  excludeFastedPattern?: boolean;
   /** Fix B3 + fix "traitement des limiteurs" : mots-clés de TOUS les
    *  limiteurs identifiés de l'athlète, par rang (L1 en tête) — cf.
    *  limiterKeywords.ts. Une fiche matchant un rang plus critique est
@@ -265,7 +289,7 @@ interface FindOpts {
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   let best: { w: LibraryWorkout; key: number } | null = null;
@@ -276,6 +300,7 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (excludeId && w.id.toUpperCase() === excludeId.toUpperCase()) continue;
     if (restrictToIds && !restrictToIds.has(w.id.toUpperCase())) continue;
     if (excludeIdsThisWeek && excludeIdsThisWeek.has(w.id.toUpperCase())) continue;
+    if (excludeFastedPattern && ficheIsFastedPattern(w)) continue;
     if (normSport(w.sport) !== sport) continue;
     if (requirePhase) {
       const allowed = ficheAllowedPhases(w);
@@ -656,6 +681,74 @@ function dedupeWithinWeek(
           counters.week_duplicate_unresolved = (counters.week_duplicate_unresolved ?? 0) + 1;
           logs.push(
             `[week_duplicate_unresolved] S${wk.weekNumber} ${s.day} ${id} dupliqué cette semaine — aucune alternative disponible (phase=${weekPhase}, sport=${s.sport})`,
+          );
+        }
+      }
+    }
+  }
+}
+
+// ── Plafond cumul "à jeun" intra-semaine (filet final) ─────────────────────
+// Audit qualité plans IA (plan "Vince", 10K) : même angle mort que
+// dedupeWithinWeek ci-dessus, mais pour le plafond "1 séance à jeun/semaine
+// max" (Train Low, Sleep Low, Fasted — cf. FASTED_SESSION_PATTERN) — ce
+// plafond n'existe QUE côté réconciliateur SERVEUR (jsonPlanHandler.ts, bloc
+// (c2)), jamais côté client. La substitution phase/durée/discipline
+// ci-dessus (runOnePass) peut donc choisir une fiche "à jeun" en
+// remplacement d'une séance phase-incompatible, sans jamais vérifier si la
+// semaine en a déjà une — réintroduisant un cumul que le serveur avait
+// pourtant respecté à la génération. Même logique que le serveur : garde la
+// 1re occurrence intacte, tente une alternative NON-fasted pour les
+// suivantes, sinon signale sans dégrader silencieusement.
+function dedupeFastedWithinWeek(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+  ledger?: UsageLedger,
+  restrictToIds?: Set<string>,
+): void {
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      const weekPhase = wk.phase as PlanPhase;
+      const sessions = (wk.sessions ?? []) as PlanSession[];
+      const fastedSessions = sessions.filter(s => s.sport !== "rest" && sessionIsFastedPattern(s));
+      if (fastedSessions.length < 2) continue;
+
+      // Catalogue déjà utilisé cette semaine (hors les séances à jeun
+      // elles-mêmes, gérées séparément) — évite qu'un remplacement non-fasted
+      // réintroduise un doublon de catalogId que dedupeWithinWeek vient de corriger.
+      const otherUsedIds = new Set<string>();
+      for (const s of sessions) {
+        if (s.sport === "rest" || s.custom || !s.catalogId) continue;
+        otherUsedIds.add(s.catalogId.toUpperCase());
+      }
+
+      for (let i = 1; i < fastedSessions.length; i++) {
+        const s = fastedSessions[i];
+        const id = s.custom ? null : s.catalogId;
+        const original = id ? ficheFor(id) : null;
+        const repl = findReplacement({
+          sport: normSport(s.sport),
+          weekPhase,
+          targetDur: s.durationMin ?? 0,
+          original,
+          restrictToIds,
+          ledger,
+          excludeIdsThisWeek: otherUsedIds,
+          excludeFastedPattern: true,
+        }, id ?? undefined);
+        const label = id ?? "custom";
+        if (repl) {
+          assignFiche(s, repl, s.durationMin, ledger);
+          otherUsedIds.add(repl.id.toUpperCase());
+          counters.week_fasted_cap_replaced = (counters.week_fasted_cap_replaced ?? 0) + 1;
+          logs.push(
+            `[week_fasted_cap_replaced] S${wk.weekNumber} ${s.day} ${label} (${fastedSessions.length}× à jeun cette semaine) → ${repl.id}`,
+          );
+        } else {
+          counters.week_fasted_cap_unresolved = (counters.week_fasted_cap_unresolved ?? 0) + 1;
+          logs.push(
+            `[week_fasted_cap_unresolved] S${wk.weekNumber} ${s.day} ${label} — ${fastedSessions.length}× séance à jeun cette semaine, aucune alternative non-fasted disponible (phase=${weekPhase}, sport=${s.sport})`,
           );
         }
       }
@@ -1546,6 +1639,12 @@ export function runReconciler(
   // de anyOnePassChange) : un doublon peut déjà être présent en sortie du
   // générateur, pas uniquement introduit par runOnePass.
   dedupeWithinWeek(chunks, counters, logs, usageLedger, injected);
+
+  // Filet final plafond cumul "à jeun" — voir commentaire au site de
+  // définition de dedupeFastedWithinWeek. Tourne après dedupeWithinWeek :
+  // réutilise un ledger/catalogue déjà à jour pour ne pas réintroduire un
+  // doublon de catalogId en corrigeant un cumul à jeun.
+  dedupeFastedWithinWeek(chunks, counters, logs, usageLedger, injected);
 
   // Passe POSTÉRIEURE — filet final : nettoie tout ID hors-catalogue qui
   // aurait été introduit malgré tout (ex : insertion FLOOR sans injected).
