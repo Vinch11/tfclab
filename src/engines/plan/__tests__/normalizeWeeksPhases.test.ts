@@ -45,7 +45,7 @@ describe("normalizeWeeksAndPhases", () => {
       weeks: Array.from({ length: 40 }, (_, i) => makeWeek(i + 1)),
       phases: [
         { name: "Bloc 1 · Fondation", weeks: "S1-S8", objective: "Base aérobie", volume: "8h" },
-        { name: "Bloc 8 · Durabilité IM", weeks: "S29-S32", objective: "Répétition d'efforts longs", volume: "14h" },
+        { name: "Bloc 8 · Durabilité IM", weeks: "S9-S32", objective: "Répétition d'efforts longs", volume: "14h" },
       ],
       totalWeeks: 40,
     };
@@ -76,6 +76,41 @@ describe("normalizeWeeksAndPhases", () => {
       expect(incompleteEntry!.weeks).toBe("S33-S40");
       expect(incompleteEntry!.objective).toBeUndefined();
       expect(incompleteEntry!.volume).toBeUndefined();
+    });
+  });
+
+  // Bug réel constaté sur un plan 10K généré pour Vince : récap "Bloc 1
+  // (S1-S4) → Bloc 2 (S5-S6) → Bloc 3 (S8-S9) → Bloc 4 (S10)" — S7 orpheline
+  // entre Bloc 2 et Bloc 3. Avant ce fix, seul le trou de FIN déclenchait
+  // INCOMPLETE_PHASE_LABEL ; un trou interne laissait la semaine sans aucun
+  // bloc résolu (retombant sur le `w.phase` brut, ex. "build").
+  describe("récap de phases avec un trou AU MILIEU (entre deux blocs réels)", () => {
+    const plan: PhaseNormalizable = {
+      weeks: Array.from({ length: 10 }, (_, i) => makeWeek(i + 1)),
+      phases: [
+        { name: "Bloc 2 · Chantier VLamax", weeks: "S5-S6", objective: "Réduction VLamax" },
+        { name: "Bloc 3 · Race-Specific", weeks: "S8-S9", objective: "Allure course" },
+      ],
+      totalWeeks: 10,
+    };
+    const stats = normalizeWeeksAndPhases(plan, { weeksAvailable: 10 });
+
+    it("signale la semaine du trou interne (S7) ET le trou de fin (S10) dans incompletePhaseWeeks", () => {
+      expect(stats.incompletePhaseWeeks).toEqual([7, 10]);
+    });
+
+    it("S7 reçoit la sentinelle visible, jamais le nom du bloc voisin (ni Bloc 2 ni Bloc 3)", () => {
+      const week7 = plan.weeks.find(w => w.weekNumber === 7)!;
+      expect(week7.phase).toBe(INCOMPLETE_PHASE_LABEL);
+      expect(week7.phase).not.toBe("Bloc 2 · Chantier VLamax");
+      expect(week7.phase).not.toBe("Bloc 3 · Race-Specific");
+    });
+
+    it("les blocs réels voisins gardent leur contenu propre, non affecté par le trou", () => {
+      const week6 = plan.weeks.find(w => w.weekNumber === 6)!;
+      const week8 = plan.weeks.find(w => w.weekNumber === 8)!;
+      expect(week6.phase).toBe("Bloc 2 · Chantier VLamax");
+      expect(week8.phase).toBe("Bloc 3 · Race-Specific");
     });
   });
 
