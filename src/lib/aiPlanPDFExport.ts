@@ -14,6 +14,7 @@ import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
+import { normalizeGoal } from "@/lib/workoutCatalogBuilder";
 
 
 const SPORT_TAG_TOKENS = new Set([
@@ -196,7 +197,32 @@ function escapeHTML(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
-function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999): string {
+/**
+ * Filtre les variantes affichées à celle(s) correspondant à l'objectif réel
+ * du plan — retour coach ("mise en page pas lisible, document pas premium") :
+ * la fiche complète affichait systématiquement les variantes de TOUS les
+ * objectifs (ironman, half, marathon, semi...) même sur un plan 10K, pur
+ * bruit qui gonfle chaque séance sans rien apporter à CET athlète. Ne garde
+ * que la variante du goal normalisé le plus prioritaire qui matche
+ * réellement (même logique que `normalizeGoal`/catalogue) ; si aucune ne
+ * matche, n'affiche rien plutôt que tout (le bloc "Variantes" est une
+ * référence complémentaire, jamais un contenu obligatoire).
+ */
+function filterVariantsForObjective(
+  variants: { goal: string; text: string }[],
+  objective?: string | null,
+): { goal: string; text: string }[] {
+  if (!objective || variants.length === 0) return variants;
+  const goals = normalizeGoal(objective);
+  if (goals.length === 0) return variants;
+  for (const goal of goals) {
+    const match = variants.filter((v) => v.goal.toLowerCase() === goal);
+    if (match.length > 0) return match;
+  }
+  return [];
+}
+
+function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999, objective?: string | null): string {
   const structure = f.structure
     .map((s) => {
       const body = formatFicheText(s.text);
@@ -211,8 +237,9 @@ function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999):
     })
     .join("");
 
-  const variants = f.variants.length
-    ? `<div style="margin-top:4px;"><strong style="color:#5555E0;">🎯 Variantes :</strong><ul style="margin:2px 0 0 16px;padding:0;">${f.variants
+  const relevantVariants = filterVariantsForObjective(f.variants, objective);
+  const variants = relevantVariants.length
+    ? `<div style="margin-top:4px;"><strong style="color:#5555E0;">🎯 Variante :</strong><ul style="margin:2px 0 0 16px;padding:0;">${relevantVariants
         .map((v) => `<li><strong>${escapeHTML(v.goal)}</strong> — ${escapeHTML(v.text)}</li>`)
         .join("")}</ul></div>`
     : "";
@@ -374,7 +401,7 @@ function buildPlanHTML(
           </div>`;
         const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${formatFicheText(s.details || "")}</div>`;
         const ficheBlock = fiche
-          ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks)}</div></div>`
+          ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></div>`
           : "";
         const altsBlock = altsHtml
           ? `<div style="border-top:1px dashed #DAD6CC;background:#fff;padding:6px 10px;">${altsHtml}</div>`
@@ -387,7 +414,7 @@ function buildPlanHTML(
 
       const totalCols = (hasDate ? 1 : 0) + 4;
       const ficheRow = fiche
-        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#FAF9F5;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks)}</div></td></tr>`
+        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#FAF9F5;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></td></tr>`
         : "";
       const altsRow = altsHtml
         ? `<tr class="alts-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
