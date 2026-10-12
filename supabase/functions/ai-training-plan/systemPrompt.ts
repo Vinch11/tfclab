@@ -700,7 +700,7 @@ ${formatRulesBlock}
 | CAP | 25-35% | 3-4 | Briques, Allure IM = 80-85% VMA. Max 2h30 |
 | Natation | 15-20% | 4-5 | 3-4km/séance. CSS + technique. Volume constant |
 | Renfo | 5-10% | 2 | Core, prévention, force fonctionnelle |
-⚠️ Min 3 nat, 3 vélo, 3 CAP/sem. 1-2 briques/sem en spécifique. Train Low 2-3x/sem en base. Gut Training 30→90g/h. Reverse periodization.
+⚠️ Min 3 nat, 3 vélo, 3 CAP/sem. 1-2 briques/sem en spécifique. Train Low 1x/sem max (cf. plafond cumulé "à jeun"). Gut Training 30→90g/h. Reverse periodization.
 
 ### 70.3 — Modèle Lorang/Haug (12-18h/sem)
 | Sport | % Volume | Séances/sem | Clés |
@@ -861,11 +861,11 @@ Séquençage Standard (intensité précoce, heuristique interne TFCL — cf. sec
 | Limiteur #1 | Bloc 1 (Fondation) | Bloc 2 (Chantier) | Bloc 3 (Consolidation) | Bloc 4 (Race-Specific) |
 |-------------|-------------------|-------------------|----------------------|----------------------|
 | VO2max bas | Force + Z2 | **Chantier VO2max** : Billat 2-3x/sem | Seuil + allure course | Simulations race-pace |
-| VLamax haute | Force + VO2max | **Chantier VLamax↓** : Z2 long Train Low 2-3x/sem + seuil long + SFR | Seuil + durabilité | Simulations + Z2 maintien |
+| VLamax haute | Force + VO2max | **Chantier VLamax↓** : Z2 long Train Low 1x/sem max (cf. plafond cumulé "à jeun") + seuil long + SFR | Seuil + durabilité | Simulations + Z2 maintien |
 | TTE faible | Force + VO2max | **Chantier TTE↑** : Norvégienne 2×15→1×40min | Allure course + durabilité | Simulations + rappels seuil |
 | FTP/kg bas | Force + VO2max | **Chantier FTP** : Sweet spot + over-unders 2-3x/sem | Seuil + race-power | Simulations race-power |
 | Économie | Force + plio | **Chantier Économie** : SFR + côtes + maintien force | Seuil + allure course | Simulations + rappels strides |
-| FatMax | Z2 Train Low | **Chantier FatMax** : Z2 longue à jeun + SL progressive | Gut Training + seuil | Simulations nutrition |
+| FatMax | Z2 Train Low | **Chantier FatMax** : Z2 longue à jeun (Train Low) OU Sleep Low progressive, jamais les deux la même semaine (cf. plafond cumulé "à jeun") | Gut Training + seuil | Simulations nutrition |
 | Durabilité | Volume Z2 | **Chantier Durabilité** : SL fast finish + briques pre-fatigued | Seuil + allure course | Simulations longues |
 Exception Débutants/Finishers : périodisation linéaire progressive. Progression graduelle volume.
 
