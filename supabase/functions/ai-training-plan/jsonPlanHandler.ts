@@ -44,7 +44,8 @@ import {
   type PlanSession,
 } from "./planSchema.ts";
 import { isTrailCatalogId } from "./trailMarkers.ts";
-import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
+import { mergePlanChunks, MergePlanError, type MergedPlan } from "./mergePlanChunks.ts";
+import { computePhaseCoverageGaps, generatePhasesPatch } from "./generatePhasesPatch.ts";
 import { applyValueCheck } from "./valueCheck.ts";
 import { detectLcwFromConfig, buildLcwSignatureReminder, computeLcwChunkSize } from "./lcwSignatureReminder.ts";
 
@@ -2264,9 +2265,60 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             },
           });
 
-          const merged = regenerateWeek
+          let merged = regenerateWeek
             ? { totalWeeks: 1, weeks: valueChecked.chunks.flatMap((chunk) => chunk.weeks) }
             : mergePlanChunks(valueChecked.chunks, mergedTotal);
+
+          // Filet actif récap périodisation (`phases`) — voir generatePhasesPatch.ts.
+          // Seul le chunk 1 est prompté pour `phases` (systemPromptJSON.ts) ; si
+          // son récap ne couvre pas totalWeeks (tronqué/oublié), on tente ICI un
+          // patch LLM ciblé plutôt que de livrer un récap troué en silence.
+          // No-op en régénération semaine seule (`merged` n'a pas de `phases`
+          // dans cette branche — le récap global n'a jamais de sens pour 1 semaine).
+          if (!regenerateWeek) {
+            const mergedWithPhases = merged as MergedPlan;
+            const gaps = computePhaseCoverageGaps(mergedWithPhases.phases, mergedTotal);
+            if (gaps.length > 0) {
+              const gapsDesc = gaps.map((g) => `S${g.start}-S${g.end}`).join(", ");
+              console.warn(`[phases_patch] récap incomplet — trous=[${gapsDesc}] sur totalWeeks=${mergedTotal}`);
+              const weekContext = valueChecked.chunks.flatMap((c) =>
+                c.weeks.map((w) => ({ weekNumber: w.weekNumber, phase: w.phase, theme: w.theme ?? "" })),
+              );
+              const patch = await generatePhasesPatch({
+                apiKey,
+                model: PRIMARY_MODEL,
+                objective: planConfig?.objective ?? null,
+                totalWeeks: mergedTotal,
+                gaps,
+                weekContext,
+              });
+              if (patch && patch.length > 0) {
+                const firstChunk = valueChecked.chunks[0];
+                firstChunk.phases = [...(firstChunk.phases ?? []), ...patch];
+                merged = mergePlanChunks(valueChecked.chunks, mergedTotal);
+                const remaining = computePhaseCoverageGaps(merged.phases, mergedTotal);
+                if (remaining.length > 0) {
+                  const remainingDesc = remaining.map((g) => `S${g.start}-S${g.end}`).join(", ");
+                  console.warn(`[phases_patch] patch partiel — trous restants=[${remainingDesc}]`);
+                  enqueue("warning", {
+                    code: "phases_recap_patch_partial",
+                    severity: "warning",
+                    message: `[phases_patch] récap de périodisation partiellement complété — semaines non couvertes: [${remainingDesc}]`,
+                  });
+                } else {
+                  console.log(`[phases_patch] trous comblés avec succès: [${gapsDesc}]`);
+                }
+              } else {
+                console.warn(`[phases_patch] échec du patch — trous conservés=[${gapsDesc}]`);
+                enqueue("warning", {
+                  code: "phases_recap_patch_failed",
+                  severity: "warning",
+                  message: `[phases_patch] récap de périodisation incomplet — semaines non couvertes: [${gapsDesc}]. Le contenu des semaines reste valide ; vérifie la frise de phases avant utilisation.`,
+                });
+              }
+            }
+          }
+
           for (let ci = 0; ci < valueChecked.chunks.length; ci++) {
             enqueue("chunk-json", { chunkIndex: ci, chunk: valueChecked.chunks[ci] });
           }

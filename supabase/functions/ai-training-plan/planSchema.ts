@@ -127,12 +127,13 @@ export const zStrategicRecap = z.object({
   synergies: z.array(z.string()),
 });
 
-const zPhaseSummary = z.object({
+export const zPhaseSummary = z.object({
   name: z.string().min(1),
   weeks: z.string(),                    // ex "S1-S6"
   objective: z.string().optional(),
   // pas de champ `volume` — contrainte N°4
 });
+export type PhaseSummaryJSON = z.infer<typeof zPhaseSummary>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Session — union discriminée sur `custom` + gestion du repos

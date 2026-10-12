@@ -61,6 +61,28 @@ describe("mergePlanChunks", () => {
     const c = makeChunk([1, 2, 9]);
     expect(() => mergePlanChunks([c], 8)).toThrow(MergePlanError);
   });
+
+  // Bug réel (audit "génération de plan IA") : seul le chunk 1 est prompté
+  // pour `phases` (systemPromptJSON.ts), mais le merge ne regardait QUE le
+  // premier chunk non-vide — un patch de complétion ciblé (generatePhasesPatch.ts,
+  // edge function) qui ajoute `phases` à un AUTRE chunk était donc silencieusement
+  // ignoré. Fix : accumulation sur tous les chunks, dédoublonnée par (name, weeks).
+  it("accumulates phases across ALL chunks that provide them, not just the first", () => {
+    const c1 = makeChunk([1, 2, 3, 4], { phases: [{ name: "Base", weeks: "S1-S4" }] });
+    const c2 = makeChunk([5, 6, 7, 8], { phases: [{ name: "Build", weeks: "S5-S8" }] });
+    const m = mergePlanChunks([c1, c2], 8);
+    expect(m.phases).toEqual([
+      { name: "Base", weeks: "S1-S4" },
+      { name: "Build", weeks: "S5-S8" },
+    ]);
+  });
+
+  it("dedupes identical (name, weeks) phase entries across chunks", () => {
+    const c1 = makeChunk([1, 2], { phases: [{ name: "Base", weeks: "S1-S4" }] });
+    const c2 = makeChunk([3, 4], { phases: [{ name: "Base", weeks: "S1-S4" }] });
+    const m = mergePlanChunks([c1, c2], 4);
+    expect(m.phases).toEqual([{ name: "Base", weeks: "S1-S4" }]);
+  });
 });
 
 describe("jsonPlanToParsedPlan volume recompute", () => {

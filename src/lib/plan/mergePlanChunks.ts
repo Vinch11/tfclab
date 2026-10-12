@@ -83,16 +83,27 @@ export function mergePlanChunks(chunks: PlanChunk[], totalWeeks: number): Merged
     throw new MergePlanError("EMPTY", "[SCHEMA_FAIL] merge: aucun chunk fourni.");
   }
 
+  // `phases` fait exception : seul le chunk 1 est PROMPTÉ pour le récap
+  // complet, mais si un chunk ultérieur en fournit aussi (retry ciblé,
+  // patch de complétion côté serveur), on les ACCUMULE au lieu de ne
+  // garder que le premier non-vide — sinon un récap partiel resterait
+  // figé tel quel.
   let title: string | undefined;
   let diagnostic: string | undefined;
   let strategicRecap: StrategicRecapJSON | undefined;
-  let phases: PhaseSummaryJSON[] = [];
+  const phaseSeen = new Set<string>();
+  const phases: PhaseSummaryJSON[] = [];
 
   for (const c of chunks) {
     if (!title && c.title) title = c.title;
     if (!diagnostic && c.diagnostic) diagnostic = c.diagnostic;
     if (!strategicRecap && c.strategicRecap) strategicRecap = c.strategicRecap;
-    if (phases.length === 0 && c.phases && c.phases.length > 0) phases = c.phases;
+    for (const p of c.phases ?? []) {
+      const key = `${p.name}|${p.weeks}`;
+      if (phaseSeen.has(key)) continue;
+      phaseSeen.add(key);
+      phases.push(p);
+    }
   }
 
   const allWeeks: MergedWeek[] = [];
