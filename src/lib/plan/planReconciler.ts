@@ -75,6 +75,13 @@ export interface ReconcilerCounters {
   constraint_banned_sport_removed?: number;
   /** Nombre d'occurrences de la fiche la plus répétée dans le plan final. */
   diversity_max_repeat?: number;
+  /** Doublon de catalogId détecté DANS LA MÊME SEMAINE (introduit par les
+   *  substitutions phase/durée/discipline ci-dessus, dont le ledger ne fait
+   *  que pénaliser sans exclure) — remplacé par une alternative. */
+  week_duplicate_replaced?: number;
+  /** Même détection, mais aucune alternative disponible — doublon conservé
+   *  tel quel, signalé plutôt que dégradé au hasard. */
+  week_duplicate_unresolved?: number;
 
 }
 
@@ -243,6 +250,13 @@ interface FindOpts {
   /** Ledger d'usage du plan courant : pénalise/exclut les fiches déjà
    *  sur-représentées pour éviter la convergence vers toujours la même fiche. */
   ledger?: UsageLedger;
+  /** Exclusion STRICTE (pas une pénalité) des catalogId déjà placés dans la
+   *  semaine ciblée — utilisé par dedupeWithinWeek ci-dessous. Contrairement
+   *  au ledger (pénalité globale -25, insuffisante dès que deux candidats
+   *  ont un score d'intention différent — l'écart dépasse quasi toujours 25
+   *  une fois multiplié ×100), cette exclusion garantit qu'un remplacement
+   *  ne réintroduit jamais un doublon dans la même semaine. */
+  excludeIdsThisWeek?: Set<string>;
   /** Fix B3 + fix "traitement des limiteurs" : mots-clés de TOUS les
    *  limiteurs identifiés de l'athlète, par rang (L1 en tête) — cf.
    *  limiterKeywords.ts. Une fiche matchant un rang plus critique est
@@ -251,7 +265,7 @@ interface FindOpts {
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   let best: { w: LibraryWorkout; key: number } | null = null;
@@ -261,6 +275,7 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
   for (const w of WorkoutLibrary) {
     if (excludeId && w.id.toUpperCase() === excludeId.toUpperCase()) continue;
     if (restrictToIds && !restrictToIds.has(w.id.toUpperCase())) continue;
+    if (excludeIdsThisWeek && excludeIdsThisWeek.has(w.id.toUpperCase())) continue;
     if (normSport(w.sport) !== sport) continue;
     if (requirePhase) {
       const allowed = ficheAllowedPhases(w);
@@ -576,6 +591,75 @@ function runOnePass(
     );
     logs.push(`[reconciler_exception] family=${ctx.family ?? "?"} W${ctx.week ?? "?"}/${ctx.day ?? "?"} sport=${ctx.sport ?? "?"} catalogId=${ctx.catalogId ?? "?"} — ${e instanceof Error ? e.message : String(e)}`);
     throw e;
+  }
+}
+
+// ── Dédoublonnage intra-semaine (filet final) ──────────────────────────────
+// Audit qualité plans IA (plan "Vince", 10K) : les substitutions phase/durée/
+// discipline ci-dessus (runOnePass) peuvent choisir DEUX FOIS la même fiche
+// de remplacement pour deux séances différentes de la MÊME semaine (ex:
+// "Test tlim@vVO2max Billat" mardi ET mercredi, "Volume aérobie Lydiard"
+// mardi ET mercredi). Cause : le ledger de diversité ne fait que PÉNALISER
+// une fiche déjà utilisée (-25 par occurrence), il ne l'exclut qu'au-delà de
+// MAX_FICHE_REPEATS (3, compté sur tout le plan) — or l'écart de score
+// d'intention entre deux candidats différents est presque toujours ≥100
+// (intentScore × 100), donc la pénalité de 25 ne suffit jamais à départager
+// deux candidats non strictement à égalité. Pour une fiche très spécifique
+// (test diagnostique, volume Base type Lydiard) où il n'existe quasiment
+// aucune alternative de même phase/sport/durée, la même fiche "gagne" deux
+// fois de suite. Filet final, même logique que le réconciliateur SERVEUR
+// (jsonPlanHandler.ts, bloc (c) DÉDOUBLONNAGE) : garde la 1re occurrence
+// intacte, tente une alternative hors fiches déjà placées cette semaine pour
+// les suivantes (exclusion STRICTE, pas une pénalité), sinon signale sans
+// dégrader silencieusement.
+function dedupeWithinWeek(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+  ledger?: UsageLedger,
+  restrictToIds?: Set<string>,
+): void {
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      const weekPhase = wk.phase as PlanPhase;
+      const seenIds = new Set<string>();
+      for (const s of (wk.sessions ?? []) as PlanSession[]) {
+        if (s.sport === "rest") continue;
+        if (s.custom) continue;
+        const id = s.catalogId;
+        if (!id) continue;
+        const key = id.toUpperCase();
+        if (!seenIds.has(key)) {
+          seenIds.add(key);
+          continue;
+        }
+
+        // Doublon détecté (2e+ occurrence de `key` cette semaine).
+        const original = ficheFor(id);
+        const repl = findReplacement({
+          sport: normSport(s.sport),
+          weekPhase,
+          targetDur: s.durationMin ?? 0,
+          original,
+          restrictToIds,
+          ledger,
+          excludeIdsThisWeek: seenIds,
+        }, id);
+        if (repl) {
+          assignFiche(s, repl, s.durationMin, ledger);
+          seenIds.add(repl.id.toUpperCase());
+          counters.week_duplicate_replaced = (counters.week_duplicate_replaced ?? 0) + 1;
+          logs.push(
+            `[week_duplicate_replaced] S${wk.weekNumber} ${s.day} ${id} (déjà présent cette semaine) → ${repl.id}`,
+          );
+        } else {
+          counters.week_duplicate_unresolved = (counters.week_duplicate_unresolved ?? 0) + 1;
+          logs.push(
+            `[week_duplicate_unresolved] S${wk.weekNumber} ${s.day} ${id} dupliqué cette semaine — aucune alternative disponible (phase=${weekPhase}, sport=${s.sport})`,
+          );
+        }
+      }
+    }
   }
 }
 
@@ -1456,6 +1540,12 @@ export function runReconciler(
     if (changed) anyOnePassChange = true;
     if (!changed) break;
   }
+
+  // Filet final dédoublonnage intra-semaine — voir commentaire au site de
+  // définition de dedupeWithinWeek. Tourne inconditionnellement (indépendant
+  // de anyOnePassChange) : un doublon peut déjà être présent en sortie du
+  // générateur, pas uniquement introduit par runOnePass.
+  dedupeWithinWeek(chunks, counters, logs, usageLedger, injected);
 
   // Passe POSTÉRIEURE — filet final : nettoie tout ID hors-catalogue qui
   // aurait été introduit malgré tout (ex : insertion FLOOR sans injected).
