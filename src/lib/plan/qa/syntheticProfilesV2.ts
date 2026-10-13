@@ -164,7 +164,7 @@ interface DisciplineSpec {
   sessionsPerWeekBase: number;
   maxSessionsPerDay: number;
   strengthSessionsPerWeek: number;
-  terrainAvailability: string;
+  terrainAvailability: "plat" | "vallonne" | "montagne" | "mixte";
   /** Rejoue la vraie formule de chunking (useAITrainingPlan.ts generatePlan,
    *  verrouillée par syntheticProfiles.test.ts::expectedChunksFor) — pas une
    *  approximation, cf. commentaire sur `expectedChunks` dans buildScenario. */
