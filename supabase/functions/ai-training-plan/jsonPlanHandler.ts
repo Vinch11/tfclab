@@ -1971,7 +1971,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           };
 
           try {
-            const { chunk: planChunk, usedRetry, finishReason, repairDiag } = await generateChunkJSON({
+            const { chunk: planChunk, usedRetry, finishReason, repairDiag, usage: chunkUsage } = await generateChunkJSON({
               apiKey,
               model: PRIMARY_MODEL,
               systemPrompt,
@@ -2025,6 +2025,10 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             enqueue("chunk-progress", {
               chunkIndex: ci, totalChunks, status: "done",
               finishReason,
+              // Préparation pilote Mode B (consigne coach, "consulter la
+              // consommation") : usage réel du chunk si le gateway le
+              // renvoie, pour accumulation côté client. Absent sinon.
+              usage: chunkUsage,
             });
           } catch (e) {
             if (e instanceof ChunkGenerationError) {

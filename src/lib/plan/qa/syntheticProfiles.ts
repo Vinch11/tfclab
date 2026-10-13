@@ -30,11 +30,45 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
+import { QA_PROFILES_V2, type V2ProfileId } from "./syntheticProfilesV2";
 
 export type QAProfileId =
   | "B-70.3" | "B-SEMI" | "B-SPRINT"
   | "B-IM" | "B-MARATHON" | "B-10K" | "B-5K" | "B-OLYMPIC" | "B-STARTTORUN"
-  | "B-TRAIL-SHORT" | "B-TRAIL-MOUNTAIN" | "B-TRAIL-ULTRA";
+  | "B-TRAIL-SHORT" | "B-TRAIL-MOUNTAIN" | "B-TRAIL-ULTRA"
+  | V2ProfileId;
+
+/**
+ * Priorité 2 (Performance Validation Lab V1) — 5 dimensions INDÉPENDANTES
+ * (coach, lot "batterie de 20 scénarios") :
+ *   1. Discipline/objectif        → `planConfig.objective`
+ *   2. Niveau/ambition            → `planConfig.ambition`
+ *   3. Physiologie (archétype)    → `physiologyArchetype`
+ *   4. Qualité des données        → `dataQuality`
+ *   5. Contraintes/disponibilité  → `constraintsProfile`
+ * (1) et (2) réutilisaient déjà les champs existants de `QAProfile` — seules
+ * (3), (4), (5) sont nouvelles. Indépendantes = aucune des 20 n'associe
+ * systématiquement un niveau d'une dimension à un niveau fixe d'une autre
+ * (cf. `syntheticProfilesV2.ts` pour la matrice de répartition).
+ */
+export type PhysiologyArchetype =
+  | "aerobic_dominant"      // VO2max haut, VLamax basse
+  | "glycolytic_dominant"   // VLamax haute, VO2max modéré
+  | "balanced_typical"      // valeurs médianes (proche de l'ancien profil unique)
+  | "atypical_extreme"      // VO2max ET VLamax hauts simultanément (teste decorrelationGuard)
+  | "master_40plus";        // âge élevé, cycle décharge 2:1 attendu
+
+export type DataQualityLevel =
+  | "complete_measured"   // labo : VLamax/VO2max/FTP/économie mesurés
+  | "estimated_only"       // tout dérivé de VMA/allure/sprint (tier estimation)
+  | "incomplete"           // plusieurs champs physio absents (null)
+  | "minimal";             // quasi aucune donnée (cas StartToRun typique)
+
+export type ConstraintsProfile =
+  | "unrestricted"         // aucune contrainte, disponibilité large
+  | "heavily_constrained"  // sport(s) banni(s), jour(s) interdit(s), dispo faible
+  | "limited_terrain"      // urbain, pas de dénivelé/piscine
+  | "recent_injury";       // blessure récente signalée en texte libre
 
 export interface QAProfile {
   id: QAProfileId;
@@ -43,6 +77,12 @@ export interface QAProfile {
   expectedChunks: number;
   athleteData: PlanAthleteData;
   planConfig: PlanConfig;
+  /** Priorité 2 — absent pour les 12 profils B-* d'origine (physiologie
+   *  unique `commonAthlete`, pas de dimension à étiqueter) ; renseigné pour
+   *  tous les profils V2 (`syntheticProfilesV2.ts`). */
+  physiologyArchetype?: PhysiologyArchetype;
+  dataQuality?: DataQualityLevel;
+  constraintsProfile?: ConstraintsProfile;
 }
 
 const commonAthlete: PlanAthleteData = {
@@ -314,4 +354,9 @@ export const QA_PROFILES: QAProfile[] = [
       recoveryStrategy: "passive",
     },
   },
+  // Priorité 2 (Performance Validation Lab V1) — 20 scénarios à 5 dimensions
+  // indépendantes + 3 scénarios ciblés (marathon flagship, cyclisme pur,
+  // ultra longue distance) — cf. syntheticProfilesV2.ts pour la matrice
+  // complète et le détail de chaque dimension.
+  ...QA_PROFILES_V2,
 ];

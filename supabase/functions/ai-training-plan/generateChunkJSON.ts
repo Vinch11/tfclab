@@ -67,6 +67,27 @@ interface GatewayDiagnostic {
   jsonSchemaAttempted: boolean;
   fallbackReason?: string;
   gatewayIndicatedIgnoredResponseFormat?: boolean;
+  /** Préparation pilote Mode B (consigne coach) — usage réel renvoyé par le
+   *  gateway (format OpenAI-compatible, `data.usage`), capturé tel quel
+   *  pour mesurer la consommation réelle avant de fixer un plafond. Absent
+   *  si le gateway ne le renvoie pas (pas toutes les passerelles le font) —
+   *  jamais inventé. */
+  usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
+}
+
+/** Additionne 2 usages (ex. tentative 1 ratée côté Zod + retry réussi) — `undefined`
+ *  seulement si AUCUNE des deux tentatives n'a d'usage exploitable (jamais une
+ *  valeur inventée à partir d'un seul côté renseigné : on part de 0 pour le côté absent). */
+function sumUsage(
+  a: GatewayDiagnostic["usage"],
+  b: GatewayDiagnostic["usage"],
+): GatewayDiagnostic["usage"] {
+  if (!a && !b) return undefined;
+  return {
+    promptTokens: (a?.promptTokens ?? 0) + (b?.promptTokens ?? 0),
+    completionTokens: (a?.completionTokens ?? 0) + (b?.completionTokens ?? 0),
+    totalTokens: (a?.totalTokens ?? 0) + (b?.totalTokens ?? 0),
+  };
 }
 
 interface ParseDiagnostic {
@@ -733,6 +754,19 @@ async function callGatewayJSON(input: GatewayCallInput): Promise<GatewayCallResu
     diagnostic.constrained = false;
     console.warn("[ai-gateway-json] gateway indicated response_format was ignored; constrained=false");
   }
+  // Préparation pilote Mode B (consigne coach, "mesurer la consommation
+  // réelle avant de fixer un plafond") — capture l'usage réel si le
+  // gateway le renvoie (format OpenAI-compatible standard : data.usage.
+  // {prompt_tokens, completion_tokens, total_tokens}). Pur ajout
+  // d'observabilité : aucun comportement de génération modifié.
+  if (data?.usage && (data.usage.prompt_tokens != null || data.usage.completion_tokens != null || data.usage.total_tokens != null)) {
+    diagnostic.usage = {
+      promptTokens: data.usage.prompt_tokens,
+      completionTokens: data.usage.completion_tokens,
+      totalTokens: data.usage.total_tokens,
+    };
+    console.info(`[ai-gateway-json] usage chunk: prompt=${diagnostic.usage.promptTokens ?? "?"} completion=${diagnostic.usage.completionTokens ?? "?"} total=${diagnostic.usage.totalTokens ?? "?"}`);
+  }
   return { content, finishReason, status, gatewayDiagnostic: diagnostic };
 }
 
@@ -768,12 +802,16 @@ function sleep(ms: number): Promise<void> {
  * (cf. TRANSIENT_RETRY_CODES).
  * `repairDiag` est présent UNIQUEMENT si un filet conservateur a réparé le
  * JSON avant validation (chemin succès non silencieux).
+ * `usage` (préparation pilote Mode B, consigne coach "mesurer la
+ * consommation réelle") : usage réel de la tentative qui a réussi, si le
+ * gateway le renvoie — absent sinon, jamais inventé.
  */
 export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<{
   chunk: PlanChunk;
   usedRetry: boolean;
   finishReason?: string;
   repairDiag?: { attempt: 1 | 2; repairs: string[]; parseError?: string };
+  usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
 }> {
   const schema = buildPlanChunkSchema(input.allowedCatalogIds, input.schemaOptions);
 
@@ -926,6 +964,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
       usedRetry: false,
       finishReason: first.finishReason,
       repairDiag: buildRepairDiag(1, first.diagnostic),
+      usage: first.diagnostic.gateway.usage,
     };
   }
 
@@ -954,6 +993,14 @@ Rappels non négociables :
       usedRetry: true,
       finishReason: second.finishReason,
       repairDiag: buildRepairDiag(2, second.diagnostic),
+      // Préparation pilote Mode B — la 1ère tentative (ratée côté Zod) a
+      // quand même consommé des tokens réels sur le gateway ; on les
+      // additionne à ceux de la tentative réussie pour ne pas sous-compter
+      // la consommation réelle de ce chunk. Les retries TRANSITOIRES
+      // (rate limit/erreur gateway/troncature, à l'intérieur de
+      // `tryOnceWithTransientRetry`) restent hors de ce total — plus rares,
+      // non capturés par ce dispositif (limite connue, signalée au coach).
+      usage: sumUsage(first.diagnostic.gateway.usage, second.diagnostic.gateway.usage),
     };
   }
 

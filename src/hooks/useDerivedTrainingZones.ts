@@ -16,6 +16,24 @@ export interface DerivedZonesBySport {
   run: DerivedZoneSet;
 }
 
+/**
+ * Résout la VLamax à utiliser pour les calculs RUN (estimation MLSS course +
+ * ancre FatMax course).
+ *
+ * Audit scientifique P0 — F10 (AUDIT_SCIENTIFIQUE_P0.md) corrigé : plus de
+ * repli silencieux sur la VLamax vélo. `vlamaxResolver.ts` documente
+ * explicitement "Pas de fallback silencieux vélo → run" — ce helper
+ * respecte maintenant la même politique. Quand `vlamax_run` est absent,
+ * `deriveTrainingZones({ sport: "run", vlamax: null, ... })` applique déjà
+ * son propre repli générique (fatMaxPct=85, cf. `deriveRunPct`) : aucune
+ * zone fausse n'est produite, seulement une zone moins précise — ce qui est
+ * honnête, contrairement à une zone "précise" mais calculée sur la mauvaise
+ * discipline.
+ */
+export function resolveRunVlamaxInput(snap: { vlamax_run?: number | null; vlamax?: number | null } | null | undefined): number | null {
+  return snap?.vlamax_run ?? null;
+}
+
 export function useDerivedTrainingZones(): DerivedZonesBySport {
   const { currentAthlete } = useAthletes();
   const { athletes: dbAthletes, snapshots } = useCloudDataContext();
@@ -38,7 +56,7 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
     });
 
     // Allure seuil : mesurée si dispo, sinon estimée (MLSS prédit × VMA, repli 0.90 × VMA).
-    const vlamaxRun = snap?.vlamax_run ?? snap?.vlamax ?? null;
+    const vlamaxRun = resolveRunVlamaxInput(snap);
     const measuredPace = snap?.pace_threshold_sec_per_km ?? null;
     let paceThreshold = measuredPace;
     let paceEstimated = false;
@@ -56,7 +74,7 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
       paceThresholdEstimated: paceEstimated,
       fcMax: effective.fcMax,
       fcRest: (snap as any)?.fc_repos ?? null,
-      vlamax: snap?.vlamax_run ?? snap?.vlamax ?? null,
+      vlamax: resolveRunVlamaxInput(snap),
       vo2max: effective.vo2max,
       weightKg: effective.weightKg,
       raceObjective,

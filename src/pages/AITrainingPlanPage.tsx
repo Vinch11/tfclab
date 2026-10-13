@@ -44,6 +44,7 @@ import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksFor
 import { validatePlan, computeMissingFinalRaceDayFix, type ValidationIssue } from "@/engines/plan/planValidator";
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
 import { checkB12, checkB12ToValidationIssues } from "@/lib/plan/qa/checkB12";
+import { checkB13, checkB13ToValidationIssues } from "@/lib/plan/qa/checkB13";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
@@ -52,6 +53,7 @@ import { buildStartToRunTemplatePlan, type S2RStrengthDose } from "@/lib/startTo
 import { aiPlanCacheKeys } from "@/lib/aiPlanLocalCache";
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
+import { computeFinalValidationIssues } from "@/lib/plan/qa/finalValidation";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { runReconciler } from "@/lib/plan/planReconciler";
 import { inferWeekType, computeWeekQuotaEntry } from "@/engines/plan/sessionSizingMatrix";
@@ -2320,6 +2322,22 @@ export default function AITrainingPlanPage() {
           } catch (b12Err) {
             console.warn("[B12] échec du contrôle couverture limiteurs, sauvegarde sans ce contrôle:", b12Err);
           }
+
+          // Audit scientifique P0 — F12/Priorité 1 : B13 (doublon de catalogId
+          // / cumul "à jeun" post-mutations, cf. checkB13.ts) rejoint le même
+          // mécanisme de blocage que B11/B12 — c'est le SEUL endroit de cette
+          // page où une incohérence bloque réellement une action (dialogue de
+          // confirmation avant sauvegarde) ; le bandeau de `AIPlanViewer.tsx`
+          // reste purement informatif et ne doit jamais prétendre faire ce
+          // blocage à sa place. `mergedPlan` est le même plan déjà recalculé
+          // par `useAITrainingPlan.ts` au moment de la génération — pas une
+          // deuxième vérité recalculée séparément ici.
+          try {
+            const b13 = checkB13(mergedPlan);
+            criticalIssues = [...criticalIssues, ...checkB13ToValidationIssues(b13)];
+          } catch (b13Err) {
+            console.warn("[B13] échec du contrôle final post-mutations, sauvegarde sans ce contrôle:", b13Err);
+          }
         }
       }
     } catch (vErr) {
@@ -2749,6 +2767,24 @@ export default function AITrainingPlanPage() {
           .map((w) => (w.weekNumber === weekNumber ? replaced : w))
           .sort((a, b) => a.weekNumber - b.weekNumber),
       };
+      // Audit scientifique P0 — F12 : la régénération ciblée d'une semaine
+      // est le DEUXIÈME pipeline réel de production de plan (en plus de la
+      // génération complète dans useAITrainingPlan.ts) — la validation
+      // finale (B13 critique/B14 avertissement) doit aussi y tourner,
+      // recalculée sur le plan COMPLET après remplacement (pas seulement
+      // la semaine régénérée), pour rester cohérente avec le reste du plan.
+      try {
+        const finalValidation = computeFinalValidationIssues(mergedPlan);
+        mergedPlan.finalValidationIssues = finalValidation.issues.length > 0 ? finalValidation.issues : undefined;
+        if (finalValidation.hasCritical) {
+          console.error(
+            `🚨 [handleRegenerateWeek] validation finale CRITIQUE après régénération S${weekNumber} :`,
+            finalValidation.issues.filter((i) => i.severity === "error"),
+          );
+        }
+      } catch (fvErr) {
+        console.error("[handleRegenerateWeek] computeFinalValidationIssues failed:", fvErr);
+      }
       setPlanOverride(mergedPlan);
       setIsSaved(false);
       toast.success(`Semaine ${weekNumber} régénérée — enregistre le plan pour la conserver.`);

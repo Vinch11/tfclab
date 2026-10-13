@@ -67,10 +67,23 @@ describe("validatePolarization — densité de jours qualité dans la semaine", 
     expect(result.issues.filter((i) => i.rule === "polarization" && /jour\(s\) réellement protégé/i.test(i.message))).toHaveLength(0);
   });
 
-  it("n'applique pas ce contrôle à une semaine de décharge, même très chargée en apparence", () => {
-    const week = makeWeek(3, [REST(0), HARD(1), HARD(2), HARD(3), HARD(4), HARD(5), HARD(6)], "Décharge", "build");
+  it("une VRAIE semaine de décharge (contenu réellement léger) n'est pas signalée", () => {
+    const week = makeWeek(3, [REST(0), EASY(1), EASY(2), REST(3), EASY(4), REST(5), REST(6)], "Décharge", "build");
     const result = validatePlan(makePlan([week]));
     expect(result.issues.filter((i) => i.rule === "polarization" && /jour\(s\) réellement protégé/i.test(i.message))).toHaveLength(0);
+  });
+
+  // Audit scientifique P0 — F4 (AUDIT_SCIENTIFIQUE_P0.md) : CE TEST REMPLACE
+  // l'ancien "n'applique pas ce contrôle à une semaine de décharge, même très
+  // chargée en apparence", qui faisait EXACTEMENT ce que F4 identifie comme
+  // un risque : faire primer le texte du thème ("Décharge") sur le contenu
+  // réel (6 jours Z4 continu). C'était un filet de sécurité qui masquait
+  // précisément le cas qu'il fallait détecter. Le contenu réel décide
+  // désormais, jamais l'étiquette — cf. buildHardDayTimeline.
+  it("une semaine ÉTIQUETÉE décharge mais dont le contenu réel est 6 jours durs est désormais signalée (ne fait plus confiance au thème)", () => {
+    const week = makeWeek(3, [REST(0), HARD(1), HARD(2), HARD(3), HARD(4), HARD(5), HARD(6)], "Décharge", "build");
+    const result = validatePlan(makePlan([week]));
+    expect(result.issues.filter((i) => i.rule === "polarization" && /jour\(s\) réellement protégé/i.test(i.message))).toHaveLength(1);
   });
 
   it("n'applique pas ce contrôle à une semaine trop courte pour être significative (<5 séances actives)", () => {
@@ -120,9 +133,20 @@ describe("validatePolarization — jours durs consécutifs (enchaînement, pas v
     expect(result.issues.filter((i) => i.rule === "polarization" && /consécutifs/i.test(i.message))).toHaveLength(0);
   });
 
-  it("n'applique pas ce contrôle à une semaine de décharge", () => {
-    const week = makeWeek(3, [HARD(0), HARD(1), HARD(2), HARD(3), HARD(4), HARD(5), HARD(6)], "Décharge", "build");
+  it("une VRAIE semaine de décharge (contenu réellement léger) n'est pas signalée", () => {
+    const week = makeWeek(3, [EASY(0), EASY(1), REST(2), EASY(3), REST(4), REST(5), REST(6)], "Décharge", "build");
     const result = validatePlan(makePlan([week]));
     expect(result.issues.filter((i) => i.rule === "polarization" && /consécutifs/i.test(i.message))).toHaveLength(0);
+  });
+
+  // Audit scientifique P0 — F4 : même remplacement que ci-dessus pour la
+  // sous-vérification "enchaînement" — une étiquette "Décharge" ne doit plus
+  // pouvoir masquer 7 jours durs consécutifs réels.
+  it("une semaine ÉTIQUETÉE décharge mais dont le contenu réel est 7 jours durs consécutifs est désormais signalée", () => {
+    const week = makeWeek(3, [HARD(0), HARD(1), HARD(2), HARD(3), HARD(4), HARD(5), HARD(6)], "Décharge", "build");
+    const result = validatePlan(makePlan([week]));
+    const streakIssue = result.issues.find((i) => i.rule === "polarization" && /consécutifs/i.test(i.message));
+    expect(streakIssue).toBeDefined();
+    expect(streakIssue?.message).toMatch(/7 jours consécutifs/);
   });
 });

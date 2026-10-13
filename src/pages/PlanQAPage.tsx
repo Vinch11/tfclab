@@ -30,6 +30,7 @@ import { buildQAReport, readQASessions, readQASessionsCloud, clearQASessions, ty
 import { supabase } from "@/integrations/supabase/client";
 import { ProductionSentinelPanel } from "@/components/plan-qa/ProductionSentinelPanel";
 import { JsonRepairSelfTestPanel } from "@/components/plan-qa/JsonRepairSelfTestPanel";
+import { PilotCockpitPanel } from "@/components/plan-qa/PilotCockpitPanel";
 import { toast } from "sonner";
 
 function formatDuration(ms: number): string {
@@ -453,6 +454,9 @@ export default function PlanQAPage() {
           <Switch checked={flag} onCheckedChange={toggle} />
         </CardContent>
       </Card>
+
+      {/* Pilote Mode B — qualification 5 profils (consigne coach) */}
+      <PilotCockpitPanel />
 
       {/* Phase 0 — Run complet 3 profils × N */}
       <Card>

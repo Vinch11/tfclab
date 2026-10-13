@@ -21,6 +21,7 @@ import { runAllChecks, type CheckResult } from "./checks";
 import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { readPlanStats, type PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import { computeVerdict, saveQASession, type QARunRecord, type QASession } from "./verdict";
+import { validatePlan } from "@/engines/plan/planValidator";
 
 export interface QARunnerProgress {
   running: boolean;
@@ -183,6 +184,53 @@ export function useQARunner() {
           }
         }
 
+        // Priorité 3 (Performance Validation Lab) : branche les règles de
+        // `planValidator.ts` sur le MÊME `parsed` que celui réellement
+        // produit par la génération (useAITrainingPlan), avec la MÊME
+        // fonction `validatePlan` que `handleSaveToPlan` appelle à la
+        // sauvegarde réelle — pas une logique de validation réécrite pour
+        // la QA. Les profils synthétiques n'ont pas de contexte diagnostic
+        // coach (prohibitions/identifiedLimiters/injuryRisk/
+        // coachLimiterOrder) : ces paramètres sont omis honnêtement
+        // (undefined), jamais simulés — limite de couverture à connaître,
+        // pas masquée.
+        let validatorResult: QARunRecord["validatorResult"];
+        if (parsed) {
+          try {
+            const cfg = profile.planConfig;
+            const isLcw3Day = cfg.raceFormat === "lcw_3day"
+              || (Array.isArray(cfg.raceGoals) && cfg.raceGoals.some(g => g?.raceFormat === "lcw_3day"));
+            const vr = validatePlan(
+              parsed,
+              cfg.objective,
+              undefined, // prohibitions — nécessite un diagnostic coach, absent des profils synthétiques
+              undefined, // raceWeekNumbers — pas de raceDate sur les profils QA ; validatePlan détecte via le contenu (weekHasRaceDay)
+              undefined, // identifiedLimiters — idem prohibitions
+              undefined, // identifiedLimiterKeys
+              profile.athleteData,
+              undefined, // coachLimiterOrder
+              {
+                sessionsPerWeek: cfg.sessionsPerWeek,
+                maxSessionsPerDay: cfg.maxSessionsPerDay,
+              },
+              undefined, // injuryRisk — nécessite un diagnostic coach
+              cfg.ambition,
+              cfg.constraints,
+              isLcw3Day,
+              cfg.deloadCadenceWeeks,
+            );
+            const criticalIssues = vr.issues.filter(i => i.severity === "error");
+            validatorResult = {
+              score: vr.score,
+              grade: vr.grade,
+              criticalIssueCount: criticalIssues.length,
+              criticalIssues: criticalIssues.slice(0, 10).map(i => ({ rule: i.rule, message: i.message, week: i.week })),
+            };
+          } catch (vErr) {
+            console.warn(`[QA][${profile.id}] validatePlan a échoué, run sans ce résultat:`, vErr);
+          }
+        }
+
         runs.push({
           ts: Date.now(),
           profileId: profile.id,
@@ -193,6 +241,7 @@ export function useQARunner() {
           errorMessage,
           errorStack,
           durationMs,
+          validatorResult,
         });
       }
     }
