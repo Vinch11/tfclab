@@ -268,6 +268,7 @@ export function checkB4For(profileId: QAProfileId, plan: MergedPlan): CheckResul
     case "B-10K":
     case "B-5K":
     case "B-STARTTORUN":
+    case "B-5K-BEGINNER":
     case "B-TRAIL-SHORT":
     case "B-TRAIL-MOUNTAIN":
     case "B-TRAIL-ULTRA": {

@@ -36,6 +36,17 @@ export type QAProfileId =
   | "B-70.3" | "B-SEMI" | "B-SPRINT"
   | "B-IM" | "B-MARATHON" | "B-10K" | "B-5K" | "B-OLYMPIC" | "B-STARTTORUN"
   | "B-TRAIL-SHORT" | "B-TRAIL-MOUNTAIN" | "B-TRAIL-ULTRA"
+  // Pilot Cockpit Mode B (consigne coach 2026-10-13) — distinct de
+  // "B-STARTTORUN" ci-dessus : le vrai Start-to-Run de production est un
+  // template STATIQUE 12 semaines sans IA (cf. startToRunTemplate.ts,
+  // branché depuis AITrainingPlanPage.tsx) — jamais généré par le moteur
+  // IA en conditions réelles. "B-STARTTORUN" reste utile comme filet de
+  // régression générique (checkB4For/Definition-of-Done), mais n'a plus
+  // sa place dans le Pilot Cockpit, dont le but est de valider le moteur
+  // IA INDIVIDUALISÉ. "B-5K-BEGINNER" couvre le cas réel qui, lui,
+  // sollicite bien l'IA : un débutant qui vient de terminer le cycle S2R
+  // (30min de course continue acquis) et prépare son 1er 5km sur 12 sem.
+  | "B-5K-BEGINNER"
   | V2ProfileId;
 
 /**
@@ -351,6 +362,57 @@ export const QA_PROFILES: QAProfile[] = [
       ambition: "world_class",
       constraints: "Profil synthétique QA — ultra distance, D+ très élevé.",
       terrainAvailability: "montagne",
+      recoveryStrategy: "passive",
+    },
+  },
+  {
+    // Pilot Cockpit Mode B (consigne coach 2026-10-13) — remplace
+    // "B-STARTTORUN" dans le Pilot Cockpit, cf. docstring QAProfileId.
+    // Athlète venant de graduer le cycle marche-course S2R (30min de
+    // course continue acquis, template statique startToRunTemplate.ts,
+    // NON modifié ni généré ici) et préparant son 1er objectif chronométré
+    // — un 5km, 12 semaines. Physiologie délibérément DISTINCTE de
+    // `commonAthlete` (qui représente un coureur déjà entraîné, VO2max 58,
+    // VMA 18) : valeurs plausibles d'adulte débutant réel (VO2max/VMA
+    // cohérents via Léger-Mercier VO2max≈3.5×VMA ; aucune mesure labo —
+    // sprint/MAP/FTP/CSS non testés chez un pur débutant coureur).
+    id: "B-5K-BEGINNER",
+    label: "Débutant post-S2R · 1er 5km · 12 sem · finisher",
+    expectedWeeks: 12,
+    expectedChunks: 3, // non-verbose ("5 KM" ne matche ni tri ni trail) → CHUNK_SIZE=4, 12>threshold(6) → ceil(12/4)=3
+    athleteData: {
+      nom: "QA Synthetic Beginner",
+      sex: "female",
+      age: 42,
+      ftp: null,
+      weightKg: 68,
+      vlamax: 0.55,
+      vlamaxRun: 0.55,
+      vo2max: 34,
+      vma: 9.5,
+      css: null,
+      fcMax: 178,
+      tte: null,
+      pmax5s: null,
+      p30s: null,
+      p60s: null,
+      map5min: null,
+      paceThresholdSecPerKm: 474, // ≈7:54/km, dérivé de VMA×80% (pas 88% comme un coureur entraîné)
+      runMLSSEffectivePct: 0.80,
+      runMLSSEffectiveSource: "predicted", // aucun vrai test seuil — estimation Modèle C depuis VLamax run + économie
+      runEconomyScore: 2, // économie de course sous la moyenne (technique encore en construction, cf. S2R)
+    },
+    planConfig: {
+      objective: "5 KM",
+      raceName: "QA Pilote Débutant 5K Test",
+      weeksAvailable: 12,
+      weeklyHours: 3,
+      sessionsPerWeek: 3,
+      maxSessionsPerDay: 1,
+      strengthSessionsPerWeek: 1,
+      ambition: "finisher",
+      constraints: "Profil synthétique Pilot Cockpit — débutant ayant terminé le cycle marche-course (30min continu acquis), prépare son 1er 5km. Objectif distinct du template Start-to-Run statique (jamais généré par IA en production) : ce profil sollicite réellement le moteur de génération individualisée.",
+      terrainAvailability: "plat",
       recoveryStrategy: "passive",
     },
   },

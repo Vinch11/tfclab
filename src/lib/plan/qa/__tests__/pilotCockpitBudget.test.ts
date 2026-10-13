@@ -88,21 +88,21 @@ describe("appendRun / readBudgetState / resetBudgetState (localStorage)", () => 
   });
 
   it("persiste un run et le relit via readBudgetState", () => {
-    appendRun({ profileId: "B-STARTTORUN", ts: 123, chunks: 2, estimatedCreditsLow: 0.3, estimatedCreditsHigh: 0.54 });
+    appendRun({ profileId: "B-5K-BEGINNER", ts: 123, chunks: 3, estimatedCreditsLow: 0.45, estimatedCreditsHigh: 0.81 });
     const state = readBudgetState();
     expect(state.runs).toHaveLength(1);
-    expect(state.runs[0].profileId).toBe("B-STARTTORUN");
+    expect(state.runs[0].profileId).toBe("B-5K-BEGINNER");
   });
 
   it("accumule plusieurs runs dans l'ordre d'ajout", () => {
-    appendRun({ profileId: "B-STARTTORUN", ts: 1, chunks: 2, estimatedCreditsLow: 0.3, estimatedCreditsHigh: 0.54 });
+    appendRun({ profileId: "B-5K-BEGINNER", ts: 1, chunks: 3, estimatedCreditsLow: 0.45, estimatedCreditsHigh: 0.81 });
     appendRun({ profileId: "B-10K", ts: 2, chunks: 3, estimatedCreditsLow: 0.45, estimatedCreditsHigh: 0.81 });
     const state = readBudgetState();
-    expect(state.runs.map((r) => r.profileId)).toEqual(["B-STARTTORUN", "B-10K"]);
+    expect(state.runs.map((r) => r.profileId)).toEqual(["B-5K-BEGINNER", "B-10K"]);
   });
 
   it("resetBudgetState() vide l'historique", () => {
-    appendRun({ profileId: "B-STARTTORUN", ts: 1, chunks: 2, estimatedCreditsLow: 0.3, estimatedCreditsHigh: 0.54 });
+    appendRun({ profileId: "B-5K-BEGINNER", ts: 1, chunks: 3, estimatedCreditsLow: 0.45, estimatedCreditsHigh: 0.81 });
     resetBudgetState();
     expect(readBudgetState().runs).toHaveLength(0);
   });

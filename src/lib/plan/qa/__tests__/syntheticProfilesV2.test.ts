@@ -72,10 +72,12 @@ describe("QA_PROFILES_V2 — indépendance des 5 dimensions (matrice des 20 scé
     }
   });
 
-  it("tous les IDs de QA_PROFILES (12 + 20 + 3) sont uniques", () => {
+  it("tous les IDs de QA_PROFILES (13 + 20 + 3) sont uniques", () => {
+    // 13 = les 12 profils Phase 0 d'origine + "B-5K-BEGINNER" (correctif
+    // Pilot Cockpit 2026-10-13, cf. syntheticProfiles.ts).
     const ids = QA_PROFILES.map((p) => p.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ids.length).toBe(12 + 20 + 3);
+    expect(ids.length).toBe(13 + 20 + 3);
   });
 
   it("checkB4For ne lève jamais pour un profil V2 (câblage réel vérifié à l'exécution)", () => {
