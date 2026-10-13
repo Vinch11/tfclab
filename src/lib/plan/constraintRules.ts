@@ -56,6 +56,64 @@ function detectSport(fragment: string): ConstraintSport {
   return "any";
 }
 
+/**
+ * Bug réel (B-5K-BEGINNER, Pilot Cockpit, 2026-10-13) : l'ancienne détection
+ * d'interdiction GLOBALE (sans jour précisé) considérait qu'une négation et
+ * un mot-clé sportif N'IMPORTE OÙ dans le même fragment (= souvent une
+ * phrase entière, le découpage ne coupant que sur virgule/point-virgule)
+ * suffisaient à bannir ce sport sur tout le plan. Un texte de documentation
+ * — "Objectif distinct du template Start-to-Run statique (**jamais**
+ * généré par IA en production)" — a ainsi été lu comme "jamais [de] **Run**"
+ * (le tiret de "Start-to-Run" crée une frontière de mot, donc `\brun\b`
+ * matchait), alors que "jamais" ne portait que sur "généré par IA", sans
+ * aucun rapport avec le sport.
+ *
+ * Correctif : exiger une PROXIMITÉ GRAMMATICALE directe entre la négation et
+ * le sport — soit juste avant lui (± un connecteur court : article/
+ * préposition réels, jamais un mot de contenu arbitraire), soit juste après
+ * lui sous forme d'adjectif prédicatif (± un verbe de liaison). Ça couvre
+ * les formulations réelles ("pas de vélo", "jamais de natation", "aucune
+ * course à pied", "vélo interdit", "natation exclue") sans plus jamais
+ * laisser une négation sans rapport, ailleurs dans la phrase, "adopter" un
+ * mot-clé sportif qui se trouve juste être une sous-chaîne d'un nom de
+ * fonctionnalité ("Start-to-Run"), d'un programme, ou d'une description
+ * historique sans lien avec une vraie contrainte.
+ *
+ * Limite assumée (déterministe, pas une vraie grammaire) : une formulation
+ * qui placerait volontairement la négation et le sport à une distance telle
+ * qu'elle ne colle à aucun des deux gabarits ci-dessous ne sera pas détectée
+ * — préférable à l'inverse (faux positif = interdiction fantôme appliquée à
+ * tout le plan).
+ */
+const PRE_NEGATORS_SRC =
+  "(?:pas|jamais|aucun(?:e)?|interdit(?:e)?s?|impossible|indisponible|exclu(?:e)?s?|no|sans)";
+const POST_NEGATORS_SRC =
+  "(?:interdit(?:e)?s?|exclu(?:e)?s?|impossible|indisponible|banni(?:e)?s?)";
+/** Connecteur grammatical court toléré entre la négation et le sport — JAMAIS
+ *  un mot de contenu arbitraire (cf. docstring ci-dessus). */
+const CONNECTOR_SRC = "(?:\\s+(?:de|d['’]|du|des|la|le|les|toute?s?))?\\s*";
+/** Verbe de liaison court toléré entre le sport et l'adjectif qui le bannit
+ *  ("vélo EST interdit") — même principe de restriction que CONNECTOR_SRC. */
+const LINKING_VERB_SRC = "(?:\\s+(?:est|sera|reste))?\\s+";
+
+const BAN_PATTERNS: Array<{ sport: ConstraintSport; rx: RegExp }> = SPORT_PATTERNS.map(
+  ({ sport, rx }) => ({
+    sport,
+    rx: new RegExp(
+      `${PRE_NEGATORS_SRC}${CONNECTOR_SRC}${rx.source}|${rx.source}${LINKING_VERB_SRC}${POST_NEGATORS_SRC}`,
+      "i",
+    ),
+  }),
+);
+
+/** Interdiction GLOBALE (sans jour précisé) d'un sport — proximité stricte, cf. docstring BAN_PATTERNS. */
+function detectBannedSportStrict(fragment: string): ConstraintSport | null {
+  for (const { sport, rx } of BAN_PATTERNS) {
+    if (rx.test(fragment)) return sport;
+  }
+  return null;
+}
+
 function normalizeDay(raw: string): WeekDay | null {
   const d = raw
     .toLowerCase()
@@ -120,9 +178,14 @@ export function parseAthleteConstraints(
       continue;
     }
 
-    // Interdiction globale d'un sport (sans jour précisé)
-    if (days.length === 0 && negated && sport !== "any") {
-      if (!rules.bannedSports.includes(sport)) rules.bannedSports.push(sport);
+    // Interdiction globale d'un sport (sans jour précisé) — proximité stricte
+    // négation↔sport requise (cf. detectBannedSportStrict), pas la simple
+    // co-occurrence fragment-wide utilisée ci-dessus pour les bans de JOUR
+    // (qui restent, eux, intrinsèquement ancrés/désambiguïsés par le jour
+    // explicite — risque de faux positif bien plus faible en pratique).
+    const bannedSport = detectBannedSportStrict(frag);
+    if (days.length === 0 && bannedSport !== null) {
+      if (!rules.bannedSports.includes(bannedSport)) rules.bannedSports.push(bannedSport);
       continue;
     }
 

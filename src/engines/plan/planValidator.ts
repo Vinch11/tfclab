@@ -14,7 +14,7 @@
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 import { inferWeekType, type WeekType } from "./sessionSizingMatrix";
 import type { PlanAthleteData } from "./types";
-import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
+import { parseAthleteConstraints, constraintSportLabel, type ConstraintSport } from "@/lib/plan/constraintRules";
 import { extractCatalogId, extractAllCatalogIds } from "@/lib/catalogIdExtractor";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
@@ -1541,6 +1541,74 @@ function validateSportRatio(
 
   const score = checks > 0 ? Math.round(((checks - deviations) / checks) * 100) : 80;
   return { issues, score };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OBJECTIVE ↔ SPORT CONTENT COHERENCE (bloquant, hors score pondéré)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const SPORT_RATIO_KEY_TO_LABEL: Record<"swim" | "bike" | "run", string> = {
+  swim: "Natation", bike: "Vélo", run: "Course",
+};
+const SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT: Record<"swim" | "bike" | "run", ConstraintSport> = {
+  swim: "swim", bike: "bike", run: "run",
+};
+
+/**
+ * Bug réel (B-5K-BEGINNER, 2026-10-13) : un plan "premier 5 km" généré avec
+ * 0 séance de course (35 vélo, 12 renfo) a noté 69/100 sans AUCUN signal
+ * bloquant — `validateSportRatio` ci-dessus reste muet ici car son garde-fou
+ * `primaryTotal < 10` (ligne ~1476) ni ses déviations de ratio ne couvrent
+ * le cas "0 séance tout court" d'un objectif mono-discipline (run-only :
+ * Marathon/Semi/10K/5K/Trail*, cf. SPORT_RATIO_TARGETS), et aucune autre
+ * règle ne relie objectif↔contenu réel. Ce contrôle ADDITIONNEL (n'entre
+ * PAS dans PLAN_VALIDATION_WEIGHTS, même traitement que sportObjective/
+ * injuryRiskCompliance ci-dessus) détecte spécifiquement : objectif dont
+ * SPORT_RATIO_TARGETS n'a QU'UNE seule discipline (donc non-négociable, pas
+ * un triathlon où un déséquilibre est tolérable) + 0 séance réelle de cette
+ * discipline sur tout le plan. Distingue deux cas pour la décision du coach :
+ * - une contrainte explicite bannit vraiment cette discipline → signale
+ *   l'incompatibilité objectif/contraintes (texte coach cité en détail) ;
+ * - aucune contrainte ne justifie cette absence → signale une anomalie de
+ *   génération. Dans les deux cas : erreur bloquante (severity "error", donc
+ *   CRITICAL_SCORE_CEILING s'applique), jamais une substitution silencieuse
+ *   d'une autre discipline.
+ */
+function validateObjectiveSportCoherence(
+  metrics: WeekMetrics[],
+  objective: string | undefined,
+  constraintsText: string | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const objKey = normalizeObjectiveKey(objective || "");
+  const target = SPORT_RATIO_TARGETS[objKey];
+  if (!target) return { issues: [], score: 100 };
+
+  const sportKeys = Object.keys(target) as Array<"swim" | "bike" | "run">;
+  if (sportKeys.length !== 1) return { issues: [], score: 100 }; // multi-sport (IM/703/Sprint/Olympic) — hors scope de ce contrôle
+
+  const mandatory = sportKeys[0];
+  const label = SPORT_RATIO_KEY_TO_LABEL[mandatory];
+  const totalSessions = metrics.reduce((sum, wm) => sum + (wm.sports[label] || 0), 0);
+  if (totalSessions > 0) return { issues: [], score: 100 };
+
+  const hasAnyActiveSession = metrics.some((wm) =>
+    Object.entries(wm.sports).some(([sport, count]) => sport !== "Repos" && count > 0),
+  );
+  if (!hasAnyActiveSession) return { issues: [], score: 100 }; // plan vide — couvert par d'autres règles
+
+  const rules = parseAthleteConstraints(constraintsText);
+  const constraintSport = SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT[mandatory];
+  const banned = rules.bannedSports.includes(constraintSport);
+  const excerpt = rules.rawText.length > 200 ? `${rules.rawText.slice(0, 200)}…` : rules.rawText;
+
+  const message = banned
+    ? `Objectif "${objective}" repose entièrement sur ${label}, et une contrainte du texte libre l'interdit explicitement (« ${excerpt} ») — incompatibilité objectif/contraintes à trancher par le coach avant d'utiliser ce plan (0 séance de ${label} sur l'ensemble du plan).`
+    : `Objectif "${objective}" repose entièrement sur ${label}, mais 0 séance de ${label} sur l'ensemble du plan, sans contrainte explicite le justifiant — anomalie de génération à corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).`;
+
+  return {
+    issues: [{ rule: "objective_sport_conflict", severity: "error", message }],
+    score: 0,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -4124,6 +4192,7 @@ export function validatePlan(
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
   const lorang_ = validateLorangCategories(plan, objective, ambition);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
+  const objectiveSportConflict = validateObjectiveSportCoherence(weekMetrics, objective, constraintsText);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
   // #18 lot 1 : règles INVIOLABLE/OBLIGATOIRE sans contrôle post-génération jusqu'ici
   const titleFormat = validateTitleFormat(plan);
@@ -4161,6 +4230,7 @@ export function validatePlan(
     ...trailDPlusPresence.issues,
     ...dailySessionFloor.issues,
     ...sportObjective.issues,
+    ...objectiveSportConflict.issues,
     ...injuryRiskCompliance.issues,
     ...titleFormat.issues,
     ...strategicRecapUniqueness.issues,
@@ -4248,8 +4318,11 @@ export function validatePlan(
   const limiterErrors = limiterCoherence.issues.filter(i => i.severity === "error").length;
   const wbalErrors = wbalFeasibility.issues.filter(i => i.severity === "error").length;
   const injuryRiskErrors = injuryRiskCompliance.issues.filter(i => i.severity === "error").length;
+  const objectiveSportConflictErrors = objectiveSportConflict.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : objectiveSportConflictErrors > 0
+    ? `🎯 Objectif/contenu incompatible — 0 séance de la discipline exigée par l'objectif, voir détail — décision du coach requise avant utilisation`
     : injuryRiskErrors > 0
     ? `🚨 ${injuryRiskErrors} semaine(s) avec charge à impact élevé non réduite malgré un risque blessure CRITIQUE — Plan NON CONFORME au diagnostic physiologique`
     : wbalErrors > 0

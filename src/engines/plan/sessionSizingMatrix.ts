@@ -252,7 +252,13 @@ export function normalizeSizingObjective(objective: string | null | undefined): 
   if (l.includes("semi") || l.includes("half marathon") || l.includes("half-marathon")) return "SEMI";
   if (l.includes("marathon")) return "MARATHON";
   if (l.includes("10k") || l.includes("10 km")) return "10K";
-  if (l.includes("5k") || l === "5km") return "5K";
+  // Bug réel (B-5K-BEGINNER, 2026-10-13) : "5 KM" (avec espace) n'était
+  // reconnu nulle part ici, contrairement à "10 km" juste au-dessus —
+  // `computeWeeklySessionQuota`/`computeWeekQuotaEntry` retombaient donc sur
+  // `null` pour CET objectif précis, désactivant silencieusement tout le
+  // quota/layout déterministe hebdomadaire. Même correctif requis dans
+  // normalizeObjectiveKey.ts (client) et sportRatioMatrix.ts (edge, miroir).
+  if (l.includes("5k") || l.includes("5 km") || l === "5km") return "5K";
   return null;
 }
 

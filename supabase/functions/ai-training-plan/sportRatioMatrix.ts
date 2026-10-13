@@ -246,7 +246,10 @@ export function normalizeObjKey(obj: string): string {
   if (lower.includes("ultra")) return "TrailUltra"; // ultra w/o "trail" keyword
   // FIX: "10" was too broad (matched "ironman 10h"). Use "10k"/"10km"/"10 km" like client-side
   if (lower.includes("10k") || lower.includes("10km") || lower.includes("10 km")) return "10K";
-  if (lower.includes("5k") || lower === "5km") return "5K";
+  // Bug réel (B-5K-BEGINNER, 2026-10-13) : "5 KM" (avec espace) n'était
+  // reconnu nulle part, contrairement à "10 km" juste au-dessus — miroir
+  // du correctif client (normalizeObjectiveKey.ts).
+  if (lower.includes("5k") || lower.includes("5 km") || lower === "5km") return "5K";
   if (lower.includes("start")) return "StartToRun";
   return obj;
 }

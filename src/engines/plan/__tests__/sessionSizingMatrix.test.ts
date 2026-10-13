@@ -156,6 +156,29 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
   });
 
   /**
+   * Bug réel (B-5K-BEGINNER, 2026-10-13) : "5 KM" (avec espace, la façon
+   * naturelle de le saisir) ne matchait aucune branche de
+   * normalizeSizingObjective — qui retournait donc `null` — alors que "5k"
+   * (substring) et "5km" (exact) étaient déjà gérés. Conséquence directe :
+   * computeWeekQuotaEntry/computeWeeklySessionQuota retombaient sur `null`
+   * pour tout objectif "5 KM", désactivant entièrement le moteur de
+   * quota/layout hebdomadaire déterministe côté client pour ce cas précis
+   * (le plan généré partait alors sans aucun garde-fou de quota structuré).
+   */
+  it("normalizeSizingObjective — reconnaît '5 KM'/'5 km' comme 5K (B-5K-BEGINNER)", () => {
+    expect(normalizeSizingObjective("5K")).toBe("5K");
+    expect(normalizeSizingObjective("5k")).toBe("5K");
+    expect(normalizeSizingObjective("5km")).toBe("5K");
+    expect(normalizeSizingObjective("5 km")).toBe("5K");
+    expect(normalizeSizingObjective("5 KM")).toBe("5K");
+  });
+
+  it("computeWeekQuotaEntry — '5 KM' retourne une entrée de quota non nulle (régression B-5K-BEGINNER)", () => {
+    const entry = computeWeekQuotaEntry("5 KM", "finisher", 3, "load", false, { sessionsPerWeek: 3 });
+    expect(entry).not.toBeNull();
+  });
+
+  /**
    * Fix "5e palier manquant" (audit coach "priorité séances/heures du plan") :
    * world_class (clé interne du palier "Elite" UI, top 3% AG, cf.
    * src/types/ambitionLevel.ts) retombait silencieusement sur "elite"

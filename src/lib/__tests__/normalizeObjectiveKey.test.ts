@@ -46,3 +46,36 @@ describe("normalizeObjectiveKey — Sprint/Olympic triathlon", () => {
     expect(normalizeObjectiveKey("Objectif Mystère")).toBe("Objectif Mystère");
   });
 });
+
+/**
+ * Bug réel (B-5K-BEGINNER, 2026-10-13) : "5 KM" (avec espace) n'était
+ * reconnu nulle part — la ligne "5k" ne matchait que "5k" (substring) ou
+ * "5km" (exact), jamais "5 km"/"5 KM" — alors que "10k" juste au-dessus gère
+ * bien "10 km". Conséquence : SPORT_RATIO_TARGETS["5 KM"] retombait sur
+ * `undefined`, et sessionSizingMatrix.ts::normalizeSizingObjective (même
+ * gap) désactivait entièrement le moteur de quota/layout déterministe pour
+ * cet objectif. Même correctif requis dans sportRatioMatrix.ts (edge,
+ * miroir) — cf. sportRatioMatrix.normalizeObjKey.test.ts et
+ * sessionSizingMatrix.normalizeSizingObjective.test.ts.
+ */
+describe("normalizeObjectiveKey — variantes 5K (B-5K-BEGINNER)", () => {
+  it("reconnaît toutes les variantes d'écriture de 5 km", () => {
+    expect(normalizeObjectiveKey("5K")).toBe("5K");
+    expect(normalizeObjectiveKey("5k")).toBe("5K");
+    expect(normalizeObjectiveKey("5km")).toBe("5K");
+    expect(normalizeObjectiveKey("5KM")).toBe("5K");
+    expect(normalizeObjectiveKey("5 km")).toBe("5K");
+    expect(normalizeObjectiveKey("5 KM")).toBe("5K");
+  });
+
+  it("reconnaît 5 km dans un objectif plus long", () => {
+    expect(normalizeObjectiveKey("Premier 5 km")).toBe("5K");
+    expect(normalizeObjectiveKey("Objectif : 5 KM en 12 semaines")).toBe("5K");
+  });
+
+  it("ne confond pas 10 km et 5 km", () => {
+    expect(normalizeObjectiveKey("10 km")).toBe("10K");
+    expect(normalizeObjectiveKey("10 KM")).toBe("10K");
+    expect(normalizeObjectiveKey("10km")).toBe("10K");
+  });
+});
