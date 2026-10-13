@@ -23,6 +23,12 @@ export interface ParsedSession {
    *  KEY_SESSION_PATTERNS côté validateur. Undefined pour le chemin Markdown
    *  legacy (fallback regex uniquement dans ce cas). */
   isKeySession?: boolean;
+  /** Zones/intensités structurées posées par l'IA elle-même (schéma JSON
+   *  `zones: string[]`, ex. ["Z4a"], ["Z2"]), propagées depuis
+   *  MergedSession — à préférer au parsing texte de title/details quand
+   *  disponible et non vide (cf. audit "fiabilité du validateur").
+   *  Undefined pour le chemin Markdown legacy (fallback texte uniquement). */
+  zones?: string[];
 }
 
 export interface ParsedWeek {
@@ -77,6 +83,31 @@ export interface ParsedPlan {
    * vérification/régénération avant utilisation par le coach.
    */
   incompletePhaseWeeks?: number[];
+  /**
+   * Audit scientifique P0 — F12. Résultat de `computeFinalValidationIssues`
+   * (checkB13/B14), calculé après TOUTES les mutations du réconciliateur
+   * (génération complète ET régénération d'une seule semaine). Une entrée
+   * `severity: "error"` est une incohérence CRITIQUE (doublon de catalogId,
+   * cumul "à jeun") — un plan qui en contient ne doit jamais être présenté
+   * comme automatiquement validé, cf. `AIPlanViewer.tsx`.
+   */
+  finalValidationIssues?: import("@/lib/plan/qa/finalValidation").FinalValidationIssue[];
+  /**
+   * Priorité 1 (coach, lot "Performance Validation Lab V1"). Incohérences
+   * sport↔objectif détectées par `validateSportObjective` (ex. natation
+   * dans un plan running sans objectif triathlon secondaire) — calculées
+   * depuis le premier audit "génération de plan IA" mais jamais affichées
+   * au coach jusqu'ici (seulement loguées en console). Informatif
+   * uniquement : la présence de ce champ ne bloque aucune action de ce
+   * composant.
+   */
+  sportObjectiveIssues?: import("@/lib/plan/mergePlanChunks").SportObjectiveIssue[];
+  /**
+   * Priorité 1. Écarts de quota hebdomadaire vs moteur
+   * (`validateWeeklyQuotas`) — même constat que `sportObjectiveIssues` :
+   * calculés mais jamais rendus avant ce lot. Informatif uniquement.
+   */
+  weeklyQuotaIssues?: import("@/lib/plan/validateWeeklyQuotas").QuotaIssue[];
 }
 
 const DAY_MAP: Record<string, number> = {

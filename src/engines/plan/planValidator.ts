@@ -61,11 +61,17 @@ export interface WeekMetrics {
    * total hebdomadaire est correct.
    */
   keySessionsBySport: Record<string, number>;
-  /** Estimated intensity distribution from session titles/details */
+  /** Estimated intensity distribution from session titles/details.
+   *  low/mid/high sont des pourcentages du temps CLASSIFIABLE uniquement
+   *  (somme à 100 entre eux) ; `unknownPct` est séparé, en % du temps TOTAL
+   *  de la semaine — audit "fiabilité du validateur" : avant, ce temps non
+   *  classifiable était silencieusement absorbé dans "low", ce qui pouvait
+   *  faire passer une semaine réellement non polarisée pour conforme. */
   intensityProfile: {
     lowPct: number;   // Z1-Z2 (easy, endurance, récupération)
     midPct: number;   // Z3 (tempo, allure marathon)
     highPct: number;  // Z4-Z7 (seuil, VO2, VMA, sprint, intervalles)
+    unknownPct: number; // temps non classifiable (ni zones, ni mot-clé) — % du temps TOTAL
   };
   /** Whether this looks like a deload/recovery week (basé sur le contenu
    *  observé — thème/phase, nombre de séances actives). */
@@ -79,6 +85,16 @@ export interface WeekMetrics {
    *  — ne remplace pas isDeload pour les règles qui vérifient que la charge a
    *  RÉELLEMENT été réduite (validateLoadPattern). */
   scheduledWeekType: WeekType | null;
+  /** Audit scientifique P0 — F4 : signal de décharge basé UNIQUEMENT sur un
+   *  contenu/planning RÉEL (texte de thème OU scheduledWeekType calculé à la
+   *  génération) — JAMAIS sur le simple nombre de séances actives, qui
+   *  exemptait à tort une semaine courte mais 100% intense de la Règle #1
+   *  (validatePolarization). Utilisé UNIQUEMENT par cette règle ; `isDeload`
+   *  (qui inclut le proxy de comptage) reste inchangé pour les autres règles
+   *  déjà calibrées sur cette définition plus large (Rule 2 décharge
+   *  manquante, Rule 3 séances-clés, etc.) — ne pas réutiliser ailleurs sans
+   *  vérifier chaque règle consommatrice individuellement. */
+  isContentOrScheduleDeload: boolean;
   /** Whether this looks like a race week */
   isRaceWeek: boolean;
   /** Whether this is an explicitly-named threshold block (norvégien double-seuil,
@@ -180,6 +196,10 @@ export interface LorangWeekBreakdown {
   unknown: number;
   active: number;
   hasHighOrThreshold: boolean; // ≥1 A OU B (obligatoire hors décharge)
+  /** Parmi A/B/C/D ci-dessus, combien proviennent du DERNIER RECOURS
+   *  (préfixe-lettre du catalogId, ni zones ni mot-clé disponibles) — cf.
+   *  classifyLorang. Confiance faible, cf. LorangCategoryDistribution. */
+  uncertainTagging: number;
 }
 
 export interface LorangCategoryDistribution {
@@ -190,6 +210,16 @@ export interface LorangCategoryDistribution {
   B: number; BPct: number;
   C: number; CPct: number;
   D: number; DPct: number;
+  /** Audit "fiabilité du validateur" (consigne coach) — nombre/% de séances
+   *  dont la catégorie A/B/C/D ci-dessus provient UNIQUEMENT du préfixe-
+   *  lettre du catalogId (zones ET mots-clés absents). Ce signal est un
+   *  DERNIER RECOURS statistiquement peu fiable (vérifié sur le catalogue
+   *  réel : la lettre encode une priorité/nécessité, pas la catégorie
+   *  Lorang) — ne JAMAIS afficher cette distribution comme certaine sans
+   *  tenir compte de ce chiffre. `validateLorangCategories` émet un
+   *  avertissement dédié dès que `uncertainTagging > 0`. */
+  uncertainTagging: number;
+  uncertainTaggingPct: number;
   weeks: LorangWeekBreakdown[];
 }
 
@@ -317,23 +347,80 @@ const THRESHOLD_BLOCK_PATTERNS = /norvégien|double.?seuil|sweet.?spot/i;
 const STRIDES_TAIL_PATTERN = /\bstrides?\b|acc[ée]l[ée]rations?\s*progressives?/i;
 const GENUINE_INTERVAL_WORK_PATTERN = /seuil|threshold|vo2|vma\b|fractionn[ée]|30\s*\/\s*30|norv[ée]gien|billat|canova|over.under|\bsst\b|sweet\s*spot|pma/i;
 
-function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" {
+/** Audit "fiabilité du validateur" — avant, toute séance sans mot-clé
+ *  reconnu retombait silencieusement sur "low" (faux négatif confirmé par
+ *  test : une séance réellement quasi-maximale décrite sans le vocabulaire
+ *  attendu passait pour une récupération). "unknown" rend ce point mort
+ *  explicite au lieu de l'absorber comme un repli sans risque — cf.
+ *  validatePolarization, qui le signale désormais séparément plutôt que de
+ *  le compter comme conforme. */
+export type SessionTier = "low" | "mid" | "high" | "unknown";
+
+/** Mappe les zones structurées (schéma JSON `zones: string[]`, ex. "Z4a",
+ *  "Z2") sur Z1-Z7, même convention numérique que LOW/MID/HIGH_INTENSITY_
+ *  PATTERNS (Z1-Z2 low, Z3 mid, Z4-Z7 high). Des entrées non numériques
+ *  (RPE, %FTP, %VMA — le schéma les autorise aussi) sont ignorées plutôt que
+ *  mal interprétées : on ne mappe que ce qui est sans ambiguïté. Zones
+ *  mixtes (ex. ["Z2","Z5"]) → tier le plus élevé retenu (cohérent avec le
+ *  "check high first" déjà appliqué au texte juste en dessous). Retourne
+ *  `null` (pas "unknown") quand `zones` est absent/vide ou ne contient aucun
+ *  Z1-Z7 reconnaissable, pour laisser la suite de la fonction retomber sur
+ *  le texte sans présumer quoi que ce soit. */
+function tierFromZones(zones: string[] | undefined): SessionTier | null {
+  if (!zones || zones.length === 0) return null;
+  let sawLow = false, sawMid = false, sawHigh = false;
+  for (const raw of zones) {
+    const m = /z\s*([1-7])/i.exec(raw);
+    if (!m) continue;
+    const n = parseInt(m[1], 10);
+    if (n <= 2) sawLow = true;
+    else if (n === 3) sawMid = true;
+    else sawHigh = true;
+  }
+  if (sawHigh) return "high";
+  if (sawMid) return "mid";
+  if (sawLow) return "low";
+  return null;
+}
+
+function classifySessionIntensity(session: ParsedSession): SessionTier {
   const text = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
 
   if (session.isRest) return "low";
 
+  // Garde strides préservée AVANT la priorité aux zones structurées : une
+  // séance EF avec quelques accélérations courtes en fin de séance reste
+  // "low" même si `zones` contient un Z5 ponctuel pour ces accélérations
+  // (nuance physiologique volontaire, cf. commentaire STRIDES_TAIL_PATTERN
+  // — pas un oubli, donc pas écrasée par la priorité donnée aux zones).
   if (STRIDES_TAIL_PATTERN.test(text) && !GENUINE_INTERVAL_WORK_PATTERN.test(text)) {
     return "low";
   }
+
+  // Priorité aux données structurées (audit "fiabilité du validateur",
+  // consigne coach) : `zones` existe déjà sur ParsedSession (propagé depuis
+  // MergedSession) et est posé par l'IA elle-même via le schéma JSON — plus
+  // fiable qu'un regex sur du texte libre quand disponible.
+  const zoneTier = tierFromZones(session.zones);
+  if (zoneTier) return zoneTier;
 
   // Check high first (most specific patterns)
   if (HIGH_INTENSITY_PATTERNS.test(text)) return "high";
   if (MID_INTENSITY_PATTERNS.test(text)) return "mid";
 
-  // Default: strength/renfo sessions count as mid, everything else as low
+  // Default: strength/renfo sessions count as mid
   if (/renfo|muscul|strength|ppg|gainage|core|poids/i.test(text)) return "mid";
 
-  return "low";
+  // Explicite : un mot-clé low RECONNU (Z1/Z2/EF/footing/récup...), pas un
+  // simple défaut. Avant, ce test n'existait pas ici (LOW_INTENSITY_PATTERNS
+  // n'était utilisé que par classifyLorang) et toute séance non reconnue
+  // retombait directement sur "low" ci-dessous, qu'elle soit vraiment easy
+  // ou non.
+  if (LOW_INTENSITY_PATTERNS.test(text)) return "low";
+
+  // Aucun signal exploitable (ni zones, ni mot-clé) : "unknown", plus "low"
+  // par défaut — cf. docstring SessionTier.
+  return "unknown";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -398,42 +485,85 @@ function clauseDurationMin(clause: string): number {
   return total;
 }
 
+/**
+ * Distingue une clause réduite à un simple repère de durée (ex. "15min",
+ * "10min WU" — raisonnablement supposée transition/WU-CD, cf. docstring
+ * estimateSessionZoneMinutes) d'une clause qui porte un VRAI contenu
+ * descriptif qu'on ne reconnaît simplement pas (ex. "à l'intensité la plus
+ * élevée soutenable, format répété"). Seule la seconde doit déclencher
+ * "unknown" plutôt qu'un repli "low" non justifié — sinon toute clause,
+ * même vide de sens, deviendrait "unknown" et noierait le signal sous le
+ * bruit. Heuristique volontairement simple (longueur du résidu après
+ * retrait chiffres/unités/mots de liaison courants), pas une analyse
+ * sémantique complète — documentée comme telle, pas cachée.
+ */
+function clauseHasUnrecognizedContent(clause: string): boolean {
+  const stripped = clause
+    .replace(/\d+/g, " ")
+    .replace(/\b(h|min|minutes?|sec|s|wu|cd|puis|de|du|des|la|le|les|à|et|en|avec|pour|sur|dans|au|aux|un|une)\b/gi, " ")
+    .replace(/[^a-zàâäéèêëïîôöùûüÿçœæ]+/gi, " ")
+    .trim();
+  return stripped.length >= 5;
+}
+
 /** Classe une clause (pas la séance entière) — même logique que
- *  classifySessionIntensity, appliquée à un fragment de texte. */
-function clauseTier(clause: string): "low" | "mid" | "high" {
+ *  classifySessionIntensity, appliquée à un fragment de texte.
+ *  `zoneFallback` (zones structurées de la séance, cf. tierFromZones) est
+ *  consulté UNIQUEMENT quand la clause porte du contenu descriptif non
+ *  reconnu (cf. clauseHasUnrecognizedContent) — priorité aux données
+ *  structurées sur ce cas précis, sans jamais écraser le repli "low" des
+ *  clauses de transition nues (WU/CD sans zone dédiée), qui reste
+ *  physiologiquement fondé et volontairement inchangé. */
+function clauseTier(clause: string, zoneFallback: SessionTier | null = null): SessionTier {
   const t = clause.toLowerCase();
   if (STRIDES_TAIL_PATTERN.test(t) && !GENUINE_INTERVAL_WORK_PATTERN.test(t)) return "low";
   if (HIGH_INTENSITY_PATTERNS.test(t)) return "high";
   if (MID_INTENSITY_PATTERNS.test(t)) return "mid";
   if (/renfo|muscul|strength|ppg|gainage|core|poids/i.test(t)) return "mid";
+  if (LOW_INTENSITY_PATTERNS.test(t)) return "low";
+  // Audit "fiabilité du validateur" — avant, TOUTE clause sans mot-clé
+  // reconnu retombait sur "low", qu'elle porte un contenu neutre (WU/CD nu)
+  // ou un contenu réel juste mal formulé (faux négatif confirmé par test).
+  // Priorité aux zones structurées quand elles existent ; sinon "unknown"
+  // (signalé explicitement par validatePolarization) pour une clause avec
+  // du contenu, "low" seulement pour un repère de durée nu.
+  if (clauseHasUnrecognizedContent(t)) return zoneFallback ?? "unknown";
   return "low";
 }
 
-interface SessionZoneMinutes { low: number; mid: number; high: number }
+interface SessionZoneMinutes { low: number; mid: number; high: number; unknown: number }
 
 /**
- * Estime la répartition low/mid/high EN MINUTES d'une séance, en pondérant
- * chaque clause par sa propre durée plutôt que de classer la séance entière
- * dans un seul bucket. Le temps non capté par une clause reconnaissable
- * (transitions, WU/CD non zonés explicitement) est crédité à "low" — repli
+ * Estime la répartition low/mid/high(/unknown) EN MINUTES d'une séance, en
+ * pondérant chaque clause par sa propre durée plutôt que de classer la
+ * séance entière dans un seul bucket. Le temps non capté par une clause
+ * reconnaissable (transitions, WU/CD non zonés explicitement) À L'INTÉRIEUR
+ * d'une séance par ailleurs décomposée est crédité à "low" — repli
  * conservateur et physiologiquement fondé (un WU/CD non précisé est presque
- * toujours easy). Si aucune clause n'est exploitable du tout, on retombe sur
- * la classification globale historique (texte non structuré / legacy).
+ * toujours easy), volontairement inchangé par l'audit "fiabilité du
+ * validateur" (ce n'est pas le même point mort que celui ci-dessous).
+ * Si AUCUNE clause n'est exploitable du tout (captured===0), on retombe sur
+ * la classification globale de la séance (`classifySessionIntensity`), qui
+ * peut désormais renvoyer "unknown" — ce temps est alors compté à part,
+ * jamais absorbé dans "low" (cf. validatePolarization, qui le signale
+ * explicitement plutôt que de présumer une conformité sur du temps non
+ * classifiable).
  */
 function estimateSessionZoneMinutes(
   session: ParsedSession,
   totalDurationMin: number | null,
 ): SessionZoneMinutes {
-  const acc: SessionZoneMinutes = { low: 0, mid: 0, high: 0 };
+  const acc: SessionZoneMinutes = { low: 0, mid: 0, high: 0, unknown: 0 };
   if (session.isRest || !totalDurationMin || totalDurationMin <= 0) return acc;
 
   const text = `${session.title} ${session.details}`;
   const clauses = splitIntoClauses(text);
+  const zoneFallback = tierFromZones(session.zones);
   let captured = 0;
   for (const clause of clauses) {
     const mins = clauseDurationMin(clause);
     if (mins <= 0) continue;
-    acc[clauseTier(clause)] += mins;
+    acc[clauseTier(clause, zoneFallback)] += mins;
     captured += mins;
   }
 
@@ -442,6 +572,7 @@ function estimateSessionZoneMinutes(
     acc.low *= scale;
     acc.mid *= scale;
     acc.high *= scale;
+    acc.unknown *= scale;
     captured = totalDurationMin;
   }
 
@@ -598,6 +729,15 @@ function extractWeekMetrics(
     ? inferWeekType(week.weekNumber, totalWeeks, objective, athleteAge, cadenceOverride)
     : null;
 
+  // Audit scientifique P0 — F4 : contrairement à isDeload ci-dessus, AUCUN
+  // proxy de comptage (activeSessions<=3) — seulement du contenu/planning
+  // réel. Repli sur le texte seul si scheduledWeekType est indisponible
+  // (totalWeeks non fourni à l'appel), jamais sur le nombre de séances.
+  const isContentOrScheduleDeload =
+    DELOAD_PATTERNS.test(themeText) ||
+    scheduledWeekType === "recovery" ||
+    scheduledWeekType === "taper";
+
   // Race week detection
   const isRaceWeek = weekHasRaceDay(week);
 
@@ -612,7 +752,7 @@ function extractWeekMetrics(
   let totalDurationMin = 0;
   let keyDurationMin = 0;
   let sessionsWithDuration = 0;
-  let low = 0, mid = 0, high = 0;
+  let low = 0, mid = 0, high = 0, unknown = 0;
   for (const s of activeSessions) {
     const d = parseSessionDurationMin(s);
     if (d !== null && d > 0) {
@@ -624,8 +764,13 @@ function extractWeekMetrics(
     low += zoneMinutes.low;
     mid += zoneMinutes.mid;
     high += zoneMinutes.high;
+    unknown += zoneMinutes.unknown;
   }
-  const total = low + mid + high || 1;
+  // lowPct/midPct/highPct restent des % du temps CLASSIFIABLE (somme à 100
+  // entre eux, comme avant) — unknownPct est séparé, en % du temps TOTAL,
+  // pour ne pas fausser le ratio Seiler sur le temps qu'on sait classer.
+  const knownTotal = low + mid + high || 1;
+  const grandTotal = low + mid + high + unknown || 1;
 
   return {
     weekNumber: week.weekNumber,
@@ -636,12 +781,14 @@ function extractWeekMetrics(
     sports,
     keySessionsBySport,
     intensityProfile: {
-      lowPct: Math.round((low / total) * 100),
-      midPct: Math.round((mid / total) * 100),
-      highPct: Math.round((high / total) * 100),
+      lowPct: Math.round((low / knownTotal) * 100),
+      midPct: Math.round((mid / knownTotal) * 100),
+      highPct: Math.round((high / knownTotal) * 100),
+      unknownPct: Math.round((unknown / grandTotal) * 100),
     },
     isDeload,
     scheduledWeekType,
+    isContentOrScheduleDeload,
     isRaceWeek,
     isThresholdBlock,
     keySessions,
@@ -670,19 +817,58 @@ function normalizeSport(sport: string): string {
 function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
   let compliant = 0;
+  let evaluated = 0;
 
   for (const wm of metrics) {
     // Semaines exclues de l'évaluation (décharge / course / bloc seuil concentré
     // explicitement nommé — norvégien double-seuil, Sweet Spot étendu, cf. audit
     // Niveau 2 / <3 séances) : elles ne comptent NI au numérateur NI au
     // dénominateur (sinon score > 100).
-    if (wm.isDeload || wm.isRaceWeek || wm.isThresholdBlock || wm.activeSessions < 3) {
+    // Audit scientifique P0 — F4 : `isContentOrScheduleDeload` remplace
+    // `isDeload` ICI spécifiquement — `isDeload` exemptait à tort toute
+    // semaine à ≤3 séances actives, même 100% intense et sans aucun mot-clé
+    // de décharge. `activeSessions < 3` reste un garde-fou séparé et
+    // légitime : sous 3 séances, le ratio low/mid/high n'est de toute façon
+    // pas un échantillon statistiquement significatif.
+    if (wm.isContentOrScheduleDeload || wm.isRaceWeek || wm.isThresholdBlock || wm.activeSessions < 3) {
       continue;
     }
 
 
-    const { lowPct, midPct, highPct } = wm.intensityProfile;
+    const { lowPct, midPct, highPct, unknownPct } = wm.intensityProfile;
 
+    // Audit "fiabilité du validateur" — gestion EXPLICITE du temps non
+    // classifiable (ni zones structurées, ni mot-clé reconnu), au lieu de
+    // l'absorber silencieusement dans "low" comme avant. Seuil 30% choisi
+    // comme repère raisonnable (pas de référence Seiler sur ce point
+    // précis) : au-delà, une part trop importante du volume hebdo échappe
+    // à toute classification pour que lowPct/midPct/highPct ci-dessous
+    // (calculés sur le seul temps classifiable) restent un signal fiable à
+    // eux seuls. "warning", pas "error" : ce n'est pas une violation
+    // constatée, c'est une limite de couverture du validateur lui-même.
+    if (unknownPct > 30) {
+      issues.push({
+        rule: "polarization",
+        severity: "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: ${unknownPct}% du temps de la semaine n'a pas pu être classé (ni zones, ni mot-clé d'intensité reconnu) — la répartition Low/Mid/High ci-dessous ne porte que sur le temps classifiable, vérification manuelle recommandée`,
+      });
+    }
+
+    // Aucun temps classifiable du tout (100% unknown) : lowPct/midPct
+    // retombent sur le dénominateur de repli (cf. extractWeekMetrics,
+    // `|| 1`) et afficheraient un trompeur "0% low" lu comme une violation
+    // confirmée ("error") — alors qu'on n'a simplement AUCUNE base pour
+    // juger la polarisation cette semaine-là. Semaine exclue du
+    // numérateur ET du dénominateur de compliance, même traitement que les
+    // autres exemptions ci-dessus (décharge/course/bloc seuil/<3 séances) :
+    // l'avertissement unknownPct ci-dessus reste le seul signal pour cette
+    // semaine.
+    if (unknownPct >= 100) {
+      continue;
+    }
+
+    evaluated++;
     // Low should be 70-85%, high 15-25%, mid < 10% ideally
     if (lowPct < 60) {
       issues.push({
@@ -714,7 +900,12 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
     }
   }
 
-  const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek && m.activeSessions >= 3).length || 1;
+  // `evaluated` (compté dans la boucle ci-dessus) remplace l'ancien
+  // recomptage séparé par `metrics.filter(...)` — celui-ci ne reflétait de
+  // toute façon pas exactement les mêmes exemptions (isThresholdBlock,
+  // nouvelle exemption unknownPct>=100 ci-dessus) ; une seule source de
+  // vérité évite que les deux dérivent l'une de l'autre.
+  const total = evaluated || 1;
   return { issues, score: Math.max(0, Math.min(100, Math.round((compliant / total) * 100))) };
 
 }
@@ -731,74 +922,130 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
  *  des jours qualité) distinct du ratio temps agrégé — non couvert par
  *  Rule 1. Alimente le même score "polarizationScore", pas de nouveau
  *  poids. */
-function validateWeeklyHardDayDensity(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
-  const issues: ValidationIssue[] = [];
-  let compliant = 0;
-  let checked = 0;
-  const HARD_DAY_THRESHOLD_MIN = 15;
-  const DAYS_IN_WEEK = 7;
+const HARD_DAY_THRESHOLD_MIN = 15;
+const DAYS_IN_WEEK = 7;
+const MAX_CONSECUTIVE_HARD_DAYS = 3;
 
+/** Un jour du calendrier réel du plan (pas seulement de la semaine courante).
+ *  `calIdx` est une clé d'ordre strictement croissante dans le temps ;
+ *  `weekHasRaceDay`/bloc seuil concentré restent des exemptions légitimes
+ *  (contenu volontairement concentré/final), jamais le nombre de séances ou
+ *  le texte "décharge" — cf. Audit scientifique P0, F4/F6. Un jour appartenant
+ *  à une semaine exemptée est simplement ABSENT de la timeline (pas un
+ *  isHard=false) : son absence crée un vrai trou dans `calIdx`, qui casse
+ *  naturellement toute continuité de séquence avec les semaines voisines —
+ *  on ne veut ni qu'un bloc seuil concentré compte contre lui-même, ni qu'il
+ *  "contamine" la séquence d'une semaine adjacente normale. */
+interface HardDayEntry {
+  calIdx: number;
+  weekNumber: number;
+  dayIndex: number;
+  isHard: boolean;
+}
+
+function buildHardDayTimeline(plan: ParsedPlan): HardDayEntry[] {
+  const entries: HardDayEntry[] = [];
   for (const week of plan.weeks) {
     const themeText = `${week.theme} ${week.phase}`.toLowerCase();
-    const activeSessions = week.sessions.filter((s) => !s.isRest);
-    if (
-      DELOAD_PATTERNS.test(themeText) ||
-      weekHasRaceDay(week) ||
-      THRESHOLD_BLOCK_PATTERNS.test(themeText) ||
-      activeSessions.length < 5
-    ) {
-      continue;
-    }
+    if (weekHasRaceDay(week) || THRESHOLD_BLOCK_PATTERNS.test(themeText)) continue;
 
+    const activeSessions = week.sessions.filter((s) => !s.isRest);
     const hardMinutesByDay = new Map<number, number>();
     for (const s of activeSessions) {
       const d = parseSessionDurationMin(s);
       const zone = estimateSessionZoneMinutes(s, d);
       hardMinutesByDay.set(s.dayIndex, (hardMinutesByDay.get(s.dayIndex) ?? 0) + zone.mid + zone.high);
     }
-    const hardDays = [...hardMinutesByDay.values()].filter((min) => min > HARD_DAY_THRESHOLD_MIN).length;
-    const protectedDays = DAYS_IN_WEEK - hardDays;
-
-    checked++;
-    let weekCompliant = true;
-    if (protectedDays <= 1) {
-      weekCompliant = false;
-      issues.push({
-        rule: "polarization",
-        severity: "warning",
-        week: week.weekNumber,
-        message: `S${week.weekNumber}: ${hardDays}/7 jours avec un stimulus modéré/dur (>${HARD_DAY_THRESHOLD_MIN}min) — seulement ${protectedDays} jour(s) réellement protégé(s) dans la semaine, risque de surcharge malgré un ratio temps low/mid/high polarisé`,
-      });
-    }
-
-    // Bug réel (ChatGPT, plan 10K "Vince") : la densité totale ci-dessus peut
-    // rester dans les clous (ex. 2 jours protégés en tout début de semaine)
-    // alors que 4 jours DURS s'enchaînent SANS AUCUNE coupure (ex. Mer-Jeu-
-    // Ven-Sam, avant une sortie longue le dimanche) — un problème de séquence,
-    // pas de volume total, que le comptage ci-dessus ne peut pas voir (il ne
-    // regarde jamais où les jours durs tombent dans la semaine, seulement
-    // combien il y en a). Limite connue : ne détecte pas un enchaînement à
-    // cheval sur deux semaines (ex. Ven-Sam-Dim-Lun) — dayIndex est borné à
-    // la semaine courante (0=Lundi..6=Dimanche, cf. aiPlanParser.ts).
-    const MAX_CONSECUTIVE_HARD_DAYS = 3;
-    let longestStreak = 0;
-    let currentStreak = 0;
     for (let d = 0; d < DAYS_IN_WEEK; d++) {
-      const isHard = (hardMinutesByDay.get(d) ?? 0) > HARD_DAY_THRESHOLD_MIN;
-      currentStreak = isHard ? currentStreak + 1 : 0;
-      if (currentStreak > longestStreak) longestStreak = currentStreak;
+      entries.push({
+        calIdx: week.weekNumber * DAYS_IN_WEEK + d,
+        weekNumber: week.weekNumber,
+        dayIndex: d,
+        isHard: (hardMinutesByDay.get(d) ?? 0) > HARD_DAY_THRESHOLD_MIN,
+      });
     }
-    if (longestStreak > MAX_CONSECUTIVE_HARD_DAYS) {
-      weekCompliant = false;
+  }
+  entries.sort((a, b) => a.calIdx - b.calIdx);
+  return entries;
+}
+
+/** Audit scientifique P0 — F4/F6 : densité des stimuli durs calculée sur UNE
+ *  SEULE timeline chronologique couvrant tout le plan reçu (pas de reset aux
+ *  frontières de semaine), et jamais exemptée par le texte du thème ou le
+ *  nombre de séances — seulement par un contenu structurellement différent
+ *  (jour de course, bloc seuil concentré explicitement nommé). Une semaine
+ *  courte ou une semaine de décharge n'ont besoin d'aucune exemption dédiée :
+ *  leur contenu réel (peu/aucun jour dur) ne déclenchera naturellement rien.
+ *  F12/F6 : les jours à séances multiples (doubles/triples) sont déjà
+ *  agrégés par jour via `hardMinutesByDay` ci-dessus (somme des minutes
+ *  mid+high de TOUTES les séances de ce jour), pas seulement la première. */
+function validateWeeklyHardDayDensity(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const timeline = buildHardDayTimeline(plan);
+
+  // ── Jours protégés par semaine (métrique par semaine — "charge globale
+  //    de récupération" de CETTE semaine, distincte de l'enchaînement
+  //    ci-dessous) : reste par semaine réelle, pas de notion de fenêtre
+  //    glissante nécessaire ici, mais sans l'exemption de comptage/thème. ──
+  const byWeek = new Map<number, HardDayEntry[]>();
+  for (const e of timeline) {
+    const arr = byWeek.get(e.weekNumber) ?? [];
+    arr.push(e);
+    byWeek.set(e.weekNumber, arr);
+  }
+  let compliant = 0;
+  let checked = 0;
+  for (const [weekNumber, days] of byWeek) {
+    const hardDays = days.filter((d) => d.isHard).length;
+    const protectedDays = DAYS_IN_WEEK - hardDays;
+    checked++;
+    if (protectedDays <= 1) {
       issues.push({
         rule: "polarization",
         severity: "warning",
-        week: week.weekNumber,
-        message: `S${week.weekNumber}: ${longestStreak} jours consécutifs avec un stimulus modéré/dur (>${HARD_DAY_THRESHOLD_MIN}min), sans jour facile intercalé (max recommandé: ${MAX_CONSECUTIVE_HARD_DAYS}) — risque de surcharge/blessure malgré un ratio ou un total hebdomadaire conformes`,
+        week: weekNumber,
+        message: `S${weekNumber}: ${hardDays}/7 jours avec un stimulus modéré/dur (>${HARD_DAY_THRESHOLD_MIN}min) — seulement ${protectedDays} jour(s) réellement protégé(s) dans la semaine, risque de surcharge malgré un ratio temps low/mid/high polarisé`,
       });
+    } else {
+      compliant++;
     }
+  }
 
-    if (weekCompliant) compliant++;
+  // ── Enchaînement de jours durs — CONTINU sur tout le plan reçu, ne
+  //    s'arrête plus aux frontières de semaine (corrige F6). Rattaché au
+  //    numéro de semaine où le streak maximal COMMENCE, pour rester
+  //    actionnable pour le coach. ──
+  let longestStreak = 0;
+  let streakStart: HardDayEntry | null = null;
+  let currentStreak = 0;
+  let currentStart: HardDayEntry | null = null;
+  let prevCalIdx: number | null = null;
+  for (const e of timeline) {
+    const contiguous = prevCalIdx !== null && e.calIdx === prevCalIdx + 1;
+    if (!contiguous) {
+      currentStreak = 0;
+      currentStart = null;
+    }
+    if (e.isHard) {
+      if (currentStreak === 0) currentStart = e;
+      currentStreak++;
+      if (currentStreak > longestStreak) {
+        longestStreak = currentStreak;
+        streakStart = currentStart;
+      }
+    } else {
+      currentStreak = 0;
+      currentStart = null;
+    }
+    prevCalIdx = e.calIdx;
+  }
+  if (longestStreak > MAX_CONSECUTIVE_HARD_DAYS && streakStart) {
+    issues.push({
+      rule: "polarization",
+      severity: "warning",
+      week: streakStart.weekNumber,
+      message: `S${streakStart.weekNumber} (à partir du jour ${streakStart.dayIndex + 1}) : ${longestStreak} jours consécutifs avec un stimulus modéré/dur (>${HARD_DAY_THRESHOLD_MIN}min), sans jour facile intercalé (max recommandé: ${MAX_CONSECUTIVE_HARD_DAYS}) — risque de surcharge/blessure malgré un ratio ou un total hebdomadaire conformes`,
+    });
   }
 
   return { issues, score: checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100))) };
@@ -1522,6 +1769,27 @@ const PHASE_ORDER: Record<string, number> = {
   "affûtage": 5, "taper": 5, "affutage": 5,
 };
 
+/**
+ * Audit "fiabilité du validateur" (consigne coach) — faux positif confirmé
+ * par test : `validatePlanPaces` (Option A, déjà en prod) injecte des tags
+ * du type "[Z2 · endurance 65-75% VMA]" dans `details` — une RÉFÉRENCE
+ * D'ALLURE (VMA/VO2max/FTP utilisés comme DÉNOMINATEUR pour décrire une
+ * intensité easy/Z2), jamais le contenu réel d'une séance de travail VMA/
+ * VO2max. `PHASE_SESSION_SIGNATURES[5].forbidden` (et
+ * ULTRA_COMPRESSED_PEAK_SESSION_SIGNATURE) contenaient `vma`/`vo2max` sans
+ * distinguer ce cas — une séance d'affûtage par ailleurs exemplaire ("35min
+ * Z2 facile") se faisait flaguer CRITIQUE à tort sur le seul mot "VMA" du
+ * tag. Retire ces dénominateurs numériques avant le test `forbidden`, sans
+ * toucher aux mentions du mot "VMA"/"VO2max" ailleurs dans le texte (ex.
+ * "séance VMA", "fractionné VO2max"), qui continuent de déclencher la règle
+ * normalement — seule la forme "N[-N]% VMA/VO2max/FTP" est retirée.
+ */
+const PACE_REFERENCE_DENOMINATOR_RX = /\d{1,3}(?:\s*[-–]\s*\d{1,3})?\s*%\s*(?:de\s*)?(?:la\s*)?(?:vma|vo2\s*max|ftp)/gi;
+
+function stripPaceReferenceDenominators(text: string): string {
+  return text.replace(PACE_REFERENCE_DENOMINATOR_RX, "");
+}
+
 /** Phase-specific session patterns — sessions expected in each phase */
 const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: RegExp }> = {
   1: { // Fondation: Force max, VO2max courts, Z2 volume, technique
@@ -1729,7 +1997,7 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
 
     for (const session of week.sessions) {
       if (session.isRest) continue;
-      const text = `${session.title} ${session.details}`;
+      const text = stripPaceReferenceDenominators(`${session.title} ${session.details}`);
 
       if (signatures.forbidden.test(text)) {
         issues.push({
@@ -1854,13 +2122,57 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
  * Limite connue, non résolue : un "sprint" hors plage numérique adjacente
  * (ex. "10×10s pente ... 60m sprint en fin de série", où "sprint" n'est ni
  * dans la plage-secondes ni suivi d'un qualificatif all-out/max/neuro à
- * proximité) reste un angle mort — distinguer fiabilement par regex un
+ * proximité) reste un angle mort — distinguer fiablement par regex un
  * effort contrôlé ("rapide mais pas max") d'un sprint all-out nécessiterait
  * une analyse sémantique, pas seulement lexicale.
+ *
+ * Audit "fiabilité du validateur" (consigne coach) : la négation ad hoc
+ * `(?<!pas de |sans |aucun(?:e)? )` ci-dessous a été RETIRÉE — elle ne
+ * couvrait que 3 tournures exactes immédiatement adjacentes au mot-clé
+ * ("jamais de plyo explosive" n'était pas couvert). La négation est
+ * désormais gérée UNE SEULE FOIS, au niveau de la clause entière (pas
+ * seulement les mots immédiatement adjacents), avec un vocabulaire élargi,
+ * par `isProhibitedPrescription` ci-dessous — partagée par les deux
+ * détections Sprint Ban (stricte + mention large sans catalogId).
  */
-const SPRINT_BAN_VIOLATION_PATTERNS = /tabata|sprint\s*(all[- ]out|neuro|max)|(\d{1,3}(?:[-–]\d{1,3})?\s*[×x]\s*\d{1,3}(?:[-–]\d{1,3})?\s*(?:s\b|''|"|sec)\s*(sprint|all[- ]out))|micro[- ]interv|drop\s*jump|hurdle\s*rebound|band\s*sprint|(?<!pas de |sans |aucun(?:e)? )plyo\s*explo/i;
+const SPRINT_BAN_VIOLATION_PATTERNS = /tabata|sprint\s*(all[- ]out|neuro|max)|(\d{1,3}(?:[-–]\d{1,3})?\s*[×x]\s*\d{1,3}(?:[-–]\d{1,3})?\s*(?:s\b|''|"|sec)\s*(sprint|all[- ]out))|micro[- ]interv|drop\s*jump|hurdle\s*rebound|band\s*sprint|plyo\s*explo/i;
+/** Même famille que SPRINT_BAN_VIOLATION_PATTERNS mais en mention large
+ *  (sans exiger de contexte numérique) — utilisée pour la 2e détection
+ *  (séance custom sans ID catalogue), cf. validateProhibitionCompliance. */
+const SPRINT_FAMILY_BROAD_PATTERNS = /\b(sprint|pmax|neuromuscul|all[- ]out|explosif|plyo|pliom[ée]tri|force[\s-]*vitesse)\b/i;
 /** Signaux non-numériques (indépendants de la durée/%FTP) de violation VO2max lourde. */
 const VO2MAX_HEAVY_VIOLATION_TEXT_PATTERNS = /tabata\s*vo2|30\/30\s*(?:long|×\s*[2-9]\d)/i;
+
+/**
+ * Vocabulaire de négation/interdiction élargi (audit "fiabilité du
+ * validateur", consigne coach : "ne pas se contenter d'ajouter quelques
+ * négations isolées"). Préfixes volontairement larges (`[a-z]*`) pour
+ * couvrir les formes fléchies courantes (interdit/interdite/interdiction,
+ * proscrit/proscrite, évite/éviter/évitons, exclu/exclue, bannir/banni,
+ * prohibé) sans énumérer chaque forme une à une.
+ */
+const NEGATION_MARKERS_RX = /\b(pas\s+de|sans|aucun(?:e)?|jamais|interdi[a-z]*|proscri[a-z]*|[ée]vit[a-z]*|exclu[a-z]*|banni[a-z]*|prohib[a-z]*)\b/i;
+
+/**
+ * Distingue PRESCRIPTION EFFECTIVE (violation réelle), INTERDICTION
+ * (mention conforme — rappel de ce qui est exclu) et SIMPLE MENTION du nom
+ * même de l'interdiction (ex. "Sprint Ban" répété en rappel de contexte,
+ * jamais une prescription) — à l'échelle de la CLAUSE (segment de phrase,
+ * `splitIntoClauses`), pas seulement des quelques mots immédiatement
+ * adjacents au mot-clé comme avant. Une négation présente N'IMPORTE OÙ
+ * dans la même clause ("Jamais de sprint cette semaine, privilégier
+ * l'endurance") vaut mention conforme, pas prescription — contrairement à
+ * l'ancienne lookbehind qui n'aurait reconnu que "pas de sprint"/"sans
+ * sprint"/"aucun sprint" immédiatement avant le mot-clé.
+ */
+function isProhibitedPrescription(clause: string, termPattern: RegExp): boolean {
+  if (!termPattern.test(clause)) return false;
+  // Rappel du NOM de l'interdiction elle-même ("Sprint Ban") — jamais une
+  // prescription, quel que soit le reste de la clause.
+  if (/sprint\s*ban|ban\s*sprint/i.test(clause)) return false;
+  if (NEGATION_MARKERS_RX.test(clause)) return false;
+  return true;
+}
 
 /**
  * Bug réel (audit "génération solide ?", passe 3) : l'ancien pattern
@@ -1919,8 +2231,14 @@ function validateProhibitionCompliance(
     for (const session of week.sessions) {
       if (session.isRest) continue;
       const text = `${session.title} ${session.details}`.toLowerCase();
+      // Analyse à l'échelle de la clause (pas de la séance entière) : la
+      // négation peut porter sur un segment précis sans concerner le reste
+      // de la séance — cf. isProhibitedPrescription.
+      const clauses = splitIntoClauses(text);
+      const units = clauses.length > 0 ? clauses : [text];
 
-      if (hasSprintBan && SPRINT_BAN_VIOLATION_PATTERNS.test(text)) {
+      const strictHit = hasSprintBan ? units.find((u) => isProhibitedPrescription(u, SPRINT_BAN_VIOLATION_PATTERNS)) : undefined;
+      if (strictHit) {
         violations++;
         issues.push({
           rule: "prohibition_compliance",
@@ -1935,15 +2253,11 @@ function validateProhibitionCompliance(
       // custom (sans catalogId TFCL) qui mentionne sprint/pmax/neuro/all-out est
       // rejetée MÊME si le pattern strict SPRINT_BAN_VIOLATION_PATTERNS ne match pas.
       // Force l'IA à utiliser des IDs catalogue plutôt qu'inventer des séances sprint.
-      if (hasSprintBan && !SPRINT_BAN_VIOLATION_PATTERNS.test(text)) {
+      if (hasSprintBan && !strictHit) {
         const catalogId = extractCatalogId(session.title, session.details);
         const isCustom = /\[custom\]/i.test(text) || !catalogId;
-        // Même négation que SPRINT_BAN_VIOLATION_PATTERNS (audit "génération
-        // solide ?", passe 2) : sans elle, "pas de plyo explosive" (une
-        // séance qui RESPECTE l'interdiction) déclenchait quand même cette
-        // 2e détection, la 1re ayant été corrigée pour ne plus la matcher.
-        const mentionsSprintFamily = /(?<!pas de |sans |aucun(?:e)? )\b(sprint|pmax|neuromuscul|all[- ]out|explosif|plyo|pliom[ée]tri|force[\s-]*vitesse)\b/i.test(text);
-        if (isCustom && mentionsSprintFamily) {
+        const broadHit = units.find((u) => isProhibitedPrescription(u, SPRINT_FAMILY_BROAD_PATTERNS));
+        if (isCustom && broadHit) {
           violations++;
           issues.push({
             rule: "prohibition_compliance",
@@ -2738,22 +3052,92 @@ const LORANG_A_RX = /vo2|vma|billat|30[\/_ -]?30|15[\/_ -]?15|pma|tabata|z\s*[56
 const LORANG_B_RX = /seuil|threshold|mlss|sweet[\s_-]*spot|\bsst\b|over.?under|ftp|cruise|norvégi|norwegian|double[\s_-]*threshold|race[\s_-]*pace|allure\s*(?:course|semi|marathon|10k|5k|70\.?3|im\b|ironman|spécifiq)|tempo\s*(?:long|\d{2,3}\s*min|\d+\s*x\s*\d+)|z\s*4/i;
 const LORANG_D_RX = /décharge|recovery\s*ride|spin\s*facile|yoga|marche|mobilit|souplesse|activation\s*courte|régénér/i;
 
-function classifyLorang(session: ParsedSession): LorangCategory {
-  if (session.isRest) return "D";
+/**
+ * Mappe les zones structurées (ParsedSession.zones) sur les catégories
+ * Lorang A (HIT/VO2max)/B (seuil)/C (endurance) — même convention
+ * numérique que LORANG_A_RX ("z[56]")/LORANG_B_RX ("z4")/LOW_INTENSITY_
+ * PATTERNS ("z[12]"), étendue à Z7 dans le bucket A (non couvert par les
+ * regex texte ci-dessus — gap préexistant — mais cohérent avec
+ * HIGH_INTENSITY_PATTERNS "z[4-7]" et LORANG_A_RX qui inclut déjà
+ * "neuromuscul"). Ne retourne jamais "D" : repos/mobilité ne se distingue
+ * pas d'une séance easy par la seule zone (souvent aussi Z1-Z2) — reste
+ * détecté par isRest/mot-clé, comme avant. Z3 (ambigu dans une taxonomie à
+ * 4 catégories) n'est pas mappé non plus, laissé au texte/"unknown".
+ *
+ * IMPORTANT (audit "fiabilité du validateur") : le préfixe-lettre d'un
+ * catalogId ([ABCD]_...) N'EST PAS une méthode fiable pour cette
+ * classification — vérifié sur le catalogue réel (`workoutLibrary.ts`) :
+ * "A_RUN_Z2_EASY" (cat "A" = priorité "Obligatoire") a `zones: ["Z1","Z2"]`
+ * — un Lorang C, pas A ; "B_RUN_VMA_400" (cat "B" = "Recommandé") est une
+ * séance VMA — un Lorang A, pas B. La lettre de catalogId encode une
+ * PRIORITÉ/NÉCESSITÉ (Obligatoire/Recommandé/...), une taxonomie différente
+ * qui partage juste les mêmes 4 lettres par coïncidence — jamais la
+ * catégorie Lorang. L'ancienne étape "catalog ID prefix" de `classifyLorang`
+ * reposait sur cette confusion ; elle n'avait simplement jamais été
+ * exercée en pratique (testée sur title/details, où l'ID catalogue
+ * n'apparaît jamais) donc le mauvais mapping restait invisible. Remplacée
+ * ici par `zones`, qui n'a pas ce problème (numérique, sans ambiguïté).
+ */
+function lorangTierFromZones(zones: string[] | undefined): "A" | "B" | "C" | null {
+  if (!zones || zones.length === 0) return null;
+  let sawA = false, sawB = false, sawC = false;
+  for (const raw of zones) {
+    const m = /z\s*([1-7])/i.exec(raw);
+    if (!m) continue;
+    const n = parseInt(m[1], 10);
+    if (n >= 5) sawA = true;
+    else if (n === 4) sawB = true;
+    else if (n <= 2) sawC = true;
+  }
+  if (sawA) return "A";
+  if (sawB) return "B";
+  if (sawC) return "C";
+  return null;
+}
+
+/** Résultat de `classifyLorang` — `uncertain: true` signale une catégorie
+ *  déduite UNIQUEMENT du préfixe-lettre du catalogId (dernier recours, ni
+ *  zones ni mot-clé disponibles) : cf. docstring `LorangCategoryDistribution
+ *  .uncertainTagging` — statistiquement peu fiable, ne jamais afficher ou
+ *  utiliser comme une catégorie certaine. */
+interface LorangClassification { category: LorangCategory; uncertain: boolean }
+
+function classifyLorang(session: ParsedSession): LorangClassification {
+  if (session.isRest) return { category: "D", uncertain: false };
   const text = `${session.title} ${session.details}`;
   // 1) explicit tag [A]/[B]/[C]/[D]
   const explicit = text.match(LORANG_EXPLICIT_TAG_RX);
-  if (explicit) return explicit[1].toUpperCase() as LorangCategory;
-  // 2) catalog ID prefix
-  const catalog = text.match(LORANG_CATALOG_PREFIX_RX);
-  if (catalog) return catalog[1].toUpperCase() as LorangCategory;
+  if (explicit) return { category: explicit[1].toUpperCase() as LorangCategory, uncertain: false };
+  // 2) zones structurées (priorité aux données structurées, cf. docstring
+  //    lorangTierFromZones ci-dessus — remplace l'ancien mapping par
+  //    préfixe de catalogId, confirmé incorrect).
+  const zoneTier = lorangTierFromZones(session.zones);
+  if (zoneTier) return { category: zoneTier, uncertain: false };
   // 3) keyword fallback (A > B > D > C)
-  if (LORANG_A_RX.test(text)) return "A";
-  if (LORANG_B_RX.test(text)) return "B";
-  if (LORANG_D_RX.test(text)) return "D";
+  if (LORANG_A_RX.test(text)) return { category: "A", uncertain: false };
+  if (LORANG_B_RX.test(text)) return { category: "B", uncertain: false };
+  if (LORANG_D_RX.test(text)) return { category: "D", uncertain: false };
   // 4) low-intensity endurance = C by default when we can identify at least a sport session
-  if (LOW_INTENSITY_PATTERNS.test(text)) return "C";
-  return "unknown";
+  if (LOW_INTENSITY_PATTERNS.test(text)) return { category: "C", uncertain: false };
+  // 5) DERNIER RECOURS, confiance FAIBLE : préfixe-lettre du catalogId
+  // (structuré OU littéralement présent dans le texte, chemin Markdown
+  // legacy) — vérifié sur le catalogue réel (`workoutLibrary.ts`, 186
+  // fiches) : cette lettre encode une PRIORITÉ/NÉCESSITÉ (Obligatoire/
+  // Recommandé/...), pas la catégorie Lorang (0/50 fiches "A" n'ont de zone
+  // haute — "A" n'y veut pas dire HIT). Gardé seulement en dernier recours,
+  // après zones ET mots-clés, PLUTÔT que de renvoyer "unknown" quand c'est
+  // le seul signal disponible — mieux qu'aucune information, mais jamais
+  // prioritaire sur un signal plus fiable NI présenté comme certain :
+  // `uncertain: true`, compté à part (LorangCategoryDistribution
+  // .uncertainTagging) et signalé par un avertissement dédié (consigne
+  // coach : "ne doit pas être considérée comme certaine").
+  if (session.catalogId) {
+    const catalogStructured = LORANG_CATALOG_PREFIX_RX.exec(session.catalogId);
+    if (catalogStructured) return { category: catalogStructured[1].toUpperCase() as LorangCategory, uncertain: true };
+  }
+  const catalogInText = text.match(LORANG_CATALOG_PREFIX_RX);
+  if (catalogInText) return { category: catalogInText[1].toUpperCase() as LorangCategory, uncertain: true };
+  return { category: "unknown", uncertain: false };
 }
 
 /**
@@ -2780,7 +3164,7 @@ function validateLorangCategories(
 ): { issues: ValidationIssue[]; score: number; distribution: LorangCategoryDistribution } {
   const issues: ValidationIssue[] = [];
   const weeks: LorangWeekBreakdown[] = [];
-  let A = 0, B = 0, C = 0, D = 0, unknown = 0, totalActive = 0, tagged = 0;
+  let A = 0, B = 0, C = 0, D = 0, unknown = 0, totalActive = 0, tagged = 0, uncertainTagging = 0;
 
   // Batch 2 — Règle 1 (≥1 séance A/B par semaine) exemptée pour Finisher et
   // Start to Run : la "Grille Volume/Intensité par Ambition" (systemPrompt.ts)
@@ -2803,19 +3187,29 @@ function validateLorangCategories(
     const isThresholdBlock = THRESHOLD_BLOCK_PATTERNS.test(weekThemeText);
     const bd: LorangWeekBreakdown = {
       weekNumber: w.weekNumber, isDeload,
-      A: 0, B: 0, C: 0, D: 0, unknown: 0,
+      A: 0, B: 0, C: 0, D: 0, unknown: 0, uncertainTagging: 0,
       active: active.length, hasHighOrThreshold: false,
     };
     for (const s of active) {
-      const cat = classifyLorang(s);
+      const { category: cat, uncertain } = classifyLorang(s);
       bd[cat === "unknown" ? "unknown" : cat]++;
+      if (uncertain) bd.uncertainTagging++;
       totalActive++;
-      // consider "tagged" any session with explicit tag OR catalog ID
+      // consider "tagged" any session with explicit tag OR catalog ID — la
+      // simple PRÉSENCE d'un catalogId structuré suffit ici (traçable au
+      // catalogue, par opposition à une séance inventée par l'IA) : pas
+      // besoin que son préfixe-lettre matche LORANG_CATALOG_PREFIX_RX, ce
+      // qui exclurait à tort des ID réels hors de son énumération de
+      // suffixes (cf. docstring lorangTierFromZones — la lettre de
+      // catalogId n'est de toute façon pas la catégorie Lorang). Conservé en
+      // plus : LORANG_CATALOG_PREFIX_RX sur le texte, pour le chemin
+      // Markdown legacy où catalogId structuré est absent.
       const text = `${s.title} ${s.details}`;
-      if (LORANG_EXPLICIT_TAG_RX.test(text) || LORANG_CATALOG_PREFIX_RX.test(text)) tagged++;
+      if (LORANG_EXPLICIT_TAG_RX.test(text) || LORANG_CATALOG_PREFIX_RX.test(text) || !!s.catalogId) tagged++;
     }
     bd.hasHighOrThreshold = bd.A > 0 || bd.B > 0;
     A += bd.A; B += bd.B; C += bd.C; D += bd.D; unknown += bd.unknown;
+    uncertainTagging += bd.uncertainTagging;
     weeks.push(bd);
 
     // Règle 1 : hors décharge/race, ≥1 A ou B (exemptée Finisher/Start to Run, cf. commentaire ci-dessus)
@@ -2864,6 +3258,22 @@ function validateLorangCategories(
     });
   }
 
+  // Règle 3bis (audit "fiabilité du validateur", consigne coach) : signale
+  // explicitement toute séance dont la catégorie A/B/C/D vient UNIQUEMENT du
+  // dernier recours (préfixe-lettre du catalogId, zones et mots-clés
+  // absents) — vérifié peu fiable sur le catalogue réel (cf. docstring
+  // classifyLorang). La distribution A/B/C/D ci-dessous reste la MEILLEURE
+  // estimation disponible, mais ne doit jamais être lue comme certaine sans
+  // ce chiffre à côté.
+  const uncertainTaggingPct = totalActive > 0 ? Math.round((uncertainTagging / totalActive) * 100) : 0;
+  if (uncertainTagging > 0) {
+    issues.push({
+      rule: "lorang_categories",
+      severity: "warning",
+      message: `${uncertainTagging} séance(s) (${uncertainTaggingPct}%) classée(s) A/B/C/D uniquement via le préfixe-lettre du catalogId (zones et mots-clés absents) — catégorie NON certaine, vérification manuelle recommandée`,
+    });
+  }
+
   // Règle 4 : distribution globale polarisée
   const APct = pct(A), BPct = pct(B), CPct = pct(C);
   if (totalActive >= 12) {
@@ -2894,6 +3304,7 @@ function validateLorangCategories(
   const distribution: LorangCategoryDistribution = {
     totalActive, tagged, taggedPct,
     A, APct, B, BPct, C, CPct, D, DPct: pct(D),
+    uncertainTagging, uncertainTaggingPct,
     weeks,
   };
   return { issues, score, distribution };
@@ -3771,7 +4182,7 @@ export function validatePlan(
   // un test dédié sur PLAN_VALIDATION_WEIGHTS (garde-fou anti-drift).
   const weights = PLAN_VALIDATION_WEIGHTS;
   const clamp100 = (n: number) => Math.max(0, Math.min(100, Number.isFinite(n) ? n : 0));
-  const weightedScore = Math.round(
+  const uncappedWeightedScore = Math.round(
     clamp100(polarization.score) * weights.polarization +
     clamp100(loadPattern.score) * weights.loadPattern +
     clamp100(keySessions.score) * weights.keySessions +
@@ -3791,7 +4202,39 @@ export function validatePlan(
     clamp100(antiRepetition.score) * weights.antiRepetition
   );
 
-
+  /**
+   * Audit "fiabilité du validateur" (consigne coach, point 8) — anomalie
+   * confirmée : `weightedScore` est une MOYENNE PONDÉRÉE de 17 sous-scores
+   * indépendants. Chaque poids plafonne la contribution MAXIMALE de sa
+   * règle : phaseCoherence pèse 8%, donc même 2 erreurs critiques de phase
+   * (score interne -30, cf. validatePhaseCoherence) ne peuvent faire
+   * bouger le score global que de ≤ 8 points — largement compensable par
+   * de simples écarts favorables sur d'autres règles à poids cumulé plus
+   * élevé. Constaté en pratique sur le corpus Mode A disponible (Tâche 2) :
+   * un plan avec 2 erreurs critiques de phase notait 92/A, AU-DESSUS d'un
+   * plan sans aucune erreur critique (91/A) — la seule différence venait de
+   * règles sans rapport (moins de répétition détectée sur un plan à une
+   * semaine de moins).
+   *
+   * Plutôt que de modifier les 17 poids existants (effet difficile à
+   * borner sans aussi déplacer le problème — ex. remonter phaseCoherence
+   * change aussi le score d'un plan SANS erreur de phase mais avec un
+   * phaseCoherence.score bas pour une autre raison), on plafonne le score
+   * global : dès qu'AU MOINS UNE erreur critique ("error", même sémantique
+   * que le blocage réel de sauvegarde via handleSaveToPlan) existe, le
+   * score ne peut plus atteindre les paliers A/B (cf. barème grade
+   * ci-dessous) — un plan avec une violation confirmée ne doit jamais se
+   * lire comme "prêt à l'emploi" au seul regard du score global. N'affecte
+   * AUCUN poids ni AUCUN sous-score individuel (tous restés inchangés,
+   * visibles tels quels dans `summary`) : seul le score AGRÉGÉ d'un plan
+   * ayant ≥1 erreur critique est concerné, et seulement s'il dépasserait
+   * sinon ce plafond.
+   */
+  const hasCriticalIssue = allIssues.some((i) => i.severity === "error");
+  const CRITICAL_SCORE_CEILING = 69;
+  const weightedScore = hasCriticalIssue
+    ? Math.min(uncappedWeightedScore, CRITICAL_SCORE_CEILING)
+    : uncappedWeightedScore;
 
   // Grade
   const grade = weightedScore >= 85 ? "A" : weightedScore >= 70 ? "B" : weightedScore >= 55 ? "C" : weightedScore >= 40 ? "D" : "F";

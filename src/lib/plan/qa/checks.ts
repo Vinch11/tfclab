@@ -23,6 +23,8 @@ import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX, isTrailCatalogId }
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { checkB10, checkB11 } from "./checksB10B11";
 import { checkB12 } from "./checkB12";
+import { checkB13 } from "./checkB13";
+import { checkB14 } from "./checkB14";
 import type { QAProfileId } from "./syntheticProfiles";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { getCatalogAttribution } from "@/lib/workoutCatalogBuilder";
@@ -31,7 +33,7 @@ import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalizatio
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
-  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9" | "B10" | "B11" | "B12";
+  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9" | "B10" | "B11" | "B12" | "B13" | "B14";
   label: string;
   level: CheckLevel;
   pass: boolean;
@@ -212,7 +214,47 @@ function assertNeverProfileId(id: never): never {
   throw new Error(`checkB4For: profil QA non câblé — ${String(id)}`);
 }
 
+// Priorité 2 (Performance Validation Lab V1) — les 20 scénarios V2-xx +
+// 3 scénarios ciblés (syntheticProfilesV2.ts) sont câblés ICI via une table
+// plutôt qu'un switch littéral (20 valeurs dérivées d'un type gabarit) —
+// même garde-fou d'intention que l'ancien switch exhaustif, mais ce dépôt a
+// `strict: false` dans tsconfig.app.json : `assertNeverProfileId` ne
+// provoque PAS réellement d'échec de compilation ici (vérifié — un profil
+// non câblé lève seulement une exception à l'EXÉCUTION, cf. plus bas). Ne
+// pas supposer ce garde-fou actif sans l'avoir vérifié sur ce dépôt.
+const V2_FAMILY: Record<string, "multisport" | "run" | "cycling"> = {
+  "V2-01": "run", "V2-02": "run", "V2-03": "run", "V2-04": "multisport", "V2-05": "multisport",
+  "V2-06": "run", "V2-07": "run", "V2-08": "run", "V2-09": "run", "V2-10": "multisport",
+  "V2-11": "run", "V2-12": "run", "V2-13": "run", "V2-14": "multisport", "V2-15": "multisport",
+  "V2-16": "run", "V2-17": "multisport", "V2-18": "run", "V2-19": "run", "V2-20": "run",
+  "V2-EXTRA-MARATHON": "run", "V2-EXTRA-CYCLING": "cycling", "V2-EXTRA-ULTRA": "run",
+};
+
 export function checkB4For(profileId: QAProfileId, plan: MergedPlan): CheckResult {
+  const v2Family = V2_FAMILY[profileId as string];
+  if (v2Family === "multisport") {
+    const res = checkB4_703(plan);
+    return { ...res, label: `${profileId} — swim/bike/run chaque semaine active` };
+  }
+  if (v2Family === "run") {
+    const res = checkB4_semi(plan);
+    return { ...res, label: `${profileId} — 0 swim, 0 brick, vélo Z1-Z2 ≤75 min` };
+  }
+  if (v2Family === "cycling") {
+    // Audit scientifique P0 — Priorité 2 : "cyclisme pur" n'a AUCUNE
+    // branche reconnue dans `normalizeObjectiveKey` (src/lib/
+    // normalizeObjectiveKey.ts) — ni checkB4_703 (attend swim+bike+run) ni
+    // checkB4_semi (attend 0 vélo/Z1-Z2 ≤75min) n'ont de sens pour ce
+    // scénario. Retourne `info`, jamais un faux pass/fail qui masquerait
+    // ce gap réel — c'est PRÉCISÉMENT ce que ce scénario doit mettre en
+    // évidence (cf. docstring syntheticProfilesV2.ts).
+    return {
+      id: "B4", label: `${profileId} — N/A (objectif cyclisme pur non reconnu par normalizeObjectiveKey)`,
+      level: "info", pass: true,
+      details: ["Scénario volontairement hors du périmètre couvert par B4 — voir le gap objectif signalé ailleurs dans le rapport."],
+    };
+  }
+
   switch (profileId) {
     case "B-70.3":
     case "B-IM":
@@ -233,7 +275,7 @@ export function checkB4For(profileId: QAProfileId, plan: MergedPlan): CheckResul
       return { ...res, label: `${profileId} — 0 swim, 0 brick, vélo Z1-Z2 ≤75 min` };
     }
     default:
-      return assertNeverProfileId(profileId);
+      return assertNeverProfileId(profileId as never);
   }
 }
 
@@ -641,5 +683,7 @@ export function runAllChecks(args: {
     checkB10(args.merged),
     checkB11(args.merged, args.objective),
     checkB12(args.merged, args.identifiedLimiters),
+    checkB13(args.merged),
+    checkB14(args.merged),
   ];
 }

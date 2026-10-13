@@ -1518,6 +1518,85 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         </Alert>
       )}
 
+      {/* Audit scientifique P0 — F12 : validation finale post-mutations
+          (checkB13 critique / checkB14 avertissement), calculée après TOUTES
+          les mutations du réconciliateur (génération complète ET
+          régénération d'une seule semaine) — cf. computeFinalValidationIssues.
+          INFORMATIF uniquement ici : ce bandeau ne bloque aucune action de
+          ce composant. Les incohérences critiques (B13) sont aussi vérifiées
+          séparément à la sauvegarde (handleSaveToPlan), où un vrai blocage
+          (dialogue de confirmation) existe déjà pour B11/B12 — ce bandeau ne
+          doit pas prétendre faire ce que cette page ne fait pas elle-même. */}
+      {plan.finalValidationIssues && plan.finalValidationIssues.length > 0 && (() => {
+        const critical = plan.finalValidationIssues.filter((i) => i.severity === "error");
+        const warnings = plan.finalValidationIssues.filter((i) => i.severity === "warning");
+        return (
+          <Alert variant={critical.length > 0 ? "destructive" : "default"}>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <p className="font-medium">
+                {critical.length > 0
+                  ? `⛔ Incohérence critique détectée — vérifie ce point avant d'utiliser ce plan (recontrôlé à la sauvegarde) (${critical.length} critique${critical.length > 1 ? "s" : ""}${warnings.length > 0 ? `, ${warnings.length} avertissement${warnings.length > 1 ? "s" : ""}` : ""}).`
+                  : `⚠️ ${warnings.length} avertissement${warnings.length > 1 ? "s" : ""} de validation finale (cohérence phase/fiche) — contenu valide, étiquetage de phase à vérifier.`}
+              </p>
+              <ul className="mt-1.5 space-y-0.5 text-sm">
+                {[...critical, ...warnings].slice(0, 6).map((issue, i) => (
+                  <li key={i}>{issue.message}</li>
+                ))}
+              </ul>
+              {plan.finalValidationIssues.length > 6 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  + {plan.finalValidationIssues.length - 6} autre(s) — voir les logs de génération pour le détail complet.
+                </p>
+              )}
+            </AlertDescription>
+          </Alert>
+        );
+      })()}
+
+      {/* Priorité 1 (coach) : sportObjectiveIssues était calculé
+          (validateSportObjective) mais jamais rendu — seulement loggué en
+          console. Informatif uniquement. */}
+      {plan.sportObjectiveIssues && plan.sportObjectiveIssues.length > 0 && (() => {
+        const critical = plan.sportObjectiveIssues.filter((i) => i.severity === "critical");
+        return (
+          <Alert variant={critical.length > 0 ? "destructive" : "default"}>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <p className="font-medium">
+                {plan.sportObjectiveIssues!.length} incohérence{plan.sportObjectiveIssues!.length > 1 ? "s" : ""} sport↔objectif détectée{plan.sportObjectiveIssues!.length > 1 ? "s" : ""}.
+              </p>
+              <ul className="mt-1.5 space-y-0.5 text-sm">
+                {plan.sportObjectiveIssues.slice(0, 6).map((issue, i) => (
+                  <li key={i}>S{issue.weekNumber} {issue.dayName} — {issue.reason}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        );
+      })()}
+
+      {/* Priorité 1 (coach) : weeklyQuotaIssues était calculé
+          (validateWeeklyQuotas) mais jamais rendu. Informatif uniquement. */}
+      {plan.weeklyQuotaIssues && plan.weeklyQuotaIssues.length > 0 && (() => {
+        const critical = plan.weeklyQuotaIssues.filter((i) => i.severity === "critical");
+        return (
+          <Alert variant={critical.length > 0 ? "destructive" : "default"}>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <p className="font-medium">
+                {plan.weeklyQuotaIssues!.length} écart{plan.weeklyQuotaIssues!.length > 1 ? "s" : ""} de quota hebdomadaire détecté{plan.weeklyQuotaIssues!.length > 1 ? "s" : ""}.
+              </p>
+              <ul className="mt-1.5 space-y-0.5 text-sm">
+                {plan.weeklyQuotaIssues.slice(0, 6).map((issue, i) => (
+                  <li key={i}>S{issue.weekNumber} — {issue.reason}{issue.expected ? ` (attendu ${issue.expected}, observé ${issue.observed ?? "?"})` : ""}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        );
+      })()}
+
       {/* Aucune référence physiologique enregistrée dans le plan (plans générés
           avant l'ajout du suivi de dérive) : on propose quand même l'actualisation. */}
       {physioDrift.items.length === 0 && targetTable && (

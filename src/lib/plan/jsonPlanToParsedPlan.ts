@@ -44,6 +44,11 @@ function toParsedSession(s: MergedSession): ParsedSession {
     details: s.details,
     isRest: s.isRest,
     isKeySession: s.isKeySession,
+    // Audit "fiabilité du validateur" — zones existe déjà en structuré sur
+    // MergedSession (schéma JSON `zones: z.array(z.string())`) mais n'était
+    // jamais propagé jusqu'ici ; validatePlan le préfère désormais au texte
+    // libre quand disponible et non vide.
+    zones: s.zones,
   };
 }
 

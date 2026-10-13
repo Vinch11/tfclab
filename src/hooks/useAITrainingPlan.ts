@@ -27,6 +27,7 @@ import { inferWeekType, buildQuotaPromptBlock, computeWeekQuotaEntry } from "@/e
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
+import { computeFinalValidationIssues, type FinalValidationIssue } from "@/lib/plan/qa/finalValidation";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
 import { runReconciler } from "@/lib/plan/planReconciler";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
@@ -59,6 +60,45 @@ export function computeChunkSizing(objective: string, totalWeeks: number): { chu
 export function computeTotalChunks(objective: string, totalWeeks: number): number {
   const { chunkSize, chunkThreshold } = computeChunkSizing(objective, totalWeeks);
   return totalWeeks > chunkThreshold ? Math.ceil(totalWeeks / chunkSize) : 1;
+}
+
+/** Préparation pilote Mode B (consigne coach, "consulter la consommation") —
+ *  usage réel (tokens) accumulé sur une génération JSON complète. */
+export interface GenerationUsageTotals {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  /** Nombre de chunks "done" pour lesquels le gateway a renvoyé un usage exploitable. */
+  chunksWithUsage: number;
+  /** Nombre total de chunks "done" reçus (avec ou sans usage). */
+  totalChunksSeen: number;
+}
+
+export function emptyUsageTotals(): GenerationUsageTotals {
+  return { promptTokens: 0, completionTokens: 0, totalTokens: 0, chunksWithUsage: 0, totalChunksSeen: 0 };
+}
+
+/**
+ * Pure, testable sans mock fetch/SSE : accumule un event `chunk-progress`
+ * (déjà parsé en JSON) dans les totaux d'usage. N'accumule que sur
+ * `status === "done"` (un seul event par chunk réellement complété, cf.
+ * jsonPlanHandler.ts) — jamais sur "retry-succeeded"/"generating", qui ne
+ * portent pas d'usage et doubleraient le compte sinon.
+ */
+export function accumulateChunkUsage(
+  acc: GenerationUsageTotals,
+  chunkProgressEvent: { status?: string; usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number } },
+): GenerationUsageTotals {
+  if (chunkProgressEvent.status !== "done") return acc;
+  const next: GenerationUsageTotals = { ...acc, totalChunksSeen: acc.totalChunksSeen + 1 };
+  const u = chunkProgressEvent.usage;
+  if (u && (typeof u.promptTokens === "number" || typeof u.completionTokens === "number" || typeof u.totalTokens === "number")) {
+    next.chunksWithUsage += 1;
+    next.promptTokens += u.promptTokens ?? 0;
+    next.completionTokens += u.completionTokens ?? 0;
+    next.totalTokens += u.totalTokens ?? 0;
+  }
+  return next;
 }
 
 /**
@@ -572,12 +612,24 @@ export function useAITrainingPlan() {
   // croire que c'est fini entre deux requêtes.
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   const [chunkProgress, setChunkProgress] = useState<ChunkProgress | null>(null);
+  // Préparation pilote Mode B (consigne coach, "consulter la consommation") —
+  // usage réel (tokens) accumulé sur TOUS les chunks de la dernière
+  // génération JSON, si le gateway l'a renvoyé pour chaque chunk ; `null`
+  // sinon (jamais une valeur inventée). Remis à `null` à chaque nouvel appel
+  // de `generatePlan` (chemin JSON).
+  const [lastGenerationUsage, setLastGenerationUsage] = useState<GenerationUsageTotals | null>(null);
   // Phase 1B — populated only when server ran the JSON path.
   const [parsedPlan, setParsedPlan] = useState<ParsedPlan | null>(null);
   const [mergedPlan, setMergedPlan] = useState<MergedPlan | null>(null);
   const [sportObjectiveIssues, setSportObjectiveIssues] = useState<SportObjectiveIssue[]>([]);
   // Phase 2A — issues remontées par la validation post-merge du quota hebdo.
   const [weeklyQuotaIssues, setWeeklyQuotaIssues] = useState<QuotaIssue[]>([]);
+  // Audit scientifique P0 — F12 : issues B13 (critique)/B14 (avertissement)
+  // de la validation finale post-mutations, exposées en plus de `parsed.
+  // finalValidationIssues` (seul le champ sur `parsed` est garanti d'être
+  // visible dans AIPlanViewer ; cet état sert aux consommateurs qui ont
+  // besoin d'y réagir sans dépendre du rendu du viewer).
+  const [finalValidationIssues, setFinalValidationIssues] = useState<FinalValidationIssue[]>([]);
   const lastWeeklyQuotasRef = useRef<Record<number, WeekQuotaEntry>>({});
   // Phase 0 QA — union des catalogId injectés (phase + chunks) pour check B5.
   // Peuplée dans generatePlan une fois les catalogues bâtis, avant l'appel edge.
@@ -609,6 +661,7 @@ export function useAITrainingPlan() {
     setMergedPlan(null);
     setSportObjectiveIssues([]);
     setWeeklyQuotaIssues([]);
+    setLastGenerationUsage(null);
     setIsLoading(true);
     const jsonMode = planConfig._outputFormat === "json";
     // Match edge function's chunk sizing
@@ -1155,6 +1208,10 @@ export function useAITrainingPlan() {
         const collected: PlanChunk[] = [];
         const semanticRepairs: string[] = [];
         let fatalError: { code: string; message: string; details?: any; chunkIndex?: number } | null = null;
+        // Préparation pilote Mode B — accumulateur local (fonction pure
+        // `accumulateChunkUsage`, testable sans mock fetch/SSE), exposé via
+        // `lastGenerationUsage` une fois la génération terminée.
+        let usageAcc: GenerationUsageTotals = emptyUsageTotals();
 
         // ─── Progression fluide semaine-par-semaine (esthétique) ──────────
         // Les événements `chunk-progress` n'arrivent qu'à la fin de chaque
@@ -1204,6 +1261,8 @@ export function useAITrainingPlan() {
             stopTicker();
             setChunkProgress({ currentWeek: realWeek, totalWeeks, currentChunk: ci, totalChunks: tc });
             if (ci < tc) startTicker(realWeek + 1, ci, tc);
+            // Préparation pilote Mode B — fonction pure, testée séparément.
+            usageAcc = accumulateChunkUsage(usageAcc, data);
 
           } else if (event === "chunk-json") {
             const parsed = zPlanChunk.safeParse(data.chunk);
@@ -1314,6 +1373,10 @@ export function useAITrainingPlan() {
         }
         stopTicker();
 
+        // Préparation pilote Mode B — exposé que des chunks aient réussi ou
+        // non (la consommation a quand même eu lieu) ; `null` si aucun event
+        // "done" n'a été reçu du tout (ex. échec avant le premier chunk).
+        setLastGenerationUsage(usageAcc.totalChunksSeen > 0 ? { ...usageAcc } : null);
 
 
         // Attempt merge only if no fatal error and chunks received
@@ -1391,6 +1454,25 @@ export function useAITrainingPlan() {
             }
             const parsed = jsonPlanToParsedPlan(merged);
             if (incompletePhaseWeeks.length > 0) parsed.incompletePhaseWeeks = incompletePhaseWeeks;
+            // Audit scientifique P0 — F12 : validation finale post-mutations
+            // (B13 critique : doublon catalogId/cumul "à jeun" ; B14 avertissement :
+            // cohérence phase/fiche) — tourne ICI, après que `runReconciler` a
+            // terminé TOUTES ses passes (enforceTaperWeeks, ensureRaceDaySession,
+            // enforceAthleteConstraints...), sur le plan RÉEL livré au coach —
+            // pas seulement dans le harnais QA synthétique.
+            try {
+              const finalValidation = computeFinalValidationIssues(merged);
+              if (finalValidation.issues.length > 0) parsed.finalValidationIssues = finalValidation.issues;
+              setFinalValidationIssues(finalValidation.issues);
+              if (finalValidation.hasCritical) {
+                console.error(
+                  `🚨 [useAITrainingPlan] validation finale CRITIQUE (${finalValidation.issues.filter(i => i.severity === "error").length}) :`,
+                  finalValidation.issues.filter(i => i.severity === "error"),
+                );
+              }
+            } catch (fvErr) {
+              console.error("[useAITrainingPlan] computeFinalValidationIssues failed:", fvErr);
+            }
             // Physiologie de référence figée à la génération (base du calcul de dérive)
             parsed.physioRefs = {
               ftp: athleteData.ftp ?? null,
@@ -1405,21 +1487,28 @@ export function useAITrainingPlan() {
             if (issues.length > 0) {
               console.warn(`[useAITrainingPlan] sport↔objective issues (${issues.length}) :`, issues.slice(0, 5));
             }
-            setMergedPlan(merged);
-            lastParsedPlanRef.current = parsed;
-            setParsedPlan(parsed);
-            setSportObjectiveIssues(issues);
+            // Priorité 1 (coach) : attacher AVANT setParsedPlan — ces deux
+            // listes étaient calculées puis jamais rendues (seulement
+            // consolées) ; `AIPlanViewer.tsx` les lit maintenant sur `parsed`,
+            // même convention que `finalValidationIssues`/`incompletePhaseWeeks`.
+            if (issues.length > 0) parsed.sportObjectiveIssues = issues;
             // Phase 2A — validation post-merge du quota hebdo (source moteur)
+            let qIssues: QuotaIssue[] = [];
             try {
-              const qIssues = validateWeeklyQuotas(merged, lastWeeklyQuotasRef.current);
-              setWeeklyQuotaIssues(qIssues);
+              qIssues = validateWeeklyQuotas(merged, lastWeeklyQuotasRef.current);
               if (qIssues.length > 0) {
+                parsed.weeklyQuotaIssues = qIssues;
                 const crit = qIssues.filter(i => i.severity === "critical").length;
                 console.warn(`[useAITrainingPlan] quota issues: ${crit} critical / ${qIssues.length - crit} warning`, qIssues.slice(0, 6));
               }
             } catch (e) {
               console.error("[useAITrainingPlan] validateWeeklyQuotas failed:", e);
             }
+            setMergedPlan(merged);
+            lastParsedPlanRef.current = parsed;
+            setParsedPlan(parsed);
+            setSportObjectiveIssues(issues);
+            setWeeklyQuotaIssues(qIssues);
             setChunkProgress(null);
             jsonSuccess = true;
           } catch (e) {
@@ -1838,9 +1927,14 @@ export function useAITrainingPlan() {
     parsedPlan, mergedPlan, sportObjectiveIssues,
     // Phase 2A — quota hebdo moteur (validation post-merge).
     weeklyQuotaIssues, lastWeeklyQuotasRef,
+    // Audit scientifique P0 — F12 : validation finale post-mutations (B13/B14).
+    finalValidationIssues,
     // Phase 0 QA — union catalogId injectés au dernier run (pour check B5).
     lastAllowedCatalogIdsRef,
     // Résultat brut immédiat du dernier run (évite les states périmés).
     lastResponseRef, lastParsedPlanRef,
+    // Préparation pilote Mode B — usage réel accumulé du dernier run JSON
+    // (null si non disponible), cf. docstring du state.
+    lastGenerationUsage,
   };
 }

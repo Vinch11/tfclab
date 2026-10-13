@@ -26,6 +26,23 @@ export interface QARunRecord {
   errorMessage?: string;
   errorStack?: string;              // tronqué 500 chars
   durationMs: number;
+  /**
+   * Priorité 3 (audit scientifique P0, lot Performance Validation Lab) :
+   * résultat de `validatePlan()` — la MÊME fonction, avec les MÊMES
+   * arguments disponibles, que celle appelée à la sauvegarde réelle par le
+   * coach (`AITrainingPlanPage.tsx::handleSaveToPlan`). Les profils
+   * synthétiques n'ont pas de contexte diagnostic coach (prohibitions,
+   * identifiedLimiters, injuryRisk, coachLimiterOrder) — ces paramètres
+   * sont omis (undefined), pas simulés : `validatorResult` reste fidèle à
+   * ce que `validatePlan` produit RÉELLEMENT avec les données disponibles,
+   * jamais une logique de validation réécrite séparément pour la QA.
+   */
+  validatorResult?: {
+    score: number;
+    grade: string;
+    criticalIssueCount: number;
+    criticalIssues: Array<{ rule: string; message: string; week?: number }>;
+  };
 }
 
 export interface QASession {
@@ -40,7 +57,11 @@ export interface QASession {
 
 // ── Verdict compute ─────────────────────────────────────────────────────────
 
-const CRITICAL_IDS = new Set(["B2", "B3", "B4", "B5", "B6", "B8", "B9", "B10", "B11"]);
+// Audit scientifique P0 — F12 : B13 (dédoublonnage/cumul "à jeun"
+// post-mutations) ajouté — c'est un invariant de sécurité, pas un simple
+// avertissement. B14 (cohérence phase/fiche) reste volontairement HORS de
+// cette liste — son propre `level: "warning"` (checkB14.ts) le dit déjà.
+const CRITICAL_IDS = new Set(["B2", "B3", "B4", "B5", "B6", "B8", "B9", "B10", "B11", "B13"]);
 
 /** Compte les retries Zod du run (max attempt observé sur les chunks). */
 function retriesOf(stat?: PlanGenerationStat): number {
@@ -61,6 +82,16 @@ export function computeVerdict(runs: QARunRecord[], mergeTests: TestResult[] | n
     (retriesByProfile[r.profileId] ??= []).push(retries);
     for (const c of r.checks) {
       if (CRITICAL_IDS.has(c.id) && c.level === "critical" && !c.pass) criticalCount++;
+    }
+    // Priorité 3 : les critiques de `validatePlan` (règles planValidator.ts
+    // — polarisation, pattern charge/décharge, catalogue, race day...) sont
+    // un domaine de règles DISTINCT des checks B1-B14 (JSON/réconciliateur),
+    // jamais un recalcul de la même chose — comptées en plus, pas à la
+    // place. Si une vraie redondance est un jour observée en pratique sur
+    // un corpus réel, elle devra être dédupliquée ICI explicitement, pas
+    // supposée absente par construction.
+    if (r.validatorResult && r.validatorResult.criticalIssueCount > 0) {
+      criticalCount += r.validatorResult.criticalIssueCount;
     }
   }
 
@@ -85,6 +116,68 @@ export function computeVerdict(runs: QARunRecord[], mergeTests: TestResult[] | n
     return { verdict: "🟠", summary: "🟠 retries ponctuels (isolés), 0 fallback, 0 critical" };
   }
   return { verdict: "🟢", summary: "🟢 0 fallback · 0 retry · 0 critical" };
+}
+
+// ── Verdict explicite PAR PLAN (Priorité 4, demande explicite du coach) ────
+// Distinct de `computeVerdict` ci-dessus, qui agrège TOUTE une campagne
+// (N runs × plusieurs profils) en un seul verdict de session. Ici : un
+// verdict + une liste précise de problèmes pour CHAQUE plan généré,
+// individuellement. Aucun seuil de "fiabilité" n'est inventé ici — les
+// trois libellés décrivent un ÉTAT CONSTATÉ (quels checks ont échoué, à
+// quel niveau), jamais un score de confiance global.
+export type ExplicitPlanVerdict = "conforme" | "nécessite une validation coach" | "non conforme";
+
+export interface PlanVerdictReport {
+  verdict: ExplicitPlanVerdict;
+  problems: string[]; // vide si "conforme"
+}
+
+/** Un seul plan (un `QARunRecord`) → verdict explicite + problèmes précis. */
+export function explainRun(run: QARunRecord): PlanVerdictReport {
+  const problems: string[] = [];
+  let hasCritical = false;
+  let hasWarningOrRetry = false;
+
+  if (run.errorMessage) {
+    hasCritical = true;
+    problems.push(`Génération échouée : ${run.errorMessage}`);
+  }
+  if (run.stat?.format === "markdown-fallback-from-json") {
+    hasCritical = true;
+    problems.push("Repli silencieux vers le format Markdown legacy (chemin JSON a échoué).");
+  }
+  const retries = retriesOf(run.stat);
+  if (retries >= 2) {
+    hasCritical = true;
+    problems.push(`${retries} tentatives de correction Zod sur un même bloc (seuil critique : ≥2).`);
+  } else if (retries === 1) {
+    hasWarningOrRetry = true;
+    problems.push("1 tentative de correction Zod isolée (non récurrente).");
+  }
+  for (const c of run.checks) {
+    if (c.pass) continue;
+    const prefix = `[${c.id}] ${c.label}`;
+    if (c.level === "critical") {
+      hasCritical = true;
+      problems.push(`${prefix} — ${c.details[0] ?? "échec"}`);
+    } else if (c.level === "warning") {
+      hasWarningOrRetry = true;
+      problems.push(`${prefix} (avertissement) — ${c.details[0] ?? "échec"}`);
+    }
+  }
+  if (run.validatorResult && run.validatorResult.criticalIssueCount > 0) {
+    hasCritical = true;
+    for (const vi of run.validatorResult.criticalIssues) {
+      problems.push(`[validatePlan${vi.week ? ` S${vi.week}` : ""}] ${vi.rule} — ${vi.message}`);
+    }
+  }
+
+  const verdict: ExplicitPlanVerdict = hasCritical
+    ? "non conforme"
+    : hasWarningOrRetry
+      ? "nécessite une validation coach"
+      : "conforme";
+  return { verdict, problems };
 }
 
 // ── Markdown report builder ─────────────────────────────────────────────────
