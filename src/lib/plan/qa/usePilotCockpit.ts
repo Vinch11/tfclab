@@ -16,7 +16,8 @@ import { type QAProfile } from "./syntheticProfiles";
 import { runAllChecks, type CheckResult } from "./checks";
 import { readPlanStats, type PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import { validatePlan, type PlanValidationResult } from "@/engines/plan/planValidator";
-import type { MergedPlan, ParsedPlan } from "@/lib/plan/mergePlanChunks";
+import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
+import type { ParsedPlan } from "@/lib/aiPlanParser";
 import {
   appendRun, checkBudgetBeforeLaunch, readBudgetState,
   CREDIT_PER_CHUNK_LOW, CREDIT_PER_CHUNK_HIGH,
@@ -121,8 +122,8 @@ export function usePilotCockpit() {
 
       try {
         const cfg = profile.planConfig;
-        const isLcw3Day = cfg.raceFormat === "lcw_3day"
-          || (Array.isArray(cfg.raceGoals) && cfg.raceGoals.some((g) => g?.raceFormat === "lcw_3day"));
+        // raceFormat n'existe que sur RaceGoal (pas PlanConfig) — cf. useAITrainingPlan.ts
+        const isLcw3Day = Array.isArray(cfg.raceGoals) && cfg.raceGoals.some((g) => g?.raceFormat === "lcw_3day");
         validatorResult = validatePlan(
           parsed,
           cfg.objective,
