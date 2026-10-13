@@ -40,6 +40,35 @@ async function waitForCompletion(getIsLoading: () => boolean, deadline: number):
   return "timeout";
 }
 
+/**
+ * Diagnostic coach (échec silencieux B-5K-BEGINNER, 1er run réel) — avant ce
+ * correctif, `runProfile` retombait TOUJOURS sur le message générique
+ * "Aucun mergedPlan/parsedPlan récupéré (échec de génération)" dès que
+ * `merged`/`parsed` étaient null, car `plan.generatePlan()` (useAITrainingPlan.ts)
+ * avale lui-même TOUTES ses erreurs dans son propre catch (console.error +
+ * toast.error + logPlanStat) et ne relance JAMAIS — le `try/catch` autour de
+ * `await plan.generatePlan(...)` ici ne capture donc quasiment rien en
+ * pratique. La cause réelle (HTTP, 429/402, timeout, échec Zod client,
+ * event SSE "error", échec du merge...) existe pourtant bel et bien : elle
+ * est déjà écrite dans le `PlanGenerationStat` que `logPlanStat` vient de
+ * persister (`errorCode`/`errorMessage`/`schemaFailDetails`), lu juste
+ * au-dessus via `readPlanStats()` — seulement jamais transmise jusqu'à
+ * `result.errorMessage`, celui que `PilotCockpitPanel` affiche réellement.
+ * Même angle mort déjà présent dans `useQARunner.ts` (cf. son commentaire
+ * "report only shows..."), copié sans correction lors de la création de ce
+ * cockpit — corrigé ICI plutôt que dans `useQARunner` pour rester dans le
+ * périmètre du Pilot Cockpit (consigne coach).
+ */
+export function resolvePilotRunErrorMessage(stat: PlanGenerationStat | undefined): string {
+  if (stat && stat.ok === false) {
+    const codePart = stat.errorCode ? `[${stat.errorCode}] ` : "";
+    const schemaDetail = stat.schemaFailDetails?.zodErrorText ?? stat.schemaFailDetails?.parseError;
+    const parts = [stat.errorMessage?.trim(), schemaDetail].filter((s): s is string => !!s && s.length > 0);
+    return `${codePart}${parts.length > 0 ? parts.join(" — ") : "cause non précisée dans planGenerationStats"}`;
+  }
+  return 'Aucun mergedPlan/parsedPlan récupéré (échec de génération) — aucun détail capturé dans planGenerationStats pour ce run. Vérifiez la console navigateur, le localStorage "tfcl:plan_gen_stats", ou les logs Supabase de la fonction Edge "ai-training-plan".';
+}
+
 export interface PilotCockpitResult {
   profileId: string;
   ts: number;
@@ -62,8 +91,43 @@ export function usePilotCockpit() {
   const [lastResult, setLastResult] = useState<PilotCockpitResult | null>(null);
   const [budget, setBudget] = useState<BudgetState>(() => readBudgetState());
 
+  // Diagnostic coach (B-5K-BEGINNER, génération réussie côté serveur —
+  // ok=true, 3 chunks, 114s — mais lue comme un échec) — `runProfile`
+  // (ci-dessous) est un `useCallback` qui capture `plan` dans sa fermeture
+  // AU MOMENT DU CLIC. La génération dure, elle, ~2 minutes : `plan.reset()`
+  // puis `plan.generatePlan(...)` mettent à jour l'état React RÉEL via les
+  // setters internes de `useAITrainingPlan` (setMergedPlan/setParsedPlan/
+  // setLastGenerationUsage), mais ces mises à jour ne sont JAMAIS visibles
+  // sur l'objet `plan` déjà capturé par cette fermeture — lire `plan.mergedPlan`
+  // après l'attente retombe donc TOUJOURS sur l'état figé au clic (donc
+  // `null`, puisque `reset()` vient de l'effacer), quel que soit le résultat
+  // réel de la génération. Même mécanisme déjà identifié pour `isLoading`
+  // ci-dessous (`isLoadingRef`) — seulement jamais étendu à mergedPlan/
+  // parsedPlan/lastGenerationUsage lors de la création de ce cockpit.
+  // `useQARunner.ts` (dont ce cockpit s'inspire) l'avait déjà résolu
+  // correctement pour `mergedPlan`/`parsedPlan` via le même procédé de refs
+  // tenues à jour à CHAQUE rendu (son commentaire : "so async runFullSuite
+  // reads live values, not the state captured by the useCallback closure at
+  // click-time") — reproduit ici à l'identique, étendu à `lastGenerationUsage`
+  // (champ que `useQARunner` ne suit pas).
   const isLoadingRef = useRef(plan.isLoading);
+  const mergedPlanRef = useRef(plan.mergedPlan);
+  const parsedPlanRef = useRef(plan.parsedPlan);
+  const lastGenerationUsageRef = useRef(plan.lastGenerationUsage);
+  // Même bug, même correctif : `sportObjectiveIssues`/`weeklyQuotaIssues`
+  // sont aussi de simples `useState` (pas déjà des refs internes comme
+  // `lastAllowedCatalogIdsRef`/`lastWeeklyQuotasRef` ci-dessous, qui eux
+  // restent toujours à jour car la ref ELLE-MÊME — pas sa valeur — est
+  // stable entre rendus). Repérés en étendant le même correctif à tout
+  // l'état lu après l'attente, pas seulement mergedPlan/parsedPlan.
+  const sportObjectiveIssuesRef = useRef(plan.sportObjectiveIssues);
+  const weeklyQuotaIssuesRef = useRef(plan.weeklyQuotaIssues);
   isLoadingRef.current = plan.isLoading;
+  mergedPlanRef.current = plan.mergedPlan;
+  parsedPlanRef.current = plan.parsedPlan;
+  lastGenerationUsageRef.current = plan.lastGenerationUsage;
+  sportObjectiveIssuesRef.current = plan.sportObjectiveIssues;
+  weeklyQuotaIssuesRef.current = plan.weeklyQuotaIssues;
 
   const checkBudget = useCallback((expectedChunks: number): BudgetCheckResult => {
     return checkBudgetBeforeLaunch(budget, expectedChunks);
@@ -98,8 +162,11 @@ export function usePilotCockpit() {
     const newStats = allStats.slice(beforeStats);
     const failStat = newStats.find((s) => s.schemaFailDetails || (!s.ok && s.errorCode));
     const newStat: PlanGenerationStat | undefined = failStat ?? newStats[newStats.length - 1];
-    const merged = plan.mergedPlan;
-    const parsed = plan.parsedPlan;
+    // Toujours lire via les refs (cf. commentaire plus haut) — JAMAIS
+    // `plan.mergedPlan`/`plan.parsedPlan` directement, qui retomberaient sur
+    // l'état figé au clic.
+    const merged = mergedPlanRef.current;
+    const parsed = parsedPlanRef.current;
 
     let checks: CheckResult[] | null = null;
     let validatorResult: PlanValidationResult | null = null;
@@ -110,10 +177,10 @@ export function usePilotCockpit() {
           profileId: profile.id,
           merged, parsed,
           allowedCatalogIds: plan.lastAllowedCatalogIdsRef.current,
-          sportObjectiveIssues: plan.sportObjectiveIssues,
+          sportObjectiveIssues: sportObjectiveIssuesRef.current,
           stat: newStat,
           objective: profile.planConfig.objective,
-          quotaIssues: plan.weeklyQuotaIssues,
+          quotaIssues: weeklyQuotaIssuesRef.current,
           quotasByWeek: plan.lastWeeklyQuotasRef.current,
         });
       } catch (e) {
@@ -144,10 +211,11 @@ export function usePilotCockpit() {
         errorMessage = errorMessage ?? `validatePlan a échoué : ${e instanceof Error ? e.message : String(e)}`;
       }
     } else if (!errorMessage) {
-      errorMessage = "Aucun mergedPlan/parsedPlan récupéré (échec de génération).";
+      errorMessage = resolvePilotRunErrorMessage(newStat);
     }
 
-    const usage = plan.lastGenerationUsage ? { ...plan.lastGenerationUsage } : null;
+    // Idem — via la ref, pas `plan.lastGenerationUsage` directement.
+    const usage = lastGenerationUsageRef.current ? { ...lastGenerationUsageRef.current } : null;
 
     const result: PilotCockpitResult = {
       profileId: profile.id, ts: t0, durationMs, merged, parsed, stat: newStat,
@@ -157,9 +225,11 @@ export function usePilotCockpit() {
 
     // Budget — toujours enregistré (même en cas d'échec : la consommation
     // a quand même pu avoir lieu sur les chunks tentés avant l'échec).
-    const chunksForEstimate = usage?.totalChunksSeen && usage.totalChunksSeen > 0
-      ? usage.totalChunksSeen
-      : profile.expectedChunks;
+    // Diagnostic coach — `usageSource` rend explicite que "fallback_estimate"
+    // suppose le coût PLEIN (expectedChunks), jamais zéro : l'absence de
+    // confirmation du gateway n'est jamais une preuve d'absence de facturation.
+    const hasMeasuredUsage = typeof usage?.totalChunksSeen === "number" && usage.totalChunksSeen > 0;
+    const chunksForEstimate = hasMeasuredUsage ? usage.totalChunksSeen : profile.expectedChunks;
     const nextBudget = appendRun({
       profileId: profile.id,
       ts: t0,
@@ -169,6 +239,7 @@ export function usePilotCockpit() {
       realTotalTokens: usage?.totalTokens,
       realChunksWithUsage: usage?.chunksWithUsage,
       realTotalChunksSeen: usage?.totalChunksSeen,
+      usageSource: hasMeasuredUsage ? "measured" : "fallback_estimate",
     });
     setBudget(nextBudget);
 
