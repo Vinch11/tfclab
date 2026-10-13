@@ -146,11 +146,17 @@ export function PilotCockpitPanel() {
           <div className="text-sm font-medium">Budget pilote</div>
           <div className="text-sm text-muted-foreground">
             Cumul estimé : {formatCredits(cumulative.low)} à {formatCredits(cumulative.high)} crédits
-            {" "}({budget.maxCredits} max, alerte à {budget.alertCredits}) — {cumulative.runsCount} run(s) effectué(s).
+            {" "}({budget.maxCredits} max, alerte à {budget.alertCredits}) — {cumulative.runsCount} run(s) effectué(s)
+            {" "}({cumulative.measuredRunsCount} confirmé(s) par le gateway, {cumulative.fallbackRunsCount} sans confirmation).
           </div>
           {cumulative.hasRealUsage && (
             <div className="text-sm text-muted-foreground">
               Usage réel mesuré (cumul, tentatives finales + retry Zod — hors retries transitoires) : {cumulative.realTotalTokens} tokens.
+            </div>
+          )}
+          {cumulative.fallbackRunsCount > 0 && (
+            <div className="text-xs text-amber-600">
+              ⚠ {formatCredits(cumulative.fallbackLow)} à {formatCredits(cumulative.fallbackHigh)} crédits (sur le total ci-dessus) proviennent de {cumulative.fallbackRunsCount} run(s) SANS usage confirmé par le gateway — ce n'est PAS une preuve d'absence de facturation : l'appel a pu être facturé avant tout retour d'usage. Estimation au coût plein (expectedChunks) retenue par précaution, jamais zéro.
             </div>
           )}
           <div className="text-xs text-muted-foreground italic">
@@ -247,7 +253,7 @@ export function PilotCockpitPanel() {
             <div className="text-xs text-muted-foreground">
               Consommation de ce run : {lastResult.usage
                 ? `${lastResult.usage.totalChunksSeen} chunk(s) complété(s), ${lastResult.usage.totalTokens} tokens mesurés (${lastResult.usage.chunksWithUsage}/${lastResult.usage.totalChunksSeen} avec usage renvoyé par le gateway)`
-                : "usage non disponible (gateway n'a renvoyé aucun usage, ou échec avant le premier chunk) — estimation par plage à utiliser."}
+                : "usage NON CONFIRMÉ par le gateway (échec avant tout retour d'usage) — ceci ne signifie PAS qu'aucun coût n'a été facturé ; un appel au modèle a pu avoir lieu avant l'échec. Estimation par plage retenue par précaution (voir Budget pilote ci-dessus)."}
             </div>
 
             <Button variant="outline" size="sm" onClick={handleExport} disabled={!lastResult.merged}>

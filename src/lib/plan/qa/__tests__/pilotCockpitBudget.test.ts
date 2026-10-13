@@ -78,7 +78,63 @@ describe("computeCumulative", () => {
 
   it("aucun run → tout à zéro, hasRealUsage=false", () => {
     const cum = computeCumulative([]);
-    expect(cum).toEqual({ low: 0, high: 0, runsCount: 0, realTotalTokens: 0, hasRealUsage: false });
+    expect(cum).toEqual({
+      low: 0, high: 0, runsCount: 0, realTotalTokens: 0, hasRealUsage: false,
+      measuredRunsCount: 0, fallbackRunsCount: 0, fallbackLow: 0, fallbackHigh: 0,
+    });
+  });
+
+  /**
+   * Diagnostic coach (B-5K-BEGINNER, échec sans usage) — `usageSource`
+   * distingue un coût CONFIRMÉ par le gateway d'une estimation de secours.
+   * `fallbackLow`/`fallbackHigh` restent inclus dans `low`/`high` : l'absence
+   * de confirmation ne doit JAMAIS réduire le total retenu pour le plafond.
+   */
+  describe("distinction measured / fallback_estimate", () => {
+    it("un run 'measured' compte dans measuredRunsCount, pas dans fallback", () => {
+      const runs: PilotRunRecord[] = [
+        { profileId: "A", ts: 0, chunks: 3, estimatedCreditsLow: 0.45, estimatedCreditsHigh: 0.81, realTotalChunksSeen: 3, usageSource: "measured" },
+      ];
+      const cum = computeCumulative(runs);
+      expect(cum.measuredRunsCount).toBe(1);
+      expect(cum.fallbackRunsCount).toBe(0);
+      expect(cum.fallbackLow).toBe(0);
+      expect(cum.fallbackHigh).toBe(0);
+    });
+
+    it("un run 'fallback_estimate' compte dans fallbackRunsCount ET reste inclus dans low/high (jamais soustrait)", () => {
+      const runs: PilotRunRecord[] = [
+        { profileId: "B-5K-BEGINNER", ts: 0, chunks: 3, estimatedCreditsLow: 0.45, estimatedCreditsHigh: 0.81, usageSource: "fallback_estimate" },
+      ];
+      const cum = computeCumulative(runs);
+      expect(cum.fallbackRunsCount).toBe(1);
+      expect(cum.measuredRunsCount).toBe(0);
+      expect(cum.fallbackLow).toBeCloseTo(0.45, 5);
+      expect(cum.fallbackHigh).toBeCloseTo(0.81, 5);
+      // Le total reste le coût plein assumé — jamais réduit à zéro pour un run sans confirmation.
+      expect(cum.low).toBeCloseTo(0.45, 5);
+      expect(cum.high).toBeCloseTo(0.81, 5);
+    });
+
+    it("mix measured + fallback : les deux compteurs et les deux sous-totaux sont corrects", () => {
+      const runs: PilotRunRecord[] = [
+        { profileId: "A", ts: 0, chunks: 3, estimatedCreditsLow: 0.45, estimatedCreditsHigh: 0.81, usageSource: "measured", realTotalChunksSeen: 3 },
+        { profileId: "B", ts: 1, chunks: 3, estimatedCreditsLow: 0.45, estimatedCreditsHigh: 0.81, usageSource: "fallback_estimate" },
+      ];
+      const cum = computeCumulative(runs);
+      expect(cum.measuredRunsCount).toBe(1);
+      expect(cum.fallbackRunsCount).toBe(1);
+      expect(cum.low).toBeCloseTo(0.9, 5); // les deux restent dans le total
+      expect(cum.fallbackLow).toBeCloseTo(0.45, 5); // mais seule la part fallback est signalée séparément
+    });
+
+    it("rétro-compatibilité : un run persisté AVANT ce correctif (sans usageSource) est déduit depuis realTotalChunksSeen, jamais traité 'measured' par défaut", () => {
+      const legacyMeasured: PilotRunRecord = { profileId: "A", ts: 0, chunks: 2, estimatedCreditsLow: 0.3, estimatedCreditsHigh: 0.54, realTotalChunksSeen: 2 };
+      const legacyFallback: PilotRunRecord = { profileId: "B", ts: 1, chunks: 2, estimatedCreditsLow: 0.3, estimatedCreditsHigh: 0.54 };
+      const cum = computeCumulative([legacyMeasured, legacyFallback]);
+      expect(cum.measuredRunsCount).toBe(1);
+      expect(cum.fallbackRunsCount).toBe(1);
+    });
   });
 });
 

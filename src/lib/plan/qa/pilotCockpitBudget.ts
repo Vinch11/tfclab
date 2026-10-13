@@ -26,6 +26,20 @@ export interface PilotRunRecord {
   realTotalTokens?: number;
   realChunksWithUsage?: number;
   realTotalChunksSeen?: number;
+  /**
+   * Diagnostic coach (échec silencieux B-5K-BEGINNER) — distingue un run où
+   * le gateway a confirmé avoir traité au moins un chunk ("measured",
+   * `realTotalChunksSeen > 0`) d'un run où AUCUNE confirmation n'est
+   * disponible ("fallback_estimate" — `chunks` retombe alors sur
+   * `profile.expectedChunks`, cf. usePilotCockpit.ts). "fallback_estimate"
+   * NE SIGNIFIE JAMAIS "aucun coût réel" : l'appel au gateway a pu être
+   * facturé avant même qu'un usage ne soit renvoyé (échec après l'appel
+   * mais avant la réponse, timeout, chunk non comptabilisé...). Champ
+   * optionnel (absent sur les runs persistés AVANT ce correctif) — traité
+   * comme "fallback_estimate" par `computeCumulative` dans ce cas, jamais
+   * comme "measured" par défaut (cf. commentaire sur le fallback ci-dessous).
+   */
+  usageSource?: "measured" | "fallback_estimate";
 }
 
 export interface BudgetState {
@@ -80,23 +94,55 @@ export function resetBudgetState(): void {
 }
 
 export interface CumulativeUsage {
+  /** Total TOUJOURS conservateur (mesuré + estimé de secours) — c'est CELUI
+   *  utilisé par `checkBudgetBeforeLaunch` pour la vérification de plafond :
+   *  ne jamais le réduire aux seuls runs "measured" sous peine de sous-estimer
+   *  un coût réel non confirmé (consigne coach explicite). */
   low: number;
   high: number;
   runsCount: number;
   realTotalTokens: number;
   hasRealUsage: boolean;
+  /** Nombre de runs dont le coût est CONFIRMÉ par au moins un chunk avec usage renvoyé par le gateway. */
+  measuredRunsCount: number;
+  /**
+   * Nombre de runs SANS confirmation de coût réel — jamais à lire comme
+   * "ces runs n'ont rien coûté" : `fallbackLow`/`fallbackHigh` ci-dessous
+   * restent inclus dans `low`/`high`, l'estimation de secours assumant le
+   * coût plein (`profile.expectedChunks`) plutôt que zéro.
+   */
+  fallbackRunsCount: number;
+  /** Part de `low`/`high` qui n'est PAS confirmée par un usage réel (sous-ensemble de low/high, pour affichage — jamais à soustraire du total). */
+  fallbackLow: number;
+  fallbackHigh: number;
 }
 
 export function computeCumulative(runs: PilotRunRecord[]): CumulativeUsage {
   return runs.reduce<CumulativeUsage>(
-    (acc, r) => ({
-      low: acc.low + r.estimatedCreditsLow,
-      high: acc.high + r.estimatedCreditsHigh,
-      runsCount: acc.runsCount + 1,
-      realTotalTokens: acc.realTotalTokens + (r.realTotalTokens ?? 0),
-      hasRealUsage: acc.hasRealUsage || typeof r.realTotalTokens === "number",
-    }),
-    { low: 0, high: 0, runsCount: 0, realTotalTokens: 0, hasRealUsage: false },
+    (acc, r) => {
+      // Rétro-compat : un run persisté AVANT ce correctif n'a pas
+      // `usageSource` — déduit depuis `realTotalChunksSeen` (même logique
+      // que celle qui posait `usageSource` au moment de l'écrire), jamais
+      // traité comme "measured" par défaut (cf. docstring PilotRunRecord).
+      const isMeasured = r.usageSource
+        ? r.usageSource === "measured"
+        : typeof r.realTotalChunksSeen === "number" && r.realTotalChunksSeen > 0;
+      return {
+        low: acc.low + r.estimatedCreditsLow,
+        high: acc.high + r.estimatedCreditsHigh,
+        runsCount: acc.runsCount + 1,
+        realTotalTokens: acc.realTotalTokens + (r.realTotalTokens ?? 0),
+        hasRealUsage: acc.hasRealUsage || typeof r.realTotalTokens === "number",
+        measuredRunsCount: acc.measuredRunsCount + (isMeasured ? 1 : 0),
+        fallbackRunsCount: acc.fallbackRunsCount + (isMeasured ? 0 : 1),
+        fallbackLow: acc.fallbackLow + (isMeasured ? 0 : r.estimatedCreditsLow),
+        fallbackHigh: acc.fallbackHigh + (isMeasured ? 0 : r.estimatedCreditsHigh),
+      };
+    },
+    {
+      low: 0, high: 0, runsCount: 0, realTotalTokens: 0, hasRealUsage: false,
+      measuredRunsCount: 0, fallbackRunsCount: 0, fallbackLow: 0, fallbackHigh: 0,
+    },
   );
 }
 

@@ -36,7 +36,16 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      - run: bunx tsc --noEmit -p tsconfig.json
+      # Diagnostic coach (B-5K-BEGINNER, 2026-10-13) : `tsconfig.json` est un
+      # config "solution" (`"files": []` + `references`) — `tsc --noEmit -p
+      # tsconfig.json` (sans `-b`/build mode) ne vérifie ZÉRO fichier et
+      # "réussit" toujours trivialement. Confirmé : 4 erreurs réelles
+      # (import `ParsedPlan` inexistant, accès à `PlanConfig.raceFormat`
+      # inexistant) sont passées inaperçues ici ET en local sur 2 PR avant
+      # d'être corrigées directement par le build Lovable (jamais passées en
+      # revue). `tsconfig.app.json` est le config qui porte réellement
+      # `include`/les options de compilation de `src/`.
+      - run: bunx tsc --noEmit -p tsconfig.app.json
       - run: bun run vitest run
 
   lint-changed-files:

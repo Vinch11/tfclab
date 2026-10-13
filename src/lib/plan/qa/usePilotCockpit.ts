@@ -40,6 +40,35 @@ async function waitForCompletion(getIsLoading: () => boolean, deadline: number):
   return "timeout";
 }
 
+/**
+ * Diagnostic coach (échec silencieux B-5K-BEGINNER, 1er run réel) — avant ce
+ * correctif, `runProfile` retombait TOUJOURS sur le message générique
+ * "Aucun mergedPlan/parsedPlan récupéré (échec de génération)" dès que
+ * `merged`/`parsed` étaient null, car `plan.generatePlan()` (useAITrainingPlan.ts)
+ * avale lui-même TOUTES ses erreurs dans son propre catch (console.error +
+ * toast.error + logPlanStat) et ne relance JAMAIS — le `try/catch` autour de
+ * `await plan.generatePlan(...)` ici ne capture donc quasiment rien en
+ * pratique. La cause réelle (HTTP, 429/402, timeout, échec Zod client,
+ * event SSE "error", échec du merge...) existe pourtant bel et bien : elle
+ * est déjà écrite dans le `PlanGenerationStat` que `logPlanStat` vient de
+ * persister (`errorCode`/`errorMessage`/`schemaFailDetails`), lu juste
+ * au-dessus via `readPlanStats()` — seulement jamais transmise jusqu'à
+ * `result.errorMessage`, celui que `PilotCockpitPanel` affiche réellement.
+ * Même angle mort déjà présent dans `useQARunner.ts` (cf. son commentaire
+ * "report only shows..."), copié sans correction lors de la création de ce
+ * cockpit — corrigé ICI plutôt que dans `useQARunner` pour rester dans le
+ * périmètre du Pilot Cockpit (consigne coach).
+ */
+export function resolvePilotRunErrorMessage(stat: PlanGenerationStat | undefined): string {
+  if (stat && stat.ok === false) {
+    const codePart = stat.errorCode ? `[${stat.errorCode}] ` : "";
+    const schemaDetail = stat.schemaFailDetails?.zodErrorText ?? stat.schemaFailDetails?.parseError;
+    const parts = [stat.errorMessage?.trim(), schemaDetail].filter((s): s is string => !!s && s.length > 0);
+    return `${codePart}${parts.length > 0 ? parts.join(" — ") : "cause non précisée dans planGenerationStats"}`;
+  }
+  return 'Aucun mergedPlan/parsedPlan récupéré (échec de génération) — aucun détail capturé dans planGenerationStats pour ce run. Vérifiez la console navigateur, le localStorage "tfcl:plan_gen_stats", ou les logs Supabase de la fonction Edge "ai-training-plan".';
+}
+
 export interface PilotCockpitResult {
   profileId: string;
   ts: number;
@@ -144,7 +173,7 @@ export function usePilotCockpit() {
         errorMessage = errorMessage ?? `validatePlan a échoué : ${e instanceof Error ? e.message : String(e)}`;
       }
     } else if (!errorMessage) {
-      errorMessage = "Aucun mergedPlan/parsedPlan récupéré (échec de génération).";
+      errorMessage = resolvePilotRunErrorMessage(newStat);
     }
 
     const usage = plan.lastGenerationUsage ? { ...plan.lastGenerationUsage } : null;
@@ -157,9 +186,11 @@ export function usePilotCockpit() {
 
     // Budget — toujours enregistré (même en cas d'échec : la consommation
     // a quand même pu avoir lieu sur les chunks tentés avant l'échec).
-    const chunksForEstimate = usage?.totalChunksSeen && usage.totalChunksSeen > 0
-      ? usage.totalChunksSeen
-      : profile.expectedChunks;
+    // Diagnostic coach — `usageSource` rend explicite que "fallback_estimate"
+    // suppose le coût PLEIN (expectedChunks), jamais zéro : l'absence de
+    // confirmation du gateway n'est jamais une preuve d'absence de facturation.
+    const hasMeasuredUsage = typeof usage?.totalChunksSeen === "number" && usage.totalChunksSeen > 0;
+    const chunksForEstimate = hasMeasuredUsage ? usage.totalChunksSeen : profile.expectedChunks;
     const nextBudget = appendRun({
       profileId: profile.id,
       ts: t0,
@@ -169,6 +200,7 @@ export function usePilotCockpit() {
       realTotalTokens: usage?.totalTokens,
       realChunksWithUsage: usage?.chunksWithUsage,
       realTotalChunksSeen: usage?.totalChunksSeen,
+      usageSource: hasMeasuredUsage ? "measured" : "fallback_estimate",
     });
     setBudget(nextBudget);
 
