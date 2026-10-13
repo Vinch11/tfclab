@@ -759,7 +759,7 @@ export function QuickStartWizard({
 
           {step === "sessions" && (
 
-            <StepBlock title={`Combien de séances par semaine ${possessive} agenda permet-il ?`} hint="Compte toutes disciplines confondues. Si tu ne sais pas, laisse l'IA décider.">
+            <StepBlock title={`Combien de séances par semaine ${possessive} agenda permet-il ?`} hint="Séances cardio uniquement (natation/vélo/course) — le renfo est ajouté en plus. Si tu ne sais pas, laisse l'IA décider.">
               <div className="flex flex-wrap gap-2">
                 {SESSIONS_PER_WEEK.map((n) => (
                   <button
