@@ -51,6 +51,42 @@ function detectSport(fragment: string): ConstraintSport {
   return "any";
 }
 
+/**
+ * Bug réel (B-5K-BEGINNER, Pilot Cockpit, 2026-10-13) — miroir du correctif
+ * client (src/lib/plan/constraintRules.ts, même docstring complète là-bas) :
+ * l'ancienne détection d'interdiction GLOBALE (sans jour précisé) considérait
+ * qu'une négation et un mot-clé sportif N'IMPORTE OÙ dans le même fragment
+ * suffisaient à bannir ce sport sur tout le plan. "Objectif distinct du
+ * template Start-to-Run statique (jamais généré par IA en production)" a
+ * ainsi été lu comme "jamais [de] Run" (le tiret de "Start-to-Run" crée une
+ * frontière de mot, `\brun\b` matchait), sans aucun rapport réel. Correctif :
+ * proximité grammaticale directe négation↔sport (± connecteur court réel),
+ * jamais une simple co-occurrence fragment-wide.
+ */
+const PRE_NEGATORS_SRC =
+  "(?:pas|jamais|aucun(?:e)?|interdit(?:e)?s?|impossible|indisponible|exclu(?:e)?s?|no|sans)";
+const POST_NEGATORS_SRC =
+  "(?:interdit(?:e)?s?|exclu(?:e)?s?|impossible|indisponible|banni(?:e)?s?)";
+const CONNECTOR_SRC = "(?:\\s+(?:de|d['’]|du|des|la|le|les|toute?s?))?\\s*";
+const LINKING_VERB_SRC = "(?:\\s+(?:est|sera|reste))?\\s+";
+
+const BAN_PATTERNS: Array<{ sport: ConstraintSport; rx: RegExp }> = SPORT_PATTERNS.map(
+  ({ sport, rx }) => ({
+    sport,
+    rx: new RegExp(
+      `${PRE_NEGATORS_SRC}${CONNECTOR_SRC}${rx.source}|${rx.source}${LINKING_VERB_SRC}${POST_NEGATORS_SRC}`,
+      "i",
+    ),
+  }),
+);
+
+function detectBannedSportStrict(fragment: string): ConstraintSport | null {
+  for (const { sport, rx } of BAN_PATTERNS) {
+    if (rx.test(fragment)) return sport;
+  }
+  return null;
+}
+
 function normalizeDay(raw: string): WeekDay | null {
   const d = deaccent(raw.toLowerCase()).trim();
   return WEEK_DAYS.find((w) => deaccent(w) === d) ?? null;
@@ -93,8 +129,9 @@ export function parseAthleteConstraints(text: string | null | undefined): Athlet
       continue;
     }
 
-    if (days.length === 0 && negated && sport !== "any") {
-      if (!rules.bannedSports.includes(sport)) rules.bannedSports.push(sport);
+    const bannedSport = detectBannedSportStrict(frag);
+    if (days.length === 0 && bannedSport !== null) {
+      if (!rules.bannedSports.includes(bannedSport)) rules.bannedSports.push(bannedSport);
       continue;
     }
 

@@ -39,7 +39,14 @@ export function normalizeObjectiveKey(obj: string): string {
   if (lower.includes("trail")) return "Trail";
   if (lower.includes("ultra")) return "TrailUltra";
   if (lower.includes("10k") || lower.includes("10km") || lower.includes("10 km")) return "10K";
-  if (lower.includes("5k") || lower === "5km") return "5K";
+  // Bug réel (B-5K-BEGINNER, 2026-10-13) : "5 KM" (avec espace — la façon
+  // naturelle de la saisir) n'était reconnu nulle part ("5k" substring et
+  // "5km" exact ne matchent pas "5 km") alors que la ligne "10k" juste
+  // au-dessus gère bien "10 km" — SPORT_RATIO_TARGETS["5 KM"] retombait donc
+  // sur `undefined`, rendant le contrôle de ratio par sport totalement
+  // muet pour cet objectif. Même correctif requis dans sportRatioMatrix.ts
+  // (edge, miroir) et sessionSizingMatrix.ts (normalizeSizingObjective).
+  if (lower.includes("5k") || lower.includes("5 km") || lower === "5km") return "5K";
   if (lower.includes("start")) return "StartToRun";
   return obj;
 }
