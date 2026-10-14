@@ -308,11 +308,33 @@ function sessionIsFastedPattern(s: PlanSession): boolean {
 // par une réparation de durée/phase/discipline, mais jamais retiré non plus
 // si déjà présent (une réparation de durée sur un Sleep Low existant reste
 // un Sleep Low, elle ne doit juste pas inventer un NOUVEAU contexte spécial).
-function ficheRequiresUnconfirmedContext(w: LibraryWorkout): boolean {
-  if (ficheIsFastedPattern(w)) return true;
-  if (String(w.id || "").toUpperCase().startsWith("FM_")) return true;
+/**
+ * Mission 2B (audit "sécurisation du catalogue injecté à Gemini", suite
+ * PR #377) : ce garde-fou protégeait déjà `findReplacement` ci-dessous,
+ * mais rien n'empêchait Gemini de choisir directement une de ces fiches
+ * depuis le catalogue initial (`workoutCatalogBuilder.ts::buildWorkoutCatalog`)
+ * — confirmé empiriquement sur le run réel B-5K-BEGINNER du 14/10 :
+ * `CANOVA_RUN_INTRODUCTIVE_PHASE`/`FM_RUN_FATMAX_ZONE`/`ENR_ALTITUDE_EASY_RUN`/
+ * `V2_RUN_MENTAL_FATIGUE` étaient bien présentes dans le catalogue transmis.
+ * `ficheUnconfirmedContextReason` expose désormais LE MOTIF (pas seulement
+ * un booléen) pour permettre à `buildWorkoutCatalog` de lever l'exclusion
+ * UNIQUEMENT si ce motif précis est explicitement confirmé par l'appelant
+ * (`options.confirmedSpecialContexts`) — jamais par défaut, l'absence
+ * d'information n'étant jamais une confirmation.
+ */
+export type UnconfirmedContextReason = "fasted" | "fatmax_module" | "altitude" | "fatigue_cognitive";
+
+export function ficheUnconfirmedContextReason(w: LibraryWorkout): UnconfirmedContextReason | null {
+  if (ficheIsFastedPattern(w)) return "fasted";
+  if (String(w.id || "").toUpperCase().startsWith("FM_")) return "fatmax_module";
   const tags = (w.tags || []).map((t) => String(t).toLowerCase());
-  return tags.includes("altitude") || tags.includes("fatigue-cognitive");
+  if (tags.includes("altitude")) return "altitude";
+  if (tags.includes("fatigue-cognitive")) return "fatigue_cognitive";
+  return null;
+}
+
+function ficheRequiresUnconfirmedContext(w: LibraryWorkout): boolean {
+  return ficheUnconfirmedContextReason(w) !== null;
 }
 
 interface FindOpts {
