@@ -352,6 +352,11 @@ async function buildRegenCatalog(
       // score (cf. rotationSeed, workoutCatalogBuilder.ts).
       rotationSeed: Date.now(),
       injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
+      // P1 (audit "B-5K-BEGINNER round 2") : même protection qu'à la
+      // génération complète (useAITrainingPlan.ts) sur régénération.
+      beginnerIntensitySignal: cfg.ambitionMeta
+        ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+        : null,
     },
   );
   return {
@@ -410,6 +415,9 @@ async function buildRegenPhaseCatalogs(
         historicalUsage,
         rotationSeed,
         injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
+        beginnerIntensitySignal: cfg.ambitionMeta
+          ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+          : null,
       },
     );
     phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);

@@ -96,6 +96,15 @@ export interface ReconcilerCounters {
   /** Même détection, mais aucune alternative non-fasted disponible — cumul
    *  conservé tel quel, signalé plutôt que dégradé au hasard. */
   week_fasted_cap_unresolved?: number;
+  /** P1 "B-5K-BEGINNER round 2" (consigne coach, suite PR #376) : séance de
+   *  famille "vo2" en excès (au-delà de `demandingSessionCap`) dans une
+   *  semaine d'un débutant confirmé (signal de niveau fiable) — DOWNGRADÉE
+   *  vers une alternative threshold/easy plutôt que détectée après coup. */
+  demanding_accumulation_downgraded?: number;
+  /** Même détection, mais aucune alternative threshold/easy disponible —
+   *  séance conservée telle quelle (jamais de suppression silencieuse), le
+   *  conflit reste signalé et sera re-détecté par validateDemandingSessionAccumulation. */
+  demanding_accumulation_unresolved?: number;
 
 }
 
@@ -184,7 +193,10 @@ function normSport(s: string | null | undefined): NormSport {
 }
 
 // ── Helpers fiche ──────────────────────────────────────────────────────────
-function ficheMainZoneMax(w: LibraryWorkout): number {
+// Exportée (P1, audit "B-5K-BEGINNER round 2") : réutilisée par
+// workoutCatalogBuilder.ts pour le filtre d'intensité niveau-débutant —
+// même définition de famille d'intensité partout (source unique).
+export function ficheMainZoneMax(w: LibraryWorkout): number {
   const mains = (w.structure || []).filter(p => /main/i.test(p.part || ""));
   let mx = 0;
   for (const p of mains) for (const z of (p.zones || [])) {
@@ -202,6 +214,20 @@ function ficheDurationContains(w: LibraryWorkout, dur: number): boolean {
   return dur >= a && dur <= b;
 }
 
+// ── Famille d'intensité (easy/threshold/vo2) ────────────────────────────────
+// Audit "B-5K-BEGINNER round 2" (consigne coach, suite PR #376) : une
+// réparation de durée/phase ne doit jamais transformer silencieusement une
+// séance d'endurance facile en séance VO2max/lactique/sprint/VMA. Jusqu'ici
+// cette famille ne servait qu'à un bonus de score SOUPLE dans intentScore
+// (+2 points) — insuffisant pour empêcher un candidat de famille différente
+// de l'emporter quand c'est le seul (ou le mieux noté) match sport/phase/
+// durée disponible. Partagé par intentScore (bonus souple, inchangé) et par
+// le garde-fou DUR de findReplacement ci-dessous (requireFamily/original).
+export type IntensityFamily = "easy" | "threshold" | "vo2";
+export function intensityFamily(zoneMax: number): IntensityFamily {
+  return zoneMax <= 2 ? "easy" : zoneMax <= 4 ? "threshold" : "vo2";
+}
+
 // ── Score d'intention (même cat, goals partagés, famille zone) ─────────────
 function intentScore(original: LibraryWorkout, candidate: LibraryWorkout): number {
   let score = 0;
@@ -211,11 +237,7 @@ function intentScore(original: LibraryWorkout, candidate: LibraryWorkout): numbe
   let shared = 0;
   for (const g of og) if (cg.has(g)) shared++;
   score += shared * 2;
-  const oMax = ficheMainZoneMax(original);
-  const cMax = ficheMainZoneMax(candidate);
-  const oFamily = oMax <= 2 ? "easy" : oMax <= 4 ? "threshold" : "vo2";
-  const cFamily = cMax <= 2 ? "easy" : cMax <= 4 ? "threshold" : "vo2";
-  if (oFamily === cFamily) score += 2;
+  if (intensityFamily(ficheMainZoneMax(original)) === intensityFamily(ficheMainZoneMax(candidate))) score += 2;
   if (original.necessite === candidate.necessite) score += 1;
   return score;
 }
@@ -292,12 +314,53 @@ interface FindOpts {
    *  limiterKeywords.ts. Une fiche matchant un rang plus critique est
    *  préférée à toute autre, avant intention/durée/diversité. */
   limiterKeywordsByRank?: string[][];
+  /**
+   * Audit "B-5K-BEGINNER round 2" (consigne coach, suite PR #376) — garde-fou
+   * DUR (pas un bonus de score) : exclut tout candidat dont la famille
+   * d'intensité (easy/threshold/vo2, via `intensityFamily`) diffère de celle
+   * exigée. Deux sources, jamais combinées (l'explicite prime) :
+   *  - `requireFamily` explicite — utilisé par l'insertion FLOOR (pas
+   *    d'`original` à comparer) quand le plancher est spécifiquement une
+   *    sortie longue facile (SL run/bike), jamais pour un plancher générique
+   *    de présence (renfo, etc.) où aucune intention n'est déclarée.
+   *  - `preserveOriginalFamily: true` — dérive la famille requise d'`original`
+   *    SI elle est déterminable (`ficheMainZoneMax(original) > 0`). Réservé
+   *    aux réparations qui ne remettent PAS en cause le bien-fondé de la
+   *    séance d'origine (durée hors plage, doublon intra-semaine, cumul à
+   *    jeun) : la substitution ne doit alors jamais changer de famille.
+   *    JAMAIS utilisé pour la substitution PHASE (STEP 1) : là, c'est
+   *    justement parce que la fiche d'origine est mal placée (phase
+   *    incompatible) qu'on la remplace — exiger sa même famille empêcherait
+   *    de corriger une fiche "vo2" placée à tort en phase base vers une
+   *    fiche "easy" réellement adaptée (le garde-fou phase, déjà en place,
+   *    est le bon critère dans ce cas précis).
+   * Si ce filtre exclut tous les candidats → `findReplacement` renvoie
+   * `null` comme n'importe quel autre filtre dur (phase/durée) : l'appelant
+   * traite ça comme "non résolu", JAMAIS comme un repli vers une famille
+   * différente — cf. consigne coach "conserver la séance initiale et
+   * signaler le conflit est préférable à introduire une séance
+   * physiologiquement incompatible."
+   */
+  requireFamily?: IntensityFamily;
+  preserveOriginalFamily?: boolean;
+  /**
+   * P1 (audit "B-5K-BEGINNER round 2", consigne coach) — exclusion DURE de
+   * toute fiche de cette famille, utilisée par `enforceDemandingAccumulation`
+   * pour faire baisser une semaine en excès de séances "vo2" vers "threshold"
+   * ou "easy" (jamais "VMA/côtes/fartlek interdits en général" — seule
+   * l'accumulation est corrigée, une séance isolée de cette famille reste
+   * autorisée ailleurs dans le plan).
+   */
+  excludeFamily?: IntensityFamily;
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
   const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
+  const originalZoneMax = original ? ficheMainZoneMax(original) : 0;
+  const requiredFamily: IntensityFamily | null =
+    opts.requireFamily ?? (opts.preserveOriginalFamily && originalZoneMax > 0 ? intensityFamily(originalZoneMax) : null);
   let best: { w: LibraryWorkout; key: number } | null = null;
   // Repli si TOUS les candidats valides sont déjà saturés (usage ≥ MAX) :
   // mieux vaut une répétition qu'une séance non résolue.
@@ -308,6 +371,8 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (excludeIdsThisWeek && excludeIdsThisWeek.has(w.id.toUpperCase())) continue;
     if (excludeFastedPattern && ficheIsFastedPattern(w)) continue;
     if (normSport(w.sport) !== sport) continue;
+    if (requiredFamily && intensityFamily(ficheMainZoneMax(w)) !== requiredFamily) continue;
+    if (opts.excludeFamily && intensityFamily(ficheMainZoneMax(w)) === opts.excludeFamily) continue;
     if (requirePhase) {
       const allowed = ficheAllowedPhases(w);
       if (allowed.size > 0 && !allowed.has(weekPhase)) continue;
@@ -367,20 +432,29 @@ interface PhaseCtx {
 }
 
 /**
- * Audit "B-5K-BEGINNER round 2" : `week.phase` (zPhase côté LLM : base/build/
- * peak/taper) est fiable tant qu'il n'a pas encore été réécrit en libellé
- * humain par `normalizeWeeksAndPhases` (ex: "Phase 1 — Adaptation & Socle
- * Aérobie", confirmé sur le JSON réel du run B-5K-BEGINNER) — un libellé que
- * les passes ci-dessous ne doivent jamais essayer de reparser en texte libre.
- * Quand `week.phase` est déjà l'une des 4 valeurs propres → on la garde telle
- * quelle (donnée déjà fiable, ne rien recalculer). Sinon → phase CATALOGUE
- * recalculée numériquement (`canonicalWeekPhase`, même seuils que la
- * référence serveur `inferPhaseFromWeek`), jamais déduite du libellé.
+ * Audit "B-5K-BEGINNER round 2" (suite, consigne coach) : `week.phase`
+ * peut être soit le `zPhase` auto-déclaré par le LLM (base/build/peak/taper),
+ * soit déjà réécrit en libellé humain par `normalizeWeeksAndPhases` (ex:
+ * "Phase 1 — Adaptation & Socle Aérobie", confirmé sur le JSON réel) — un
+ * libellé que les passes ci-dessous ne doivent jamais reparser en texte
+ * libre. Mais `week.phase`, MÊME syntaxiquement valide (un des 4 enums
+ * propres), reste une AUTO-DÉCLARATION du LLM, jamais recroisée avec sa
+ * position réelle dans le plan — rien n'empêchait jusqu'ici le LLM de se
+ * tromper lui-même (déclarer "build" pour sa semaine 1 alors qu'elle est
+ * numériquement "base"), ce qui neutralisait silencieusement tout contrôle
+ * de compatibilité phase/fiche en aval. Consigne explicite : ne jamais faire
+ * confiance à `week.phase`, quelle que soit sa forme — la phase CATALOGUE
+ * utilisée pour vérifier l'éligibilité est TOUJOURS recalculée numériquement
+ * (`canonicalWeekPhase`, mêmes seuils que la référence serveur
+ * `inferPhaseFromWeek`), jamais déduite de ce que le LLM a écrit.
  */
-function resolveWeekPhase(rawPhase: string, weekNumber: number, ctx: PhaseCtx): PlanPhase {
-  if (rawPhase === "base" || rawPhase === "build" || rawPhase === "peak" || rawPhase === "taper") {
-    return rawPhase;
-  }
+function resolveWeekPhase(_rawPhase: string, weekNumber: number, ctx?: PhaseCtx): PlanPhase {
+  // `ctx` est toujours fourni par runReconciler (jamais omis en pratique) ;
+  // ce repli ne sert qu'à garder `phaseCtx` optionnel dans la signature des
+  // passes ci-dessous (ordre des paramètres TS) sans jamais retomber sur
+  // `_rawPhase` — repli numérique degénéré (semaine = totalWeeks) plutôt
+  // qu'une confiance aveugle dans l'auto-déclaration du LLM.
+  if (!ctx) return canonicalWeekPhase(weekNumber, weekNumber, undefined);
   return canonicalWeekPhase(weekNumber + ctx.weekOffset, ctx.totalWeeks, ctx.objectiveKey);
 }
 
@@ -401,7 +475,7 @@ function runOnePass(
 
   for (const chunk of chunks) {
     for (const week of chunk.weeks ?? []) {
-      const weekPhase = phaseCtx ? resolveWeekPhase(week.phase, week.weekNumber, phaseCtx) : (week.phase as PlanPhase);
+      const weekPhase = resolveWeekPhase(week.phase, week.weekNumber, phaseCtx);
       const quotaEntry = quotasByWeek[week.weekNumber] ?? null;
 
       // ── STEP 1-3 : per-session substitutions ───────────────────────────
@@ -455,6 +529,11 @@ function runOnePass(
             restrictToIds,
             ledger,
             limiterKeywordsByRank,
+            // Audit "B-5K-BEGINNER round 2" (consigne coach) : une réparation
+            // de DURÉE ne doit jamais changer la famille d'intensité (easy/
+            // threshold/vo2) — la fiche d'origine n'est pas en cause ici,
+            // seule sa durée l'est.
+            preserveOriginalFamily: true,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -539,6 +618,14 @@ function runOnePass(
         for (const sp of specs) {
           if (sp.min < 1) continue;
           if (KEY_FLOOR_SPORTS.has(sp.sport) ? cntKey(sp.sport) > 0 : cnt(sp.sport) > 0) continue;
+          // Audit "B-5K-BEGINNER round 2" (consigne coach) : un plancher SL
+          // (sortie longue run/bike) est SANS AMBIGUÏTÉ une séance facile —
+          // `requireFamily: "easy"` l'impose en dur, jamais seulement un bonus
+          // de score. Pas appliqué au plancher générique de présence (ex.
+          // renfo), qui ne porte aucune intention "facile" déclarée.
+          const isSLFloor =
+            (sp.sport === "bike" && floors.longRideWeekly && !!floors.slLongRideMin) ||
+            (sp.sport === "run" && floors.longRunWeekly && !!floors.slLongRunMin);
           const floor =
             sp.sport === "bike" && floors.longRideWeekly && floors.slLongRideMin ? floors.slLongRideMin :
             sp.sport === "run" && floors.longRunWeekly && floors.slLongRunMin ? floors.slLongRunMin :
@@ -552,6 +639,7 @@ function runOnePass(
             restrictToIds,
             ledger,
             limiterKeywordsByRank,
+            requireFamily: isSLFloor ? "easy" : undefined,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -683,7 +771,7 @@ function dedupeWithinWeek(
 ): void {
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
-      const weekPhase = phaseCtx ? resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx) : (wk.phase as PlanPhase);
+      const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
       const seenIds = new Set<string>();
       for (const s of (wk.sessions ?? []) as PlanSession[]) {
         if (s.sport === "rest") continue;
@@ -706,6 +794,9 @@ function dedupeWithinWeek(
           restrictToIds,
           ledger,
           excludeIdsThisWeek: seenIds,
+          // Audit "B-5K-BEGINNER round 2" : un doublon se résout en cherchant
+          // une AUTRE fiche du même rôle, jamais en changeant de famille.
+          preserveOriginalFamily: true,
         }, id);
         if (repl) {
           assignFiche(s, repl, s.durationMin, ledger);
@@ -747,7 +838,7 @@ function dedupeFastedWithinWeek(
 ): void {
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
-      const weekPhase = phaseCtx ? resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx) : (wk.phase as PlanPhase);
+      const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
       const sessions = (wk.sessions ?? []) as PlanSession[];
       const fastedSessions = sessions.filter(s => s.sport !== "rest" && sessionIsFastedPattern(s));
       if (fastedSessions.length < 2) continue;
@@ -774,6 +865,11 @@ function dedupeFastedWithinWeek(
           ledger,
           excludeIdsThisWeek: otherUsedIds,
           excludeFastedPattern: true,
+          // Audit "B-5K-BEGINNER round 2" : remplacer une séance à jeun
+          // excédentaire par une alternative non-fasted ne doit pas non plus
+          // changer de famille d'intensité (ex. une sortie longue à jeun
+          // facile ne doit pas devenir une séance qualité non-fasted).
+          preserveOriginalFamily: true,
         }, id ?? undefined);
         const label = id ?? "custom";
         if (repl) {
@@ -1536,6 +1632,105 @@ function enforceMaxSessionsPerDay(
   }
 }
 
+// ── Accumulation de séances exigeantes (garde-fou proactif) ────────────────
+// Audit "B-5K-BEGINNER round 2" (JSON réel, consigne coach P1 suite PR #376) :
+// S4/S10 cumulaient 3 séances "vo2" (sprints côtes + fartlek intense + VMA
+// piste) dans la MÊME semaine d'une débutante à 3 séances/semaine.
+// `validateDemandingSessionAccumulation` (planValidator.ts) DÉTECTE déjà ce
+// cas après génération — mais rien ne l'empêchait d'apparaître. Même seuil
+// PROPORTIONNEL (`demandingSessionCap`, dupliqué volontairement : le client
+// ne dépend pas du moteur serveur/validateur pour une formule aussi simple,
+// cf. docstring planValidator.ts) — un plan à 3 séances/semaine tolère au
+// plus 1 séance "vo2", un plan à 6 séances/semaine en tolère 3.
+//
+// Strictement scopé comme le validateur : seulement si le signal de niveau
+// est RÉELLEMENT fiable (jamais le fallback-prudent) et seulement pour
+// untrained/light — un confirmé (même visant "finisher") garde l'accès
+// complet. N'interdit JAMAIS la famille "vo2" en général : seule
+// la séance EXCÉDENTAIRE (au-delà du seuil) est downgradée vers
+// threshold/easy, en préservant en priorité les séances-clé. Si aucune
+// alternative compatible n'existe (phase + sport + durée + famille
+// threshold/easy), la séance initiale est CONSERVÉE et le conflit
+// signalé — jamais de suppression ni de dégradation incompatible
+// silencieuse (cf. consigne coach).
+const DEMANDING_ACCUMULATION_LEVELS = new Set(["untrained", "light"]);
+const DEMANDING_ACCUMULATION_RELIABLE_SOURCES = new Set(["manual", "auto-tss"]);
+
+function demandingSessionCap(activeCount: number): number {
+  return Math.max(1, Math.floor(activeCount / 2));
+}
+
+function sessionZoneMaxForFamily(s: PlanSession): number {
+  if (!s.custom && s.catalogId) {
+    const fiche = ficheFor(s.catalogId);
+    if (fiche) return ficheMainZoneMax(fiche);
+  }
+  return instanceMaxZone(s);
+}
+
+function enforceDemandingAccumulation(
+  chunks: PlanChunk[],
+  trainingLevelSignal: { trainingLevel: string; trainingLevelSource: string } | null | undefined,
+  counters: ReconcilerCounters,
+  logs: string[],
+  ledger?: UsageLedger,
+  restrictToIds?: Set<string>,
+  phaseCtx?: PhaseCtx,
+): void {
+  if (!trainingLevelSignal) return;
+  if (!DEMANDING_ACCUMULATION_RELIABLE_SOURCES.has(trainingLevelSignal.trainingLevelSource)) return;
+  if (!DEMANDING_ACCUMULATION_LEVELS.has(trainingLevelSignal.trainingLevel)) return;
+
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      const sessions = (wk.sessions ?? []) as PlanSession[];
+      const active = sessions.filter(s => s.sport !== "rest");
+      if (active.length === 0) continue;
+
+      const cap = demandingSessionCap(active.length);
+      const demanding = active.filter(s => intensityFamily(sessionZoneMaxForFamily(s)) === "vo2");
+      if (demanding.length <= cap) continue;
+
+      // Conserve en priorité les séances-clé (même logique que
+      // enforceMaxSessionsPerDay) ; downgrade l'excédent, ordre d'origine sinon.
+      const ordered = [...demanding].sort((a, b) => {
+        const ak = a.isKeySession ? 0 : 1;
+        const bk = b.isKeySession ? 0 : 1;
+        return ak - bk;
+      });
+      const excess = ordered.slice(cap);
+      const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
+
+      for (const s of excess) {
+        const id = s.custom ? null : s.catalogId;
+        const original = id ? ficheFor(id) : null;
+        const repl = findReplacement({
+          sport: normSport(s.sport),
+          weekPhase,
+          targetDur: s.durationMin ?? 0,
+          original,
+          restrictToIds,
+          ledger,
+          excludeFamily: "vo2",
+        }, id ?? undefined);
+        const label = id ?? s.title ?? "custom";
+        if (repl) {
+          assignFiche(s, repl, s.durationMin, ledger);
+          counters.demanding_accumulation_downgraded = (counters.demanding_accumulation_downgraded ?? 0) + 1;
+          logs.push(
+            `[demanding_accumulation_downgraded] S${wk.weekNumber} ${s.day} ${label} (${demanding.length} séances "vo2" sur ${active.length} actives > seuil ${cap}, niveau ${trainingLevelSignal.trainingLevel}/${trainingLevelSignal.trainingLevelSource}) → ${repl.id}`,
+          );
+        } else {
+          counters.demanding_accumulation_unresolved = (counters.demanding_accumulation_unresolved ?? 0) + 1;
+          logs.push(
+            `[demanding_accumulation_unresolved] S${wk.weekNumber} ${s.day} ${label} — aucune alternative threshold/easy disponible (${demanding.length} séances "vo2" sur ${active.length} actives > seuil ${cap}, phase=${weekPhase})`,
+          );
+        }
+      }
+    }
+  }
+}
+
 export interface RunReconcilerOptions {
   /** Clé d'objectif normalisée (normalizeObjectiveKey) — pilote l'affûtage minimal. */
   objectiveKey?: string | null;
@@ -1579,6 +1774,17 @@ export interface RunReconcilerOptions {
    * un cas rare) — sans aucun ciblage mécanique côté client non plus.
    */
   identifiedLimiters?: string[] | null;
+  /**
+   * P1 "B-5K-BEGINNER round 2" (consigne coach, suite PR #376) : signal de
+   * niveau réel de l'athlète (PlanConfig.ambitionMeta.trainingLevel/
+   * trainingLevelSource) — même convention que
+   * `workoutCatalogBuilder.ts::beginnerIntensitySignal`. Pilote
+   * `enforceDemandingAccumulation` : downgrade proactivement l'excédent de
+   * séances "vo2" dans une semaine, mais SEULEMENT si la source est fiable
+   * (manual/auto-tss, jamais fallback-prudent) et le niveau untrained/light.
+   * `null`/absent = contrôle inactif (comportement legacy inchangé).
+   */
+  beginnerIntensitySignal?: { trainingLevel: string; trainingLevelSource: string } | null;
 }
 
 
@@ -1813,6 +2019,7 @@ export function runReconciler(
   } catch { /* ignore */ }
 
   hydrateDilutedZones(chunks, counters, logs);
+  enforceDemandingAccumulation(chunks, opts.beginnerIntensitySignal, counters, logs, usageLedger, injected, phaseCtx);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
   enforceMaxSessionsPerDay(chunks, opts.maxSessionsPerDay, counters, logs);
   return { counters, logs };

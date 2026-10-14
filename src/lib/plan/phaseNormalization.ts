@@ -40,19 +40,54 @@ const WHEN_KEYWORDS: Array<{ rx: RegExp; phase: PlanPhase; strength: "strong" | 
   { rx: /\bbase\b|\bfondation\b|\bpr[eé]paration\s+g[eé]n[eé]rale\b/i, phase: "base", strength: "strong" },
 ];
 
-/** Parse `when` free-text et renvoie l'ensemble des phases reconnues. */
-export function parseWhenPhases(when: string | undefined | null): Set<PlanPhase> {
+/**
+ * Audit "B-5K-BEGINNER round 2" (suite, JSON réel) : bug réel confirmé — le
+ * réconciliateur a substitué un fartlek incompatible phase par
+ * `LYDIARD_RUN_TRACK_VMA` en S1/S2 ("[phase_substituted] ... → LYDIARD_RUN_TRACK_VMA
+ * (phase=base)"), alors que cette fiche déclare explicitement
+ * `avoid:"...Directement en phase base"`. Cause racine : `when` = "Build/Peak
+ * — phase 3 Lydiard. Après 16-24 semaines de **base** + 4-6 semaines de
+ * collines." — le mot "base" apparaît dans une clause de PRÉREQUIS, pas dans
+ * la déclaration d'éligibilité, mais `parseWhenPhases` matchait le texte
+ * entier sans distinction.
+ *
+ * Convention vérifiée sur le catalogue (~145 fiches utilisant "—") :
+ * `when` suit systématiquement `<PHASE(S) ÉLIGIBLES> — <prose/prérequis>`.
+ * On ne regarde donc QUE le segment avant le premier "—"/"–" pour détecter
+ * les mots-clés — et on ne retombe sur le texte entier (comportement legacy
+ * inchangé) QUE si ce segment d'en-tête n'a produit AUCUN mot-clé, pour ne
+ * jamais régresser sur les ~679 fiches sans ce séparateur.
+ */
+function phaseKeywordHeader(when: string): string {
+  const idx = when.search(/[—–]/);
+  return idx >= 0 ? when.slice(0, idx) : when;
+}
+
+function scanPhaseKeywords(text: string): Set<PlanPhase> {
   const out = new Set<PlanPhase>();
-  if (!when) return out;
   for (const { rx, phase } of WHEN_KEYWORDS) {
-    if (rx.test(when)) out.add(phase);
+    if (rx.test(text)) out.add(phase);
   }
   return out;
 }
 
-/** Vérifie si `when` contient un mot-clé phase "fort" (=intention explicite). */
+/** Parse `when` free-text et renvoie l'ensemble des phases reconnues. */
+export function parseWhenPhases(when: string | undefined | null): Set<PlanPhase> {
+  if (!when) return new Set();
+  const header = phaseKeywordHeader(when);
+  const fromHeader = scanPhaseKeywords(header);
+  return fromHeader.size > 0 ? fromHeader : scanPhaseKeywords(when);
+}
+
+/** Vérifie si `when` contient un mot-clé phase "fort" (=intention explicite),
+ *  avec la même priorité en-tête-puis-repli que `parseWhenPhases` ci-dessus. */
 export function hasStrongPhaseKeyword(when: string | undefined | null): boolean {
   if (!when) return false;
+  const header = phaseKeywordHeader(when);
+  const headerHasStrong = WHEN_KEYWORDS.some(k => k.strength === "strong" && k.rx.test(header));
+  if (headerHasStrong) return true;
+  const headerHasAny = scanPhaseKeywords(header).size > 0;
+  if (headerHasAny) return false; // en-tête avec un mot-clé faible seulement → pas de repli sur la prose
   return WHEN_KEYWORDS.some(k => k.strength === "strong" && k.rx.test(when));
 }
 

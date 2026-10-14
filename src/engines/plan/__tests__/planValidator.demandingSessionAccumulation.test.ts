@@ -50,6 +50,18 @@ const TWO_DEMANDING_ONE_EASY: Partial<ParsedSession>[] = [
   { sport: "Course", title: "EF Z2 30min", details: "Endurance fondamentale", zones: ["Z2"] as any },
 ];
 
+// Plan à 5 séances/semaine (fréquence confirmée) : 2 "high" sur 5, le même
+// RATIO d'exigence que TWO_DEMANDING_ONE_EASY mais un dénominateur plus
+// large — le seuil proportionnel (`demandingSessionCap`) ne doit PAS flaguer
+// ce cas, alors qu'il flague désormais le cas à 3 séances/semaine.
+const TWO_DEMANDING_THREE_EASY: Partial<ParsedSession>[] = [
+  { sport: "Course", title: "Sprints côtes", details: "8x200m côte", zones: ["Z6"] as any },
+  { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] as any },
+  { sport: "Course", title: "EF Z2 30min", details: "Endurance fondamentale", zones: ["Z2"] as any },
+  { sport: "Course", title: "EF Z2 40min", details: "Endurance fondamentale", zones: ["Z2"] as any },
+  { sport: "Course", title: "EF Z1 30min", details: "Endurance fondamentale", zones: ["Z1"] as any },
+];
+
 function vp(p: ParsedPlan, trainingLevelSignal?: { trainingLevel: string; trainingLevelSource: string } | null) {
   return validatePlan(
     p, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
@@ -66,8 +78,21 @@ describe("validateDemandingSessionAccumulation — accumulation de séances exig
     expect(issue?.severity).toBe("error");
   });
 
-  it("2 séances 'high' seulement (≤ seuil) → pas flaguée", () => {
+  it("2 séances 'high' sur 3 séances/semaine (seuil proportionnel = 1) → flaguée", () => {
+    // P1 (consigne coach) : seuil proportionnel plutôt que fixe — sur un
+    // plan à seulement 3 séances/semaine, demandingSessionCap(3)=1, donc
+    // 2 séances exigeantes dépassent déjà la tolérance raisonnable.
     const result = vp(plan([week(1, TWO_DEMANDING_ONE_EASY)]), { trainingLevel: "untrained", trainingLevelSource: "manual" });
+    expect(result.issues.find((i) => i.rule === "demanding_session_accumulation")).toBeDefined();
+  });
+
+  it("2 séances 'high' sur 5 séances/semaine (seuil proportionnel = 2) → pas flaguée", () => {
+    // Même nombre absolu de séances exigeantes que le cas précédent, mais
+    // un dénominateur plus large (athlète à plus haute fréquence) :
+    // demandingSessionCap(5)=2, donc 2 reste dans la tolérance — preuve que
+    // le garde-fou est bien proportionné au nombre de séances disponibles,
+    // pas un plafond absolu déguisé.
+    const result = vp(plan([week(1, TWO_DEMANDING_THREE_EASY)]), { trainingLevel: "untrained", trainingLevelSource: "manual" });
     expect(result.issues.find((i) => i.rule === "demanding_session_accumulation")).toBeUndefined();
   });
 

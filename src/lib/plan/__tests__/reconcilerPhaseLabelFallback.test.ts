@@ -86,12 +86,33 @@ describe("runReconciler — phase catalogue recalculée numériquement quand wee
     expect(s.catalogId).toBe("LYDIARD_RUN_TRACK_VMA");
   });
 
-  it("enum propre déjà fiable ('base') → comportement inchangé, substitution sans attendre globalTotalWeeks", () => {
+  it("enum propre et cohérent ('base', semaine 1/12 réellement base) → substitution normale", () => {
     const s = makeSession();
     const chunk = makeChunk(1, "base", s);
-    const rec = runReconciler([chunk], {}, 2); // pas d'opts — totalWeeks replié sur 1 semaine locale
+    const rec = runReconciler([chunk], {}, 2, undefined, { globalTotalWeeks: 12, globalWeekOffset: 0 });
     expect(rec.counters.phase_substituted).toBe(1);
     expect(s.catalogId).toBe("BASE_RUN_AEROBIE_CONTINU");
+  });
+
+  // P0 (consigne coach, suite PR #376) : "Ne fais pas confiance à week.phase
+  // lorsqu'il est déclaré par le LLM, même si sa valeur est syntaxiquement
+  // valide. Utilise le calcul canonique de phase pour vérifier l'éligibilité."
+  // Avant ce correctif, un enum PROPRE mais FAUX (le LLM auto-déclare "build"
+  // pour sa semaine 1 alors qu'elle est numériquement "base") était gardé tel
+  // quel par `resolveWeekPhase` — Lydiard (build/peak) passait alors comme
+  // "compatible" avec ce faux "build" et n'était jamais substitué. Preuve
+  // directe sur le JSON réel (log réconciliateur) : le réconciliateur avait
+  // bien calculé weekPhase=base pour S1/S2 (donc ce n'était pas CE bug
+  // précis qui a laissé passer Lydiard dans ce run — cf. phaseNormalization
+  // fix) ; ce test couvre le cas où le LLM se mécompte lui-même, qui reste
+  // un vecteur distinct et confirmé par la consigne coach.
+  it("enum propre mais FAUX ('build' auto-déclaré par le LLM pour une semaine 1/12 réellement 'base') → le calcul numérique prime, Lydiard substitué quand même", () => {
+    const s = makeSession();
+    const chunk = makeChunk(1, "build", s); // auto-déclaration LLM syntaxiquement valide mais fausse
+    const rec = runReconciler([chunk], {}, 2, undefined, { globalTotalWeeks: 12, globalWeekOffset: 0 });
+    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("BASE_RUN_AEROBIE_CONTINU");
+    expect(rec.logs.some(l => l.includes("[phase_substituted]") && l.includes("LYDIARD_RUN_TRACK_VMA"))).toBe(true);
   });
 
   it("aucun substitut disponible → séance JAMAIS supprimée, conflit signalé (phase_unresolved)", () => {

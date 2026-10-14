@@ -1070,13 +1070,28 @@ function validateWeeklyHardDayDensity(plan: ParsedPlan): { issues: ValidationIss
  * et `trainingLevel` restent deux axes distincts, jamais assimilés).
  *
  * N'interdit JAMAIS VMA/côtes/fartlek/accélérations en général — seule
- * l'ACCUMULATION (>2 séances "high" la même semaine, calculée via
- * `classifySessionIntensity`, qui lit déjà les zones structurées en
- * priorité) est signalée ; chaque séance individuelle reste autorisée.
+ * l'ACCUMULATION (calculée via `classifySessionIntensity`, qui lit déjà les
+ * zones structurées en priorité) est signalée ; chaque séance individuelle
+ * reste autorisée.
+ *
+ * P1 (consigne coach, suite PR #376) : seuil rendu PROPORTIONNEL au nombre
+ * de séances actives de la semaine (`demandingSessionCap`) plutôt qu'une
+ * valeur fixe — un plan à 3 séances/semaine (cas réel B-5K-BEGINNER, S4/S10 :
+ * 3 séances exigeantes sur 3) et un plan à 6 séances/semaine n'ont pas la
+ * même tolérance raisonnable à l'accumulation. Même formule que le garde-fou
+ * côté réconciliateur (`enforceDemandingAccumulation`, planReconciler.ts) —
+ * la détection et la correction doivent s'accorder sur le même seuil.
  */
 const BEGINNER_TRAINING_LEVELS = new Set(["untrained", "light"]);
 const RELIABLE_TRAINING_LEVEL_SOURCES = new Set(["manual", "auto-tss"]);
-const BEGINNER_MAX_HIGH_SESSIONS_PER_WEEK = 2;
+/** Au plus la moitié (arrondi bas, minimum 1) des séances actives de la
+ *  semaine peut être "exigeante" pour un débutant confirmé. Exporté pour que
+ *  le garde-fou proactif côté réconciliateur (`enforceDemandingAccumulation`,
+ *  planReconciler.ts) applique exactement le même seuil — la détection
+ *  (ici) et la correction (là) doivent s'accorder. */
+export function demandingSessionCap(activeCount: number): number {
+  return Math.max(1, Math.floor(activeCount / 2));
+}
 
 export interface TrainingLevelSignal {
   trainingLevel: string;
@@ -1103,7 +1118,7 @@ function validateDemandingSessionAccumulation(
     if (active.length === 0 || weekHasRaceDay(week)) continue;
     checked++;
     const demanding = active.filter((s) => classifySessionIntensity(s) === "high");
-    if (demanding.length > BEGINNER_MAX_HIGH_SESSIONS_PER_WEEK) {
+    if (demanding.length > demandingSessionCap(active.length)) {
       issues.push({
         rule: "demanding_session_accumulation",
         severity: "error",
