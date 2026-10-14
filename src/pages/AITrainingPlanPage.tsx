@@ -2287,6 +2287,11 @@ export default function AITrainingPlanPage() {
           // laisser validatePlan deviner via le titre/thème du plan.
           raceFormat === "lcw_3day" || raceGoals.some((g) => g?.raceFormat === "lcw_3day"),
           cfg?.deloadCadenceWeeks,
+          // P1 (audit "B-5K-BEGINNER round 2") : signal de niveau réel —
+          // jamais le fallback-prudent, cf. validateDemandingSessionAccumulation.
+          cfg?.ambitionMeta
+            ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+            : null,
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;
@@ -2687,6 +2692,9 @@ export default function AITrainingPlanPage() {
               // limiteurs, pas seulement L1) que le chemin de génération
               // complète (useAITrainingPlan.ts).
               identifiedLimiters: (fullPlanConfig as any)?.identifiedLimitersRaw ?? (fullPlanConfig as any)?.identifiedLimiters ?? null,
+              // P0 (audit "B-5K-BEGINNER round 2") : même plafond que la génération
+              // complète (useAITrainingPlan.ts) — cf. enforceMaxSessionsPerDay.
+              maxSessionsPerDay: fullPlanConfig.maxSessionsPerDay ?? null,
             },
           );
           console.log(`[handleRegenerateWeek] reconciler S${weekNumber}:`, rec.counters);

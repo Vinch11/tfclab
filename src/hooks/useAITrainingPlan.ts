@@ -1413,6 +1413,9 @@ export function useAITrainingPlan() {
                 // — sans ça, le réconciliateur client pouvait remplacer une
                 // insertion serveur ciblant le limiteur par une fiche générique.
                 identifiedLimiters: planConfig.identifiedLimitersRaw ?? planConfig.identifiedLimiters ?? null,
+                // P0 (audit "B-5K-BEGINNER round 2") : fait respecter le plafond
+                // coach explicite — cf. enforceMaxSessionsPerDay (planReconciler.ts).
+                maxSessionsPerDay: planConfig.maxSessionsPerDay ?? null,
               });
 
               const c = rec.counters;

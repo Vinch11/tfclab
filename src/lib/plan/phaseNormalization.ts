@@ -14,6 +14,7 @@
  */
 
 import type { LibraryWorkout, PhaseTag } from "@/types/workoutLibrary";
+import { inferWeekType } from "@/engines/plan/sessionSizingMatrix";
 
 export type PlanPhase = "base" | "build" | "peak" | "taper";
 
@@ -80,6 +81,38 @@ export function ficheAllowedPhases(fiche: LibraryWorkout): Set<PlanPhase> {
   }
   if (fromWhen.size > 0) return fromWhen;
   return fromTag;
+}
+
+/**
+ * Phase CATALOGUE ("base"|"build"|"peak"|"taper") d'une semaine donnée, calculée
+ * numériquement depuis sa position dans le plan — jamais déduite d'un libellé
+ * libre (`week.phase`/`week.theme` peuvent contenir un texte de récap humain
+ * incohérent avec le calcul réel, cf. `normalizeWeeksPhases.ts`).
+ *
+ * Même seuils que la référence serveur `inferPhaseFromWeek` (jsonPlanHandler.ts)
+ * et que son port client déjà existant (`planWindowRegen.ts::catalogPhaseForGlobalWeek`,
+ * `inferWeekType` ici réutilisé directement) : taper = fenêtre
+ * `taperWeeksForObjective(objective)` avant la course, puis base ≤30%,
+ * build ≤70%, peak au-delà.
+ *
+ * Audit "B-5K-BEGINNER round 2" : `checksB10B11.ts::normalizedPhase()` et la
+ * passe de réconciliation phase/catalogue (`planReconciler.ts`) lisaient
+ * jusqu'ici `week.phase` en texte libre — source de deux défauts démontrés
+ * (ordre de priorité peak-avant-build, retour `null` silencieux sur libellé
+ * non reconnu). Cette fonction remplace cette lecture de texte libre là où
+ * `weekNumber`/`totalWeeks` sont disponibles (toujours le cas sur `MergedPlan`).
+ */
+export function canonicalWeekPhase(
+  weekNumber: number,
+  totalWeeks: number,
+  objective: string | null | undefined,
+): PlanPhase {
+  const weekType = inferWeekType(weekNumber, totalWeeks, objective);
+  if (weekType === "taper" || weekType === "race") return "taper";
+  const pct = weekNumber / Math.max(totalWeeks, 1);
+  if (pct <= 0.30) return "base";
+  if (pct <= 0.70) return "build";
+  return "peak";
 }
 
 /** True si la fiche est compatible avec au moins UNE des phases fournies (ou fiche libre). */

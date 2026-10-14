@@ -195,6 +195,9 @@ export function usePlanAdaptation() {
           undefined,
           undefined,
           args.planConfig.deloadCadenceWeeks,
+          args.planConfig.ambitionMeta
+            ? { trainingLevel: args.planConfig.ambitionMeta.trainingLevel, trainingLevelSource: args.planConfig.ambitionMeta.trainingLevelSource }
+            : null,
         );
         const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 
@@ -311,6 +314,9 @@ export function usePlanAdaptation() {
           undefined,
           undefined,
           req.baseConfig.deloadCadenceWeeks,
+          req.baseConfig.ambitionMeta
+            ? { trainingLevel: req.baseConfig.ambitionMeta.trainingLevel, trainingLevelSource: req.baseConfig.ambitionMeta.trainingLevelSource }
+            : null,
         );
         const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 

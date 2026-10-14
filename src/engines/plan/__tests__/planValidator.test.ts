@@ -1043,6 +1043,74 @@ describe("planValidator", () => {
       expect(result.issues.filter(i => i.rule === "rest_day_coherence")).toHaveLength(0);
     });
 
+    // Audit "B-5K-BEGINNER round 2" (JSON réel) — 4 faux positifs confirmés
+    // par correspondance exacte de texte sur le run réel.
+    it("n'flague pas 'repos' (muscul dans neuromusculaire, pas de contenu actif)", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Repos", title: "Repos", details: "Assimilation neuromusculaire et repos.", isRest: true },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      expect(result.issues.filter(i => i.rule === "rest_day_coherence" && /contenu actif/i.test(i.message))).toHaveLength(0);
+    });
+
+    it("n'flague pas 'repos' niant explicitement cardio/renforcement ('sans...ni')", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Repos", title: "Repos", details: "Journée sans entraînement cardio ni renforcement.", isRest: true },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      expect(result.issues.filter(i => i.rule === "rest_day_coherence" && /contenu actif/i.test(i.message))).toHaveLength(0);
+    });
+
+    it("n'flague pas 'repos' mentionnant 'veille de course' (l'événement, pas une séance)", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Repos", title: "Repos complet — Veille de Course", details: "Repos avant le déverrouillage de veille de course.", isRest: true },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      expect(result.issues.filter(i => i.rule === "rest_day_coherence" && /contenu actif/i.test(i.message))).toHaveLength(0);
+    });
+
+    it("flague toujours un vrai contenu actif même avec une clause niée ailleurs dans le texte", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Repos", title: "Repos", details: "Sans renforcement prévu. 30min de course légère quand même.", isRest: true },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      expect(result.issues.find(i => i.rule === "rest_day_coherence" && /contenu actif/i.test(i.message))).toBeDefined();
+    });
+
+    it("flague toujours 'renfo'/'muscul' comme vrai contenu actif hors négation", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Repos", title: "Repos actif", details: "Renfo léger et travail musculaire.", isRest: true },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      expect(result.issues.find(i => i.rule === "rest_day_coherence" && /contenu actif/i.test(i.message))).toBeDefined();
+    });
+
+    it("flague toujours 'course' comme vraie séance quand ce n'est pas la veille/jour de course", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Repos", title: "Repos actif", details: "30 min de course facile en récupération.", isRest: true },
+      ]);
+      const result = validatePlan(makePlan([week]));
+      expect(result.issues.find(i => i.rule === "rest_day_coherence" && /contenu actif/i.test(i.message))).toBeDefined();
+    });
+
     it("flague une séance identique au même jour 2 semaines consécutives (Règle #1 Anti-Répétition)", () => {
       const sameSession = { sport: "Course", title: "Seuil 2x20min", details: "Z5 seuil" };
       const weeks = [

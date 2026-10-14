@@ -29,7 +29,7 @@ import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { computePlanDiversity, formatDiversitySummary } from "./diversityMetrics";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
-import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
+import { ficheAllowedPhases, canonicalWeekPhase, type PlanPhase } from "@/lib/plan/phaseNormalization";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
@@ -73,6 +73,12 @@ export interface ReconcilerCounters {
   constraint_day_moved?: number;
   constraint_day_unresolved?: number;
   constraint_banned_sport_removed?: number;
+  /** P0 "B-5K-BEGINNER round 2" : maxSessionsPerDay dépassé → séance déplacée
+   *  vers le jour de la semaine le moins chargé encore sous le plafond. */
+  max_sessions_per_day_moved?: number;
+  /** Aucun jour de la semaine ne peut accueillir la séance sous le plafond
+   *  (calendrier impossible) → laissée en place, jamais supprimée silencieusement. */
+  max_sessions_per_day_unresolved?: number;
   /** Nombre d'occurrences de la fiche la plus répétée dans le plan final. */
   diversity_max_repeat?: number;
   /** Doublon de catalogId détecté DANS LA MÊME SEMAINE (introduit par les
@@ -349,6 +355,35 @@ function assignFiche(session: PlanSession, fiche: LibraryWorkout, keepDuration?:
   }
 }
 
+/**
+ * Contexte de résolution de phase, partagé par les passes ci-dessous.
+ * `totalWeeks`/`weekOffset` = plan ENTIER (cf. RunReconcilerOptions.globalTotalWeeks/
+ * globalWeekOffset), pas seulement les semaines couvertes par `chunks`.
+ */
+interface PhaseCtx {
+  totalWeeks: number;
+  weekOffset: number;
+  objectiveKey: string | null | undefined;
+}
+
+/**
+ * Audit "B-5K-BEGINNER round 2" : `week.phase` (zPhase côté LLM : base/build/
+ * peak/taper) est fiable tant qu'il n'a pas encore été réécrit en libellé
+ * humain par `normalizeWeeksAndPhases` (ex: "Phase 1 — Adaptation & Socle
+ * Aérobie", confirmé sur le JSON réel du run B-5K-BEGINNER) — un libellé que
+ * les passes ci-dessous ne doivent jamais essayer de reparser en texte libre.
+ * Quand `week.phase` est déjà l'une des 4 valeurs propres → on la garde telle
+ * quelle (donnée déjà fiable, ne rien recalculer). Sinon → phase CATALOGUE
+ * recalculée numériquement (`canonicalWeekPhase`, même seuils que la
+ * référence serveur `inferPhaseFromWeek`), jamais déduite du libellé.
+ */
+function resolveWeekPhase(rawPhase: string, weekNumber: number, ctx: PhaseCtx): PlanPhase {
+  if (rawPhase === "base" || rawPhase === "build" || rawPhase === "peak" || rawPhase === "taper") {
+    return rawPhase;
+  }
+  return canonicalWeekPhase(weekNumber + ctx.weekOffset, ctx.totalWeeks, ctx.objectiveKey);
+}
+
 // ── Passe unique ───────────────────────────────────────────────────────────
 function runOnePass(
   chunks: PlanChunk[],
@@ -358,6 +393,7 @@ function runOnePass(
   restrictToIds?: Set<string>,
   ledger?: UsageLedger,
   limiterKeywordsByRank?: string[][],
+  phaseCtx?: PhaseCtx,
 ): boolean {
   let anyChange = false;
   const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
@@ -365,7 +401,7 @@ function runOnePass(
 
   for (const chunk of chunks) {
     for (const week of chunk.weeks ?? []) {
-      const weekPhase = week.phase as PlanPhase;
+      const weekPhase = phaseCtx ? resolveWeekPhase(week.phase, week.weekNumber, phaseCtx) : (week.phase as PlanPhase);
       const quotaEntry = quotasByWeek[week.weekNumber] ?? null;
 
       // ── STEP 1-3 : per-session substitutions ───────────────────────────
@@ -643,10 +679,11 @@ function dedupeWithinWeek(
   logs: string[],
   ledger?: UsageLedger,
   restrictToIds?: Set<string>,
+  phaseCtx?: PhaseCtx,
 ): void {
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
-      const weekPhase = wk.phase as PlanPhase;
+      const weekPhase = phaseCtx ? resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx) : (wk.phase as PlanPhase);
       const seenIds = new Set<string>();
       for (const s of (wk.sessions ?? []) as PlanSession[]) {
         if (s.sport === "rest") continue;
@@ -706,10 +743,11 @@ function dedupeFastedWithinWeek(
   logs: string[],
   ledger?: UsageLedger,
   restrictToIds?: Set<string>,
+  phaseCtx?: PhaseCtx,
 ): void {
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
-      const weekPhase = wk.phase as PlanPhase;
+      const weekPhase = phaseCtx ? resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx) : (wk.phase as PlanPhase);
       const sessions = (wk.sessions ?? []) as PlanSession[];
       const fastedSessions = sessions.filter(s => s.sport !== "rest" && sessionIsFastedPattern(s));
       if (fastedSessions.length < 2) continue;
@@ -1417,6 +1455,87 @@ function enforceAthleteConstraints(
   }
 }
 
+// ── maxSessionsPerDay (filet déterministe) ─────────────────────────────────
+// Audit "B-5K-BEGINNER round 2" (JSON réel) : `planConfig.maxSessionsPerDay=1`
+// transmis au prompt, mais rien ne le fait respecter en aval si le LLM ne
+// s'y conforme pas — 8 semaines (S1-S8) d'un run réel avaient 2 séances le
+// même jour malgré cette consigne explicite (`validateSessionDensity`,
+// planValidator.ts, le DÉTECTE déjà — rien ne le CORRIGEAIT). Même principe
+// que `enforceAthleteConstraints` ci-dessus : DÉPLACE l'excédent vers le
+// jour de la semaine le moins chargé encore sous le plafond, ne supprime
+// JAMAIS une séance pour satisfaire la contrainte. Si aucun jour de la
+// semaine ne peut l'accueillir (calendrier impossible : trop de séances pour
+// le nombre de jours × maxSessionsPerDay), la séance reste en place et le
+// conflit est journalisé explicitement plutôt que résolu silencieusement.
+function enforceMaxSessionsPerDay(
+  chunks: PlanChunk[],
+  maxSessionsPerDay: number | null | undefined,
+  counters: ReconcilerCounters,
+  logs: string[],
+): void {
+  if (!maxSessionsPerDay || maxSessionsPerDay <= 0) return;
+
+  function computeLoad(sessions: PlanSession[]): Record<string, number> {
+    const load: Record<string, number> = {};
+    for (const other of sessions) {
+      if (other.sport === "rest") continue;
+      const d = normalizeDayLabel(other.day);
+      if (d) load[d] = (load[d] ?? 0) + 1;
+    }
+    return load;
+  }
+
+  for (const chunk of chunks) {
+    for (const week of chunk.weeks ?? []) {
+      const sessions = (week.sessions ?? []) as PlanSession[];
+      const weekNum = week.weekNumber;
+
+      const byDay = new Map<string, PlanSession[]>();
+      for (const s of sessions) {
+        if (s.sport === "rest") continue;
+        const day = normalizeDayLabel(s.day);
+        if (!day) continue;
+        const arr = byDay.get(day) ?? [];
+        arr.push(s);
+        byDay.set(day, arr);
+      }
+
+      for (const [day, daySessions] of byDay) {
+        if (daySessions.length <= maxSessionsPerDay) continue;
+        // Conserve en priorité les séances-clé sur leur jour d'origine ;
+        // déplace l'excédent (ordre d'origine sinon, jamais aléatoire).
+        const ordered = [...daySessions].sort((a, b) => {
+          const ak = a.isKeySession ? 0 : 1;
+          const bk = b.isKeySession ? 0 : 1;
+          return ak - bk;
+        });
+        const toMove = ordered.slice(maxSessionsPerDay);
+        for (const s of toMove) {
+          const load = computeLoad(sessions); // recalculé : un déplacement précédent a pu changer la charge
+          const candidates = WEEK_DAYS.filter((d) => d !== day).sort(
+            (a, b) => (load[a] ?? 0) - (load[b] ?? 0),
+          );
+          const target = candidates[0];
+          if (!target || (load[target] ?? 0) >= maxSessionsPerDay) {
+            counters.max_sessions_per_day_unresolved = (counters.max_sessions_per_day_unresolved ?? 0) + 1;
+            logs.push(
+              `[max_sessions_per_day_unresolved] S${weekNum} — "${s.title ?? s.catalogId ?? "?"}" reste sur ${day} ` +
+              `(${daySessions.length} séances ce jour, max autorisé ${maxSessionsPerDay} — aucun jour de la semaine disponible sous le plafond)`,
+            );
+            continue;
+          }
+          s.day = target;
+          counters.max_sessions_per_day_moved = (counters.max_sessions_per_day_moved ?? 0) + 1;
+          logs.push(
+            `[max_sessions_per_day_moved] S${weekNum} — "${s.title ?? s.catalogId ?? "?"}" ${day} → ${target} ` +
+            `(maxSessionsPerDay=${maxSessionsPerDay} dépassé sur ${day})`,
+          );
+        }
+      }
+    }
+  }
+}
+
 export interface RunReconcilerOptions {
   /** Clé d'objectif normalisée (normalizeObjectiveKey) — pilote l'affûtage minimal. */
   objectiveKey?: string | null;
@@ -1424,6 +1543,13 @@ export interface RunReconcilerOptions {
   isLcw3Day?: boolean;
   /** Champ libre "Contraintes" saisi par le coach (jours off, sports interdits, blessures). */
   constraints?: string | null;
+  /**
+   * P0 "B-5K-BEGINNER round 2" : plafond coach explicite (PlanConfig.maxSessionsPerDay)
+   * — déplace toute séance excédentaire vers un jour disponible de la même
+   * semaine (jamais de suppression silencieuse), cf. enforceMaxSessionsPerDay.
+   * Non fourni ou ≤0 = aucune application (comportement legacy inchangé).
+   */
+  maxSessionsPerDay?: number | null;
   /**
    * Nombre RÉEL de semaines du plan entier (PlanConfig.globalTotalWeeks) —
    * distinct du nombre de semaines couvertes par `chunks` en régénération
@@ -1480,6 +1606,17 @@ export function runReconciler(
   };
   const logs: string[] = [];
 
+  // Audit "B-5K-BEGINNER round 2" : `globalTotalWeeks` non fourni (tests
+  // unitaires, appels legacy) → comportement inchangé, le plan ENTIER est
+  // supposé être couvert par `chunks` (même repli que ensureRaceDaySession
+  // ci-dessous — Math.max 1 pour éviter une division par zéro).
+  const legacyTotalWeeks = Math.max(1, ...chunks.flatMap(ch => (ch.weeks ?? []).map(w => w.weekNumber ?? 0)));
+  const phaseCtx: PhaseCtx = {
+    totalWeeks: opts.globalTotalWeeks ?? legacyTotalWeeks,
+    weekOffset: opts.globalWeekOffset ?? 0,
+    objectiveKey: opts.objectiveKey,
+  };
+
   // ── Filet de mapping voisin (Reco 3 + Reco B) ──
   // Passe PRÉLIMINAIRE : remap catalogId absent du catalogue injecté vers
   //   un voisin sûr du catalogue injecté (5 garde-fous stricts).
@@ -1523,7 +1660,7 @@ export function runReconciler(
     let noSafe = 0;
     for (const chunk of chunks) {
       for (const week of chunk.weeks ?? []) {
-        const weekPhase = week.phase as PlanPhase;
+        const weekPhase = resolveWeekPhase(week.phase, week.weekNumber, phaseCtx);
         for (const s of (week.sessions ?? []) as PlanSession[]) {
           if ((s as any).isRest || s.sport === "rest") continue;
           if (passLabel === "pre") debugStats.sessionsScanned++;
@@ -1629,7 +1766,7 @@ export function runReconciler(
   // pour ne PAS réintroduire d'ID hors-catalogue via phase/durée/discipline.
   let anyOnePassChange = false;
   for (let i = 0; i < maxPasses; i++) {
-    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected, usageLedger, limiterKeywordsByRank);
+    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected, usageLedger, limiterKeywordsByRank, phaseCtx);
     if (changed) anyOnePassChange = true;
     if (!changed) break;
   }
@@ -1638,13 +1775,13 @@ export function runReconciler(
   // définition de dedupeWithinWeek. Tourne inconditionnellement (indépendant
   // de anyOnePassChange) : un doublon peut déjà être présent en sortie du
   // générateur, pas uniquement introduit par runOnePass.
-  dedupeWithinWeek(chunks, counters, logs, usageLedger, injected);
+  dedupeWithinWeek(chunks, counters, logs, usageLedger, injected, phaseCtx);
 
   // Filet final plafond cumul "à jeun" — voir commentaire au site de
   // définition de dedupeFastedWithinWeek. Tourne après dedupeWithinWeek :
   // réutilise un ledger/catalogue déjà à jour pour ne pas réintroduire un
   // doublon de catalogId en corrigeant un cumul à jeun.
-  dedupeFastedWithinWeek(chunks, counters, logs, usageLedger, injected);
+  dedupeFastedWithinWeek(chunks, counters, logs, usageLedger, injected, phaseCtx);
 
   // Passe POSTÉRIEURE — filet final : nettoie tout ID hors-catalogue qui
   // aurait été introduit malgré tout (ex : insertion FLOOR sans injected).
@@ -1677,6 +1814,7 @@ export function runReconciler(
 
   hydrateDilutedZones(chunks, counters, logs);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
+  enforceMaxSessionsPerDay(chunks, opts.maxSessionsPerDay, counters, logs);
   return { counters, logs };
 }
 

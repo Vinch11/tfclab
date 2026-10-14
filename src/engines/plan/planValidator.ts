@@ -1051,6 +1051,73 @@ function validateWeeklyHardDayDensity(plan: ParsedPlan): { issues: ValidationIss
   return { issues, score: checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100))) };
 }
 
+/**
+ * Audit "B-5K-BEGINNER round 2" (JSON réel, run post-PR#375) : S4 cumulait
+ * sprints + côtes + fartlek intense, S10 cumulait finish kick + côtes VO2max
+ * + pyramide lactique — 3 stimuli "high" distincts la même semaine, pour une
+ * débutante post-Start-to-Run sur un plan à seulement 3 séances/semaine.
+ * `validateWeeklyHardDayDensity` ci-dessus ne détecte que les semaines à
+ * très forte fréquence (seuil absolu ≥6/7 jours durs sur toute la semaine
+ * calendaire) : une semaine de 3 séances où les 3 sont "high" ne le
+ * déclenche jamais, le dénominateur (7 jours) écrasant le signal.
+ *
+ * Portée volontairement restreinte : ne s'active QUE si le signal de niveau
+ * est RÉELLEMENT fiable — jamais sur le fallback "light" par défaut
+ * (`trainingLevelSource==="fallback-prudent"`, cf. ambitionDowngrade.ts,
+ * qui n'est explicitement pas une mesure fiable du niveau réel de
+ * l'athlète). Et seulement pour untrained/light — un confirmé/compétiteur
+ * visant finisher garde l'accès complet au catalogue avancé (`ambition`
+ * et `trainingLevel` restent deux axes distincts, jamais assimilés).
+ *
+ * N'interdit JAMAIS VMA/côtes/fartlek/accélérations en général — seule
+ * l'ACCUMULATION (>2 séances "high" la même semaine, calculée via
+ * `classifySessionIntensity`, qui lit déjà les zones structurées en
+ * priorité) est signalée ; chaque séance individuelle reste autorisée.
+ */
+const BEGINNER_TRAINING_LEVELS = new Set(["untrained", "light"]);
+const RELIABLE_TRAINING_LEVEL_SOURCES = new Set(["manual", "auto-tss"]);
+const BEGINNER_MAX_HIGH_SESSIONS_PER_WEEK = 2;
+
+export interface TrainingLevelSignal {
+  trainingLevel: string;
+  trainingLevelSource: string;
+}
+
+function validateDemandingSessionAccumulation(
+  plan: ParsedPlan,
+  trainingLevelSignal?: TrainingLevelSignal | null,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (
+    !trainingLevelSignal ||
+    !RELIABLE_TRAINING_LEVEL_SOURCES.has(trainingLevelSignal.trainingLevelSource) ||
+    !BEGINNER_TRAINING_LEVELS.has(trainingLevelSignal.trainingLevel)
+  ) {
+    return { issues, score: 100 };
+  }
+
+  let compliant = 0;
+  let checked = 0;
+  for (const week of plan.weeks) {
+    const active = week.sessions.filter((s) => !s.isRest);
+    if (active.length === 0 || weekHasRaceDay(week)) continue;
+    checked++;
+    const demanding = active.filter((s) => classifySessionIntensity(s) === "high");
+    if (demanding.length > BEGINNER_MAX_HIGH_SESSIONS_PER_WEEK) {
+      issues.push({
+        rule: "demanding_session_accumulation",
+        severity: "error",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: ${demanding.length} séance(s) exigeante(s) sur ${active.length} ("${demanding.map((s) => s.title).join('", "')}") — accumulation excessive pour un niveau ${trainingLevelSignal.trainingLevel} (source ${trainingLevelSignal.trainingLevelSource})`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+
+  return { issues, score: checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100))) };
+}
+
 /** Nom de bloc/thème identifiant une semaine "Race-Specific" (bloc LCW,
  *  cf. plan TFCL — "Bloc 3 · Race-Specific LCW", thème "Spécifique LCW &
  *  Race Power"). */
@@ -3814,7 +3881,39 @@ function validateStrategicRecapUniqueness(plan: ParsedPlan): { issues: Validatio
  *  comme isRest=true — ce contrôle rattrape donc aussi les séances de récup
  *  active mal étiquetées "Repos" en amont, pas seulement une régression du
  *  validateur. */
-const ACTIVE_CONTENT_IN_REST_PATTERN = /z[1-7]\b|vélo|natation|course\b|renfo|muscul|\d+\s*(?:min|km|w)\b|ftp/i;
+// Audit "B-5K-BEGINNER round 2" (JSON réel) : 4 faux positifs démontrés sur
+// ce contrôle —
+//  1. "renfo"/"muscul" sans frontière de mot matchaient à l'intérieur d'un
+//     mot plus long non lié ("neuromusculaire") → \b ajouté.
+//  2. "course\b" matchait "veille de course"/"jour de course" (l'ÉVÉNEMENT
+//     course, pas une séance de course à pied) → exclu par lookbehind
+//     ciblé, sans toucher aux vraies séances ("30 min de course").
+//  3. Négation ignorée : "Journée sans entraînement cardio ni
+//     renforcement." matchait "renfo" malgré la négation explicite
+//     ("sans...ni") → cf. hasNonNegatedActiveContent ci-dessous.
+// Ne modifie aucune règle physiologique — uniquement la détection de ce
+// contrôle de cohérence texte, pour arrêter de signaler du contenu qui
+// n'existe pas.
+const ACTIVE_CONTENT_IN_REST_PATTERN = /z[1-7]\b|vélo|natation|(?<!veille de )(?<!jour de )course\b|\brenfo|\bmuscul|\d+\s*(?:min|km|w)\b|ftp/i;
+
+const NEGATION_BEFORE_ACTIVE_CONTENT_RX = /\b(?:sans|aucun(?:e)?|ni|pas de|pas d['’])\b/i;
+
+/** Vrai si AU MOINS UNE occurrence du pattern n'est pas précédée, dans la
+ *  même clause (bornée par . ; ! ?), d'un marqueur de négation ("sans",
+ *  "ni", "aucun", "pas de"). Une seule occurrence négative ("sans... ni
+ *  renforcement") ne doit pas flaguer le jour "Repos". */
+function hasNonNegatedActiveContent(text: string): boolean {
+  const rx = new RegExp(ACTIVE_CONTENT_IN_REST_PATTERN.source, "gi");
+  let m: RegExpExecArray | null;
+  while ((m = rx.exec(text)) !== null) {
+    const before = text.slice(0, m.index);
+    const clauseStart = Math.max(before.lastIndexOf("."), before.lastIndexOf(";"), before.lastIndexOf("!"), before.lastIndexOf("?"));
+    const clause = text.slice(clauseStart + 1, m.index);
+    if (!NEGATION_BEFORE_ACTIVE_CONTENT_RX.test(clause)) return true;
+    if (m.index === rx.lastIndex) rx.lastIndex++; // garde-fou match vide
+  }
+  return false;
+}
 
 function validateRestDayCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
@@ -3834,7 +3933,7 @@ function validateRestDayCoherence(plan: ParsedPlan): { issues: ValidationIssue[]
       if (!s.isRest) continue;
       totalRestSessions++;
       const text = `${s.title} ${s.details}`.trim();
-      if (text && ACTIVE_CONTENT_IN_REST_PATTERN.test(text)) {
+      if (text && hasNonNegatedActiveContent(text)) {
         flaggedActive++;
         issues.push({
           rule: "rest_day_coherence",
@@ -4136,6 +4235,14 @@ export function validatePlan(
    *  CadenceWeeks, UI plan config) : 3 = 2:1, 4 = 3:1. Prime sur l'auto-
    *  détection par âge dans extractWeekMetrics/inferWeekType. */
   deloadCadenceWeeks?: 3 | 4 | null,
+  /**
+   * P1 (audit "B-5K-BEGINNER round 2") : signal de niveau RÉEL de
+   * l'athlète (PlanConfig.ambitionMeta.trainingLevel/trainingLevelSource),
+   * distinct de `ambition` (objectif visé) — pilote exclusivement
+   * validateDemandingSessionAccumulation ci-dessus. `null`/absent = contrôle
+   * inactif (comportement legacy inchangé), jamais un plafond déduit par défaut.
+   */
+  trainingLevelSignal?: TrainingLevelSignal | null,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -4162,9 +4269,10 @@ export function validatePlan(
   const polarizationBase = validatePolarization(weekMetrics);
   const hardDayDensity = validateWeeklyHardDayDensity(plan);
   const raceSpecificSportGap = validateRaceSpecificSportGap(plan);
+  const demandingAccumulation = validateDemandingSessionAccumulation(plan, trainingLevelSignal);
   const polarization = {
-    issues: [...polarizationBase.issues, ...hardDayDensity.issues, ...raceSpecificSportGap.issues],
-    score: Math.round((polarizationBase.score + hardDayDensity.score + raceSpecificSportGap.score) / 3),
+    issues: [...polarizationBase.issues, ...hardDayDensity.issues, ...raceSpecificSportGap.issues, ...demandingAccumulation.issues],
+    score: Math.round((polarizationBase.score + hardDayDensity.score + raceSpecificSportGap.score + demandingAccumulation.score) / 4),
   };
   const loadPattern = validateLoadPattern(weekMetrics);
   const keySessions = validateKeySessions(weekMetrics, objective, ambition);

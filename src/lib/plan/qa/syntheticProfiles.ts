@@ -411,6 +411,26 @@ export const QA_PROFILES: QAProfile[] = [
       maxSessionsPerDay: 1,
       strengthSessionsPerWeek: 1,
       ambition: "finisher",
+      // Audit "B-5K-BEGINNER round 2" : ce profil ne portait AUCUN signal de
+      // niveau (ni même le fallback-prudent) — `ambitionMeta` absent fait que
+      // le pipeline réel (planConfigBuilder.ts) n'en reçoit jamais pour ce
+      // profil QA, contrairement au flux UI coach normal. Champ EXISTANT
+      // (PlanConfig.ambitionMeta, cf. useAITrainingPlan.ts), jamais un nouveau
+      // système : renseigné ici en cohérence avec la description du profil
+      // (débutant post-S2R) et `source: "manual"` (jamais "fallback-prudent",
+      // qui n'est explicitement pas une mesure fiable du niveau réel) — rend
+      // ce profil testable par le contrôle d'accumulation de séances
+      // exigeantes (validateDemandingSessionAccumulation, planValidator.ts).
+      ambitionMeta: {
+        saisie: "finisher",
+        effective: "finisher",
+        saisieLabel: "Découverte",
+        effectiveLabel: "Découverte",
+        downgraded: false,
+        trainingLevel: "untrained",
+        trainingLevelSource: "manual",
+        diagnosticNote: null,
+      },
       constraints: "Profil synthétique Pilot Cockpit — débutant ayant terminé le cycle marche-course (30min continu acquis), prépare son 1er 5km. Objectif distinct du template Start-to-Run statique (jamais généré par IA en production) : ce profil sollicite réellement le moteur de génération individualisée.",
       terrainAvailability: "plat",
       recoveryStrategy: "passive",
