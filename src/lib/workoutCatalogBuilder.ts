@@ -15,6 +15,7 @@ import { ficheMainZoneMax, intensityFamily, ficheUnconfirmedContextReason, type 
 import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
+import { isRaceSimIncompatibleWithObjective } from "./plan/raceSimCompatibility";
 
 /**
  * Réduit PlanConfig.injuryRisk (envelope complète {level, score, why, guardrails})
@@ -717,8 +718,24 @@ export function buildWorkoutCatalog(
     const reason = ficheUnconfirmedContextReason(w);
     return !reason || !!confirmedContexts?.has(reason);
   }
+  // Mission 2D (palier 1, consigne coach) : 5 fiches *_RACE_SIM nominatives
+  // simulant une distance de compétition entière (10K/semi/marathon)
+  // incompatible avec l'objectif courant (5K/10K), démontré par simulation
+  // sur le catalogue réel (MISSION2D_VALIDATION_FINALE.md §1-2 — notamment
+  // V3_RUN_10K_RACE_SIM, classée n°1 du catalogue réel pour B-5K-BEGINNER
+  // sans ce garde-fou). Appliqué ICI (pas seulement dans `scoreWorkout`) car
+  // `backfillPool`/le remplissage (Pass 4) re-piochent directement dans
+  // `SourceLibrary`/`scored` sans revérifier le score hard-ban — seule
+  // l'exclusion à la source garantit l'absence réelle du catalogue transmis,
+  // quel que soit le palier de couverture qui s'applique ensuite. `goals[0]`
+  // = distance la plus spécifique de l'objectif (jamais le tableau entier,
+  // qui porterait un repère structurel de secours contaminant — cf. docstring
+  // du helper). Partagé avec `planReconciler.ts::findReplacement`
+  // (raceSimCompatibility.ts) pour ne jamais maintenir deux listes divergentes.
   const SourceLibrary = WorkoutLibrary.filter(
-    w => s2rGoal === (w.goals || []).includes("start_to_run") && ficheContextAllowed(w),
+    w => s2rGoal === (w.goals || []).includes("start_to_run")
+      && ficheContextAllowed(w)
+      && !isRaceSimIncompatibleWithObjective(w.id, goals[0]),
   );
 
   // Résolution des limiteurs (labels bruts → clés de patterns), dans l'ORDRE

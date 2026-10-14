@@ -33,6 +33,7 @@ import { ficheAllowedPhases, canonicalWeekPhase, type PlanPhase } from "@/lib/pl
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
+import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
 import {
   parseAthleteConstraints,
   toConstraintSport,
@@ -406,10 +407,23 @@ interface FindOpts {
    * autorisée ailleurs dans le plan).
    */
   excludeFamily?: IntensityFamily;
+  /**
+   * Mission 2D (palier 1, consigne coach) : distance de l'objectif courant
+   * (ex. "5K"/"10K", même convention que `PhaseCtx.objectiveKey` /
+   * `normalizeObjectiveKey`) — permet d'exclure les 5 fiches *_RACE_SIM
+   * nominatives dont l'incompatibilité avec cette distance a été démontrée
+   * (cf. raceSimCompatibility.ts), à CHAQUE étage de réparation (phase/
+   * durée/discipline/floor/dédoublonnage), exactement comme le garde-fou
+   * `ficheUnconfirmedContextReason` pour l'axe B. Jamais introduit par
+   * défaut si absent (`undefined` → aucune exclusion, cohérent avec le
+   * reste du fichier : l'absence d'info n'est jamais traitée comme une
+   * incompatibilité).
+   */
+  objectiveKey?: string | null;
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern, objectiveKey } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   const originalZoneMax = original ? ficheMainZoneMax(original) : 0;
@@ -431,6 +445,7 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (excludeIdsThisWeek && excludeIdsThisWeek.has(w.id.toUpperCase())) continue;
     if (excludeFastedPattern && ficheIsFastedPattern(w)) continue;
     if (!originalRequiresContext && ficheRequiresUnconfirmedContext(w)) continue;
+    if (isRaceSimIncompatibleWithObjective(w.id, objectiveKey)) continue;
     if (normSport(w.sport) !== sport) continue;
     if (requiredFamily && intensityFamily(ficheMainZoneMax(w)) !== requiredFamily) continue;
     if (opts.excludeFamily && intensityFamily(ficheMainZoneMax(w)) === opts.excludeFamily) continue;
@@ -559,6 +574,7 @@ function runOnePass(
             restrictToIds,
             ledger,
             limiterKeywordsByRank,
+            objectiveKey: phaseCtx?.objectiveKey,
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
@@ -595,6 +611,7 @@ function runOnePass(
             // threshold/vo2) — la fiche d'origine n'est pas en cause ici,
             // seule sa durée l'est.
             preserveOriginalFamily: true,
+            objectiveKey: phaseCtx?.objectiveKey,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -624,6 +641,7 @@ function runOnePass(
             restrictToIds,
             ledger,
             limiterKeywordsByRank,
+            objectiveKey: phaseCtx?.objectiveKey,
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
@@ -701,6 +719,7 @@ function runOnePass(
             ledger,
             limiterKeywordsByRank,
             requireFamily: isSLFloor ? "easy" : undefined,
+            objectiveKey: phaseCtx?.objectiveKey,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -858,6 +877,7 @@ function dedupeWithinWeek(
           // Audit "B-5K-BEGINNER round 2" : un doublon se résout en cherchant
           // une AUTRE fiche du même rôle, jamais en changeant de famille.
           preserveOriginalFamily: true,
+          objectiveKey: phaseCtx?.objectiveKey,
         }, id);
         if (repl) {
           assignFiche(s, repl, s.durationMin, ledger);
@@ -931,6 +951,7 @@ function dedupeFastedWithinWeek(
           // changer de famille d'intensité (ex. une sortie longue à jeun
           // facile ne doit pas devenir une séance qualité non-fasted).
           preserveOriginalFamily: true,
+          objectiveKey: phaseCtx?.objectiveKey,
         }, id ?? undefined);
         const label = id ?? "custom";
         if (repl) {
@@ -1792,6 +1813,7 @@ function enforceDemandingAccumulation(
           restrictToIds,
           ledger,
           excludeFamily: "vo2",
+          objectiveKey: phaseCtx?.objectiveKey,
         }, id ?? undefined);
         const label = id ?? s.title ?? "custom";
         if (repl) {
