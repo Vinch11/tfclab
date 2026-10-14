@@ -679,11 +679,27 @@ function movePriority(
 }
 
 /** Cherche jour cible pour un sport donné selon le layout, sinon jour libre le plus proche. */
-/** Nombre de jours (0-7) sans aucune séance dans la semaine courante. */
+/**
+ * Nombre de jours (0-7) de repos COMPLET dans la semaine courante — aucune
+ * séance ACTIVE ce jour.
+ *
+ * Audit "B-5K-BEGINNER round 3" (JSON réel 2026-10-14, consigne coach) : avant
+ * ce correctif, CHAQUE session comptait ici — y compris les placeholders
+ * `sport==="rest"` qu'une semaine valide porte systématiquement pour tout
+ * jour sans entraînement (7 jours toujours représentés : repos explicite OU
+ * séance active). Résultat : `countsByDay` n'était JAMAIS à 0 pour un jour
+ * de repos, donc `rest_floor_breached` se déclenchait quasi systématiquement
+ * (11/12 semaines du run réel, y compris des semaines avec 3 jours de repos
+ * réels) — faux positif systématique, sans rapport avec le repos effectif du
+ * plan livré. Même principe que le réconciliateur CLIENT (`computeLoad`,
+ * planReconciler.ts), qui ignore déjà `sport==="rest"` pour calculer la
+ * charge par jour.
+ */
 function countEmptyDays(week: PlanChunk["weeks"][number]): number {
   const countsByDay = new Map<DayLower, number>();
   for (const d of DAY_ORDER_FR) countsByDay.set(d, 0);
   for (const s of week.sessions ?? []) {
+    if (s.sport === "rest") continue;
     const c = canonDay(s.day);
     if (c) countsByDay.set(c, (countsByDay.get(c) ?? 0) + 1);
   }

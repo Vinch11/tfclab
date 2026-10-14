@@ -43,9 +43,34 @@ describe("runReconciler — maxSessionsPerDay (P0, jamais de suppression silenci
     expect(rec.counters.max_sessions_per_day_unresolved ?? 0).toBe(0);
     // Les deux séances ne sont plus sur le même jour.
     expect(run.day).not.toBe(strength.day);
-    // Aucune séance supprimée.
-    expect(chunk.weeks[0].sessions.length).toBe(3);
+    // Aucune séance D'ENTRAÎNEMENT supprimée — toujours les 2 vraies séances.
+    expect(chunk.weeks[0].sessions.filter(s => s.sport !== "rest").length).toBe(2);
     expect(rec.logs.some(l => l.includes("[max_sessions_per_day_moved]"))).toBe(true);
+  });
+
+  it("le déplacement sur un jour de repos retire le placeholder repos désormais contradictoire (P0, consigne coach round 3)", () => {
+    // Reproduit exactement l'anomalie du JSON réel 2026-10-14 : 8/12 semaines
+    // avaient "Lundi" en double dans le plan final (une entrée "Repos" ET une
+    // vraie séance), parce que enforceMaxSessionsPerDay déplaçait l'excédent
+    // vers "lundi" (jour le moins chargé) sans jamais retirer le placeholder
+    // repos déjà présent à ce jour.
+    const run = session("mercredi", "run", "Course clé 5K", true);
+    const strength = session("mercredi", "strength", "Renforcement Core Intégré");
+    const restLundi = session("lundi", "rest", "Repos");
+    const restMardi = session("mardi", "rest", "Repos");
+    const chunk = makeChunk(5, [run, strength, restLundi, restMardi]);
+    const rec = runReconciler([chunk], {}, 1, undefined, { maxSessionsPerDay: 1, globalTotalWeeks: 99, globalWeekOffset: 0 });
+
+    expect(rec.counters.max_sessions_per_day_moved).toBe(1);
+    expect(strength.day).toBe("lundi");
+    const sessions = chunk.weeks[0].sessions;
+    // Plus aucune entrée "Repos" sur lundi (le jour a reçu une vraie séance).
+    expect(sessions.some(s => s.sport === "rest" && s.day === "lundi")).toBe(false);
+    // Le jour de repos "mardi" (non concerné par le déplacement) reste intact.
+    expect(sessions.some(s => s.sport === "rest" && s.day === "mardi")).toBe(true);
+    // Une seule entrée au total pour "lundi", et c'est bien la séance déplacée.
+    expect(sessions.filter(s => s.day === "lundi").length).toBe(1);
+    expect(sessions.filter(s => s.day === "lundi")[0]).toBe(strength);
   });
 
   it("séance-clé conservée sur son jour d'origine, la non-clé est déplacée", () => {

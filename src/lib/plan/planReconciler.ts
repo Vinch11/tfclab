@@ -283,6 +283,38 @@ function sessionIsFastedPattern(s: PlanSession): boolean {
   return FASTED_SESSION_PATTERN.test(`${s.title ?? ""} ${s.details ?? ""}`);
 }
 
+// ── Contexte particulier NON CONFIRMÉ (Sleep Low, Altitude, FatMax, fatigue
+// mentale) ──────────────────────────────────────────────────────────────
+// Audit "B-5K-BEGINNER round 3" (JSON réel 2026-10-14, consigne coach) :
+// findReplacement a remplacé une sortie longue facile STANDARD (SEILER_RUN_
+// Z1_EASY_LONG, originellement choisie par Gemini) par FM_RUN_SLEEP_LOW_AM
+// (S5) puis par V2_RUN_MENTAL_FATIGUE (S7) — uniquement parce que leur durée
+// convenait, sans jamais vérifier qu'elles imposent un contexte (déplétion
+// glycogénique nocturne, accès altitude >1500m, protocole de pré-fatigue
+// cognitive) dont rien dans PlanConfig/athleteData ne confirme la
+// disponibilité ou l'acceptation par l'athlète. Réutilise des métadonnées
+// EXISTANTES — aucune nouvelle taxonomie :
+//  - `ficheIsFastedPattern` (déjà défini ci-dessus) couvre Sleep Low/Train
+//    Low/jeun.
+//  - Préfixe ID "FM_" — module FatMax/Sleep-Low/Train-Low/Gut-Training
+//    (enrichedWorkoutsFatMax.ts, 28 fiches) : chacune porte déjà un `avoid`
+//    conditionné à "athlète non habitué"/"non validé"/"si Phase N non
+//    validée" — le module entier documente lui-même un besoin de
+//    confirmation préalable.
+//  - Tags `altitude`/`fatigue-cognitive` — seules fiches du catalogue
+//    portant ces tags (vérifié exhaustivement), hors module FM_.
+// Comportement CONSERVATEUR (consigne coach) : exclue comme remplaçant SAUF
+// si la séance D'ORIGINE portait déjà ce même contexte — jamais introduit
+// par une réparation de durée/phase/discipline, mais jamais retiré non plus
+// si déjà présent (une réparation de durée sur un Sleep Low existant reste
+// un Sleep Low, elle ne doit juste pas inventer un NOUVEAU contexte spécial).
+function ficheRequiresUnconfirmedContext(w: LibraryWorkout): boolean {
+  if (ficheIsFastedPattern(w)) return true;
+  if (String(w.id || "").toUpperCase().startsWith("FM_")) return true;
+  const tags = (w.tags || []).map((t) => String(t).toLowerCase());
+  return tags.includes("altitude") || tags.includes("fatigue-cognitive");
+}
+
 interface FindOpts {
   sport: NormSport;
   weekPhase: PlanPhase;
@@ -361,6 +393,12 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
   const originalZoneMax = original ? ficheMainZoneMax(original) : 0;
   const requiredFamily: IntensityFamily | null =
     opts.requireFamily ?? (opts.preserveOriginalFamily && originalZoneMax > 0 ? intensityFamily(originalZoneMax) : null);
+  // Audit "B-5K-BEGINNER round 3" (consigne coach) : garde-fou TOUJOURS actif
+  // (pas un opt-in comme preserveOriginalFamily) — aucune réparation, quel
+  // que soit l'étage (phase/durée/discipline/floor/dédoublonnage), ne doit
+  // introduire un contexte spécial non confirmé que la séance d'origine ne
+  // portait pas déjà. Cf. docstring ficheRequiresUnconfirmedContext.
+  const originalRequiresContext = !!(original && ficheRequiresUnconfirmedContext(original));
   let best: { w: LibraryWorkout; key: number } | null = null;
   // Repli si TOUS les candidats valides sont déjà saturés (usage ≥ MAX) :
   // mieux vaut une répétition qu'une séance non résolue.
@@ -370,6 +408,7 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (restrictToIds && !restrictToIds.has(w.id.toUpperCase())) continue;
     if (excludeIdsThisWeek && excludeIdsThisWeek.has(w.id.toUpperCase())) continue;
     if (excludeFastedPattern && ficheIsFastedPattern(w)) continue;
+    if (!originalRequiresContext && ficheRequiresUnconfirmedContext(w)) continue;
     if (normSport(w.sport) !== sport) continue;
     if (requiredFamily && intensityFamily(ficheMainZoneMax(w)) !== requiredFamily) continue;
     if (opts.excludeFamily && intensityFamily(ficheMainZoneMax(w)) === opts.excludeFamily) continue;
@@ -1621,6 +1660,25 @@ function enforceMaxSessionsPerDay(
             continue;
           }
           s.day = target;
+          // Audit "B-5K-BEGINNER round 3" (JSON réel 2026-10-14, consigne
+          // coach) : `target` était jusqu'ici choisi PARCE QUE `load[target]`
+          // est nul (aucune séance non-rest ce jour) — très souvent parce que
+          // ce jour porte justement le placeholder `sport==="rest"` de la
+          // semaine. Sans ce retrait, le plan final affichait DEUX entrées
+          // contradictoires pour le même jour ("Lundi : Repos" ET "Lundi :
+          // Renforcement") — confirmé sur 8/12 semaines du run réel. Retire
+          // ce placeholder (jamais un vrai jour de repos "en trop" : un
+          // placeholder rest existe par construction pour chaque jour sans
+          // séance active, donc en retirer un ici ne fait qu'enregistrer que
+          // ce jour N'EST PLUS un jour de repos — exactement ce que ce
+          // déplacement vient de décider).
+          for (let i = sessions.length - 1; i >= 0; i--) {
+            const other = sessions[i];
+            if (other === s) continue;
+            if (other.sport === "rest" && normalizeDayLabel(other.day) === target) {
+              sessions.splice(i, 1);
+            }
+          }
           counters.max_sessions_per_day_moved = (counters.max_sessions_per_day_moved ?? 0) + 1;
           logs.push(
             `[max_sessions_per_day_moved] S${weekNum} — "${s.title ?? s.catalogId ?? "?"}" ${day} → ${target} ` +
