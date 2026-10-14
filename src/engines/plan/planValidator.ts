@@ -1084,6 +1084,43 @@ function validateWeeklyHardDayDensity(plan: ParsedPlan): { issues: ValidationIss
  */
 const BEGINNER_TRAINING_LEVELS = new Set(["untrained", "light"]);
 const RELIABLE_TRAINING_LEVEL_SOURCES = new Set(["manual", "auto-tss"]);
+
+/**
+ * Audit "B-5K-BEGINNER round 3" (JSON réel 2026-10-14, consigne coach) : S11
+ * (taper) signalait "2 séance(s) exigeante(s) sur 3" — les deux "séances
+ * exigeantes" citées étaient `D_TAPER_RUN_OPENER` (20' Z1-Z2 + SEULEMENT
+ * 4×30s à allure course + 5' Z1, structure réelle du catalogue) et un
+ * shakeout similaire : des openers d'affûtage standards (présents dans TOUS
+ * les plans course avant compétition), pas de vraies séances qualité.
+ * `classifySessionIntensity` classe par ZONE MAXIMALE atteinte dans le texte
+ * (ici "Z4a" sur 2 des ~27 minutes de la séance) — exactement l'angle mort
+ * que ce correctif cible : distinguer la zone max atteinte (inchangée pour
+ * toutes les AUTRES règles qui consomment `classifySessionIntensity` —
+ * prohibition_compliance, phase_coherence, lorang_categories… — où même une
+ * trace brève d'une zone interdite doit rester détectée) du TEMPS RÉELLEMENT
+ * passé à cette intensité, réutilisant le même calcul pondéré par clause que
+ * `validatePolarization`/`estimateSessionZoneMinutes` (déjà vérifié fiable,
+ * cf. consigne coach "vérifie séparément le calcul de polarisation").
+ *
+ * Seuils (OR, pas AND — couvre aussi bien une séance courte qu'un plan à
+ * faible volume) : au moins 10 minutes cumulées en zone haute, OU au moins
+ * 25% de la durée totale de la séance. Un opener (2 min sur 25-30min, ~8%)
+ * échoue les deux ; un vrai bloc seuil/VO2max (típicamente ≥15-20min sur
+ * 45-60min, ≥25-30%) passe largement les deux. Repli sur
+ * `classifySessionIntensity` (comportement identique à avant) si la durée de
+ * la séance n'est pas exploitable — mieux qu'une absence totale de signal.
+ */
+const DEMANDING_MIN_HIGH_MINUTES = 10;
+const DEMANDING_MIN_HIGH_RATIO = 0.25;
+
+function isGenuinelyDemandingSession(session: ParsedSession): boolean {
+  if (session.isRest) return false;
+  const d = parseSessionDurationMin(session);
+  if (d === null || d <= 0) return classifySessionIntensity(session) === "high";
+  const zone = estimateSessionZoneMinutes(session, d);
+  if (zone.high <= 0) return false;
+  return zone.high >= DEMANDING_MIN_HIGH_MINUTES || zone.high / d >= DEMANDING_MIN_HIGH_RATIO;
+}
 /** Au plus la moitié (arrondi bas, minimum 1) des séances actives de la
  *  semaine peut être "exigeante" pour un débutant confirmé. Exporté pour que
  *  le garde-fou proactif côté réconciliateur (`enforceDemandingAccumulation`,
@@ -1117,7 +1154,7 @@ function validateDemandingSessionAccumulation(
     const active = week.sessions.filter((s) => !s.isRest);
     if (active.length === 0 || weekHasRaceDay(week)) continue;
     checked++;
-    const demanding = active.filter((s) => classifySessionIntensity(s) === "high");
+    const demanding = active.filter((s) => isGenuinelyDemandingSession(s));
     if (demanding.length > demandingSessionCap(active.length)) {
       issues.push({
         rule: "demanding_session_accumulation",

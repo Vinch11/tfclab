@@ -12,6 +12,9 @@ import { WorkoutLibrary } from "./workoutLibrary";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, HIGH_IMPACT_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
 import { ficheMainZoneMax, intensityFamily } from "./plan/planReconciler";
+import { normalizeGoal, isGoalIncompatibleWithObjective } from "./plan/goalCompatibility";
+
+export { normalizeGoal };
 import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
@@ -200,47 +203,6 @@ function recordAttribution(id: string, chunk: number, stage: CatalogDropStage, i
 }
 
 
-/** Map objective strings to WorkoutGoal values */
-export function normalizeGoal(objective: string): WorkoutGoal[] {
-  const lower = objective.toLowerCase();
-  // Order matters: check specific patterns before generic ones
-  if (lower.includes("70.3") || lower === "703") return ["half"];
-  if (lower.includes("ironman") || lower === "im") return ["ironman"];
-  // Trail variants (most specific first)
-  if (lower.includes("trail") && (lower.includes("ultra") || lower.includes(">80") || lower.includes("utmb"))) return ["trail_ultra", "trail_long", "trail_mountain"];
-  if (lower.includes("trail") && (lower.includes("mont") || lower.includes("mountain") || lower.includes("60") || lower.includes("80"))) return ["trail_mountain", "trail_long", "trail_short"];
-  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short") || lower.includes("<42") || lower.includes("30k") || lower.includes("50k") || lower.includes("20-50"))) return ["trail_short", "trail_mountain"];
-  if (lower.includes("trail")) return ["trail_short", "trail_mountain", "trail_long"];
-  // Running distances
-  if (lower.includes("semi")) return ["semi", "10k"];
-  if (lower.includes("marathon")) return ["marathon", "semi"];
-  if (lower.includes("10k") || lower.includes("10km") || lower.includes("10 km")) return ["10k", "semi"];
-  // 5K — tague désormais sa propre clé dédiée en plus de "10k" (repli structurel
-  // le plus proche). Avant ce fix : `return ["10k"]` seul, donc AUCUNE fiche du
-  // catalogue ne pouvait jamais documenter de variant/goal "5k" spécifique — un
-  // plan 5K ne bénéficiait jamais du bonus "objectif documenté" et héritait
-  // silencieusement d'un texte calibré 10K (allure, volumes) même quand une
-  // fiche dédiée 5K existait (ex: EnrichedWorkoutsShortFormats).
-  if (lower.includes("5k") || lower.includes("5km") || lower.includes("5 km")) return ["5k", "10k"];
-  // Start to run / débutant → catalogue dédié UNIQUEMENT (plus de repli sur 10k :
-  // les fiches 10k supposent un athlète capable de courir 30-45min en continu).
-  if (lower.includes("start") || lower.includes("débutant") || lower.includes("beginner")) return ["start_to_run"];
-  // Triathlon courts (Sprint/Olympique) — taguent désormais leur propre clé
-  // dédiée ("sprint"/"olympic") EN PLUS de "half" (70.3, gardé comme repli
-  // structurel pour conserver l'accès au pool existant). Avant ce fix :
-  // `return ["half"]` seul — aucune fiche ne pouvait jamais documenter de
-  // variant/goal "sprint" ou "olympic" spécifique (même limite que 5K
-  // ci-dessus), alors que ces deux formats ont des calibrages de durée/
-  // intensité propres (Sprint ~55min-1h20, Olympique ~2h-2h30) distincts du
-  // 70.3. Même repli "half" que buildFewShotExamples (systemPrompt.ts, edge
-  // function) pour la même raison structurelle — inchangé.
-  if (lower.includes("sprint")) return ["sprint", "half"];
-  if (lower.includes("olymp")) return ["olympic", "half"];
-  // Triathlon generic
-  if (lower.includes("triathlon") || lower.includes("tri")) return ["ironman", "half"];
-  return [];
-}
-
 /** Determine which phases are relevant for a given week range */
 export function phasesForWeekRange(
   weekStart: number,
@@ -402,7 +364,16 @@ function scoreWorkout(
     if (isFullDistanceTemplate) return -1000;
   }
 
-
+  // ─── HARD-BAN GOALS INCOMPATIBLES sur objectifs COURTS (5k/10k/semi) ───
+  // Audit "B-5K-BEGINNER round 3" (JSON réel 2026-10-14) : CANOVA_RUN_
+  // INTRODUCTIVE_PHASE/PRERACE_PHASE, A_SEMI_TEMPO_LONG/PROGRESSIVE_FINISH,
+  // B_10K_RACE_PACE_BLOCKS, V2_RUN_NEGATIVE_SPLIT_RACE_SIM, C_RUN_HILL_TECH_
+  // PRO, B_RUN_FARTLEK_60_PRO — toutes documentent `goals` explicitement
+  // SANS "5k"/"10k" (ex. ["marathon","semi","half","ironman"]), sans jamais
+  // matcher les hard-bans ID/tag ci-dessus (ils ne sont pas des templates
+  // IM/marathon). Cf. goalCompatibility.ts pour la portée exacte (jamais sur
+  // marathon/half/ironman/trail, jamais sur une fiche sans `goals`).
+  if (isGoalIncompatibleWithObjective(w.goals, goals)) return -1000;
 
 
   let score = 0;
