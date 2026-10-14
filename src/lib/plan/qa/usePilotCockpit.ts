@@ -206,6 +206,12 @@ export function usePilotCockpit() {
           cfg.constraints,
           isLcw3Day,
           cfg.deloadCadenceWeeks,
+          // P1 (audit "B-5K-BEGINNER round 2") : signal de niveau réel du
+          // profil QA — cf. validateDemandingSessionAccumulation. Profils
+          // sans ambitionMeta (pas encore renseigné) = contrôle inactif.
+          cfg.ambitionMeta
+            ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+            : null,
         );
       } catch (e) {
         errorMessage = errorMessage ?? `validatePlan a échoué : ${e instanceof Error ? e.message : String(e)}`;

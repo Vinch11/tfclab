@@ -77,10 +77,16 @@ vi.mock("@/lib/workoutLibrary", () => {
 
 import { runReconciler } from "@/lib/plan/planReconciler";
 
+// P0 (consigne coach, suite PR #376) : la phase catalogue est désormais
+// TOUJOURS recalculée numériquement (weekNumber/globalTotalWeeks), jamais
+// déduite de la valeur déclarée ici — semaine 5/12 (objectif Marathon,
+// taper=2 semaines) est numériquement "build" (pct=5/12≈42%), cohérent
+// avec les fiches `phase:["build"]` du mock ci-dessous. `globalTotalWeeks:12`
+// est donc fourni dans chaque appel `runReconciler` ci-dessous.
 function makeChunk(session: any, phase = "build"): PlanChunk {
   return {
     weeks: [{
-      weekNumber: 1, phase, theme: "T",
+      weekNumber: 5, phase, theme: "T",
       sessions: [session],
     }],
   } as unknown as PlanChunk;
@@ -96,14 +102,14 @@ function makeSession(): any {
 describe("runReconciler — findReplacement priorise les limiteurs identifiés (fix B3)", () => {
   it("SANS identifiedLimiters : le candidat de plus forte intention/durée proche l'emporte (comportement existant préservé)", () => {
     const s = makeSession();
-    const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { objectiveKey: "Marathon" });
+    const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { objectiveKey: "Marathon", globalTotalWeeks: 12 });
     expect(s.catalogId).toBe("NEAR_INTENT_RUN_BUILD");
     expect(rec.counters.phase_substituted).toBe(1);
   });
 
   it("AVEC identifiedLimiters=['VO2max'] : le candidat ciblant le limiteur l'emporte MALGRÉ une intention/durée bien moins favorables", () => {
     const s = makeSession();
-    const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { objectiveKey: "Marathon", identifiedLimiters: ["VO2max"] });
+    const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { objectiveKey: "Marathon", identifiedLimiters: ["VO2max"], globalTotalWeeks: 12 });
     expect(s.catalogId).toBe("LIMITER_MATCH_RUN_BUILD");
     expect(rec.counters.phase_substituted).toBe(1);
   });
@@ -111,7 +117,7 @@ describe("runReconciler — findReplacement priorise les limiteurs identifiés (
   it("identifiedLimiters sans AUCUN candidat correspondant : repli sur le comportement normal (intention/durée)", () => {
     const s = makeSession();
     // "Natation" ne matche aucun des candidats ci-dessus.
-    const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { objectiveKey: "Marathon", identifiedLimiters: ["Natation"] });
+    const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { objectiveKey: "Marathon", identifiedLimiters: ["Natation"], globalTotalWeeks: 12 });
     expect(s.catalogId).toBe("NEAR_INTENT_RUN_BUILD");
     expect(rec.counters.phase_substituted).toBe(1);
   });
@@ -125,6 +131,7 @@ describe("runReconciler — findReplacement priorise les limiteurs identifiés (
     const s = makeSession();
     const rec = runReconciler([makeChunk(s)], {}, 1, undefined, {
       objectiveKey: "Marathon",
+      globalTotalWeeks: 12,
       identifiedLimiters: ["Durabilité faible", "VLamax trop haute", "VO2max bas"],
     });
     expect(s.catalogId).toBe("LIMITER_MATCH_VLAMAX_RUN_BUILD");
@@ -135,6 +142,7 @@ describe("runReconciler — findReplacement priorise les limiteurs identifiés (
     const s = makeSession();
     const rec = runReconciler([makeChunk(s)], {}, 1, undefined, {
       objectiveKey: "Marathon",
+      globalTotalWeeks: 12,
       identifiedLimiters: ["Durabilité faible", "Économie basse", "FTP/kg bas", "VLamax trop haute"],
     });
     expect(s.catalogId).toBe("LIMITER_MATCH_VLAMAX_RUN_BUILD");

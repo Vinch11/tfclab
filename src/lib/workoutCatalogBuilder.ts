@@ -11,6 +11,7 @@ import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport } from "@/typ
 import { WorkoutLibrary } from "./workoutLibrary";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, HIGH_IMPACT_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
+import { ficheMainZoneMax, intensityFamily } from "./plan/planReconciler";
 import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
@@ -143,6 +144,7 @@ export type CatalogDropStage =
   | "prohibitions"
   | "phase_filter"
   | "regen_gap_load_filter"
+  | "beginner_intensity_filter"
   | "score_hard_ban"
   | "fill_sport_cap"
   | "fill_cat_cap"
@@ -163,6 +165,7 @@ const STAGE_RANK: Record<CatalogDropStage, number> = {
   prohibitions: 5,
   phase_filter: 6,
   regen_gap_load_filter: 6,
+  beginner_intensity_filter: 6,
   score_hard_ban: 7,
   fill_sport_cap: 8,
   fill_cat_cap: 8,
@@ -658,6 +661,25 @@ export function buildWorkoutCatalog(
      * un catalogue plus mince (cf. `strictPhaseFilter`) à une fuite de charge.
      */
     regenGapLoadFilter?: boolean;
+    /**
+     * P1 (audit "B-5K-BEGINNER round 2", consigne coach) : signal de niveau
+     * RÉEL et FIABLE de l'athlète (PlanConfig.ambitionMeta.trainingLevel/
+     * trainingLevelSource) — exclut du catalogue injecté les fiches de
+     * famille "vo2" (zone max de la partie Main >4, cf. `intensityFamily`,
+     * planReconciler.ts — même définition partagée) quand le niveau est
+     * untrained/light ET la source fiable (manual/auto-tss — JAMAIS
+     * "fallback-prudent", qui n'est explicitement pas une mesure confirmée
+     * du niveau réel). Distinct de `ambition` (objectif visé) : un athlète
+     * confirmé visant simplement à terminer un Ironman ("finisher") garde
+     * l'accès complet aux séances exigeantes — ce filtre ne regarde QUE
+     * trainingLevel, jamais ambition. Floor de couverture par sport (même
+     * principe que `phase_filter` Stage 6) : si l'exclusion réduit un sport
+     * sous ce plancher, on le réintègre pour ce sport plutôt que vider son
+     * catalogue. N'interdit jamais VMA/côtes/fartlek par eux-mêmes — seules
+     * les fiches zone max >4 (Z5+) le sont, selon la même famille déjà
+     * utilisée pour le garde-fou de substitution (planReconciler.ts).
+     */
+    beginnerIntensitySignal?: { trainingLevel: string; trainingLevelSource: string } | null;
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
@@ -946,6 +968,45 @@ export function buildWorkoutCatalog(
       return !drop;
     });
     logStage("regen_gap_load_filter", before, current.length);
+  }
+
+  // Stage 6.6: beginner_intensity_filter (cf. JSDoc `beginnerIntensitySignal` ci-dessus)
+  const RELIABLE_LEVEL_SOURCES = new Set(["manual", "auto-tss"]);
+  const BEGINNER_LEVELS = new Set(["untrained", "light"]);
+  const beginnerSignal = options?.beginnerIntensitySignal;
+  const beginnerFilterActive = !!beginnerSignal &&
+    RELIABLE_LEVEL_SOURCES.has(beginnerSignal.trainingLevelSource) &&
+    BEGINNER_LEVELS.has(beginnerSignal.trainingLevel);
+  if (beginnerFilterActive) {
+    const FLOOR = 5;
+    const bySport: Record<string, { total: number; kept: number }> = {};
+    for (const w of current) {
+      bySport[w.sport] = bySport[w.sport] || { total: 0, kept: 0 };
+      bySport[w.sport].total++;
+      if (intensityFamily(ficheMainZoneMax(w)) !== "vo2") bySport[w.sport].kept++;
+    }
+    const relaxedIntensitySports = new Set<string>();
+    for (const [sport, { total, kept }] of Object.entries(bySport)) {
+      if (total >= FLOOR && kept < FLOOR) {
+        relaxedIntensitySports.add(sport);
+        console.warn(
+          `[catalog_filter_floor_relaxed] sport=${sport} chunk=${chunkIdx} beginner_intensity_filter kept=${kept} < floor=${FLOOR} → réintègre fiches vo2 pour ce sport`,
+        );
+      }
+    }
+    const before = current.length;
+    current = current.filter(w => {
+      if (relaxedIntensitySports.has(w.sport)) return true;
+      const keep = intensityFamily(ficheMainZoneMax(w)) !== "vo2";
+      if (!keep) {
+        recordAttribution(w.id, chunkIdx, "beginner_intensity_filter");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) {
+          logDrop(w.id, "beginner_intensity_filter", `trainingLevel=${beginnerSignal!.trainingLevel} source=${beginnerSignal!.trainingLevelSource}`);
+        }
+      }
+      return keep;
+    });
+    logStage("beginner_intensity_filter", before, current.length);
   }
 
 

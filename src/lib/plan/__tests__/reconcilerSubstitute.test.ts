@@ -63,10 +63,10 @@ vi.mock("@/lib/workoutLibrary", () => {
 
 import { runReconciler } from "@/lib/plan/planReconciler";
 
-function makeChunk(session: any, phase = "build"): PlanChunk {
+function makeChunk(session: any, phase = "build", weekNumber = 1): PlanChunk {
   return {
     weeks: [{
-      weekNumber: 1, phase, theme: "T",
+      weekNumber, phase, theme: "T",
       sessions: [session],
     }],
   } as unknown as PlanChunk;
@@ -79,7 +79,11 @@ describe("runReconciler — substitution catalogId vers voisin réel (Reco 3)", 
       custom: false, catalogId: "GHOST_RUN_SEUIL_PEAK", durationMin: 60, zones: ["Z4"],
     };
     const injected = new Set(["NEIGHBOR_RUN_SEUIL_BUILD", "NEIGHBOR_BIKE_SEUIL_BUILD", "NEIGHBOR_RUN_SEUIL_LONG"]);
-    const rec = runReconciler([makeChunk(s, "build")], {}, 1, injected);
+    // P0 (consigne coach, suite PR #376) : phase recalculée numériquement —
+    // semaine 5/12 (sans objectif particulier, taper par défaut=1) est
+    // numériquement "build", compatible avec NEIGHBOR_RUN_SEUIL_BUILD
+    // (phase:["build","peak"]).
+    const rec = runReconciler([makeChunk(s, "build", 5)], {}, 1, injected, { globalTotalWeeks: 12 });
     expect(rec.counters.id_remapped_to_neighbor).toBe(1);
     expect(s.catalogId).toBe("NEIGHBOR_RUN_SEUIL_BUILD");
     expect(s.catalogIdOrigin).toBe("GHOST_RUN_SEUIL_PEAK");

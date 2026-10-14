@@ -71,7 +71,10 @@ describe("runReconciler — dédoublonnage intra-semaine (filet final)", () => {
     const mercredi = makeSession("mercredi", "BUILD_FICHE_RUN");
     const chunk = makeWeekChunk([mardi, mercredi], "base");
 
-    const rec = runReconciler([chunk], {}, 2);
+    // P0 (consigne coach, suite PR #376) : phase recalculée numériquement —
+    // globalTotalWeeks:10 place la semaine 1 en "base" (pct=10%), cohérent
+    // avec le scénario réel ("placées par erreur dans une semaine Base").
+    const rec = runReconciler([chunk], {}, 2, undefined, { globalTotalWeeks: 10 });
 
     // Les deux séances ont bien été substituées hors phase build (sinon le
     // test ne reproduit pas la situation réelle).
@@ -97,7 +100,7 @@ describe("runReconciler — dédoublonnage intra-semaine (filet final)", () => {
     const injected = new Set(["BASE_IDEAL_RUN"]);
     const chunk = makeWeekChunk([mardi, mercredi], "base");
 
-    const rec = runReconciler([chunk], {}, 2, injected);
+    const rec = runReconciler([chunk], {}, 2, injected, { globalTotalWeeks: 10 });
 
     expect(mardi.catalogId).toBe("BASE_IDEAL_RUN");
     // Le doublon n'a pas pu être résolu — conservé tel quel, pas de fiche inventée.

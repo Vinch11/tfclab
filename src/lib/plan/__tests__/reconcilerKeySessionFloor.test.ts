@@ -67,7 +67,11 @@ describe("runReconciler — plancher FLOOR par séance clé, pas par simple pré
       { day: "mardi", sport: "swim", title: "Récup", details: "", isKeySession: false, custom: true, durationMin: 30, zones: ["Z1"] },
       { day: "jeudi", sport: "swim", title: "Technique", details: "", isKeySession: false, custom: true, durationMin: 30, zones: ["Z1"] },
     ];
-    const rec = runReconciler([makeChunk(sessions)], { 1: makeQuota({ strength: { min: 0, max: 5 } as any }) }, 1);
+    // P0 (consigne coach, suite PR #376) : phase recalculée numériquement —
+    // globalTotalWeeks:10 place la semaine 1 en "base" (pct=10%), compatible
+    // avec les fiches mock phase:["base","build"] (sans ça, weekNumber===
+    // totalWeeks replié sur 1 semaine locale donnerait "taper", incompatible).
+    const rec = runReconciler([makeChunk(sessions)], { 1: makeQuota({ strength: { min: 0, max: 5 } as any }) }, 1, undefined, { globalTotalWeeks: 10 });
     expect(rec.counters.quota_floor_inserted_from_catalog).toBe(1);
     const swimSessions = sessions.filter(s => s.sport === "swim");
     expect(swimSessions.length).toBe(3);

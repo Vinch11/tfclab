@@ -352,6 +352,11 @@ async function buildRegenCatalog(
       // score (cf. rotationSeed, workoutCatalogBuilder.ts).
       rotationSeed: Date.now(),
       injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
+      // P1 (audit "B-5K-BEGINNER round 2") : même protection qu'à la
+      // génération complète (useAITrainingPlan.ts) sur régénération.
+      beginnerIntensitySignal: cfg.ambitionMeta
+        ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+        : null,
     },
   );
   return {
@@ -410,6 +415,9 @@ async function buildRegenPhaseCatalogs(
         historicalUsage,
         rotationSeed,
         injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
+        beginnerIntensitySignal: cfg.ambitionMeta
+          ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+          : null,
       },
     );
     phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
@@ -420,6 +428,20 @@ async function buildRegenPhaseCatalogs(
     historyUsedIdCounts: historicalUsage.size > 0 ? serializeHistoricalUsage(historicalUsage) : undefined,
   };
 }
+
+/**
+ * Consigne coach (suite vérification PR #376) : "Sauvegarder quand même"
+ * reste pertinent pour une erreur critique DÉROGEABLE, mais pas pour une
+ * incompatibilité FONDAMENTALE objectif/contenu (`objective_sport_conflict`
+ * — ex. objectif "5 KM" avec 0 séance de course, y compris quand la cause
+ * est une interdiction réelle du sport exigé via les contraintes : dans les
+ * deux cas, aucune correction de contenu ne peut résoudre l'incohérence
+ * sans que le coach revoie l'objectif ou les contraintes). Liste
+ * volontairement restreinte à cette seule règle — ne bloque PAS les autres
+ * erreurs critiques (densité, limiteur non ciblé, jour de course absent,
+ * etc.), qui restent dérogeables via confirmation explicite.
+ */
+export const NON_DEROGABLE_RULES = new Set(["objective_sport_conflict"]);
 
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();
@@ -2175,9 +2197,24 @@ export default function AITrainingPlanPage() {
   // main — il peut avoir une bonne raison — mais ne peut plus sauvegarder un plan
   // critique sans être explicitement averti (avant : score stocké après coup,
   // jamais montré au moment décisif, cf. audit qualité plans IA).
+  //
+  // Correctif (consigne coach, suite vérification PR #376) : "Sauvegarder quand
+  // même" reste pertinent pour une erreur critique DÉROGEABLE (le coach peut
+  // avoir une bonne raison — densité, limiteur non ciblé, etc.), mais pas pour
+  // une incompatibilité FONDAMENTALE objectif/contenu (`objective_sport_conflict`
+  // — ex. objectif "5 KM" avec 0 séance de course : aucune dérogation possible,
+  // CE plan ne peut tout simplement pas servir cet objectif). Ces règles-là
+  // bloquent réellement la sauvegarde — aucun bouton de contournement — tant que
+  // le coach n'a pas corrigé le plan OU revu l'objectif/les contraintes. Liste
+  // volontairement restreinte (pas "toutes les erreurs critiques indistinctement") :
+  // seule une incohérence qu'AUCUNE correction de contenu ne peut lever sans
+  // revoir l'objectif ou les contraintes entre dans ce blocage dur.
   const [criticalIssuesDialog, setCriticalIssuesDialog] = useState<{
     issues: ValidationIssue[];
     overallComment: string;
+    /** true = incohérence fondamentale (ex. objective_sport_conflict) — pas de
+     *  bouton "Sauvegarder quand même", la sauvegarde reste bloquée. */
+    blocking: boolean;
   } | null>(null);
   const pendingSaveRef = useRef<null | (() => Promise<void>)>(null);
 
@@ -2287,6 +2324,11 @@ export default function AITrainingPlanPage() {
           // laisser validatePlan deviner via le titre/thème du plan.
           raceFormat === "lcw_3day" || raceGoals.some((g) => g?.raceFormat === "lcw_3day"),
           cfg?.deloadCadenceWeeks,
+          // P1 (audit "B-5K-BEGINNER round 2") : signal de niveau réel —
+          // jamais le fallback-prudent, cf. validateDemandingSessionAccumulation.
+          cfg?.ambitionMeta
+            ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+            : null,
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;
@@ -2346,11 +2388,28 @@ export default function AITrainingPlanPage() {
 
     const doSave = () => persistPlanVersion(validatorScore, validatorGrade, validatorSummary, criticalIssues.length);
 
+    // Consigne coach : une incohérence FONDAMENTALE objectif/contenu
+    // (NON_DEROGABLE_RULES) bloque réellement la sauvegarde — aucun
+    // contournement, le coach doit revoir l'objectif/les contraintes ou le
+    // contenu du plan. Les autres erreurs critiques restent dérogeables via
+    // confirmation explicite (comportement existant, inchangé).
+    const blockingIssues = criticalIssues.filter((i) => NON_DEROGABLE_RULES.has(i.rule));
+    if (blockingIssues.length > 0) {
+      pendingSaveRef.current = null; // jamais de sauvegarde possible tant que non résolu
+      setCriticalIssuesDialog({
+        issues: blockingIssues,
+        overallComment: (validatorSummary?.overallComment as string) ?? `${blockingIssues.length} incohérence(s) fondamentale(s) objectif/contenu détectée(s)`,
+        blocking: true,
+      });
+      return;
+    }
+
     if (criticalIssues.length > 0) {
       pendingSaveRef.current = doSave;
       setCriticalIssuesDialog({
         issues: criticalIssues,
         overallComment: (validatorSummary?.overallComment as string) ?? `${criticalIssues.length} problème(s) critique(s) détecté(s)`,
+        blocking: false,
       });
       return;
     }
@@ -2687,6 +2746,9 @@ export default function AITrainingPlanPage() {
               // limiteurs, pas seulement L1) que le chemin de génération
               // complète (useAITrainingPlan.ts).
               identifiedLimiters: (fullPlanConfig as any)?.identifiedLimitersRaw ?? (fullPlanConfig as any)?.identifiedLimiters ?? null,
+              // P0 (audit "B-5K-BEGINNER round 2") : même plafond que la génération
+              // complète (useAITrainingPlan.ts) — cf. enforceMaxSessionsPerDay.
+              maxSessionsPerDay: fullPlanConfig.maxSessionsPerDay ?? null,
             },
           );
           console.log(`[handleRegenerateWeek] reconciler S${weekNumber}:`, rec.counters);
@@ -4403,7 +4465,9 @@ export default function AITrainingPlanPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>⚠️ Problème(s) critique(s) détecté(s)</AlertDialogTitle>
+            <AlertDialogTitle>
+              {criticalIssuesDialog?.blocking ? "🚫 Incohérence fondamentale objectif/contenu" : "⚠️ Problème(s) critique(s) détecté(s)"}
+            </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-left">
                 <p className="font-medium text-foreground">{criticalIssuesDialog?.overallComment}</p>
@@ -4415,24 +4479,40 @@ export default function AITrainingPlanPage() {
                     </li>
                   ))}
                 </ul>
-                <p>Vous pouvez sauvegarder quand même, mais nous vous recommandons de régénérer ou de corriger le plan avant de le transmettre à l'athlète.</p>
+                {criticalIssuesDialog?.blocking ? (
+                  <p>
+                    La sauvegarde est bloquée : ce plan ne peut pas servir l'objectif demandé.
+                    Corrigez le contenu du plan, ou revoyez l'objectif ou les contraintes de l'athlète
+                    avant de réessayer.
+                  </p>
+                ) : (
+                  <p>Vous pouvez sauvegarder quand même, mais nous vous recommandons de régénérer ou de corriger le plan avant de le transmettre à l'athlète.</p>
+                )}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { pendingSaveRef.current = null; }}>
-              Annuler
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                const save = pendingSaveRef.current;
-                setCriticalIssuesDialog(null);
-                pendingSaveRef.current = null;
-                if (save) void save();
-              }}
-            >
-              Sauvegarder quand même
-            </AlertDialogAction>
+            {criticalIssuesDialog?.blocking ? (
+              <AlertDialogAction onClick={() => setCriticalIssuesDialog(null)}>
+                Compris
+              </AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel onClick={() => { pendingSaveRef.current = null; }}>
+                  Annuler
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    const save = pendingSaveRef.current;
+                    setCriticalIssuesDialog(null);
+                    pendingSaveRef.current = null;
+                    if (save) void save();
+                  }}
+                >
+                  Sauvegarder quand même
+                </AlertDialogAction>
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -184,12 +184,24 @@ function computeToleranceMin(targetDur: number): number {
 // zones + vocabulaire details, et on filtre par classe identique.
 type IntensityClass = "endurance" | "tempo_threshold" | "vo2_intensity" | "recovery" | "race_sim" | "unknown";
 
+// Audit "B-5K-BEGINNER round 2" (suite, JSON réel) : bug réel confirmé —
+// applySLFloorEnforcement a substitué 3 sorties longues faciles par
+// ENR_RUN_FARTLEK_SCANDINAVE / V2_RUN_SPRINT_PLAT / ENR_RUN_PYRAMIDE_LACTIQUE
+// (traces [sl_upgraded] réelles). Cause racine : le dump catalogue réel
+// (colonne Structure en PROSE libre, jamais de notation `[Z4,Z5]` entre
+// crochets) ne permet jamais à `extractZones` d'extraire quoi que ce soit —
+// la classification retombe donc entièrement sur ce vocabulaire texte, qui
+// ne couvrait pas "fartlek"/"sprint"/"pyramide" (lactique). Ces séances
+// tombaient dans le filtre ENDURANCE générique via le warm-up "Z1→Z2"
+// présent dans presque toute fiche. Vocabulaire étendu pour couvrir ces
+// formats qualité fréquents du catalogue — classification AVANT le repli
+// générique endurance, jamais l'inverse.
 function classifyIntensity(zones: string[] | undefined, text: string): IntensityClass {
   const t = (text || "").toLowerCase();
   const zonesU = (zones || []).map(z => (z || "").toUpperCase());
   if (/race[- ]?sim|simulation.*course|race.?pace|allure.?course|sp[eé]cifique.?course/.test(t)) return "race_sim";
-  if (zonesU.some(z => /Z[567]/.test(z)) || /\bvo2\b|vma\b|30\/30|15\/15|40\/20|special block|canova/.test(t)) return "vo2_intensity";
-  if (zonesU.some(z => /Z[34]/.test(z)) || /seuil|threshold|tempo|sweet.?spot|lactate|shuttle|ftp\b/.test(t)) return "tempo_threshold";
+  if (zonesU.some(z => /Z[567]/.test(z)) || /\bvo2\b|vma\b|30\/30|15\/15|40\/20|special block|canova|fartlek|\bsprints?\b|pyramide/.test(t)) return "vo2_intensity";
+  if (zonesU.some(z => /Z[34]/.test(z)) || /seuil|threshold|tempo|sweet.?spot|lactate|lactique|shuttle|ftp\b/.test(t)) return "tempo_threshold";
   if (/r[eé]cup|recovery|regen|regeneration/.test(t) || (zonesU.length > 0 && zonesU.every(z => /Z1\b/.test(z)))) return "recovery";
   if (zonesU.some(z => /Z2/.test(z)) || /endurance|z1.?z2|fondamental|foncier|\bsl\b|sortie longue|long run|long ride|EF\b|aerobic/.test(t)) return "endurance";
   return "unknown";

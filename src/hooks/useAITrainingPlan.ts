@@ -821,6 +821,12 @@ export function useAITrainingPlan() {
       const regenGapPhaseOptions = isPureRegenGapWindow
         ? { phaseOverride: ["base"] as PhaseTag[], strictPhaseFilter: true, regenGapLoadFilter: true }
         : {};
+      // P1 (audit "B-5K-BEGINNER round 2", consigne coach) : signal de niveau
+      // réel transmis au catalogue — jamais dérivé d'`ambition` (cf. JSDoc
+      // `beginnerIntensitySignal`, workoutCatalogBuilder.ts).
+      const beginnerIntensitySignal = planConfig.ambitionMeta
+        ? { trainingLevel: planConfig.ambitionMeta.trainingLevel, trainingLevelSource: planConfig.ambitionMeta.trainingLevelSource }
+        : null;
 
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];
@@ -829,7 +835,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           effTotalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, ...regenGapPhaseOptions }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -886,7 +892,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, ...regenGapPhaseOptions }
+            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -907,7 +913,7 @@ export function useAITrainingPlan() {
               cStart,
               cEnd,
               totalWeeks,
-              { maxItems: 60, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, phaseOverride: ["base"], strictPhaseFilter: true }
+              { maxItems: 60, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, phaseOverride: ["base"], strictPhaseFilter: true }
             );
             chunkRegenCatalogs.push(serializeCatalogForPrompt(regenCatalog));
             console.log(
@@ -1413,10 +1419,18 @@ export function useAITrainingPlan() {
                 // — sans ça, le réconciliateur client pouvait remplacer une
                 // insertion serveur ciblant le limiteur par une fiche générique.
                 identifiedLimiters: planConfig.identifiedLimitersRaw ?? planConfig.identifiedLimiters ?? null,
+                // P0 (audit "B-5K-BEGINNER round 2") : fait respecter le plafond
+                // coach explicite — cf. enforceMaxSessionsPerDay (planReconciler.ts).
+                maxSessionsPerDay: planConfig.maxSessionsPerDay ?? null,
+                // P1 (audit "B-5K-BEGINNER round 2", consigne coach suite PR #376) :
+                // même signal que buildWorkoutCatalog ci-dessus — pilote
+                // enforceDemandingAccumulation (downgrade proactif de l'excédent
+                // de séances "vo2" pour un débutant confirmé à signal fiable).
+                beginnerIntensitySignal,
               });
 
               const c = rec.counters;
-              const summary = `phase_substituted=${c.phase_substituted} id_substituted_duration=${c.id_substituted_duration} discipline_substituted=${c.discipline_substituted} quota_floor_inserted=${c.quota_floor_inserted_from_catalog} quota_ceiling_trimmed=${c.quota_ceiling_trimmed} id_remapped_to_neighbor=${c.id_remapped_to_neighbor} id_remap_fallback_custom=${c.id_remap_no_intent_match_fallback_custom} phase_unresolved=${c.phase_unresolved} duration_unresolved=${c.duration_unresolved} discipline_unresolved=${c.discipline_unresolved} floor_unresolved=${c.quota_floor_unresolved} reconcile_conflict=${c.reconcile_conflict} zone_hydrated=${c.zone_hydrated ?? 0} taper_weeks_enforced=${c.taper_weeks_enforced ?? 0} constraint_day_moved=${c.constraint_day_moved ?? 0} constraint_day_unresolved=${c.constraint_day_unresolved ?? 0} constraint_banned_sport_removed=${c.constraint_banned_sport_removed ?? 0}`;
+              const summary = `phase_substituted=${c.phase_substituted} id_substituted_duration=${c.id_substituted_duration} discipline_substituted=${c.discipline_substituted} quota_floor_inserted=${c.quota_floor_inserted_from_catalog} quota_ceiling_trimmed=${c.quota_ceiling_trimmed} id_remapped_to_neighbor=${c.id_remapped_to_neighbor} id_remap_fallback_custom=${c.id_remap_no_intent_match_fallback_custom} phase_unresolved=${c.phase_unresolved} duration_unresolved=${c.duration_unresolved} discipline_unresolved=${c.discipline_unresolved} floor_unresolved=${c.quota_floor_unresolved} reconcile_conflict=${c.reconcile_conflict} zone_hydrated=${c.zone_hydrated ?? 0} taper_weeks_enforced=${c.taper_weeks_enforced ?? 0} constraint_day_moved=${c.constraint_day_moved ?? 0} constraint_day_unresolved=${c.constraint_day_unresolved ?? 0} constraint_banned_sport_removed=${c.constraint_banned_sport_removed ?? 0} demanding_accumulation_downgraded=${c.demanding_accumulation_downgraded ?? 0} demanding_accumulation_unresolved=${c.demanding_accumulation_unresolved ?? 0}`;
 
               console.groupCollapsed(`🔧 [reconciler] ${summary}`);
               for (const line of rec.logs) console.log(line);

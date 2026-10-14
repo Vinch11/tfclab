@@ -208,7 +208,7 @@ function suggestCandidateIds(
 // ── Parsing structuré Quand/Éviter (memoisé) ────────────────────────────────
 // PHASE 2C.3 : phaseAllowed = SOURCE UNIQUE via ficheAllowedPhases
 // (mêmes règles utilisées par workoutCatalogBuilder pour pré-filtrer).
-import { ficheAllowedPhases } from "@/lib/plan/phaseNormalization";
+import { ficheAllowedPhases, canonicalWeekPhase } from "@/lib/plan/phaseNormalization";
 
 interface FicheFlags {
   excludeTaperDays: number | null;
@@ -295,13 +295,20 @@ function isRecoveryWeek(w: MergedPlan["weeks"][number]): boolean {
   const th = (w.theme || "").toLowerCase();
   return /recovery|r[ée]cup/i.test(p) || /r[ée]cup/i.test(th);
 }
-function normalizedPhase(w: MergedPlan["weeks"][number]): "base" | "build" | "peak" | "taper" | null {
-  const p = (w.phase || "").toLowerCase();
-  if (/taper|affût/i.test(p)) return "taper";
-  if (/peak|sp[ée]cifique/i.test(p)) return "peak";
-  if (/build|d[ée]veloppement/i.test(p)) return "build";
-  if (/base|fondation/i.test(p)) return "base";
-  return null;
+/**
+ * Audit "B-5K-BEGINNER round 2" : cette fonction déduisait la phase catalogue
+ * d'un parsing du libellé libre `week.phase` — deux défauts démontrés sur un
+ * plan réel : (1) ordre de priorité "peak" testé avant "build", donc tout
+ * libellé combiné type "Développement & Spécifique 5K" résolvait à "peak"
+ * même pour une semaine réellement build ; (2) retour `null` silencieux sur
+ * un libellé sans mot-clé reconnu (ex "Adaptation & Socle Aérobie"), qui
+ * désactivait silencieusement le contrôle `phaseAllowed` appelant (la
+ * violation Lydiard VMA en semaine 1-2 n'était jamais détectée). Remplacé par
+ * le calcul numérique déjà existant et fiable (`canonicalWeekPhase`), qui ne
+ * dépend plus du texte de récap.
+ */
+function normalizedPhase(w: MergedPlan["weeks"][number], totalWeeks: number, objective: string | undefined): "base" | "build" | "peak" | "taper" {
+  return canonicalWeekPhase(w.weekNumber, totalWeeks, objective);
 }
 
 // ── Cap zone déclaré dans coachNotes ────────────────────────────────────────
@@ -518,8 +525,7 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
   //    des semaines où il apparaît. Sert à catégoriser les phase mismatch.
   const placementsByCatalogId = new Map<string, Set<"base"|"build"|"peak"|"taper">>();
   for (const wk of plan.weeks) {
-    const ph = normalizedPhase(wk);
-    if (!ph) continue;
+    const ph = normalizedPhase(wk, plan.totalWeeks, objective);
     for (const s of wk.sessions) {
       if (!s.catalogId || s.custom) continue;
       const key = s.catalogId.toUpperCase();
@@ -545,7 +551,7 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
   for (const w of plan.weeks) {
     const capZone = extractCapZone(w.coachNotes);
     const inRecovery = isRecoveryWeek(w);
-    const phase = normalizedPhase(w);
+    const phase = normalizedPhase(w, plan.totalWeeks, objective);
     const isTaperWeek = w.weekNumber === plan.totalWeeks;
 
     for (const s of w.sessions) {

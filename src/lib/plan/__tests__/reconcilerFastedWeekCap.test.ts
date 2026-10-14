@@ -70,7 +70,9 @@ describe("runReconciler — plafond cumul \"à jeun\" intra-semaine (filet final
     const dimanche = makeSession("dimanche", "FASTED_LONG_RUN", "Sortie longue à jeun", 85);
     const chunk = makeWeekChunk([mardi, dimanche], "base");
 
-    const rec = runReconciler([chunk], {}, 2);
+    // P0 (consigne coach, suite PR #376) : phase recalculée numériquement —
+    // globalTotalWeeks:10 place la semaine 1 en "base" (pct=10%).
+    const rec = runReconciler([chunk], {}, 2, undefined, { globalTotalWeeks: 10 });
 
     expect(mardi.catalogId).toBe("SLEEP_LOW_RUN"); // 1re occurrence intacte
     expect(dimanche.catalogId).toBe("LONG_RUN_FED"); // 2e remplacée, non-fasted
