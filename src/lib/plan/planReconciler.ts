@@ -25,12 +25,11 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 import type { PlanChunk, PlanSession } from "@/lib/plan/planSchema";
-import type { LibraryWorkout, WorkoutGoal } from "@/types/workoutLibrary";
+import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { computePlanDiversity, formatDiversitySummary } from "./diversityMetrics";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, canonicalWeekPhase, type PlanPhase } from "@/lib/plan/phaseNormalization";
-import { normalizeGoal, isGoalIncompatibleWithObjective } from "@/lib/plan/goalCompatibility";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
@@ -385,17 +384,6 @@ interface FindOpts {
    * autorisée ailleurs dans le plan).
    */
   excludeFamily?: IntensityFamily;
-  /**
-   * Audit "B-5K-BEGINNER round 3" (JSON réel 2026-10-14, consigne coach) :
-   * même garde-fou DUR que `workoutCatalogBuilder.ts::scoreWorkout` — exclut
-   * tout candidat dont `goals` est documenté ET incompatible avec l'objectif
-   * du plan (cf. `isGoalIncompatibleWithObjective`, goalCompatibility.ts).
-   * Portée scopée aux objectifs courts (5k/10k/semi) ; jamais sur marathon/
-   * half/ironman/trail, jamais sur un candidat sans `goals`. `[]`/absent =
-   * no-op (comportement legacy inchangé — tous les appels existants restent
-   * valides sans ce champ).
-   */
-  planGoals?: WorkoutGoal[];
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
@@ -424,7 +412,6 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (normSport(w.sport) !== sport) continue;
     if (requiredFamily && intensityFamily(ficheMainZoneMax(w)) !== requiredFamily) continue;
     if (opts.excludeFamily && intensityFamily(ficheMainZoneMax(w)) === opts.excludeFamily) continue;
-    if (opts.planGoals && isGoalIncompatibleWithObjective(w.goals, opts.planGoals)) continue;
     if (requirePhase) {
       const allowed = ficheAllowedPhases(w);
       if (allowed.size > 0 && !allowed.has(weekPhase)) continue;
@@ -523,12 +510,6 @@ function runOnePass(
 ): boolean {
   let anyChange = false;
   const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
-  // Audit "B-5K-BEGINNER round 3" (consigne coach) : même filtre goals que
-  // workoutCatalogBuilder.ts, appliqué ici à CHAQUE recherche de remplaçant
-  // (phase/durée/discipline/floor) — cf. goalCompatibility.ts pour la portée
-  // exacte (jamais sur marathon/half/ironman/trail, jamais sur une fiche
-  // sans `goals`). `[]` si `phaseCtx.objectiveKey` est absent → no-op.
-  const planGoals = normalizeGoal(phaseCtx?.objectiveKey ?? "");
   try {
 
   for (const chunk of chunks) {
@@ -556,7 +537,6 @@ function runOnePass(
             restrictToIds,
             ledger,
             limiterKeywordsByRank,
-            planGoals,
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
@@ -593,7 +573,6 @@ function runOnePass(
             // threshold/vo2) — la fiche d'origine n'est pas en cause ici,
             // seule sa durée l'est.
             preserveOriginalFamily: true,
-            planGoals,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -623,7 +602,6 @@ function runOnePass(
             restrictToIds,
             ledger,
             limiterKeywordsByRank,
-            planGoals,
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
@@ -701,7 +679,6 @@ function runOnePass(
             ledger,
             limiterKeywordsByRank,
             requireFamily: isSLFloor ? "easy" : undefined,
-            planGoals,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -831,7 +808,6 @@ function dedupeWithinWeek(
   restrictToIds?: Set<string>,
   phaseCtx?: PhaseCtx,
 ): void {
-  const planGoals = normalizeGoal(phaseCtx?.objectiveKey ?? "");
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
       const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
@@ -860,7 +836,6 @@ function dedupeWithinWeek(
           // Audit "B-5K-BEGINNER round 2" : un doublon se résout en cherchant
           // une AUTRE fiche du même rôle, jamais en changeant de famille.
           preserveOriginalFamily: true,
-          planGoals,
         }, id);
         if (repl) {
           assignFiche(s, repl, s.durationMin, ledger);
@@ -900,7 +875,6 @@ function dedupeFastedWithinWeek(
   restrictToIds?: Set<string>,
   phaseCtx?: PhaseCtx,
 ): void {
-  const planGoals = normalizeGoal(phaseCtx?.objectiveKey ?? "");
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
       const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
@@ -935,7 +909,6 @@ function dedupeFastedWithinWeek(
           // changer de famille d'intensité (ex. une sortie longue à jeun
           // facile ne doit pas devenir une séance qualité non-fasted).
           preserveOriginalFamily: true,
-          planGoals,
         }, id ?? undefined);
         const label = id ?? "custom";
         if (repl) {
@@ -1766,7 +1739,6 @@ function enforceDemandingAccumulation(
   if (!DEMANDING_ACCUMULATION_RELIABLE_SOURCES.has(trainingLevelSignal.trainingLevelSource)) return;
   if (!DEMANDING_ACCUMULATION_LEVELS.has(trainingLevelSignal.trainingLevel)) return;
 
-  const planGoals = normalizeGoal(phaseCtx?.objectiveKey ?? "");
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
       const sessions = (wk.sessions ?? []) as PlanSession[];
@@ -1798,7 +1770,6 @@ function enforceDemandingAccumulation(
           restrictToIds,
           ledger,
           excludeFamily: "vo2",
-          planGoals,
         }, id ?? undefined);
         const label = id ?? s.title ?? "custom";
         if (repl) {
