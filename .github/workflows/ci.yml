@@ -89,7 +89,17 @@ jobs:
           if [ -z "$BASE" ] || [[ "$BASE" =~ ^0+$ ]] || ! git cat-file -e "$BASE" 2>/dev/null; then
             BASE="${{ github.sha }}~1"
           fi
-          FILES=$(git diff --name-only --diff-filter=ACMR "$BASE" "${{ github.sha }}" -- '*.ts' '*.tsx' | tr '\n' ' ')
+          # Exclusion `supabase/functions` (bug réel trouvé en vérifiant PR #376,
+          # commit ajoutant jsonPlanHandler.slFloorIntensityPreservation.test.ts) :
+          # ce dossier est du code Deno (edge functions), déjà couvert par le job
+          # `deno-test` ci-dessous. `eslint.config.js` cible explicitement le
+          # navigateur (`languageOptions.globals: globals.browser`) — l'appliquer
+          # à du Deno (`Deno.test`, imports `https://...`) ne produit aucun
+          # signal Deno réel, seulement les mêmes faux "nouveaux" problèmes
+          # qu'un simple fichier de test JAMAIS vu par ce job (ex. no-explicit-any
+          # sur des fixtures) dès qu'un nouveau fichier `*.test.ts` y est ajouté —
+          # un signal insensible au vrai code Deno, pas une régression de qualité.
+          FILES=$(git diff --name-only --diff-filter=ACMR "$BASE" "${{ github.sha }}" -- '*.ts' '*.tsx' ':!supabase/functions/*' | tr '\n' ' ')
           echo "files=$FILES" >> "$GITHUB_OUTPUT"
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
       - name: ESLint — comparer les erreurs avant/après sur les fichiers modifiés

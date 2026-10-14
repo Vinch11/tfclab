@@ -16,7 +16,7 @@
  */
 import { describe, it, expect } from "vitest";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
-import type { PlanChunk } from "@/lib/plan/planSchema";
+import type { PlanChunk, PlanSession } from "@/lib/plan/planSchema";
 import { vi } from "vitest";
 
 vi.mock("@/lib/workoutLibrary", () => {
@@ -25,7 +25,7 @@ vi.mock("@/lib/workoutLibrary", () => {
     {
       id: "VMA_PISTE",
       cat: "A", sport: "run", objectif: "VMA piste", necessite: "Recommandé",
-      when: "Build", phase: ["base", "build"] as any,
+      when: "Build", phase: ["base", "build"],
       avoid: "", durationMin: [55, 65], metricKey: "pace", sportKey: "run",
       structure: [{ part: "Main", text: "10x400m Z5", zones: ["Z5"] }],
       variants: {}, tags: ["vma"], goals: ["5k"],
@@ -35,7 +35,7 @@ vi.mock("@/lib/workoutLibrary", () => {
     {
       id: "EF_LONGUE",
       cat: "A", sport: "run", objectif: "Endurance fondamentale", necessite: "Recommandé",
-      when: "Build", phase: ["base", "build"] as any,
+      when: "Build", phase: ["base", "build"],
       avoid: "", durationMin: [55, 65], metricKey: "pace", sportKey: "run",
       structure: [{ part: "Main", text: "60' Z2 continu", zones: ["Z2"] }],
       variants: {}, tags: ["endurance"], goals: ["5k"],
@@ -46,11 +46,11 @@ vi.mock("@/lib/workoutLibrary", () => {
 
 import { runReconciler } from "@/lib/plan/planReconciler";
 
-function qualSession(day: string): any {
+function qualSession(day: string): PlanSession {
   return {
     day, sport: "run", title: "VMA piste", details: "", isKeySession: false,
     custom: false, catalogId: "VMA_PISTE", durationMin: 60, zones: ["Z5"],
-  };
+  } as PlanSession;
 }
 
 function makeThreeQualChunk(): PlanChunk {
@@ -70,7 +70,7 @@ describe("enforceDemandingAccumulation — garde-fou proactif accumulation (déb
       beginnerIntensitySignal: { trainingLevel: "untrained", trainingLevelSource: "manual" },
     });
 
-    const sessions = chunk.weeks[0].sessions as any[];
+    const sessions = chunk.weeks[0].sessions;
     expect(sessions.length).toBe(3); // jamais de suppression silencieuse
     const vo2Count = sessions.filter((s) => s.catalogId === "VMA_PISTE").length;
     expect(vo2Count).toBeLessThanOrEqual(1); // demandingSessionCap(3) = 1
@@ -85,7 +85,7 @@ describe("enforceDemandingAccumulation — garde-fou proactif accumulation (déb
       beginnerIntensitySignal: { trainingLevel: "trained", trainingLevelSource: "manual" },
     });
 
-    const sessions = chunk.weeks[0].sessions as any[];
+    const sessions = chunk.weeks[0].sessions;
     expect(sessions.filter((s) => s.catalogId === "VMA_PISTE").length).toBe(3);
     expect(rec.counters.demanding_accumulation_downgraded ?? 0).toBe(0);
   });
@@ -97,7 +97,7 @@ describe("enforceDemandingAccumulation — garde-fou proactif accumulation (déb
       beginnerIntensitySignal: { trainingLevel: "untrained", trainingLevelSource: "fallback-prudent" },
     });
 
-    const sessions = chunk.weeks[0].sessions as any[];
+    const sessions = chunk.weeks[0].sessions;
     expect(sessions.filter((s) => s.catalogId === "VMA_PISTE").length).toBe(3);
     expect(rec.counters.demanding_accumulation_downgraded ?? 0).toBe(0);
   });
@@ -109,7 +109,7 @@ describe("enforceDemandingAccumulation — garde-fou proactif accumulation (déb
       beginnerIntensitySignal: null,
     });
 
-    const sessions = chunk.weeks[0].sessions as any[];
+    const sessions = chunk.weeks[0].sessions;
     expect(sessions.filter((s) => s.catalogId === "VMA_PISTE").length).toBe(3);
     expect(rec.counters.demanding_accumulation_downgraded ?? 0).toBe(0);
   });
@@ -122,7 +122,7 @@ describe("enforceDemandingAccumulation — garde-fou proactif accumulation (déb
       beginnerIntensitySignal: { trainingLevel: "untrained", trainingLevelSource: "manual" },
     });
 
-    const sessions = chunk.weeks[0].sessions as any[];
+    const sessions = chunk.weeks[0].sessions;
     expect(sessions.length).toBe(3); // conservées, jamais supprimées
     expect(sessions.filter((s) => s.catalogId === "VMA_PISTE").length).toBe(3); // pas de dégradation incompatible
     expect(rec.counters.demanding_accumulation_unresolved).toBe(2);

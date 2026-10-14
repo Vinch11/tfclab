@@ -9,17 +9,21 @@
  */
 import { describe, it, expect, vi } from "vitest";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
-import type { PlanChunk } from "@/lib/plan/planSchema";
+import type { PlanChunk, PlanSession, DayLower } from "@/lib/plan/planSchema";
 
 vi.mock("@/lib/workoutLibrary", () => ({ WorkoutLibrary: [] as LibraryWorkout[] }));
 
 import { runReconciler } from "@/lib/plan/planReconciler";
 
-function session(day: string, sport: string, title: string, isKeySession = false): any {
-  return { day, sport, title, details: "", isKeySession, custom: true, durationMin: 30, zones: [] };
+// `sport: "rest"` est volontairement utilisé ici avec `durationMin: 30` (pas 0)
+// pour simuler un repos "placeholder" tel que produit par le générateur avant
+// réconciliation — ne correspond à AUCUNE variante stricte de `PlanSession`
+// (`zSessionRest` exige `durationMin: 0`), d'où la nécessité de l'assertion.
+function session(day: DayLower, sport: string, title: string, isKeySession = false): PlanSession {
+  return { day, sport, title, details: "", isKeySession, custom: true, catalogId: null, durationMin: 30, zones: [] } as PlanSession;
 }
 
-function makeChunk(weekNumber: number, sessions: any[]): PlanChunk {
+function makeChunk(weekNumber: number, sessions: PlanSession[]): PlanChunk {
   return {
     weeks: [{ weekNumber, phase: "base", theme: "T", sessions }],
   } as unknown as PlanChunk;
@@ -54,7 +58,7 @@ describe("runReconciler — maxSessionsPerDay (P0, jamais de suppression silenci
   });
 
   it("calendrier réellement impossible : 2 séances/jour sur TOUS les jours de la semaine, max=1 → aucun déplacement possible, rien supprimé", () => {
-    const days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+    const days: DayLower[] = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
     const sessions = days.flatMap((d) => [session(d, "run", `${d}-a`), session(d, "strength", `${d}-b`)]);
     const chunk = makeChunk(1, sessions);
     const rec = runReconciler([chunk], {}, 1, undefined, { maxSessionsPerDay: 1, globalTotalWeeks: 99, globalWeekOffset: 0 });

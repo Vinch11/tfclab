@@ -47,7 +47,7 @@ describe("parseWhenPhases — ne doit pas lire un mot-clé de phase dans une cla
       id: "LYDIARD_RUN_TRACK_VMA",
       when: "Build/Peak — phase 3 Lydiard. Après 16-24 semaines de base + 4-6 semaines de collines.",
       avoid: "Sans base aérobie et collines complètes · Directement en phase base",
-      phase: ["build", "peak"] as any,
+      phase: ["build", "peak"],
     });
     const allowed = ficheAllowedPhases(lydiard);
     expect(allowed.has("base")).toBe(false);

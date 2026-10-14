@@ -19,7 +19,7 @@
  */
 import { describe, it, expect } from "vitest";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
-import type { PlanChunk } from "@/lib/plan/planSchema";
+import type { PlanChunk, PlanSession } from "@/lib/plan/planSchema";
 import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { vi } from "vitest";
 
@@ -31,7 +31,7 @@ vi.mock("@/lib/workoutLibrary", () => {
     {
       id: "EASY_RUN_45",
       cat: "A", sport: "run", objectif: "Sortie facile", necessite: "Recommandé",
-      when: "Build", phase: ["base", "build"] as any,
+      when: "Build", phase: ["base", "build"],
       avoid: "", durationMin: [40, 50], metricKey: "pace", sportKey: "run",
       structure: [{ part: "Main", text: "40' Z2 continu", zones: ["Z2"] }],
       variants: {}, tags: ["endurance"], goals: ["10k"],
@@ -41,7 +41,7 @@ vi.mock("@/lib/workoutLibrary", () => {
     {
       id: "VMA_RUN_60",
       cat: "A", sport: "run", objectif: "VMA piste", necessite: "Recommandé",
-      when: "Build", phase: ["base", "build"] as any,
+      when: "Build", phase: ["base", "build"],
       avoid: "", durationMin: [55, 65], metricKey: "pace", sportKey: "run",
       structure: [{ part: "Main", text: "10x400m Z5", zones: ["Z5"] }],
       variants: {}, tags: ["vma"], goals: ["10k"],
@@ -51,7 +51,7 @@ vi.mock("@/lib/workoutLibrary", () => {
     {
       id: "EASY_RUN_60",
       cat: "A", sport: "run", objectif: "Sortie facile longue", necessite: "Recommandé",
-      when: "Build", phase: ["base", "build"] as any,
+      when: "Build", phase: ["base", "build"],
       avoid: "", durationMin: [55, 65], metricKey: "pace", sportKey: "run",
       structure: [{ part: "Main", text: "55' Z2 continu", zones: ["Z2"] }],
       variants: {}, tags: ["endurance"], goals: ["10k"],
@@ -62,14 +62,14 @@ vi.mock("@/lib/workoutLibrary", () => {
 
 import { runReconciler } from "@/lib/plan/planReconciler";
 
-function makeSession(durationMin: number): any {
+function makeSession(durationMin: number): PlanSession {
   return {
     day: "mardi", sport: "run", title: "Sortie facile", details: "", isKeySession: false,
     custom: false, catalogId: "EASY_RUN_45", durationMin, zones: ["Z2"],
-  };
+  } as PlanSession;
 }
 
-function makeChunk(session: any, weekNumber = 5): PlanChunk {
+function makeChunk(session: PlanSession, weekNumber = 5): PlanChunk {
   return {
     weeks: [{ weekNumber, phase: "build", theme: "T", sessions: [session] }],
   } as unknown as PlanChunk;
@@ -100,9 +100,11 @@ describe("findReplacement — plancher SL (sortie longue run) : requireFamily ex
       quota: {
         swim: { min: 0, max: 0 }, bike: { min: 0, max: 0 }, run: { min: 1, max: 5 },
         brick: { min: 0, max: 0 }, strength: { min: 0, max: 0 },
+        totalSessions: { min: 1, max: 5 },
         maxSessionsPerDay: 2, minFullRestDays: 1,
-      } as any,
-      floors: { minSwimPerWeek: 0, minStrengthPerWeek: 0, longRideWeekly: false, longRunWeekly: true, slLongRunMin: 60 } as any,
+        source: { tier: "practitioner_literature", ref: "test" },
+      },
+      floors: { minSwimPerWeek: 0, minStrengthPerWeek: 0, longRideWeekly: false, longRunWeekly: true, slLongRunMin: 60 },
       weekType: "load",
       downgraded: false,
     };
@@ -114,7 +116,7 @@ describe("findReplacement — plancher SL (sortie longue run) : requireFamily ex
     } as unknown as PlanChunk;
     const rec = runReconciler([chunk], { 5: makeQuota() }, 1, undefined, { globalTotalWeeks: 12 });
     expect(rec.counters.quota_floor_inserted_from_catalog).toBe(1);
-    const inserted = (chunk.weeks[0].sessions as any[])[0];
+    const inserted = chunk.weeks[0].sessions[0];
     expect(inserted.catalogId).toBe("EASY_RUN_60");
   });
 });

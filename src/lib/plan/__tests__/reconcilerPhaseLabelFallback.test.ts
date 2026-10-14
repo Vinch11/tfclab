@@ -16,7 +16,7 @@
  */
 import { describe, it, expect, vi } from "vitest";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
-import type { PlanChunk } from "@/lib/plan/planSchema";
+import type { PlanChunk, PlanSession } from "@/lib/plan/planSchema";
 
 vi.mock("@/lib/workoutLibrary", () => {
   const fiches: LibraryWorkout[] = [
@@ -25,7 +25,7 @@ vi.mock("@/lib/workoutLibrary", () => {
     {
       id: "LYDIARD_RUN_TRACK_VMA",
       cat: "B", sport: "run", objectif: "VMA piste Lydiard", necessite: "Recommandé",
-      when: "Build/Peak — phase 3 Lydiard.", phase: ["build", "peak"] as any,
+      when: "Build/Peak — phase 3 Lydiard.", phase: ["build", "peak"],
       avoid: "Sans base aérobie et côtes complètes · Directement en phase base",
       durationMin: [45, 60], metricKey: "pace", sportKey: "run",
       structure: [
@@ -39,7 +39,7 @@ vi.mock("@/lib/workoutLibrary", () => {
     {
       id: "BASE_RUN_AEROBIE_CONTINU",
       cat: "B", sport: "run", objectif: "Endurance fondamentale continue", necessite: "Recommandé",
-      when: "Base — tout le plan.", phase: ["base", "build"] as any,
+      when: "Base — tout le plan.", phase: ["base", "build"],
       avoid: "", durationMin: [40, 60], metricKey: "pace", sportKey: "run",
       structure: [
         { part: "Main", text: "45' continu Z2", zones: ["Z2"] },
@@ -52,14 +52,14 @@ vi.mock("@/lib/workoutLibrary", () => {
 
 import { runReconciler } from "@/lib/plan/planReconciler";
 
-function makeSession(): any {
+function makeSession(): PlanSession {
   return {
     day: "mardi", sport: "run", title: "VMA piste", details: "", isKeySession: true,
     custom: false, catalogId: "LYDIARD_RUN_TRACK_VMA", durationMin: 50, zones: ["Z5", "Z6"],
   };
 }
 
-function makeChunk(weekNumber: number, phase: string, session: any): PlanChunk {
+function makeChunk(weekNumber: number, phase: string, session: PlanSession): PlanChunk {
   return {
     weeks: [{
       weekNumber, phase, theme: "T",

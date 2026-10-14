@@ -39,15 +39,15 @@ function plan(weeks: ParsedWeek[]): ParsedPlan {
 
 // Reproduit la semaine 4 réelle : 3 séances, les 3 "high" (zones structurées).
 const THREE_DEMANDING_SESSIONS: Partial<ParsedSession>[] = [
-  { sport: "Course", title: "Sprints côtes", details: "8x200m côte", zones: ["Z6"] as any },
-  { sport: "Course", title: "Fartlek intense", details: "6x3min Z5", zones: ["Z5"] as any },
-  { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] as any },
+  { sport: "Course", title: "Sprints côtes", details: "8x200m côte", zones: ["Z6"] },
+  { sport: "Course", title: "Fartlek intense", details: "6x3min Z5", zones: ["Z5"] },
+  { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] },
 ];
 
 const TWO_DEMANDING_ONE_EASY: Partial<ParsedSession>[] = [
-  { sport: "Course", title: "Sprints côtes", details: "8x200m côte", zones: ["Z6"] as any },
-  { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] as any },
-  { sport: "Course", title: "EF Z2 30min", details: "Endurance fondamentale", zones: ["Z2"] as any },
+  { sport: "Course", title: "Sprints côtes", details: "8x200m côte", zones: ["Z6"] },
+  { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] },
+  { sport: "Course", title: "EF Z2 30min", details: "Endurance fondamentale", zones: ["Z2"] },
 ];
 
 // Plan à 5 séances/semaine (fréquence confirmée) : 2 "high" sur 5, le même
@@ -55,11 +55,11 @@ const TWO_DEMANDING_ONE_EASY: Partial<ParsedSession>[] = [
 // large — le seuil proportionnel (`demandingSessionCap`) ne doit PAS flaguer
 // ce cas, alors qu'il flague désormais le cas à 3 séances/semaine.
 const TWO_DEMANDING_THREE_EASY: Partial<ParsedSession>[] = [
-  { sport: "Course", title: "Sprints côtes", details: "8x200m côte", zones: ["Z6"] as any },
-  { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] as any },
-  { sport: "Course", title: "EF Z2 30min", details: "Endurance fondamentale", zones: ["Z2"] as any },
-  { sport: "Course", title: "EF Z2 40min", details: "Endurance fondamentale", zones: ["Z2"] as any },
-  { sport: "Course", title: "EF Z1 30min", details: "Endurance fondamentale", zones: ["Z1"] as any },
+  { sport: "Course", title: "Sprints côtes", details: "8x200m côte", zones: ["Z6"] },
+  { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] },
+  { sport: "Course", title: "EF Z2 30min", details: "Endurance fondamentale", zones: ["Z2"] },
+  { sport: "Course", title: "EF Z2 40min", details: "Endurance fondamentale", zones: ["Z2"] },
+  { sport: "Course", title: "EF Z1 30min", details: "Endurance fondamentale", zones: ["Z1"] },
 ];
 
 function vp(p: ParsedPlan, trainingLevelSignal?: { trainingLevel: string; trainingLevelSource: string } | null) {
@@ -129,8 +129,8 @@ describe("validateDemandingSessionAccumulation — accumulation de séances exig
   it("n'interdit pas une SEULE séance VMA/côtes/fartlek chez un débutant — seule l'accumulation est signalée", () => {
     const result = vp(
       plan([week(1, [
-        { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] as any },
-        { sport: "Course", title: "EF Z2 30min", details: "Endurance", zones: ["Z2"] as any },
+        { sport: "Course", title: "VMA piste", details: "10x400m Z5", zones: ["Z5"] },
+        { sport: "Course", title: "EF Z2 30min", details: "Endurance", zones: ["Z2"] },
         { sport: "Repos", title: "Repos", details: "", isRest: true },
       ])]),
       { trainingLevel: "untrained", trainingLevelSource: "manual" },
