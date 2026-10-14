@@ -11,7 +11,7 @@ import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport } from "@/typ
 import { WorkoutLibrary } from "./workoutLibrary";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, HIGH_IMPACT_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
-import { ficheMainZoneMax, intensityFamily } from "./plan/planReconciler";
+import { ficheMainZoneMax, intensityFamily, ficheUnconfirmedContextReason, type UnconfirmedContextReason } from "./plan/planReconciler";
 import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
@@ -677,6 +677,27 @@ export function buildWorkoutCatalog(
      * utilisée pour le garde-fou de substitution (planReconciler.ts).
      */
     beginnerIntensitySignal?: { trainingLevel: string; trainingLevelSource: string } | null;
+    /**
+     * Mission 2B (audit "sécurisation du catalogue injecté à Gemini", suite
+     * PR #377) : `ficheRequiresUnconfirmedContext` (Sleep Low/Train Low/jeûne,
+     * module `FM_`, tags `altitude`/`fatigue-cognitive`) protégeait déjà
+     * `findReplacement` côté réconciliateur, mais rien n'empêchait Gemini de
+     * choisir directement une de ces 29 fiches depuis le catalogue initial —
+     * confirmé empiriquement sur le run réel B-5K-BEGINNER du 14/10
+     * (`CANOVA_RUN_INTRODUCTIVE_PHASE`, `FM_RUN_FATMAX_ZONE`,
+     * `ENR_ALTITUDE_EASY_RUN`, `V2_RUN_MENTAL_FATIGUE` étaient toutes
+     * présentes dans le catalogue réellement transmis). Aucun champ
+     * `athleteData`/`PlanConfig` ne confirme aujourd'hui ce type de contexte
+     * (accès altitude, consentement protocole à jeun, etc.) — ce paramètre
+     * existe pour que l'exclusion puisse être levée LE JOUR où un tel champ
+     * sera ajouté, motif par motif (`UnconfirmedContextReason`) ; `undefined`
+     * (comportement par défaut, aucun appelant actuel) = aucun motif confirmé
+     * → exclusion systématique, jamais introduite par défaut. L'ABSENCE
+     * d'information n'est jamais traitée comme une contre-indication
+     * médicale — seulement comme "non confirmé, donc non proposé
+     * automatiquement" (le coach reste libre d'ajouter la séance manuellement).
+     */
+    confirmedSpecialContexts?: ReadonlySet<UnconfirmedContextReason>;
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
@@ -687,8 +708,17 @@ export function buildWorkoutCatalog(
   // Un plan débutant ne pioche QUE dans les fiches `start_to_run` ; réciproquement
   // ces fiches n'existent pas pour les autres objectifs (pool source inchangé).
   const s2rGoal = goals.includes("start_to_run");
+  // Mission 2B : source unique avec `findReplacement` (planReconciler.ts) —
+  // une fiche à contexte non confirmé n'est exclue que si son motif précis
+  // n'est pas dans `confirmedSpecialContexts` (jamais par défaut une preuve
+  // d'incompatibilité médicale, cf. JSDoc de l'option ci-dessus).
+  const confirmedContexts = options?.confirmedSpecialContexts;
+  function ficheContextAllowed(w: LibraryWorkout): boolean {
+    const reason = ficheUnconfirmedContextReason(w);
+    return !reason || !!confirmedContexts?.has(reason);
+  }
   const SourceLibrary = WorkoutLibrary.filter(
-    w => s2rGoal === (w.goals || []).includes("start_to_run"),
+    w => s2rGoal === (w.goals || []).includes("start_to_run") && ficheContextAllowed(w),
   );
 
   // Résolution des limiteurs (labels bruts → clés de patterns), dans l'ORDRE
@@ -1475,6 +1505,7 @@ export function buildWorkoutCatalog(
           && !isTrailWorkout(w)
           && !selectedIds.has(w.id)
           && (s2rGoal === (w.goals || []).includes("start_to_run"))
+          && ficheContextAllowed(w)
           && !(prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w))
           && (!phaseFilterEnabled || ficheCompatibleWithPhases(w, chunkPhaseSet)))
         .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
