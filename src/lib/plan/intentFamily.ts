@@ -63,10 +63,43 @@ const FAMILY_PATTERNS: Array<{ family: IntentFamily; rx: RegExp }> = [
 /** Cache pour éviter la re-classification à chaque appel. */
 const CACHE = new WeakMap<LibraryWorkout, IntentFamily>();
 
+/** Zone max du bloc "Main" structuré d'une fiche (0 si aucune zone détectée). */
+function mainZoneMaxOf(w: LibraryWorkout): number {
+  let mx = 0;
+  for (const p of (w.structure || [])) {
+    if (!/main/i.test(p.part || "")) continue;
+    for (const z of (p.zones || [])) {
+      const m = String(z).match(/z\s*([1-7])/i);
+      if (m) mx = Math.max(mx, Number(m[1]));
+    }
+  }
+  return mx;
+}
+
+/**
+ * Familles dont `phaseWidener.ts` se sert pour élargir l'éligibilité de
+ * phase d'une fiche jusqu'à "base" — toutes deux impliquent, par
+ * définition, un contenu facile/modéré. Un bloc "Main" réellement dur
+ * (Z4+) ne doit jamais y tomber, quel que soit le texte de warm-up/
+ * cool-down.
+ */
+const EASY_ONLY_FAMILIES = new Set<IntentFamily>(["technique", "endurance_fondamentale"]);
+
 /** Renvoie la famille d'intention d'une fiche (déterministe, avec cache). */
 export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   const cached = CACHE.get(w);
   if (cached) return cached;
+
+  // Audit réel (B-5K-BEGINNER, 15/10) : `B_RUN_FARTLEK_60_PRO` — Main
+  // 10×(1' Z4a / 2' Z2), un vrai travail d'intervalles — était classée
+  // "technique" sur la seule foi du mot "mobilité" présent dans son
+  // retour au calme, avant même que son contenu réel ne soit examiné.
+  // `phaseWidener.ts` élargissait alors sa phase jusqu'à "base", la
+  // rendant disponible dès la semaine 1 pour un débutant. Le contenu réel
+  // du bloc Main (zone max) prime donc sur le texte de warm-up/cool-down
+  // pour ces deux familles seulement — les autres familles (seuil, vo2,
+  // sprint, etc.) restent inchangées, un Main dur y étant déjà attendu.
+  const mainZoneMax = mainZoneMaxOf(w);
 
   const structureText = (w.structure || [])
     .map(p => `${p.part} ${p.text} ${(p.zones || []).join(" ")}`)
@@ -75,6 +108,7 @@ export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   const text = `${w.id} ${w.cat} ${w.objectif} ${tagsText} ${structureText} ${w.when || ""}`;
 
   for (const { family, rx } of FAMILY_PATTERNS) {
+    if (EASY_ONLY_FAMILIES.has(family) && mainZoneMax >= 4) continue;
     if (rx.test(text)) {
       CACHE.set(w, family);
       return family;
@@ -82,18 +116,7 @@ export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   }
 
   // Fallback : si zones dominées par Z1/Z2 → endurance fondamentale.
-  const zMax = (() => {
-    let mx = 0;
-    for (const p of (w.structure || [])) {
-      if (!/main/i.test(p.part || "")) continue;
-      for (const z of (p.zones || [])) {
-        const m = String(z).match(/z\s*([1-7])/i);
-        if (m) mx = Math.max(mx, Number(m[1]));
-      }
-    }
-    return mx;
-  })();
-  const family: IntentFamily = zMax > 0 && zMax <= 2 ? "endurance_fondamentale" : "other";
+  const family: IntentFamily = mainZoneMax > 0 && mainZoneMax <= 2 ? "endurance_fondamentale" : "other";
   CACHE.set(w, family);
   return family;
 }
