@@ -1696,7 +1696,11 @@ function ficheZoneCibleLabel(id: string): string {
   return mx > 0 ? `Z${mx}` : "—";
 }
 
-export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
+type PromptCatalogEntry = Omit<CatalogEntry, "repairMetadata"> & {
+  repairMetadata?: RepairWorkoutMetadata;
+};
+
+export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string {
   if (catalog.length === 0) return "";
 
   const lines: string[] = [];
@@ -1708,7 +1712,7 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   const hasTrailDPlus = catalog.some(e => e.dPlusTargetM);
   const hasAvoid = catalog.some(e => e.avoid);
 
-  const buckets = new Map<string, { info: ReturnType<typeof normalizeSportBucket>; entries: CatalogEntry[] }>();
+  const buckets = new Map<string, { info: ReturnType<typeof normalizeSportBucket>; entries: PromptCatalogEntry[] }>();
   for (const e of catalog) {
     const info = normalizeSportBucket(e.sport);
     if (!buckets.has(info.key)) buckets.set(info.key, { info, entries: [] });
@@ -1778,3 +1782,4 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
 
   return lines.join("\n");
 }
+
