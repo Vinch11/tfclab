@@ -6,6 +6,13 @@ import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { PILOT_PROFILES } from "../pilotCockpitProfiles";
 import { resetBudgetState } from "../pilotCockpitBudget";
 import { usePilotCockpit } from "../usePilotCockpit";
+import { readPlanStats, type PlanGenerationStat } from "@/lib/plan/planGenerationStats";
+
+const telemetry = (ts: number): PlanGenerationStat => ({
+  ts, format: "json", ok: true, objective: "5 KM", totalWeeks: 12,
+  totalChunks: 3, durationMs: 200,
+  semanticRepairs: ["value_check_summary: tokens=1 conforme=1 relativized=0 unresolved=0 residualAbs=0"],
+});
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -93,6 +100,7 @@ function useFakeAITrainingPlanSuccess() {
     setSportObjectiveIssues([]);
     setWeeklyQuotaIssues([]);
     setIsLoading(false);
+    localStorage.setItem("tfcl:plan_gen_stats", JSON.stringify([...readPlanStats(), telemetry(Date.now())].slice(-50)));
   };
 
   return {
@@ -111,6 +119,7 @@ vi.mock("@/hooks/useAITrainingPlan", () => ({
 describe("usePilotCockpit — données React périmées (diagnostic coach B-5K-BEGINNER)", () => {
   beforeEach(() => {
     resetBudgetState();
+    localStorage.setItem("tfcl:plan_gen_stats", JSON.stringify(Array.from({ length: 50 }, (_, i) => telemetry(i))));
   });
 
   it("récupère le plan complet (merged/parsed) et l'usage d'une génération qui a RÉELLEMENT réussi, pas l'état figé au clic", async () => {
@@ -133,6 +142,9 @@ describe("usePilotCockpit — données React périmées (diagnostic coach B-5K-B
     // Conséquence directe si le bug était présent : un message d'échec
     // générique sur une génération qui a pourtant réussi.
     expect(runResult.errorMessage).toBeUndefined();
+    expect(runResult.stat?.ok).toBe(true);
+    expect(runResult.checks?.find(c => c.id === "B1")?.pass).toBe(true);
+    expect(runResult.checks?.find(c => c.id === "B9")?.pass).toBe(true);
 
     // `lastResult` (exposé par le hook pour l'UI) converge vers la même
     // valeur une fois le rendu suivant commité.

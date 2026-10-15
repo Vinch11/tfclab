@@ -324,12 +324,13 @@ function sessionIsFastedPattern(s: PlanSession): boolean {
  * (`options.confirmedSpecialContexts`) — jamais par défaut, l'absence
  * d'information n'étant jamais une confirmation.
  */
-export type UnconfirmedContextReason = "fasted" | "fatmax_module" | "altitude" | "fatigue_cognitive";
+export type UnconfirmedContextReason = "fasted" | "fatmax_module" | "altitude" | "fatigue_cognitive" | "heat";
 
 export function ficheUnconfirmedContextReason(w: LibraryWorkout): UnconfirmedContextReason | null {
   if (ficheIsFastedPattern(w)) return "fasted";
   if (String(w.id || "").toUpperCase().startsWith("FM_")) return "fatmax_module";
   const tags = (w.tags || []).map((t) => String(t).toLowerCase());
+  if (tags.includes("heat") || tags.includes("sauna") || /(?:^|_)HEAT(?:_|$)/i.test(w.id)) return "heat";
   if (tags.includes("altitude")) return "altitude";
   if (tags.includes("fatigue-cognitive")) return "fatigue_cognitive";
   return null;
@@ -337,6 +338,11 @@ export function ficheUnconfirmedContextReason(w: LibraryWorkout): UnconfirmedCon
 
 function ficheRequiresUnconfirmedContext(w: LibraryWorkout): boolean {
   return ficheUnconfirmedContextReason(w) !== null;
+}
+
+function introducesHeatContext(candidate: LibraryWorkout, original?: LibraryWorkout | null): boolean {
+  return ficheUnconfirmedContextReason(candidate) === "heat" &&
+    (!original || ficheUnconfirmedContextReason(original) !== "heat");
 }
 
 interface FindOpts {
@@ -455,6 +461,8 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (excludeIdsThisWeek && excludeIdsThisWeek.has(w.id.toUpperCase())) continue;
     if (excludeFastedPattern && ficheIsFastedPattern(w)) continue;
     if (!originalRequiresContext && ficheRequiresUnconfirmedContext(w)) continue;
+    // Un contexte altitude/jeûne ne constitue jamais un accord pour la chaleur.
+    if (introducesHeatContext(w, original)) continue;
     if (isRaceSimIncompatibleWithObjective(w.id, objectiveKey)) continue;
     if (isLevelPrerequisiteIncompatible(w.id, levelSignal)) continue;
     if (normSport(w.sport) !== sport) continue;
@@ -2033,6 +2041,7 @@ export function runReconciler(
           }
           for (const cand of bucket) {
             if (cand.id.toUpperCase() === idUp) continue;
+            if (introducesHeatContext(cand, original)) continue;
             const allowedPhases = ficheAllowedPhases(cand);
             if (allowedPhases.size > 0 && !allowedPhases.has(weekPhase)) { rejects.phase_incompatible++; continue; }
             const candMedian = ficheMedian(cand);

@@ -89,6 +89,12 @@ export function readPlanStats(): PlanGenerationStat[] {
   } catch { return []; }
 }
 
+/** Le journal est borné à 50 : sa longueur ne sert pas de curseur de run. */
+export function planStatsSince(before: PlanGenerationStat[], after: PlanGenerationStat[], startedAt: number): PlanGenerationStat[] {
+  const previous = new Set(before.map(stat => JSON.stringify(stat)));
+  return after.filter(stat => stat.ts >= startedAt && !previous.has(JSON.stringify(stat)));
+}
+
 export function logPlanStat(stat: PlanGenerationStat): void {
   try {
     const cur = readPlanStats();

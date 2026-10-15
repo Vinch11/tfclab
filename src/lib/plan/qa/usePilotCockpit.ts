@@ -14,7 +14,7 @@ import { useCallback, useRef, useState } from "react";
 import { useAITrainingPlan } from "@/hooks/useAITrainingPlan";
 import { type QAProfile } from "./syntheticProfiles";
 import { runAllChecks, type CheckResult } from "./checks";
-import { readPlanStats, type PlanGenerationStat } from "@/lib/plan/planGenerationStats";
+import { readPlanStats, planStatsSince, type PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import { validatePlan, type PlanValidationResult } from "@/engines/plan/planValidator";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
@@ -139,7 +139,7 @@ export function usePilotCockpit() {
     }
     setIsRunning(true);
     const t0 = Date.now();
-    const beforeStats = readPlanStats().length;
+    const beforeStats = readPlanStats();
     let errorMessage: string | undefined;
 
     try {
@@ -159,7 +159,7 @@ export function usePilotCockpit() {
 
     const durationMs = Date.now() - t0;
     const allStats = readPlanStats();
-    const newStats = allStats.slice(beforeStats);
+    const newStats = planStatsSince(beforeStats, allStats, t0);
     const failStat = newStats.find((s) => s.schemaFailDetails || (!s.ok && s.errorCode));
     const newStat: PlanGenerationStat | undefined = failStat ?? newStats[newStats.length - 1];
     // Toujours lire via les refs (cf. commentaire plus haut) — JAMAIS

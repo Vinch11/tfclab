@@ -615,11 +615,11 @@ export function checkB8(
 export function checkB9(semanticRepairs: string[] | undefined): CheckResult {
   const details: string[] = [];
   const repairs = semanticRepairs ?? [];
-  const summaryLine = repairs.find(r => r.includes("value_check_summary"));
+  const summaryLines = repairs.filter(r => r.includes("value_check_summary"));
   const relativizedLines = repairs.filter(r => /\bvalue_relativized\b/.test(r));
   const unresolvedLines = repairs.filter(r => /\bvalue_unresolved\b/.test(r));
 
-  if (!summaryLine) {
+  if (summaryLines.length === 0) {
     return {
       id: "B9", label: "Prescriptions relatives (zones/%)",
       level: "critical", pass: false,
@@ -628,23 +628,26 @@ export function checkB9(semanticRepairs: string[] | undefined): CheckResult {
   }
   // Contrat v2 canonique : tokens/conforme/relativized/unresolved/residualAbs
   // Accepte aussi l'ancien libellé "relativisés" (rétro-compat).
-  const m = summaryLine.match(
+  const summaries = summaryLines.map(line => line.match(
     /tokens=(\d+).*?conforme=(\d+).*?(?:relativized|relativisés)=(\d+).*?unresolved=(\d+).*?residualAbs=(\d+)/,
-  );
-  if (!m) {
+  ));
+  const malformed = summaries.findIndex(m => !m);
+  if (malformed !== -1) {
     return {
       id: "B9", label: "Prescriptions relatives (zones/%)",
       level: "critical", pass: false,
-      details: [`Résumé mal formé : "${summaryLine}"`],
+      details: [`Résumé mal formé : "${summaryLines[malformed]}"`],
     };
   }
-  const total = Number(m[1]);
-  const ok = Number(m[2]);
-  const relat = Number(m[3]);
-  const unres = Number(m[4]);
-  const residual = Number(m[5]);
+  // Chaque chunk émet son résumé : aucun chunk ultérieur ne doit être ignoré.
+  const sum = (index: number) => summaries.reduce((n, m) => n + Number(m![index]), 0);
+  const total = sum(1);
+  const ok = sum(2);
+  const relat = sum(3);
+  const unres = sum(4);
+  const residual = sum(5);
   const pctOk = total > 0 ? Math.round((ok / total) * 100) : 100;
-  const pass = unres === 0 && residual === 0;
+  const pass = unres === 0 && residual === 0 && unresolvedLines.length === 0;
 
   details.push(`Total tokens : ${total} · relatifs conformes ${ok} (${pctOk}%) · relativisés ${relat} · unresolved ${unres} · absolus résiduels ${residual}`);
   if (relativizedLines.length > 0) {
