@@ -16,6 +16,7 @@ import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
 import { isRaceSimIncompatibleWithObjective } from "./plan/raceSimCompatibility";
+import { isLevelPrerequisiteIncompatible } from "./plan/levelPrerequisiteCompatibility";
 
 /**
  * Réduit PlanConfig.injuryRisk (envelope complète {level, score, why, guardrails})
@@ -732,10 +733,27 @@ export function buildWorkoutCatalog(
   // qui porterait un repère structurel de secours contaminant — cf. docstring
   // du helper). Partagé avec `planReconciler.ts::findReplacement`
   // (raceSimCompatibility.ts) pour ne jamais maintenir deux listes divergentes.
+  //
+  // Mission Axe C (consigne coach) : 8 fiches nominatives dont le prérequis
+  // de niveau (seuil de semaines/mois d'entraînement régulier, ou
+  // qualificatif "débutant"/"expérimenté" univoque — jamais une déduction
+  // du nom de la méthode) a été confirmé par relecture du contenu réel
+  // (MISSION_AXE_C_VALIDATION.md §1). Appliqué ICI, au même point que
+  // l'axe A (raceSimCompatibility), pour la même raison : `backfillPool`/
+  // le remplissage (Pass 4) re-piochent directement dans `SourceLibrary`
+  // sans revérifier le hard-ban de score. Inactif par défaut (signal
+  // absent/non fiable/`fallback-prudent` → aucune exclusion, jamais une
+  // preuve par défaut) — cf. `isLevelPrerequisiteIncompatible`. 2 fiches
+  // par ailleurs confirmées (`BILLAT_RUN_30_30_PRO`, `BILLAT_RUN_3MIN_3MIN`)
+  // sont volontairement ABSENTES de cette liste : leur seul critère de
+  // niveau indépendant est un seuil de VMA jamais transmis à ce pipeline —
+  // transformer `trainingLevel` en preuve d'une VMA insuffisante serait une
+  // estimation, pas une vérification (consigne coach explicite).
   const SourceLibrary = WorkoutLibrary.filter(
     w => s2rGoal === (w.goals || []).includes("start_to_run")
       && ficheContextAllowed(w)
-      && !isRaceSimIncompatibleWithObjective(w.id, goals[0]),
+      && !isRaceSimIncompatibleWithObjective(w.id, goals[0])
+      && !isLevelPrerequisiteIncompatible(w.id, options?.beginnerIntensitySignal),
   );
 
   // Résolution des limiteurs (labels bruts → clés de patterns), dans l'ORDRE
