@@ -207,6 +207,32 @@ export function ficheMainZoneMax(w: LibraryWorkout): number {
   }
   return mx;
 }
+
+/**
+ * Audit réel (B-5K-BEGINNER, 15/10) : une semaine de décharge dont la note
+ * coach ("Semaine allégée. Réduire l'intensité, rester strictement en
+ * Z1-Z2...") plafonne explicitement l'intensité ne voyait ce plafond
+ * vérifié qu'après coup (QA check B11, `checksB10B11.ts::extractCapZone`
+ * — même regex, redéclarée ici plutôt qu'importée depuis un module QA :
+ * la production ne doit pas dépendre de `src/lib/plan/qa/`, même patron
+ * d'indépendance que `levelPrerequisiteCompatibility.ts`). Jamais consulté
+ * par le réconciliateur au moment de choisir un candidat — `findReplacement`
+ * pouvait donc réintroduire une fiche dépassant ce plafond (cas réel :
+ * `A_RUN_FARTLEK_LIBRE`, Main jusqu'en Z4, substituée dans une semaine
+ * plafonnée Z2). Ce plafond est PAR SEMAINE (`week.weeklyNotes`, posé par
+ * l'IA à la génération) — jamais plan-entier, donc jamais inséré dans
+ * `PhaseCtx` (constant pour tout le run) : chaque site d'appel de
+ * `findReplacement` le calcule localement depuis la semaine qu'il traite
+ * déjà, comme `weekPhase`/`targetDur`.
+ */
+export function extractWeekZoneCap(coachNotes: string | null | undefined): number | null {
+  if (!coachNotes) return null;
+  const rx1 = /ne pas d[ée]passer\s*z\s*([1-7])/i;
+  const rx2 = /max(?:imum)?\s*z\s*([1-7])/i;
+  const rx3 = /z\s*1\s*[-–]\s*z\s*([1-7])\s*(?:uniquement|only)?/i;
+  const m = coachNotes.match(rx1) || coachNotes.match(rx2) || coachNotes.match(rx3);
+  return m ? Number(m[1]) : null;
+}
 function ficheMedian(w: LibraryWorkout): number {
   const [a, b] = w.durationMin;
   return Math.round((a + b) / 2);
@@ -430,10 +456,20 @@ interface FindOpts {
    * défaut si absent.
    */
   levelSignal?: BeginnerIntensitySignal | null;
+  /**
+   * Audit réel (B-5K-BEGINNER, 15/10) : plafond de zone de la semaine
+   * ciblée (`extractWeekZoneCap(week.weeklyNotes)`), calculé par chaque
+   * site d'appel depuis la semaine qu'il traite déjà — jamais plan-entier,
+   * donc jamais dans `PhaseCtx`. `null`/absent = aucune semaine plafonnée
+   * détectée, aucune exclusion (même convention que `objectiveKey`/
+   * `levelSignal` : l'absence d'info n'est jamais traitée comme une
+   * incompatibilité).
+   */
+  weekZoneCap?: number | null;
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern, objectiveKey, levelSignal } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern, objectiveKey, levelSignal, weekZoneCap } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   const originalZoneMax = original ? ficheMainZoneMax(original) : 0;
@@ -457,6 +493,7 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (!originalRequiresContext && ficheRequiresUnconfirmedContext(w)) continue;
     if (isRaceSimIncompatibleWithObjective(w.id, objectiveKey)) continue;
     if (isLevelPrerequisiteIncompatible(w.id, levelSignal)) continue;
+    if (weekZoneCap != null && ficheMainZoneMax(w) > weekZoneCap) continue;
     if (normSport(w.sport) !== sport) continue;
     if (requiredFamily && intensityFamily(ficheMainZoneMax(w)) !== requiredFamily) continue;
     if (opts.excludeFamily && intensityFamily(ficheMainZoneMax(w)) === opts.excludeFamily) continue;
@@ -598,6 +635,7 @@ function runOnePass(
             limiterKeywordsByRank,
             objectiveKey: phaseCtx?.objectiveKey,
             levelSignal: phaseCtx?.beginnerIntensitySignal,
+            weekZoneCap: extractWeekZoneCap(week.weeklyNotes),
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
@@ -636,6 +674,7 @@ function runOnePass(
             preserveOriginalFamily: true,
             objectiveKey: phaseCtx?.objectiveKey,
             levelSignal: phaseCtx?.beginnerIntensitySignal,
+            weekZoneCap: extractWeekZoneCap(week.weeklyNotes),
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -667,6 +706,7 @@ function runOnePass(
             limiterKeywordsByRank,
             objectiveKey: phaseCtx?.objectiveKey,
             levelSignal: phaseCtx?.beginnerIntensitySignal,
+            weekZoneCap: extractWeekZoneCap(week.weeklyNotes),
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
@@ -746,6 +786,7 @@ function runOnePass(
             requireFamily: isSLFloor ? "easy" : undefined,
             objectiveKey: phaseCtx?.objectiveKey,
             levelSignal: phaseCtx?.beginnerIntensitySignal,
+            weekZoneCap: extractWeekZoneCap(week.weeklyNotes),
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -905,6 +946,7 @@ function dedupeWithinWeek(
           preserveOriginalFamily: true,
           objectiveKey: phaseCtx?.objectiveKey,
           levelSignal: phaseCtx?.beginnerIntensitySignal,
+          weekZoneCap: extractWeekZoneCap(wk.weeklyNotes),
         }, id);
         if (repl) {
           assignFiche(s, repl, s.durationMin, ledger);
@@ -980,6 +1022,7 @@ function dedupeFastedWithinWeek(
           preserveOriginalFamily: true,
           objectiveKey: phaseCtx?.objectiveKey,
           levelSignal: phaseCtx?.beginnerIntensitySignal,
+          weekZoneCap: extractWeekZoneCap(wk.weeklyNotes),
         }, id ?? undefined);
         const label = id ?? "custom";
         if (repl) {
@@ -1843,6 +1886,7 @@ function enforceDemandingAccumulation(
           excludeFamily: "vo2",
           objectiveKey: phaseCtx?.objectiveKey,
           levelSignal: phaseCtx?.beginnerIntensitySignal,
+          weekZoneCap: extractWeekZoneCap(wk.weeklyNotes),
         }, id ?? undefined);
         const label = id ?? s.title ?? "custom";
         if (repl) {
