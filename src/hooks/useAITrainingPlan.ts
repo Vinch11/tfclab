@@ -678,6 +678,7 @@ export function useAITrainingPlan() {
     try {
       // Build phase-specific workout catalogs for AI injection (fallback for non-chunked plans)
       const phaseCatalogs: Record<string, string> = {};
+      const phaseRepairCatalogs: Record<string, Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>> = {};
       // NB : bornes CHEVAUCHANTES volontairement — usage = injection catalogue aux transitions.
       // La phase canonique des semaines est fixée par normalizeWeeksAndPhases (source unique).
       // Bornes exprimées en position GLOBALE (effTotalWeeks) : en régénération
@@ -838,6 +839,7 @@ export function useAITrainingPlan() {
           { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
+        phaseRepairCatalogs[pr.phase] = catalog.map(entry => entry.repairMetadata);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
         {
           const trailEntries = catalog.filter((e) => isTrailCatalogId(e.id));
@@ -854,6 +856,7 @@ export function useAITrainingPlan() {
       // The edge function will prefer these over phaseCatalogs when chunking.
       // This reduces cognitive noise: AI sees only sessions relevant to *this* block.
       const chunkCatalogs: string[] = [];
+      const chunkRepairCatalogs: Array<Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>> = [];
       // Bug réel (audit "génération de plan IA", plan Emanuela, "Bloc 4 ·
       // Régénération post-pic" S22-23) : ce catalogue par chunk ne connaît
       // QUE la position calendaire brute (cStart/cEnd/totalWeeks, via
@@ -878,6 +881,7 @@ export function useAITrainingPlan() {
       // dans le prompt (cf. jsonPlanHandler.ts) au lieu de se substituer l'un
       // à l'autre.
       const chunkRegenCatalogs: string[] = [];
+      const chunkRegenRepairCatalogs: Array<Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>> = [];
       const chunkRegenWeeks: number[][] = [];
       if (needsChunking) {
         const chunkUsedIds = new Set<string>();
@@ -895,6 +899,7 @@ export function useAITrainingPlan() {
             { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
+          chunkRepairCatalogs.push(chunkCatalog.map(entry => entry.repairMetadata));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
           {
             const trailEntries = chunkCatalog.filter((e) => isTrailCatalogId(e.id));
@@ -916,11 +921,13 @@ export function useAITrainingPlan() {
               { maxItems: 60, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, phaseOverride: ["base"], strictPhaseFilter: true }
             );
             chunkRegenCatalogs.push(serializeCatalogForPrompt(regenCatalog));
+            chunkRegenRepairCatalogs.push(regenCatalog.map(entry => entry.repairMetadata));
             console.log(
               `[regen_gap_catalog] chunk=${ci} weeks=[${regenWeeksInChunk.join(",")}] entries=${regenCatalog.length}`,
             );
           } else {
             chunkRegenCatalogs.push("");
+            chunkRegenRepairCatalogs.push([]);
           }
           chunkRegenWeeks.push(regenWeeksInChunk);
 
@@ -1157,12 +1164,15 @@ export function useAITrainingPlan() {
           athleteData,
           planConfig: planConfigWithQuota,
           phaseCatalogs,
+          phaseRepairCatalogs,
           chunkCatalogs: chunkCatalogs.length > 0 ? chunkCatalogs : undefined,
+          chunkRepairCatalogs: chunkRepairCatalogs.length > 0 ? chunkRepairCatalogs : undefined,
           // Bloc catalogue restreint dédié aux semaines de régénération
           // inter-cycles (cf. commentaire au site de construction) — index
           // aligné sur chunkCatalogs, chaîne vide/tableau vide pour un chunk
           // sans semaine de régénération.
           chunkRegenCatalogs: chunkRegenCatalogs.some((c) => c.length > 0) ? chunkRegenCatalogs : undefined,
+          chunkRegenRepairCatalogs: chunkRegenRepairCatalogs.some((c) => c.length > 0) ? chunkRegenRepairCatalogs : undefined,
           chunkRegenWeeks: chunkRegenWeeks.some((w) => w.length > 0) ? chunkRegenWeeks : undefined,
           chunkSize: CHUNK_SIZE,
           catalogDurationStats,

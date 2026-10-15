@@ -69,13 +69,14 @@ function makeChunk(weekNumber: number, phase: string, session: PlanSession): Pla
 }
 
 describe("runReconciler — phase catalogue recalculée numériquement quand week.phase est un libellé (pas un enum propre)", () => {
-  it("libellé humain + semaine 1/12 (numériquement base) → fiche build/peak-only substituée", () => {
+  it("libellé humain + semaine 1/12 : détecte l'incompatibilité mais ne change pas VMA en endurance", () => {
     const s = makeSession();
     const chunk = makeChunk(1, "Phase 1 — Adaptation & Socle Aérobie", s);
     const rec = runReconciler([chunk], {}, 2, undefined, { globalTotalWeeks: 12, globalWeekOffset: 0 });
-    expect(rec.counters.phase_substituted).toBe(1);
-    expect(s.catalogId).toBe("BASE_RUN_AEROBIE_CONTINU");
-    expect(rec.logs.some(l => l.includes("[phase_substituted]") && l.includes("LYDIARD_RUN_TRACK_VMA"))).toBe(true);
+    expect(rec.counters.phase_substituted).toBe(0);
+    expect(rec.counters.phase_unresolved).toBe(1);
+    expect(s.catalogId).toBe("LYDIARD_RUN_TRACK_VMA");
+    expect(rec.logs.some(l => l.includes("[phase_unresolved]") && l.includes("LYDIARD_RUN_TRACK_VMA"))).toBe(true);
   });
 
   it("libellé humain + semaine 5/12 (numériquement build) → fiche build/peak-only conservée (phase compatible)", () => {
@@ -86,12 +87,13 @@ describe("runReconciler — phase catalogue recalculée numériquement quand wee
     expect(s.catalogId).toBe("LYDIARD_RUN_TRACK_VMA");
   });
 
-  it("enum propre et cohérent ('base', semaine 1/12 réellement base) → substitution normale", () => {
+  it("enum propre et cohérent ('base') → conflit non résolu faute d'alternative VO2 équivalente", () => {
     const s = makeSession();
     const chunk = makeChunk(1, "base", s);
     const rec = runReconciler([chunk], {}, 2, undefined, { globalTotalWeeks: 12, globalWeekOffset: 0 });
-    expect(rec.counters.phase_substituted).toBe(1);
-    expect(s.catalogId).toBe("BASE_RUN_AEROBIE_CONTINU");
+    expect(rec.counters.phase_substituted).toBe(0);
+    expect(rec.counters.phase_unresolved).toBe(1);
+    expect(s.catalogId).toBe("LYDIARD_RUN_TRACK_VMA");
   });
 
   // P0 (consigne coach, suite PR #376) : "Ne fais pas confiance à week.phase
@@ -106,13 +108,14 @@ describe("runReconciler — phase catalogue recalculée numériquement quand wee
   // précis qui a laissé passer Lydiard dans ce run — cf. phaseNormalization
   // fix) ; ce test couvre le cas où le LLM se mécompte lui-même, qui reste
   // un vecteur distinct et confirmé par la consigne coach.
-  it("enum propre mais FAUX ('build' auto-déclaré par le LLM pour une semaine 1/12 réellement 'base') → le calcul numérique prime, Lydiard substitué quand même", () => {
+  it("enum propre mais FAUX : le calcul numérique prime, sans convertir VMA en endurance", () => {
     const s = makeSession();
     const chunk = makeChunk(1, "build", s); // auto-déclaration LLM syntaxiquement valide mais fausse
     const rec = runReconciler([chunk], {}, 2, undefined, { globalTotalWeeks: 12, globalWeekOffset: 0 });
-    expect(rec.counters.phase_substituted).toBe(1);
-    expect(s.catalogId).toBe("BASE_RUN_AEROBIE_CONTINU");
-    expect(rec.logs.some(l => l.includes("[phase_substituted]") && l.includes("LYDIARD_RUN_TRACK_VMA"))).toBe(true);
+    expect(rec.counters.phase_substituted).toBe(0);
+    expect(rec.counters.phase_unresolved).toBe(1);
+    expect(s.catalogId).toBe("LYDIARD_RUN_TRACK_VMA");
+    expect(rec.logs.some(l => l.includes("[phase_unresolved]") && l.includes("LYDIARD_RUN_TRACK_VMA"))).toBe(true);
   });
 
   it("aucun substitut disponible → séance JAMAIS supprimée, conflit signalé (phase_unresolved)", () => {

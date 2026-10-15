@@ -82,7 +82,7 @@ serve(async (req) => {
       console.warn("[PAYLOAD_INVALID] validation failed to import/run:", e);
     }
 
-    const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs, chunkCatalogs, chunkRegenCatalogs, chunkRegenWeeks, catalogDurationStats } = rawBody;
+    const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs, phaseRepairCatalogs, chunkCatalogs, chunkRepairCatalogs, chunkRegenCatalogs, chunkRegenRepairCatalogs, chunkRegenWeeks, catalogDurationStats } = rawBody;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -127,8 +127,11 @@ serve(async (req) => {
         regenerateWeek,
         workoutCatalog,
         phaseCatalogs,
+        phaseRepairCatalogs,
         chunkCatalogs,
+        chunkRepairCatalogs,
         chunkRegenCatalogs,
+        chunkRegenRepairCatalogs,
         chunkRegenWeeks,
         catalogDurationStats,
         corsHeaders,

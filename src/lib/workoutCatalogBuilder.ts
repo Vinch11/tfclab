@@ -17,6 +17,8 @@ import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
 import { isRaceSimIncompatibleWithObjective } from "./plan/raceSimCompatibility";
 import { isLevelPrerequisiteIncompatible } from "./plan/levelPrerequisiteCompatibility";
+import { buildRepairWorkoutMetadata } from "./plan/repairCatalogMetadata";
+import type { RepairWorkoutMetadata } from "../../supabase/functions/_shared/repairSportingEquivalence";
 
 /**
  * Réduit PlanConfig.injuryRisk (envelope complète {level, score, why, guardrails})
@@ -84,6 +86,8 @@ export interface CatalogEntry {
    * aucune restriction ("—" / "aucun" dans la bibliothèque source).
    */
   avoid?: string;
+  /** Full, non-prompt metadata consumed by deterministic repair passes. */
+  repairMetadata: RepairWorkoutMetadata;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1602,6 +1606,7 @@ export function buildWorkoutCatalog(
     variants: pickVariant(w, goals),
     ...(w.dPlusTargetM ? { dPlusTargetM: w.dPlusTargetM } : {}),
     ...(isMeaningfulAvoid(w.avoid) ? { avoid: w.avoid } : {}),
+    repairMetadata: buildRepairWorkoutMetadata(w),
   }));
 }
 

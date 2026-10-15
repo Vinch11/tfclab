@@ -31,6 +31,11 @@ import { computePlanDiversity, formatDiversitySummary } from "./diversityMetrics
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, canonicalWeekPhase, type PlanPhase } from "@/lib/plan/phaseNormalization";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
+import { buildRepairWorkoutMetadata } from "@/lib/plan/repairCatalogMetadata";
+import {
+  evaluateRepairSportingEquivalence,
+  type RepairIntentFamily,
+} from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
 import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
@@ -176,6 +181,9 @@ const FICHES_BY_ID: Map<string, LibraryWorkout> = (() => {
   for (const w of WorkoutLibrary) m.set(w.id.toUpperCase(), w);
   return m;
 })();
+const REPAIR_METADATA_BY_ID = new Map(
+  WorkoutLibrary.map(workout => [workout.id.toUpperCase(), buildRepairWorkoutMetadata(workout)]),
+);
 function ficheFor(id: string | null | undefined): LibraryWorkout | null {
   if (!id) return null;
   return FICHES_BY_ID.get(id.toUpperCase()) ?? null;
@@ -232,6 +240,20 @@ export function extractWeekZoneCap(coachNotes: string | null | undefined): numbe
   const rx3 = /z\s*1\s*[-–]\s*z\s*([1-7])\s*(?:uniquement|only)?/i;
   const m = coachNotes.match(rx1) || coachNotes.match(rx2) || coachNotes.match(rx3);
   return m ? Number(m[1]) : null;
+}
+function resolveRepairWeekType(
+  week: { weeklyNotes?: string | null; theme?: string | null },
+  quota?: WeekQuotaEntry | null,
+): string {
+  if (quota?.weekType) return String(quota.weekType);
+  const text = `${week.theme ?? ""} ${week.weeklyNotes ?? ""}`.toLowerCase();
+  return /recovery|deload|d[ée]charge|r[ée]cup|r[ée]g[ée]n[ée]ration/.test(text) ? "recovery" : "load";
+}
+function resolveRepairWeekZoneCap(
+  week: { weeklyNotes?: string | null; theme?: string | null },
+  quota?: WeekQuotaEntry | null,
+): number | null {
+  return extractWeekZoneCap(week.weeklyNotes) ?? (resolveRepairWeekType(week, quota) === "recovery" ? 2 : null);
 }
 function ficheMedian(w: LibraryWorkout): number {
   const [a, b] = w.durationMin;
@@ -416,12 +438,9 @@ interface FindOpts {
    *    aux réparations qui ne remettent PAS en cause le bien-fondé de la
    *    séance d'origine (durée hors plage, doublon intra-semaine, cumul à
    *    jeun) : la substitution ne doit alors jamais changer de famille.
-   *    JAMAIS utilisé pour la substitution PHASE (STEP 1) : là, c'est
-   *    justement parce que la fiche d'origine est mal placée (phase
-   *    incompatible) qu'on la remplace — exiger sa même famille empêcherait
-   *    de corriger une fiche "vo2" placée à tort en phase base vers une
-   *    fiche "easy" réellement adaptée (le garde-fou phase, déjà en place,
-   *    est le bon critère dans ce cas précis).
+   *    La règle structurée d'équivalence conserve toujours l'intention fine,
+   *    y compris pour une réparation de phase. Ce filtre historique ajoute
+   *    un garde-fou de zone aux chemins qui le demandent explicitement.
    * Si ce filtre exclut tous les candidats → `findReplacement` renvoie
    * `null` comme n'importe quel autre filtre dur (phase/durée) : l'appelant
    * traite ça comme "non résolu", JAMAIS comme un repli vers une famille
@@ -472,10 +491,14 @@ interface FindOpts {
    * incompatibilité).
    */
   weekZoneCap?: number | null;
+  /** Source fiable du caractère recovery/deload, issue des quotas quand disponible. */
+  weekType?: string | null;
+  /** Explicit destination intents for a repair whose purpose is load reduction. */
+  allowedCandidateIntentFamilies?: RepairIntentFamily[];
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern, objectiveKey, levelSignal, weekZoneCap } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern, objectiveKey, levelSignal, weekZoneCap, weekType } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   const originalZoneMax = original ? ficheMainZoneMax(original) : 0;
@@ -503,6 +526,18 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (isLevelPrerequisiteIncompatible(w.id, levelSignal)) continue;
     if (weekZoneCap != null && ficheMainZoneMax(w) > weekZoneCap) continue;
     if (normSport(w.sport) !== sport) continue;
+    const sportingCompatibility = evaluateRepairSportingEquivalence(
+      original ? REPAIR_METADATA_BY_ID.get(original.id.toUpperCase()) : null,
+      REPAIR_METADATA_BY_ID.get(w.id.toUpperCase()),
+      {
+        objective: objectiveKey,
+        phase: weekPhase,
+        weekType,
+        operation: original ? "replacement" : "insertion",
+        allowedCandidateIntentFamilies: opts.allowedCandidateIntentFamilies,
+      },
+    );
+    if (!sportingCompatibility.compatible) continue;
     if (requiredFamily && intensityFamily(ficheMainZoneMax(w)) !== requiredFamily) continue;
     if (opts.excludeFamily && intensityFamily(ficheMainZoneMax(w)) === opts.excludeFamily) continue;
     if (requirePhase) {
@@ -643,7 +678,8 @@ function runOnePass(
             limiterKeywordsByRank,
             objectiveKey: phaseCtx?.objectiveKey,
             levelSignal: phaseCtx?.beginnerIntensitySignal,
-            weekZoneCap: extractWeekZoneCap(week.weeklyNotes),
+            weekZoneCap: resolveRepairWeekZoneCap(week, quotaEntry),
+            weekType: resolveRepairWeekType(week, quotaEntry),
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
@@ -682,7 +718,8 @@ function runOnePass(
             preserveOriginalFamily: true,
             objectiveKey: phaseCtx?.objectiveKey,
             levelSignal: phaseCtx?.beginnerIntensitySignal,
-            weekZoneCap: extractWeekZoneCap(week.weeklyNotes),
+            weekZoneCap: resolveRepairWeekZoneCap(week, quotaEntry),
+            weekType: resolveRepairWeekType(week, quotaEntry),
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -714,7 +751,8 @@ function runOnePass(
             limiterKeywordsByRank,
             objectiveKey: phaseCtx?.objectiveKey,
             levelSignal: phaseCtx?.beginnerIntensitySignal,
-            weekZoneCap: extractWeekZoneCap(week.weeklyNotes),
+            weekZoneCap: resolveRepairWeekZoneCap(week, quotaEntry),
+            weekType: resolveRepairWeekType(week, quotaEntry),
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
@@ -794,7 +832,8 @@ function runOnePass(
             requireFamily: isSLFloor ? "easy" : undefined,
             objectiveKey: phaseCtx?.objectiveKey,
             levelSignal: phaseCtx?.beginnerIntensitySignal,
-            weekZoneCap: extractWeekZoneCap(week.weeklyNotes),
+            weekZoneCap: resolveRepairWeekZoneCap(week, quotaEntry),
+            weekType: resolveRepairWeekType(week, quotaEntry),
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -923,10 +962,12 @@ function dedupeWithinWeek(
   ledger?: UsageLedger,
   restrictToIds?: Set<string>,
   phaseCtx?: PhaseCtx,
+  quotasByWeek?: Record<number, WeekQuotaEntry>,
 ): void {
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
       const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
+      const quotaEntry = quotasByWeek?.[wk.weekNumber] ?? null;
       const seenIds = new Set<string>();
       for (const s of (wk.sessions ?? []) as PlanSession[]) {
         if (s.sport === "rest") continue;
@@ -954,7 +995,8 @@ function dedupeWithinWeek(
           preserveOriginalFamily: true,
           objectiveKey: phaseCtx?.objectiveKey,
           levelSignal: phaseCtx?.beginnerIntensitySignal,
-          weekZoneCap: extractWeekZoneCap(wk.weeklyNotes),
+          weekZoneCap: resolveRepairWeekZoneCap(wk, quotaEntry),
+          weekType: resolveRepairWeekType(wk, quotaEntry),
         }, id);
         if (repl) {
           assignFiche(s, repl, s.durationMin, ledger);
@@ -993,10 +1035,12 @@ function dedupeFastedWithinWeek(
   ledger?: UsageLedger,
   restrictToIds?: Set<string>,
   phaseCtx?: PhaseCtx,
+  quotasByWeek?: Record<number, WeekQuotaEntry>,
 ): void {
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
       const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
+      const quotaEntry = quotasByWeek?.[wk.weekNumber] ?? null;
       const sessions = (wk.sessions ?? []) as PlanSession[];
       const fastedSessions = sessions.filter(s => s.sport !== "rest" && sessionIsFastedPattern(s));
       if (fastedSessions.length < 2) continue;
@@ -1028,9 +1072,13 @@ function dedupeFastedWithinWeek(
           // changer de famille d'intensité (ex. une sortie longue à jeun
           // facile ne doit pas devenir une séance qualité non-fasted).
           preserveOriginalFamily: true,
+          // This repair deliberately removes the fasted/fatmax context while
+          // retaining an easy aerobic session of the same sport and load.
+          allowedCandidateIntentFamilies: ["endurance_fondamentale", "recuperation"],
           objectiveKey: phaseCtx?.objectiveKey,
           levelSignal: phaseCtx?.beginnerIntensitySignal,
-          weekZoneCap: extractWeekZoneCap(wk.weeklyNotes),
+          weekZoneCap: resolveRepairWeekZoneCap(wk, quotaEntry),
+          weekType: resolveRepairWeekType(wk, quotaEntry),
         }, id ?? undefined);
         const label = id ?? "custom";
         if (repl) {
@@ -1126,6 +1174,15 @@ function fixEarlyConsolidationSessions(
       if ((wk.weekNumber ?? 0) >= CONSOLIDATION_MIN_WEEK) continue;
       for (const s of (wk.sessions ?? []) as PlanSession[]) {
         if ((s as any).catalogId !== CONSOLIDATION_ID) continue;
+        const compatibility = evaluateRepairSportingEquivalence(
+          REPAIR_METADATA_BY_ID.get(CONSOLIDATION_ID),
+          REPAIR_METADATA_BY_ID.get(fallback.id.toUpperCase()),
+          { objective: "start_to_run", phase: String(wk.phase ?? "base"), operation: "replacement" },
+        );
+        if (!compatibility.compatible) {
+          logs.push(`[early_consolidation_unresolved] S${wk.weekNumber} ${CONSOLIDATION_ID} — alternative ${fallback.id} non équivalente (${compatibility.reasons.join(",")})`);
+          continue;
+        }
         (s as any).catalogIdOrigin = CONSOLIDATION_ID;
         (s as any).catalogId = fallback.id;
         (s as any).title = fallback.objectif;
@@ -1283,11 +1340,29 @@ function alignPostBikeRunClaims(
 }
 
 /** Réécrit une séance sur la fiche cible (titre + détails + catalogId). */
-function applyFiche(s: PlanSession, fiche: LibraryWorkout): void {
+function applyFiche(
+  s: PlanSession,
+  fiche: LibraryWorkout,
+  phase: string,
+  allowedCandidateIntentFamilies?: RepairIntentFamily[],
+): boolean {
+  const originalId = String((s as any).catalogId ?? "");
+  const compatibility = evaluateRepairSportingEquivalence(
+    REPAIR_METADATA_BY_ID.get(originalId.toUpperCase()),
+    REPAIR_METADATA_BY_ID.get(fiche.id.toUpperCase()),
+    {
+      objective: "start_to_run",
+      phase,
+      operation: "replacement",
+      allowedCandidateIntentFamilies,
+    },
+  );
+  if (!compatibility.compatible) return false;
   (s as any).catalogIdOrigin = (s as any).catalogIdOrigin ?? (s as any).catalogId;
   (s as any).catalogId = fiche.id;
   (s as any).title = fiche.objectif;
   (s as any).details = `${ficheToText(fiche)} [ID: ${fiche.id}]`;
+  return true;
 }
 
 function orderStartToRunWeek(
@@ -1318,7 +1393,10 @@ function orderStartToRunWeek(
         const before = String((s as any).catalogId);
         const fiche = ficheFor(wanted);
         if (!fiche) return;
-        applyFiche(s, fiche);
+        if (!applyFiche(s, fiche, String(wk.phase ?? "base"), ["endurance_fondamentale", "technique"])) {
+          logs.push(`[s2r_week_resequence_unresolved] S${wk.weekNumber} ${before} → ${wanted} non équivalent`);
+          return;
+        }
         counters.s2r_week_resequenced = (counters.s2r_week_resequenced ?? 0) + 1;
         logs.push(
           `[s2r_week_resequenced] S${wk.weekNumber} ${(s as any).day ?? ""} ${before} → ${wanted} (première exposition = format le plus doux)`,
@@ -1365,7 +1443,10 @@ function enforceStartToRunLadder(
       const fiche = wanted ? ficheFor(wanted) : null;
       if (!fiche) continue;
       const before = String((s as any).catalogId);
-      applyFiche(s, fiche);
+      if (!applyFiche(s, fiche, String(wk.phase ?? "base"), ["endurance_fondamentale", "technique"])) {
+        logs.push(`[s2r_ladder_unresolved] S${wk.weekNumber} ${before} → ${fiche.id} non équivalent`);
+        continue;
+      }
       counters.s2r_ladder_smoothed = (counters.s2r_ladder_smoothed ?? 0) + 1;
       logs.push(
         `[s2r_ladder_smoothed] S${wk.weekNumber} ${(s as any).day ?? ""} ${before}(rang ${rank}) → ${fiche.id}(rang ${allowedMax}) — palier manquant, progression graduelle imposée`,
@@ -1856,6 +1937,7 @@ function enforceDemandingAccumulation(
   ledger?: UsageLedger,
   restrictToIds?: Set<string>,
   phaseCtx?: PhaseCtx,
+  quotasByWeek?: Record<number, WeekQuotaEntry>,
 ): void {
   if (!trainingLevelSignal) return;
   if (!DEMANDING_ACCUMULATION_RELIABLE_SOURCES.has(trainingLevelSignal.trainingLevelSource)) return;
@@ -1863,6 +1945,7 @@ function enforceDemandingAccumulation(
 
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
+      const quotaEntry = quotasByWeek?.[wk.weekNumber] ?? null;
       const sessions = (wk.sessions ?? []) as PlanSession[];
       const active = sessions.filter(s => s.sport !== "rest");
       if (active.length === 0) continue;
@@ -1892,9 +1975,11 @@ function enforceDemandingAccumulation(
           restrictToIds,
           ledger,
           excludeFamily: "vo2",
+          allowedCandidateIntentFamilies: ["seuil", "endurance_fondamentale", "recuperation"],
           objectiveKey: phaseCtx?.objectiveKey,
           levelSignal: phaseCtx?.beginnerIntensitySignal,
-          weekZoneCap: extractWeekZoneCap(wk.weeklyNotes),
+          weekZoneCap: resolveRepairWeekZoneCap(wk, quotaEntry),
+          weekType: resolveRepairWeekType(wk, quotaEntry),
         }, id ?? undefined);
         const label = id ?? s.title ?? "custom";
         if (repl) {
@@ -2051,6 +2136,7 @@ export function runReconciler(
     for (const chunk of chunks) {
       for (const week of chunk.weeks ?? []) {
         const weekPhase = resolveWeekPhase(week.phase, week.weekNumber, phaseCtx);
+        const quotaEntry = quotasByWeek[week.weekNumber] ?? null;
         for (const s of (week.sessions ?? []) as PlanSession[]) {
           if ((s as any).isRest || s.sport === "rest") continue;
           if (passLabel === "pre") debugStats.sessionsScanned++;
@@ -2076,7 +2162,7 @@ export function runReconciler(
           const targetDur = s.durationMin ?? origMedian;
           const durBound = Math.max(1, Math.round(0.25 * (targetDur || origMedian || 60)));
           let best: { w: LibraryWorkout; score: number; intent: number; candMedian: number } | null = null;
-          const rejects = { phase_incompatible: 0, duration_out_of_range: 0, score_too_low: 0 };
+          const rejects = { sporting_incompatible: 0, phase_incompatible: 0, duration_out_of_range: 0, score_too_low: 0 };
           let sameSportOtherFamily = 0;
           if (bucket.length === 0) {
             for (const [key, arr] of injectedByBucket) {
@@ -2085,6 +2171,17 @@ export function runReconciler(
           }
           for (const cand of bucket) {
             if (cand.id.toUpperCase() === idUp) continue;
+            const sportingCompatibility = evaluateRepairSportingEquivalence(
+              REPAIR_METADATA_BY_ID.get(original.id.toUpperCase()),
+              REPAIR_METADATA_BY_ID.get(cand.id.toUpperCase()),
+              {
+                objective: phaseCtx?.objectiveKey,
+                phase: weekPhase,
+                weekType: resolveRepairWeekType(week, quotaEntry),
+                operation: "replacement",
+              },
+            );
+            if (!sportingCompatibility.compatible) { rejects.sporting_incompatible++; continue; }
             if (introducesHeatContext(cand, original)) continue;
             const allowedPhases = ficheAllowedPhases(cand);
             if (allowedPhases.size > 0 && !allowedPhases.has(weekPhase)) { rejects.phase_incompatible++; continue; }
@@ -2166,13 +2263,13 @@ export function runReconciler(
   // définition de dedupeWithinWeek. Tourne inconditionnellement (indépendant
   // de anyOnePassChange) : un doublon peut déjà être présent en sortie du
   // générateur, pas uniquement introduit par runOnePass.
-  dedupeWithinWeek(chunks, counters, logs, usageLedger, injected, phaseCtx);
+  dedupeWithinWeek(chunks, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek);
 
   // Filet final plafond cumul "à jeun" — voir commentaire au site de
   // définition de dedupeFastedWithinWeek. Tourne après dedupeWithinWeek :
   // réutilise un ledger/catalogue déjà à jour pour ne pas réintroduire un
   // doublon de catalogId en corrigeant un cumul à jeun.
-  dedupeFastedWithinWeek(chunks, counters, logs, usageLedger, injected, phaseCtx);
+  dedupeFastedWithinWeek(chunks, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek);
 
   // Passe POSTÉRIEURE — filet final : nettoie tout ID hors-catalogue qui
   // aurait été introduit malgré tout (ex : insertion FLOOR sans injected).
@@ -2204,7 +2301,7 @@ export function runReconciler(
   } catch { /* ignore */ }
 
   hydrateDilutedZones(chunks, counters, logs);
-  enforceDemandingAccumulation(chunks, opts.beginnerIntensitySignal, counters, logs, usageLedger, injected, phaseCtx);
+  enforceDemandingAccumulation(chunks, opts.beginnerIntensitySignal, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
   enforceMaxSessionsPerDay(chunks, opts.maxSessionsPerDay, counters, logs);
   return { counters, logs };

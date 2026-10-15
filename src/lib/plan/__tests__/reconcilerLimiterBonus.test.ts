@@ -9,12 +9,9 @@
  *
  * `RunReconcilerOptions.identifiedLimiters` (liste de libellés bruts, ex.
  * ["VO2max", "VLamax"], PAR RANG) est convertie en mots-clés par rang
- * (limiterKeywords.ts, mirror du extractLimiterKeywords serveur) et injectée
- * dans `findReplacement` comme bonus de score DOMINANT décroissant par rang
- * (avant intention/durée/diversité) — même priorité absolue que le tri à 2
- * niveaux du serveur. Fix "traitement des limiteurs" (suite) : généralisé de
- * L1 seul à TOUS les limiteurs classés — un athlète a couramment 3-4
- * limiteurs identifiés, pas juste un seul.
+ * (limiterKeywords.ts, mirror du extractLimiterKeywords serveur). Le bonus
+ * départage les candidats qui ont déjà prouvé une intention sportive
+ * compatible ; il ne peut pas transformer une séance seuil en VO2.
  */
 import { describe, it, expect, vi } from "vitest";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
@@ -107,10 +104,10 @@ describe("runReconciler — findReplacement priorise les limiteurs identifiés (
     expect(rec.counters.phase_substituted).toBe(1);
   });
 
-  it("AVEC identifiedLimiters=['VO2max'] : le candidat ciblant le limiteur l'emporte MALGRÉ une intention/durée bien moins favorables", () => {
+  it("AVEC identifiedLimiters=['VO2max'] : le bonus limiteur ne peut pas imposer une intention VO2 à la place du seuil", () => {
     const s = makeSession();
     const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { objectiveKey: "Marathon", identifiedLimiters: ["VO2max"], globalTotalWeeks: 12 });
-    expect(s.catalogId).toBe("LIMITER_MATCH_RUN_BUILD");
+    expect(s.catalogId).toBe("NEAR_INTENT_RUN_BUILD");
     expect(rec.counters.phase_substituted).toBe(1);
   });
 
