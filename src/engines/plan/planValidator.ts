@@ -384,7 +384,7 @@ function tierFromZones(zones: string[] | undefined): SessionTier | null {
 }
 
 function classifySessionIntensity(session: ParsedSession): SessionTier {
-  const text = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
+  const text = intensityContent(`${session.sport} ${session.title} ${session.details}`).toLowerCase();
 
   if (session.isRest) return "low";
 
@@ -448,7 +448,7 @@ function splitIntoClauses(text: string): string[] {
 function clauseDurationMin(clause: string): number {
   let total = 0;
 
-  const hRe = /(\d+)\s*h\s*(\d{1,2})?(?!\d)/g;
+  const hRe = /(\d+)\s*h(?![a-zà-ÿ])\s*(\d{1,2})?(?!\d)/g;
   let m: RegExpExecArray | null;
   while ((m = hRe.exec(clause)) !== null) {
     const h = parseInt(m[1], 10);
@@ -515,7 +515,7 @@ function clauseHasUnrecognizedContent(clause: string): boolean {
  *  clauses de transition nues (WU/CD sans zone dédiée), qui reste
  *  physiologiquement fondé et volontairement inchangé. */
 function clauseTier(clause: string, zoneFallback: SessionTier | null = null): SessionTier {
-  const t = clause.toLowerCase();
+  const t = intensityContent(clause).toLowerCase();
   if (STRIDES_TAIL_PATTERN.test(t) && !GENUINE_INTERVAL_WORK_PATTERN.test(t)) return "low";
   if (HIGH_INTENSITY_PATTERNS.test(t)) return "high";
   if (MID_INTENSITY_PATTERNS.test(t)) return "mid";
@@ -556,7 +556,7 @@ function estimateSessionZoneMinutes(
   const acc: SessionZoneMinutes = { low: 0, mid: 0, high: 0, unknown: 0 };
   if (session.isRest || !totalDurationMin || totalDurationMin <= 0) return acc;
 
-  const text = `${session.title} ${session.details}`;
+  const text = intensityContent(`${session.title} ${session.details}`);
   const clauses = splitIntoClauses(text);
   const zoneFallback = tierFromZones(session.zones);
   let captured = 0;
@@ -651,7 +651,7 @@ export function parseSessionDurationMin(session: ParsedSession): number | null {
   let found = false;
 
   // "1h", "1h30", "2 h 15" — hours (+ optional minutes)
-  const hRe = /(\d+)\s*h\s*(\d{1,2})?(?!\d)/g;
+  const hRe = /(\d+)\s*h(?![a-zà-ÿ])\s*(\d{1,2})?(?!\d)/g;
   let m: RegExpExecArray | null;
   while ((m = hRe.exec(text)) !== null) {
     const h = parseInt(m[1], 10);
@@ -1977,6 +1977,13 @@ function stripPaceReferenceDenominators(text: string): string {
   return text.replace(PACE_REFERENCE_DENOMINATOR_RX, "");
 }
 
+/** Les annotations d'affichage et IDs ne sont pas des blocs d'effort. */
+function intensityContent(text: string): string {
+  return stripPaceReferenceDenominators(text
+    .replace(/\[(?:VO2(?:\/VMA|\/PMA|\/CSS)?|Race pace|Race power|Marathon|Endurance longue|Seuil|LT2|Tempo|Z2)\b[^\]]*·[^\]]*\]/gi, "")
+    .replace(/\[ID:\s*[^\]]+\]/gi, ""));
+}
+
 /** Phase-specific session patterns — sessions expected in each phase */
 const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: RegExp }> = {
   1: { // Fondation: Force max, VO2max courts, Z2 volume, technique
@@ -2184,6 +2191,13 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
 
     for (const session of week.sessions) {
       if (session.isRest) continue;
+      // Exempter uniquement l'épreuve elle-même, jamais toute la race-week
+      // ni une simulation/activation qui évoque la compétition objectif.
+      const raceTitle = intensityContent(session.title).trim();
+      if (phaseIdx === 5 && RACE_DAY_PATTERNS.exec(raceTitle)?.index === 0 &&
+          !PRE_RACE_ACTIVATION_PATTERNS.test(raceTitle) &&
+          !/simulation|race[\s_-]*sim|répétition|repetition/i.test(raceTitle) &&
+          /^(?:run|course|bike|vélo|swim|natation|brick|triathlon)$/i.test(session.sport)) continue;
       const text = stripPaceReferenceDenominators(`${session.title} ${session.details}`);
 
       if (signatures.forbidden.test(text)) {
@@ -3946,7 +3960,7 @@ function validateStrategicRecapUniqueness(plan: ParsedPlan): { issues: Validatio
 // Ne modifie aucune règle physiologique — uniquement la détection de ce
 // contrôle de cohérence texte, pour arrêter de signaler du contenu qui
 // n'existe pas.
-const ACTIVE_CONTENT_IN_REST_PATTERN = /z[1-7]\b|vélo|natation|(?<!veille de )(?<!jour de )course\b|\brenfo|\bmuscul|\d+\s*(?:min|km|w)\b|ftp/i;
+const ACTIVE_CONTENT_IN_REST_PATTERN = /z[1-7]\b|vélo|natation|course\b|\brenfo|\bmuscu(?:lation)?\b|\d+\s*(?:min|km|w)\b|ftp/i;
 
 const NEGATION_BEFORE_ACTIVE_CONTENT_RX = /\b(?:sans|aucun(?:e)?|ni|pas de|pas d['’])\b/i;
 
@@ -3955,6 +3969,8 @@ const NEGATION_BEFORE_ACTIVE_CONTENT_RX = /\b(?:sans|aucun(?:e)?|ni|pas de|pas d
  *  "ni", "aucun", "pas de"). Une seule occurrence négative ("sans... ni
  *  renforcement") ne doit pas flaguer le jour "Repos". */
 function hasNonNegatedActiveContent(text: string): boolean {
+  // Préparation logistique / calendrier de course, sans prescription sportive.
+  text = text.replace(/\b(?:veille|jour|semaine|affaires)\s+de\s+course\b/gi, "");
   const rx = new RegExp(ACTIVE_CONTENT_IN_REST_PATTERN.source, "gi");
   let m: RegExpExecArray | null;
   while ((m = rx.exec(text)) !== null) {

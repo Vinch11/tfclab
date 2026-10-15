@@ -1,0 +1,1671 @@
+{
+  "meta": {
+    "profileId": "B-5K-BEGINNER",
+    "profileLabel": "Débutant post-S2R · 1er 5km · 12 sem · finisher",
+    "timestamp": "2026-10-15T11:48:09.269Z",
+    "durationMs": 146561,
+    "model": "google/gemini-3.7-flash",
+    "expectedChunks": 3,
+    "usage": {
+      "promptTokens": 94279,
+      "completionTokens": 22309,
+      "totalTokens": 116588,
+      "chunksWithUsage": 3,
+      "totalChunksSeen": 3
+    }
+  },
+  "input": {
+    "athleteData": {
+      "nom": "QA Synthetic Beginner",
+      "sex": "female",
+      "age": 42,
+      "ftp": null,
+      "weightKg": 68,
+      "vlamax": 0.55,
+      "vlamaxRun": 0.55,
+      "vo2max": 34,
+      "vma": 9.5,
+      "css": null,
+      "fcMax": 178,
+      "tte": null,
+      "pmax5s": null,
+      "p30s": null,
+      "p60s": null,
+      "map5min": null,
+      "paceThresholdSecPerKm": 474,
+      "runMLSSEffectivePct": 0.8,
+      "runMLSSEffectiveSource": "predicted",
+      "runEconomyScore": 2
+    },
+    "planConfig": {
+      "objective": "5 KM",
+      "raceName": "QA Pilote Débutant 5K Test",
+      "weeksAvailable": 12,
+      "weeklyHours": 3,
+      "sessionsPerWeek": 3,
+      "maxSessionsPerDay": 1,
+      "strengthSessionsPerWeek": 1,
+      "ambition": "finisher",
+      "ambitionMeta": {
+        "saisie": "finisher",
+        "effective": "finisher",
+        "saisieLabel": "Découverte",
+        "effectiveLabel": "Découverte",
+        "downgraded": false,
+        "trainingLevel": "untrained",
+        "trainingLevelSource": "manual",
+        "diagnosticNote": null
+      },
+      "constraints": "Profil synthétique Pilot Cockpit — débutant ayant terminé le cycle marche-course (30min continu acquis), prépare son 1er 5km. Objectif distinct du template Start-to-Run statique (jamais généré par IA en production) : ce profil sollicite réellement le moteur de génération individualisée.",
+      "terrainAvailability": "plat",
+      "recoveryStrategy": "passive"
+    }
+  },
+  "output": {
+    "mergedPlan": {
+      "title": "Plan TFCL™ — 5K QA Synthetic Beginner — 12 semaines",
+      "diagnostic": "Athlète débutant ayant validé le cycle marche-course (30min en continu acquis), engagé sur une préparation 5 KM. VMA de 9.5 km/h, volume calibré à 3h hebdomadaires (3 séances de course à pied + 1 séance de renforcement / mobilité). Priorité au développement de l'endurance fondamentale (Z2), au renforcement postural et à l'assimilation progressive des allures cibles sans surcharge articulaire.",
+      "phases": [
+        {
+          "name": "Phase 1 — Adaptation & Fondation",
+          "weeks": "S1-S3",
+          "objective": "Consolidation de la base aérobie en Z2, renforcement préventif et introduction très progressive des variations d'allure."
+        },
+        {
+          "name": "Phase 2 — Développement & Spécifique",
+          "weeks": "S4-S11",
+          "objective": "Développement du moteur aérobie, travail au seuil Z4b/Z5 et assimilation de l'allure spécifique 5K."
+        },
+        {
+          "name": "Phase 3 — Affûtage",
+          "weeks": "S12-S12",
+          "objective": "Surcompensation, maintien de la fraîcheur neuro-musculaire et activation pré-compétition."
+        }
+      ],
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "theme": "Fondation Aérobie & Posture",
+          "phase": "Phase 1 — Adaptation & Fondation",
+          "phaseObjective": "Installation de la régularité, travail technique de foulée en endurance fondamentale Z2.",
+          "coachNotes": "Garder une allure strictement conversationnelle sur les footings Z2. Respecter les jours de repos complet.",
+          "sessions": [
+            {
+              "weekNumber": 1,
+              "weekTheme": "Fondation Aérobie & Posture",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Jour sans entraînement pour favoriser l'adaptation musculaire.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 1,
+              "weekTheme": "Fondation Aérobie & Posture",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Endurance Fondamentale & Lignes Droites",
+              "details": "Footing continu en Z2 axé sur le relâchement et la posture, conclu par 6 accélérations progressives de 15s en Z3/Z6 avec retour marché.",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "A_RUN_EASY_STRIDES_PRO",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z2",
+                "Z3"
+              ]
+            },
+            {
+              "weekNumber": 1,
+              "weekTheme": "Fondation Aérobie & Posture",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Mobilité Hanches & Chaîne Postérieure",
+              "details": "Routine dynamique de mobilité articulaire, 90/90 switches, activations fessiers et renforcement du tronc.",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "C_STR_HIP_MOBILITY_DYNAMIC",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 1,
+              "weekTheme": "Fondation Aérobie & Posture",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Assimilation neuromusculaire et repos complet.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 1,
+              "weekTheme": "Fondation Aérobie & Posture",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "run",
+              "title": "Endurance Fondamentale Continue",
+              "details": "Footing régulier en Z1-Z2 avec travail de cadence fluide et cadence stable (175-180 spm).",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "A_RUN_Z2_EASY",
+              "custom": false,
+              "durationMin": 40,
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "weekNumber": 1,
+              "weekTheme": "Fondation Aérobie & Posture",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet avant la sortie longue dominicale.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 1,
+              "weekTheme": "Fondation Aérobie & Posture",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Fartlek (variations)",
+              "details": "Warm-up: 15' Z1→Z2 progressif + 4×20\" accélérations r=40\" marche/trot | Main: 10x(1' Z4a / 2' Z2) sur terrain adapté | Cool-down: 10' Z1 souple + mobilité. [ID: B_RUN_FARTLEK_60_PRO]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "B_RUN_FARTLEK_60_PRO",
+              "custom": false,
+              "durationMin": 60,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4a"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 2,
+          "theme": "Technique de Foulée & Force Spécifique",
+          "phase": "Phase 1 — Adaptation & Fondation",
+          "phaseObjective": "Renforcement de l'économie de course par de courtes répétitions en côte.",
+          "coachNotes": "Sur les côtes, privilégier une posture haute, un alignement bassin-tronc et une poussée active sans sprint.",
+          "sessions": [
+            {
+              "weekNumber": 2,
+              "weekTheme": "Technique de Foulée & Force Spécifique",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Régénération musculaire.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 2,
+              "weekTheme": "Technique de Foulée & Force Spécifique",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Technique & Force Spécifique en Côte",
+              "details": "Échauffement Z1-Z2 puis 10 répétitions de 15s en côte modérée axées sur la posture et la cadence, retour marché, suivi de 15min Z2.",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "C_RUN_HILL_SKILLS",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z2",
+                "Z3"
+              ]
+            },
+            {
+              "weekNumber": 2,
+              "weekTheme": "Technique de Foulée & Force Spécifique",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Force Isométrique Membres Inférieurs",
+              "details": "Wall sits, iso-squats et travail de stabilité de cheville pour renforcer les tendons et la tolérance aux impacts.",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "C_STR_ISOMETRIC_LOWER",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 2,
+              "weekTheme": "Technique de Foulée & Force Spécifique",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Récupération post-séance de force spécifique.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 2,
+              "weekTheme": "Technique de Foulée & Force Spécifique",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "run",
+              "title": "Footing Souple Z2",
+              "details": "Endurance fondamentale en Z2 facile, respiration par le nez privilégiée, relâchement des épaules.",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "A_RUN_Z2_EASY",
+              "custom": false,
+              "durationMin": 40,
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "weekNumber": 2,
+              "weekTheme": "Technique de Foulée & Force Spécifique",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Journée de repos avant la sortie longue.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 2,
+              "weekTheme": "Technique de Foulée & Force Spécifique",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Fartlek (variations)",
+              "details": "Warm-up: 15' Z1→Z2 progressif + 4×20\" accélérations r=40\" marche/trot | Main: 10x(1' Z4a / 2' Z2) sur terrain adapté | Cool-down: 10' Z1 souple + mobilité. [ID: B_RUN_FARTLEK_60_PRO]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "B_RUN_FARTLEK_60_PRO",
+              "custom": false,
+              "durationMin": 60,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4a"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 3,
+          "theme": "Décharge & Assimilation",
+          "phase": "Phase 1 — Adaptation & Fondation",
+          "phaseObjective": "Réduction du volume pour permettre la surcompensation et dissiper la fatigue.",
+          "coachNotes": "Semaine allégée. Réduire l'intensité, rester strictement en Z1-Z2 et privilégier la fraîcheur.",
+          "sessions": [
+            {
+              "weekNumber": 3,
+              "weekTheme": "Décharge & Assimilation",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Footing de Décharge Régénératif",
+              "details": "Course très facile en Z1 stricte avec échauffement articulaire doux, zéro essoufflement.",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "D_DELOAD_RUN",
+              "custom": false,
+              "durationMin": 35,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 3,
+              "weekTheme": "Décharge & Assimilation",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Mobilité Hanches & Prévention",
+              "details": "Routine légère de mobilité des hanches, activation des abducteurs et étirements dynamiques doux.",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "V2_STR_HANCHE_COUREUR",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 3,
+              "weekTheme": "Décharge & Assimilation",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Assimilation de la phase d'adaptation.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 3,
+              "weekTheme": "Décharge & Assimilation",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Jour off supplémentaire dans le micro-cycle de décharge.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 3,
+              "weekTheme": "Décharge & Assimilation",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos et étirements légers passifs à la maison.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 3,
+              "weekTheme": "Décharge & Assimilation",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "run",
+              "title": "Récupération active — variante #8",
+              "details": "Main: Z1 très facile + mobilité/respiration 10'. [ID: D_RECOVERY_VAR_8_PRO]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "D_RECOVERY_VAR_8_PRO",
+              "custom": false,
+              "durationMin": 40,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 3,
+              "weekTheme": "Décharge & Assimilation",
+              "phase": "Phase 1 — Adaptation & Fondation",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Fartlek libre – autonomie de l'athlète, plaisir de",
+              "details": "Z4 | Warm-up: 10min jog facile sans montre (courir au feeling) [Z1] | Main: 25-35min de Fartlek libre : l'athlète accélère... | Aucun (ajuster si fatigue : rester en Z1-Z2). [ID: A_RUN_FARTLEK_LIBRE]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "A_RUN_FARTLEK_LIBRE",
+              "custom": false,
+              "durationMin": 40,
+              "zones": [
+                "Z1",
+                "Z4"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 4,
+          "theme": "Introduction Fartlek & Variabilité",
+          "phase": "Phase 2 — Développement & Spécifique",
+          "phaseObjective": "Entrée dans la phase de développement avec introduction d'intervalles modérés en Z4a.",
+          "coachNotes": "Sur les blocs actifs de Fartlek, courir à un rythme contrôlé en Z4a sans jamais aller au sprint.",
+          "sessions": [
+            {
+              "weekNumber": 4,
+              "weekTheme": "Introduction Fartlek & Variabilité",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Régénération passive.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 4,
+              "weekTheme": "Introduction Fartlek & Variabilité",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Fartlek Contrôlé — Variations d'Allure",
+              "details": "Échauffement 15min Z1-Z2 puis 8 répétitions de (1min en Z4a / 2min en Z2), retour au calme 5min Z1.",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "B_RUN_FARTLEK_60_PRO",
+              "custom": false,
+              "durationMin": 50,
+              "zones": [
+                "Z2",
+                "Z4a"
+              ]
+            },
+            {
+              "weekNumber": 4,
+              "weekTheme": "Introduction Fartlek & Variabilité",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Gainage & Stabilité du Tronc",
+              "details": "Circuit de gainage postural : planches frontales, latérales et bird-dog pour consolider l'alignement en course.",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "A_STR_STABILITY_CORE",
+              "custom": false,
+              "durationMin": 30,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 4,
+              "weekTheme": "Introduction Fartlek & Variabilité",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Récupération post-fartlek.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 4,
+              "weekTheme": "Introduction Fartlek & Variabilité",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "run",
+              "title": "Endurance Fondamentale Relâchée",
+              "details": "Footing aérobie Z2 régulier, travail sur la respiration fluide et la décontraction du haut du corps.",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "A_RUN_Z2_EASY",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "weekNumber": 4,
+              "weekTheme": "Introduction Fartlek & Variabilité",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet avant la sortie longue structurée.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 4,
+              "weekTheme": "Introduction Fartlek & Variabilité",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Sortie Longue Fondamentale 1h",
+              "details": "Sortie longue en endurance fondamentale Z2 stable, gestion de l'hydratation et maintien d'un pas dynamique.",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "A_10K_EASY_60",
+              "custom": false,
+              "durationMin": 60,
+              "zones": [
+                "Z2"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 5,
+          "theme": "Développement aérobie et introduction allure spécifique",
+          "phase": "Phase 2 — Développement & Spécifique",
+          "phaseObjective": "Développer le temps passé en endurance active et initier le travail de soutien d'allure sans accumulation de fatigue centrale.",
+          "coachNotes": "Semaine de charge 1 du bloc spécifique. Maintien d'une cadence élevée et respect strict des allures relatives Z2/Z4a.",
+          "sessions": [
+            {
+              "weekNumber": 5,
+              "weekTheme": "Développement aérobie et introduction allure spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Journée sans entraînement pour assimiler le cycle précédent.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 5,
+              "weekTheme": "Développement aérobie et introduction allure spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Tempo soutenu (seuil 10K)",
+              "details": "Warm-up: 15' Z1–Z2 | Main: 2x12' Z4a–Z4b r=4' trot | Cool-down: 10' Z1. [ID: B_10K_TEMPO_20]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "B_10K_TEMPO_20",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4a",
+                "Z4b"
+              ]
+            },
+            {
+              "weekNumber": 5,
+              "weekTheme": "Développement aérobie et introduction allure spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Gainage anti-rotation et posture",
+              "details": "Warm-up: 5 min activation (dead bug lent, cat-cow). Main: 3 tours de Pallof press élastique, planche latérale et bird-dog contrôlé. [ID: C_STR_CORE_PRO]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "C_STR_CORE_PRO",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 5,
+              "weekTheme": "Développement aérobie et introduction allure spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet pour régénération musculaire avant la fin de semaine.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 5,
+              "weekTheme": "Développement aérobie et introduction allure spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "run",
+              "title": "Footing endurance fondamentale",
+              "details": "Main: 45 min continu en Z1-Z2 strict, allure conversationnelle stable et relâchement du haut du corps. [ID: A_RUN_EASY_45_PRO]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "A_RUN_EASY_45_PRO",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "weekNumber": 5,
+              "weekTheme": "Développement aérobie et introduction allure spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet et mobilité douce optionnelle.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 5,
+              "weekTheme": "Développement aérobie et introduction allure spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Heat acclimation — Z2 en condition chaude (>28°C ou sur-habillé). Adaptation thermorégulation 7-14j",
+              "details": "Main: 40-60' Z2 en conditions chaudes (ou vêtements chauds). Hydratation ++ en amont. Réduire intensité de 5-10% vs normal. Monitoring FC. [ID: ENR_HEAT_ACCLIM_Z2]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "ENR_HEAT_ACCLIM_Z2",
+              "custom": false,
+              "durationMin": 60,
+              "zones": [
+                "Z2"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 6,
+          "theme": "Régénération et consolidation mécanique (Décharge)",
+          "phase": "Phase 2 — Développement & Spécifique",
+          "phaseObjective": "Réduire le volume global pour surcompenser tout en maintenant la tonicité neuromusculaire.",
+          "coachNotes": "Semaine de décharge programmée (charge 2:1/3:1 adaptée). Baisse de durée sur toutes les séances pour absorber le bloc.",
+          "sessions": [
+            {
+              "weekNumber": 6,
+              "weekTheme": "Régénération et consolidation mécanique (Décharge)",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Journée sans entraînement.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 6,
+              "weekTheme": "Régénération et consolidation mécanique (Décharge)",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "strength",
+              "title": "Réactivation fessiers & hanches",
+              "details": "Warm-up: 5 min leg swings et hip CARs. Main: Circuit 3 tours (glute bridge, clamshell, monster walk élastique), focus activation neuromusculaire sans charge lourde. [ID: C_STR_GLUTE_REACTIVATION]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "C_STR_GLUTE_REACTIVATION",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 6,
+              "weekTheme": "Régénération et consolidation mécanique (Décharge)",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet et sommeil réparateur.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 6,
+              "weekTheme": "Régénération et consolidation mécanique (Décharge)",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet préservant la fraîcheur musculaire.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 6,
+              "weekTheme": "Régénération et consolidation mécanique (Décharge)",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet avant la sortie dominicale allégée.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 6,
+              "weekTheme": "Régénération et consolidation mécanique (Décharge)",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Sortie endurance modérée décharge",
+              "details": "Warm-up: 5 min marche active. Main: 35 min en Z1-Z2 régulier et relâché. Cool-down: 5 min marche et retour au calme. [ID: D_RECOVERY_VAR_5_PRO]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "D_RECOVERY_VAR_5_PRO",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "weekNumber": 6,
+              "weekTheme": "Régénération et consolidation mécanique (Décharge)",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "run",
+              "title": "Endurance facile",
+              "details": "Z2 | Main: 45–55' Z1–Z2, relâché, respiration facile [Z1,Z2] | —. [ID: A_RUN_EASY_45_PRO]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "A_RUN_EASY_45_PRO",
+              "custom": false,
+              "durationMin": 40,
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 7,
+          "theme": "Soutien au seuil et tolérance à l'allure",
+          "phase": "Phase 2 — Développement & Spécifique",
+          "phaseObjective": "Renforcer la capacité aérobie à l'allure seuil contrôlé Z4a/Z4b avec fractions progressives.",
+          "coachNotes": "Reprise de la charge. Concentration sur la régularité des blocs au seuil Z4a sans dépasser en Z5.",
+          "sessions": [
+            {
+              "weekNumber": 7,
+              "weekTheme": "Soutien au seuil et tolérance à l'allure",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Journée de repos complet.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 7,
+              "weekTheme": "Soutien au seuil et tolérance à l'allure",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Tempo soutenu seuil Z4a-Z4b",
+              "details": "Warm-up: 15 min Z1-Z2 progressif. Main: 2x10 min en Z4a-Z4b avec r=3 min trot Z1. Cool-down: 7 min Z1 trot très souple. [ID: B_10K_TEMPO_20]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "B_10K_TEMPO_20",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4a",
+                "Z4b"
+              ]
+            },
+            {
+              "weekNumber": 7,
+              "weekTheme": "Soutien au seuil et tolérance à l'allure",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Core anti-rotation & gainage fonctionnel",
+              "details": "Warm-up: 5 min activation articulaire. Main: Circuit 3 tours (Pallof press, planche latérale avec levée de jambe, dead bug contrôlé). [ID: ENR_STR_CORE_ANTI_ROTATION]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "ENR_STR_CORE_ANTI_ROTATION",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 7,
+              "weekTheme": "Soutien au seuil et tolérance à l'allure",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet pour régénération tissulaire.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 7,
+              "weekTheme": "Soutien au seuil et tolérance à l'allure",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "run",
+              "title": "Endurance fondamentale Z1-Z2",
+              "details": "Main: 45 min continu en Z1-Z2, travail de relâchement scapulaire et posture haute. [ID: A_RUN_EASY_45_PRO]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "A_RUN_EASY_45_PRO",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "weekNumber": 7,
+              "weekTheme": "Soutien au seuil et tolérance à l'allure",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet avant la sortie longue.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 7,
+              "weekTheme": "Soutien au seuil et tolérance à l'allure",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Heat acclimation — Z2 en condition chaude (>28°C ou sur-habillé). Adaptation thermorégulation 7-14j",
+              "details": "Main: 40-60' Z2 en conditions chaudes (ou vêtements chauds). Hydratation ++ en amont. Réduire intensité de 5-10% vs normal. Monitoring FC. [ID: ENR_HEAT_ACCLIM_Z2]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "ENR_HEAT_ACCLIM_Z2",
+              "custom": false,
+              "durationMin": 60,
+              "zones": [
+                "Z2"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 8,
+          "theme": "Spécificité et gestion du negative split",
+          "phase": "Phase 2 — Développement & Spécifique",
+          "phaseObjective": "Développer le contrôle de l'allure sur fatigue et simuler la gestion de course en negative split.",
+          "coachNotes": "Semaine charnière du bloc Build. La séance de dimanche prépare psychologiquement et physiologiquement au rythme cible.",
+          "sessions": [
+            {
+              "weekNumber": 8,
+              "weekTheme": "Spécificité et gestion du negative split",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Journée sans entraînement.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 8,
+              "weekTheme": "Spécificité et gestion du negative split",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Tempo soutenu (seuil 10K)",
+              "details": "Warm-up: 15' Z1–Z2 | Main: 2x12' Z4a–Z4b r=4' trot | Cool-down: 10' Z1. [ID: B_10K_TEMPO_20]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "B_10K_TEMPO_20",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4a",
+                "Z4b"
+              ]
+            },
+            {
+              "weekNumber": 8,
+              "weekTheme": "Spécificité et gestion du negative split",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Renforcement excentrique ischios & mollets",
+              "details": "Warm-up: 5 min activation (glute bridge, good mornings PdC). Main: 3 tours de Nordic hamstring assisté élastique, élévations mollets excentriques 3s descente, gainage frontal. [ID: ENR_STR_EXCENTRIQUE_ISCHIO]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "ENR_STR_EXCENTRIQUE_ISCHIO",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 8,
+              "weekTheme": "Spécificité et gestion du negative split",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet favorisant l'adaptation tendineuse.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 8,
+              "weekTheme": "Spécificité et gestion du negative split",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "run",
+              "title": "Footing de régénération Z1",
+              "details": "Main: 25 min en Z1 ultra-souple + 10 min étirements doux et mobilité de chevilles. [ID: D_RUN_RECOVERY_30_PRO]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "D_RUN_RECOVERY_30_PRO",
+              "custom": false,
+              "durationMin": 35,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 8,
+              "weekTheme": "Spécificité et gestion du negative split",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet avant la sortie longue structurée.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 8,
+              "weekTheme": "Spécificité et gestion du negative split",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Sortie longue discipline negative split",
+              "details": "Warm-up: 15 min Z1-Z2. Main: 25 min Z2 stable puis 15 min progression vers Z3 haut et Z4a. Cool-down: 5 min retour au calme Z1. [ID: V2_RUN_NEGATIVE_SPLIT_RACE_SIM]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "V2_RUN_NEGATIVE_SPLIT_RACE_SIM",
+              "custom": false,
+              "durationMin": 60,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z3",
+                "Z4a"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 9,
+          "theme": "Régénération & Maintien Spécifique",
+          "phase": "Phase 2 — Développement & Spécifique",
+          "phaseObjective": "Assimilation de la charge du bloc de développement et rappel d'allure spécifique sous fraîcheur.",
+          "coachNotes": "Semaine allégée pour absorber le travail précédent tout en conservant la dynamique neuromusculaire.",
+          "sessions": [
+            {
+              "weekNumber": 9,
+              "weekTheme": "Régénération & Maintien Spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Journée sans entraînement pour favoriser la régénération tissulaire.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 9,
+              "weekTheme": "Régénération & Maintien Spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Entraînement Pacing & Régularité",
+              "details": "15 min d'échauffement progressif en Z1/Z2. Corps de séance : 3×8 min à allure spécifique cible (Z4b) avec récupération 3 min en footing très lent Z1. Retour au calme de 7 min en Z1. Travail de mémorisation du rythme de course. [ID: B_RUN_PACING_PRACTICE]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "B_RUN_PACING_PRACTICE",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4b"
+              ]
+            },
+            {
+              "weekNumber": 9,
+              "weekTheme": "Régénération & Maintien Spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Renforcement Core Intégré",
+              "details": "Circuit de gainage fonctionnel axé sur la stabilité du bassin : Dead bug lent 3×10 reps, planche ventrale dynamique 3×30s, pont fessier unilatéral 3×12 reps par jambe et gainage latéral 3×25s par côté. [ID: C_STR_CORE_INTEGRATED]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "C_STR_CORE_INTEGRATED",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 9,
+              "weekTheme": "Régénération & Maintien Spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos musculaire et régénération.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 9,
+              "weekTheme": "Régénération & Maintien Spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Récupération active par marche douce optionnelle ou repos total.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 9,
+              "weekTheme": "Régénération & Maintien Spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Fraîcheur musculaire avant la sortie longue.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 9,
+              "weekTheme": "Régénération & Maintien Spécifique",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Récupération Z1 strict Seiler — séance de récupération vraiment active (pas de dérive Z3)",
+              "details": "Warm-up: Commencer directement à allure très lente | Main: 30-45 min en Z1 STRICT (< 70% FCmax). Allure : beaucoup plus lente qu'on ne pense nécessaire. Test : capable de chanter une chanson complète en courant (pas juste des mots — une chanson entière). Réf : Seiler 2010 — 'La plupart des athlètes font leurs séances de récupération trop vite et leurs séances intensives trop lentement. Résultat : tout se retrouve en Z3.' Cette séance doit se terminer avec l'impression de ne pas avoir vraiment couru — c'est le signe qu'elle est correcte. | Cool-down: Marche 5 min + mobilité 10 min. [ID: SEILER_RUN_Z1_RECOVERY_STRICT]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "SEILER_RUN_Z1_RECOVERY_STRICT",
+              "custom": false,
+              "durationMin": 40,
+              "zones": [
+                "Z1"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": "Pic Spécifique & Volume Contrôlé",
+          "phase": "Phase 2 — Développement & Spécifique",
+          "phaseObjective": "Dernier bloc de charge spécifique : validation du tempo de course et endurance sous fatigue légère.",
+          "coachNotes": "Semaine charnière avec 3 séances de course bien espacées. Respecter scrupuleusement les intensités sans forcer.",
+          "sessions": [
+            {
+              "weekNumber": 10,
+              "weekTheme": "Pic Spécifique & Volume Contrôlé",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Maintien de la fraîcheur physique.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 10,
+              "weekTheme": "Pic Spécifique & Volume Contrôlé",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "run",
+              "title": "Séance Spécifique Allure Course",
+              "details": "15 min d'échauffement en Z1/Z2 suivi de 3 lignes droites éducatives. Corps de séance : 3×6 min à allure cible 5K (Z4b/Z5) avec 2 min 30 de récupération en trot léger Z1. Retour au calme 8 min en Z1. [ID: CANOVA_RUN_PRERACE_PHASE]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "CANOVA_RUN_PRERACE_PHASE",
+              "custom": false,
+              "durationMin": 45,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4b",
+                "Z5"
+              ]
+            },
+            {
+              "weekNumber": 10,
+              "weekTheme": "Pic Spécifique & Volume Contrôlé",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "strength",
+              "title": "Renforcement Postural et Prévention",
+              "details": "Séance McGill Big 3 : Bird-Dog contrôlé 3×8 reps/côté, Curl-up modifié 3×6 reps (tenue 8s), planche latérale 3×20s/côté, complété par 2 séries de fentes statiques lentes au poids du corps. [ID: C_STR_LOWER_BACK_BULLETPROOF]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "C_STR_LOWER_BACK_BULLETPROOF",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 10,
+              "weekTheme": "Pic Spécifique & Volume Contrôlé",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Assimilation de la séance spécifique.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 10,
+              "weekTheme": "Pic Spécifique & Volume Contrôlé",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "run",
+              "title": "Mini-taper 5 jours — affûtage express pour course secondaire ou test",
+              "details": "Warm-up: J-5 : dernière séance normale courte. J-4 : 40 min Z2 + 2x5 min Z3. J-3 : 35 min Z2 facile. J-2 : cette séance. J-1 : repos ou 20 min Z1. | Main: J-2 : 30 min dont 10 min allure course + 4x30s accélérations. Volume réduit de 50% vs semaine normale. Intensité maintenue. Réf : Bosquet 2007 — mini-taper 5-7 jours améliore performance de 2-3%. | Cool-down: 10 min Z1. Pas de séance J-1 sauf 15-20 min très facile si habitude.. [ID: TAPER_MINI_5DAYS]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "TAPER_MINI_5DAYS",
+              "custom": false,
+              "durationMin": 40,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z3"
+              ]
+            },
+            {
+              "weekNumber": 10,
+              "weekTheme": "Pic Spécifique & Volume Contrôlé",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Hydratation et repos avant la dernière grande sortie longue.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 10,
+              "weekTheme": "Pic Spécifique & Volume Contrôlé",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "Allure semi-marathon Billat — spécificité métaboli",
+              "details": "Z4 | Warm-up: 15 min Z1→Z2 + 4×80m strides [Z1,Z2] | Main: Progression sur 4 semaines : S1 = 4×8 min à allure semi R:2 min... | Fatigue élevée · Plus de 2x/semaine (risque surmenage). [ID: BILLAT_RUN_SEMI_PACE]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "BILLAT_RUN_SEMI_PACE",
+              "custom": false,
+              "durationMin": 60,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4"
+              ]
+            }
+          ]
+        },
+        {
+          "weekNumber": 11,
+          "theme": "Affûtage — Début de la Décharge",
+          "phase": "Phase 2 — Développement & Spécifique",
+          "phaseObjective": "Réduire le volume d'entraînement de 40% tout en conservant la tonicité neuromusculaire par de courts rappels d'allure.",
+          "coachNotes": "La fatigue accumulée se dissipe. Ne pas chercher à compenser, privilégier le relâchement et la qualité du geste.",
+          "sessions": [
+            {
+              "weekNumber": 11,
+              "weekTheme": "Affûtage — Début de la Décharge",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Début de la période d'affûtage.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 11,
+              "weekTheme": "Affûtage — Début de la Décharge",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "run",
+              "title": "Activation & Rappel d'Allure",
+              "details": "15 min d'échauffement doux en Z1/Z2 + 4×30s à allure spécifique de course (Z4b) avec récupération 1 min 30s en trot très lent Z1. Retour au calme 5 min Z1. [ID: D_TAPER_RUN_OPENER]",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": "D_TAPER_RUN_OPENER",
+              "custom": false,
+              "durationMin": 25,
+              "zones": [
+                "Z1",
+                "Z2",
+                "Z4b"
+              ]
+            },
+            {
+              "weekNumber": 11,
+              "weekTheme": "Affûtage — Début de la Décharge",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "strength",
+              "title": "Mobilité hanches + activation fessiers (préhab)",
+              "details": "Warm-up: 3' : cat-cow + hip CARs lents 5/côté | Main: A) Mobilité (1-2 tours) :\n• 90/90 hip switches : 8/côté.\n• Couch stretch (psoas) : 45s/côté.\n• Pigeon pose active : 45s/côté.\n• Squat profond tenu (Asian squat) : 60s.\nB) Activation fessiers (2 tours, repos 30s) :\n• Glute bridge mono-jambe : 12/côté.\n• Clamshell élastique : 15/côté.\n• Hip thrust haltère : 10 @ RPE 6.\n• Monster walks élastique : 10 pas × 4 directions. | Cool-down: 3' respiration diaphragmatique | Progression: Volume stable. Idéal en récup ou pré-séance qualité. Pas de décharge nécessaire.. [ID: C_STR_HIP_MOBILITY_PRO]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "C_STR_HIP_MOBILITY_PRO",
+              "custom": false,
+              "durationMin": 25,
+              "zones": []
+            },
+            {
+              "weekNumber": 11,
+              "weekTheme": "Affûtage — Début de la Décharge",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "run",
+              "title": "Footing d'Assimilation Court",
+              "details": "15 min de footing continu ultra-souple en Z1 strict. Focus sur le relâchement du haut du corps, la fluidité de la foulée et la respiration nasale aisée. [ID: D_TAPER_FLUSH_RUN]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "D_TAPER_FLUSH_RUN",
+              "custom": false,
+              "durationMin": 15,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 11,
+              "weekTheme": "Affûtage — Début de la Décharge",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet pour maximiser les réserves énergétiques.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 11,
+              "weekTheme": "Affûtage — Début de la Décharge",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Relaxation et bonne nuit de sommeil.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 11,
+              "weekTheme": "Affûtage — Début de la Décharge",
+              "phase": "Phase 2 — Développement & Spécifique",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Journée calme, préparation mentale de la semaine de course.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            }
+          ]
+        },
+        {
+          "weekNumber": 12,
+          "theme": "Semaine de Course — Objectif 5 KM",
+          "phase": "Phase 3 — Affûtage",
+          "phaseObjective": "Surcompensation optimale, maintien de l'éveil neuromusculaire et réalisation de la course objectif.",
+          "coachNotes": "Dernière ligne droite. Suivre scrupuleusement la stratégie de gestion d'allure régulière dès le départ.",
+          "sessions": [
+            {
+              "weekNumber": 12,
+              "weekTheme": "Semaine de Course — Objectif 5 KM",
+              "phase": "Phase 3 — Affûtage",
+              "dayName": "Lundi",
+              "dayIndex": 0,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos total, hydratation régulière.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 12,
+              "weekTheme": "Semaine de Course — Objectif 5 KM",
+              "phase": "Phase 3 — Affûtage",
+              "dayName": "Mardi",
+              "dayIndex": 1,
+              "sport": "run",
+              "title": "Shakeout & Déverrouillage Neuromusculaire",
+              "details": "12 min de footing très lent en Z1 + 3 accélérations progressives et relâchées de 15s (sans sprint, foulée dynamique) avec récupération marchée de 1 min. Retour au calme 2 min. [ID: D_RUN_SHAKEOUT]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "D_RUN_SHAKEOUT",
+              "custom": false,
+              "durationMin": 15,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 12,
+              "weekTheme": "Semaine de Course — Objectif 5 KM",
+              "phase": "Phase 3 — Affûtage",
+              "dayName": "Mercredi",
+              "dayIndex": 2,
+              "sport": "strength",
+              "title": "Post-Activation Potentiation Légère",
+              "details": "Activation pré-compétition courte : 5 min de mobilité dynamique (hanches, chevilles), 2 séries de 8 squats au poids de corps avec remontée dynamique, et 3 légères montées de genoux pour conserver le tonus musculaire. [ID: D_PAP_PRE_RACE]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "D_PAP_PRE_RACE",
+              "custom": false,
+              "durationMin": 15,
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "weekNumber": 12,
+              "weekTheme": "Semaine de Course — Objectif 5 KM",
+              "phase": "Phase 3 — Affûtage",
+              "dayName": "Jeudi",
+              "dayIndex": 3,
+              "sport": "run",
+              "title": "Éveil Pré-Course (J-3)",
+              "details": "10 min de trot Z1 très léger + 2 lignes droites de 60m à allure spécifique de course (Z4b) pour caler les sensations d'appui + 3 min de marche de retour au calme. [ID: D_TAPER_SHAKEOUT]",
+              "isRest": false,
+              "isKeySession": false,
+              "catalogId": "D_TAPER_SHAKEOUT",
+              "custom": false,
+              "durationMin": 15,
+              "zones": [
+                "Z1",
+                "Z4b"
+              ]
+            },
+            {
+              "weekNumber": 12,
+              "weekTheme": "Semaine de Course — Objectif 5 KM",
+              "phase": "Phase 3 — Affûtage",
+              "dayName": "Vendredi",
+              "dayIndex": 4,
+              "sport": "rest",
+              "title": "Repos complet",
+              "details": "Repos complet, alimentation riche en glucides complexes, hydratation optimale.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 12,
+              "weekTheme": "Semaine de Course — Objectif 5 KM",
+              "phase": "Phase 3 — Affûtage",
+              "dayName": "Samedi",
+              "dayIndex": 5,
+              "sport": "rest",
+              "title": "Repos veille de course",
+              "details": "Repos passif, préparation du dossard et des affaires de course, sérénité mentale.",
+              "isRest": true,
+              "isKeySession": false,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 0,
+              "zones": []
+            },
+            {
+              "weekNumber": 12,
+              "weekTheme": "Semaine de Course — Objectif 5 KM",
+              "phase": "Phase 3 — Affûtage",
+              "dayName": "Dimanche",
+              "dayIndex": 6,
+              "sport": "run",
+              "title": "🏁 COURSE OBJECTIF — 5 KM (QA Pilote Débutant)",
+              "details": "Échauffement : 8 min de trot très léger en Z1 + 3 accélérations progressives de 40m. Course 5 KM : départ mesuré en Z4b sur les 2 premiers kilomètres, maintien d'un rythme stable et soutenu en Z5 sur les kilomètres 3 et 4, engagement total et finish progressif sur le dernier kilomètre. 5 min de marche de récupération après la ligne.",
+              "isRest": false,
+              "isKeySession": true,
+              "catalogId": null,
+              "custom": true,
+              "durationMin": 42,
+              "zones": [
+                "Z1",
+                "Z4b",
+                "Z5"
+              ]
+            }
+          ]
+        }
+      ],
+      "totalWeeks": 12
+    }
+  }
+}
