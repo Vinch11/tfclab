@@ -8,7 +8,7 @@ const { workout } = vi.hoisted(() => ({ workout: (
   intent: "easy" | "threshold" | "test" | "race",
   phase: Array<"base" | "build" | "peak" | "taper">,
   durationMin: [number, number],
-  goals: any[] = ["5k"],
+  goals: LibraryWorkout["goals"] = ["5k"],
   avoid = "",
 ): LibraryWorkout => ({
   id,

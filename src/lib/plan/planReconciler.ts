@@ -1346,7 +1346,7 @@ function applyFiche(
   phase: string,
   allowedCandidateIntentFamilies?: RepairIntentFamily[],
 ): boolean {
-  const originalId = String((s as any).catalogId ?? "");
+  const originalId = String(s.catalogId ?? "");
   const compatibility = evaluateRepairSportingEquivalence(
     REPAIR_METADATA_BY_ID.get(originalId.toUpperCase()),
     REPAIR_METADATA_BY_ID.get(fiche.id.toUpperCase()),

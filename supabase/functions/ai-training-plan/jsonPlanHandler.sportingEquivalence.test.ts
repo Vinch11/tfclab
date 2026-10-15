@@ -78,13 +78,13 @@ Deno.test("serveur — SL facile ne devient ni 6 × 1 000 m, ni protocole norvé
 
 Deno.test("serveur — recovery sans weeklyNotes rejette une réparation Z4", () => {
   const original = metadata("RECOVERY_EASY", "endurance_fondamentale", ["Z2"], { durationMin: [30, 40] });
-  const hard = metadata("A_RUN_FARTLEK_LIBRE", "seuil", ["Z4"], { durationMin: [60, 70] });
-  const session: any = { day: "mardi", sport: "run", title: original.title, details: original.structure, catalogId: original.id, custom: false, durationMin: 60, zones: ["Z2"], isKeySession: true };
-  const chunk: any = { weeks: [{ weekNumber: 6, phase: "build", sessions: [session] }] };
-  const quota: any = { ...LOAD_QUOTA, weekType: "recovery", longRunWeekly: true, slLongRunMin: 60 };
-  const result = applySLFloorEnforcement([chunk], { 6: quota }, ["unused"], [[original, hard]], "5K");
-  assertEquals(session.catalogId, original.id);
-  assertEquals(result.repairs.at(-1)?.code, "sl_upgrade_unresolved");
+  const hard = metadata("HARD_DISGUISED_AS_EASY", "endurance_fondamentale", ["Z2"], { mainZoneMax: 4, durationMin: [30, 40] });
+  const make = (day: string): any => ({ day, sport: "run", title: original.title, details: original.structure, catalogId: original.id, custom: false, durationMin: 35, zones: ["Z2"], isKeySession: true });
+  const chunk: any = { weeks: [{ weekNumber: 6, phase: "build", sessions: [make("mardi"), make("jeudi")] }] };
+  const quota: any = { ...LOAD_QUOTA, weekType: "recovery", longRunWeekly: false };
+  const result = applyReconciler([chunk], { 6: quota }, ["unused"], null, [[original, hard]], "5K");
+  assertEquals(chunk.weeks[0].sessions[1].catalogId, original.id);
+  assert(result.repairs.some(repair => repair.code === "duplicate_catalog_id_unresolved"));
 });
 
 Deno.test("serveur — S11 conserve deux openers et émet une anomalie si aucune alternative équivalente n'existe", () => {
