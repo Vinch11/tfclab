@@ -34,6 +34,7 @@ import { intentFamilyOf } from "@/lib/plan/intentFamily";
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
 import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
+import { isLevelPrerequisiteIncompatible, type BeginnerIntensitySignal } from "./levelPrerequisiteCompatibility";
 import {
   parseAthleteConstraints,
   toConstraintSport,
@@ -420,10 +421,19 @@ interface FindOpts {
    * incompatibilité).
    */
   objectiveKey?: string | null;
+  /**
+   * Mission Axe C (consigne coach) : signal de niveau d'entraînement
+   * (même convention que `options.beginnerIntensitySignal` côté catalogue)
+   * — permet d'exclure les 8 fiches à prérequis de niveau confirmé (cf.
+   * levelPrerequisiteCompatibility.ts) à CHAQUE étage de réparation,
+   * exactement comme `objectiveKey` pour l'axe A. Jamais introduit par
+   * défaut si absent.
+   */
+  levelSignal?: BeginnerIntensitySignal | null;
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern, objectiveKey } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger, limiterKeywordsByRank, excludeIdsThisWeek, excludeFastedPattern, objectiveKey, levelSignal } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   const originalZoneMax = original ? ficheMainZoneMax(original) : 0;
@@ -446,6 +456,7 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (excludeFastedPattern && ficheIsFastedPattern(w)) continue;
     if (!originalRequiresContext && ficheRequiresUnconfirmedContext(w)) continue;
     if (isRaceSimIncompatibleWithObjective(w.id, objectiveKey)) continue;
+    if (isLevelPrerequisiteIncompatible(w.id, levelSignal)) continue;
     if (normSport(w.sport) !== sport) continue;
     if (requiredFamily && intensityFamily(ficheMainZoneMax(w)) !== requiredFamily) continue;
     if (opts.excludeFamily && intensityFamily(ficheMainZoneMax(w)) === opts.excludeFamily) continue;
@@ -505,6 +516,17 @@ interface PhaseCtx {
   totalWeeks: number;
   weekOffset: number;
   objectiveKey: string | null | undefined;
+  /**
+   * Mission Axe C (consigne coach) : même signal que `beginnerIntensitySignal`
+   * côté catalogue (`workoutCatalogBuilder.ts`) — propagé ici une seule fois
+   * depuis `RunReconcilerOptions.beginnerIntensitySignal` (déjà reçu par
+   * `runReconciler` pour `enforceDemandingAccumulation`, mais jamais
+   * jusqu'ici accessible à `findReplacement`). `PhaseCtx` est déjà partagé
+   * par les 4 fonctions qui appellent `findReplacement` (`runOnePass`,
+   * `dedupeWithinWeek`, `dedupeFastedWithinWeek`, `enforceDemandingAccumulation`)
+   * — l'ajouter ici évite de threader un 2e paramètre dans ces 4 signatures.
+   */
+  beginnerIntensitySignal?: BeginnerIntensitySignal | null;
 }
 
 /**
@@ -575,6 +597,7 @@ function runOnePass(
             ledger,
             limiterKeywordsByRank,
             objectiveKey: phaseCtx?.objectiveKey,
+            levelSignal: phaseCtx?.beginnerIntensitySignal,
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
@@ -612,6 +635,7 @@ function runOnePass(
             // seule sa durée l'est.
             preserveOriginalFamily: true,
             objectiveKey: phaseCtx?.objectiveKey,
+            levelSignal: phaseCtx?.beginnerIntensitySignal,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -642,6 +666,7 @@ function runOnePass(
             ledger,
             limiterKeywordsByRank,
             objectiveKey: phaseCtx?.objectiveKey,
+            levelSignal: phaseCtx?.beginnerIntensitySignal,
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
@@ -720,6 +745,7 @@ function runOnePass(
             limiterKeywordsByRank,
             requireFamily: isSLFloor ? "easy" : undefined,
             objectiveKey: phaseCtx?.objectiveKey,
+            levelSignal: phaseCtx?.beginnerIntensitySignal,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -878,6 +904,7 @@ function dedupeWithinWeek(
           // une AUTRE fiche du même rôle, jamais en changeant de famille.
           preserveOriginalFamily: true,
           objectiveKey: phaseCtx?.objectiveKey,
+          levelSignal: phaseCtx?.beginnerIntensitySignal,
         }, id);
         if (repl) {
           assignFiche(s, repl, s.durationMin, ledger);
@@ -952,6 +979,7 @@ function dedupeFastedWithinWeek(
           // facile ne doit pas devenir une séance qualité non-fasted).
           preserveOriginalFamily: true,
           objectiveKey: phaseCtx?.objectiveKey,
+          levelSignal: phaseCtx?.beginnerIntensitySignal,
         }, id ?? undefined);
         const label = id ?? "custom";
         if (repl) {
@@ -1814,6 +1842,7 @@ function enforceDemandingAccumulation(
           ledger,
           excludeFamily: "vo2",
           objectiveKey: phaseCtx?.objectiveKey,
+          levelSignal: phaseCtx?.beginnerIntensitySignal,
         }, id ?? undefined);
         const label = id ?? s.title ?? "custom";
         if (repl) {
@@ -1923,6 +1952,7 @@ export function runReconciler(
     totalWeeks: opts.globalTotalWeeks ?? legacyTotalWeeks,
     weekOffset: opts.globalWeekOffset ?? 0,
     objectiveKey: opts.objectiveKey,
+    beginnerIntensitySignal: opts.beginnerIntensitySignal,
   };
 
   // ── Filet de mapping voisin (Reco 3 + Reco B) ──
