@@ -21,6 +21,10 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { PreparedTrainingPlanContext, TrainingPlanPhysiologicalTrace } from "@/engines/plan";
 import { preparePilotTrainingPlanContext } from "./preparePilotTrainingPlanContext";
 import {
+  buildSessionPhysiologicalTraceability,
+  type SessionPhysiologicalTraceabilityReport,
+} from "./sessionPhysiologicalTraceability";
+import {
   appendRun, checkBudgetBeforeLaunch, readBudgetState,
   CREDIT_PER_CHUNK_LOW, CREDIT_PER_CHUNK_HIGH,
   type BudgetCheckResult, type BudgetState,
@@ -81,6 +85,7 @@ export interface PilotCockpitResult {
   checks: CheckResult[] | null;
   validatorResult: PlanValidationResult | null;
   physiologicalTrace: TrainingPlanPhysiologicalTrace | null;
+  sessionPhysiologicalTraceability: SessionPhysiologicalTraceabilityReport | null;
   preparedContext: PreparedTrainingPlanContext | null;
   errorMessage?: string;
   usage: {
@@ -176,6 +181,7 @@ export function usePilotCockpit() {
 
     let checks: CheckResult[] | null = null;
     let validatorResult: PlanValidationResult | null = null;
+    let sessionPhysiologicalTraceability: SessionPhysiologicalTraceabilityReport | null = null;
 
     if (merged && parsed) {
       try {
@@ -222,6 +228,17 @@ export function usePilotCockpit() {
       } catch (e) {
         errorMessage = errorMessage ?? `validatePlan a échoué : ${e instanceof Error ? e.message : String(e)}`;
       }
+
+      try {
+        const cfg = preparedContext?.planConfig ?? profile.planConfig;
+        sessionPhysiologicalTraceability = buildSessionPhysiologicalTraceability({
+          plan: merged,
+          planConfig: cfg,
+          allowedCatalogIds: plan.lastAllowedCatalogIdsRef.current,
+        });
+      } catch (e) {
+        errorMessage = errorMessage ?? `La traçabilité physiologique a échoué : ${e instanceof Error ? e.message : String(e)}`;
+      }
     } else if (!errorMessage) {
       errorMessage = resolvePilotRunErrorMessage(newStat);
     }
@@ -232,7 +249,7 @@ export function usePilotCockpit() {
     const result: PilotCockpitResult = {
       profileId: profile.id, ts: t0, durationMs, merged, parsed, stat: newStat,
       checks, validatorResult, physiologicalTrace: preparedContext?.trace ?? null,
-      preparedContext, errorMessage, usage,
+      sessionPhysiologicalTraceability, preparedContext, errorMessage, usage,
     };
     setLastResult(result);
 

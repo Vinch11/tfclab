@@ -85,6 +85,29 @@ function mainZoneMaxOf(w: LibraryWorkout): number {
  */
 const EASY_ONLY_FAMILIES = new Set<IntentFamily>(["technique", "endurance_fondamentale"]);
 
+export interface IntentEvidenceClassification {
+  family: IntentFamily;
+  source: "pattern" | "zone_fallback" | "unclassified";
+}
+
+/**
+ * Classifie une preuve textuelle déjà matérialisée (séance finale, métadonnée
+ * de réparation, etc.) avec les mêmes règles que le catalogue. Le résultat
+ * distingue un motif explicite du simple fallback de zone : les contrôles de
+ * traçabilité peuvent ainsi refuser de présenter une déduction faible comme
+ * une intention vérifiée.
+ */
+export function classifyIntentEvidence(text: string, mainZoneMax = 0): IntentEvidenceClassification {
+  for (const { family, rx } of FAMILY_PATTERNS) {
+    if (EASY_ONLY_FAMILIES.has(family) && mainZoneMax >= 4) continue;
+    if (rx.test(text)) return { family, source: "pattern" };
+  }
+  if (mainZoneMax > 0 && mainZoneMax <= 2) {
+    return { family: "endurance_fondamentale", source: "zone_fallback" };
+  }
+  return { family: "other", source: "unclassified" };
+}
+
 /** Renvoie la famille d'intention d'une fiche (déterministe, avec cache). */
 export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   const cached = CACHE.get(w);
@@ -107,16 +130,7 @@ export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   const tagsText = (w.tags || []).join(" ");
   const text = `${w.id} ${w.cat} ${w.objectif} ${tagsText} ${structureText} ${w.when || ""}`;
 
-  for (const { family, rx } of FAMILY_PATTERNS) {
-    if (EASY_ONLY_FAMILIES.has(family) && mainZoneMax >= 4) continue;
-    if (rx.test(text)) {
-      CACHE.set(w, family);
-      return family;
-    }
-  }
-
-  // Fallback : si zones dominées par Z1/Z2 → endurance fondamentale.
-  const family: IntentFamily = mainZoneMax > 0 && mainZoneMax <= 2 ? "endurance_fondamentale" : "other";
+  const family = classifyIntentEvidence(text, mainZoneMax).family;
   CACHE.set(w, family);
   return family;
 }
