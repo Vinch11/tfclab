@@ -197,6 +197,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
         },
       }),
       catalog: [threshold],
+      allowedCatalogIds: [threshold.id],
     });
 
     expect(report.sessions[0].status).toBe("verified");
@@ -239,4 +240,56 @@ describe("buildSessionPhysiologicalTraceability", () => {
       expect.objectContaining({ code: "level_prerequisite_conflict", severity: "critical" }),
     ]));
   });
+  it("refuse verified lorsque les répétitions divergent malgré durée et zones conformes", () => {
+    const report = buildSessionPhysiologicalTraceability({
+      plan: plan([session({ details: "6x4min Z5 récup 3min" })]),
+      planConfig: config(),
+      catalog: [workout()],
+      allowedCatalogIds: ["RUN_VO2_INTERVALS"],
+    });
+    expect(report.sessions[0].dose.duration.status).toBe("verified");
+    expect(report.sessions[0].dose.intensity.status).toBe("verified");
+    expect(report.sessions[0].dose.structure.status).toBe("conflict");
+    expect(report.sessions[0].dose.status).toBe("conflict");
+    expect(report.sessions[0].status).not.toBe("verified");
+  });
+
+  it("refuse verified lorsque la récupération diverge malgré durée et zones conformes", () => {
+    const report = buildSessionPhysiologicalTraceability({
+      plan: plan([session({ details: "5x4min Z5 récup 2min" })]),
+      planConfig: config(),
+      catalog: [workout()],
+      allowedCatalogIds: ["RUN_VO2_INTERVALS"],
+    });
+    expect(report.sessions[0].dose.structure.status).toBe("conflict");
+    expect(report.sessions[0].status).not.toBe("verified");
+  });
+
+  it("ne certifie pas une séance si le catalogue autorisé est absent", () => {
+    const report = buildSessionPhysiologicalTraceability({
+      plan: plan([session()]),
+      planConfig: config(),
+      catalog: [workout()],
+    });
+    expect(report.sessions[0].status).not.toBe("verified");
+    expect(report.sessions[0].anomalies).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "catalog_authorization_missing", severity: "warning" }),
+    ]));
+  });
+
+  it("refuse un catalogue autorisé vide ou sans l'ID final", () => {
+    for (const allowedCatalogIds of [[], ["OTHER_WORKOUT"]]) {
+      const report = buildSessionPhysiologicalTraceability({
+        plan: plan([session()]),
+        planConfig: config(),
+        catalog: [workout()],
+        allowedCatalogIds,
+      });
+      expect(report.sessions[0].status).not.toBe("verified");
+      expect(report.sessions[0].anomalies).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: "catalog_not_in_generation", severity: "critical" }),
+      ]));
+    }
+  });
+
 });
