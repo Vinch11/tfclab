@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applySLFloorEnforcement } from "./jsonPlanHandler.ts";
+import { testOnlyApplySLFloorEnforcement as applySLFloorEnforcement } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel trouvé en auditant applyDailySessionFloorEnforcement /
@@ -52,12 +52,6 @@ Deno.test("applySLFloorEnforcement — sortie longue trop courte, fiche dispo da
     [chunk] as any,
     { 1: SL_FLOOR_ENTRY },
     [CATALOG_DUMP_WITH_RUN_CANDIDATE],
-    undefined,
-    undefined,
-    // Pas de métadonnées structurées dans ce test historique (dump Markdown
-    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
-    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
-    true,
   );
   const sess = out[0].weeks[0].sessions[0];
   assertEquals(sess.catalogId, "LYDIARD_RUN_AEROBIC_BASE_LONG");
@@ -73,9 +67,6 @@ Deno.test("applySLFloorEnforcement — dump du chunk courant sans candidate, mai
     [chunk0, chunk1] as any,
     { 1: SL_FLOOR_ENTRY, 2: SL_FLOOR_ENTRY },
     [CATALOG_DUMP_NO_RUN_CANDIDATE, CATALOG_DUMP_WITH_RUN_CANDIDATE],
-    undefined,
-    undefined,
-    true,
   );
 
   const sess = out[0].weeks[0].sessions[0];

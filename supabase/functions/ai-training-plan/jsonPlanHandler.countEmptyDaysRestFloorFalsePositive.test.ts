@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyReconciler } from "./jsonPlanHandler.ts";
+import { testOnlyApplyReconciler as applyReconciler } from "./jsonPlanHandler.ts";
 
 /**
  * Audit "B-5K-BEGINNER round 3" (JSON réel 2026-10-14, consigne coach) :

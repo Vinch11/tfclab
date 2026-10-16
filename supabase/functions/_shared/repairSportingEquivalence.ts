@@ -61,6 +61,39 @@ export interface RepairCompatibilityResult {
   reasons: string[];
 }
 
+const VERIFIED_REPAIR_INTENTS = new Set<RepairIntentFamily>([
+  "endurance_fondamentale", "seuil", "vo2", "sprint", "technique", "force",
+  "recuperation", "test", "race_pace", "brick", "fatmax",
+]);
+
+export function isCompleteRepairWorkoutMetadata(value: unknown): value is RepairWorkoutMetadata {
+  if (!value || typeof value !== "object") return false;
+  const metadata = value as Partial<RepairWorkoutMetadata>;
+  return metadata.complete === true &&
+    metadata.metadataVersion === 1 &&
+    typeof metadata.id === "string" && metadata.id.trim().length > 0 &&
+    typeof metadata.sport === "string" && metadata.sport.trim().length > 0 &&
+    typeof metadata.title === "string" &&
+    typeof metadata.objective === "string" &&
+    typeof metadata.intentFamily === "string" &&
+    VERIFIED_REPAIR_INTENTS.has(metadata.intentFamily as RepairIntentFamily) &&
+    Array.isArray(metadata.goals) && metadata.goals.every(item => typeof item === "string") &&
+    typeof metadata.objectiveSpecific === "boolean" &&
+    Array.isArray(metadata.phases) && metadata.phases.every(item => typeof item === "string") &&
+    Array.isArray(metadata.durationMin) && metadata.durationMin.length === 2 &&
+    metadata.durationMin.every(item => typeof item === "number" && Number.isFinite(item) && item >= 0) &&
+    metadata.durationMin[0] <= metadata.durationMin[1] &&
+    typeof metadata.mainZoneMax === "number" && Number.isFinite(metadata.mainZoneMax) && metadata.mainZoneMax >= 0 &&
+    (metadata.specialContext === null || typeof metadata.specialContext === "string") &&
+    Array.isArray(metadata.prerequisiteKeys) && metadata.prerequisiteKeys.every(item => typeof item === "string") &&
+    typeof metadata.necessity === "string" &&
+    typeof metadata.when === "string" &&
+    typeof metadata.avoid === "string" &&
+    Array.isArray(metadata.tags) && metadata.tags.every(item => typeof item === "string") &&
+    typeof metadata.structure === "string" &&
+    Array.isArray(metadata.zones) && metadata.zones.every(item => typeof item === "string");
+}
+
 function normalizeToken(value: unknown): string {
   return String(value ?? "")
     .normalize("NFD")
@@ -115,21 +148,19 @@ export function evaluateRepairSportingEquivalence(
   context: RepairCompatibilityContext = {},
 ): RepairCompatibilityResult {
   const reasons: string[] = [];
-  if (!candidate?.complete || candidate.metadataVersion !== 1) {
+  if (!isCompleteRepairWorkoutMetadata(candidate)) {
     return { compatible: false, reasons: ["candidate_metadata_incomplete"] };
   }
-  if (candidate.intentFamily === "other") reasons.push("candidate_intent_unknown");
 
   const operation = context.operation ?? (original ? "replacement" : "insertion");
   if (operation === "replacement") {
-    if (!original?.complete || original.metadataVersion !== 1) {
+    if (!isCompleteRepairWorkoutMetadata(original)) {
       reasons.push("original_metadata_incomplete");
     } else {
       if (normalizeRepairSport(candidate.sport) !== normalizeRepairSport(original.sport)) {
         reasons.push(`sport:${normalizeRepairSport(original.sport)}->${normalizeRepairSport(candidate.sport)}`);
       }
-      if (original.intentFamily === "other") reasons.push("original_intent_unknown");
-      else if (
+      if (
         candidate.intentFamily !== original.intentFamily &&
         !context.allowedCandidateIntentFamilies?.includes(candidate.intentFamily)
       ) {

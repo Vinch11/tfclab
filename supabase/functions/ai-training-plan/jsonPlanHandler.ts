@@ -50,6 +50,7 @@ import { applyValueCheck } from "./valueCheck.ts";
 import { detectLcwFromConfig, buildLcwSignatureReminder, computeLcwChunkSize } from "./lcwSignatureReminder.ts";
 import {
   evaluateRepairSportingEquivalence,
+  isCompleteRepairWorkoutMetadata,
   normalizeRepairSport,
   type RepairCompatibilityContext,
   type RepairWorkoutMetadata,
@@ -68,7 +69,12 @@ interface CatalogCandidate {
   structure: string;
   zones: string[];
   metadata?: RepairWorkoutMetadata;
+  legacyTestOnly?: true;
 }
+
+/** Explicit escape hatch for legacy unit fixtures only. Production never passes it. */
+export const TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES = Symbol("test-only-legacy-repair-candidates");
+type LegacyRepairTestMode = typeof TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES;
 
 interface OffsportNearestCandidate {
   id: string;
@@ -179,10 +185,14 @@ function parseCatalogCandidatesFromDump(dump: string | null | undefined): Catalo
   return out;
 }
 
-function catalogCandidatesFromMetadata(entries: RepairWorkoutMetadata[] | null | undefined): CatalogCandidate[] {
+function catalogCandidatesFromMetadata(
+  entries: RepairWorkoutMetadata[] | null | undefined,
+  allowedIds: ReadonlySet<string>,
+): CatalogCandidate[] {
   if (!Array.isArray(entries)) return [];
   return entries
-    .filter((entry): entry is RepairWorkoutMetadata => !!entry?.complete && entry.metadataVersion === 1)
+    .filter(isCompleteRepairWorkoutMetadata)
+    .filter(entry => allowedIds.has(entry.id.toUpperCase()))
     .map(entry => ({
       id: entry.id,
       sport: normalizeSport(entry.sport),
@@ -198,40 +208,27 @@ function catalogCandidatesFromMetadata(entries: RepairWorkoutMetadata[] | null |
 function buildCandidatesByChunk(
   dumps: Array<string | null | undefined>,
   metadata?: RepairWorkoutMetadata[][],
+  legacyTestMode?: LegacyRepairTestMode,
 ): CatalogCandidate[][] {
   return dumps.map((dump, index) => {
-    const structured = catalogCandidatesFromMetadata(metadata?.[index]);
-    return structured.length > 0 ? structured : parseCatalogCandidatesFromDump(dump);
+    const legacy = parseCatalogCandidatesFromDump(dump);
+    const allowedIds = new Set(legacy.map(candidate => candidate.id.toUpperCase()));
+    const structured = catalogCandidatesFromMetadata(metadata?.[index], allowedIds);
+    if (structured.length > 0) return structured;
+    return legacyTestMode === TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES
+      ? legacy.map(candidate => ({ ...candidate, legacyTestOnly: true as const }))
+      : [];
   });
 }
 
-/**
- * Audit "preserve-repair-intent" (consigne coach) : l'ancien comportement
- * ("si AUCUN candidat du pool n'a de métadonnées, laisser passer") était un
- * contournement implicite — exploitable en production par un payload client
- * ancien (sans `chunkRepairCatalogs`/`phaseRepairCatalogs`), pas seulement
- * par les tests historiques. Un pool sans métadonnées doit désormais échouer
- * FERMÉ : `evaluateRepairSportingEquivalence` reçoit `candidate.metadata`
- * (potentiellement `undefined`) et rejette elle-même via
- * `candidate_metadata_incomplete` — aucun raccourci ici.
- *
- * `allowUnverifiedCatalogMetadata` est le SEUL contournement restant, et il
- * est EXPLICITE et REQUIS à chaque appel (pas de valeur par défaut) :
- * uniquement positionné à `true` par les harnais de test historiques qui
- * construisent leurs pools depuis un dump Markdown sans métadonnées
- * structurées (cf. REPAIR_SPORTING_EQUIVALENCE.md). Le gestionnaire de
- * production (jsonPlanHandler.ts, boucle SSE) ne positionne jamais ce
- * paramètre à `true` — chaque fonction exportée qui l'expose le reçoit avec
- * une valeur par défaut `false`.
- */
 function repairCandidateCompatible(
   candidate: CatalogCandidate,
   pool: CatalogCandidate[],
   originalId: string | null | undefined,
   context: RepairCompatibilityContext,
-  allowUnverifiedCatalogMetadata: boolean,
 ): boolean {
-  if (allowUnverifiedCatalogMetadata && !pool.some(item => item.metadata)) return true;
+  if (candidate.legacyTestOnly && pool.every(item => item.legacyTestOnly)) return true;
+  if (!candidate.metadata || candidate.metadata.id.toUpperCase() !== candidate.id.toUpperCase()) return false;
   const original = originalId
     ? pool.find(item => item.id.toUpperCase() === originalId.toUpperCase())?.metadata
     : null;
@@ -300,14 +297,13 @@ function findCatalogCandidateForSport(
   requiredClass?: IntensityClass,
   originalId?: string | null,
   context: RepairCompatibilityContext = {},
-  allowUnverifiedCatalogMetadata = false,
 ): { candidate: CatalogCandidate | null; delta: number } {
   const { ranked } = rankCandidatesBySport(candidates, sport, durationMin);
   const tolerance = computeToleranceMin(durationMin);
   // Filtre intensité : on n'accepte que la même classe ; unknown échoue fermé.
   const viable = ranked.find(x => {
     if (x.delta > tolerance) return false;
-    if (!repairCandidateCompatible(x.c, candidates, originalId, context, allowUnverifiedCatalogMetadata)) return false;
+    if (!repairCandidateCompatible(x.c, candidates, originalId, context)) return false;
     if (!requiredClass || requiredClass === "unknown") return true;
     const candClass = classifyIntensity(x.c.zones, `${x.c.title} ${x.c.structure}`);
     if (candClass === "unknown") return false;
@@ -326,11 +322,11 @@ export function applyOffsportTrailGuardToChunks(
   objective: string | null | undefined,
   catalogDumpsByChunk: Array<string | null | undefined>,
   repairCatalogsByChunk?: RepairWorkoutMetadata[][],
-  allowUnverifiedCatalogMetadata = false,
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: OffsportTrailRepair[] } {
   if (isTrailObjective(objective)) return { chunks, repairs: [] };
   const repairs: OffsportTrailRepair[] = [];
-  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   // Repli catalogue global — même bug/même correctif que applyReconciler /
   // applySLFloorEnforcement / applyDailySessionFloorEnforcement (audit
   // "Test_Vince" puis audit systématique du reste du pipeline) : le dump
@@ -389,12 +385,12 @@ export function applyOffsportTrailGuardToChunks(
             phase: String((week as any).phase ?? ""),
             operation: originalId ? "replacement" : "insertion",
           };
-          let res = findCatalogCandidateForSport(pool, sessionSport, targetDur, requiredClass, originalId, compatibilityContext, allowUnverifiedCatalogMetadata);
+          let res = findCatalogCandidateForSport(pool, sessionSport, targetDur, requiredClass, originalId, compatibilityContext);
           let sport = sessionSport;
           let viaBrick = false;
           // Brick → fallback bike si aucun candidat brick (même classe)
           if (!res.candidate && sessionSport === "brick") {
-            res = findCatalogCandidateForSport(pool, "bike", targetDur, requiredClass, originalId, compatibilityContext, allowUnverifiedCatalogMetadata);
+            res = findCatalogCandidateForSport(pool, "bike", targetDur, requiredClass, originalId, compatibilityContext);
             if (res.candidate) { sport = "bike"; viaBrick = true; }
           }
           return { res, sport, viaBrick };
@@ -561,7 +557,7 @@ export function applySLFloorEnforcement(
   catalogDumpsByChunk: Array<string | null | undefined>,
   repairCatalogsByChunk?: RepairWorkoutMetadata[][],
   objective?: string | null,
-  allowUnverifiedCatalogMetadata = false,
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: SLUpgradeRepair[]; traces: string[] } {
   const repairs: SLUpgradeRepair[] = [];
   const traces: string[] = [];
@@ -569,7 +565,7 @@ export function applySLFloorEnforcement(
     traces.push(`[SL_FLOOR] skipped_reason=no_weekly_quotas_payload`);
     return { chunks, repairs, traces };
   }
-  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   // Repli catalogue global — cf. commentaire équivalent dans applyReconciler
   // (bug réel "Test_Vince" : le dump rotationné d'un chunk peut ne contenir
   // AUCUNE fiche endurance/recovery du sport concerné, alors que le catalogue
@@ -637,7 +633,7 @@ export function applySLFloorEnforcement(
 
         const buildEndurancePool = (pool: typeof candidates) => pool
           .filter(c => c.sport === spec.sport)
-          .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, originalId, repairContext, allowUnverifiedCatalogMetadata))
+          .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, originalId, repairContext))
           .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
           .filter(x => x.cls === "endurance" || x.cls === "recovery")
           .filter(x => x.c.durationMin[1] >= spec.floor || x.c.durationMedian >= spec.floor)
@@ -875,7 +871,7 @@ export function applyReconciler(
   identifiedLimiters?: string[] | null,
   repairCatalogsByChunk?: RepairWorkoutMetadata[][],
   objective?: string | null,
-  allowUnverifiedCatalogMetadata = false,
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: ReconcilerRepair[]; traces: string[] } {
   const repairs: ReconcilerRepair[] = [];
   const traces: string[] = [];
@@ -883,7 +879,7 @@ export function applyReconciler(
     traces.push("[RECONCILER] skipped_reason=no_weekly_quotas");
     return { chunks, repairs, traces };
   }
-  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   // Bug réel (audit "Test_Vince", plan 703 LCW 8 semaines) : V3_BIKE_FORCE_SFR
   // dupliqué mardi ET jeudi de S1, jamais corrigé malgré le dédoublonnage (c)
   // ci-dessous — root cause : la recherche d'alternative ne regardait QUE
@@ -1003,7 +999,7 @@ export function applyReconciler(
               phase: String((week as any).phase ?? ""),
               weekType: entry.weekType,
               operation: "insertion",
-            }, allowUnverifiedCatalogMetadata))
+            }))
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
             // Pour swim/bike/run, le pool de réparation doit rester capable de
             // produire une séance CLÉ (cf. present ci-dessus) — "recovery" en est
@@ -1189,7 +1185,7 @@ export function applyReconciler(
               phase: String((week as any).phase ?? ""),
               weekType: entry.weekType,
               operation: "replacement",
-            }, allowUnverifiedCatalogMetadata))
+            }))
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
             .filter(x => x.cls === victimClass)
             .sort((a, b) => Math.abs(a.c.durationMedian - (victim.durationMin ?? 0)) - Math.abs(b.c.durationMedian - (victim.durationMin ?? 0)))[0]?.c
@@ -1270,7 +1266,7 @@ export function applyReconciler(
               weekType: entry.weekType,
               operation: "replacement",
               allowedCandidateIntentFamilies: ["endurance_fondamentale", "recuperation"],
-            }, allowUnverifiedCatalogMetadata))
+            }))
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
             .filter(x => x.cls === victimClass)
             .sort((a, b) => Math.abs(a.c.durationMedian - (victim.durationMin ?? 0)) - Math.abs(b.c.durationMedian - (victim.durationMin ?? 0)))[0]?.c
@@ -1380,7 +1376,7 @@ export function applyLcwSignatureEnforcement(
   // génération complète/fenêtre : `chunks` y couvre déjà tout le plan.
   alreadySatisfiedElsewhere: Record<string, number> = {},
   repairCatalogsByChunk?: RepairWorkoutMetadata[][],
-  allowUnverifiedCatalogMetadata = false,
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: LcwSignatureRepair[]; traces: string[] } {
   const repairs: LcwSignatureRepair[] = [];
   const traces: string[] = [];
@@ -1393,7 +1389,7 @@ export function applyLcwSignatureEnforcement(
   chunks.forEach((chunk, ci) => {
     for (const week of chunk.weeks ?? []) allWeeks.push({ ci, week });
   });
-  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   const allCandidates = candidatesByChunk.flat();
 
   for (const target of LCW_HARD_ENFORCED_TARGETS) {
@@ -1443,7 +1439,7 @@ export function applyLcwSignatureEnforcement(
           objective: (planConfig as any)?.catalogObjective ?? (planConfig as any)?.objective ?? null,
           phase: String((week as any).phase ?? ""),
           operation: "replacement",
-        }, allowUnverifiedCatalogMetadata)) {
+        })) {
         traces.push(`[LCW_SIGNATURE] S${week.weekNumber} ${target.id} action=unresolved_sporting_incompatibility`);
         repairs.push({
           code: "lcw_signature_unresolved",
@@ -1520,7 +1516,7 @@ export function applyDailySessionFloorEnforcement(
   objective: string | null | undefined,
   ambition: string | null | undefined,
   repairCatalogsByChunk?: RepairWorkoutMetadata[][],
-  allowUnverifiedCatalogMetadata = false,
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: DailyFloorRepair[]; traces: string[] } {
   const repairs: DailyFloorRepair[] = [];
   const traces: string[] = [];
@@ -1536,7 +1532,7 @@ export function applyDailySessionFloorEnforcement(
     traces.push("[DAILY_FLOOR] skipped_reason=no_weekly_quotas");
     return { chunks, repairs, traces };
   }
-  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   // Repli catalogue global — cf. commentaire équivalent dans applyReconciler
   // (le dump rotationné d'un chunk peut ne contenir aucune fiche du sport
   // complémentaire requis, sans que ça reflète une vraie absence côté
@@ -1607,7 +1603,7 @@ export function applyDailySessionFloorEnforcement(
             phase: String((week as any).phase ?? ""),
             weekType: entry.weekType,
             operation: "insertion",
-          }, allowUnverifiedCatalogMetadata))
+          }))
           .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
           .filter(x => x.cls === "endurance" || x.cls === "recovery" || (complementSport === "strength" && x.cls === "unknown"))
           .sort((a, b) => {
@@ -1657,6 +1653,52 @@ export function applyDailySessionFloorEnforcement(
 
   return { chunks, repairs, traces };
 }
+
+/** Legacy markdown fixtures must opt in explicitly; the production handler never uses these wrappers. */
+export const testOnlyApplyOffsportTrailGuardToChunks = (
+  chunks: PlanChunk[],
+  objective: string | null | undefined,
+  dumps: Array<string | null | undefined>,
+  metadata?: RepairWorkoutMetadata[][],
+) => applyOffsportTrailGuardToChunks(chunks, objective, dumps, metadata, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES);
+
+export const testOnlyApplySLFloorEnforcement = (
+  chunks: PlanChunk[],
+  quotas: Record<number, SLWeekFloor> | undefined | null,
+  dumps: Array<string | null | undefined>,
+  metadata?: RepairWorkoutMetadata[][],
+  objective?: string | null,
+) => applySLFloorEnforcement(chunks, quotas, dumps, metadata, objective, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES);
+
+export const testOnlyApplyReconciler = (
+  chunks: PlanChunk[],
+  quotas: Record<number, any> | null | undefined,
+  dumps: Array<string | null | undefined>,
+  limiters?: string[] | null,
+  metadata?: RepairWorkoutMetadata[][],
+  objective?: string | null,
+) => applyReconciler(chunks, quotas, dumps, limiters, metadata, objective, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES);
+
+export const testOnlyApplyLcwSignatureEnforcement = (
+  chunks: PlanChunk[],
+  dumps: Array<string | null | undefined>,
+  planConfig: unknown,
+  alreadySatisfiedElsewhere: Record<string, number> = {},
+  metadata?: RepairWorkoutMetadata[][],
+) => applyLcwSignatureEnforcement(
+  chunks, dumps, planConfig, alreadySatisfiedElsewhere, metadata, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES,
+);
+
+export const testOnlyApplyDailySessionFloorEnforcement = (
+  chunks: PlanChunk[],
+  quotas: Record<number, WeeklyQuotaEntry> | null | undefined,
+  dumps: Array<string | null | undefined>,
+  objective: string | null | undefined,
+  ambition: string | null | undefined,
+  metadata?: RepairWorkoutMetadata[][],
+) => applyDailySessionFloorEnforcement(
+  chunks, quotas, dumps, objective, ambition, metadata, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES,
+);
 
 
 

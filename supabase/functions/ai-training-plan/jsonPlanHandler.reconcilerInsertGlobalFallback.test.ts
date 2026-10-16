@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyReconciler } from "./jsonPlanHandler.ts";
+import { testOnlyApplyReconciler as applyReconciler } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel trouvé en auditant les mécanismes voisins du dédoublonnage
@@ -57,12 +57,6 @@ Deno.test("applyReconciler (insert) — dump du chunk courant sans candidate run
     { 1: BASE_QUOTA },
     [DUMP_NO_RUN, DUMP_WITH_RUN],
     null,
-    undefined,
-    undefined,
-    // Pas de métadonnées structurées dans ce test historique (dump Markdown
-    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
-    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
-    true,
   );
 
   const sessions = out[0].weeks[0].sessions;

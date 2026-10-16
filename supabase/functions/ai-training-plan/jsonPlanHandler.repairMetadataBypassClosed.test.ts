@@ -12,9 +12,8 @@ import { applySLFloorEnforcement } from "./jsonPlanHandler.ts";
  * client ancien (sans `chunkRepairCatalogs`/`phaseRepairCatalogs`) ou un
  * chunk entièrement retombé sur le parsing Markdown déclenchait exactement
  * la même condition EN PRODUCTION. Ces tests vérifient, en appelant les
- * fonctions de réparation SANS jamais positionner `allowUnverifiedCatalog-
- * Metadata` (donc avec son défaut `false`, identique au comportement réel
- * du handler SSE), que :
+ * fonctions de réparation de production (sans mode de compatibilité test,
+ * donc avec le même comportement strict que le handler SSE), que :
  *   1. l'absence totale de métadonnées ne bypasse plus rien (ancien format
  *      de payload) ;
  *   2. un catalogue partiellement peuplé en métadonnées ne laisse jamais
@@ -64,6 +63,14 @@ function metadata(
   };
 }
 
+function catalogDump(entries: RepairWorkoutMetadata[]): string {
+  return [
+    "#### Course",
+    "| ID | Cat | Titre | Phase | Durée | Structure |",
+    ...entries.map(entry => "| " + entry.id + " | A | " + entry.title + " | Build | " + entry.durationMin[0] + "-" + entry.durationMin[1] + " | " + entry.structure + " |"),
+  ].join("\n");
+}
+
 function mkChunk(weekNumber: number, sessions: any[]): any {
   return { weeks: [{ weekNumber, phase: "build", theme: "Test", sessions }] };
 }
@@ -90,7 +97,7 @@ Deno.test("Correction 1 — ancien format de payload (pas de repairCatalogsByChu
   ]);
 
   // Appel strictement au format production (pas de repairCatalogsByChunk,
-  // pas de allowUnverifiedCatalogMetadata) : le défaut doit s'appliquer.
+  // sans wrapper de compatibilité `testOnly`) : le défaut doit s'appliquer.
   const { chunks: out, repairs } = applySLFloorEnforcement([chunk], { 1: SL_FLOOR_ENTRY }, [dump]);
 
   const sess = out[0].weeks[0].sessions[0];
@@ -127,7 +134,7 @@ Deno.test("Correction 1 — catalogue partiellement peuplé : une fiche SANS mé
   const { chunks: out, repairs } = applySLFloorEnforcement(
     [chunk0, chunk1, chunk2],
     { 1: SL_FLOOR_ENTRY },
-    [DUMP0_NO_RUN, "", DUMP2_WITH_RUN_MARKDOWN_ONLY],
+    [DUMP0_NO_RUN, catalogDump([SWIM_METADATA]), DUMP2_WITH_RUN_MARKDOWN_ONLY],
     [[], [SWIM_METADATA], []],
   );
 
@@ -150,7 +157,7 @@ Deno.test("Correction 1 — séance d'origine absente du catalogue actuel : remp
   const { chunks: out, repairs } = applySLFloorEnforcement(
     [chunk],
     { 1: SL_FLOOR_ENTRY },
-    [""],
+    [catalogDump([CANDIDATE])],
     [[CANDIDATE]],
   );
 
@@ -175,7 +182,7 @@ Deno.test("Correction 1 — métadonnées de l'origine présentes dans un AUTRE 
   const { chunks: out, repairs } = applySLFloorEnforcement(
     [chunk0, chunk1],
     { 1: SL_FLOOR_ENTRY },
-    ["", ""],
+    [catalogDump([CANDIDATE]), catalogDump([ORIGINAL])],
     [[CANDIDATE], [ORIGINAL]],
   );
 
@@ -195,7 +202,7 @@ Deno.test("Correction 1 — rejet d'un remplacement sportivement incompatible ma
   const { chunks: out, repairs } = applySLFloorEnforcement(
     [chunk],
     { 1: SL_FLOOR_ENTRY },
-    [""],
+    [catalogDump([ORIGINAL, INCOMPATIBLE])],
     [[ORIGINAL, INCOMPATIBLE]],
   );
 
@@ -204,7 +211,7 @@ Deno.test("Correction 1 — rejet d'un remplacement sportivement incompatible ma
   assert(repairs.some(r => r.code === "sl_upgrade_unresolved"));
 });
 
-Deno.test("Correction 1 — acceptation d'un remplacement sportivement réellement équivalent, en mode production strict (sans allowUnverifiedCatalogMetadata)", () => {
+Deno.test("Correction 1 — acceptation d'un remplacement sportivement réellement équivalent, en mode production strict (sans mode de compatibilité test)", () => {
   const ORIGINAL = metadata("RUN_EASY_ORIGINAL", "endurance_fondamentale", ["Z2"], { durationMin: [40, 65] });
   const EQUIVALENT = metadata("RUN_EASY_LONGER", "endurance_fondamentale", ["Z2"], { durationMin: [90, 150] });
 
@@ -215,7 +222,7 @@ Deno.test("Correction 1 — acceptation d'un remplacement sportivement réelleme
   const { chunks: out, repairs } = applySLFloorEnforcement(
     [chunk],
     { 1: SL_FLOOR_ENTRY },
-    [""],
+    [catalogDump([ORIGINAL, EQUIVALENT])],
     [[ORIGINAL, EQUIVALENT]],
   );
 
@@ -251,7 +258,7 @@ Deno.test("Correction 1 — métadonnées incohérentes/malformées (complete:fa
   const { chunks: out, repairs } = applySLFloorEnforcement(
     [chunk0, chunk1],
     { 1: SL_FLOOR_ENTRY },
-    [dump0, ""],
+    [dump0, catalogDump([ORIGINAL])],
     [[MALFORMED], [ORIGINAL]],
   );
 

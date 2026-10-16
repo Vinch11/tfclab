@@ -1369,7 +1369,8 @@ export function useAITrainingPlan() {
               const afterStr = repair.after
                 ? `"${repair.after.title ?? "?"}" [${repair.after.catalogId ?? "?"}] (${repair.after.durationMin ?? "?"}min, Δ${repair.after.deltaMin ?? "?"}min)`
                 : `UNRESOLVED — sameSportCandidates=${sameCount}/${totalCount}, nearest=[${nearest}]`;
-              semanticRepairs.push(`[${severity}] ${code}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} — ${beforeStr} → ${afterStr}`);
+              const reasonStr = repair.reason ? ` — motif=${repair.reason}` : "";
+              semanticRepairs.push(`[${severity}] ${code}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} — ${beforeStr} → ${afterStr}${reasonStr}`);
             } else {
               const msg = data.message ?? JSON.stringify(data);
               semanticRepairs.push(`[${severity}] ${code}: ${msg}`);
@@ -1492,7 +1493,7 @@ export function useAITrainingPlan() {
             // enforceAthleteConstraints...), sur le plan RÉEL livré au coach —
             // pas seulement dans le harnais QA synthétique.
             try {
-              const finalValidation = computeFinalValidationIssues(merged);
+              const finalValidation = computeFinalValidationIssues(merged, semanticRepairs);
               if (finalValidation.issues.length > 0) parsed.finalValidationIssues = finalValidation.issues;
               setFinalValidationIssues(finalValidation.issues);
               if (finalValidation.hasCritical) {
@@ -1550,6 +1551,13 @@ export function useAITrainingPlan() {
               catIssues = checkB5ToValidationIssues(b5);
               if (catIssues.length > 0) {
                 parsed.catalogIdIssues = catIssues;
+                // B5 revalide structurellement le même état final que la trace
+                // catalog_id_no_safe_neighbor. Le bandeau B5, plus précis, prime
+                // afin de ne pas afficher deux alertes pour une seule séance.
+                const dedupedFinalIssues = (parsed.finalValidationIssues ?? [])
+                  .filter(issue => issue.rule !== "catalog_id_no_safe_neighbor");
+                parsed.finalValidationIssues = dedupedFinalIssues.length > 0 ? dedupedFinalIssues : undefined;
+                setFinalValidationIssues(dedupedFinalIssues);
                 console.error(`[useAITrainingPlan] catalogId hors catalogue injecté (${catIssues.length}) :`, catIssues.slice(0, 6));
               }
             } catch (e) {

@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyDailySessionFloorEnforcement } from "./jsonPlanHandler.ts";
+import { testOnlyApplyDailySessionFloorEnforcement as applyDailySessionFloorEnforcement } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel confirmé sur PLUSIEURS régénérations successives du plan "Vince"
@@ -58,18 +58,7 @@ Deno.test("applyDailySessionFloorEnforcement — S1 Lundi 1 seule séance (bug r
   ] as any;
   const weeklyQuotas = { 1: BASE_QUOTA_LOAD };
 
-  const { chunks: out, repairs } = applyDailySessionFloorEnforcement(
-    chunks,
-    weeklyQuotas,
-    [CATALOG_DUMP],
-    "Ironman 70.3",
-    "competitor",
-    undefined,
-    // Pas de métadonnées structurées dans ce test historique (dump Markdown
-    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
-    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
-    true,
-  );
+  const { chunks: out, repairs } = applyDailySessionFloorEnforcement(chunks, weeklyQuotas, [CATALOG_DUMP], "Ironman 70.3", "competitor");
 
   const lundiSessions = out[0].weeks[0].sessions.filter((s: any) => s.day === "lundi");
   assertEquals(lundiSessions.length, 2, "lundi doit avoir 2 séances après le correctif");
@@ -138,7 +127,7 @@ Deno.test("applyDailySessionFloorEnforcement — sport complémentaire à 0 séa
     ])] },
   ] as any;
   const { chunks: out, repairs } = applyDailySessionFloorEnforcement(
-    chunks, { 1: BASE_QUOTA_LOAD }, [CATALOG_DUMP_RUN_CHOICE], "Ironman 70.3", "competitor", undefined, true,
+    chunks, { 1: BASE_QUOTA_LOAD }, [CATALOG_DUMP_RUN_CHOICE], "Ironman 70.3", "competitor",
   );
   const runSession = out[0].weeks[0].sessions.find((s: any) => s.sport === "run");
   assert(runSession, "une séance run doit avoir été ajoutée le lundi");
@@ -160,7 +149,7 @@ Deno.test("applyDailySessionFloorEnforcement — sport complémentaire a DÉJÀ 
     ])] },
   ] as any;
   const { chunks: out } = applyDailySessionFloorEnforcement(
-    chunks, { 1: BASE_QUOTA_LOAD }, [CATALOG_DUMP_RUN_CHOICE], "Ironman 70.3", "competitor", undefined, true,
+    chunks, { 1: BASE_QUOTA_LOAD }, [CATALOG_DUMP_RUN_CHOICE], "Ironman 70.3", "competitor",
   );
   const lundiRun = out[0].weeks[0].sessions.find((s: any) => s.day === "lundi" && s.sport === "run");
   assert(lundiRun, "une séance run doit avoir été ajoutée le lundi");
@@ -185,8 +174,6 @@ Deno.test("applyDailySessionFloorEnforcement — dump du chunk courant sans cand
     [CATALOG_DUMP_EMPTY, CATALOG_DUMP],
     "Ironman 70.3",
     "competitor",
-    undefined,
-    true,
   );
 
   const lundiSessions = out[0].weeks[0].sessions.filter((s: any) => s.day === "lundi");

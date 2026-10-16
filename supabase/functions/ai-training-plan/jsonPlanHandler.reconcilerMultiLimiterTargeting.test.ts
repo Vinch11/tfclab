@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyReconciler } from "./jsonPlanHandler.ts";
+import { testOnlyApplyReconciler as applyReconciler } from "./jsonPlanHandler.ts";
 
 /**
  * Audit "traitement des limiteurs" (coach, sept. 2026) : l'insertion d'une
@@ -49,12 +49,6 @@ Deno.test("applyReconciler (insert) — limiteur #2 (pas #1) ciblé prioritairem
     { 1: RUN_QUOTA },
     [DUMP_GENERIC_CLOSER_PLUS_L2_MATCH],
     identifiedLimiters,
-    undefined,
-    undefined,
-    // Pas de métadonnées structurées dans ce test historique (dump Markdown
-    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
-    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
-    true,
   );
 
   const runSession = out[0].weeks[0].sessions.find((s: any) => s.sport === "run");
@@ -74,9 +68,6 @@ Deno.test("applyReconciler (insert) — sans limiteur identifié, comportement d
     { 1: RUN_QUOTA },
     [DUMP_GENERIC_CLOSER_PLUS_L2_MATCH],
     null,
-    undefined,
-    undefined,
-    true,
   );
 
   const runSession = out[0].weeks[0].sessions.find((s: any) => s.sport === "run");
@@ -92,9 +83,6 @@ Deno.test("applyReconciler (insert) — un seul limiteur (L1) : comportement his
     { 1: RUN_QUOTA },
     [DUMP_GENERIC_CLOSER_PLUS_L2_MATCH],
     ["Limiteur #1 — VLamax trop haute"],
-    undefined,
-    undefined,
-    true,
   );
 
   const runSession = out[0].weeks[0].sessions.find((s: any) => s.sport === "run");

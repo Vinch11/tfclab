@@ -325,7 +325,11 @@ async function buildRegenCatalog(
    * couverture sport×famille (bypass automatique si aucune alternative).
    */
   currentWeekCatalogIds: string[] = [],
-): Promise<{ workoutCatalog: string; historyUsedIdCounts?: Record<string, number> }> {
+): Promise<{
+  workoutCatalog: string;
+  repairCatalog: Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>;
+  historyUsedIdCounts?: Record<string, number>;
+}> {
   const catalogSportFilter = getCatalogSportFilter(cfg.objective || "");
   const { excludeIdPatterns, excludeTags } = getCatalogExclusions(cfg.objective || "", cfg.raceGoals);
   const limiterKeys = cfg.identifiedLimitersRaw && cfg.identifiedLimitersRaw.length > 0
@@ -362,6 +366,7 @@ async function buildRegenCatalog(
   );
   return {
     workoutCatalog: serializeCatalogForPrompt(catalog),
+    repairCatalog: catalog.map(entry => entry.repairMetadata),
     historyUsedIdCounts: historicalUsage.size > 0 ? serializeHistoricalUsage(historicalUsage) : undefined,
   };
 }
@@ -2622,7 +2627,11 @@ export default function AITrainingPlanPage() {
     // Catalogue scoré (phase/limiteur/objectif + anti-répétition) pour cette
     // semaine — sans ça, resolvePhaseCatalog retombe côté serveur sur une
     // chaîne vide et l'IA génère hors bibliothèque (cf. buildRegenCatalog).
-    let catalogResult: { workoutCatalog: string; historyUsedIdCounts?: Record<string, number> } = { workoutCatalog: "" };
+    let catalogResult: {
+      workoutCatalog: string;
+      repairCatalog: Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>;
+      historyUsedIdCounts?: Record<string, number>;
+    } = { workoutCatalog: "", repairCatalog: [] };
     try {
       const currentWeekCatalogIds = week.sessions
         .map((s) => s.catalogId)
@@ -2669,7 +2678,7 @@ export default function AITrainingPlanPage() {
     const requestRegeneratedWeek = async (
       accessToken: string,
       constraintText: string,
-    ): Promise<ParsedPlan["weeks"][number]> => {
+    ): Promise<{ week: ParsedPlan["weeks"][number]; repairTraces: string[] }> => {
       const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
       const resp = await fetch(PLAN_URL, {
         method: "POST",
@@ -2695,6 +2704,7 @@ export default function AITrainingPlanPage() {
             lcwSignatureCountsElsewhere,
           },
           workoutCatalog: catalogResult.workoutCatalog,
+          chunkRepairCatalogs: [catalogResult.repairCatalog],
         }),
       });
 
@@ -2709,6 +2719,7 @@ export default function AITrainingPlanPage() {
       let currentEvent = "message";
       let regeneratedChunk: PlanChunk | null = null;
       let streamError: string | null = null;
+      const repairTraces: string[] = [];
 
       while (true) {
         const { done, value } = await reader.read();
@@ -2733,6 +2744,8 @@ export default function AITrainingPlanPage() {
               else streamError = "La semaine JSON reçue est invalide.";
             } else if (currentEvent === "error") {
               streamError = p.message || "Le service IA a refusé la régénération.";
+            } else if (currentEvent === "warning") {
+              repairTraces.push(`[${p.severity ?? "warning"}] ${p.code ?? "warning"}: ${p.message ?? "Anomalie serveur sans détail"}`);
             }
           } catch {}
           currentEvent = "message";
@@ -2778,6 +2791,7 @@ export default function AITrainingPlanPage() {
             },
           );
           console.log(`[handleRegenerateWeek] reconciler S${weekNumber}:`, rec.counters);
+          for (const line of rec.logs) repairTraces.push(`[reconciler] ${line}`);
         } catch (rerr) {
           console.error("[handleRegenerateWeek] reconciler exception:", rerr);
         }
@@ -2795,7 +2809,7 @@ export default function AITrainingPlanPage() {
       const regenPlan = jsonPlanToParsedPlan(mergePlanChunks([normalizedChunk], 1));
       const newWeek = regenPlan.weeks[0];
       if (!newWeek) throw new Error("Réponse IA illisible");
-      return newWeek;
+      return { week: newWeek, repairTraces };
     };
 
     try {
@@ -2817,15 +2831,17 @@ export default function AITrainingPlanPage() {
       // deviner à l'aveugle une 2e fois.
       const MAX_ATTEMPTS = 2;
       let newWeek: ParsedPlan["weeks"][number] | null = null;
+      let finalRepairTraces: string[] = [];
       let lastMismatchCount = 0;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         const correctionNote = attempt > 1
           ? `CORRECTION REQUISE : ta réponse précédente contenait ${lastMismatchCount} séances réelles au lieu des ${expectedRealSessions} demandées. Recompte précisément cette fois.`
           : undefined;
         const candidate = await requestRegeneratedWeek(accessToken, buildRegenerationConstraint(correctionNote));
-        const realSessions = candidate.sessions.filter(session => !session.isRest);
+        const realSessions = candidate.week.sessions.filter(session => !session.isRest);
         if (realSessions.length === expectedRealSessions) {
-          newWeek = candidate;
+          newWeek = candidate.week;
+          finalRepairTraces = candidate.repairTraces;
           break;
         }
         lastMismatchCount = realSessions.length;
@@ -2862,7 +2878,7 @@ export default function AITrainingPlanPage() {
       // recalculée sur le plan COMPLET après remplacement (pas seulement
       // la semaine régénérée), pour rester cohérente avec le reste du plan.
       try {
-        const finalValidation = computeFinalValidationIssues(mergedPlan);
+        const finalValidation = computeFinalValidationIssues(mergedPlan, finalRepairTraces);
         mergedPlan.finalValidationIssues = finalValidation.issues.length > 0 ? finalValidation.issues : undefined;
         if (finalValidation.hasCritical) {
           console.error(

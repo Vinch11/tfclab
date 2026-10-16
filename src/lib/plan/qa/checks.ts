@@ -536,7 +536,7 @@ export function checkB5ToValidationIssues(result: CheckResult): Array<{
   return result.details
     .filter((d) => d.startsWith("S") && /:/.test(d))
     .map((d) => ({
-      rule: "catalog_id_outside_injected_catalog",
+      rule: "catalog_id_no_safe_neighbor",
       severity: "error" as const,
       message: d,
       detail: "catalogId hors du catalogue réellement injecté pour ce run — aucun remplacement sportivement équivalent n'a pu être prouvé par le réconciliateur client (cf. catalog_id_no_safe_neighbor).",

@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyReconciler } from "./jsonPlanHandler.ts";
+import { testOnlyApplyReconciler as applyReconciler } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel confirmé sur 2 régénérations indépendantes du plan "Vince" (audit
@@ -59,18 +59,7 @@ const BASE_QUOTA = {
 
 Deno.test("applyReconciler — catalogId dupliqué dans la même semaine (cas réel SFR jeu+ven) : remplacé par une alternative de même classe d'intensité", () => {
   const chunk = mkChunk([mkSfrSession("jeudi"), mkSfrSession("vendredi")]);
-  const { chunks, repairs } = applyReconciler(
-    [chunk],
-    BASE_QUOTA,
-    [CATALOG_DUMP_WITH_ALTERNATIVE],
-    null,
-    undefined,
-    undefined,
-    // Pas de métadonnées structurées dans ce test historique (dump Markdown
-    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
-    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
-    true,
-  );
+  const { chunks, repairs } = applyReconciler([chunk], BASE_QUOTA, [CATALOG_DUMP_WITH_ALTERNATIVE], null);
 
   const sessions = chunks[0].weeks[0].sessions;
   const ids = sessions.map((s: any) => s.catalogId);
@@ -121,9 +110,6 @@ Deno.test("applyReconciler — aucune alternative dans le dump du chunk courant,
     { ...BASE_QUOTA, 2: BASE_QUOTA[1] },
     [CATALOG_DUMP_NO_ALTERNATIVE, CATALOG_DUMP_WITH_ALTERNATIVE],
     null,
-    undefined,
-    undefined,
-    true,
   );
 
   const ids = chunks[0].weeks[0].sessions.map((s: any) => s.catalogId);
@@ -193,7 +179,7 @@ Deno.test("applyReconciler — 3 occurrences du même catalogId : les 2 dernièr
 | V3_BIKE_TEMPO_HILLS | B | Tempo Côtes | Base/Build | 60-80 | Warmup [Z1,Z2] 15min. Main 3x10min côte [Z3,Z4] r=5min Z1. |
 `;
   const chunk = mkChunk([mkSfrSession("mardi"), mkSfrSession("jeudi"), mkSfrSession("vendredi")]);
-  const { chunks } = applyReconciler([chunk], BASE_QUOTA, [dump], null, undefined, undefined, true);
+  const { chunks } = applyReconciler([chunk], BASE_QUOTA, [dump], null);
   const ids = chunks[0].weeks[0].sessions.map((s: any) => s.catalogId);
   assertEquals(ids[0], "V3_BIKE_FORCE_SFR");
   assertEquals(new Set(ids).size, 3, "les 3 occurrences doivent porter des catalogId distincts");

@@ -46,7 +46,7 @@ describe("checkB5ToValidationIssues — propagation de catalog_id_no_safe_neighb
     expect(issues).toHaveLength(1);
     expect(issues[0].severity).toBe("error");
     expect(issues[0].message).toContain("STALE_ID_LEFT_BY_NEIGHBOR_REMAP");
-    expect(issues[0].rule).toBe("catalog_id_outside_injected_catalog");
+    expect(issues[0].rule).toBe("catalog_id_no_safe_neighbor");
   });
 
   it("2. une anomalie non critique (incohérence phase/fiche, B14) reste un avertissement, jamais élevée à critique", () => {

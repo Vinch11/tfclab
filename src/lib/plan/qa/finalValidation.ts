@@ -24,10 +24,105 @@ export interface FinalValidationSummary {
   hasCritical: boolean;
 }
 
+const STRUCTURALLY_REVALIDATED_REPAIR_CODES = new Set([
+  "phase_unresolved",
+  "duplicate_catalog_id_unresolved",
+  "week_duplicate_unresolved",
+  "fasted_session_cap_unresolved",
+  "week_fasted_cap_unresolved",
+]);
+
+const CRITICAL_REPAIR_CODES = new Set([
+  "sl_upgrade_unresolved",
+  "lcw_signature_unresolved",
+  "daily_floor_unresolved",
+  "offsport_unresolved",
+  "demanding_accumulation_unresolved",
+  "constraint_day_unresolved",
+  "catalog_id_no_safe_neighbor",
+]);
+
+const REPAIR_CODE_PATTERN = new RegExp(
+  `\\b(${[
+    "phase_unresolved",
+    "duration_unresolved",
+    "sl_upgrade_unresolved",
+    "duplicate_catalog_id_unresolved",
+    "week_duplicate_unresolved",
+    "fasted_session_cap_unresolved",
+    "week_fasted_cap_unresolved",
+    "lcw_signature_unresolved",
+    "reconcile_conflict",
+    "catalog_id_no_safe_neighbor",
+    "daily_floor_unresolved",
+    "offsport_unresolved",
+    "demanding_accumulation_unresolved",
+    "constraint_day_unresolved",
+  ].join("|")})\\b`,
+);
+
+function repairLocation(trace: string): string {
+  const match = /\b[WS](\d+)(?:\/|\s+)([\p{L}-]+)?/iu.exec(trace);
+  return match ? `${match[1]}:${(match[2] ?? "").toLowerCase()}` : "";
+}
+
+function resolvedLater(code: string, trace: string, laterTraces: readonly string[]): boolean {
+  const successByCode: Record<string, RegExp> = {
+    duration_unresolved: /\bid_substituted_duration\b/,
+    reconcile_conflict: /\b(?:id_substituted_duration|discipline_substituted|quota_floor_inserted_from_catalog)\b/,
+    sl_upgrade_unresolved: /\bsl_upgraded\b/,
+    lcw_signature_unresolved: /\blcw_signature_enforced\b/,
+    catalog_id_no_safe_neighbor: /\bcatalog_id_substituted\b/,
+    daily_floor_unresolved: /\bdaily_floor_enforced\b/,
+    offsport_unresolved: /\bsubstituted_offsport\b/,
+    demanding_accumulation_unresolved: /\bdemanding_accumulation_downgraded\b/,
+    constraint_day_unresolved: /\bconstraint_day_moved\b/,
+  };
+  const success = successByCode[code];
+  if (!success) return false;
+  const location = repairLocation(trace);
+  return laterTraces.some(candidate => success.test(candidate) && (!location || repairLocation(candidate) === location));
+}
+
+/** Convertit les anomalies des deux réparateurs en issues du validateur final. */
+export function repairTracesToValidationIssues(traces: readonly string[] | undefined): FinalValidationIssue[] {
+  const issues: FinalValidationIssue[] = [];
+  const seen = new Set<string>();
+  const source = traces ?? [];
+  for (let index = 0; index < source.length; index++) {
+    const trace = source[index];
+    const code = REPAIR_CODE_PATTERN.exec(trace)?.[1];
+    if (!code || STRUCTURALLY_REVALIDATED_REPAIR_CODES.has(code)) continue;
+    if (resolvedLater(code, trace, source.slice(index + 1))) continue;
+
+    const explicitCritical = /^\[critical\]/i.test(trace);
+    const reconcileCritical = code === "reconcile_conflict" && /discipline|floor|plancher|constraint|contrainte/i.test(trace);
+    const severity: FinalValidationIssue["severity"] = explicitCritical || CRITICAL_REPAIR_CODES.has(code) || reconcileCritical
+      ? "error"
+      : "warning";
+    const message = trace.replace(/^\[(?:reconciler|critical|warning|error|info)\]\s*/i, "").trim();
+    const location = repairLocation(trace);
+    const key = `${code}|${location || message}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    issues.push({
+      rule: code,
+      severity,
+      message,
+      detail: "Réparation déterministe laissée non résolue : la séance ou la contrainte doit être vérifiée avant de considérer le plan comme conforme.",
+    });
+  }
+  return issues;
+}
+
 /** Lecture seule — ne modifie jamais le plan reçu. */
-export function computeFinalValidationIssues(plan: FinalValidationPlanLike): FinalValidationSummary {
+export function computeFinalValidationIssues(
+  plan: FinalValidationPlanLike,
+  repairTraces?: readonly string[],
+): FinalValidationSummary {
   const critical = checkB13ToValidationIssues(checkB13(plan));
   const warnings = checkB14ToValidationIssues(checkB14(plan));
-  const issues: FinalValidationIssue[] = [...critical, ...warnings];
-  return { issues, hasCritical: critical.length > 0 };
+  const repairIssues = repairTracesToValidationIssues(repairTraces);
+  const issues: FinalValidationIssue[] = [...critical, ...warnings, ...repairIssues];
+  return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
 }

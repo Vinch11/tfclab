@@ -729,7 +729,7 @@ function runOnePass(
             logs.push(`[id_substituted_duration] W${week.weekNumber}/${s.day} ${before}(${fiche2.durationMin[0]}-${fiche2.durationMin[1]}) → ${repl.id} target=${targetDur}min`);
           } else {
             counters.duration_unresolved++;
-            logs.push(`[reconcile_conflict] W${week.weekNumber}/${s.day} durée ${targetDur}min hors plage fiche ${fiche2.id} ${fiche2.durationMin[0]}-${fiche2.durationMin[1]} — pas de candidat phase=${weekPhase} sport=${s.sport}`);
+            logs.push(`[duration_unresolved][reconcile_conflict] W${week.weekNumber}/${s.day} durée ${targetDur}min hors plage fiche ${fiche2.id} ${fiche2.durationMin[0]}-${fiche2.durationMin[1]} — pas de candidat phase=${weekPhase} sport=${s.sport}`);
             counters.reconcile_conflict++;
           }
         }

@@ -55,56 +55,42 @@ Ce comportement est attendu pour les sept chaînes de non-régression lorsque le
 - Test d’enchaînement : la sortie serveur conservée en cas de réparation incompatible est passée au réconciliateur client, qui doit à son tour la conserver et maintenir l’anomalie au lieu d’introduire une nouvelle incompatibilité.
 - Aucun appel Gemini n’est nécessaire : les plans, catalogues structurés et quotas sont des fixtures locales déterministes.
 
-## Finalisation (audit post-fusion) — fermeture du contournement implicite sans métadonnées
+## Revue finale — fermeture du contrat et validation
 
-`repairCandidateCompatible` (serveur) laissait passer **toute** substitution dès
-que le pool de candidats transmis à une réparation donnée ne contenait **aucune**
-métadonnée structurée (`if (!pool.some(item => item.metadata)) return true;`).
-Ce raccourci n’était pas qu’un artefact des harnais de test historiques : un
-payload client ancien (sans `chunkRepairCatalogs`/`phaseRepairCatalogs`, ex.
-client non redéployé) ou un chunk entièrement retombé sur le parsing Markdown
-déclenchait exactement la même condition **en production**, contournant
-silencieusement `evaluateRepairSportingEquivalence` — contrairement au principe
-énoncé plus haut : aucune réparation ne doit être considérée comme sûre
-uniquement parce qu’elle résout une contrainte technique.
+Le parcours de production n’utilise plus le tableau Markdown comme source de
+candidats de réparation. Chaque métadonnée est validée à l’exécution, puis son
+`id` est recoupé avec les IDs du catalogue réellement envoyé au chunk. Une
+métadonnée partielle, d’une ancienne version, incohérente avec le dump ou
+absente du catalogue courant est ignorée. Un candidat d’un autre chunk reste
+utilisable uniquement si son propre chunk fournit le couple dump + métadonnée
+cohérent. Les anciennes fixtures Markdown utilisent des wrappers exportés sous
+le préfixe `testOnly`; le handler de production ne peut pas les activer par
+omission.
 
-**Correctif** : le raccourci est désormais conditionné à un paramètre explicite
-et obligatoire, `allowUnverifiedCatalogMetadata`, qui n’a **aucune valeur par
-défaut** sur `repairCandidateCompatible` lui-même. Chacune des fonctions
-exportées qui l’expose (`applyOffsportTrailGuardToChunks`,
-`applySLFloorEnforcement`, `applyReconciler`, `applyLcwSignatureEnforcement`,
-`applyDailySessionFloorEnforcement`) le reçoit avec une valeur par défaut
-`false` — la boucle SSE de production (`jsonPlanHandler.ts`) ne positionne
-**jamais** ce paramètre à `true`. Sans métadonnées structurées, chaque candidat
-est désormais évalué par `evaluateRepairSportingEquivalence(original,
-candidate.metadata, context)`, qui reçoit `candidate.metadata` potentiellement
-`undefined` et rejette elle-même via `candidate_metadata_incomplete` — aucun
-raccourci. Le mode `allowUnverifiedCatalogMetadata: true` reste disponible,
-mais uniquement pour les ~11 fichiers de tests Deno historiques dont les pools
-sont construits depuis un dump Markdown sans métadonnées structurées
-(pré-existants à la PR "preserve-repair-intent") ; chaque appel historique le
-positionne désormais explicitement, avec un commentaire renvoyant à ce
-document.
+La régénération directe d'une semaine transmet désormais le même catalogue
+structuré au serveur. Elle conserve aussi les warnings SSE et les traces du
+réconciliateur client jusqu'à la validation du plan complet après remplacement
+de la semaine.
 
-Situations vérifiées explicitement (`jsonPlanHandler.repairMetadataBypassClosed.test.ts`,
-tous appelés **sans** `allowUnverifiedCatalogMetadata`, donc au comportement de
-production réel) :
+Les traces serveur et client sont maintenant données à
+`computeFinalValidationIssues`. Les problèmes encore présents sur le plan final
+sont exposés dans `finalValidationIssues` avec semaine, séance et motif issus de
+la trace. Les incohérences de phase et les doublons sont recalculés sur le plan
+final par B14/B13, ce qui élimine les alertes devenues obsolètes et évite un
+double signalement. Les planchers de sortie longue, signatures LCW, conflits de
+discipline et autres problèmes de sécurité ou de faisabilité restent critiques ;
+un simple conflit de durée ou de phase reste un avertissement.
 
-- absence totale de métadonnées (format de payload ancien) ;
-- catalogue partiellement peuplé : une fiche sans métadonnées propre n’est
-  jamais choisie, même quand le pool global en contient ailleurs (c’est
-  précisément la condition qui aurait trompé l’ancien contrôle pool-wide) ;
-- séance d’origine absente du catalogue courant (remplacement refusé par
-  prudence, pas de fausse équivalence) ;
-- métadonnées de l’origine présentes dans un autre chunk (repli catalogue
-  global, toujours fonctionnel) ;
-- rejet d’un remplacement sportivement incompatible malgré des métadonnées
-  complètes des deux côtés ;
-- acceptation d’un remplacement réellement équivalent, en mode production
-  strict ;
-- entrée de métadonnées incohérente/malformée (`complete: false`) : filtrée
-  par `catalogCandidatesFromMetadata`, jamais acceptée aveuglément — le chunk
-  retombe sur un pool sans métadonnées, donc refusé comme au premier cas.
+| Scénario | Avant la revue finale | Après la revue finale |
+|---|---|---|
+| Payload sans métadonnées | Réparation Markdown permise implicitement | Réparation non résolue explicite |
+| Métadonnée partielle/ancienne | Pouvait participer au pool | Rejet avant classement |
+| ID métadonnée absent du dump | Candidat accepté depuis le payload | Rejet par recoupement du chunk |
+| Repli inter-chunks | Compatibilité parfois non prouvée | Dump et métadonnée complets requis dans le chunk source |
+| Phase incompatible conservée | Trace du réconciliateur seulement | `phase_unresolved` visible dans la validation finale |
+| Plancher SL non satisfait | Warning SSE séparé du résultat validé | `sl_upgrade_unresolved` critique dans le résultat final |
+| Doublon sans alternative | Trace serveur/client et risque de doublon | Une seule issue finale critique, recalculée sur le plan livré |
+| Réparation finalement réussie | Ancienne trace pouvait rester visible | Trace non résolue supersédée par la réparation réussie |
 
 ## Finalisation — propagation des anomalies non résolues jusqu’au résultat final
 
@@ -184,15 +170,11 @@ sauvegarde.
   par `validateWeeklyQuotas` (`quota_floor_violation`, critique) — déjà
   branché dans `handleSaveToPlan` depuis la correction précédente de cette
   PR. Aucune correction supplémentaire nécessaire.
-- **`discipline_unresolved`** : le sport de la fiche ne correspond pas au
-  sport de la séance, aucune alternative trouvée. Représenterait une
-  incompatibilité sportive réelle (mauvaise discipline) si elle survenait,
-  mais **aucune preuve d’occurrence réelle n’a été trouvée** et aucun
-  détecteur redondant existant (B13/B14/quota/sport-objectif) ne la couvre.
-  Risque résiduel documenté, non corrigé dans cette vérification : le
-  couvrir demanderait un nouveau contrôle (pas la réutilisation d’un
-  existant), ce qui aurait élargi le périmètre sans nécessité démontrée au
-  -delà de ce qui a été constaté.
+- **discipline_unresolved** : le sport de la fiche ne correspond pas au
+  sport de la séance, sans alternative sûre. Le réconciliateur l’émet sous
+  le code existant reconcile_conflict avec le motif discipline ; la
+  validation finale conserve cette trace et la classe critique. Aucun
+  nouveau code parallèle n’est créé.
 
 Tests de non-régression ajoutés (`checkB5ToValidationIssues.test.ts`) :
 anomalie critique transmise au format bloquant ; anomalie non critique

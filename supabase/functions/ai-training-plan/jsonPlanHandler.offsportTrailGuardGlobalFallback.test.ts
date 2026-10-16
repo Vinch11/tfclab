@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyOffsportTrailGuardToChunks } from "./jsonPlanHandler.ts";
+import { testOnlyApplyOffsportTrailGuardToChunks as applyOffsportTrailGuardToChunks } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel (4e occurrence de la même faiblesse structurelle, après
@@ -38,11 +38,6 @@ Deno.test("applyOffsportTrailGuardToChunks — catalogId trail survivant, fiche 
     [chunk] as any,
     "Marathon",
     [DUMP_WITH_RUN],
-    undefined,
-    // Pas de métadonnées structurées dans ce test historique (dump Markdown
-    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
-    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
-    true,
   );
 
   const sess = out[0].weeks[0].sessions[0];
@@ -63,8 +58,6 @@ Deno.test("applyOffsportTrailGuardToChunks — dump du chunk courant sans fiche 
     [chunk0, chunk1] as any,
     "Marathon",
     [DUMP_NO_RUN, DUMP_WITH_RUN],
-    undefined,
-    true,
   );
 
   const sess = out[0].weeks[0].sessions[0];
@@ -86,8 +79,6 @@ Deno.test("applyOffsportTrailGuardToChunks — aucune fiche run nulle part (mêm
     [chunk] as any,
     "Marathon",
     [DUMP_NO_RUN],
-    undefined,
-    true,
   );
 
   const sess = out[0].weeks[0].sessions[0];

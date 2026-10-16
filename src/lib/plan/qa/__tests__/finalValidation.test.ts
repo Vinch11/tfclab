@@ -72,4 +72,87 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
     expect(r.issues.some((i) => i.severity === "error")).toBe(true);
     expect(r.issues.some((i) => i.severity === "warning")).toBe(true);
   });
+
+  it("une phase incompatible conservée reste visible une seule fois avec son code existant", () => {
+    const plan: FinalValidationPlanLike = {
+      weeks: [{ weekNumber: 4, phase: "taper", sessions: [session({ catalogId: "BUILD_ONLY_RUN", dayName: "Mardi" })] }],
+    };
+    const r = computeFinalValidationIssues(plan, [
+      "[reconciler] [phase_unresolved] W4/Mardi sport=run fiche=BUILD_ONLY_RUN weekPhase=taper allowed=build",
+    ]);
+    expect(r.issues.filter(issue => issue.rule === "phase_unresolved")).toHaveLength(1);
+    expect(r.hasCritical).toBe(false);
+  });
+
+  it("un plancher de sortie longue non satisfait remonte comme critique", () => {
+    const plan: FinalValidationPlanLike = { weeks: [] };
+    const r = computeFinalValidationIssues(plan, [
+      "[critical] sl_upgrade_unresolved: W6 dimanche — aucune fiche endurance compatible",
+    ]);
+    expect(r.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ rule: "sl_upgrade_unresolved", severity: "error" }),
+    ]));
+    expect(r.hasCritical).toBe(true);
+  });
+
+  it("un doublon non réparé reste critique sans doubler l'alerte du réparateur", () => {
+    const plan: FinalValidationPlanLike = {
+      weeks: [{
+        weekNumber: 11, phase: "taper",
+        sessions: [
+          session({ catalogId: "BUILD_ONLY_RUN", dayName: "Mardi" }),
+          session({ catalogId: "BUILD_ONLY_RUN", dayName: "Jeudi" }),
+        ],
+      }],
+    };
+    const r = computeFinalValidationIssues(plan, [
+      "[reconciler] [week_duplicate_unresolved] S11 Jeudi BUILD_ONLY_RUN — aucune alternative disponible",
+      "[warning] duplicate_catalog_id_unresolved: W11 Jeudi — aucune alternative disponible",
+    ]);
+    expect(r.issues.filter(issue => issue.rule === "duplicate_catalog_id_unresolved")).toHaveLength(1);
+    expect(r.hasCritical).toBe(true);
+  });
+
+  it("un cumul à jeun conserve son code existant et reste critique", () => {
+    const plan: FinalValidationPlanLike = {
+      weeks: [{
+        weekNumber: 5, phase: "build",
+        sessions: [
+          session({ catalogId: "FASTED_A", title: "Endurance à jeun" }),
+          session({ catalogId: "FASTED_B", title: "Train Low" }),
+        ],
+      }],
+    };
+    const r = computeFinalValidationIssues(plan, [
+      "[reconciler] [week_fasted_cap_unresolved] S5 jeudi Train Low — aucune alternative disponible",
+    ]);
+    expect(r.issues.filter(issue => issue.rule === "fasted_session_cap_unresolved")).toHaveLength(1);
+    expect(r.issues.some(issue => issue.rule === "duplicate_catalog_id_unresolved")).toBe(false);
+    expect(r.hasCritical).toBe(true);
+  });
+
+  it("une réparation réussie plus tard retire l'anomalie devenue obsolète", () => {
+    const plan: FinalValidationPlanLike = { weeks: [] };
+    const r = computeFinalValidationIssues(plan, [
+      "[critical] sl_upgrade_unresolved: S3 run — aucune fiche compatible",
+      "[warning] sl_upgraded: S3 run — EASY_LONG_90",
+    ]);
+    expect(r.issues).toEqual([]);
+    expect(r.hasCritical).toBe(false);
+  });
+
+  it("conserve ensemble les anomalies serveur et client au merge", () => {
+    const plan: FinalValidationPlanLike = { weeks: [] };
+    const r = computeFinalValidationIssues(plan, [
+      "[info] lcw_signature_trace: [LCW_SIGNATURE] S7 samedi lcw_signature_unresolved",
+      "[critical] lcw_signature_unresolved: S7 samedi — signature absente",
+      "[reconciler] [reconcile_conflict] W8/dimanche durée 120min hors plage — pas de candidat",
+    ]);
+    expect(r.issues.map(issue => issue.rule)).toEqual(expect.arrayContaining([
+      "lcw_signature_unresolved",
+      "reconcile_conflict",
+    ]));
+    expect(r.issues.filter(issue => issue.rule === "lcw_signature_unresolved")).toHaveLength(1);
+    expect(r.hasCritical).toBe(true);
+  });
 });
