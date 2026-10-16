@@ -57,6 +57,12 @@ Deno.test("applySLFloorEnforcement — ne substitue JAMAIS un fartlek (quality) 
     [chunk] as any,
     { 1: SL_FLOOR_ENTRY },
     [CATALOG_DUMP_MIXED],
+    undefined,
+    undefined,
+    // Pas de métadonnées structurées dans ce test historique (dump Markdown
+    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
+    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
+    true,
   );
   const sess = out[0].weeks[0].sessions[0];
   assertEquals(sess.catalogId, "SEILER_RUN_Z1_EASY_LONG");
@@ -70,6 +76,9 @@ Deno.test("applySLFloorEnforcement — ne substitue JAMAIS un sprint à une sort
     [chunk] as any,
     { 3: SL_FLOOR_ENTRY },
     [CATALOG_DUMP_MIXED],
+    undefined,
+    undefined,
+    true,
   );
   const sess = out[0].weeks[0].sessions[0];
   assertEquals(sess.catalogId, "SEILER_RUN_Z1_EASY_LONG");
@@ -82,6 +91,9 @@ Deno.test("applySLFloorEnforcement — ne substitue JAMAIS une pyramide lactique
     [chunk] as any,
     { 10: SL_FLOOR_ENTRY },
     [CATALOG_DUMP_MIXED],
+    undefined,
+    undefined,
+    true,
   );
   const sess = out[0].weeks[0].sessions[0];
   assertEquals(sess.catalogId, "SEILER_RUN_Z1_EASY_LONG");
@@ -98,6 +110,9 @@ Deno.test("applySLFloorEnforcement — aucune fiche endurance disponible (que du
     [chunk] as any,
     { 1: SL_FLOOR_ENTRY },
     [dumpOnlyQuality],
+    undefined,
+    undefined,
+    true,
   );
   const sess = out[0].weeks[0].sessions[0];
   assertEquals(sess.catalogId, "CUSTOM_RUN"); // jamais dégradée vers du quality

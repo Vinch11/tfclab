@@ -55,3 +55,98 @@ Ce comportement est attendu pour les sept chaînes de non-régression lorsque le
 - Test d’enchaînement : la sortie serveur conservée en cas de réparation incompatible est passée au réconciliateur client, qui doit à son tour la conserver et maintenir l’anomalie au lieu d’introduire une nouvelle incompatibilité.
 - Aucun appel Gemini n’est nécessaire : les plans, catalogues structurés et quotas sont des fixtures locales déterministes.
 
+## Finalisation (audit post-fusion) — fermeture du contournement implicite sans métadonnées
+
+`repairCandidateCompatible` (serveur) laissait passer **toute** substitution dès
+que le pool de candidats transmis à une réparation donnée ne contenait **aucune**
+métadonnée structurée (`if (!pool.some(item => item.metadata)) return true;`).
+Ce raccourci n’était pas qu’un artefact des harnais de test historiques : un
+payload client ancien (sans `chunkRepairCatalogs`/`phaseRepairCatalogs`, ex.
+client non redéployé) ou un chunk entièrement retombé sur le parsing Markdown
+déclenchait exactement la même condition **en production**, contournant
+silencieusement `evaluateRepairSportingEquivalence` — contrairement au principe
+énoncé plus haut : aucune réparation ne doit être considérée comme sûre
+uniquement parce qu’elle résout une contrainte technique.
+
+**Correctif** : le raccourci est désormais conditionné à un paramètre explicite
+et obligatoire, `allowUnverifiedCatalogMetadata`, qui n’a **aucune valeur par
+défaut** sur `repairCandidateCompatible` lui-même. Chacune des fonctions
+exportées qui l’expose (`applyOffsportTrailGuardToChunks`,
+`applySLFloorEnforcement`, `applyReconciler`, `applyLcwSignatureEnforcement`,
+`applyDailySessionFloorEnforcement`) le reçoit avec une valeur par défaut
+`false` — la boucle SSE de production (`jsonPlanHandler.ts`) ne positionne
+**jamais** ce paramètre à `true`. Sans métadonnées structurées, chaque candidat
+est désormais évalué par `evaluateRepairSportingEquivalence(original,
+candidate.metadata, context)`, qui reçoit `candidate.metadata` potentiellement
+`undefined` et rejette elle-même via `candidate_metadata_incomplete` — aucun
+raccourci. Le mode `allowUnverifiedCatalogMetadata: true` reste disponible,
+mais uniquement pour les ~11 fichiers de tests Deno historiques dont les pools
+sont construits depuis un dump Markdown sans métadonnées structurées
+(pré-existants à la PR "preserve-repair-intent") ; chaque appel historique le
+positionne désormais explicitement, avec un commentaire renvoyant à ce
+document.
+
+Situations vérifiées explicitement (`jsonPlanHandler.repairMetadataBypassClosed.test.ts`,
+tous appelés **sans** `allowUnverifiedCatalogMetadata`, donc au comportement de
+production réel) :
+
+- absence totale de métadonnées (format de payload ancien) ;
+- catalogue partiellement peuplé : une fiche sans métadonnées propre n’est
+  jamais choisie, même quand le pool global en contient ailleurs (c’est
+  précisément la condition qui aurait trompé l’ancien contrôle pool-wide) ;
+- séance d’origine absente du catalogue courant (remplacement refusé par
+  prudence, pas de fausse équivalence) ;
+- métadonnées de l’origine présentes dans un autre chunk (repli catalogue
+  global, toujours fonctionnel) ;
+- rejet d’un remplacement sportivement incompatible malgré des métadonnées
+  complètes des deux côtés ;
+- acceptation d’un remplacement réellement équivalent, en mode production
+  strict ;
+- entrée de métadonnées incohérente/malformée (`complete: false`) : filtrée
+  par `catalogCandidatesFromMetadata`, jamais acceptée aveuglément — le chunk
+  retombe sur un pool sans métadonnées, donc refusé comme au premier cas.
+
+## Finalisation — propagation des anomalies non résolues jusqu’au résultat final
+
+Constat (audit de la chaîne serveur → réconciliateur client → fusion des
+chunks → validation finale → résultat visible coach) : les anomalies
+`*_unresolved`/`reconcile_conflict` existent bien à l’émission (serveur via
+SSE `"warning"`, client via `runReconciler().logs`), mais n’étaient **jamais**
+attachées au plan final sous forme structurée — seulement aplaties en chaînes
+de caractères (`semanticRepairs`) consommées uniquement par la télémétrie QA
+(`logPlanStat`/`/debug/plan-qa`), jamais par `AIPlanViewer.tsx`. Le seul
+contrôle qui bloque réellement une action (`handleSaveToPlan`,
+`AITrainingPlanPage.tsx`) ne reprend que `validatePlan` + B11 + B12 + B13 : une
+violation critique de plancher hebdo (`quota_floor_violation` —
+`validateWeeklyQuotas.ts`, qui redétecte indépendamment l’état laissé par un
+`sl_upgrade_unresolved`/`insert_unresolved`/`rest_floor_breached` non résolu
+côté serveur) n’était reprise que dans le bandeau informatif de génération,
+jamais dans ce contrôle bloquant — un plan portant une incompatibilité
+critique persistante pouvait donc être sauvegardé sans la moindre
+confirmation du coach.
+
+**Correctif** : `quotaIssuesToValidationIssues` (nouveau, dans
+`validateWeeklyQuotas.ts`, même mécanique que `checkB13ToValidationIssues`/
+`checkB12ToValidationIssues`) convertit les violations `severity: "critical"`
+de `QuotaIssue` au format `ValidationIssue` déjà utilisé par B11/B12/B13.
+`handleSaveToPlan` les ajoute désormais à `criticalIssues`, sans aucun nouveau
+mécanisme d’interface : même dialogue de confirmation dérogeable que tout
+autre problème critique existant (seule `objective_sport_conflict` reste non
+dérogeable, inchangé). `weeklyQuotaIssues` est la valeur déjà calculée par
+`useAITrainingPlan.ts` à la génération — pas une deuxième vérité recalculée.
+
+**Risque résiduel documenté (non corrigé dans cette finalisation, hors
+périmètre démontré)** : certaines anomalies émises uniquement côté
+réconciliateur client (`week_duplicate_unresolved` — doublon inter-semaines,
+et `catalog_id_no_safe_neighbor`) n’ont, à ce jour, aucun détecteur redondant
+dans `checkB13`/`checkB14`/`validateWeeklyQuotas`/`validateSportObjective` ; si
+elles surviennent, elles restent visibles uniquement dans les logs de
+génération (console, `semanticRepairs`), pas dans un bandeau coach ni dans le
+contrôle de sauvegarde. Corriger ce point précis nécessiterait d’attacher ces
+logs sous forme structurée au plan final et d’ajouter un nouveau bandeau
+dans `AIPlanViewer.tsx` — un changement d’interface que cette finalisation
+n’a pas élargi sans nécessité démontrée au-delà de la garantie demandée pour
+les anomalies à impact sportif significatif déjà couvertes par les contrôles
+existants (sport/objectif, signature LCW, plancher quotidien, plancher
+hebdomadaire).
+

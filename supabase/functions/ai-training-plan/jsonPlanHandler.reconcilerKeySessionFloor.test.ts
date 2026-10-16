@@ -52,7 +52,18 @@ Deno.test("applyReconciler (insert) — natation 2 séances toutes récup/techni
     mkSess("mardi", "swim", { title: "Récup natation", details: "Retour au calme", zones: ["Z1"] }),
     mkSess("jeudi", "swim", { title: "Technique nage", details: "Drills", zones: ["Z1"] }),
   ]);
-  const { chunks: out, repairs } = applyReconciler([chunk], { 1: SWIM_QUOTA }, [DUMP_SWIM_ENDURANCE], null);
+  const { chunks: out, repairs } = applyReconciler(
+    [chunk],
+    { 1: SWIM_QUOTA },
+    [DUMP_SWIM_ENDURANCE],
+    null,
+    undefined,
+    undefined,
+    // Pas de métadonnées structurées dans ce test historique (dump Markdown
+    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
+    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
+    true,
+  );
 
   const swimSessions = out[0].weeks[0].sessions.filter((s: any) => s.sport === "swim");
   assertEquals(swimSessions.length, 3, "une 3e séance natation doit avoir été insérée");

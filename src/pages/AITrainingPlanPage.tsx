@@ -45,6 +45,7 @@ import { validatePlan, computeMissingFinalRaceDayFix, type ValidationIssue } fro
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
 import { checkB12, checkB12ToValidationIssues } from "@/lib/plan/qa/checkB12";
 import { checkB13, checkB13ToValidationIssues } from "@/lib/plan/qa/checkB13";
+import { quotaIssuesToValidationIssues } from "@/lib/plan/validateWeeklyQuotas";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
@@ -453,7 +454,7 @@ export default function AITrainingPlanPage() {
   // chaque changement d'athlète, cf. PR #63 anti-fuite cross-athlète).
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -2380,6 +2381,20 @@ export default function AITrainingPlanPage() {
           } catch (b13Err) {
             console.warn("[B13] échec du contrôle final post-mutations, sauvegarde sans ce contrôle:", b13Err);
           }
+
+          // Finalisation PR #383 ("preserve-repair-intent") — Correction 2 :
+          // une violation critique de plancher hebdo (`quota_floor_violation`
+          // — sortie longue vélo/CAP, natation, renfo, jours de repos, max
+          // séances/jour) restée non résolue par le réconciliateur serveur
+          // n'était jusqu'ici reprise que dans le bandeau informatif de
+          // génération (AIPlanViewer.tsx), jamais dans ce contrôle bloquant.
+          // `weeklyQuotaIssues` est déjà calculé par `useAITrainingPlan.ts`
+          // au moment de la génération — pas une deuxième vérité recalculée.
+          try {
+            criticalIssues = [...criticalIssues, ...quotaIssuesToValidationIssues(weeklyQuotaIssues)];
+          } catch (quotaErr) {
+            console.warn("[quota] échec de la reprise des violations de plancher hebdo, sauvegarde sans ce contrôle:", quotaErr);
+          }
         }
       }
     } catch (vErr) {
@@ -2414,7 +2429,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     await doSave();
-  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion, ambition]);
+  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion, ambition, mergedPlan, weeklyQuotaIssues]);
 
   const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
 

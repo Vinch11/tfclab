@@ -48,7 +48,17 @@ Deno.test("applyLcwSignatureEnforcement — plan LCW réel, B_LCW_* totalement a
     },
   ] as any;
 
-  const { chunks: out, repairs } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG);
+  const { chunks: out, repairs } = applyLcwSignatureEnforcement(
+    chunks,
+    [CATALOG_DUMP],
+    LCW_PLAN_CONFIG,
+    {},
+    undefined,
+    // Pas de métadonnées structurées dans ce test historique (dump Markdown
+    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
+    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
+    true,
+  );
 
   const allIds = out[0].weeks.flatMap((w: any) => w.sessions.map((s: any) => s.catalogId));
   const bikeCount = allIds.filter((id: string) => id === "B_LCW_BIKE_LONG_RACE_SAT").length;
@@ -125,7 +135,7 @@ Deno.test("applyLcwSignatureEnforcement — régénération semaine seule (1 chu
   const { chunks: out, repairs } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG, {
     B_LCW_BIKE_LONG_RACE_SAT: 1,
     B_LCW_RUN_OFF_LEGS_SUN: 1,
-  });
+  }, undefined, true);
   const allIds = out[0].weeks.flatMap((w: any) => w.sessions.map((s: any) => s.catalogId));
   assert(allIds.includes("B_LCW_BIKE_LONG_RACE_SAT"), "quota pas encore atteint (1/3 ailleurs) : cette semaine doit contribuer");
   assert(allIds.includes("B_LCW_RUN_OFF_LEGS_SUN"), "quota pas encore atteint (1/3 ailleurs) : cette semaine doit contribuer");
@@ -136,7 +146,7 @@ Deno.test("applyLcwSignatureEnforcement — sans alreadySatisfiedElsewhere (déf
   const chunks = [
     { weeks: [mkWeek(1, "build", [mkSess("samedi", "bike", "OTHER_BIKE"), mkSess("dimanche", "run", "OTHER_RUN")])] },
   ] as any;
-  const { repairs } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG);
+  const { repairs } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG, {}, undefined, true);
   // 1 seule semaine dans tout le plan connu : quota 3 jamais atteignable,
   // mais le filet contribue quand même ce qu'il peut (comportement identique
   // à avant l'ajout du 4e paramètre).
@@ -151,7 +161,7 @@ Deno.test("applyLcwSignatureEnforcement — substitution préfère le même jour
       ],
     },
   ] as any;
-  const { chunks: out } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG);
+  const { chunks: out } = applyLcwSignatureEnforcement(chunks, [CATALOG_DUMP], LCW_PLAN_CONFIG, {}, undefined, true);
   const sessions = out[0].weeks[0].sessions;
   const bikeSession = sessions.find((s: any) => s.catalogId === "B_LCW_BIKE_LONG_RACE_SAT");
   const runSession = sessions.find((s: any) => s.catalogId === "B_LCW_RUN_OFF_LEGS_SUN");

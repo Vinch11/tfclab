@@ -57,6 +57,12 @@ Deno.test("applyReconciler (insert) — dump du chunk courant sans candidate run
     { 1: BASE_QUOTA },
     [DUMP_NO_RUN, DUMP_WITH_RUN],
     null,
+    undefined,
+    undefined,
+    // Pas de métadonnées structurées dans ce test historique (dump Markdown
+    // seul, pré-PR "preserve-repair-intent") — mode de compatibilité isolé
+    // explicite, jamais activé en production (cf. REPAIR_SPORTING_EQUIVALENCE.md).
+    true,
   );
 
   const sessions = out[0].weeks[0].sessions;
