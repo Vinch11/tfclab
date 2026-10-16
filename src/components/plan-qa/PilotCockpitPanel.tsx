@@ -65,8 +65,13 @@ function buildExportPayload(profile: QAProfile, result: PilotCockpitResult) {
       errorMessage: result.errorMessage,
     },
     input: {
-      athleteData: profile.athleteData,
-      planConfig: profile.planConfig,
+      athleteData: result.preparedContext?.athleteData ?? profile.athleteData,
+      planConfig: result.preparedContext?.planConfig ?? profile.planConfig,
+    },
+    physiology: {
+      diagnostic: result.preparedContext?.diagnostic ?? null,
+      decision: result.preparedContext?.decision ?? null,
+      trace: result.physiologicalTrace,
     },
     output: {
       mergedPlan: result.merged,
@@ -134,6 +139,7 @@ export function PilotCockpitPanel() {
   const criticalIssues = lastResult?.validatorResult?.issues.filter((i) => i.severity === "error") ?? [];
   const warningIssues = lastResult?.validatorResult?.issues.filter((i) => i.severity === "warning") ?? [];
   const uncertainTagging = lastResult?.validatorResult?.lorangCategories.uncertainTagging ?? 0;
+  const physiologicalTrace = lastResult?.physiologicalTrace ?? null;
 
   return (
     <Card>
@@ -238,6 +244,54 @@ export function PilotCockpitPanel() {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {physiologicalTrace && (
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="text-sm font-medium">Chaîne physiologique préparée</div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <Badge variant={physiologicalTrace.diagnostic.executed ? "default" : "destructive"}>
+                    Diagnostic {physiologicalTrace.diagnostic.executed ? "calculé" : "absent"}
+                  </Badge>
+                  <Badge variant={physiologicalTrace.decision.executed ? "default" : "destructive"}>
+                    Stratégie {physiologicalTrace.decision.source}
+                  </Badge>
+                  <Badge variant="secondary">
+                    Confiance diagnostic {physiologicalTrace.diagnostic.confidenceGlobal == null
+                      ? "inconnue"
+                      : `${Math.round(physiologicalTrace.diagnostic.confidenceGlobal * 100)}%`}
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Limiteurs : {physiologicalTrace.diagnostic.limiters.length > 0
+                    ? physiologicalTrace.diagnostic.limiters.map(limiter => `L${limiter.priority} ${limiter.metric} (${limiter.status})`).join(" · ")
+                    : "aucun classable"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Leviers : {physiologicalTrace.decision.levers.length > 0
+                    ? physiologicalTrace.decision.levers.map(lever => `#${lever.priority} ${lever.label}`).join(" · ")
+                    : "aucun calculé"}
+                </div>
+                {physiologicalTrace.diagnostic.uncertainty.length > 0 && (
+                  <ul className="text-xs text-amber-600 list-disc pl-4">
+                    {physiologicalTrace.diagnostic.uncertainty.map((item, index) => <li key={index}>{item}</li>)}
+                  </ul>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs">
+                  {Object.entries(physiologicalTrace.transmission).map(([name, evidence]) => (
+                    <div key={name} className="flex items-center justify-between gap-2 rounded border px-2 py-1">
+                      <span>{name}</span>
+                      <Badge variant={evidence.status === "missing" || evidence.status === "not_verified" ? "secondary" : "default"}>
+                        {evidence.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  « Consommé » signifie qu’un consommateur du code est identifié. La liaison séance finale → levier reste
+                  {` ${physiologicalTrace.transmission.prescriptionIntent.status}`} tant qu’aucune attribution par séance n’est produite.
+                </div>
               </div>
             )}
 

@@ -23,6 +23,14 @@ export {
 } from "./planConfigBuilder";
 export type { PlanFormConfig } from "./planConfigBuilder";
 
+export { prepareTrainingPlanContext } from "./prepareTrainingPlanContext";
+export type {
+  PreparedTrainingPlanContext,
+  PrepareTrainingPlanContextInput,
+  TrainingPlanPhysiologicalTrace,
+  PhysiologicalEvidenceStatus,
+} from "./prepareTrainingPlanContext";
+
 // Types
 export type {
   PlanInput,
