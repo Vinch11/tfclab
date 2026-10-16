@@ -72,6 +72,7 @@ function buildExportPayload(profile: QAProfile, result: PilotCockpitResult) {
       diagnostic: result.preparedContext?.diagnostic ?? null,
       decision: result.preparedContext?.decision ?? null,
       trace: result.physiologicalTrace,
+      sessionTraceability: result.sessionPhysiologicalTraceability,
     },
     output: {
       mergedPlan: result.merged,
@@ -140,6 +141,7 @@ export function PilotCockpitPanel() {
   const warningIssues = lastResult?.validatorResult?.issues.filter((i) => i.severity === "warning") ?? [];
   const uncertainTagging = lastResult?.validatorResult?.lorangCategories.uncertainTagging ?? 0;
   const physiologicalTrace = lastResult?.physiologicalTrace ?? null;
+  const sessionTraceability = lastResult?.sessionPhysiologicalTraceability ?? null;
 
   return (
     <Card>
@@ -289,9 +291,60 @@ export function PilotCockpitPanel() {
                   ))}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  « Consommé » signifie qu’un consommateur du code est identifié. La liaison séance finale → levier reste
-                  {` ${physiologicalTrace.transmission.prescriptionIntent.status}`} tant qu’aucune attribution par séance n’est produite.
+                  « Consommé » signifie qu’un consommateur du code est identifié. Cette trace décrit la préparation avant génération ;
+                  le rapport des séances finales ci-dessous vérifie séparément les attributions réellement démontrables.
                 </div>
+              </div>
+            )}
+
+            {sessionTraceability && (
+              <div className="rounded-md border p-3 space-y-3">
+                <div className="text-sm font-medium">Traçabilité des séances finales</div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <Badge variant="default">{sessionTraceability.summary.verified} vérifiée(s)</Badge>
+                  <Badge variant="secondary">{sessionTraceability.summary.uncertain} incertaine(s)</Badge>
+                  <Badge variant="secondary">{sessionTraceability.summary.notVerified} non vérifiée(s)</Badge>
+                  <Badge variant={sessionTraceability.summary.critical > 0 ? "destructive" : "default"}>
+                    {sessionTraceability.summary.critical} conflit(s) critique(s)
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Ce rapport est séparé du score QA existant. Une attribution « vérifiée » repose sur la séance finale,
+                  son ID et ses métadonnées catalogue, un couple limiteur–levier calculé et une dose structurée concordante.
+                </div>
+                {sessionTraceability.sessions
+                  .filter(session => session.status !== "not_applicable")
+                  .slice(0, 16)
+                  .map(session => (
+                    <div key={session.sessionKey} className="rounded border px-2 py-1.5 text-xs space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={session.status === "verified" ? "default" : "secondary"}>{session.status}</Badge>
+                        <span className="font-medium">S{session.weekNumber} {session.dayName} — {session.title}</span>
+                        {session.catalogId && <span className="text-muted-foreground">[{session.catalogId}]</span>}
+                      </div>
+                      <div className="text-muted-foreground">
+                        {session.limiter ? `L${session.limiter.priority} ${session.limiter.metric}` : "limiteur non vérifié"}
+                        {" → "}
+                        {session.lever ? `#${session.lever.priority} ${session.lever.label}` : "levier non vérifié"}
+                        {" → "}
+                        {session.intention?.family ?? "intention non vérifiée"}
+                        {" → dose "}{session.dose.status}
+                      </div>
+                      <div className="text-muted-foreground">{session.justification}</div>
+                      {session.anomalies.some(item => item.severity !== "info") && (
+                        <ul className="list-disc pl-4 text-amber-700">
+                          {session.anomalies.filter(item => item.severity !== "info").map((item, index) => (
+                            <li key={`${item.code}-${index}`}>{item.severity} · {item.message}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                {sessionTraceability.sessions.filter(session => session.status !== "not_applicable").length > 16 && (
+                  <div className="text-xs text-muted-foreground">
+                    Aperçu limité à 16 séances ; l’export JSON contient toutes les attributions et anomalies.
+                  </div>
+                )}
               </div>
             )}
 

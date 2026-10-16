@@ -51,7 +51,7 @@ const FAMILY_PATTERNS: Array<{ family: IntentFamily; rx: RegExp }> = [
   { family: "race_pace",             rx: /race[-_\s]?pace|race[-_\s]?sim|allure\s*(marathon|semi|10k|ironman|half|course|specifique)|sp[eé]cifique\s*(marathon|semi|10k|70\.3|IM)|repetition\s*generale|dress[-_\s]?rehearsal/i },
   { family: "fatmax",                rx: /fatmax|fat[-_\s]?max|train[-_\s]?low|fasted|jeun/i },
   { family: "sprint",                rx: /\bsprint\b|neuromuscul|pmax|_PMAX_|strides?|acceleration/i },
-  { family: "vo2",                   rx: /\bvo2\b|\bvma\b|30[-_\s]?30|15[-_\s]?15|hill[-_\s]?repeat|c[oô]tes\s*courtes|intervalles?\s*courts/i },
+  { family: "vo2",                   rx: /\bvo2(?:max)?\b|\bvma\b|30[-_\s]?30|15[-_\s]?15|hill[-_\s]?repeat|c[oô]tes\s*courtes|intervalles?\s*courts/i },
   { family: "seuil",                 rx: /\bseuil\b|threshold|sv2|sweet[-_\s]?spot|\btempo\b|norwegian|over[-_\s]?under|MLSS|CSS/i },
   { family: "force",                 rx: /\bforce\b|strength|renfo|nordic|isometric|pap_|swim[-_\s]?cord|\bppg\b|\bcore\b|gainage|hypertroph/i },
   { family: "technique",             rx: /technique|\bdrill\b|[eé]ducatif|gammes|proprio|mobilit|educatifs/i },
@@ -85,6 +85,29 @@ function mainZoneMaxOf(w: LibraryWorkout): number {
  */
 const EASY_ONLY_FAMILIES = new Set<IntentFamily>(["technique", "endurance_fondamentale"]);
 
+export interface IntentEvidenceClassification {
+  family: IntentFamily;
+  source: "pattern" | "zone_fallback" | "unclassified";
+}
+
+/**
+ * Classifie une preuve textuelle déjà matérialisée (séance finale, métadonnée
+ * de réparation, etc.) avec les mêmes règles que le catalogue. Le résultat
+ * distingue un motif explicite du simple fallback de zone : les contrôles de
+ * traçabilité peuvent ainsi refuser de présenter une déduction faible comme
+ * une intention vérifiée.
+ */
+export function classifyIntentEvidence(text: string, mainZoneMax = 0): IntentEvidenceClassification {
+  for (const { family, rx } of FAMILY_PATTERNS) {
+    if (EASY_ONLY_FAMILIES.has(family) && mainZoneMax >= 4) continue;
+    if (rx.test(text)) return { family, source: "pattern" };
+  }
+  if (mainZoneMax > 0 && mainZoneMax <= 2) {
+    return { family: "endurance_fondamentale", source: "zone_fallback" };
+  }
+  return { family: "other", source: "unclassified" };
+}
+
 /** Renvoie la famille d'intention d'une fiche (déterministe, avec cache). */
 export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   const cached = CACHE.get(w);
@@ -107,16 +130,7 @@ export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   const tagsText = (w.tags || []).join(" ");
   const text = `${w.id} ${w.cat} ${w.objectif} ${tagsText} ${structureText} ${w.when || ""}`;
 
-  for (const { family, rx } of FAMILY_PATTERNS) {
-    if (EASY_ONLY_FAMILIES.has(family) && mainZoneMax >= 4) continue;
-    if (rx.test(text)) {
-      CACHE.set(w, family);
-      return family;
-    }
-  }
-
-  // Fallback : si zones dominées par Z1/Z2 → endurance fondamentale.
-  const family: IntentFamily = mainZoneMax > 0 && mainZoneMax <= 2 ? "endurance_fondamentale" : "other";
+  const family = classifyIntentEvidence(text, mainZoneMax).family;
   CACHE.set(w, family);
   return family;
 }
