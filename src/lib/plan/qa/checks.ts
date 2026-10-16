@@ -514,6 +514,35 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
   return { id: "B5", label: "catalogId ⊂ catalogue injecté (union chunks)", level: "critical", pass, details };
 }
 
+/**
+ * Finalisation PR #383 ("preserve-repair-intent") — Correction 2 (suite) :
+ * `catalog_id_no_safe_neighbor` (réconciliateur client,
+ * `planReconciler.ts::neighborRemapPass`) laisse en place un catalogId qui
+ * n'appartient PAS au catalogue réellement injecté pour ce run (stale,
+ * retiré en aval, réservé à un autre objectif, ou pure hallucination) quand
+ * aucun voisin sportivement équivalent n'a pu être prouvé — c'est
+ * exactement l'invariant que B5 vérifie, mais B5 ne tournait jusqu'ici que
+ * dans le harnais QA (`usePilotCockpit`/`useQARunner`), jamais sur un plan
+ * réellement généré/sauvegardé par un coach — contrairement à B11/B12/B13.
+ * Même convention que `checkB13ToValidationIssues` : les lignes PAR SÉANCE
+ * commencent par "S<n> ..." — les lignes de diagnostic QA (préfixées
+ * "[b5_...]" ou les puces de voisins indentées) sont naturellement exclues
+ * par le même filtre, sans qu'il soit nécessaire de toucher à `checkB5`.
+ */
+export function checkB5ToValidationIssues(result: CheckResult): Array<{
+  rule: string; severity: "error"; message: string; detail?: string;
+}> {
+  if (result.pass) return [];
+  return result.details
+    .filter((d) => d.startsWith("S") && /:/.test(d))
+    .map((d) => ({
+      rule: "catalog_id_outside_injected_catalog",
+      severity: "error" as const,
+      message: d,
+      detail: "catalogId hors du catalogue réellement injecté pour ce run — aucun remplacement sportivement équivalent n'a pu être prouvé par le réconciliateur client (cf. catalog_id_no_safe_neighbor).",
+    }));
+}
+
 export function checkB6(plan: MergedPlan, parsed: ParsedPlan): CheckResult {
   const details: string[] = [];
   let pass = true;

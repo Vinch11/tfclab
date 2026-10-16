@@ -135,18 +135,70 @@ autre problème critique existant (seule `objective_sport_conflict` reste non
 dérogeable, inchangé). `weeklyQuotaIssues` est la valeur déjà calculée par
 `useAITrainingPlan.ts` à la génération — pas une deuxième vérité recalculée.
 
-**Risque résiduel documenté (non corrigé dans cette finalisation, hors
-périmètre démontré)** : certaines anomalies émises uniquement côté
-réconciliateur client (`week_duplicate_unresolved` — doublon inter-semaines,
-et `catalog_id_no_safe_neighbor`) n’ont, à ce jour, aucun détecteur redondant
-dans `checkB13`/`checkB14`/`validateWeeklyQuotas`/`validateSportObjective` ; si
-elles surviennent, elles restent visibles uniquement dans les logs de
-génération (console, `semanticRepairs`), pas dans un bandeau coach ni dans le
-contrôle de sauvegarde. Corriger ce point précis nécessiterait d’attacher ces
-logs sous forme structurée au plan final et d’ajouter un nouveau bandeau
-dans `AIPlanViewer.tsx` — un changement d’interface que cette finalisation
-n’a pas élargi sans nécessité démontrée au-delà de la garantie demandée pour
-les anomalies à impact sportif significatif déjà couvertes par les contrôles
-existants (sport/objectif, signature LCW, plancher quotidien, plancher
-hebdomadaire).
+## Dernière vérification avant fusion — anomalies résiduelles côté réconciliateur client
+
+Vérification ciblée (lecture du code de `planReconciler.ts`, pas seulement
+des messages de logs) des anomalies `*_unresolved` réellement émises côté
+client, pour chacune : circonstance exacte, nature (incompatibilité sportive
+réelle vs limitation technique bénigne), survie après fusion des chunks,
+détection redondante existante, visibilité coach, prise en compte à la
+sauvegarde.
+
+- **`week_duplicate_unresolved`** (`dedupeWithinWeek`) : doublon de
+  catalogId **au sein de la même semaine** (pas inter-semaines), aucune
+  alternative trouvée. Déjà **entièrement couvert** : `checkB13` redétecte
+  tout catalogId dupliqué dans une semaine sur le plan FINAL fusionné,
+  indépendamment du mécanisme qui a échoué à le corriger (serveur ou
+  client) — critique, visible au bandeau de génération ET repris dans
+  `handleSaveToPlan`. Aucune correction nécessaire ; vérifié par un test
+  dédié (pas de double alerte avec B5 non plus).
+- **`catalog_id_no_safe_neighbor`** (`neighborRemapPass`) : le catalogId
+  d’une séance n’appartient pas au catalogue réellement injecté pour ce run
+  (stale, retiré en aval, réservé à un autre objectif, ou hallucination) et
+  aucun voisin sportivement équivalent (`evaluateRepairSportingEquivalence`,
+  même fonction que côté serveur) n’a pu être prouvé — **incompatibilité
+  sportive réelle**, pas une limitation technique anodine. **Corrigé dans
+  cette vérification** : l’invariant est exactement celui que `checkB5`
+  vérifie (sévérité `critical`), mais B5 ne tournait jusqu’ici que dans le
+  harnais QA (`usePilotCockpit`/`useQARunner`), jamais sur le plan réel
+  généré/sauvegardé par un coach. `checkB5ToValidationIssues` (nouveau,
+  même convention que `checkB13ToValidationIssues` — filtre les lignes par
+  séance, exclut naturellement les lignes de diagnostic QA) est maintenant
+  branché à la fois dans `useAITrainingPlan.ts` (bandeau de génération,
+  `parsed.catalogIdIssues`) et dans `handleSaveToPlan` (contrôle bloquant,
+  même dialogue dérogeable que B11/B12/B13).
+- **`phase_unresolved`** : fiche dont les phases autorisées n’incluent pas
+  la phase actuelle de la semaine, aucune alternative trouvée. Limitation
+  de classement, pas un risque d’entraînement direct (la séance reste un
+  contenu valide). Déjà couvert par `checkB14` (avertissement, par
+  conception) — bandeau de génération, volontairement non bloquant à la
+  sauvegarde. Aucune correction nécessaire.
+- **`duration_unresolved` / `reconcile_conflict` (surplus)** : durée hors
+  plage déclarée par la fiche, ou surplus de séances d’un sport au-delà du
+  quota max, sans alternative. Limitation de dimensionnement, pas une
+  incompatibilité sportive (la fiche/l’intention d’origine reste inchangée).
+  Couvert par `validateWeeklyQuotas` (`quota_range_drift`, avertissement) —
+  correctement non critique, visible au bandeau de génération.
+- **`quota_floor_unresolved`** : plancher de sport requis non atteint,
+  aucune fiche catalogue trouvée pour combler. Redétecté sur le plan final
+  par `validateWeeklyQuotas` (`quota_floor_violation`, critique) — déjà
+  branché dans `handleSaveToPlan` depuis la correction précédente de cette
+  PR. Aucune correction supplémentaire nécessaire.
+- **`discipline_unresolved`** : le sport de la fiche ne correspond pas au
+  sport de la séance, aucune alternative trouvée. Représenterait une
+  incompatibilité sportive réelle (mauvaise discipline) si elle survenait,
+  mais **aucune preuve d’occurrence réelle n’a été trouvée** et aucun
+  détecteur redondant existant (B13/B14/quota/sport-objectif) ne la couvre.
+  Risque résiduel documenté, non corrigé dans cette vérification : le
+  couvrir demanderait un nouveau contrôle (pas la réutilisation d’un
+  existant), ce qui aurait élargi le périmètre sans nécessité démontrée au
+  -delà de ce qui a été constaté.
+
+Tests de non-régression ajoutés (`checkB5ToValidationIssues.test.ts`) :
+anomalie critique transmise au format bloquant ; anomalie non critique
+(B14) reste avertissement ; anomalie résolue (catalogId réintégré au
+catalogue injecté) n’est plus signalée ; anomalie déjà détectée par B13
+(doublon) n’est pas dupliquée par B5 ; substitution sportivement
+équivalente reste autorisée ; les lignes de diagnostic QA de B5 ne fuient
+jamais dans les messages coach.
 

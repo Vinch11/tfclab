@@ -454,7 +454,7 @@ export default function AITrainingPlanPage() {
   // chaque changement d'athlète, cf. PR #63 anti-fuite cross-athlète).
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -2395,6 +2395,17 @@ export default function AITrainingPlanPage() {
           } catch (quotaErr) {
             console.warn("[quota] échec de la reprise des violations de plancher hebdo, sauvegarde sans ce contrôle:", quotaErr);
           }
+
+          // Finalisation PR #383 ("preserve-repair-intent") — Correction 2
+          // (suite) : un catalogId hors du catalogue réellement injecté pour
+          // ce run (B5 — notamment ce que laisse en place
+          // `catalog_id_no_safe_neighbor` côté réconciliateur client quand
+          // aucun voisin équivalent n'a été prouvé) n'était jusqu'ici repris
+          // que dans le bandeau informatif de génération (AIPlanViewer.tsx),
+          // jamais dans ce contrôle bloquant — alors que B5 est "critical"
+          // au même titre que B11/B12/B13. `catalogIdIssues` est déjà
+          // calculé par `useAITrainingPlan.ts` au moment de la génération.
+          criticalIssues = [...criticalIssues, ...catalogIdIssues];
         }
       }
     } catch (vErr) {
@@ -2429,7 +2440,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     await doSave();
-  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion, ambition, mergedPlan, weeklyQuotaIssues]);
+  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion, ambition, mergedPlan, weeklyQuotaIssues, catalogIdIssues]);
 
   const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
 

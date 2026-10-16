@@ -28,6 +28,7 @@ import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { computeFinalValidationIssues, type FinalValidationIssue } from "@/lib/plan/qa/finalValidation";
+import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
 import { runReconciler } from "@/lib/plan/planReconciler";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
@@ -630,6 +631,11 @@ export function useAITrainingPlan() {
   // visible dans AIPlanViewer ; cet état sert aux consommateurs qui ont
   // besoin d'y réagir sans dépendre du rendu du viewer).
   const [finalValidationIssues, setFinalValidationIssues] = useState<FinalValidationIssue[]>([]);
+  // Finalisation PR #383 ("preserve-repair-intent") — Correction 2 (suite) :
+  // issues B5 (catalogId ⊂ catalogue injecté) sur le plan réel, exposées en
+  // plus de `parsed.catalogIdIssues` — même convention que
+  // `finalValidationIssues`/`weeklyQuotaIssues` ci-dessus.
+  const [catalogIdIssues, setCatalogIdIssues] = useState<ReturnType<typeof checkB5ToValidationIssues>>([]);
   const lastWeeklyQuotasRef = useRef<Record<number, WeekQuotaEntry>>({});
   // Phase 0 QA — union des catalogId injectés (phase + chunks) pour check B5.
   // Peuplée dans generatePlan une fois les catalogues bâtis, avant l'appel edge.
@@ -661,6 +667,7 @@ export function useAITrainingPlan() {
     setMergedPlan(null);
     setSportObjectiveIssues([]);
     setWeeklyQuotaIssues([]);
+    setCatalogIdIssues([]);
     setLastGenerationUsage(null);
     setIsLoading(true);
     const jsonMode = planConfig._outputFormat === "json";
@@ -1528,11 +1535,32 @@ export function useAITrainingPlan() {
             } catch (e) {
               console.error("[useAITrainingPlan] validateWeeklyQuotas failed:", e);
             }
+            // Finalisation PR #383 ("preserve-repair-intent") — Correction 2
+            // (suite) : B5 (catalogId ⊂ catalogue injecté) ne tournait que
+            // dans le harnais QA (usePilotCockpit/useQARunner) — jamais sur
+            // le plan réel livré au coach, alors que `lastAllowedCatalogIdsRef`
+            // (union du catalogue injecté) est déjà disponible ici, calculée
+            // pour ce même run. Couvre notamment `catalog_id_no_safe_neighbor`
+            // (réconciliateur client) quand aucun voisin équivalent n'a été
+            // prouvé : le catalogId d'origine reste en place et doit être
+            // visible, pas seulement journalisé.
+            let catIssues: ReturnType<typeof checkB5ToValidationIssues> = [];
+            try {
+              const b5 = checkB5(merged, lastAllowedCatalogIdsRef.current, planConfig.objective);
+              catIssues = checkB5ToValidationIssues(b5);
+              if (catIssues.length > 0) {
+                parsed.catalogIdIssues = catIssues;
+                console.error(`[useAITrainingPlan] catalogId hors catalogue injecté (${catIssues.length}) :`, catIssues.slice(0, 6));
+              }
+            } catch (e) {
+              console.error("[useAITrainingPlan] checkB5 failed:", e);
+            }
             setMergedPlan(merged);
             lastParsedPlanRef.current = parsed;
             setParsedPlan(parsed);
             setSportObjectiveIssues(issues);
             setWeeklyQuotaIssues(qIssues);
+            setCatalogIdIssues(catIssues);
             setChunkProgress(null);
             jsonSuccess = true;
           } catch (e) {
@@ -1935,6 +1963,7 @@ export function useAITrainingPlan() {
     setMergedPlan(null);
     setSportObjectiveIssues([]);
     setWeeklyQuotaIssues([]);
+    setCatalogIdIssues([]);
     setIsLoading(false);
     setChunkProgress(null);
   }, []);
@@ -1953,6 +1982,9 @@ export function useAITrainingPlan() {
     weeklyQuotaIssues, lastWeeklyQuotasRef,
     // Audit scientifique P0 — F12 : validation finale post-mutations (B13/B14).
     finalValidationIssues,
+    // Finalisation PR #383 ("preserve-repair-intent") — Correction 2 (suite) :
+    // issues B5 (catalogId ⊂ catalogue injecté) sur le plan réel.
+    catalogIdIssues,
     // Phase 0 QA — union catalogId injectés au dernier run (pour check B5).
     lastAllowedCatalogIdsRef,
     // Résultat brut immédiat du dernier run (évite les states périmés).
