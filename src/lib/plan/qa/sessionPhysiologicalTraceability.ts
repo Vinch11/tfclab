@@ -18,6 +18,7 @@ export interface SessionTraceAnomaly {
   code:
     | "intention_not_identified"
     | "catalog_not_in_generation"
+    | "catalog_authorization_missing"
     | "catalog_metadata_missing"
     | "dose_duration_out_of_range"
     | "dose_intensity_exceeds_catalog"
@@ -315,7 +316,7 @@ export function buildSessionPhysiologicalTraceability(
 ): SessionPhysiologicalTraceabilityReport {
   const catalog = input.catalog ?? WorkoutLibrary;
   const byId = new Map(catalog.map(workout => [workout.id.toUpperCase(), workout]));
-  const allowed = input.allowedCatalogIds ? new Set(input.allowedCatalogIds.map(id => id.toUpperCase())) : null;
+  const allowed = input.allowedCatalogIds == null ? null : new Set(input.allowedCatalogIds.map(id => id.toUpperCase()));
   const prohibitionKeys = resolveProhibitionKeys(input.planConfig.prohibitions);
   const trainingSignal = input.planConfig.ambitionMeta
     ? {
@@ -364,7 +365,15 @@ export function buildSessionPhysiologicalTraceability(
             : "Séance custom sans catalogId : intention physiologique non vérifiable automatiquement.",
         ));
       }
-      if (session.catalogId && allowed && !allowed.has(session.catalogId.toUpperCase())) {
+      if (allowed === null) {
+        localAnomalies.push(anomaly(
+          session,
+          "catalog_authorization_missing",
+          "warning",
+          "Catalogue autorisé non transmis : appartenance de la séance au catalogue injecté non vérifiable.",
+        ));
+      }
+      if (session.catalogId && allowed !== null && !allowed.has(session.catalogId.toUpperCase())) {
         localAnomalies.push(anomaly(
           session,
           "catalog_not_in_generation",
@@ -493,7 +502,7 @@ export function buildSessionPhysiologicalTraceability(
       const critical = localAnomalies.some(item => item.severity === "critical");
       let status: SessionTraceStatus = "not_verified";
       if (workout && intention && intention.family !== "other") {
-        if (limiter && lever && dose.status === "verified" && !critical && !uncertainContext) status = "verified";
+        if (limiter && lever && dose.status === "verified" && dose.structure.status !== "conflict" && allowed !== null && allowed.has(workout.id.toUpperCase()) && !critical && !uncertainContext) status = "verified";
         else status = "uncertain";
       }
       const justification = status === "verified"
