@@ -8,7 +8,7 @@ import { buildSessionPhysiologicalTraceability } from "../sessionPhysiologicalTr
 
 function workout(overrides: Partial<LibraryWorkout> = {}): LibraryWorkout {
   return {
-    id: "RUN_VO2_TEST",
+    id: "RUN_VO2_INTERVALS",
     cat: "VO2",
     sport: "run",
     objectif: "Intervalles VO2max",
@@ -43,7 +43,7 @@ function session(overrides: Partial<MergedSession> = {}): MergedSession {
     details: "5x4min Z5 récup 3min",
     isRest: false,
     isKeySession: true,
-    catalogId: "RUN_VO2_TEST",
+    catalogId: "RUN_VO2_INTERVALS",
     custom: false,
     durationMin: 45,
     zones: ["Z5"],
@@ -89,7 +89,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
       plan: plan([session()]),
       planConfig: config(),
       catalog: [workout()],
-      allowedCatalogIds: ["RUN_VO2_TEST"],
+      allowedCatalogIds: ["RUN_VO2_INTERVALS"],
       now: new Date("2026-10-16T00:00:00Z"),
     });
 
@@ -127,7 +127,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
 
   it("détecte un changement d'objectif sportif même à intensité identique", () => {
     const threshold = workout({
-      id: "RUN_THRESHOLD_TEST",
+      id: "RUN_THRESHOLD_CONTINUOUS",
       cat: "TT",
       objectif: "Seuil continu",
       tags: ["threshold"],
@@ -135,7 +135,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
     });
     const report = buildSessionPhysiologicalTraceability({
       plan: plan([session({
-        catalogId: "RUN_THRESHOLD_TEST",
+        catalogId: "RUN_THRESHOLD_CONTINUOUS",
         title: "Allure 5km spécifique course",
         details: "4x1000m allure 5km Z4 récup 2min",
         zones: ["Z4"],
@@ -149,7 +149,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
         },
       }),
       catalog: [threshold],
-      allowedCatalogIds: ["RUN_THRESHOLD_TEST"],
+      allowedCatalogIds: ["RUN_THRESHOLD_CONTINUOUS"],
     });
 
     expect(report.sessions[0].dose.intensity.status).toBe("verified");
@@ -161,7 +161,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
 
   it("détecte une séance incompatible avec une prohibition structurée", () => {
     const sprint = workout({
-      id: "RUN_SPRINT_TEST",
+      id: "RUN_SPRINT_SHORT",
       cat: "Sprint",
       objectif: "Sprints all-out",
       tags: ["sprint", "pmax"],
@@ -180,7 +180,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
 
   it("signale un décalage quand seule une priorité secondaire est représentée", () => {
     const threshold = workout({
-      id: "RUN_THRESHOLD_TEST",
+      id: "RUN_THRESHOLD_CONTINUOUS",
       cat: "TT",
       objectif: "Seuil continu",
       tags: ["threshold"],
