@@ -93,8 +93,6 @@ describe("buildSessionPhysiologicalTraceability", () => {
       now: new Date("2026-10-16T00:00:00Z"),
     });
 
-    console.log("TRACE_DEBUG_COHERENT", JSON.stringify(report));
-
     expect(report.summary).toMatchObject({ activeSessions: 1, verified: 1, critical: 0 });
     expect(report.sessions[0]).toMatchObject({
       status: "verified",
@@ -130,7 +128,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
   it("détecte un changement d'objectif sportif même à intensité identique", () => {
     const threshold = workout({
       id: "RUN_THRESHOLD_CONTINUOUS",
-      cat: "TT",
+      cat: "B",
       objectif: "Seuil continu",
       tags: ["threshold"],
       structure: [{ part: "Main", text: "3x8min au seuil Z4", zones: ["Z4"] }],
@@ -183,7 +181,7 @@ describe("buildSessionPhysiologicalTraceability", () => {
   it("signale un décalage quand seule une priorité secondaire est représentée", () => {
     const threshold = workout({
       id: "RUN_THRESHOLD_CONTINUOUS",
-      cat: "TT",
+      cat: "B",
       objectif: "Seuil continu",
       tags: ["threshold"],
       structure: [{ part: "Main", text: "3x8min au seuil Z4", zones: ["Z4"] }],
@@ -200,8 +198,6 @@ describe("buildSessionPhysiologicalTraceability", () => {
       }),
       catalog: [threshold],
     });
-
-    console.log("TRACE_DEBUG_PRIORITY", JSON.stringify(report));
 
     expect(report.sessions[0].status).toBe("verified");
     expect(report.anomalies).toEqual(expect.arrayContaining([

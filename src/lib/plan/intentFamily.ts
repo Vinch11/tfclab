@@ -51,7 +51,7 @@ const FAMILY_PATTERNS: Array<{ family: IntentFamily; rx: RegExp }> = [
   { family: "race_pace",             rx: /race[-_\s]?pace|race[-_\s]?sim|allure\s*(marathon|semi|10k|ironman|half|course|specifique)|sp[eé]cifique\s*(marathon|semi|10k|70\.3|IM)|repetition\s*generale|dress[-_\s]?rehearsal/i },
   { family: "fatmax",                rx: /fatmax|fat[-_\s]?max|train[-_\s]?low|fasted|jeun/i },
   { family: "sprint",                rx: /\bsprint\b|neuromuscul|pmax|_PMAX_|strides?|acceleration/i },
-  { family: "vo2",                   rx: /\bvo2\b|\bvma\b|30[-_\s]?30|15[-_\s]?15|hill[-_\s]?repeat|c[oô]tes\s*courtes|intervalles?\s*courts/i },
+  { family: "vo2",                   rx: /\bvo2(?:max)?\b|\bvma\b|30[-_\s]?30|15[-_\s]?15|hill[-_\s]?repeat|c[oô]tes\s*courtes|intervalles?\s*courts/i },
   { family: "seuil",                 rx: /\bseuil\b|threshold|sv2|sweet[-_\s]?spot|\btempo\b|norwegian|over[-_\s]?under|MLSS|CSS/i },
   { family: "force",                 rx: /\bforce\b|strength|renfo|nordic|isometric|pap_|swim[-_\s]?cord|\bppg\b|\bcore\b|gainage|hypertroph/i },
   { family: "technique",             rx: /technique|\bdrill\b|[eé]ducatif|gammes|proprio|mobilit|educatifs/i },
