@@ -18,6 +18,8 @@ import { readPlanStats, planStatsSince, type PlanGenerationStat } from "@/lib/pl
 import { validatePlan, type PlanValidationResult } from "@/engines/plan/planValidator";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
+import type { PreparedTrainingPlanContext, TrainingPlanPhysiologicalTrace } from "@/engines/plan";
+import { preparePilotTrainingPlanContext } from "./preparePilotTrainingPlanContext";
 import {
   appendRun, checkBudgetBeforeLaunch, readBudgetState,
   CREDIT_PER_CHUNK_LOW, CREDIT_PER_CHUNK_HIGH,
@@ -78,6 +80,8 @@ export interface PilotCockpitResult {
   stat: PlanGenerationStat | undefined;
   checks: CheckResult[] | null;
   validatorResult: PlanValidationResult | null;
+  physiologicalTrace: TrainingPlanPhysiologicalTrace | null;
+  preparedContext: PreparedTrainingPlanContext | null;
   errorMessage?: string;
   usage: {
     promptTokens: number; completionTokens: number; totalTokens: number;
@@ -141,11 +145,13 @@ export function usePilotCockpit() {
     const t0 = Date.now();
     const beforeStats = readPlanStats();
     let errorMessage: string | undefined;
+    let preparedContext: PreparedTrainingPlanContext | null = null;
 
     try {
+      preparedContext = preparePilotTrainingPlanContext(profile);
       plan.reset();
       await new Promise((r) => setTimeout(r, 50));
-      await plan.generatePlan(profile.athleteData, { ...profile.planConfig, _outputFormat: "json" });
+      await plan.generatePlan(preparedContext.athleteData, { ...preparedContext.planConfig, _outputFormat: "json" });
       const outcome = await waitForCompletion(() => isLoadingRef.current, Date.now() + RUN_TIMEOUT_MS);
       if (outcome === "timeout") {
         errorMessage = "Timeout (>8 min) — génération non complétée.";
@@ -179,7 +185,7 @@ export function usePilotCockpit() {
           allowedCatalogIds: plan.lastAllowedCatalogIdsRef.current,
           sportObjectiveIssues: sportObjectiveIssuesRef.current,
           stat: newStat,
-          objective: profile.planConfig.objective,
+          objective: preparedContext?.planConfig.objective ?? profile.planConfig.objective,
           quotaIssues: weeklyQuotaIssuesRef.current,
           quotasByWeek: plan.lastWeeklyQuotasRef.current,
         });
@@ -188,20 +194,20 @@ export function usePilotCockpit() {
       }
 
       try {
-        const cfg = profile.planConfig;
+        const cfg = preparedContext?.planConfig ?? profile.planConfig;
         // raceFormat n'existe que sur RaceGoal (pas PlanConfig) — cf. useAITrainingPlan.ts
         const isLcw3Day = Array.isArray(cfg.raceGoals) && cfg.raceGoals.some((g) => g?.raceFormat === "lcw_3day");
         validatorResult = validatePlan(
           parsed,
           cfg.objective,
-          undefined, // prohibitions — nécessite un diagnostic coach, absent des profils synthétiques (limite connue, cf. rapport Étape 2)
+          cfg.prohibitions,
           undefined, // raceWeekNumbers
-          undefined, // identifiedLimiters
-          undefined, // identifiedLimiterKeys
-          profile.athleteData,
+          cfg.identifiedLimiters,
+          cfg.identifiedLimitersRaw,
+          preparedContext?.athleteData ?? profile.athleteData,
           undefined, // coachLimiterOrder
           { sessionsPerWeek: cfg.sessionsPerWeek, maxSessionsPerDay: cfg.maxSessionsPerDay },
-          undefined, // injuryRisk
+          cfg.injuryRisk,
           cfg.ambition,
           cfg.constraints,
           isLcw3Day,
@@ -225,7 +231,8 @@ export function usePilotCockpit() {
 
     const result: PilotCockpitResult = {
       profileId: profile.id, ts: t0, durationMs, merged, parsed, stat: newStat,
-      checks, validatorResult, errorMessage, usage,
+      checks, validatorResult, physiologicalTrace: preparedContext?.trace ?? null,
+      preparedContext, errorMessage, usage,
     };
     setLastResult(result);
 

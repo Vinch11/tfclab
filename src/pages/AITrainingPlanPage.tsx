@@ -39,7 +39,7 @@ import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import { evaluateDurationCoherenceMultiObjective, evaluateLimiterDurationCoherence } from "@/lib/plan/recommendedPlanDuration";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
-import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
+import { prepareTrainingPlanContext, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
 import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksForFullPeak, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 import { validatePlan, computeMissingFinalRaceDayFix, type ValidationIssue } from "@/engines/plan/planValidator";
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
@@ -1561,7 +1561,11 @@ export default function AITrainingPlanPage() {
       crossTrainingMaintenance: { velo: crossTrainingVelo, natation: crossTrainingNatation },
     };
 
-    const built = buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
+    const built = prepareTrainingPlanContext({
+      diagnostic,
+      formConfig,
+      coachLimiterOrder: coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
+    }).planConfig;
     // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
     return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
   }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
@@ -1881,6 +1885,29 @@ export default function AITrainingPlanPage() {
 
     if (payload.sessionsPerWeek && payload.sessionsPerWeek > 0) {
       cfg.sessionsPerWeek = payload.sessionsPerWeek;
+    }
+
+    // La trace conserve le diagnostic automatique, mais identifie sans
+    // ambiguïté l'ordre et les interdictions que le coach a effectivement
+    // substitués avant génération.
+    if (cfg.physiologicalTrace) {
+      cfg.physiologicalTrace = {
+        ...cfg.physiologicalTrace,
+        transmission: {
+          ...cfg.physiologicalTrace.transmission,
+          identifiedLimitersRaw: {
+            ...cfg.physiologicalTrace.transmission.identifiedLimitersRaw,
+            status: "consumed",
+            origin: "coach override",
+            detail: `Ordre transmis: ${rawList.join(" > ")}`,
+          },
+          prohibitions: {
+            ...cfg.physiologicalTrace.transmission.prohibitions,
+            status: (cfg.prohibitions?.length ?? 0) > 0 ? "consumed" : "missing",
+            origin: "planConfigBuilder + decision.strategy.prohibitions + coach override",
+          },
+        },
+      };
     }
 
     return cfg;

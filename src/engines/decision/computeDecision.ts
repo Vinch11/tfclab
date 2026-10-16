@@ -373,6 +373,18 @@ function wrapDataSource<T>(value: T): DataWithSource<T> {
 }
 
 function mapObjectifToLorangDiscipline(objectif: string): "IM" | "703" | "marathon" | "semi" | "10k" | "cycling" | "trail" {
+  const normalized = objectif.trim().toLowerCase();
+  // Le Strategy Engine ne distingue pas encore 5 km de 10 km. La branche
+  // courte distance `10k` préserve la fonction course/VO2-économie, alors que
+  // l'ancien fallback `703` activait une stratégie triathlon incohérente.
+  if (/^5\s*k(?:m)?$/.test(normalized)) return "10k";
+  if (/^10\s*k(?:m)?$/.test(normalized)) return "10k";
+  if (normalized.includes("semi")) return "semi";
+  if (normalized.includes("marathon")) return "marathon";
+  if (normalized.includes("trail") || normalized.includes("ultra")) return "trail";
+  if (normalized.includes("cycl") || normalized.includes("granfondo")) return "cycling";
+  if (normalized.includes("70.3") || normalized === "703" || normalized === "half") return "703";
+  if (normalized.includes("ironman") || normalized === "im") return "IM";
   const map: Record<string, "IM" | "703" | "marathon" | "semi" | "10k" | "cycling" | "trail"> = {
     IM: "IM",
     Ironman: "IM",

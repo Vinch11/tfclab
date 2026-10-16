@@ -312,6 +312,33 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   if (config?.activeLevers && config.activeLevers.length > 0) {
     lines.push(`\n⚡ Leviers actifs: ${config.activeLevers.join(", ")}`);
   }
+
+  // P2 — décision issue du même pipeline que le diagnostic coach. Ce bloc
+  // rend consommables l'action, les adaptations et le niveau de confiance;
+  // le catalogue reste piloté déterministiquement par les limiteurs et les
+  // prohibitions, ce que la trace QA distingue explicitement.
+  const strategy = config?.strategyContext;
+  if (strategy && strategy.source !== "unavailable") {
+    lines.push(`\n🧭 STRATÉGIE PHYSIOLOGIQUE CALCULÉE (${strategy.source}, confiance ${strategy.confidence ?? "inconnue"}) :`);
+    if (strategy.primaryAction) lines.push(`  • Action prioritaire : ${strategy.primaryAction}`);
+    if (Array.isArray(strategy.levers)) {
+      for (const lever of strategy.levers) {
+        lines.push(`  • Levier #${lever.priority}: ${lever.label} — ${lever.reason}`);
+        if (Array.isArray(lever.adaptations) && lever.adaptations.length > 0) {
+          lines.push(`    Adaptations recherchées : ${lever.adaptations.join(" ; ")}`);
+        }
+      }
+    }
+    if (Array.isArray(strategy.trainingFocus?.do) && strategy.trainingFocus.do.length > 0) {
+      lines.push(`  • Focus DO : ${strategy.trainingFocus.do.join(" ; ")}`);
+    }
+    if (Array.isArray(strategy.trainingFocus?.avoid) && strategy.trainingFocus.avoid.length > 0) {
+      lines.push(`  • Focus AVOID : ${strategy.trainingFocus.avoid.join(" ; ")}`);
+    }
+    if (strategy.recommendedWeekType) {
+      lines.push(`  • Type de semaine suggéré : ${strategy.recommendedWeekType} (indication stratégique, jamais un remplacement des règles de phase/décharge).`);
+    }
+  }
   
   // Prohibitions — injected in detail later (see L3853+), only add brief reminder here
   // (detailed injection with PRIORITÉ ABSOLUE is done below in the athlete profile section)

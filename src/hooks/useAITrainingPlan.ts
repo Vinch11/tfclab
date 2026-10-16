@@ -470,6 +470,17 @@ export interface PlanConfig {
   };
   activeLevers?: string[];
   prohibitions?: string[];
+  /** Décision stratégique calculée par la préparation physiologique partagée. */
+  strategyContext?: {
+    source: "lorang" | "matrix" | "diagnostic_fallback" | "unavailable";
+    primaryAction: string | null;
+    confidence: "high" | "moderate" | "low" | "unknown";
+    levers: Array<{ id: string; label: string; priority: number; reason: string; adaptations: string[] }>;
+    trainingFocus: { do: string[]; avoid: string[] };
+    recommendedWeekType: string | null;
+  };
+  /** Preuve QA de l'origine, de la transmission et des consommateurs connus. */
+  physiologicalTrace?: import("@/engines/plan/prepareTrainingPlanContext").TrainingPlanPhysiologicalTrace;
   adaptationProjections?: AdaptationProjection[];
   /**
    * Stratégie de récupération inter-séries utilisée pour calculer les durées
