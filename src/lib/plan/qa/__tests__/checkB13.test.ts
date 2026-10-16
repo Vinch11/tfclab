@@ -105,6 +105,19 @@ describe("checkB13ToValidationIssues", () => {
     const issues = checkB13ToValidationIssues(checkB13(plan));
     expect(issues.length).toBe(1);
     expect(issues[0].severity).toBe("error");
-    expect(issues[0].rule).toBe("final_validation_critical");
+    expect(issues[0].rule).toBe("duplicate_catalog_id_unresolved");
+  });
+
+  it("cumul à jeun détecté → conserve le code serveur existant", () => {
+    const plan = makePlan([
+      { phase: "build", sessions: [
+        makeSession({ catalogId: "FASTED_A", title: "Endurance à jeun" }),
+        makeSession({ catalogId: "FASTED_B", title: "Train Low" }),
+      ] },
+    ]);
+    const issues = checkB13ToValidationIssues(checkB13(plan));
+    expect(issues).toHaveLength(1);
+    expect(issues[0].severity).toBe("error");
+    expect(issues[0].rule).toBe("fasted_session_cap_unresolved");
   });
 });

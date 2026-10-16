@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyOffsportTrailGuardToChunks } from "./jsonPlanHandler.ts";
+import { testOnlyApplyOffsportTrailGuardToChunks as applyOffsportTrailGuardToChunks } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel (4e occurrence de la même faiblesse structurelle, après

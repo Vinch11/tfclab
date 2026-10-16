@@ -28,6 +28,7 @@ import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { computeFinalValidationIssues, type FinalValidationIssue } from "@/lib/plan/qa/finalValidation";
+import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
 import { runReconciler } from "@/lib/plan/planReconciler";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
@@ -630,6 +631,11 @@ export function useAITrainingPlan() {
   // visible dans AIPlanViewer ; cet état sert aux consommateurs qui ont
   // besoin d'y réagir sans dépendre du rendu du viewer).
   const [finalValidationIssues, setFinalValidationIssues] = useState<FinalValidationIssue[]>([]);
+  // Finalisation PR #383 ("preserve-repair-intent") — Correction 2 (suite) :
+  // issues B5 (catalogId ⊂ catalogue injecté) sur le plan réel, exposées en
+  // plus de `parsed.catalogIdIssues` — même convention que
+  // `finalValidationIssues`/`weeklyQuotaIssues` ci-dessus.
+  const [catalogIdIssues, setCatalogIdIssues] = useState<ReturnType<typeof checkB5ToValidationIssues>>([]);
   const lastWeeklyQuotasRef = useRef<Record<number, WeekQuotaEntry>>({});
   // Phase 0 QA — union des catalogId injectés (phase + chunks) pour check B5.
   // Peuplée dans generatePlan une fois les catalogues bâtis, avant l'appel edge.
@@ -661,6 +667,7 @@ export function useAITrainingPlan() {
     setMergedPlan(null);
     setSportObjectiveIssues([]);
     setWeeklyQuotaIssues([]);
+    setCatalogIdIssues([]);
     setLastGenerationUsage(null);
     setIsLoading(true);
     const jsonMode = planConfig._outputFormat === "json";
@@ -678,6 +685,7 @@ export function useAITrainingPlan() {
     try {
       // Build phase-specific workout catalogs for AI injection (fallback for non-chunked plans)
       const phaseCatalogs: Record<string, string> = {};
+      const phaseRepairCatalogs: Record<string, Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>> = {};
       // NB : bornes CHEVAUCHANTES volontairement — usage = injection catalogue aux transitions.
       // La phase canonique des semaines est fixée par normalizeWeeksAndPhases (source unique).
       // Bornes exprimées en position GLOBALE (effTotalWeeks) : en régénération
@@ -838,6 +846,7 @@ export function useAITrainingPlan() {
           { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
+        phaseRepairCatalogs[pr.phase] = catalog.map(entry => entry.repairMetadata);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
         {
           const trailEntries = catalog.filter((e) => isTrailCatalogId(e.id));
@@ -854,6 +863,7 @@ export function useAITrainingPlan() {
       // The edge function will prefer these over phaseCatalogs when chunking.
       // This reduces cognitive noise: AI sees only sessions relevant to *this* block.
       const chunkCatalogs: string[] = [];
+      const chunkRepairCatalogs: Array<Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>> = [];
       // Bug réel (audit "génération de plan IA", plan Emanuela, "Bloc 4 ·
       // Régénération post-pic" S22-23) : ce catalogue par chunk ne connaît
       // QUE la position calendaire brute (cStart/cEnd/totalWeeks, via
@@ -878,6 +888,7 @@ export function useAITrainingPlan() {
       // dans le prompt (cf. jsonPlanHandler.ts) au lieu de se substituer l'un
       // à l'autre.
       const chunkRegenCatalogs: string[] = [];
+      const chunkRegenRepairCatalogs: Array<Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>> = [];
       const chunkRegenWeeks: number[][] = [];
       if (needsChunking) {
         const chunkUsedIds = new Set<string>();
@@ -895,6 +906,7 @@ export function useAITrainingPlan() {
             { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
+          chunkRepairCatalogs.push(chunkCatalog.map(entry => entry.repairMetadata));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
           {
             const trailEntries = chunkCatalog.filter((e) => isTrailCatalogId(e.id));
@@ -916,11 +928,13 @@ export function useAITrainingPlan() {
               { maxItems: 60, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, phaseOverride: ["base"], strictPhaseFilter: true }
             );
             chunkRegenCatalogs.push(serializeCatalogForPrompt(regenCatalog));
+            chunkRegenRepairCatalogs.push(regenCatalog.map(entry => entry.repairMetadata));
             console.log(
               `[regen_gap_catalog] chunk=${ci} weeks=[${regenWeeksInChunk.join(",")}] entries=${regenCatalog.length}`,
             );
           } else {
             chunkRegenCatalogs.push("");
+            chunkRegenRepairCatalogs.push([]);
           }
           chunkRegenWeeks.push(regenWeeksInChunk);
 
@@ -1157,12 +1171,15 @@ export function useAITrainingPlan() {
           athleteData,
           planConfig: planConfigWithQuota,
           phaseCatalogs,
+          phaseRepairCatalogs,
           chunkCatalogs: chunkCatalogs.length > 0 ? chunkCatalogs : undefined,
+          chunkRepairCatalogs: chunkRepairCatalogs.length > 0 ? chunkRepairCatalogs : undefined,
           // Bloc catalogue restreint dédié aux semaines de régénération
           // inter-cycles (cf. commentaire au site de construction) — index
           // aligné sur chunkCatalogs, chaîne vide/tableau vide pour un chunk
           // sans semaine de régénération.
           chunkRegenCatalogs: chunkRegenCatalogs.some((c) => c.length > 0) ? chunkRegenCatalogs : undefined,
+          chunkRegenRepairCatalogs: chunkRegenRepairCatalogs.some((c) => c.length > 0) ? chunkRegenRepairCatalogs : undefined,
           chunkRegenWeeks: chunkRegenWeeks.some((w) => w.length > 0) ? chunkRegenWeeks : undefined,
           chunkSize: CHUNK_SIZE,
           catalogDurationStats,
@@ -1352,7 +1369,8 @@ export function useAITrainingPlan() {
               const afterStr = repair.after
                 ? `"${repair.after.title ?? "?"}" [${repair.after.catalogId ?? "?"}] (${repair.after.durationMin ?? "?"}min, Δ${repair.after.deltaMin ?? "?"}min)`
                 : `UNRESOLVED — sameSportCandidates=${sameCount}/${totalCount}, nearest=[${nearest}]`;
-              semanticRepairs.push(`[${severity}] ${code}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} — ${beforeStr} → ${afterStr}`);
+              const reasonStr = repair.reason ? ` — motif=${repair.reason}` : "";
+              semanticRepairs.push(`[${severity}] ${code}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} — ${beforeStr} → ${afterStr}${reasonStr}`);
             } else {
               const msg = data.message ?? JSON.stringify(data);
               semanticRepairs.push(`[${severity}] ${code}: ${msg}`);
@@ -1475,7 +1493,7 @@ export function useAITrainingPlan() {
             // enforceAthleteConstraints...), sur le plan RÉEL livré au coach —
             // pas seulement dans le harnais QA synthétique.
             try {
-              const finalValidation = computeFinalValidationIssues(merged);
+              const finalValidation = computeFinalValidationIssues(merged, semanticRepairs);
               if (finalValidation.issues.length > 0) parsed.finalValidationIssues = finalValidation.issues;
               setFinalValidationIssues(finalValidation.issues);
               if (finalValidation.hasCritical) {
@@ -1518,11 +1536,39 @@ export function useAITrainingPlan() {
             } catch (e) {
               console.error("[useAITrainingPlan] validateWeeklyQuotas failed:", e);
             }
+            // Finalisation PR #383 ("preserve-repair-intent") — Correction 2
+            // (suite) : B5 (catalogId ⊂ catalogue injecté) ne tournait que
+            // dans le harnais QA (usePilotCockpit/useQARunner) — jamais sur
+            // le plan réel livré au coach, alors que `lastAllowedCatalogIdsRef`
+            // (union du catalogue injecté) est déjà disponible ici, calculée
+            // pour ce même run. Couvre notamment `catalog_id_no_safe_neighbor`
+            // (réconciliateur client) quand aucun voisin équivalent n'a été
+            // prouvé : le catalogId d'origine reste en place et doit être
+            // visible, pas seulement journalisé.
+            let catIssues: ReturnType<typeof checkB5ToValidationIssues> = [];
+            try {
+              const b5 = checkB5(merged, lastAllowedCatalogIdsRef.current, planConfig.objective);
+              catIssues = checkB5ToValidationIssues(b5);
+              if (catIssues.length > 0) {
+                parsed.catalogIdIssues = catIssues;
+                // B5 revalide structurellement le même état final que la trace
+                // catalog_id_no_safe_neighbor. Le bandeau B5, plus précis, prime
+                // afin de ne pas afficher deux alertes pour une seule séance.
+                const dedupedFinalIssues = (parsed.finalValidationIssues ?? [])
+                  .filter(issue => issue.rule !== "catalog_id_no_safe_neighbor");
+                parsed.finalValidationIssues = dedupedFinalIssues.length > 0 ? dedupedFinalIssues : undefined;
+                setFinalValidationIssues(dedupedFinalIssues);
+                console.error(`[useAITrainingPlan] catalogId hors catalogue injecté (${catIssues.length}) :`, catIssues.slice(0, 6));
+              }
+            } catch (e) {
+              console.error("[useAITrainingPlan] checkB5 failed:", e);
+            }
             setMergedPlan(merged);
             lastParsedPlanRef.current = parsed;
             setParsedPlan(parsed);
             setSportObjectiveIssues(issues);
             setWeeklyQuotaIssues(qIssues);
+            setCatalogIdIssues(catIssues);
             setChunkProgress(null);
             jsonSuccess = true;
           } catch (e) {
@@ -1925,6 +1971,7 @@ export function useAITrainingPlan() {
     setMergedPlan(null);
     setSportObjectiveIssues([]);
     setWeeklyQuotaIssues([]);
+    setCatalogIdIssues([]);
     setIsLoading(false);
     setChunkProgress(null);
   }, []);
@@ -1943,6 +1990,9 @@ export function useAITrainingPlan() {
     weeklyQuotaIssues, lastWeeklyQuotasRef,
     // Audit scientifique P0 — F12 : validation finale post-mutations (B13/B14).
     finalValidationIssues,
+    // Finalisation PR #383 ("preserve-repair-intent") — Correction 2 (suite) :
+    // issues B5 (catalogId ⊂ catalogue injecté) sur le plan réel.
+    catalogIdIssues,
     // Phase 0 QA — union catalogId injectés au dernier run (pour check B5).
     lastAllowedCatalogIdsRef,
     // Résultat brut immédiat du dernier run (évite les states périmés).

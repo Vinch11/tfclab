@@ -108,6 +108,18 @@ export interface ParsedPlan {
    * calculés mais jamais rendus avant ce lot. Informatif uniquement.
    */
   weeklyQuotaIssues?: import("@/lib/plan/validateWeeklyQuotas").QuotaIssue[];
+  /**
+   * Finalisation PR #383 ("preserve-repair-intent") — Correction 2 (suite).
+   * Résultat de `checkB5ToValidationIssues(checkB5(...))` : catalogId
+   * utilisé dans le plan final mais absent du catalogue réellement injecté
+   * pour ce run (stale, retiré en aval, réservé à un autre objectif, ou
+   * pure hallucination) — notamment ce que laisse en place
+   * `catalog_id_no_safe_neighbor` (réconciliateur client) quand aucun
+   * voisin sportivement équivalent n'a été prouvé. B5 ne tournait jusqu'ici
+   * que dans le harnais QA, jamais sur un plan réellement généré par un
+   * coach. Sévérité "error" = critique (même convention que B11/B12/B13).
+   */
+  catalogIdIssues?: Array<{ rule: string; severity: "error"; message: string; detail?: string }>;
 }
 
 const DAY_MAP: Record<string, number> = {

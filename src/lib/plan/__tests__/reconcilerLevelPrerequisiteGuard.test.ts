@@ -76,30 +76,30 @@ describe("runReconciler/findReplacement — garde-fou prérequis de niveau (Miss
     expect(rec.counters.phase_substituted).toBe(0);
   });
 
-  it("profil trained/manual : CANOVA_RUN_INTRODUCTIVE_PHASE reste sélectionnable par la réparation PHASE", () => {
+  it("profil trained/manual : le prérequis est satisfait mais l'intention race-pace ne remplace pas un seuil", () => {
     const s = makeSession();
     const rec = runReconciler([makeChunk(s)], {}, 1, undefined, {
       globalTotalWeeks: 12,
       beginnerIntensitySignal: { trainingLevel: "trained", trainingLevelSource: "manual" },
     });
-    expect(s.catalogId).toBe("CANOVA_RUN_INTRODUCTIVE_PHASE");
-    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("ORIG_RUN_PEAK_ONLY");
+    expect(rec.counters.phase_unresolved).toBe(1);
   });
 
-  it("profil untrained/fallback-prudent (signal non fiable) : réintroduction autorisée — un niveau incertain ne doit jamais provoquer une exclusion définitive", () => {
+  it("profil untrained/fallback-prudent : l'incertitude de niveau n'autorise pas un changement d'intention", () => {
     const s = makeSession();
     const rec = runReconciler([makeChunk(s)], {}, 1, undefined, {
       globalTotalWeeks: 12,
       beginnerIntensitySignal: { trainingLevel: "untrained", trainingLevelSource: "fallback-prudent" },
     });
-    expect(s.catalogId).toBe("CANOVA_RUN_INTRODUCTIVE_PHASE");
-    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("ORIG_RUN_PEAK_ONLY");
+    expect(rec.counters.phase_unresolved).toBe(1);
   });
 
-  it("sans beginnerIntensitySignal (legacy, non fourni) : comportement inchangé — aucune exclusion nouvelle n'est introduite silencieusement par défaut", () => {
+  it("sans beginnerIntensitySignal : une intention inconnue du profil ne sert pas de joker", () => {
     const s = makeSession();
     const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { globalTotalWeeks: 12 });
-    expect(s.catalogId).toBe("CANOVA_RUN_INTRODUCTIVE_PHASE");
-    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("ORIG_RUN_PEAK_ONLY");
+    expect(rec.counters.phase_unresolved).toBe(1);
   });
 });

@@ -119,27 +119,30 @@ describe("runReconciler/findReplacement — garde-fou plafond d'intensité des s
     expect(rec.counters.phase_substituted).toBe(0);
   });
 
-  it("même semaine plafonnée, mais un candidat conforme existe à la bonne durée → il est choisi plutôt que de laisser la réparation non résolue", () => {
+  it("même semaine plafonnée : une intention d'origine inconnue n'utilise pas le footing comme joker", () => {
     const s = makeSession(42); // dans la plage 35-45 de D_DELOAD_RUN_MOCK
     const rec = runReconciler(
       [makeChunk(s, "Semaine allégée. Réduire l'intensité, rester strictement en Z1-Z2 et privilégier la fraîcheur.")],
       {}, 1, undefined, { globalTotalWeeks: 12 },
     );
-    expect(s.catalogId).toBe("D_DELOAD_RUN_MOCK");
-    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("ORIG_RUN_BUILD_ONLY");
+    expect(rec.counters.phase_substituted).toBe(0);
+    expect(rec.counters.phase_unresolved).toBe(1);
   });
 
-  it("sans plafond dans weeklyNotes : A_RUN_FARTLEK_LIBRE reste normalement sélectionnable — aucune régression du comportement existant", () => {
+  it("sans weeklyNotes : le thème Décharge suffit et le fartlek Z4 reste interdit", () => {
     const s = makeSession(50); // hors plage D_DELOAD_RUN_MOCK (35-45) : seul A_RUN_FARTLEK_LIBRE (40-55) matche
     const rec = runReconciler([makeChunk(s, undefined)], {}, 1, undefined, { globalTotalWeeks: 12 });
-    expect(s.catalogId).toBe("A_RUN_FARTLEK_LIBRE");
-    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("ORIG_RUN_BUILD_ONLY");
+    expect(rec.counters.phase_substituted).toBe(0);
+    expect(rec.counters.phase_unresolved).toBe(1);
   });
 
-  it("note hebdo sans plafond reconnu (texte neutre) : comportement inchangé, A_RUN_FARTLEK_LIBRE reste sélectionnable", () => {
+  it("note hebdo neutre : le thème Décharge reste la source de vérité et bloque le fartlek Z4", () => {
     const s = makeSession(50);
     const rec = runReconciler([makeChunk(s, "Semaine de progression normale.")], {}, 1, undefined, { globalTotalWeeks: 12 });
-    expect(s.catalogId).toBe("A_RUN_FARTLEK_LIBRE");
-    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("ORIG_RUN_BUILD_ONLY");
+    expect(rec.counters.phase_substituted).toBe(0);
+    expect(rec.counters.phase_unresolved).toBe(1);
   });
 });

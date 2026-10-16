@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyReconciler } from "./jsonPlanHandler.ts";
+import { testOnlyApplyReconciler as applyReconciler } from "./jsonPlanHandler.ts";
 
 /**
  * Audit "traitement des limiteurs" (coach, sept. 2026) : l'insertion d'une

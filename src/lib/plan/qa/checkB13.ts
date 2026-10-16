@@ -113,7 +113,9 @@ export function checkB13ToValidationIssues(result: CheckResult): Array<{
   return result.details
     .filter((d) => d.startsWith("S") && /:/.test(d))
     .map((d) => ({
-      rule: "final_validation_critical",
+      rule: /séances? "à jeun"/i.test(d)
+        ? "fasted_session_cap_unresolved"
+        : "duplicate_catalog_id_unresolved",
       severity: "error" as const,
       message: d,
       detail: "Incohérence réintroduite par une mutation du réconciliateur après le dernier filet de dédoublonnage — aucune correction automatique, à vérifier manuellement.",

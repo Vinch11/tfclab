@@ -17,6 +17,8 @@ import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
 import { isRaceSimIncompatibleWithObjective } from "./plan/raceSimCompatibility";
 import { isLevelPrerequisiteIncompatible } from "./plan/levelPrerequisiteCompatibility";
+import { buildRepairWorkoutMetadata } from "./plan/repairCatalogMetadata";
+import type { RepairWorkoutMetadata } from "../../supabase/functions/_shared/repairSportingEquivalence";
 
 /**
  * Réduit PlanConfig.injuryRisk (envelope complète {level, score, why, guardrails})
@@ -84,6 +86,8 @@ export interface CatalogEntry {
    * aucune restriction ("—" / "aucun" dans la bibliothèque source).
    */
   avoid?: string;
+  /** Full, non-prompt metadata consumed by deterministic repair passes. */
+  repairMetadata: RepairWorkoutMetadata;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1602,6 +1606,7 @@ export function buildWorkoutCatalog(
     variants: pickVariant(w, goals),
     ...(w.dPlusTargetM ? { dPlusTargetM: w.dPlusTargetM } : {}),
     ...(isMeaningfulAvoid(w.avoid) ? { avoid: w.avoid } : {}),
+    repairMetadata: buildRepairWorkoutMetadata(w),
   }));
 }
 
@@ -1691,7 +1696,11 @@ function ficheZoneCibleLabel(id: string): string {
   return mx > 0 ? `Z${mx}` : "—";
 }
 
-export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
+type PromptCatalogEntry = Omit<CatalogEntry, "repairMetadata"> & {
+  repairMetadata?: RepairWorkoutMetadata;
+};
+
+export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string {
   if (catalog.length === 0) return "";
 
   const lines: string[] = [];
@@ -1703,7 +1712,7 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   const hasTrailDPlus = catalog.some(e => e.dPlusTargetM);
   const hasAvoid = catalog.some(e => e.avoid);
 
-  const buckets = new Map<string, { info: ReturnType<typeof normalizeSportBucket>; entries: CatalogEntry[] }>();
+  const buckets = new Map<string, { info: ReturnType<typeof normalizeSportBucket>; entries: PromptCatalogEntry[] }>();
   for (const e of catalog) {
     const info = normalizeSportBucket(e.sport);
     if (!buckets.has(info.key)) buckets.set(info.key, { info, entries: [] });
@@ -1773,3 +1782,4 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
 
   return lines.join("\n");
 }
+

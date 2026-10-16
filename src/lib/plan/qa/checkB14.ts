@@ -71,7 +71,7 @@ export function checkB14ToValidationIssues(result: CheckResult): Array<{
   return result.details
     .filter((d) => d.startsWith("S") && /:/.test(d))
     .map((d) => ({
-      rule: "final_validation_phase_mismatch",
+      rule: "phase_unresolved",
       severity: "warning" as const,
       message: d,
       detail: "Séance choisie pour une autre phase avant qu'un reclassement tardif de la semaine (ex. affûtage ajouté automatiquement) ne change sa phase affichée — le contenu reste valide, seul l'étiquetage de phase est à vérifier.",

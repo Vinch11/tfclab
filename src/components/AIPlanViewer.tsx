@@ -1597,6 +1597,28 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         );
       })()}
 
+      {/* Finalisation PR #383 ("preserve-repair-intent") — Correction 2 (suite) :
+          catalogIdIssues (B5) était calculé uniquement dans le harnais QA,
+          jamais rendu au coach. Toujours critique (sévérité "error") — un
+          catalogId hors du catalogue réellement injecté pour ce run n'a
+          jamais été prouvé sportivement équivalent par le réconciliateur
+          client (cf. catalog_id_no_safe_neighbor). */}
+      {plan.catalogIdIssues && plan.catalogIdIssues.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <p className="font-medium">
+              {plan.catalogIdIssues.length} séance{plan.catalogIdIssues.length > 1 ? "s" : ""} avec un catalogId hors du catalogue injecté — à vérifier avant utilisation.
+            </p>
+            <ul className="mt-1.5 space-y-0.5 text-sm">
+              {plan.catalogIdIssues.slice(0, 6).map((issue, i) => (
+                <li key={i}>{issue.message}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Aucune référence physiologique enregistrée dans le plan (plans générés
           avant l'ajout du suivi de dérive) : on propose quand même l'actualisation. */}
       {physioDrift.items.length === 0 && targetTable && (

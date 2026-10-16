@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyLcwSignatureEnforcement } from "./jsonPlanHandler.ts";
+import { testOnlyApplyLcwSignatureEnforcement as applyLcwSignatureEnforcement } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel confirmé sur un plan LCW 7 semaines réellement livré à un
@@ -83,12 +83,7 @@ Deno.test("applyLcwSignatureEnforcement — plan déjà conforme (3 occurrences 
   assertEquals(repairs.length, 0);
 });
 
-Deno.test("applyLcwSignatureEnforcement — fiche absente du dump du chunk : contenu de repli livré (pas juste un catalogId muet)", () => {
-  // Bug réel (2e itération du correctif, audit plans "Vince") : sans dump
-  // pour ce chunk, l'ancienne version forçait catalogId mais laissait
-  // title/details inchangés — le validateur passait, mais l'athlète ne
-  // voyait jamais le vrai contenu de la séance signature (aucun tag
-  // [ID: ...] visible, aucune fiche "FICHE COMPLÈTE BIBLIOTHÈQUE" au rendu).
+Deno.test("applyLcwSignatureEnforcement — fiche absente du dump : laisse la réparation non résolue", () => {
   const chunks = [
     {
       weeks: [
@@ -99,18 +94,11 @@ Deno.test("applyLcwSignatureEnforcement — fiche absente du dump du chunk : con
     },
   ] as any;
   // Dump vide (fiches non présentes dans le catalogue de CE chunk).
-  const { chunks: out } = applyLcwSignatureEnforcement(chunks, [""], LCW_PLAN_CONFIG);
+  const { chunks: out, repairs } = applyLcwSignatureEnforcement(chunks, [""], LCW_PLAN_CONFIG);
   const sessions = out[0].weeks.flatMap((w: any) => w.sessions);
-  const bikeSession = sessions.find((s: any) => s.catalogId === "B_LCW_BIKE_LONG_RACE_SAT");
-  const runSession = sessions.find((s: any) => s.catalogId === "B_LCW_RUN_OFF_LEGS_SUN");
-  assert(bikeSession, "B_LCW_BIKE_LONG_RACE_SAT attendu");
-  assert(runSession, "B_LCW_RUN_OFF_LEGS_SUN attendu");
-  // Le contenu livré doit porter le tag [ID: ...] exploitable par le même
-  // extracteur que le validateur ET le rendu PDF (extractCatalogId), pas
-  // juste un catalogId interne invisible pour l'athlète.
-  assert(bikeSession.details.includes("[ID: B_LCW_BIKE_LONG_RACE_SAT]"), "détails bike doivent contenir le tag ID");
-  assert(runSession.details.includes("[ID: B_LCW_RUN_OFF_LEGS_SUN]"), "détails run doivent contenir le tag ID");
-  assert(bikeSession.title !== "OTHER_BIKE", "le titre générique ne doit plus rester tel quel");
+  assertEquals(sessions.some((s: any) => s.catalogId === "B_LCW_BIKE_LONG_RACE_SAT"), false);
+  assertEquals(sessions.some((s: any) => s.catalogId === "B_LCW_RUN_OFF_LEGS_SUN"), false);
+  assert(repairs.some(r => r.code === "lcw_signature_unresolved"));
 });
 
 // Fix D2 (audit "génération de plan IA") : ce filet était un no-op

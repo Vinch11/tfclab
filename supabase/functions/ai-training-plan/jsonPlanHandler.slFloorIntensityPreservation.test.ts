@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applySLFloorEnforcement } from "./jsonPlanHandler.ts";
+import { testOnlyApplySLFloorEnforcement as applySLFloorEnforcement } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel confirmé sur le JSON du run B-5K-BEGINNER (post-PR #376) :

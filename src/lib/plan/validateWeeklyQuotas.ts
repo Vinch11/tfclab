@@ -14,6 +14,7 @@
 import type { MergedPlan } from "./mergePlanChunks";
 import type { WeeklyQuota, SizingFloors, WeekType } from "@/engines/plan/sessionSizingMatrix";
 import { diffLayoutVsWeek, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
+import type { ValidationIssue } from "@/engines/plan/planValidator";
 
 export interface QuotaIssue {
   severity: "critical" | "warning";
@@ -179,4 +180,32 @@ export function validateWeeklyQuotas(
     }
   }
   return out;
+}
+
+/**
+ * Finalisation PR #383 ("preserve-repair-intent") — Correction 2 : les
+ * violations critiques `quota_floor_violation` (plancher SL vélo/CAP,
+ * natation, renfo, jours de repos, max séances/jour — y compris celles
+ * qui subsistent quand le réconciliateur serveur n'a trouvé aucun candidat
+ * de remplacement, ex. `sl_upgrade_unresolved`/`insert_unresolved`/
+ * `rest_floor_breached`) n'étaient reprises que dans le bandeau informatif
+ * de génération (`AIPlanViewer.tsx`), jamais dans le contrôle bloquant à la
+ * sauvegarde (`handleSaveToPlan`, AITrainingPlanPage.tsx) — contrairement à
+ * B11/B12/B13. Un plan portant une incompatibilité critique persistante
+ * pouvait donc être déclaré pleinement conforme et sauvegardé sans la
+ * moindre confirmation. Même mécanisme de conversion que
+ * `checkB13ToValidationIssues`/`checkB12ToValidationIssues`.
+ */
+export function quotaIssuesToValidationIssues(issues: QuotaIssue[]): ValidationIssue[] {
+  return issues
+    .filter(i => i.severity === "critical")
+    .map(i => ({
+      rule: i.code,
+      severity: "error" as const,
+      week: i.weekNumber,
+      message: i.reason,
+      detail: i.expected || i.observed
+        ? `attendu: ${i.expected ?? "—"} · observé: ${i.observed ?? "—"}`
+        : undefined,
+    }));
 }

@@ -48,6 +48,13 @@ import { mergePlanChunks, MergePlanError, type MergedPlan } from "./mergePlanChu
 import { computePhaseCoverageGaps, generatePhasesPatch } from "./generatePhasesPatch.ts";
 import { applyValueCheck } from "./valueCheck.ts";
 import { detectLcwFromConfig, buildLcwSignatureReminder, computeLcwChunkSize } from "./lcwSignatureReminder.ts";
+import {
+  evaluateRepairSportingEquivalence,
+  isCompleteRepairWorkoutMetadata,
+  normalizeRepairSport,
+  type RepairCompatibilityContext,
+  type RepairWorkoutMetadata,
+} from "../_shared/repairSportingEquivalence.ts";
 
 const PRIMARY_MODEL = "google/gemini-3.7-flash";
 
@@ -61,7 +68,13 @@ interface CatalogCandidate {
   durationMedian: number;
   structure: string;
   zones: string[];
+  metadata?: RepairWorkoutMetadata;
+  legacyTestOnly?: true;
 }
+
+/** Explicit escape hatch for legacy unit fixtures only. Production never passes it. */
+export const TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES = Symbol("test-only-legacy-repair-candidates");
+type LegacyRepairTestMode = typeof TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES;
 
 interface OffsportNearestCandidate {
   id: string;
@@ -172,6 +185,56 @@ function parseCatalogCandidatesFromDump(dump: string | null | undefined): Catalo
   return out;
 }
 
+function catalogCandidatesFromMetadata(
+  entries: RepairWorkoutMetadata[] | null | undefined,
+  allowedIds: ReadonlySet<string>,
+): CatalogCandidate[] {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .filter(isCompleteRepairWorkoutMetadata)
+    .filter(entry => allowedIds.has(entry.id.toUpperCase()))
+    .map(entry => ({
+      id: entry.id,
+      sport: normalizeSport(entry.sport),
+      title: entry.title || entry.objective || entry.id,
+      durationMin: entry.durationMin,
+      durationMedian: Math.round((entry.durationMin[0] + entry.durationMin[1]) / 2),
+      structure: entry.structure,
+      zones: entry.zones,
+      metadata: entry,
+    }));
+}
+
+function buildCandidatesByChunk(
+  dumps: Array<string | null | undefined>,
+  metadata?: RepairWorkoutMetadata[][],
+  legacyTestMode?: LegacyRepairTestMode,
+): CatalogCandidate[][] {
+  return dumps.map((dump, index) => {
+    const legacy = parseCatalogCandidatesFromDump(dump);
+    const allowedIds = new Set(legacy.map(candidate => candidate.id.toUpperCase()));
+    const structured = catalogCandidatesFromMetadata(metadata?.[index], allowedIds);
+    if (structured.length > 0) return structured;
+    return legacyTestMode === TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES
+      ? legacy.map(candidate => ({ ...candidate, legacyTestOnly: true as const }))
+      : [];
+  });
+}
+
+function repairCandidateCompatible(
+  candidate: CatalogCandidate,
+  pool: CatalogCandidate[],
+  originalId: string | null | undefined,
+  context: RepairCompatibilityContext,
+): boolean {
+  if (candidate.legacyTestOnly && pool.every(item => item.legacyTestOnly)) return true;
+  if (!candidate.metadata || candidate.metadata.id.toUpperCase() !== candidate.id.toUpperCase()) return false;
+  const original = originalId
+    ? pool.find(item => item.id.toUpperCase() === originalId.toUpperCase())?.metadata
+    : null;
+  return evaluateRepairSportingEquivalence(original, candidate.metadata, context).compatible;
+}
+
 // Tolerance = max(±15min, ±20% target duration). Le +20% est indispensable
 // pour les sorties longues 3-4h où ±15min est structurellement introuvable.
 function computeToleranceMin(targetDur: number): number {
@@ -232,15 +295,18 @@ function findCatalogCandidateForSport(
   sport: NormalizedSport,
   durationMin: number,
   requiredClass?: IntensityClass,
+  originalId?: string | null,
+  context: RepairCompatibilityContext = {},
 ): { candidate: CatalogCandidate | null; delta: number } {
   const { ranked } = rankCandidatesBySport(candidates, sport, durationMin);
   const tolerance = computeToleranceMin(durationMin);
-  // Filtre intensité : on n'accepte que même classe. "unknown" = joker (compat).
+  // Filtre intensité : on n'accepte que la même classe ; unknown échoue fermé.
   const viable = ranked.find(x => {
     if (x.delta > tolerance) return false;
+    if (!repairCandidateCompatible(x.c, candidates, originalId, context)) return false;
     if (!requiredClass || requiredClass === "unknown") return true;
     const candClass = classifyIntensity(x.c.zones, `${x.c.title} ${x.c.structure}`);
-    if (candClass === "unknown") return true;
+    if (candClass === "unknown") return false;
     return candClass === requiredClass;
   });
   return viable ? { candidate: viable.c, delta: viable.delta } : { candidate: null, delta: -1 };
@@ -255,10 +321,12 @@ export function applyOffsportTrailGuardToChunks(
   chunks: PlanChunk[],
   objective: string | null | undefined,
   catalogDumpsByChunk: Array<string | null | undefined>,
+  repairCatalogsByChunk?: RepairWorkoutMetadata[][],
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: OffsportTrailRepair[] } {
   if (isTrailObjective(objective)) return { chunks, repairs: [] };
   const repairs: OffsportTrailRepair[] = [];
-  const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   // Repli catalogue global — même bug/même correctif que applyReconciler /
   // applySLFloorEnforcement / applyDailySessionFloorEnforcement (audit
   // "Test_Vince" puis audit systématique du reste du pipeline) : le dump
@@ -289,6 +357,7 @@ export function applyOffsportTrailGuardToChunks(
         // On retire le flag transitoire quoi qu'il arrive (ne doit pas fuiter).
         if ("__offsportTrail" in sess) delete sess.__offsportTrail;
         if (!matchedMarker) continue;
+        const originalCatalogId = typeof session.catalogId === "string" ? session.catalogId : null;
         // Force custom pour la substitution (un catalogId trail survivant devient custom).
         // PlanSession est une union discriminée par `custom` (planSchema.ts) —
         // basculer le discriminant par mutation directe n'est pas type-safe
@@ -310,12 +379,18 @@ export function applyOffsportTrailGuardToChunks(
         // local d'abord, puis repli catalogue global si rien trouvé (cf.
         // commentaire allCandidatesAllChunks ci-dessus).
         const attemptSubstitution = (pool: typeof candidates) => {
-          let res = findCatalogCandidateForSport(pool, sessionSport, targetDur, requiredClass);
+          const originalId = originalCatalogId;
+          const compatibilityContext: RepairCompatibilityContext = {
+            objective,
+            phase: String((week as any).phase ?? ""),
+            operation: originalId ? "replacement" : "insertion",
+          };
+          let res = findCatalogCandidateForSport(pool, sessionSport, targetDur, requiredClass, originalId, compatibilityContext);
           let sport = sessionSport;
           let viaBrick = false;
           // Brick → fallback bike si aucun candidat brick (même classe)
           if (!res.candidate && sessionSport === "brick") {
-            res = findCatalogCandidateForSport(pool, "bike", targetDur, requiredClass);
+            res = findCatalogCandidateForSport(pool, "bike", targetDur, requiredClass, originalId, compatibilityContext);
             if (res.candidate) { sport = "bike"; viaBrick = true; }
           }
           return { res, sport, viaBrick };
@@ -480,6 +555,9 @@ export function applySLFloorEnforcement(
   chunks: PlanChunk[],
   weeklyQuotas: Record<number, SLWeekFloor> | undefined | null,
   catalogDumpsByChunk: Array<string | null | undefined>,
+  repairCatalogsByChunk?: RepairWorkoutMetadata[][],
+  objective?: string | null,
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: SLUpgradeRepair[]; traces: string[] } {
   const repairs: SLUpgradeRepair[] = [];
   const traces: string[] = [];
@@ -487,7 +565,7 @@ export function applySLFloorEnforcement(
     traces.push(`[SL_FLOOR] skipped_reason=no_weekly_quotas_payload`);
     return { chunks, repairs, traces };
   }
-  const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   // Repli catalogue global — cf. commentaire équivalent dans applyReconciler
   // (bug réel "Test_Vince" : le dump rotationné d'un chunk peut ne contenir
   // AUCUNE fiche endurance/recovery du sport concerné, alors que le catalogue
@@ -545,9 +623,17 @@ export function applySLFloorEnforcement(
         }
 
         const target = sameSport.reduce((a, b) => (a.durationMin ?? 0) >= (b.durationMin ?? 0) ? a : b);
+        const originalId = (target as any).catalogId as string | null | undefined;
+        const repairContext: RepairCompatibilityContext = {
+          objective,
+          phase: String((week as any).phase ?? ""),
+          weekType: entry.weekType,
+          operation: "replacement",
+        };
 
         const buildEndurancePool = (pool: typeof candidates) => pool
           .filter(c => c.sport === spec.sport)
+          .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, originalId, repairContext))
           .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
           .filter(x => x.cls === "endurance" || x.cls === "recovery")
           .filter(x => x.c.durationMin[1] >= spec.floor || x.c.durationMedian >= spec.floor)
@@ -783,6 +869,9 @@ export function applyReconciler(
   weeklyQuotas: Record<number, any> | null | undefined,
   catalogDumpsByChunk: Array<string | null | undefined>,
   identifiedLimiters?: string[] | null,
+  repairCatalogsByChunk?: RepairWorkoutMetadata[][],
+  objective?: string | null,
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: ReconcilerRepair[]; traces: string[] } {
   const repairs: ReconcilerRepair[] = [];
   const traces: string[] = [];
@@ -790,7 +879,7 @@ export function applyReconciler(
     traces.push("[RECONCILER] skipped_reason=no_weekly_quotas");
     return { chunks, repairs, traces };
   }
-  const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   // Bug réel (audit "Test_Vince", plan 703 LCW 8 semaines) : V3_BIKE_FORCE_SFR
   // dupliqué mardi ET jeudi de S1, jamais corrigé malgré le dédoublonnage (c)
   // ci-dessous — root cause : la recherche d'alternative ne regardait QUE
@@ -905,6 +994,12 @@ export function applyReconciler(
           };
           const buildInsertPool = (src: typeof candidates) => src
             .filter(c => c.sport === sport)
+            .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, null, {
+              objective,
+              phase: String((week as any).phase ?? ""),
+              weekType: entry.weekType,
+              operation: "insertion",
+            }))
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
             // Pour swim/bike/run, le pool de réparation doit rester capable de
             // produire une séance CLÉ (cf. present ci-dessus) — "recovery" en est
@@ -1085,8 +1180,14 @@ export function applyReconciler(
           }
           const findAlt = (pool: typeof candidates) => pool
             .filter(c => c.sport === sport && !usedIdsThisWeek.has(c.id))
+            .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, (victim as any).catalogId, {
+              objective,
+              phase: String((week as any).phase ?? ""),
+              weekType: entry.weekType,
+              operation: "replacement",
+            }))
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
-            .filter(x => x.cls === victimClass || x.cls === "unknown")
+            .filter(x => x.cls === victimClass)
             .sort((a, b) => Math.abs(a.c.durationMedian - (victim.durationMin ?? 0)) - Math.abs(b.c.durationMedian - (victim.durationMin ?? 0)))[0]?.c
             ?? null;
           // Repli catalogue complet (tous chunks) si le dump rotationné de CE
@@ -1159,8 +1260,15 @@ export function applyReconciler(
           }
           const findAltNonFasted = (pool: typeof candidates) => pool
             .filter(c => c.sport === sport && !usedIdsThisWeek.has(c.id) && !FASTED_SESSION_PATTERN.test(`${c.title ?? ""} ${c.structure ?? ""}`))
+            .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, (victim as any).catalogId, {
+              objective,
+              phase: String((week as any).phase ?? ""),
+              weekType: entry.weekType,
+              operation: "replacement",
+              allowedCandidateIntentFamilies: ["endurance_fondamentale", "recuperation"],
+            }))
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
-            .filter(x => x.cls === victimClass || x.cls === "unknown")
+            .filter(x => x.cls === victimClass)
             .sort((a, b) => Math.abs(a.c.durationMedian - (victim.durationMin ?? 0)) - Math.abs(b.c.durationMedian - (victim.durationMin ?? 0)))[0]?.c
             ?? null;
           const alt = findAltNonFasted(candidates) ?? findAltNonFasted(allCandidatesAllChunks);
@@ -1257,36 +1365,6 @@ const LCW_HARD_ENFORCED_TARGETS: Array<{ id: string; sport: "bike" | "run"; day:
   { id: "B_LCW_RUN_OFF_LEGS_SUN", sport: "run", day: "dimanche", min: 3 },
 ];
 
-/**
- * Contenu de repli — bug réel (audit PDF, plans "Vince" successifs) : quand
- * la fiche n'est PAS présente dans le dump catalogue du chunk courant (elle
- * a pu être exclue par la rotation inter-chunk), l'ancienne version de ce
- * correctif forçait le `catalogId` mais laissait `title`/`details`
- * inchangés — le validateur passait au vert (il lit `catalogId` en
- * priorité), mais le plan livré à l'athlète ne montrait jamais le vrai
- * contenu de la séance signature (ni tag `[ID: ...]` visible, ni fiche
- * "FICHE COMPLÈTE BIBLIOTHÈQUE", puisque ce rendu réextrait l'ID depuis le
- * texte). On vérifiait la checklist sans jamais livrer la séance réelle.
- * Contenu ci-dessous = résumé fidèle de enrichedWorkoutsLCW.ts (source de
- * vérité de ces 2 fiches), utilisé UNIQUEMENT si le dump ne les contient pas.
- */
-const LCW_HARD_ENFORCED_FALLBACK_CONTENT: Record<string, {
-  title: string; details: string; durationMin: number; zones: string[];
-}> = {
-  B_LCW_BIKE_LONG_RACE_SAT: {
-    title: "Long ride race-pace samedi (LCW)",
-    details: "Warm-up 20' Z1→Z2 progressif + 3x2min @90% FTP r=2min. Main : 2h-2h30 continu à IF 0.82-0.85 (85-88% FTP autorisé — PAS de course immédiate derrière, spécificité LCW vs brick 70.3 classique). Position aéro tenue ≥80% du temps. Nutrition race 80-100g CHO/h + 500-750mL/h. Cool-down 10' Z1 + spin-out. [ID: B_LCW_BIKE_LONG_RACE_SAT]",
-    durationMin: 165,
-    zones: ["Z3", "Z4"],
-  },
-  B_LCW_RUN_OFF_LEGS_SUN: {
-    title: "Long run jambes fatiguées dimanche (LCW)",
-    details: "Warm-up 15' Z1→Z2 très progressif (jambes lourdes normales) + 4 lignes droites relance. Main : 45-90min à allure race cible 70.3 sur jambes fatiguées du vélo de la veille — angle mort absolu des plans 70.3 continus, JAMAIS sans B_LCW_BIKE_LONG_RACE_SAT la veille. Cadence stable 178-184spm. Nutrition 60-80g CHO/h. Cool-down 10-15' Z1 + mobilité mollets/quadriceps. [ID: B_LCW_RUN_OFF_LEGS_SUN]",
-    durationMin: 75,
-    zones: ["Z3", "Z4"],
-  },
-};
-
 export function applyLcwSignatureEnforcement(
   chunks: PlanChunk[],
   catalogDumpsByChunk: Array<string | null | undefined>,
@@ -1297,6 +1375,8 @@ export function applyLcwSignatureEnforcement(
   // HandlerInput.regenerateWeek.lcwSignatureCountsElsewhere. `{}` en
   // génération complète/fenêtre : `chunks` y couvre déjà tout le plan.
   alreadySatisfiedElsewhere: Record<string, number> = {},
+  repairCatalogsByChunk?: RepairWorkoutMetadata[][],
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: LcwSignatureRepair[]; traces: string[] } {
   const repairs: LcwSignatureRepair[] = [];
   const traces: string[] = [];
@@ -1309,7 +1389,8 @@ export function applyLcwSignatureEnforcement(
   chunks.forEach((chunk, ci) => {
     for (const week of chunk.weeks ?? []) allWeeks.push({ ci, week });
   });
-  const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
+  const allCandidates = candidatesByChunk.flat();
 
   for (const target of LCW_HARD_ENFORCED_TARGETS) {
     const hasId = (week: PlanChunk["weeks"][number]) =>
@@ -1354,31 +1435,28 @@ export function applyLcwSignatureEnforcement(
       const mutable = slot as any;
       const beforeId = mutable.catalogId ?? null;
       const beforeDay = mutable.day;
-      if (fiche) {
-        mutable.title = fiche.title;
-        mutable.details = `${fiche.structure || fiche.title}. [ID: ${fiche.id}]`;
-        mutable.catalogId = fiche.id;
-        mutable.custom = false;
-        mutable.durationMin = Math.round(fiche.durationMedian) || mutable.durationMin;
-        mutable.zones = fiche.zones;
-        if (!sameDaySameSport) mutable.day = target.day;
-      } else {
-        // Fiche absente du dump de CE chunk (rotation catalogue) — on utilise
-        // le contenu de repli connu (voir LCW_HARD_ENFORCED_FALLBACK_CONTENT)
-        // plutôt que de forcer un catalogId "muet" : garantit que la séance
-        // livrée à l'athlète correspond réellement à sa signature LCW, pas
-        // seulement que le validateur la voit.
-        const fallback = LCW_HARD_ENFORCED_FALLBACK_CONTENT[target.id];
-        mutable.catalogId = target.id;
-        mutable.custom = false;
-        if (fallback) {
-          mutable.title = fallback.title;
-          mutable.details = fallback.details;
-          mutable.durationMin = fallback.durationMin;
-          mutable.zones = fallback.zones;
-        }
-        if (!sameDaySameSport) mutable.day = target.day;
+      if (!fiche || !repairCandidateCompatible(fiche, allCandidates, beforeId, {
+          objective: (planConfig as any)?.catalogObjective ?? (planConfig as any)?.objective ?? null,
+          phase: String((week as any).phase ?? ""),
+          operation: "replacement",
+        })) {
+        traces.push(`[LCW_SIGNATURE] S${week.weekNumber} ${target.id} action=unresolved_sporting_incompatibility`);
+        repairs.push({
+          code: "lcw_signature_unresolved",
+          severity: "critical",
+          weekNumber: week.weekNumber,
+          catalogId: target.id,
+          reason: `remplacement ${beforeId ?? "custom"} → ${target.id} non vérifiable ou sportivement incompatible`,
+        });
+        continue;
       }
+      mutable.title = fiche.title;
+      mutable.details = `${fiche.structure || fiche.title}. [ID: ${fiche.id}]`;
+      mutable.catalogId = fiche.id;
+      mutable.custom = false;
+      mutable.durationMin = Math.round(fiche.durationMedian) || mutable.durationMin;
+      mutable.zones = fiche.zones;
+      if (!sameDaySameSport) mutable.day = target.day;
       have++;
       traces.push(
         `[LCW_SIGNATURE] S${week.weekNumber} enforced ${target.id} (was day=${beforeDay} catalogId=${beforeId ?? "null"}, fiche_in_dump=${!!fiche})`,
@@ -1437,6 +1515,8 @@ export function applyDailySessionFloorEnforcement(
   catalogDumpsByChunk: Array<string | null | undefined>,
   objective: string | null | undefined,
   ambition: string | null | undefined,
+  repairCatalogsByChunk?: RepairWorkoutMetadata[][],
+  legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: DailyFloorRepair[]; traces: string[] } {
   const repairs: DailyFloorRepair[] = [];
   const traces: string[] = [];
@@ -1452,7 +1532,7 @@ export function applyDailySessionFloorEnforcement(
     traces.push("[DAILY_FLOOR] skipped_reason=no_weekly_quotas");
     return { chunks, repairs, traces };
   }
-  const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
   // Repli catalogue global — cf. commentaire équivalent dans applyReconciler
   // (le dump rotationné d'un chunk peut ne contenir aucune fiche du sport
   // complémentaire requis, sans que ça reflète une vraie absence côté
@@ -1518,6 +1598,12 @@ export function applyDailySessionFloorEnforcement(
         const targetDur = complementSport === "strength" ? 40 : 45;
         const buildComplementPool = (src: typeof candidates) => src
           .filter(c => c.sport === complementSport)
+          .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, null, {
+            objective,
+            phase: String((week as any).phase ?? ""),
+            weekType: entry.weekType,
+            operation: "insertion",
+          }))
           .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
           .filter(x => x.cls === "endurance" || x.cls === "recovery" || (complementSport === "strength" && x.cls === "unknown"))
           .sort((a, b) => {
@@ -1568,6 +1654,52 @@ export function applyDailySessionFloorEnforcement(
   return { chunks, repairs, traces };
 }
 
+/** Legacy markdown fixtures must opt in explicitly; the production handler never uses these wrappers. */
+export const testOnlyApplyOffsportTrailGuardToChunks = (
+  chunks: PlanChunk[],
+  objective: string | null | undefined,
+  dumps: Array<string | null | undefined>,
+  metadata?: RepairWorkoutMetadata[][],
+) => applyOffsportTrailGuardToChunks(chunks, objective, dumps, metadata, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES);
+
+export const testOnlyApplySLFloorEnforcement = (
+  chunks: PlanChunk[],
+  quotas: Record<number, SLWeekFloor> | undefined | null,
+  dumps: Array<string | null | undefined>,
+  metadata?: RepairWorkoutMetadata[][],
+  objective?: string | null,
+) => applySLFloorEnforcement(chunks, quotas, dumps, metadata, objective, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES);
+
+export const testOnlyApplyReconciler = (
+  chunks: PlanChunk[],
+  quotas: Record<number, any> | null | undefined,
+  dumps: Array<string | null | undefined>,
+  limiters?: string[] | null,
+  metadata?: RepairWorkoutMetadata[][],
+  objective?: string | null,
+) => applyReconciler(chunks, quotas, dumps, limiters, metadata, objective, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES);
+
+export const testOnlyApplyLcwSignatureEnforcement = (
+  chunks: PlanChunk[],
+  dumps: Array<string | null | undefined>,
+  planConfig: unknown,
+  alreadySatisfiedElsewhere: Record<string, number> = {},
+  metadata?: RepairWorkoutMetadata[][],
+) => applyLcwSignatureEnforcement(
+  chunks, dumps, planConfig, alreadySatisfiedElsewhere, metadata, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES,
+);
+
+export const testOnlyApplyDailySessionFloorEnforcement = (
+  chunks: PlanChunk[],
+  quotas: Record<number, WeeklyQuotaEntry> | null | undefined,
+  dumps: Array<string | null | undefined>,
+  objective: string | null | undefined,
+  ambition: string | null | undefined,
+  metadata?: RepairWorkoutMetadata[][],
+) => applyDailySessionFloorEnforcement(
+  chunks, quotas, dumps, objective, ambition, metadata, TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES,
+);
+
 
 
 /**
@@ -1607,7 +1739,9 @@ interface HandlerInput {
   } | null;
   workoutCatalog?: string;
   phaseCatalogs?: Record<string, string>;
+  phaseRepairCatalogs?: Record<string, RepairWorkoutMetadata[]>;
   chunkCatalogs?: string[];
+  chunkRepairCatalogs?: RepairWorkoutMetadata[][];
   /**
    * Catalogue RESTREINT (phase forcée "base", donc sans fiches build/peak
    * intenses) pour les semaines de régénération inter-cycles couvertes par
@@ -1617,6 +1751,7 @@ interface HandlerInput {
    * régénération post-pic", plan Emanuela).
    */
   chunkRegenCatalogs?: string[];
+  chunkRegenRepairCatalogs?: RepairWorkoutMetadata[][];
   /** Numéros de semaine (locaux) couverts par `chunkRegenCatalogs[i]`, index aligné. */
   chunkRegenWeeks?: number[][];
   catalogDurationStats?: any;
@@ -1648,6 +1783,26 @@ function resolvePhaseCatalog(
     }
   }
   return (workoutCatalog && typeof workoutCatalog === "string") ? workoutCatalog : "";
+}
+
+function resolvePhaseRepairCatalog(
+  phase: string,
+  phaseCatalogs: Record<string, RepairWorkoutMetadata[]> | undefined,
+): RepairWorkoutMetadata[] {
+  if (!phaseCatalogs || typeof phaseCatalogs !== "object") return [];
+  const phaseMap: Record<string, string> = {
+    "fondation": "base", "base": "base", "adaptation": "base",
+    "build": "build", "chantier": "build", "consolidation": "build", "développement": "build",
+    "spécifique": "peak", "peak": "peak", "race-specific": "peak", "compétition": "peak",
+    "affûtage": "taper", "taper": "taper", "pre-race": "taper",
+  };
+  const key = phaseMap[String(phase ?? "").toLowerCase()] || "build";
+  const direct = phaseCatalogs[key];
+  if (Array.isArray(direct) && direct.length > 0) return direct;
+  for (const fallback of ["build", "base", "peak", "taper"]) {
+    if (Array.isArray(phaseCatalogs[fallback]) && phaseCatalogs[fallback].length > 0) return phaseCatalogs[fallback];
+  }
+  return [];
 }
 
 /**
@@ -1714,7 +1869,8 @@ export function inferPhaseFromWeek(
 export function handleJSONPlanRequest(input: HandlerInput): Response {
   const {
     apiKey, athleteData, planConfig, regenerateWeek,
-    workoutCatalog, phaseCatalogs, chunkCatalogs, chunkRegenCatalogs, chunkRegenWeeks, catalogDurationStats,
+    workoutCatalog, phaseCatalogs, phaseRepairCatalogs, chunkCatalogs, chunkRepairCatalogs,
+    chunkRegenCatalogs, chunkRegenRepairCatalogs, chunkRegenWeeks, catalogDurationStats,
     corsHeaders,
   } = input;
 
@@ -1805,6 +1961,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
         const collectedChunks: PlanChunk[] = [];
         const catalogDumpsByChunk: string[] = [];
+        const repairCatalogsByChunk: RepairWorkoutMetadata[][] = [];
         // P2 diversité — mémoire des catalogId déjà consommés par les chunks
         // précédents. Injectée dans le prompt du chunk suivant avec une règle
         // de non-réemploi explicite (interdit ≥2 usages, à éviter à 1 usage).
@@ -1870,6 +2027,17 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             : null;
 
           catalogDumpsByChunk[ci] = regenCatalogBlock ? `${catalogDump}\n${regenCatalogDump}` : catalogDump;
+          const primaryRepairCatalog = Array.isArray(chunkRepairCatalogs?.[ci]) && chunkRepairCatalogs![ci].length > 0
+            ? chunkRepairCatalogs![ci]
+            : resolvePhaseRepairCatalog(activePhase, phaseRepairCatalogs);
+          const regenRepairCatalog = Array.isArray(chunkRegenRepairCatalogs?.[ci])
+            ? chunkRegenRepairCatalogs![ci]
+            : [];
+          const repairById = new Map<string, RepairWorkoutMetadata>();
+          for (const metadata of [...primaryRepairCatalog, ...regenRepairCatalog]) {
+            if (metadata?.id) repairById.set(metadata.id.toUpperCase(), metadata);
+          }
+          repairCatalogsByChunk[ci] = [...repairById.values()];
 
           const allowedIds = extractCatalogIdsFromDump(catalogDump)
             .concat(regenCatalogDump ? extractCatalogIdsFromDump(regenCatalogDump) : []);
@@ -2099,6 +2267,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             collectedChunks,
             planConfig?.catalogObjective ?? planConfig?.objective ?? null,
             catalogDumpsByChunk,
+            repairCatalogsByChunk,
           );
           for (const repair of guard.repairs) {
             const msg = repair.code === "substituted_offsport"
@@ -2136,6 +2305,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             guard.chunks,
             planConfig?._weeklyQuotas ?? null,
             catalogDumpsByChunk,
+            repairCatalogsByChunk,
+            planConfig?.catalogObjective ?? planConfig?.objective ?? null,
           );
           for (const line of slEnforce.traces) {
             console.log(line);
@@ -2161,6 +2332,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             planConfig?._weeklyQuotas ?? null,
             catalogDumpsByChunk,
             planConfig?.identifiedLimitersRaw ?? planConfig?.identifiedLimiters ?? null,
+            repairCatalogsByChunk,
+            planConfig?.catalogObjective ?? planConfig?.objective ?? null,
           );
           for (const line of reconciled.traces) {
             console.log(line);
@@ -2202,6 +2375,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             catalogDumpsByChunk,
             planConfig,
             regenerateWeek?.lcwSignatureCountsElsewhere ?? planConfig?.lcwSignatureCountsElsewhere ?? {},
+            repairCatalogsByChunk,
           );
           for (const line of lcwEnforced.traces) {
             console.log(line);
@@ -2239,6 +2413,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
                 catalogDumpsByChunk,
                 planConfig?.catalogObjective ?? planConfig?.objective ?? null,
                 planConfig?.ambitionMeta?.effective ?? planConfig?.ambition ?? null,
+                repairCatalogsByChunk,
               );
           for (const line of dailyFloorEnforced.traces) {
             console.log(line);

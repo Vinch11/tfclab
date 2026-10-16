@@ -73,17 +73,17 @@ describe("runReconciler/findReplacement — garde-fou objectif/distance RACE-SIM
     expect(rec.counters.phase_substituted).toBe(0);
   });
 
-  it("objectif 10K : V3_RUN_10K_RACE_SIM est native — le même candidat reste sélectionnable par la réparation PHASE", () => {
+  it("objectif 10K : une race-sim native reste refusée si elle change l'intention seuil initiale", () => {
     const s = makeSession();
     const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { objectiveKey: "10K", globalTotalWeeks: 12 });
-    expect(s.catalogId).toBe("V3_RUN_10K_RACE_SIM");
-    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("ORIG_RUN_BASE_ONLY");
+    expect(rec.counters.phase_unresolved).toBe(1);
   });
 
-  it("sans objectiveKey (legacy, non fourni) : comportement inchangé — aucune exclusion nouvelle n'est introduite silencieusement par défaut", () => {
+  it("sans objectiveKey : l'absence d'objectif ne transforme pas race-sim en joker d'intention", () => {
     const s = makeSession();
     const rec = runReconciler([makeChunk(s)], {}, 1, undefined, { globalTotalWeeks: 12 });
-    expect(s.catalogId).toBe("V3_RUN_10K_RACE_SIM");
-    expect(rec.counters.phase_substituted).toBe(1);
+    expect(s.catalogId).toBe("ORIG_RUN_BASE_ONLY");
+    expect(rec.counters.phase_unresolved).toBe(1);
   });
 });

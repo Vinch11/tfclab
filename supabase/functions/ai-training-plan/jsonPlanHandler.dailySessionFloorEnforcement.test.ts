@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
-import { applyDailySessionFloorEnforcement } from "./jsonPlanHandler.ts";
+import { testOnlyApplyDailySessionFloorEnforcement as applyDailySessionFloorEnforcement } from "./jsonPlanHandler.ts";
 
 /**
  * Bug réel confirmé sur PLUSIEURS régénérations successives du plan "Vince"

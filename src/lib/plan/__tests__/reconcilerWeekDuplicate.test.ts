@@ -18,33 +18,33 @@ vi.mock("@/lib/workoutLibrary", () => {
     // donc phase-incompatible pour les deux séances mardi/mercredi.
     {
       id: "BUILD_FICHE_RUN",
-      cat: "B", sport: "run", objectif: "Séance build", necessite: "Recommandé",
+      cat: "B", sport: "run", objectif: "VO2 séance build", necessite: "Recommandé",
       when: "Build", phase: ["build"],
       avoid: "", durationMin: [55, 70], metricKey: "pace", sportKey: "run",
       structure: [{ part: "Main", text: "VO2max", zones: ["Z5"] }],
-      variants: {}, tags: ["vo2max"], goals: ["10k", "semi"],
+      variants: {}, tags: ["vo2"], goals: ["10k", "semi"],
     },
     // Candidat Base IDÉAL : même cat + mêmes goals que l'original → score
     // d'intention largement supérieur au 2e candidat (écart ≫ 25, la
     // pénalité du ledger est donc structurellement insuffisante seule).
     {
       id: "BASE_IDEAL_RUN",
-      cat: "B", sport: "run", objectif: "Base idéale", necessite: "Recommandé",
+      cat: "B", sport: "run", objectif: "VO2 base idéale", necessite: "Recommandé",
       when: "Base", phase: ["base", "build"],
       avoid: "", durationMin: [55, 70], metricKey: "pace", sportKey: "run",
       structure: [{ part: "Main", text: "Z2", zones: ["Z5"] }],
-      variants: {}, tags: ["base"], goals: ["10k", "semi"],
+      variants: {}, tags: ["vo2", "base"], goals: ["10k", "semi"],
     },
     // Candidat Base alternatif : seule fiche restante une fois BASE_IDEAL_RUN
     // exclue — c'est elle que le filet de dédoublonnage doit choisir pour la
     // 2e occurrence.
     {
       id: "BASE_ALT_RUN",
-      cat: "C", sport: "run", objectif: "Base alternative", necessite: "Recommandé",
+      cat: "C", sport: "run", objectif: "VO2 base alternative", necessite: "Recommandé",
       when: "Base", phase: ["base", "build"],
       avoid: "", durationMin: [50, 75], metricKey: "pace", sportKey: "run",
       structure: [{ part: "Main", text: "Z2", zones: ["Z5"] }],
-      variants: {}, tags: ["base"], goals: [],
+      variants: {}, tags: ["vo2", "base"], goals: [],
     },
   ];
   return { WorkoutLibrary: fiches };
