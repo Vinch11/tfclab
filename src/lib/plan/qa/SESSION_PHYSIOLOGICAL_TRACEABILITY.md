@@ -17,14 +17,18 @@ mutations et réparations, sur le `MergedPlan` réellement livré au cockpit.
 ## Sens des statuts
 
 - `verified` : l'identité catalogue finale est autorisée pour le run, les
-  métadonnées sont présentes, un couple limiteur–levier actif possède un
-  contrat compatible avec l'intention, la durée et l'intensité finales restent
-  dans les bornes de la fiche, et les confiances diagnostic/stratégie ne sont
-  pas faibles.
+  métadonnées sont présentes, l'ID appartient explicitement au catalogue autorisé
+  de la génération, un couple limiteur–levier actif possède un contrat compatible
+  avec l'intention, la dose finale ne présente aucune contradiction de durée,
+  d'intensité ou de structure comparable (répétitions/récupérations), et les
+  confiances diagnostic/stratégie ne sont pas faibles.
 - `uncertain` : une partie de la chaîne est démontrée, mais la dose, le couple
   causal, la confiance ou une incompatibilité empêche une validation complète.
 - `not_verified` : les données structurées sont insuffisantes, par exemple une
-  séance custom sans `catalogId`. Le système ne fabrique alors aucun limiteur,
+  séance custom sans `catalogId`. L'absence de liste `allowedCatalogIds` est
+  signalée et interdit également toute certification `verified` ; une liste
+  présente mais vide ou sans l'ID final constitue un conflit critique.
+  Le système ne fabrique alors aucun limiteur,
   levier ou objectif.
 - `not_applicable` : jour de repos.
 
