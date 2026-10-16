@@ -93,6 +93,8 @@ describe("buildSessionPhysiologicalTraceability", () => {
       now: new Date("2026-10-16T00:00:00Z"),
     });
 
+    console.log("TRACE_DEBUG_COHERENT", JSON.stringify(report));
+
     expect(report.summary).toMatchObject({ activeSessions: 1, verified: 1, critical: 0 });
     expect(report.sessions[0]).toMatchObject({
       status: "verified",
@@ -198,6 +200,8 @@ describe("buildSessionPhysiologicalTraceability", () => {
       }),
       catalog: [threshold],
     });
+
+    console.log("TRACE_DEBUG_PRIORITY", JSON.stringify(report));
 
     expect(report.sessions[0].status).toBe("verified");
     expect(report.anomalies).toEqual(expect.arrayContaining([
