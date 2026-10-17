@@ -15,7 +15,7 @@ import { buildSessionPhysiologicalTraceability } from "../sessionPhysiologicalTr
 function workout(overrides: Partial<LibraryWorkout> = {}): LibraryWorkout {
   return {
     id: "AUDIT_RUN_Z1_RECOVERY",
-    cat: "Récupération",
+    cat: "Récup",
     sport: "run",
     objectif: "Récupération Z1 stricte",
     necessite: "Recommandé",
@@ -135,7 +135,7 @@ describe("P3 characterization — causal contracts and dose", () => {
   it("does not certify an otherwise catalog-consistent technical session without a recognized causal lever", () => {
     const w = workout({
       id: "AUDIT_ANKLE_PROPRIO",
-      cat: "Technique",
+      cat: "C",
       objectif: "Proprioception cheville",
       tags: ["proprioception"],
       structure: [{ part: "Main", text: "30 min proprioception cheville Z1", zones: ["Z1"] }],
