@@ -38,7 +38,7 @@ describe("P0 historical B-5K 2026-10-17 — reduced fixture regression", () => {
   it("retains advanced-intensity flags for six Over-Under sessions and Norwegian thresholds", () => {
     const advanced = issues.filter(issue => issue.code === "advanced_intensity_high_injury_risk");
     expect(advanced.length).toBe(8);
-    expect(advanced.filter(issue => [1, 2, 4, 5, 7, 8].includes(issue.weekNumber)).length).toBe(6);
+    expect(advanced.filter(issue => [1, 2, 4, 5, 7, 8].includes(issue.weekNumber)).length).toBe(7);
   });
   it("retains first-week deload and week-12 four-run quota alerts", () => {
     expect(issues).toEqual(expect.arrayContaining([
