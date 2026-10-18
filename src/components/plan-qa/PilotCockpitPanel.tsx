@@ -100,7 +100,11 @@ function buildExportPayload(profile: QAProfile, result: PilotCockpitResult) {
 }
 
 export function PilotCockpitPanel() {
-  const { isRunning, lastResult, runProfile, checkBudget, budget, chunkProgress } = usePilotCockpit();
+  const { isRunning, lastResult, runProfile, checkBudget, budget, chunkProgress, exportLastRunSafety } = usePilotCockpit();
+  const [p0Week1Hours, setP0Week1Hours] = useState("");
+  const [p0RampPct, setP0RampPct] = useState("");
+  const [p0RunQuota, setP0RunQuota] = useState("");
+  const [p0HighRisk, setP0HighRisk] = useState(false);
   const [selectedId, setSelectedId] = useState<string>(PILOT_PROFILES[0].id);
   const [pendingConfirm, setPendingConfirm] = useState<{ profile: QAProfile; check: BudgetCheckResult } | null>(null);
 
@@ -135,6 +139,38 @@ export function PilotCockpitPanel() {
     const payload = buildExportPayload(profile, lastResult);
     const dateStr = new Date(lastResult.ts).toISOString().slice(0, 10);
     downloadJSON(payload, `${dateStr}_${profile.id}_run1.json`);
+  };
+
+  const handleSafetyExport = () => {
+    if (!lastResult?.merged || lastResult.profileId !== "B-5K-BEGINNER") return;
+    const hours = p0Week1Hours.trim() === "" ? null : Number(p0Week1Hours);
+    const ramp = p0RampPct.trim() === "" ? null : Number(p0RampPct);
+    const quota = p0RunQuota.trim() === "" ? null : Number(p0RunQuota);
+    if ((hours !== null && (!Number.isFinite(hours) || hours <= 0)) ||
+        (ramp !== null && (!Number.isFinite(ramp) || ramp < 0 || ramp > 100)) ||
+        (quota !== null && (!Number.isInteger(quota) || quota < 1))) {
+      toast.error("Contrats CAP invalides : corrigez les valeurs avant export.");
+      return;
+    }
+    const report = exportLastRunSafety({
+      trainingLevel: "untrained",
+      highRunInjuryRisk: p0HighRisk,
+      week1RunHoursMax: hours,
+      weeklyRunIncreasePctMax: ramp === null ? null : ramp / 100,
+      runSessionsPerWeek: quota,
+      hasPriorLoadForDeload: false,
+    });
+    if (!report) return;
+    downloadJSON({
+      ...report,
+      coachSuppliedContracts: {
+        week1RunHoursMax: hours, weeklyRunIncreasePctMax: ramp === null ? null : ramp / 100,
+        runSessionsPerWeek: quota, highRunInjuryRisk: p0HighRisk,
+        hasPriorLoadForDeload: false,
+        note: "Hypothèses explicites du coach ; champs vides = contrôle non évalué. Historique antérieur non confirmé.",
+      },
+    }, `${new Date(lastResult.ts).toISOString().slice(0, 10)}_B-5K-BEGINNER_audit-P0.json`);
+    toast.success("Audit P0 exporté localement, sans appel IA.");
   };
 
   const criticalIssues = lastResult?.validatorResult?.issues.filter((i) => i.severity === "error") ?? [];
@@ -362,6 +398,41 @@ export function PilotCockpitPanel() {
                 ? `${lastResult.usage.totalChunksSeen} chunk(s) complété(s), ${lastResult.usage.totalTokens} tokens mesurés (${lastResult.usage.chunksWithUsage}/${lastResult.usage.totalChunksSeen} avec usage renvoyé par le gateway)`
                 : "usage NON CONFIRMÉ par le gateway (échec avant tout retour d'usage) — ceci ne signifie PAS qu'aucun coût n'a été facturé ; un appel au modèle a pu avoir lieu avant l'échec. Estimation par plage retenue par précaution (voir Budget pilote ci-dessus)."}
             </div>
+
+            {lastResult.profileId === "B-5K-BEGINNER" && lastResult.merged && (
+              <div className="rounded-md border p-3 space-y-3">
+                <div className="text-sm font-medium">Audit P0 débutant — diagnostic local uniquement</div>
+                <p className="text-xs text-muted-foreground">
+                  Renseignez uniquement des plafonds CAP confirmés. Les champs vides ne sont pas évalués.
+                  Le renforcement est exclu. Risque élevé non coché par défaut ; historique antérieur non confirmé.
+                  Le fichier contient le plan complet : à conserver de manière confidentielle.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <label className="text-xs space-y-1">
+                    <span>Plafond CAP S1 (heures)</span>
+                    <input className="w-full rounded border bg-background px-2 py-1" type="number" min="0.1" step="0.1"
+                      value={p0Week1Hours} onChange={e => setP0Week1Hours(e.target.value)} placeholder="Non évalué" />
+                  </label>
+                  <label className="text-xs space-y-1">
+                    <span>Hausse CAP max (%)</span>
+                    <input className="w-full rounded border bg-background px-2 py-1" type="number" min="0" max="100" step="1"
+                      value={p0RampPct} onChange={e => setP0RampPct(e.target.value)} placeholder="Non évalué" />
+                  </label>
+                  <label className="text-xs space-y-1">
+                    <span>Séances CAP / semaine</span>
+                    <input className="w-full rounded border bg-background px-2 py-1" type="number" min="1" step="1"
+                      value={p0RunQuota} onChange={e => setP0RunQuota(e.target.value)} placeholder="Non évalué" />
+                  </label>
+                </div>
+                <label className="flex items-center gap-2 text-xs">
+                  <input type="checkbox" checked={p0HighRisk} onChange={e => setP0HighRisk(e.target.checked)} />
+                  Risque de blessure CAP élevé (confirmé par le coach)
+                </label>
+                <Button variant="outline" size="sm" onClick={handleSafetyExport}>
+                  Exporter audit P0 + plan complet (JSON, sans IA)
+                </Button>
+              </div>
+            )}
 
             <Button variant="outline" size="sm" onClick={handleExport} disabled={!lastResult.merged}>
               Exporter le plan complet (JSON)
