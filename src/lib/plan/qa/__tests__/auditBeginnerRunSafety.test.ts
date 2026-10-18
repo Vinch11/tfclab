@@ -38,7 +38,7 @@ describe("P0 B-5K — deterministic read-only run safety audit", () => {
   it("detects a 20% increase over a 10% weekly cap", () => {
     const issues = auditBeginnerRunSafety(plan([[run(1, 1, 50)], [run(2, 1, 60)]]), beginner);
     expect(issues).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: "weekly_volume_ramp_exceeded", weekNumber: 2, actual: 60, limit: 55 }),
+      expect.objectContaining({ code: "weekly_volume_ramp_exceeded", weekNumber: 2, actual: 60, limit: expect.closeTo(55, 8) }),
     ]));
   });
   it("detects four running sessions against a three-run quota", () => {
