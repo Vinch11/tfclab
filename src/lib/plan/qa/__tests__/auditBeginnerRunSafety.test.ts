@@ -61,6 +61,31 @@ describe("P0 B-5K — deterministic read-only run safety audit", () => {
     expect(auditBeginnerRunSafety(p, { ...beginner, hasPriorLoadForDeload: true })
       .some(i => i.code === "unjustified_initial_deload")).toBe(false);
   });
+  it("links a session-level advanced alert to its exact week/day/catalog and dose", () => {
+    const session = {
+      ...run(1, 5, 60, "Over-Under seuil"),
+      catalogId: "V2_RUN_OVER_UNDER",
+    };
+    const issues = auditBeginnerRunSafety(plan([[session]]), beginner);
+    expect(issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: "advanced_intensity_high_injury_risk",
+        sessionRef: "w1-d5-V2_RUN_OVER_UNDER",
+        sessionTitle: "Over-Under seuil",
+        catalogId: "V2_RUN_OVER_UNDER",
+        sessionDurationMin: 60,
+      }),
+    ]));
+  });
+  it("keeps week-level volume alerts without a misleading session identity", () => {
+    const issues = auditBeginnerRunSafety(plan([[run(1, 1, 90)]]), beginner);
+    expect(issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: "week_one_volume_exceeded",
+        sessionRef: null, sessionTitle: null, catalogId: null, sessionDurationMin: null,
+      }),
+    ]));
+  });
   it("does not apply beginner-only restrictions to trained athletes", () => {
     const p = plan([[run(1, 1, 90, "Over-Under") ]]);
     expect(auditBeginnerRunSafety(p, { ...beginner, trainingLevel: "trained" })).toEqual([]);
