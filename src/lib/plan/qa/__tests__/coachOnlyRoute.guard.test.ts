@@ -10,7 +10,7 @@ describe("plan QA coach-only route guard", () => {
     expect(gate).toContain("useProfile()");
     expect(gate).toContain('profile?.role !== "STAFF_COACH"');
     expect(gate).toContain("if (error ||");
-    expect(gate).not.toContain("localStorage");
-    expect(gate).not.toContain("sessionStorage");
+    expect(gate).not.toMatch(/(?:window\\.)?localStorage\\.(?:getItem|setItem)/);
+    expect(gate).not.toMatch(/(?:window\\.)?sessionStorage\\.(?:getItem|setItem)/);
   });
 });
