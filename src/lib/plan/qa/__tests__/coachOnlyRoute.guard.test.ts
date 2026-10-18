@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-
-const app = readFileSync(new URL("../../../../App.tsx", import.meta.url), "utf8");
-const gate = readFileSync(new URL("../../../../components/CoachOnlyGate.tsx", import.meta.url), "utf8");
+import app from "../../../../App.tsx?raw";
+import gate from "../../../../components/CoachOnlyGate.tsx?raw";
 
 describe("plan QA coach-only route guard", () => {
   it("wraps the sensitive plan QA page in the staff gate", () => {
