@@ -104,7 +104,7 @@ export function PilotCockpitPanel() {
   const [p0Week1Hours, setP0Week1Hours] = useState("");
   const [p0RampPct, setP0RampPct] = useState("");
   const [p0RunQuota, setP0RunQuota] = useState("");
-  const [p0HighRisk, setP0HighRisk] = useState(false);
+  const [p0HighRisk, setP0HighRisk] = useState<"unknown" | "yes" | "no">("unknown");
   const [selectedId, setSelectedId] = useState<string>(PILOT_PROFILES[0].id);
   const [pendingConfirm, setPendingConfirm] = useState<{ profile: QAProfile; check: BudgetCheckResult } | null>(null);
 
@@ -154,7 +154,7 @@ export function PilotCockpitPanel() {
     }
     const report = exportLastRunSafety({
       trainingLevel: "untrained",
-      highRunInjuryRisk: p0HighRisk,
+      highRunInjuryRisk: p0HighRisk === "yes",
       week1RunHoursMax: hours,
       weeklyRunIncreasePctMax: ramp === null ? null : ramp / 100,
       runSessionsPerWeek: quota,
@@ -165,7 +165,8 @@ export function PilotCockpitPanel() {
       ...report,
       coachSuppliedContracts: {
         week1RunHoursMax: hours, weeklyRunIncreasePctMax: ramp === null ? null : ramp / 100,
-        runSessionsPerWeek: quota, highRunInjuryRisk: p0HighRisk,
+        runSessionsPerWeek: quota, highRunInjuryRisk: p0HighRisk === "yes",
+        highRunInjuryRiskAssessment: p0HighRisk,
         hasPriorLoadForDeload: false,
         note: "Hypothèses explicites du coach ; champs vides = contrôle non évalué. Historique antérieur non confirmé.",
       },
@@ -404,7 +405,7 @@ export function PilotCockpitPanel() {
                 <div className="text-sm font-medium">Audit P0 débutant — diagnostic local uniquement</div>
                 <p className="text-xs text-muted-foreground">
                   Renseignez uniquement des plafonds CAP confirmés. Les champs vides ne sont pas évalués.
-                  Le renforcement est exclu. Risque élevé non coché par défaut ; historique antérieur non confirmé.
+                  Le renforcement est exclu. Risque de blessure inconnu par défaut (contrôle d’intensité avancée non évalué si inconnu) ; historique antérieur non confirmé.
                   Le fichier contient le plan complet : à conserver de manière confidentielle.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -424,9 +425,14 @@ export function PilotCockpitPanel() {
                       value={p0RunQuota} onChange={e => setP0RunQuota(e.target.value)} placeholder="Non évalué" />
                   </label>
                 </div>
-                <label className="flex items-center gap-2 text-xs">
-                  <input type="checkbox" checked={p0HighRisk} onChange={e => setP0HighRisk(e.target.checked)} />
-                  Risque de blessure CAP élevé (confirmé par le coach)
+                <label className="flex flex-col gap-1 text-xs">
+                  <span>Risque de blessure CAP (évaluation coach)</span>
+                  <select className="w-full rounded border bg-background px-2 py-1" value={p0HighRisk}
+                    onChange={e => setP0HighRisk(e.target.value as "unknown" | "yes" | "no")}>
+                    <option value="unknown">Inconnu — contrôle intensité non évalué</option>
+                    <option value="yes">Élevé — confirmé</option>
+                    <option value="no">Non élevé — confirmé</option>
+                  </select>
                 </label>
                 <Button variant="outline" size="sm" onClick={handleSafetyExport}>
                   Exporter audit P0 + plan complet (JSON, sans IA)
