@@ -62,7 +62,7 @@ export function auditBeginnerRunSafety(
     }
     for (const s of runs) {
       const evidence = `${s.title} ${s.details}`;
-      if (config.highRunInjuryRisk && /over[ -]?under|seuil norv[eé]gien|double seuil/i.test(evidence)) {
+      if (config.highRunInjuryRisk && /over[ -]?under|seuil[^\\n]{0,35}norv[eé]gien|double seuil/i.test(evidence)) {
         add("advanced_intensity_high_injury_risk", "critical", null, null,
           `Séance CAP avancée à revoir : ${s.title}.`);
       }
