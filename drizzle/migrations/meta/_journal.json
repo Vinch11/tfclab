@@ -8,6 +8,13 @@
       "when": 1791035675096,
       "tag": "0000_add_logo_url_to_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792414081679,
+      "tag": "0001_prevent_self_staff_coach_role",
+      "breakpoints": true
     }
   ]
 }
