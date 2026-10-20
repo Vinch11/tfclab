@@ -66,10 +66,15 @@ Deno.test("buildUserPrompt — jalon 10K dans un plan Marathon (final run-only) 
 });
 
 Deno.test("buildUserPrompt — jalon Marathon dans un plan IM (final) : règles d'affûtage Marathon INCHANGÉES, pas le rappel triathlon", () => {
+  // Écart de 6 sem (< minGapWeeksForFullPeak("Marathon")=8) : le Marathon ne
+  // qualifie PAS pour un pic complet indépendant malgré son éligibilité de
+  // principe — il reste un jalon, condition nécessaire pour que ce test
+  // exerce la bonne branche (sans cet écart serré, le Marathon deviendrait
+  // lui-même un 2e pic complet et ce test ne testerait plus rien d'utile).
   const prompt = buildUserPrompt({}, baseConfig({
     objective: "IM",
     raceGoals: [
-      { objective: "Marathon", raceDate: "2027-01-10", priority: "B" },
+      { objective: "Marathon", raceDate: "2027-05-09", priority: "B" },
       { objective: "IM", raceDate: "2027-06-20", priority: "A" },
     ],
   }));
@@ -95,10 +100,14 @@ Deno.test("buildUserPrompt — jalon Semi dans un plan 70.3 (final) : règles d'
 });
 
 Deno.test("buildUserPrompt — jalon IM dans un plan 70.3 (final) : comportement INCHANGÉ (déjà couvert avant ce fix)", () => {
+  // Écart de 8 sem (< minGapWeeksForFullPeak("IM")=12) : même raison que le
+  // test Marathon ci-dessus — l'IM ne doit PAS qualifier pour un pic complet
+  // indépendant ici, sinon ce n'est plus un jalon et le test ne vérifie
+  // plus la bonne branche.
   const prompt = buildUserPrompt({}, baseConfig({
     objective: "703",
     raceGoals: [
-      { objective: "IM", raceDate: "2026-11-01", priority: "B" },
+      { objective: "IM", raceDate: "2027-04-25", priority: "B" },
       { objective: "703", raceDate: "2027-06-20", priority: "A" },
     ],
   }));
