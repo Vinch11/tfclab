@@ -329,7 +329,7 @@ export default function PlanQAPage() {
         const { data, error } = await supabase.auth.getSession();
         if (error) { setSelfTest({ ok: false, message: `Auth: ${error.message}` }); return; }
         if (!data.session) { setSelfTest({ ok: false, message: "Pas de session d'authentification active — connectez-vous avant de lancer un run." }); return; }
-        setSelfTest({ ok: true, message: `Runner opérationnel — session utilisateur ${data.session.user.email ?? data.session.user.id}` });
+        setSelfTest({ ok: true, message: `Session utilisateur ${data.session.user.email ?? data.session.user.id}` });
       } catch (e) {
         setSelfTest({ ok: false, message: `Self-test exception: ${e instanceof Error ? e.message : String(e)}` });
       }
