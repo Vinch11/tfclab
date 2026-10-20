@@ -173,6 +173,48 @@ describe("buildPlanConfigFromDiagnostic", () => {
       expect(config.sessionsPerWeek).toBe(6);
     });
   });
+
+  describe("volumeRamp × charge récente réelle (correction sprint qualité Marathon/Ironman)", () => {
+    const MARATHON_FORM: PlanFormConfig = {
+      objective: "Marathon",
+      raceName: "Marathon de Paris",
+      raceDate: "2027-04-11",
+      weeksAvailable: 16,
+      weeklyHours: 10,
+      sessionsPerWeek: 5,
+      ambition: "Age Group",
+      trainingLevel: "trained",
+    };
+
+    it("tss7d réel bas (SNAPSHOT) pour un objectif Marathon → rampe abaissée au palier 'light', raison tracée", () => {
+      const diagnostic = computeDiagnostic({ ...COMPLETE_INPUT, objectif: "Marathon", tss7d: 150 });
+      const config = buildPlanConfigFromDiagnostic(diagnostic, MARATHON_FORM);
+
+      expect(config.volumeRamp).toBeDefined();
+      expect(config.volumeRamp!.trainingLevel).toBe("trained"); // niveau déclaré, inchangé
+      expect(config.volumeRamp!.recentLoadAdjustment).toBeDefined();
+      expect(config.volumeRamp!.recentLoadAdjustment!.effectiveLevel).toBe("light");
+      // palier "light" (0.60 * 10h = 6h) au lieu du palier "trained" (0.80 * 10h = 8h)
+      expect(config.volumeRamp!.week1HoursMax).toBe(6);
+    });
+
+    it("même athlète SANS donnée de charge réelle (aucun tss7d) → rampe inchangée sur le niveau déclaré 'trained'", () => {
+      const diagnostic = computeDiagnostic({ ...COMPLETE_INPUT, objectif: "Marathon", tss7d: null });
+      const config = buildPlanConfigFromDiagnostic(diagnostic, MARATHON_FORM);
+
+      expect(config.volumeRamp).toBeDefined();
+      expect(config.volumeRamp!.recentLoadAdjustment).toBeUndefined();
+      expect(config.volumeRamp!.week1HoursMax).toBe(8); // palier "trained" inchangé (0.80 * 10h)
+    });
+
+    it("tss7d réel en surcharge (NOLIO) pour Marathon avec niveau déclaré 'highly_trained' → plafonné à 'light', progression 7%", () => {
+      const diagnostic = computeDiagnostic({ ...COMPLETE_INPUT, objectif: "Marathon", tss7d: 650 });
+      const config = buildPlanConfigFromDiagnostic(diagnostic, { ...MARATHON_FORM, trainingLevel: "highly_trained" });
+
+      expect(config.volumeRamp!.recentLoadAdjustment!.effectiveLevel).toBe("light");
+      expect(config.volumeRamp!.weeklyIncreasePctMax).toBe(0.07);
+    });
+  });
 });
 
 describe("buildPlanAthleteDataFromDiagnostic", () => {

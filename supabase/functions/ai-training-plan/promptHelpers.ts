@@ -517,6 +517,9 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     }[vr.trainingLevel as string] || vr.trainingLevel;
     const capStr = vr.week1HoursCap !== null ? ` (plafond absolu ${vr.week1HoursCap}h)` : "";
     lines.push(`\n🚦 RAMPE DE VOLUME OBLIGATOIRE — niveau déclaré "${levelLabel}" :`);
+    if (vr.recentLoadAdjustment) {
+      lines.push(`  ⚠️ AJUSTÉ PAR LA CHARGE RÉCENTE RÉELLE : ${vr.recentLoadAdjustment.reason}`);
+    }
     lines.push(`  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
     lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la cible)${capStr}`);
     lines.push(`  • Rampe : atteindre ${vr.weeklyHoursTarget}h en ~${vr.rampWeeks} semaine(s), progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem (règle des 10%, marge ACWR ≤ 1.3 — Gabbett ; population sport co/contact d'origine, extrapolée en marge de sécurité prudente pour l'endurance, pas comme preuve causale directe)`);

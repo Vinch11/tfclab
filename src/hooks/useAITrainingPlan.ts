@@ -534,9 +534,16 @@ export interface PlanConfig {
    */
   crossTrainingMaintenance?: { velo?: boolean; natation?: boolean };
   /**
-   * Rampe de volume des premières semaines — dérivée de `trainingLevel`.
+   * Rampe de volume des premières semaines — dérivée de `trainingLevel`, puis
+   * réconciliée avec la Charge Récente de Référence (CRR) réellement mesurée
+   * (NOLIO/SNAPSHOT) via `resolveVolumeRampLoadAdjustment` (planConfigBuilder.ts) :
+   * une charge réelle basse ou en surcharge abaisse le palier effectif utilisé
+   * pour la rampe, sans jamais le faire pour une simple estimation manuelle
+   * dérivée du niveau déclaré lui-même (pas de circularité). `trainingLevel`
+   * reste le niveau déclaré par le coach ; `recentLoadAdjustment` n'apparaît
+   * que si la CRR mesurée a effectivement abaissé le palier.
    * Contrainte dure injectée chunk 1 pour borner Sem 1 et le ramp-up.
-   * Absent si `trainingLevel` non fourni ou si tss7d réel disponible (CRR prime).
+   * Absent si `trainingLevel` non fourni.
    */
   volumeRamp?: {
     trainingLevel: "untrained" | "light" | "trained" | "highly_trained";
@@ -546,6 +553,11 @@ export interface PlanConfig {
     weeklyHoursTarget: number;    // Rappel cible
     week1HoursMax: number;        // Sem 1 effective max (h)
     weeklyIncreasePctMax: number; // Progression max/sem (ex: 0.10 = +10%/sem)
+    /** Présent uniquement si la CRR réellement mesurée a abaissé le palier déclaré. */
+    recentLoadAdjustment?: {
+      effectiveLevel: "untrained" | "light" | "trained" | "highly_trained";
+      reason: string;
+    };
   };
   /**
    * ─── RÉGÉNÉRATION DE FENÊTRE — contexte de position globale ───────────────

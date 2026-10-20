@@ -15,6 +15,7 @@ import type { PlanConfig, PlanAthleteData, RaceGoal, AdaptationProjection } from
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 import { computeAdaptationPrediction, type AdaptationPredictorInput } from "@/lib/v2/adaptationPredictor";
 import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecenteReference";
+import { resolveVolumeRampLoadAdjustment } from "@/lib/volumeRampLoadAdjustment";
 import { computeTrailProfile, isTrailObjective } from "@/lib/trailProfile";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
 import { AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
@@ -309,18 +310,29 @@ export function buildPlanConfigFromDiagnostic(
       light:          { pct: 0.60, ramp: 4, cap: 8 as number | null },
       trained:        { pct: 0.80, ramp: 2, cap: null as number | null },
       highly_trained: { pct: 0.95, ramp: 1, cap: null as number | null },
-    }[formConfig.trainingLevel];
-    if (matrix) {
-      const pctHours = +(target * matrix.pct).toFixed(1);
-      const week1HoursMax = matrix.cap !== null ? Math.min(pctHours, matrix.cap) : pctHours;
+    };
+    // Réconcilie la rampe avec la Charge Récente de Référence RÉELLEMENT
+    // MESURÉE (jamais l'estimation manuelle dérivée du niveau déclaré lui-même
+    // — cf. volumeRampLoadAdjustment.ts) : un niveau déclaré optimiste par
+    // rapport à une charge réelle basse/en surcharge ne doit pas produire une
+    // rampe Sem 1 agressive.
+    const loadAdjustment = resolveVolumeRampLoadAdjustment(formConfig.trainingLevel, crr, chargeScore.status);
+    const effectiveLevel = loadAdjustment.effectiveLevel;
+    const row = matrix[effectiveLevel];
+    if (row) {
+      const pctHours = +(target * row.pct).toFixed(1);
+      const week1HoursMax = row.cap !== null ? Math.min(pctHours, row.cap) : pctHours;
       volumeRamp = {
         trainingLevel: formConfig.trainingLevel,
-        week1PctTarget: matrix.pct,
-        rampWeeks: matrix.ramp,
-        week1HoursCap: matrix.cap,
+        week1PctTarget: row.pct,
+        rampWeeks: row.ramp,
+        week1HoursCap: row.cap,
         weeklyHoursTarget: target,
         week1HoursMax,
-        weeklyIncreasePctMax: 0.10,
+        weeklyIncreasePctMax: loadAdjustment.weeklyIncreasePctMaxOverride ?? 0.10,
+        ...(loadAdjustment.triggered
+          ? { recentLoadAdjustment: { effectiveLevel, reason: loadAdjustment.reason! } }
+          : {}),
       };
     }
   }
