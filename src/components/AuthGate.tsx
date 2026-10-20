@@ -46,7 +46,7 @@ export function AuthGate({ children }: AuthGateProps) {
     if (import.meta.env.DEV && typeof window !== "undefined") {
       const url = new URL(window.location.href);
       if (url.searchParams.get("e2e_bypass") === "1") {
-        try { window.sessionStorage.setItem("e2e_bypass_auth", "1"); } catch {}
+        try { window.sessionStorage.setItem("e2e_bypass_auth", "1"); } catch { /* ignore */ }
       }
       const bypass =
         (typeof window.sessionStorage !== "undefined" &&

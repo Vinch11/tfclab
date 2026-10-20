@@ -253,6 +253,13 @@ function SchemaFailDetails({ stat }: { stat: PlanGenerationStat }) {
   );
 }
 
+type TfclQAGlobal = {
+  runFullSuite: ReturnType<typeof useQARunner>["runFullSuite"];
+  buildQAReport: typeof buildQAReport;
+  readQASessions: typeof readQASessions;
+  readQASessionsCloud: typeof readQASessionsCloud;
+};
+
 export default function PlanQAPage() {
   const [flag, setFlag] = useState(isForceMarkdownEnabled());
   const [stats, setStats] = useState<PlanGenerationStat[]>(readPlanStats());
@@ -272,13 +279,14 @@ export default function PlanQAPage() {
 
   // Expose to Playwright/E2E for targeted runs
   useEffect(() => {
-    (window as any).__tfclQA = {
+    const globalWindow = window as unknown as { __tfclQA?: TfclQAGlobal };
+    globalWindow.__tfclQA = {
       runFullSuite: qa.runFullSuite,
       buildQAReport,
       readQASessions,
       readQASessionsCloud,
     };
-    return () => { try { delete (window as any).__tfclQA; } catch { /* noop */ } };
+    return () => { try { delete globalWindow.__tfclQA; } catch { /* noop */ } };
   }, [qa.runFullSuite]);
 
   const summary = useMemo(() => {
