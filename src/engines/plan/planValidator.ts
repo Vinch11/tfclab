@@ -1449,7 +1449,22 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 
   if (metrics.length < 3) return { issues: [], score: 100 };
 
-  const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #5 (découvert en
+  // écrivant un test réel du comportement d'affûtage Ironman) : le message
+  // de cette règle dit lui-même "hors semaines de décharge ET taper", mais
+  // `loadWeeks` ne filtrait que sur `isDeload` (texte OU activeSessions<=3)
+  // — une semaine de taper RÉELLE (3 semaines pour IM, scheduledWeekType
+  // correctement calculé par position) mais dont le champ `phase` n'a pas
+  // (encore) été relabellisé "taper"/"Affûtage" par la génération (même
+  // classe de bug que taperVolumeOverride.ts, commentaire "C1" : seule la
+  // dernière semaine de taper est parfois correctement étiquetée) restait
+  // comptée ici. Un affûtage IM réel et bien formé (volume qui baisse
+  // légitimement sur 3 semaines) se faisait alors signaler à tort "Volume en
+  // baisse" — repro exacte dans planValidator.imTaper.test.ts. `isContentOrS
+  // choleDeload` (déjà utilisé par validatePolarization/validateSportRatio/
+  // le saut brusque ci-dessous) exclut ces semaines sur la base du planning
+  // RÉELLEMENT calculé à la génération, pas du texte.
+  const loadWeeks = metrics.filter(m => !m.isContentOrScheduleDeload && !m.isRaceWeek);
   if (loadWeeks.length < 3) return { issues: [], score: 100 };
 
   // F-23: prefer real weekly duration if coverage is decent (≥60% sessions parsed)
