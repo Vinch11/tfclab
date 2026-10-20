@@ -28,6 +28,7 @@ import { usePilotCockpit, type PilotCockpitResult } from "@/lib/plan/qa/usePilot
 import { PILOT_PROFILES } from "@/lib/plan/qa/pilotCockpitProfiles";
 import { computeCumulative, type BudgetCheckResult } from "@/lib/plan/qa/pilotCockpitBudget";
 import type { QAProfile } from "@/lib/plan/qa/syntheticProfiles";
+import { exportTextFile } from "@/lib/exportFile";
 
 function formatCredits(n: number): string {
   return n.toFixed(2);
@@ -39,16 +40,32 @@ function levelBadgeVariant(level: BudgetCheckResult["level"]): "default" | "seco
   return "default";
 }
 
-function downloadJSON(data: unknown, filename: string): void {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+/**
+ * Export JSON robuste multi-plateformes (cf. src/lib/exportFile.ts) : le
+ * pattern Blob + `<a download>` seul échoue silencieusement sur iOS Safari
+ * et dans certains contextes PWA — ce plan complet et cet audit P0 doivent
+ * rester récupérables même dans ces contextes.
+ */
+async function downloadJSON(data: unknown, filename: string, successNote?: string): Promise<void> {
+  const text = JSON.stringify(data, null, 2);
+  const result = await exportTextFile(text, filename, "application/json");
+  const suffix = successNote ? ` ${successNote}` : "";
+  switch (result.method) {
+    case "share":
+      toast.success(`${filename} partagé.${suffix}`);
+      break;
+    case "download":
+      toast.success(`${filename} téléchargé — vérifiez vos téléchargements.${suffix}`);
+      break;
+    case "window":
+      toast.success(`${filename} ouvert dans un nouvel onglet — enregistrez-le manuellement (téléchargement direct indisponible ici).${suffix}`);
+      break;
+    case "cancelled":
+      break;
+    case "none":
+      toast.error(`Impossible d'exporter ${filename} (partage, téléchargement et nouvel onglet tous bloqués).`);
+      break;
+  }
 }
 
 function buildExportPayload(profile: QAProfile, result: PilotCockpitResult) {
@@ -100,7 +117,11 @@ function buildExportPayload(profile: QAProfile, result: PilotCockpitResult) {
 }
 
 export function PilotCockpitPanel() {
-  const { isRunning, lastResult, runProfile, checkBudget, budget, chunkProgress } = usePilotCockpit();
+  const { isRunning, lastResult, runProfile, checkBudget, budget, chunkProgress, exportLastRunSafety } = usePilotCockpit();
+  const [p0Week1Hours, setP0Week1Hours] = useState("");
+  const [p0RampPct, setP0RampPct] = useState("");
+  const [p0RunQuota, setP0RunQuota] = useState("");
+  const [p0HighRisk, setP0HighRisk] = useState<"unknown" | "yes" | "no">("unknown");
   const [selectedId, setSelectedId] = useState<string>(PILOT_PROFILES[0].id);
   const [pendingConfirm, setPendingConfirm] = useState<{ profile: QAProfile; check: BudgetCheckResult } | null>(null);
 
@@ -128,13 +149,45 @@ export function PilotCockpitPanel() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!lastResult || !lastResult.merged) return;
     const profile = PILOT_PROFILES.find((p) => p.id === lastResult.profileId);
     if (!profile) return;
     const payload = buildExportPayload(profile, lastResult);
     const dateStr = new Date(lastResult.ts).toISOString().slice(0, 10);
-    downloadJSON(payload, `${dateStr}_${profile.id}_run1.json`);
+    await downloadJSON(payload, `${dateStr}_${profile.id}_run1.json`);
+  };
+
+  const handleSafetyExport = async () => {
+    if (!lastResult?.merged || lastResult.profileId !== "B-5K-BEGINNER") return;
+    const hours = p0Week1Hours.trim() === "" ? null : Number(p0Week1Hours);
+    const ramp = p0RampPct.trim() === "" ? null : Number(p0RampPct);
+    const quota = p0RunQuota.trim() === "" ? null : Number(p0RunQuota);
+    if ((hours !== null && (!Number.isFinite(hours) || hours <= 0)) ||
+        (ramp !== null && (!Number.isFinite(ramp) || ramp < 0 || ramp > 100)) ||
+        (quota !== null && (!Number.isInteger(quota) || quota < 1))) {
+      toast.error("Contrats CAP invalides : corrigez les valeurs avant export.");
+      return;
+    }
+    const report = exportLastRunSafety({
+      trainingLevel: "untrained",
+      highRunInjuryRisk: p0HighRisk === "yes",
+      week1RunHoursMax: hours,
+      weeklyRunIncreasePctMax: ramp === null ? null : ramp / 100,
+      runSessionsPerWeek: quota,
+      hasPriorLoadForDeload: false,
+    });
+    if (!report) return;
+    await downloadJSON({
+      ...report,
+      coachSuppliedContracts: {
+        week1RunHoursMax: hours, weeklyRunIncreasePctMax: ramp === null ? null : ramp / 100,
+        runSessionsPerWeek: quota, highRunInjuryRisk: p0HighRisk === "yes",
+        highRunInjuryRiskAssessment: p0HighRisk,
+        hasPriorLoadForDeload: false,
+        note: "Hypothèses explicites du coach ; champs vides = contrôle non évalué. Historique antérieur non confirmé.",
+      },
+    }, `${new Date(lastResult.ts).toISOString().slice(0, 10)}_B-5K-BEGINNER_audit-P0.json`, "Audit P0 local, sans appel IA.");
   };
 
   const criticalIssues = lastResult?.validatorResult?.issues.filter((i) => i.severity === "error") ?? [];
@@ -362,6 +415,46 @@ export function PilotCockpitPanel() {
                 ? `${lastResult.usage.totalChunksSeen} chunk(s) complété(s), ${lastResult.usage.totalTokens} tokens mesurés (${lastResult.usage.chunksWithUsage}/${lastResult.usage.totalChunksSeen} avec usage renvoyé par le gateway)`
                 : "usage NON CONFIRMÉ par le gateway (échec avant tout retour d'usage) — ceci ne signifie PAS qu'aucun coût n'a été facturé ; un appel au modèle a pu avoir lieu avant l'échec. Estimation par plage retenue par précaution (voir Budget pilote ci-dessus)."}
             </div>
+
+            {lastResult.profileId === "B-5K-BEGINNER" && lastResult.merged && (
+              <div className="rounded-md border p-3 space-y-3">
+                <div className="text-sm font-medium">Audit P0 débutant — diagnostic local uniquement</div>
+                <p className="text-xs text-muted-foreground">
+                  Renseignez uniquement des plafonds CAP confirmés. Les champs vides ne sont pas évalués.
+                  Le renforcement est exclu. Risque de blessure inconnu par défaut (contrôle d’intensité avancée non évalué si inconnu) ; historique antérieur non confirmé.
+                  Le fichier contient le plan complet : à conserver de manière confidentielle.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <label className="text-xs space-y-1">
+                    <span>Plafond CAP S1 (heures)</span>
+                    <input className="w-full rounded border bg-background px-2 py-1" type="number" min="0.1" step="0.1"
+                      value={p0Week1Hours} onChange={e => setP0Week1Hours(e.target.value)} placeholder="Non évalué" />
+                  </label>
+                  <label className="text-xs space-y-1">
+                    <span>Hausse CAP max (%)</span>
+                    <input className="w-full rounded border bg-background px-2 py-1" type="number" min="0" max="100" step="1"
+                      value={p0RampPct} onChange={e => setP0RampPct(e.target.value)} placeholder="Non évalué" />
+                  </label>
+                  <label className="text-xs space-y-1">
+                    <span>Séances CAP / semaine</span>
+                    <input className="w-full rounded border bg-background px-2 py-1" type="number" min="1" step="1"
+                      value={p0RunQuota} onChange={e => setP0RunQuota(e.target.value)} placeholder="Non évalué" />
+                  </label>
+                </div>
+                <label className="flex flex-col gap-1 text-xs">
+                  <span>Risque de blessure CAP (évaluation coach)</span>
+                  <select className="w-full rounded border bg-background px-2 py-1" value={p0HighRisk}
+                    onChange={e => setP0HighRisk(e.target.value as "unknown" | "yes" | "no")}>
+                    <option value="unknown">Inconnu — contrôle intensité non évalué</option>
+                    <option value="yes">Élevé — confirmé</option>
+                    <option value="no">Non élevé — confirmé</option>
+                  </select>
+                </label>
+                <Button variant="outline" size="sm" onClick={handleSafetyExport}>
+                  Exporter audit P0 + plan complet (JSON, sans IA)
+                </Button>
+              </div>
+            )}
 
             <Button variant="outline" size="sm" onClick={handleExport} disabled={!lastResult.merged}>
               Exporter le plan complet (JSON)

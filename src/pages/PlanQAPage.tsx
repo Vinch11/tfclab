@@ -253,6 +253,13 @@ function SchemaFailDetails({ stat }: { stat: PlanGenerationStat }) {
   );
 }
 
+type TfclQAGlobal = {
+  runFullSuite: ReturnType<typeof useQARunner>["runFullSuite"];
+  buildQAReport: typeof buildQAReport;
+  readQASessions: typeof readQASessions;
+  readQASessionsCloud: typeof readQASessionsCloud;
+};
+
 export default function PlanQAPage() {
   const [flag, setFlag] = useState(isForceMarkdownEnabled());
   const [stats, setStats] = useState<PlanGenerationStat[]>(readPlanStats());
@@ -272,13 +279,14 @@ export default function PlanQAPage() {
 
   // Expose to Playwright/E2E for targeted runs
   useEffect(() => {
-    (window as any).__tfclQA = {
+    const globalWindow = window as unknown as { __tfclQA?: TfclQAGlobal };
+    globalWindow.__tfclQA = {
       runFullSuite: qa.runFullSuite,
       buildQAReport,
       readQASessions,
       readQASessionsCloud,
     };
-    return () => { try { delete (window as any).__tfclQA; } catch { /* noop */ } };
+    return () => { try { delete globalWindow.__tfclQA; } catch { /* noop */ } };
   }, [qa.runFullSuite]);
 
   const summary = useMemo(() => {
@@ -329,7 +337,7 @@ export default function PlanQAPage() {
         const { data, error } = await supabase.auth.getSession();
         if (error) { setSelfTest({ ok: false, message: `Auth: ${error.message}` }); return; }
         if (!data.session) { setSelfTest({ ok: false, message: "Pas de session d'authentification active — connectez-vous avant de lancer un run." }); return; }
-        setSelfTest({ ok: true, message: `Runner opérationnel — session utilisateur ${data.session.user.email ?? data.session.user.id}` });
+        setSelfTest({ ok: true, message: `Session utilisateur ${data.session.user.email ?? data.session.user.id}` });
       } catch (e) {
         setSelfTest({ ok: false, message: `Self-test exception: ${e instanceof Error ? e.message : String(e)}` });
       }

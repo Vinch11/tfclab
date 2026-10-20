@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AthleteProviders } from "@/components/AthleteProviders";
 import { AuthGate } from "@/components/AuthGate";
+import { CoachOnlyGate } from "@/components/CoachOnlyGate";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 
@@ -142,7 +143,7 @@ export default function App() {
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/planning" element={<ProtectedRoute><PlanningPage /></ProtectedRoute>} />
                   <Route path="/planning/ai-plan" element={<ProtectedRoute><AITrainingPlanPage /></ProtectedRoute>} />
-                  <Route path="/debug/plan-qa" element={<ProtectedRoute><PlanQAPage /></ProtectedRoute>} />
+                  <Route path="/debug/plan-qa" element={<ProtectedRoute><CoachOnlyGate><PlanQAPage /></CoachOnlyGate></ProtectedRoute>} />
                   {/* Dev-only — harness Playwright, jamais dans un build de prod (import.meta.env.DEV statiquement false). Pas de ProtectedRoute : exprès, voir MobileNavHarness.tsx. */}
                   {import.meta.env.DEV && <Route path="/__e2e/mobile-nav" element={<MobileNavHarness />} />}
                   <Route path="/planning/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
