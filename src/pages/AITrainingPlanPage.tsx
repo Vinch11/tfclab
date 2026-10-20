@@ -2901,11 +2901,18 @@ export default function AITrainingPlanPage() {
       // Audit scientifique P0 — F12 : la régénération ciblée d'une semaine
       // est le DEUXIÈME pipeline réel de production de plan (en plus de la
       // génération complète dans useAITrainingPlan.ts) — la validation
-      // finale (B13 critique/B14 avertissement) doit aussi y tourner,
-      // recalculée sur le plan COMPLET après remplacement (pas seulement
-      // la semaine régénérée), pour rester cohérente avec le reste du plan.
+      // finale (B13 critique/B14 avertissement/B15 avertissement — Correction
+      // sprint qualité M/IM oct. 2026 #4, cohérence ambition↔physiologie)
+      // doit aussi y tourner, recalculée sur le plan COMPLET après
+      // remplacement (pas seulement la semaine régénérée), pour rester
+      // cohérente avec le reste du plan.
       try {
-        const finalValidation = computeFinalValidationIssues(mergedPlan, finalRepairTraces);
+        const finalValidation = computeFinalValidationIssues(mergedPlan, finalRepairTraces, {
+          vmaKmh: athleteContext.data?.vma ?? null,
+          thresholdPaceSecPerKm: athleteContext.data?.paceThresholdSecPerKm ?? null,
+          objective: fullPlanConfig.objective ?? "",
+          ambition: fullPlanConfig.ambitionMeta?.effective ?? fullPlanConfig.ambition ?? "",
+        });
         mergedPlan.finalValidationIssues = finalValidation.issues.length > 0 ? finalValidation.issues : undefined;
         if (finalValidation.hasCritical) {
           console.error(

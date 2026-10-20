@@ -1511,12 +1511,20 @@ export function useAITrainingPlan() {
             if (incompletePhaseWeeks.length > 0) parsed.incompletePhaseWeeks = incompletePhaseWeeks;
             // Audit scientifique P0 — F12 : validation finale post-mutations
             // (B13 critique : doublon catalogId/cumul "à jeun" ; B14 avertissement :
-            // cohérence phase/fiche) — tourne ICI, après que `runReconciler` a
-            // terminé TOUTES ses passes (enforceTaperWeeks, ensureRaceDaySession,
-            // enforceAthleteConstraints...), sur le plan RÉEL livré au coach —
-            // pas seulement dans le harnais QA synthétique.
+            // cohérence phase/fiche ; B15 avertissement, Correction sprint qualité
+            // M/IM oct. 2026 #4 : cohérence ambition chronométrique↔physiologie,
+            // même ambition EFFECTIVE que targetTable ci-dessus) — tourne ICI,
+            // après que `runReconciler` a terminé TOUTES ses passes
+            // (enforceTaperWeeks, ensureRaceDaySession, enforceAthleteConstraints...),
+            // sur le plan RÉEL livré au coach — pas seulement dans le harnais QA
+            // synthétique.
             try {
-              const finalValidation = computeFinalValidationIssues(merged, semanticRepairs);
+              const finalValidation = computeFinalValidationIssues(merged, semanticRepairs, {
+                vmaKmh: athleteData.vma ?? null,
+                thresholdPaceSecPerKm: athleteData.paceThresholdSecPerKm ?? null,
+                objective: planConfig.objective ?? "",
+                ambition: planConfig.ambitionMeta?.effective ?? planConfig.ambition ?? "",
+              });
               if (finalValidation.issues.length > 0) parsed.finalValidationIssues = finalValidation.issues;
               setFinalValidationIssues(finalValidation.issues);
               if (finalValidation.hasCritical) {

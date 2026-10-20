@@ -12,7 +12,15 @@ import { AMBITIONS, formatPace, formatTime, parseTimeToSec, fractionVMAForAmbiti
 
 // Table locale des standards populationnels (miroir READ-ONLY de REFERENCE_STANDARDS côté edge).
 // ⚠️ Standards populationnels — usage EXCLUSIF GapAmbitionPanel. Ne jamais consommer pour prescrire.
-const REFERENCE_STANDARDS_FRONT: Record<string, Record<string, string>> = {
+// Exportée (Correction sprint qualité M/IM, oct. 2026, #4) pour que le test
+// de parité de `src/lib/raceStandards.ts` (contrôle post-génération
+// checkB15) puisse comparer les deux tables terme à terme. `raceStandards.ts`
+// en garde une COPIE littérale plutôt qu'un import direct — ce composant
+// entraînerait des dépendances React/UI dans un module de logique pure
+// consommé par le pipeline de génération (useAITrainingPlan.ts) — donc la
+// parité n'est PAS automatique : raceStandards.mirrorConsistency.test.ts la
+// vérifie explicitement à chaque run pour empêcher toute dérive silencieuse.
+export const REFERENCE_STANDARDS_FRONT: Record<string, Record<string, string>> = {
   "5K":       { finish: "28-35", perf: "22-26", sub: "18-21", elite: "16-18", world_class: "sub15" },
   "10K":      { finish: "55-1h10", perf: "45-52", sub: "38-44", elite: "33-37", world_class: "sub31" },
   "Semi":     { finish: "2h00-2h30", perf: "1h35-1h55", sub: "1h20-1h35", elite: "1h12-1h20", world_class: "sub1h08" },

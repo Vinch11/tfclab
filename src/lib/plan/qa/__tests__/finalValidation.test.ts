@@ -156,3 +156,46 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
     expect(r.hasCritical).toBe(true);
   });
 });
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #4 : B15
+ * (cohérence ambition chronométrique ↔ physiologie) est un 3e paramètre
+ * OPTIONNEL — omis, le comportement existant (B13+B14 seuls) ne change pas ;
+ * fourni, il rejoint les mêmes `issues`/`hasCritical` au même point d'entrée.
+ */
+describe("computeFinalValidationIssues — orchestration B15 (ambition↔physiologie, optionnel)", () => {
+  it("3e paramètre omis : comportement inchangé, aucune issue B15 injectée", () => {
+    const plan: FinalValidationPlanLike = { weeks: [] };
+    const r = computeFinalValidationIssues(plan);
+    expect(r.issues.some(issue => issue.rule === "ambition_physiology_gap")).toBe(false);
+  });
+
+  it("profil cohérent (VMA bien au-dessus du standard finisher) : wiring sans effet sur hasCritical", () => {
+    const plan: FinalValidationPlanLike = { weeks: [] };
+    const r = computeFinalValidationIssues(plan, [], {
+      vmaKmh: 20, objective: "Marathon", ambition: "finisher",
+    });
+    expect(r.hasCritical).toBe(false);
+  });
+
+  it("profil très incohérent (VMA très faible, ambition world_class) : 1 issue warning ambition_physiology_gap, fusionnée avec les autres", () => {
+    const plan: FinalValidationPlanLike = {
+      weeks: [{
+        weekNumber: 1, phase: "build",
+        sessions: [
+          session({ catalogId: "BUILD_ONLY_RUN", dayName: "Mardi" }),
+          session({ catalogId: "BUILD_ONLY_RUN", dayName: "Mercredi" }),
+        ],
+      }],
+    };
+    const r = computeFinalValidationIssues(plan, [], {
+      vmaKmh: 11, objective: "Marathon", ambition: "world_class",
+    });
+    const gapIssues = r.issues.filter(issue => issue.rule === "ambition_physiology_gap");
+    expect(gapIssues).toHaveLength(1);
+    expect(gapIssues[0].severity).toBe("warning");
+    // Le doublon catalogId (B13, critique) reste présent — B15 s'ajoute, ne remplace rien.
+    expect(r.issues.some(issue => issue.rule === "duplicate_catalog_id_unresolved")).toBe(true);
+    expect(r.hasCritical).toBe(true);
+  });
+});
