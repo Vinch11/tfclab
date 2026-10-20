@@ -109,6 +109,18 @@ export interface WeekMetrics {
   keyDurationMin: number;
   /** F-23: Number of sessions with a parseable duration (sample size) */
   sessionsWithDuration: number;
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026) : durée (min) de
+   * la séance la PLUS LONGUE de la semaine, par discipline (mêmes clés que
+   * `sports`/`keySessionsBySport`) — distinct de `totalDurationMin` (somme).
+   * Alimente `validateLongSessionProgression` : rien ne suivait jusqu'ici
+   * l'évolution semaine après semaine de la sortie longue (le facteur de
+   * risque de surcharge le plus documenté), seulement le volume agrégé.
+   * 0 si la discipline est absente cette semaine ou si aucune durée n'a pu
+   * être extraite du texte (pas de distinction — les deux cas sont exclus
+   * de la comparaison par la règle elle-même, cf. plus bas).
+   */
+  longestSessionMinBySport: Record<string, number>;
 }
 
 export interface LimiterCoverageItem {
@@ -753,12 +765,15 @@ function extractWeekMetrics(
   let keyDurationMin = 0;
   let sessionsWithDuration = 0;
   let low = 0, mid = 0, high = 0, unknown = 0;
+  const longestSessionMinBySport: Record<string, number> = {};
   for (const s of activeSessions) {
     const d = parseSessionDurationMin(s);
     if (d !== null && d > 0) {
       totalDurationMin += d;
       sessionsWithDuration++;
       if (isKeySession(s)) keyDurationMin += d;
+      const sport = normalizeSport(s.sport);
+      longestSessionMinBySport[sport] = Math.max(longestSessionMinBySport[sport] || 0, d);
     }
     const zoneMinutes = estimateSessionZoneMinutes(s, d);
     low += zoneMinutes.low;
@@ -795,6 +810,7 @@ function extractWeekMetrics(
     totalDurationMin,
     keyDurationMin,
     sessionsWithDuration,
+    longestSessionMinBySport,
   };
 }
 
@@ -1494,6 +1510,86 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 
   const progressionOk = avgLast >= avgFirst * 0.85 && issues.filter(i => i.severity === "error").length === 0;
   return { issues, score: progressionOk ? 90 : 60 };
+}
+
+/**
+ * Progression de la sortie longue — correction sprint qualité Marathon/
+ * Ironman (oct. 2026). `validateProgression` ci-dessus ne regarde que le
+ * volume AGRÉGÉ de la semaine ; rien ne suivait l'évolution de la séance la
+ * PLUS LONGUE d'une discipline donnée — le facteur de risque de surcharge le
+ * plus documenté (course à pied comme vélo/triathlon longue distance) et
+ * explicitement demandé par le coach pour Marathon (course) et Ironman
+ * (vélo ET course séparément).
+ *
+ * Avertissement seulement (pas bloquant) pour ce premier lot de correctifs :
+ * un faux positif mal calibré sous pression de délai serait pire qu'un
+ * contrôle encore permissif — cf. plan d'exécution 5 jours. Seuil +20%
+ * dérivé de la même marge de sécurité déjà citée dans ce fichier et dans le
+ * prompt (ACWR ≤ 1.3, Gabbett) pour la rampe de volume globale — plus
+ * tolérant que le +10% strict de la rampe Sem 1-2 (une seule séance varie
+ * naturellement plus que le volume total), mais plus strict que le +35%
+ * déjà utilisé par `validateProgression` pour le volume agrégé (c'est
+ * justement l'élément le plus à risque, pas l'ensemble de la semaine).
+ * Calibrage ouvert à révision coach — ce n'est pas un seuil qu'aucune
+ * donnée réelle n'est encore venue confirmer.
+ *
+ * N'utilise PAS `isDeload` (motif encore défectueux à plusieurs endroits de
+ * ce fichier, cf. correction dédiée) mais directement
+ * `isContentOrScheduleDeload`, déjà correct, pour cette règle neuve.
+ */
+const LONG_SESSION_JUMP_WARNING_PCT = 0.20;
+const LONG_SESSION_MIN_BASELINE_MIN = 30; // ignore le bruit sous ~30min (pas une "sortie longue")
+
+function validateLongSessionProgression(
+  metrics: WeekMetrics[],
+  objective?: string | null,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (metrics.length < 3) return { issues: [], score: 100 };
+
+  const objKey = normalizeObjectiveKey(objective || "");
+  const isTriathlon = TRIATHLON_OBJECTIVE_KEYS.has(objKey);
+  // Marathon/Semi/10K/5K/Trail*/StartToRun : seule la sortie longue course
+  // compte. IM/70.3/Sprint/Olympic : vélo ET course, suivies séparément —
+  // une progression saine du vélo ne compense pas une sortie longue course
+  // qui s'allonge trop vite (fatigue croisée), et inversement.
+  const sportsToTrack = isTriathlon ? ["Vélo", "Course"] : ["Course"];
+
+  const loadWeeksCount = metrics.filter(m => !m.isContentOrScheduleDeload && !m.isRaceWeek).length;
+  if (loadWeeksCount < 3) return { issues: [], score: 100 };
+
+  // Comme validateProgression : on NE comble PAS le trou d'une semaine de
+  // décharge/course en comparant les deux semaines de charge qui l'encadrent
+  // comme si elles étaient consécutives — une paire touchant un déload/une
+  // course est simplement ignorée, pas pontée (un retour de volume normal
+  // après déload ne doit pas être confondu avec un saut dangereux).
+  let worstJump = 0;
+  for (const sport of sportsToTrack) {
+    for (let i = 1; i < metrics.length; i++) {
+      const prev = metrics[i - 1];
+      const curr = metrics[i];
+      if (prev.isContentOrScheduleDeload || curr.isContentOrScheduleDeload || prev.isRaceWeek || curr.isRaceWeek) continue;
+
+      const prevMin = prev.longestSessionMinBySport[sport] || 0;
+      const currMin = curr.longestSessionMinBySport[sport] || 0;
+      if (prevMin < LONG_SESSION_MIN_BASELINE_MIN || currMin === 0) continue;
+
+      const jump = (currMin - prevMin) / prevMin;
+      if (jump > LONG_SESSION_JUMP_WARNING_PCT) {
+        worstJump = Math.max(worstJump, jump);
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: curr.weekNumber,
+          message: `S${curr.weekNumber}: sortie longue ${sport} +${Math.round(jump * 100)}% vs S${prev.weekNumber} (${prevMin}min → ${currMin}min)`,
+          detail: `Progression de la sortie longue recommandée ≤${Math.round(LONG_SESSION_JUMP_WARNING_PCT * 100)}%/semaine (marge de sécurité, calibrage ouvert à révision coach) — c'est l'élément le plus associé au risque de surcharge, distinct du volume hebdomadaire agrégé déjà vérifié par ailleurs.`,
+        });
+      }
+    }
+  }
+
+  const score = worstJump === 0 ? 100 : worstJump > 0.50 ? 60 : 80;
+  return { issues, score };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -4346,11 +4442,15 @@ export function validatePlan(
   const keySessions = validateKeySessions(weekMetrics, objective, ambition);
   const progressionBase = validateProgression(weekMetrics);
   const pillarStagnation = validatePillarProgressionStagnation(plan);
+  const longSessionProgression = validateLongSessionProgression(weekMetrics, objective);
   const progression = {
-    issues: [...progressionBase.issues, ...pillarStagnation.issues],
-    score: pillarStagnation.stagnant > 0
-      ? Math.max(0, progressionBase.score - Math.min(30, pillarStagnation.stagnant * 15))
-      : progressionBase.score,
+    issues: [...progressionBase.issues, ...pillarStagnation.issues, ...longSessionProgression.issues],
+    score: Math.min(
+      pillarStagnation.stagnant > 0
+        ? Math.max(0, progressionBase.score - Math.min(30, pillarStagnation.stagnant * 15))
+        : progressionBase.score,
+      longSessionProgression.score,
+    ),
   };
   const sportRatio = validateSportRatio(weekMetrics, objective, constraintsText);
   const catalogRatioBase = validateCatalogRatio(plan);
