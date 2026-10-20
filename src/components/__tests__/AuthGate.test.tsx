@@ -55,7 +55,7 @@ describe("AuthGate — e2e_bypass gating", () => {
   });
 
   it("production build (DEV=false): ?e2e_bypass=1 does NOT bypass auth", () => {
-    vi.stubEnv("DEV", false as unknown as string);
+    vi.stubEnv("DEV", false);
     setUrl("/debug/plan-qa?e2e_bypass=1");
     renderGate();
     expect(screen.queryByTestId("protected")).toBeNull();
@@ -64,7 +64,7 @@ describe("AuthGate — e2e_bypass gating", () => {
 
   it("production build (DEV=false): a pre-existing sessionStorage flag does NOT bypass auth either", () => {
     window.sessionStorage.setItem("e2e_bypass_auth", "1");
-    vi.stubEnv("DEV", false as unknown as string);
+    vi.stubEnv("DEV", false);
     setUrl("/debug/plan-qa");
     renderGate();
     expect(screen.queryByTestId("protected")).toBeNull();
@@ -73,7 +73,7 @@ describe("AuthGate — e2e_bypass gating", () => {
 
   it("an authenticated user always passes through, regardless of DEV", () => {
     mockUseAuth.mockReturnValue({ user: { id: "u1" }, loading: false });
-    vi.stubEnv("DEV", false as unknown as string);
+    vi.stubEnv("DEV", false);
     setUrl("/debug/plan-qa");
     renderGate();
     expect(screen.getByTestId("protected")).toBeTruthy();

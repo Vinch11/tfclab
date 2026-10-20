@@ -46,7 +46,7 @@ describe("OnboardingGate — e2e_bypass gating", () => {
 
   it("production build (DEV=false): the e2e bypass flag does NOT skip the onboarding redirect", () => {
     window.sessionStorage.setItem("e2e_bypass_auth", "1");
-    vi.stubEnv("DEV", false as unknown as string);
+    vi.stubEnv("DEV", false);
     renderGate();
     expect(screen.queryByTestId("protected")).toBeNull();
     vi.unstubAllEnvs();
@@ -54,7 +54,7 @@ describe("OnboardingGate — e2e_bypass gating", () => {
 
   it("a completed onboarding always passes through, regardless of DEV", () => {
     mockUseProfile.mockReturnValue({ profile: { onboarding_completed: true }, loading: false });
-    vi.stubEnv("DEV", false as unknown as string);
+    vi.stubEnv("DEV", false);
     renderGate();
     expect(screen.getByTestId("protected")).toBeTruthy();
     vi.unstubAllEnvs();
