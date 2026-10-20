@@ -2377,19 +2377,35 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     const otherGoals = classificationForReminders
       .filter((c) => !c.isFullPeak && c.goal.raceDate)
       .map((c) => c.goal);
+    // Correction sprint qualité Marathon/Ironman (oct. 2026), #6 : un jalon
+    // run-only (10K/5K/StartToRun/Sprint/Olympic...) tombait toujours dans
+    // la branche générique ci-dessous ("séances spécifiques à cet objectif"),
+    // SANS rappel natation/vélo — correct pour un objectif FINAL run-only
+    // (Marathon-final + jalon 10K : rien à maintenir en triathlon), mais pas
+    // pour un plan triathlon (IM/703 final) utilisant un 10K comme jalon de
+    // forme intermédiaire : les 1-2 semaines "spécifiques course à pied"
+    // avant ce jalon risquaient de faire disparaître natation/vélo du plan
+    // sans aucun rappel contraire, exactement le "risque de concaténation"
+    // identifié par l'audit qualité plans IA (transition 10K → 70.3). Gardé
+    // narrow : seul l'objectif FINAL (`config.objective`, jamais celui du
+    // jalon) décide, et la branche Marathon/Semi ci-dessous (calibrée pour
+    // un objectif final RUN-ONLY, ex. Marathon-final + jalon Semi) reste
+    // intouchée — aucune régression sur ses propres règles d'affûtage.
+    const finalObjKeyForJalons = normalizeObjKey(config.catalogObjective || config.objective || "");
+    const finalIsTriathlonForJalons = ["IM", "703"].includes(finalObjKeyForJalons);
     for (const goal of otherGoals) {
       const goalObjKey = normalizeObjKey(goal.objective || "");
       const goalName = goal.raceName ? ` (${goal.raceName})` : "";
-      if (["Marathon", "Semi"].includes(goalObjKey)) {
-        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
-        lines.push(`- Les semaines précédant ce jalon doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
-        lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
-        lines.push(`- Post-course : 1 semaine récupération avant relance vers l'objectif principal.`);
-      } else if (["IM", "703"].includes(goalObjKey)) {
+      if (["IM", "703"].includes(goalObjKey) || (finalIsTriathlonForJalons && !["Marathon", "Semi"].includes(goalObjKey))) {
         lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
         lines.push(`- Intégrer natation + vélo + briques dans la préparation vers ce jalon.`);
         lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course.`);
         lines.push(`- Post-course : 1-2 semaines récupération avant relance.`);
+      } else if (["Marathon", "Semi"].includes(goalObjKey)) {
+        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
+        lines.push(`- Les semaines précédant ce jalon doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
+        lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
+        lines.push(`- Post-course : 1 semaine récupération avant relance vers l'objectif principal.`);
       } else {
         lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
         lines.push(`- Inclure des séances spécifiques à cet objectif dans les semaines précédant la date de course.`);
