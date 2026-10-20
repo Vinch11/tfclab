@@ -28,6 +28,7 @@ import { usePilotCockpit, type PilotCockpitResult } from "@/lib/plan/qa/usePilot
 import { PILOT_PROFILES } from "@/lib/plan/qa/pilotCockpitProfiles";
 import { computeCumulative, type BudgetCheckResult } from "@/lib/plan/qa/pilotCockpitBudget";
 import type { QAProfile } from "@/lib/plan/qa/syntheticProfiles";
+import { exportTextFile } from "@/lib/exportFile";
 
 function formatCredits(n: number): string {
   return n.toFixed(2);
@@ -39,16 +40,32 @@ function levelBadgeVariant(level: BudgetCheckResult["level"]): "default" | "seco
   return "default";
 }
 
-function downloadJSON(data: unknown, filename: string): void {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+/**
+ * Export JSON robuste multi-plateformes (cf. src/lib/exportFile.ts) : le
+ * pattern Blob + `<a download>` seul échoue silencieusement sur iOS Safari
+ * et dans certains contextes PWA — ce plan complet et cet audit P0 doivent
+ * rester récupérables même dans ces contextes.
+ */
+async function downloadJSON(data: unknown, filename: string, successNote?: string): Promise<void> {
+  const text = JSON.stringify(data, null, 2);
+  const result = await exportTextFile(text, filename, "application/json");
+  const suffix = successNote ? ` ${successNote}` : "";
+  switch (result.method) {
+    case "share":
+      toast.success(`${filename} partagé.${suffix}`);
+      break;
+    case "download":
+      toast.success(`${filename} téléchargé — vérifiez vos téléchargements.${suffix}`);
+      break;
+    case "window":
+      toast.success(`${filename} ouvert dans un nouvel onglet — enregistrez-le manuellement (téléchargement direct indisponible ici).${suffix}`);
+      break;
+    case "cancelled":
+      break;
+    case "none":
+      toast.error(`Impossible d'exporter ${filename} (partage, téléchargement et nouvel onglet tous bloqués).`);
+      break;
+  }
 }
 
 function buildExportPayload(profile: QAProfile, result: PilotCockpitResult) {
@@ -132,16 +149,16 @@ export function PilotCockpitPanel() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!lastResult || !lastResult.merged) return;
     const profile = PILOT_PROFILES.find((p) => p.id === lastResult.profileId);
     if (!profile) return;
     const payload = buildExportPayload(profile, lastResult);
     const dateStr = new Date(lastResult.ts).toISOString().slice(0, 10);
-    downloadJSON(payload, `${dateStr}_${profile.id}_run1.json`);
+    await downloadJSON(payload, `${dateStr}_${profile.id}_run1.json`);
   };
 
-  const handleSafetyExport = () => {
+  const handleSafetyExport = async () => {
     if (!lastResult?.merged || lastResult.profileId !== "B-5K-BEGINNER") return;
     const hours = p0Week1Hours.trim() === "" ? null : Number(p0Week1Hours);
     const ramp = p0RampPct.trim() === "" ? null : Number(p0RampPct);
@@ -161,7 +178,7 @@ export function PilotCockpitPanel() {
       hasPriorLoadForDeload: false,
     });
     if (!report) return;
-    downloadJSON({
+    await downloadJSON({
       ...report,
       coachSuppliedContracts: {
         week1RunHoursMax: hours, weeklyRunIncreasePctMax: ramp === null ? null : ramp / 100,
@@ -170,8 +187,7 @@ export function PilotCockpitPanel() {
         hasPriorLoadForDeload: false,
         note: "Hypothèses explicites du coach ; champs vides = contrôle non évalué. Historique antérieur non confirmé.",
       },
-    }, `${new Date(lastResult.ts).toISOString().slice(0, 10)}_B-5K-BEGINNER_audit-P0.json`);
-    toast.success("Audit P0 exporté localement, sans appel IA.");
+    }, `${new Date(lastResult.ts).toISOString().slice(0, 10)}_B-5K-BEGINNER_audit-P0.json`, "Audit P0 local, sans appel IA.");
   };
 
   const criticalIssues = lastResult?.validatorResult?.issues.filter((i) => i.severity === "error") ?? [];
