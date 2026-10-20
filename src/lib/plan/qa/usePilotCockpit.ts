@@ -20,6 +20,8 @@ import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { PreparedTrainingPlanContext, TrainingPlanPhysiologicalTrace } from "@/engines/plan";
 import { preparePilotTrainingPlanContext } from "./preparePilotTrainingPlanContext";
+import { auditBeginnerRunSafety } from "./auditBeginnerRunSafety";
+import { buildPilotSafetyExport } from "./buildPilotSafetyExport";
 import {
   buildSessionPhysiologicalTraceability,
   type SessionPhysiologicalTraceabilityReport,
@@ -277,8 +279,15 @@ export function usePilotCockpit() {
     return result;
   }, [plan]);
 
+  /** Explicit coach-provided RUN-only contracts; never guesses from mixed-sport quotas. */
+  const exportLastRunSafety = useCallback((config: Parameters<typeof auditBeginnerRunSafety>[1]) => {
+    if (!lastResult?.merged) return null;
+    const issues = auditBeginnerRunSafety(lastResult.merged, config);
+    return buildPilotSafetyExport(lastResult.merged, issues);
+  }, [lastResult]);
+
   return {
-    isRunning, lastResult, runProfile, checkBudget, budget,
+    isRunning, lastResult, runProfile, checkBudget, budget, exportLastRunSafety,
     chunkProgress: plan.chunkProgress,
   };
 }
