@@ -770,15 +770,34 @@ describe("planValidator", () => {
       ], "Build");
     }
 
+    /**
+     * Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : complète à
+     * 8 semaines totales. Un plan de seulement 3 semaines tombe presque
+     * entièrement dans la zone de taper/course automatique par POSITION
+     * (`inferWeekType`) — pour "703" (taper=2 semaines), S1-S2 seraient
+     * classées taper et désormais honnêtement exclues de l'agrégat ratio
+     * (`isContentOrScheduleDeload`, cf. validateSportRatio), ne laissant que
+     * S3 (5 séances) sous le seuil anti-faux-positif `primaryTotal < 10` :
+     * la règle s'abstiendrait silencieusement pour les deux tests, sans
+     * jamais exercer la logique réellement testée (ratio générique /
+     * redistribution banni). Sur 8 semaines, S1-S3 restent "load" (taper
+     * 703 = S7-S8, course = S8 uniquement).
+     */
+    function padBikeRunTo8Weeks(): ParsedWeek[] {
+      const weeks = [bikeRunWeek(1), bikeRunWeek(2), bikeRunWeek(3)];
+      for (let w = 4; w <= 8; w++) weeks.push(bikeRunWeek(w));
+      return weeks;
+    }
+
     it("sans contrainte connue : signale natation 0% comme une erreur", () => {
-      const plan = makePlan([bikeRunWeek(1), bikeRunWeek(2), bikeRunWeek(3)]);
+      const plan = makePlan(padBikeRunTo8Weeks());
       const result = validatePlan(plan, "703");
       const ratioIssues = result.issues.filter(i => i.rule === "sport_ratio");
       expect(ratioIssues.some(i => i.message.includes("Natation"))).toBe(true);
     });
 
     it("avec natation bannie (champ Contraintes) : plus aucune alerte de ratio sport", () => {
-      const plan = makePlan([bikeRunWeek(1), bikeRunWeek(2), bikeRunWeek(3)]);
+      const plan = makePlan(padBikeRunTo8Weeks());
       const result = validatePlan(
         plan, "703", undefined, undefined, undefined, undefined, undefined,
         undefined, undefined, undefined, undefined,
@@ -786,6 +805,145 @@ describe("planValidator", () => {
       );
       const ratioIssues = result.issues.filter(i => i.rule === "sport_ratio");
       expect(ratioIssues).toHaveLength(0);
+    });
+  });
+
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : 4 sites
+   * utilisaient `isDeload` (texte OU activeSessions<=3) pour exempter une
+   * semaine de la vérification — un proxy de comptage qui traite à tort
+   * TOUTE semaine à faible fréquence (≤3 séances/semaine, exactement le
+   * profil débutant/finisseur visé par les nouveaux athlètes) comme une
+   * décharge, même quand ce n'en est pas une. Remplacé par
+   * `isContentOrScheduleDeload` (texte OU weekType réellement planifié à la
+   * génération) aux 3 sites qui vérifient le CONTENU réel d'une semaine
+   * (sport_ratio, key_sessions — dénominateur, progression — saut brusque) ;
+   * `validateLorangCategories` avait son propre `|| active.length<=3` retiré
+   * de la même façon. Chaque test ci-dessous est construit pour échouer avec
+   * l'ancien proxy de comptage et réussir avec la détection honnête.
+   */
+  describe("Correction sprint qualité M/IM #3 — détection décharge basée sur le planning réel", () => {
+    function lowFreqBikeRunWeek(weekNumber: number): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Vélo", title: "Z2 progressif", details: "Endurance" },
+        { sport: "Vélo", title: "Sweet Spot", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2", details: "Endurance" },
+      ], "Build");
+    }
+    function tinyFillerWeek(weekNumber: number): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Vélo", title: "Z1 régénération", details: "Récupération" },
+        { sport: "Course", title: "Footing court", details: "Récupération" },
+      ], "Build");
+    }
+
+    it("sport_ratio — un plan 70.3 à faible fréquence (≤3 séances/sem, aucune vraie décharge) signale natation 0% au lieu de s'abstenir silencieusement", () => {
+      // 703 (taper=2) sur 8 semaines : S1,2,3,5 = load (S4 = recovery par
+      // position, cadence 4), S6-7 = taper, S8 = race. Chaque semaine n'a
+      // QUE 2-3 séances — jamais une vraie décharge de contenu/planning,
+      // juste un volume hebdomadaire bas. Avec l'ancien `isDeload` (compte
+      // <=3), les 8 semaines étaient exemptées de l'agrégat ratio → total=0
+      // → `primaryTotal < 10` → la règle s'abstenait ("pas assez de
+      // données"), cachant un vrai 0% natation sur tout le plan.
+      const weeks = [
+        lowFreqBikeRunWeek(1), lowFreqBikeRunWeek(2), lowFreqBikeRunWeek(3),
+        tinyFillerWeek(4),
+        lowFreqBikeRunWeek(5),
+        tinyFillerWeek(6), tinyFillerWeek(7),
+        makeWeek(8, [{ sport: "Course", title: "🏁 COURSE OBJECTIF", details: "Jour J — 70.3" }], "Build"),
+      ];
+      const result = validatePlan(makePlan(weeks), "703");
+      const ratioIssues = result.issues.filter(i => i.rule === "sport_ratio");
+      expect(ratioIssues.some(i => i.message.includes("Natation"))).toBe(true);
+    });
+
+    it("progression — un saut de volume brusque entre deux semaines à faible fréquence (≤3 séances, aucune vraie décharge) est détecté", () => {
+      // Marathon (taper=2) sur 8 semaines : S1,2,3,5 = load, S4 = recovery,
+      // S6-7 = taper, S8 = race. S1→S2 : 3→5 séances (+67%, hors plancher de
+      // bruit `prev.activeSessions<3`). Avec l'ancien `isDeload` (compte<=3),
+      // S1 (3 séances) était traitée comme une décharge → le saut n'était
+      // jamais vérifié, même si S1 n'était en rien une semaine allégée.
+      const weeks = [
+        makeWeek(1, [
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Sortie longue", details: "Endurance" },
+        ], "Build"),
+        makeWeek(2, [
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Tempo seuil", details: "Séance clé 🔑" },
+          { sport: "Course", title: "Sortie longue", details: "Endurance" },
+        ], "Build"),
+        makeWeek(3, [
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Tempo seuil", details: "Séance clé 🔑" },
+          { sport: "Course", title: "Sortie longue", details: "Endurance" },
+        ], "Build"),
+        tinyFillerWeek(4),
+        makeWeek(5, [
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Footing", details: "Endurance" },
+          { sport: "Course", title: "Tempo seuil", details: "Séance clé 🔑" },
+          { sport: "Course", title: "Sortie longue", details: "Endurance" },
+        ], "Build"),
+        tinyFillerWeek(6), tinyFillerWeek(7),
+        makeWeek(8, [{ sport: "Course", title: "🏁 COURSE OBJECTIF", details: "Jour J — Marathon" }], "Build"),
+      ];
+      const result = validatePlan(makePlan(weeks), "Marathon");
+      const jumpIssue = result.issues.find(i => i.rule === "progression" && i.week === 2 && /Saut de volume/i.test(i.message));
+      expect(jumpIssue).toBeDefined();
+    });
+
+    it("key_sessions — le dénominateur du score inclut désormais les semaines chargées à faible fréquence (≤3 séances) sans séance clé, au lieu de les exclure et gonfler le score", () => {
+      // Marathon sur 8 semaines : S1,2 = 3 séances SANS séance clé (erreur
+      // réelle, pas une décharge) ; S3,5 = 5 séances avec 3 clés (conformes).
+      // Numérateur (compliant, boucle déjà correcte via Fix A7) = 0+0+1+1 = 2
+      // dans les deux cas. Avec l'ancien dénominateur (`isDeload`, compte<=3),
+      // S1 et S2 (3 séances) étaient exclues du total → total=2 (S3,S5 seuls)
+      // → score = 2/2 = 100% (deux semaines sans AUCUNE séance clé masquées).
+      // Avec le nouveau dénominateur, S1,S2 comptent (load réel, pas une
+      // décharge) → total=4 → score = 2/4 = 50%, qui reflète la réalité.
+      const noKeyWeek = (weekNumber: number): ParsedWeek => makeWeek(weekNumber, [
+        { sport: "Course", title: "Footing", details: "Endurance" },
+        { sport: "Course", title: "Footing", details: "Endurance" },
+        { sport: "Course", title: "Footing", details: "Endurance" },
+      ], "Build");
+      const compliantWeek = (weekNumber: number): ParsedWeek => makeWeek(weekNumber, [
+        { sport: "Course", title: "Footing", details: "Endurance" },
+        { sport: "Course", title: "Footing", details: "Endurance" },
+        { sport: "Course", title: "Tempo seuil", details: "Séance clé 🔑" },
+        { sport: "Course", title: "Fractionné VMA", details: "Séance clé 🔑" },
+        { sport: "Course", title: "Sortie longue", details: "Séance clé 🔑" },
+      ], "Build");
+      const weeks = [
+        noKeyWeek(1), noKeyWeek(2), compliantWeek(3),
+        tinyFillerWeek(4),
+        compliantWeek(5),
+        tinyFillerWeek(6), tinyFillerWeek(7),
+        makeWeek(8, [{ sport: "Course", title: "🏁 COURSE OBJECTIF", details: "Jour J — Marathon" }], "Build"),
+      ];
+      const result = validatePlan(makePlan(weeks), "Marathon");
+      expect(result.summary.keySessionsScore).toBe(50);
+    });
+
+    it("lorang_categories — une semaine à exactement 3 séances, toutes basse intensité (aucune réelle décharge), est signalée pour absence de séance A/B", () => {
+      // L'ancien `|| active.length <= 3` exemptait à tort la Règle 1 (≥1
+      // séance A ou B par semaine) pour toute semaine à EXACTEMENT 3 séances
+      // — y compris celle-ci, 3 séances 100% endurance fondamentale (catégorie
+      // C), ce qui n'est en rien une décharge planifiée.
+      const weeks = [makeWeek(1, [
+        { sport: "Course", title: "EF Z2", details: "Endurance fondamentale" },
+        { sport: "Course", title: "EF Z2", details: "Endurance fondamentale" },
+        { sport: "Course", title: "EF Z2", details: "Endurance fondamentale" },
+      ], "Build")];
+      const result = validatePlan(makePlan(weeks), "Marathon");
+      const rule1Issue = result.issues.find(i => i.rule === "lorang_categories" && i.week === 1 && /aucune séance Lorang A.*ni B/i.test(i.message));
+      expect(rule1Issue).toBeDefined();
     });
   });
 

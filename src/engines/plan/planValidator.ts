@@ -1431,7 +1431,15 @@ function validateKeySessions(
     compliant += weekCompliant;
   }
 
-  const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek).length || 1;
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : la boucle
+  // ci-dessus exclut déjà chaque semaine via `isDeloadOrTaperForKeySessions`
+  // (Fix A7, weekType réellement calculé) — mais ce dénominateur recalculait
+  // l'exclusion sur le `m.isDeload` brut (texte OU ≤3 séances), une
+  // définition PLUS LARGE. Une semaine "load" compressée à ≤3 séances (pas
+  // un vrai déload) contribuait alors à `compliant` (boucle, définition
+  // étroite) sans jamais compter dans `total` (ici, définition large) :
+  // score potentiellement >100% / incohérent pour un plan à faible volume.
+  const total = metrics.filter(m => !m.isContentOrScheduleDeload && !m.isRaceWeek).length || 1;
   return { issues, score: Math.max(0, Math.min(100, Math.round((compliant / total) * 100))) };
 }
 
@@ -1468,10 +1476,17 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
   }
 
   // Sudden jumps (> +30% week to week)
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : `isDeload`
+  // (texte OU activeSessions<=3) exemptait à tort cette vérification pour
+  // toute semaine à ≤3 séances, même chargée (pas un vrai déload) — exactement
+  // le profil à faible fréquence des nouveaux athlètes. `prev.activeSessions
+  // < 3` juste après reste un plancher de bruit DIFFÉRENT et toujours
+  // légitime (une variation en % n'est pas fiable sur de très petits nombres
+  // absolus) — conservé tel quel, seule l'identification du déload change.
   for (let i = 1; i < metrics.length; i++) {
     const prev = metrics[i - 1];
     const curr = metrics[i];
-    if (prev.isDeload || curr.isDeload || curr.isRaceWeek || prev.activeSessions < 3) continue;
+    if (prev.isContentOrScheduleDeload || curr.isContentOrScheduleDeload || curr.isRaceWeek || prev.activeSessions < 3) continue;
 
     const prevVol = volumeOf(prev);
     const currVol = volumeOf(curr);
@@ -1673,9 +1688,20 @@ function validateSportRatio(
   const issues: ValidationIssue[] = [];
 
   // Aggregate sport counts across all non-deload weeks
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : `wm.isDeload`
+  // (texte OU activeSessions<=3) exemptait à tort TOUTE semaine à ≤3 séances
+  // — pour un plan à faible volume (débutant/finisseur, exactement le profil
+  // visé par les nouveaux athlètes), chaque semaine satisfait trivialement
+  // cette condition, donc `totals` restait vide/nul pour tout le plan : cette
+  // règle devenait silencieuse sur un déséquilibre réel. `isContentOrSchedule
+  // Deload` (texte OU weekType réellement calculé à la génération, jamais le
+  // simple nombre de séances) est déjà la définition correcte — réservée à la
+  // polarisation jusqu'ici (cf. doc du champ), étendue ici après vérification
+  // que cette règle a bien le même besoin ("la semaine est-elle HONNÊTEMENT
+  // une décharge ?", pas "la charge a-t-elle été RÉELLEMENT réduite ?").
   const totals: Record<string, number> = {};
   for (const wm of metrics) {
-    if (wm.isDeload || wm.isRaceWeek) continue;
+    if (wm.isContentOrScheduleDeload || wm.isRaceWeek) continue;
     for (const [sport, count] of Object.entries(wm.sports)) {
       totals[sport] = (totals[sport] || 0) + count;
     }
@@ -3478,7 +3504,13 @@ function validateLorangCategories(
   for (const w of plan.weeks) {
     const active = w.sessions.filter((s) => !s.isRest);
     const weekThemeText = `${w.theme} ${w.phase}`.toLowerCase();
-    const isDeload = DELOAD_PATTERNS.test(weekThemeText) || active.length <= 3;
+    // Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : l'ancien
+    // `|| active.length <= 3` exemptait à tort la Règle 1 (≥1 séance A/B)
+    // pour toute semaine à EXACTEMENT 3 séances (le plancher `bd.active>=3`
+    // ci-dessous l'aurait sinon évaluée) même si c'était 3 séances toutes
+    // maximales — pas un déload. Texte seul (même définition que
+    // validateSessionDensity, déjà sans ce proxy de comptage).
+    const isDeload = DELOAD_PATTERNS.test(weekThemeText);
     // Niveau 2 : bloc seuil concentré explicitement nommé (norvégien double-seuil,
     // Sweet Spot étendu) — même exemption que Rule 1, cf. THRESHOLD_BLOCK_PATTERNS.
     const isThresholdBlock = THRESHOLD_BLOCK_PATTERNS.test(weekThemeText);
