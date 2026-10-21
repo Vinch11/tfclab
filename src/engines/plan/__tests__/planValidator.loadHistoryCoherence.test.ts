@@ -179,6 +179,44 @@ describe("Contrainte d'agenda — maxDoubleDaysPerWeek (Correction E, distinct d
     );
     expect(result.issues.filter(i => /journées à 2 séances/i.test(i.message))).toHaveLength(0);
   });
+
+  // Correctif ciblé #F (demande coach explicite) : 0 est une valeur
+  // significative ("aucune journée double autorisée"), pas un champ absent.
+  it("maxDoubleDaysPerWeek=0 respecté (0 journée double réelle) : aucune alerte", () => {
+    const plan = makePlan([dayWeek(1, 0)]);
+    const cfg: SessionDensityConfig = { maxDoubleDaysPerWeek: 0, maxSessionsPerDay: 2 };
+    const result = validatePlan(
+      plan, "703", undefined, undefined, undefined, undefined, undefined, undefined, cfg,
+    );
+    expect(result.issues.filter(i => /journées à 2 séances/i.test(i.message))).toHaveLength(0);
+  });
+
+  it("maxDoubleDaysPerWeek=0 dépassé (1 seule journée double réelle) : signalé explicitement", () => {
+    const plan = makePlan([dayWeek(1, 1)]);
+    const cfg: SessionDensityConfig = { maxDoubleDaysPerWeek: 0, maxSessionsPerDay: 2 };
+    const result = validatePlan(
+      plan, "703", undefined, undefined, undefined, undefined, undefined, undefined, cfg,
+    );
+    const issue = result.issues.find(i => /journées à 2 séances/i.test(i.message));
+    expect(issue).toBeDefined();
+    expect(issue?.message).toMatch(/1 journées.*max déclaré 0/i);
+  });
+
+  // Correctif ciblé #F, point 4 (demande coach explicite) : une semaine de
+  // récupération (scheduledWeekType="recovery", cadence 4 par défaut) avec
+  // MOINS de journées doubles que le plafond déclaré ne doit jamais être
+  // signalée — seul un DÉPASSEMENT du plafond l'est, jamais un déficit.
+  it("une semaine de récupération avec moins de journées doubles que le plafond (4 max, 1 réelle) n'est jamais signalée", () => {
+    const plan = makePlan([
+      dayWeek(1, 4), dayWeek(2, 4), dayWeek(3, 4),
+      dayWeek(4, 1), // décharge par position (cadence 4) — volontairement allégée
+    ]);
+    const cfg: SessionDensityConfig = { maxDoubleDaysPerWeek: 4, maxSessionsPerDay: 2 };
+    const result = validatePlan(
+      plan, "703", undefined, undefined, undefined, undefined, undefined, undefined, cfg,
+    );
+    expect(result.issues.filter(i => /journées à 2 séances/i.test(i.message))).toHaveLength(0);
+  });
 });
 
 describe("Non-interférence avec le garde-fou CRR/TSS mesuré (demande coach point 3 — conservé intact)", () => {

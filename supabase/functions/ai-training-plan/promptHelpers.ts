@@ -483,6 +483,20 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   if (config?.weeklyHours) lines.push(`\n📊 Volume: ${config.weeklyHours}h/sem`);
   if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
   if (config?.maxSessionsPerDay) lines.push(`📊 Max/jour: ${config.maxSessionsPerDay}`);
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #F (demande
+  // coach explicite) : contrainte d'agenda distincte de "Max/jour"
+  // ci-dessus — borne le NOMBRE de journées à 2 séances sur la semaine,
+  // pas le nombre de séances un jour donné. Fait partie de
+  // `structuredDiagnostic`, donc réinjectée dans CHAQUE chunk (voir
+  // index.ts : `diagnosticBlock`/`structuredDiagnostic` repris identiques
+  // au chunk 1 et à tous les suivants) — pas seulement le premier bloc.
+  // MAXIMUM explicite, jamais un objectif : une semaine avec MOINS de
+  // journées doubles (décharge, affûtage, tout autre contexte) reste
+  // toujours conforme. Ne modifie aucune règle de volume — uniquement la
+  // répartition des séances sur la semaine.
+  if (config?.maxDoubleDaysPerWeek != null) {
+    lines.push(`📊 Max journées doubles/sem: ${config.maxDoubleDaysPerWeek} — MAXIMUM à ne jamais dépasser, PAS un objectif à atteindre. Moins de journées doubles reste toujours conforme (ex: semaines de décharge/affûtage, qui en comportent naturellement moins). Ne pas ajuster le volume total pour satisfaire artificiellement cette contrainte — seule la répartition des séances sur la semaine doit être revue si besoin.`);
+  }
 
   // Charge récente — contexte d'absorption (CTL/ATL proxy via TSS 7j)
   if (config?.recentLoad) {

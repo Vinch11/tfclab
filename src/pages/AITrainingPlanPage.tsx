@@ -1597,7 +1597,10 @@ export default function AITrainingPlanPage() {
       })(),
       maxDoubleDaysPerWeek: (() => {
         const n = parseInt(maxDoubleDaysPerWeek, 10);
-        return Number.isFinite(n) && n > 0 ? n : undefined;
+        // Correction #F : 0 est une valeur significative ("aucune journée
+        // double autorisée"), distincte de "champ absent" — ne pas la
+        // perdre en la traitant comme falsy.
+        return Number.isFinite(n) && n >= 0 ? n : undefined;
       })(),
     };
 
@@ -2397,7 +2400,7 @@ export default function AITrainingPlanPage() {
             maxSessionsPerDay: (() => { const n = parseInt(maxSessionsPerDay); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
             // Correction sprint qualité Marathon/Ironman (oct. 2026), #E :
             // contrainte d'agenda déclarée (distincte de maxSessionsPerDay).
-            maxDoubleDaysPerWeek: (() => { const n = parseInt(maxDoubleDaysPerWeek, 10); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
+            maxDoubleDaysPerWeek: (() => { const n = parseInt(maxDoubleDaysPerWeek, 10); return Number.isFinite(n) && n >= 0 ? n : undefined; })(), // 0 = valeur significative, distincte de "absent"
           },
           cfg?.injuryRisk,
           // Correction sprint qualité Marathon/Ironman (oct. 2026), #D :
