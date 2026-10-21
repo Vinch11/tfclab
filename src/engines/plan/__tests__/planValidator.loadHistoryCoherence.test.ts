@@ -63,22 +63,48 @@ describe("validateLoadHistoryCoherence — historique de charge déclaratif (Cor
           undefined, undefined, undefined, undefined, undefined, undefined, undefined, loadContext,
         );
         const increaseIssue = result.issues.find(i => i.rule === "load_history" && /Hausse de charge déclarative/i.test(i.message));
-        const consolidationIssues = result.issues.filter(i => i.rule === "load_history" && /dépasse déjà le volume récent/i.test(i.message));
+        const consolidationIssues = result.issues.filter(i => i.rule === "load_history" && /dépasse la limite EFFECTIVE de consolidation/i.test(i.message));
         expect(increaseIssue).toBeDefined();
         expect(increaseIssue?.severity).toBe("warning");
         expect(consolidationIssues).toHaveLength(0);
       });
 
-      it("8h chronique → 17h récent (4 semaines), plan qui repart à 20h dès S1 : consolidation signalée explicitement", () => {
+      // Dernière correction ciblée (consigne coach explicite, contre-vérification
+      // Codex sur b691980), point A : la limite EFFECTIVE de consolidation
+      // (17h ici) est désormais une contrainte vérifiée à la validation finale
+      // ("error", surfacée au coach avant sauvegarde), plus seulement une
+      // recommandation tolérante ("warning" + marge de bruit 5%). Reste
+      // strictement scopée à la fenêtre de consolidation déclarée — jamais un
+      // plafond permanent.
+      it("8h chronique → 17h récent (4 semaines), plan qui repart à 20h dès S1 : limite effective de consolidation dépassée, signalée comme erreur", () => {
         const plan = makePlan(Array.from({ length: 10 }, (_, i) => week20h(i + 1)));
         const loadContext: WeeklyLoadContext = { chronicWeeklyHours: 8, recentWeeklyHours: 17, recentWeeksCount: 4 };
         const result = validatePlan(
           plan, objective, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
           undefined, undefined, undefined, undefined, undefined, undefined, undefined, loadContext,
         );
-        const consolidationIssue = result.issues.find(i => i.rule === "load_history" && i.week === 1 && /dépasse déjà le volume récent/i.test(i.message));
+        const consolidationIssue = result.issues.find(i => i.rule === "load_history" && i.week === 1 && /dépasse la limite EFFECTIVE de consolidation/i.test(i.message));
         expect(consolidationIssue).toBeDefined();
-        expect(consolidationIssue?.severity).toBe("warning"); // jamais "error" — déclaratif, jamais bloquant automatiquement
+        expect(consolidationIssue?.severity).toBe("error"); // désormais vérifiée comme contrainte critique (consigne coach)
+      });
+
+      // Cas précis demandé par le coach : 17h48 (+4,7%) dépasse une limite
+      // effective de 17h, mais restait SOUS l'ancienne marge de bruit 5%
+      // (17h × 1.05 = 17h51) — donc jamais signalé avant ce correctif. La
+      // tolérance dédiée (CONSOLIDATION_CEILING_TOLERANCE_MIN, 5 minutes
+      // d'arrondi, pas un pourcentage) le détecte désormais.
+      it("17h48 dépasse une limite effective de 17h → signalé comme non conforme (même si sous l'ancienne marge de bruit de 5%)", () => {
+        const week17h48 = (n: number): ParsedWeek =>
+          makeWeek(n, [...sportSessions("Natation", 188), ...sportSessions("Vélo", 480), ...sportSessions("Course", 400)]); // 1068min = 17h48
+        const plan = makePlan(Array.from({ length: 10 }, (_, i) => week17h48(i + 1)));
+        const loadContext: WeeklyLoadContext = { chronicWeeklyHours: 8, recentWeeklyHours: 17, recentWeeksCount: 4 };
+        const result = validatePlan(
+          plan, objective, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+          undefined, undefined, undefined, undefined, undefined, undefined, undefined, loadContext,
+        );
+        const consolidationIssue = result.issues.find(i => i.rule === "load_history" && i.week === 1 && /dépasse la limite EFFECTIVE de consolidation/i.test(i.message));
+        expect(consolidationIssue).toBeDefined();
+        expect(consolidationIssue?.severity).toBe("error");
       });
 
       it("charge stable depuis plusieurs mois (chronique = récent, longue durée) : aucun signal", () => {

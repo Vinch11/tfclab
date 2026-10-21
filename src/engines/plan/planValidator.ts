@@ -1173,6 +1173,59 @@ export function demandingSessionCap(activeCount: number): number {
   return Math.max(1, Math.floor(activeCount / 2));
 }
 
+/**
+ * Dernière correction ciblée (consigne coach explicite, contre-vérification
+ * Codex sur b691980), point B — INTENSITÉ : "STRUCTURE AMBITION (non
+ * négociable)" (promptHelpers.ts) impose un nombre fixe de qualités/semaine
+ * selon l'ambition (ex. 3 pour "elite") — SEULEMENT dans le prompt envoyé au
+ * modèle, sans jamais être vérifié sur le plan RÉELLEMENT généré, ni adapté
+ * au type de semaine réellement programmée. Rien n'empêchait jusqu'ici une
+ * semaine `scheduledWeekType==="recovery"` d'hériter du même nombre de
+ * séances exigeantes qu'une semaine de charge — une semaine de récupération
+ * doit réduire charge ET intensité ensemble, pas seulement le volume.
+ *
+ * Ne reformule PAS le prompt (déjà fait, Correction P0-2) : contrôle le
+ * RÉSULTAT réellement généré, seule garantie fiable contre un LLM qui
+ * n'applique pas la nuance demandée dans le texte d'instruction.
+ *
+ * Réutilise `isGenuinelyDemandingSession` (même classifieur que
+ * `validateDemandingSessionAccumulation`/`validateWeeklyHardDayDensity` —
+ * jamais une 2e définition de "séance exigeante" qui risquerait de diverger).
+ * Seuil volontairement bas (>1) : une semaine de récupération peut
+ * légitimement garder UNE touche d'intensité courte (maintien neuromusculaire),
+ * jamais 2 ou plus — au-delà, ce n'est plus une semaine de récupération.
+ */
+const RECOVERY_WEEK_DEMANDING_SESSIONS_CAP = 1;
+
+function validateRecoveryWeekIntensity(
+  plan: ParsedPlan,
+  weekMetrics: WeekMetrics[],
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const weekTypeByNumber = new Map(weekMetrics.map((m) => [m.weekNumber, m.scheduledWeekType]));
+  let compliant = 0;
+  let checked = 0;
+  for (const week of plan.weeks) {
+    if (weekTypeByNumber.get(week.weekNumber) !== "recovery") continue;
+    const active = week.sessions.filter((s) => !s.isRest);
+    if (active.length === 0) continue;
+    checked++;
+    const demanding = active.filter((s) => isGenuinelyDemandingSession(s));
+    if (demanding.length > RECOVERY_WEEK_DEMANDING_SESSIONS_CAP) {
+      issues.push({
+        rule: "recovery_week_intensity",
+        severity: "error",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: ${demanding.length} séance(s) exigeante(s) ("${demanding.map((s) => s.title).join('", "')}") pendant une semaine de RÉCUPÉRATION — incompatible avec ce type de semaine (max ${RECOVERY_WEEK_DEMANDING_SESSIONS_CAP} toléré).`,
+        detail: `Le nombre de qualités/semaine fixé par l'ambition ("STRUCTURE AMBITION") ne doit jamais s'appliquer tel quel à une semaine de récupération — charge ET intensité doivent baisser ensemble, pas seulement le volume.`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+  return { issues, score: checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100))) };
+}
+
 export interface TrainingLevelSignal {
   trainingLevel: string;
   trainingLevelSource: string;
@@ -2091,6 +2144,13 @@ function validateWeeklyLoadConsistency(
  */
 const LOAD_HISTORY_INCREASE_THRESHOLD = 1.3; // repère Gabbett réutilisé — jamais revendiqué comme ACWR mesuré ici
 const LOAD_HISTORY_DEFAULT_CONSOLIDATION_WEEKS = 4; // même mésocycle que le motif de décharge 3:1/2:1 de ce fichier
+// Dernière correction ciblée (consigne coach explicite, contre-vérification
+// Codex sur b691980), point A : tolérance en MINUTES (bruit d'arrondi
+// d'extraction de texte), jamais un pourcentage — `TAPER_VOLUME_NOISE_TOLERANCE`
+// (5%, pensé pour un usage différent plus haut dans ce fichier) masquait un
+// dépassement réel de la limite effective de consolidation (ex. 17h48 vs 17h,
+// +4,7%, sous ce seuil de 5%).
+const CONSOLIDATION_CEILING_TOLERANCE_MIN = 5;
 
 function validateLoadHistoryCoherence(
   metrics: WeekMetrics[],
@@ -2122,13 +2182,30 @@ function validateLoadHistoryCoherence(
   const recentTotalMin = recent * 60;
   for (const wm of metrics.slice(0, consolidationWeeks)) {
     if (wm.scheduledWeekType !== "load") continue; // affûtage/décharge/course : hors périmètre, déjà couverts ailleurs
-    if (wm.totalDurationMin > recentTotalMin * TAPER_VOLUME_NOISE_TOLERANCE) {
+    // Dernière correction ciblée (consigne coach explicite, contre-vérification
+    // Codex sur b691980), point A — VOLUME : la limite EFFECTIVE de la fenêtre
+    // de consolidation (`recent`, ex. 17h) n'était vérifiée qu'avec la marge de
+    // bruit d'extraction de texte réutilisée ailleurs dans ce fichier
+    // (`TAPER_VOLUME_NOISE_TOLERANCE`, 5% — pensée pour du bruit d'extraction,
+    // jamais revendiquée comme une marge physiologique), ET toujours en
+    // "warning" — un dépassement de 17h48 (+4,7%) passait sous ce seuil et
+    // n'était même pas signalé. Remplacée ici par une tolérance minute dédiée
+    // (pur bruit d'arrondi d'extraction, pas un pourcentage) et une sévérité
+    // "error" : CETTE limite effective est désormais une contrainte vérifiée
+    // à la validation finale, pas seulement une recommandation dans le prompt
+    // (Correction P0-1). Reste strictement scopée à la fenêtre de
+    // consolidation déclarée par le coach (`consolidationWeeks` ci-dessus,
+    // jamais au-delà) et seulement quand `loadHistory` signale une hausse
+    // récente — jamais un plafond permanent/universel : une fois la fenêtre
+    // passée (ou en l'absence de ce signal déclaratif), rien n'empêche une
+    // progression individualisée vers la cible ambition.
+    if (wm.totalDurationMin > recentTotalMin + CONSOLIDATION_CEILING_TOLERANCE_MIN) {
       issues.push({
         rule: "load_history",
-        severity: "warning",
+        severity: "error",
         week: wm.weekNumber,
-        message: `S${wm.weekNumber}: le plan dépasse déjà le volume récent démontré (${Math.round(wm.totalDurationMin / 60 * 10) / 10}h vs ${recent}h/sem) pendant la fenêtre de consolidation (${consolidationWeeks} semaine(s))`,
-        detail: `La charge récente de CET athlète (${recent}h/sem) n'est documentée que ${weeksLabel} — une hausse supplémentaire avant la fin de cette fenêtre de consolidation n'est pas en soi une erreur, mais mérite d'être validée explicitement par le coach plutôt que d'être automatiquement acceptée comme un palier déjà assimilé.`,
+        message: `S${wm.weekNumber}: le plan dépasse la limite EFFECTIVE de consolidation (${Math.round(wm.totalDurationMin / 60 * 10) / 10}h vs ${recent}h/sem, limite réellement appliquée pour ce plan) pendant la fenêtre de consolidation (${consolidationWeeks} semaine(s))`,
+        detail: `La charge récente de CET athlète (${recent}h/sem) n'est documentée que ${weeksLabel} — tant que cette fenêtre de consolidation n'est pas terminée, ${recent}h/sem est la limite EFFECTIVE de ce plan (cf. Correction P0-1, prompt de génération), pas seulement une recommandation. Ceci n'est PAS un plafond permanent : une fois la fenêtre passée, ou si le coach valide explicitement un nouveau palier, la progression vers la cible ambition reste individualisée et possible.`,
       });
     }
   }
@@ -5122,9 +5199,10 @@ export function validatePlan(
   const hardDayDensity = validateWeeklyHardDayDensity(plan);
   const raceSpecificSportGap = validateRaceSpecificSportGap(plan);
   const demandingAccumulation = validateDemandingSessionAccumulation(plan, trainingLevelSignal);
+  const recoveryWeekIntensity = validateRecoveryWeekIntensity(plan, weekMetrics);
   const polarization = {
-    issues: [...polarizationBase.issues, ...hardDayDensity.issues, ...raceSpecificSportGap.issues, ...demandingAccumulation.issues],
-    score: Math.round((polarizationBase.score + hardDayDensity.score + raceSpecificSportGap.score + demandingAccumulation.score) / 4),
+    issues: [...polarizationBase.issues, ...hardDayDensity.issues, ...raceSpecificSportGap.issues, ...demandingAccumulation.issues, ...recoveryWeekIntensity.issues],
+    score: Math.round((polarizationBase.score + hardDayDensity.score + raceSpecificSportGap.score + demandingAccumulation.score + recoveryWeekIntensity.score) / 5),
   };
   const loadPattern = validateLoadPattern(weekMetrics);
   const keySessions = validateKeySessions(weekMetrics, objective, ambition);
