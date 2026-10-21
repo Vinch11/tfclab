@@ -2375,6 +2375,18 @@ export default function AITrainingPlanPage() {
           // dans un plan triathlon, ex. 10K → 70.3).
           allGoalsWithObjective.some(g => g.raceDate) ? allGoalsWithObjective : undefined,
           format(planStartDate, "yyyy-MM-dd"),
+          // Correction sprint qualité Marathon/Ironman (oct. 2026), #C :
+          // charge habituelle déclarée par le coach (champ "Volume hebdo"
+          // du formulaire) — jamais traitée comme un plafond par
+          // validateWeeklyLoadConsistency (voir sa documentation). Pas de
+          // champ UI dédié "disponibilité maximale" aujourd'hui :
+          // maxAvailableWeeklyHours reste non câblé (limite connue) — toute
+          // alerte de cette règle reste donc "warning", jamais "error",
+          // jusqu'à l'ajout d'un tel champ.
+          (() => {
+            const n = parseFloat(weeklyHours);
+            return Number.isFinite(n) && n > 0 ? { habitualWeeklyHours: n } : undefined;
+          })(),
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;

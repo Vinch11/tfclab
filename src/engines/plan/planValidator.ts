@@ -1775,6 +1775,8 @@ function validateTaperVolumeReduction(
  * (score 100, comportement historique inchangé) — jamais un signal fabriqué
  * sans données réelles de date.
  */
+const MILESTONE_SPECIFICITY_TOLERANCE_PP = 15; // points de pourcentage — tolérance au bruit, pas un seuil physiologique
+
 function validateMilestoneTransition(
   metrics: WeekMetrics[],
   totalWeeks: number,
@@ -1849,9 +1851,177 @@ function validateMilestoneTransition(
         });
       }
     }
+
+    // 4) Réorientation de la spécificité (natation/vélo) pendant la reprise —
+    //    demande coach explicite : signaler l'absence de réorientation SANS
+    //    imposer une répartition fixe à toutes les phases. Comparaison
+    //    auto-référencée à la répartition moyenne du reste de CE plan
+    //    (semaines de charge hors fenêtre du jalon), jamais un pourcentage
+    //    universel.
+    const exclusionWeeks = new Set<number>([...prepWeekNums, goalWeek, goalWeek + 1, ...resumeWeekNums]);
+    const baselineWeeks = metrics.filter(
+      (m) => m.scheduledWeekType === "load" && !exclusionWeeks.has(m.weekNumber) && m.totalDurationMin > 0,
+    );
+    if (baselineWeeks.length >= 2 && resumeWeeks.length > 0) {
+      const swimBikeShare = (weeks: WeekMetrics[]): number | null => {
+        const total = weeks.reduce((s, w) => s + w.totalDurationMin, 0);
+        if (total <= 0) return null;
+        const swimBike = weeks.reduce(
+          (s, w) => s + (w.durationMinBySport["Natation"] || 0) + (w.durationMinBySport["Vélo"] || 0),
+          0,
+        );
+        return (swimBike / total) * 100;
+      };
+      const baselineShare = swimBikeShare(baselineWeeks);
+      const resumeShare = swimBikeShare(resumeWeeks);
+      if (
+        baselineShare !== null && resumeShare !== null
+        && resumeShare < baselineShare - MILESTONE_SPECIFICITY_TOLERANCE_PP
+      ) {
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: resumeWeeks[0].weekNumber,
+          message: `S${resumeWeeks[0].weekNumber}-S${resumeWeeks[resumeWeeks.length - 1].weekNumber}: part natation+vélo pendant la reprise après le jalon ${label} nettement inférieure à la part habituelle de CE plan (${Math.round(resumeShare)}% vs ${Math.round(baselineShare)}% en moyenne hors fenêtre du jalon)`,
+          detail: `La reprise semble rester centrée sur la course à pied plutôt que de réorienter vers la spécificité de l'objectif final triathlon. Une reprise progressive (course d'abord, natation/vélo réintroduits ensuite) peut être volontaire ponctuellement — mais ne doit pas durer indéfiniment. Comparaison auto-référencée à la répartition moyenne du reste de CE plan (semaines de charge hors fenêtre du jalon) — jamais une répartition fixe imposée.`,
+        });
+      }
+    }
   }
 
   const score = issues.length === 0 ? 100 : issues.length <= 2 ? 75 : 55;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #C (demande coach
+ * explicite, après lecture des scénarios de validation) : vérifie la
+ * COHÉRENCE de la charge hebdomadaire réellement prescrite — par rapport à
+ * l'historique de CE plan et, quand elle est fournie, à la charge habituelle
+ * et/ou à la disponibilité maximale déclarées par le coach pour cet athlète.
+ *
+ * Volontairement INACTIF si `loadContext` est entièrement omis (aucun
+ * appelant existant n'en dispose encore) — comportement historique inchangé,
+ * même logique que `raceGoals`/`planStartDate` pour #B.
+ *
+ * Point 1 (demande coach) : `habitualWeeklyHours` n'est JAMAIS traité comme
+ * un plafond absolu — une semaine de pic au-dessus de la charge habituelle
+ * n'est PAS en soi signalée. Seule une HAUSSE BRUTALE par rapport à
+ * l'historique récent de CE plan l'est (ratio charge aiguë / charge
+ * chronique > 1.3 — règle ACWR de Gabbett, déjà la référence utilisée
+ * ailleurs dans ce code pour la rampe de volume initiale — cf.
+ * planConfigBuilder.ts — pas un seuil inventé ici pour l'occasion).
+ * `maxAvailableWeeklyHours`, quand fourni, ne déclenche JAMAIS une alerte
+ * seul — il sert uniquement à ESCALADER en "error" (bloquant, point 4) une
+ * hausse déjà détectée qui dépasse EN PLUS ce plafond explicitement déclaré.
+ * Sans disponibilité max déclarée, toute hausse détectée reste "warning" (à
+ * valider par le coach) — jamais bloquante par défaut sans donnée réelle.
+ *
+ * Point 3 : deux niveaux de comparaison, une charge globale stable peut
+ * masquer une hausse excessive d'une seule discipline :
+ *  1. Volume TOTAL de la semaine vs moyenne des semaines de charge
+ *     (`scheduledWeekType==="load"`) qui précèdent, sur CE plan.
+ *  2. Volume PAR DISCIPLINE (Natation/Vélo/Course séparément) — signalé en
+ *     plus UNIQUEMENT si le volume total n'a pas déjà déclenché le signal 1
+ *     (éviter de signaler deux fois le même pic).
+ *
+ * Point 5 (repli documenté) : si CE plan n'a pas encore assez de semaines de
+ * charge antérieures (début de plan) MAIS que `habitualWeeklyHours` est
+ * fourni, il sert de référence de repli — le `detail` de l'issue le précise
+ * explicitement. Sans aucune des deux données pour une semaine donnée, elle
+ * est ignorée (silence honnête, pas de signal fabriqué).
+ *
+ * Hors périmètre volontairement : semaines `scheduledWeekType` "recovery"/
+ * "taper"/"race" — une baisse y est attendue (couverte par
+ * `validateTaperVolumeReduction`/`validateLoadPattern`), signaler une
+ * "hausse" y serait hors-sujet pour cette règle précise.
+ */
+const WEEKLY_LOAD_LOOKBACK_WEEKS = 4;
+const WEEKLY_LOAD_ACWR_THRESHOLD = 1.3; // Gabbett ACWR — même référence que la rampe de volume (planConfigBuilder.ts)
+
+export interface WeeklyLoadContext {
+  /** Charge hebdo habituelle RÉELLEMENT effectuée récemment (déclarative ou mesurée), en heures. Jamais traité comme un plafond. */
+  habitualWeeklyHours?: number;
+  /** Disponibilité maximale déclarée par le coach, en heures — distincte de la charge habituelle (point 1). Optionnelle : absente, aucune alerte n'est jamais escaladée en "error". */
+  maxAvailableWeeklyHours?: number;
+}
+
+function validateWeeklyLoadConsistency(
+  metrics: WeekMetrics[],
+  loadContext: WeeklyLoadContext | null | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (!loadContext || (!loadContext.habitualWeeklyHours && !loadContext.maxAvailableWeeklyHours)) {
+    return { issues: [], score: 100 };
+  }
+  const habitualTotalMin = loadContext.habitualWeeklyHours ? loadContext.habitualWeeklyHours * 60 : null;
+  const maxAvailableMin = loadContext.maxAvailableWeeklyHours ? loadContext.maxAvailableWeeklyHours * 60 : null;
+  const sportsTracked = ["Natation", "Vélo", "Course"];
+
+  for (let i = 0; i < metrics.length; i++) {
+    const wm = metrics[i];
+    if (wm.scheduledWeekType !== "load") continue; // pics de décharge/affûtage/course : hors périmètre de cette règle
+
+    const priorWeeks: WeekMetrics[] = [];
+    for (let j = i - 1; j >= 0 && priorWeeks.length < WEEKLY_LOAD_LOOKBACK_WEEKS; j--) {
+      if (metrics[j].scheduledWeekType !== "load") break; // s'arrête à la 1ère semaine non "charge"
+      priorWeeks.unshift(metrics[j]);
+    }
+
+    let chronicAvgTotal: number | null = null;
+    let usedDeclaredFallback = false;
+    if (priorWeeks.length >= 2) {
+      const avg = priorWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / priorWeeks.length;
+      if (avg > 0) chronicAvgTotal = avg;
+    }
+    if (chronicAvgTotal === null && habitualTotalMin) {
+      chronicAvgTotal = habitualTotalMin;
+      usedDeclaredFallback = true;
+    }
+    if (chronicAvgTotal === null) continue; // ni historique de CE plan, ni donnée déclarée exploitable
+
+    const ratio = wm.totalDurationMin / chronicAvgTotal;
+    let totalFlagged = false;
+    if (ratio > WEEKLY_LOAD_ACWR_THRESHOLD) {
+      totalFlagged = true;
+      const exceedsMaxAvailable = maxAvailableMin != null && wm.totalDurationMin > maxAvailableMin;
+      const baselineNote = usedDeclaredFallback
+        ? `Pas encore assez de semaines de charge antérieures sur CE plan — comparaison faite à la charge habituelle déclarée par le coach (${loadContext.habitualWeeklyHours}h/semaine), pas à l'historique du plan.`
+        : `Comparaison auto-référencée aux ${priorWeeks.length} semaines de charge précédentes de CE plan.`;
+      const escalationNote = exceedsMaxAvailable
+        ? ` Le volume dépasse en plus la disponibilité maximale déclarée (${loadContext.maxAvailableWeeklyHours}h) — anomalie bloquante, pas seulement à valider.`
+        : ` Ratio > ${WEEKLY_LOAD_ACWR_THRESHOLD} (ACWR Gabbett) : hausse notable, PAS automatiquement une erreur — une semaine de pic de périodisation peut être légitime, à valider par le coach.`;
+      issues.push({
+        rule: "progression",
+        severity: exceedsMaxAvailable ? "error" : "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: hausse brute de charge totale (${(wm.totalDurationMin / 60).toFixed(1)}h vs ${(chronicAvgTotal / 60).toFixed(1)}h de référence, ratio ${ratio.toFixed(2)})${exceedsMaxAvailable ? " — dépasse la disponibilité maximale déclarée" : ""}`,
+        detail: baselineNote + escalationNote,
+      });
+    }
+
+    if (!totalFlagged && priorWeeks.length >= 2) {
+      // Point 3 : une charge globale stable peut masquer une discipline en hausse excessive.
+      for (const sport of sportsTracked) {
+        const priorAvgSport = priorWeeks.reduce((s, w) => s + (w.durationMinBySport[sport] || 0), 0) / priorWeeks.length;
+        if (priorAvgSport <= 0) continue;
+        const weekVal = wm.durationMinBySport[sport] || 0;
+        const sportRatio = weekVal / priorAvgSport;
+        if (sportRatio > WEEKLY_LOAD_ACWR_THRESHOLD) {
+          issues.push({
+            rule: "progression",
+            severity: "warning",
+            week: wm.weekNumber,
+            message: `S${wm.weekNumber}: hausse brute ${sport} (${Math.round(weekVal)}min vs ${Math.round(priorAvgSport)}min de référence) alors que la charge totale de la semaine reste stable`,
+            detail: `La charge hebdomadaire globale ne signale rien d'anormal, mais ${sport.toLowerCase()} augmente seul(e) de plus de ${Math.round((WEEKLY_LOAD_ACWR_THRESHOLD - 1) * 100)}% par rapport aux semaines de charge précédentes de CE plan — une autre discipline a probablement baissé en compensation. À valider par le coach, pas une anomalie bloquante en soi.`,
+          });
+        }
+      }
+    }
+  }
+
+  const hasError = issues.some((i) => i.severity === "error");
+  const score = issues.length === 0 ? 100 : hasError ? 45 : issues.length === 1 ? 75 : 55;
   return { issues, score };
 }
 
@@ -4699,6 +4869,14 @@ export function validatePlan(
   /** Date de début du plan (ISO "YYYY-MM-DD") — nécessaire à `validateMilestoneTransition`
    *  pour convertir les dates de `raceGoals` en numéros de semaine. */
   planStartDate?: string,
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #C : charge
+   * habituelle/disponibilité maximale déclarées par le coach — pilote
+   * exclusivement `validateWeeklyLoadConsistency`. Omis = contrôle inactif
+   * (comportement inchangé pour tout appelant qui ne les fournit pas
+   * encore).
+   */
+  loadContext?: WeeklyLoadContext | null,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -4737,10 +4915,11 @@ export function validatePlan(
   const longSessionProgression = validateLongSessionProgression(weekMetrics, objective);
   const taperVolumeReduction = validateTaperVolumeReduction(weekMetrics);
   const milestoneTransition = validateMilestoneTransition(weekMetrics, plan.totalWeeks, objective, raceGoals, planStartDate);
+  const weeklyLoadConsistency = validateWeeklyLoadConsistency(weekMetrics, loadContext);
   const progression = {
     issues: [
       ...progressionBase.issues, ...pillarStagnation.issues, ...longSessionProgression.issues,
-      ...taperVolumeReduction.issues, ...milestoneTransition.issues,
+      ...taperVolumeReduction.issues, ...milestoneTransition.issues, ...weeklyLoadConsistency.issues,
     ],
     score: Math.min(
       pillarStagnation.stagnant > 0
@@ -4749,6 +4928,7 @@ export function validatePlan(
       longSessionProgression.score,
       taperVolumeReduction.score,
       milestoneTransition.score,
+      weeklyLoadConsistency.score,
     ),
   };
   const sportRatio = validateSportRatio(weekMetrics, objective, constraintsText);
