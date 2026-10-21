@@ -26,6 +26,7 @@ import {
   buildCanonicalRaceCard,
   buildStructuredDiagnosticBlock,
   computeMultiObjectiveSegments,
+  computePilotChunksToRun,
 } from "./promptHelpers.ts";
 import { getSystemPromptJSON } from "./systemPromptJSON.ts";
 import { extractLimiterKeywords, normalizeObjKey, taperWeeksForObjectiveServer } from "./sportRatioMatrix.ts";
@@ -1969,8 +1970,23 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         const totalChunks = chunks.length;
         console.log(`[trail_probe_path] jsonPlanHandler main loop reached, totalChunks=${totalChunks}, regenerateWeek=${regenerateWeek ? "yes" : "no"}`);
 
+        // Incident réel (coach, 1er test B-10K-TO-70.3) — consigne coach
+        // explicite : `_pilotMaxChunks` était câblé UNIQUEMENT dans le chemin
+        // Markdown legacy (index.ts:515/716) et jamais ici — alors que le
+        // Pilot Cockpit force TOUJOURS `_outputFormat: "json"`
+        // (usePilotCockpit.ts:184), donc passe TOUJOURS par CE handler. La
+        // boucle tournait donc sur la totalité réelle des chunks (7 pour ce
+        // profil 32 semaines) au lieu de s'arrêter à 1 — d'où le timeout
+        // serveur (~400s) et les tokens Gemini réellement consommés (31109)
+        // pour un résultat jamais transmis au client. Même fonction pure déjà
+        // testée (`computePilotChunksToRun`), même log, pour rester cohérent
+        // avec le chemin Markdown — comportement inchangé quand absent/≤0.
+        const chunksToRun = computePilotChunksToRun(chunks.length, planConfig?._pilotMaxChunks);
+        if (chunksToRun < chunks.length) {
+          console.log(`🧪 PILOT TEST MODE (_pilotMaxChunks=${planConfig._pilotMaxChunks}) : seuls ${chunksToRun}/${chunks.length} chunk(s) réels seront générés — génération partielle, pas simulée.`);
+        }
 
-        for (let ci = 0; ci < chunks.length; ci++) {
+        for (let ci = 0; ci < chunksToRun; ci++) {
           const chunk = chunks[ci];
           const isFirst = ci === 0 && !regenerateWeek;
           const expectedWeekCount = chunk.end - chunk.start + 1;
@@ -2242,7 +2258,16 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         }
 
         // Merge déterministe côté serveur : validation continuité + dérivations
-        const mergedTotal = regenerateWeek ? 1 : totalWeeks;
+        // Incident réel (coach) — suite du correctif `chunksToRun` ci-dessus :
+        // `mergePlanChunks` exige une couverture EXACTE de `1..mergedTotal`
+        // (sinon `MergePlanError("GAP", ...)`). Avec `_pilotMaxChunks` actif,
+        // seules les semaines du dernier chunk RÉELLEMENT généré existent —
+        // leur demander de couvrir le `totalWeeks` du plan complet ferait
+        // échouer le merge à coup sûr (GAP sur toutes les semaines non
+        // générées), même une fois la boucle correctement bornée ci-dessus.
+        const mergedTotal = regenerateWeek
+          ? 1
+          : chunksToRun < chunks.length ? chunks[chunksToRun - 1].end : totalWeeks;
         try {
           if (regenerateWeek) {
             const regeneratedWeeks = collectedChunks.flatMap((chunk) => chunk.weeks);
