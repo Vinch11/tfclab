@@ -15,7 +15,7 @@ import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
  * chacun avec son propre appelant à corriger séparément.
  */
 
-function makeSession(over: any = {}) {
+function makeSession(over: Record<string, unknown> = {}) {
   return {
     day: "lundi", title: "Session", details: "", isKeySession: false,
     durationMin: 60, zones: [], sport: "bike", custom: false,
@@ -23,7 +23,7 @@ function makeSession(over: any = {}) {
     ...over,
   };
 }
-function makeChunk(weeks: number[], over: any = {}): PlanChunk {
+function makeChunk(weeks: number[], over: Record<string, unknown> = {}): PlanChunk {
   return zPlanChunk.parse({
     weeks: weeks.map((n) => ({ weekNumber: n, phase: "build", theme: `S${n}`, sessions: [makeSession()] })),
     ...over,
