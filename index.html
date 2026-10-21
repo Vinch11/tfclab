@@ -2,6 +2,30 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Prévisualisation GitHub Pages "strictement consultative" (branche
+      preview/pilot-cockpit-readonly) — contrepartie de public/404.html
+      (technique "spa-github-pages", MIT, rafgraph) : restaure le chemin
+      réel (ex. /tfclab/debug/plan-qa) encodé par 404.html, AVANT que React
+      Router ne lise window.location. DOIT s'exécuter avant tout autre
+      script. Sur GitHub Pages, un accès direct à l'URL finale passe
+      toujours par 404.html d'abord (jamais directement par ici) ; ce
+      script est donc un no-op silencieux sur toute autre plateforme
+      d'hébergement (dev local, Lovable/production) — comportement normal
+      inchangé.
+    -->
+    <script>
+      (function (l) {
+        if (l.search[1] === 'p' && l.search.slice(2, 3) === '=') {
+          var decoded = l.search.slice(1).split('&').map(function (s) {
+            return s.replace(/~and~/g, '&');
+          }).join('?');
+          window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location));
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

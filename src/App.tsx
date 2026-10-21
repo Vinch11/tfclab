@@ -93,7 +93,12 @@ export default function App() {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          {/* Prévisualisation GitHub Pages "strictement consultative" (branche
+              preview/pilot-cockpit-readonly) : `basename` reste `undefined`
+              (comportement par défaut de react-router, inchangé) tant que
+              VITE_BASE_PATH n'est pas posé — jamais le cas en dev local, CI
+              ou build Lovable/production. */}
+          <BrowserRouter basename={import.meta.env.VITE_BASE_PATH}>
             <ScrollToTop />
             <AuthProvider>
               <AppErrorBoundary>

@@ -21,7 +21,15 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    VitePWA({
+    // Prévisualisation GitHub Pages "strictement consultative" (branche
+    // preview/pilot-cockpit-readonly, PAS la branche PR #389) : le plugin
+    // PWA suppose un déploiement à la racine (`start_url`/`scope: "/"`,
+    // `navigateFallback: "/index.html"`) — incompatible avec le sous-chemin
+    // GitHub Pages (`/tfclab/`), et un service worker ajouterait un risque
+    // de cache confus pour une prévisualisation ponctuelle amenée à être
+    // republiée. `VITE_DISABLE_PWA` n'est jamais posé ailleurs (dev local,
+    // CI, build Lovable/production) : comportement normal inchangé.
+    process.env.VITE_DISABLE_PWA !== "1" && VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "favicon.png", "apple-touch-icon-180x180.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {

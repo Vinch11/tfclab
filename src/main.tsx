@@ -1,6 +1,14 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { installPreviewReadOnlyGuard } from "./lib/previewReadOnlyGuard";
+
+// Prévisualisation GitHub Pages "strictement consultative" (branche
+// preview/pilot-cockpit-readonly) — no-op hors de ce build dédié, voir
+// previewReadOnlyGuard.ts. Installé avant tout le reste, avant le premier
+// rendu React, pour qu'aucun appel IA ne puisse partir avant que le garde
+// ne soit en place.
+installPreviewReadOnlyGuard();
 
 // --- Stale chunk recovery -------------------------------------------------
 // After a new deploy, cached HTML/JS may reference chunk files that no longer
@@ -57,8 +65,16 @@ const isInIframe = (() => {
     return true;
   }
 })();
-if (import.meta.env.PROD && !isInIframe && "serviceWorker" in navigator) {
-  import("virtual:pwa-register")
+// Prévisualisation GitHub Pages "strictement consultative" (branche
+// preview/pilot-cockpit-readonly) : quand VITE_DISABLE_PWA=1, le plugin PWA
+// n'est plus enregistré côté vite.config.ts, donc le module virtuel
+// "virtual:pwa-register" n'existe plus — `@vite-ignore` évite que Rollup
+// tente (et échoue) de le résoudre statiquement au build ; la condition
+// ci-dessous garantit que cette ligne n'est de toute façon jamais exécutée
+// dans ce cas. VITE_DISABLE_PWA n'est jamais posé en dev local/CI/
+// production Lovable : comportement normal totalement inchangé.
+if (import.meta.env.PROD && import.meta.env.VITE_DISABLE_PWA !== "1" && !isInIframe && "serviceWorker" in navigator) {
+  import(/* @vite-ignore */ "virtual:pwa-register")
     .then(({ registerSW }) => {
       const updateSW = registerSW({
         immediate: true,

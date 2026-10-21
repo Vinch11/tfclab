@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Redirection…</title>
+    <!--
+      Prévisualisation GitHub Pages "strictement consultative" (branche
+      preview/pilot-cockpit-readonly). GitHub Pages ne sait servir que des
+      fichiers statiques réels : une navigation directe vers /debug/plan-qa
+      (ou tout rafraîchissement de page sur une route React) tombe sur ce
+      404.html. Technique standard "spa-github-pages" (MIT, rafgraph) :
+      encode le chemin demandé dans la query string et redirige vers la
+      racine, où le script inline de index.html restaure le vrai chemin via
+      history.replaceState AVANT que React Router ne s'initialise.
+      pathSegmentsToKeep=1 conserve le segment "/tfclab" (nom du dépôt).
+    -->
+    <script>
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?p=/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
