@@ -151,18 +151,11 @@ describe("validateAmbitionCoherence — déclassement tracé avec les chiffres r
   });
 });
 
-describe("Correction D — démonstration concrète : le déclassement élimine une fausse alerte (validateDailySessionFloor, IM/703)", () => {
-  it("ambition BRUTE 'elite' (ancien comportement) sur un plan IM normal → fausses erreurs 'daily_session_floor'", () => {
-    const plan = buildSimplePlan(6);
-    const result = validatePlan(plan, "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "elite");
-    const floorIssues = result.issues.filter(i => i.rule === "daily_session_floor");
-    expect(floorIssues.length).toBeGreaterThan(0); // le plan "normal" n'est PAS un plan Elite+ 2-3 séances/jour
-  });
-
-  it("ambition EFFECTIVE 'age_group' (plan réellement généré après déclassement) sur le MÊME plan IM → aucune fausse alerte", () => {
-    const plan = buildSimplePlan(6);
-    const result = validatePlan(plan, "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "age_group");
-    const floorIssues = result.issues.filter(i => i.rule === "daily_session_floor");
-    expect(floorIssues).toHaveLength(0);
-  });
-});
+// Ancien describe "Correction D — démonstration concrète : le déclassement
+// élimine une fausse alerte (validateDailySessionFloor, IM/703)" supprimé :
+// il utilisait validateDailySessionFloor comme exemple concret d'une règle
+// que le déclassement d'ambition protégeait d'une fausse alerte. Cette règle
+// est désormais désactivée (décision coach 2026-10-21, cf.
+// planValidator.ts::validateDailySessionFloor) — l'exemple n'a plus de
+// règle à démontrer, mais le mécanisme de déclassement lui-même (testé
+// ci-dessus via "ambition_coherence") reste inchangé et intact.

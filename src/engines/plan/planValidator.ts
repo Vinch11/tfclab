@@ -4591,72 +4591,26 @@ function validateTrailDPlusPresence(
   return { issues, score };
 }
 
-/** Rule 21 : Plancher séances/jour Elite+ (systemPrompt.ts "DOUBLES & TRIPLES
- *  SÉANCES — OBLIGATOIRE" : "Si un jour n'a qu'1 séance pour Elite/Competitor
- *  IM/70.3 (hors repos), c'est une ERREUR" / promptHelpers.ts:1769-1800 "Un
- *  jour avec 1 seule séance (hors repos) est une ERREUR GRAVE pour World
- *  Class/Elite/Competitor"). `ambition` utilise les clés internes en vigueur
- *  dans promptHelpers.ts : "world_class"/"elite"/"competitor" — PAS "Elite"
- *  au sens historique du label UI (relabellisé "Qualifiable", cf.
- *  ambitionLevel.ts). Nécessite le nouveau paramètre `ambition` de
- *  validatePlan (non disponible pour les autres règles de ce fichier). */
+/** Rule 21 : Plancher séances/jour Elite+ — DÉSACTIVÉE (décision coach,
+ *  revue du premier plan réel B-10K-TO-70.3, 2026-10-21).
+ *
+ *  Cette règle flaguait en "ERREUR GRAVE" tout jour (hors repos) n'ayant
+ *  qu'1 séance pour World Class/Elite/Competitor IM/70.3, au nom d'un
+ *  plancher "2-3 séances/jour OBLIGATOIRE" (systemPrompt.ts /
+ *  promptHelpers.ts). Décision explicite du coach : 1 ou 2 séances/jour
+ *  restent des choix sportifs légitimes ; l'ambition elite ne doit JAMAIS
+ *  imposer artificiellement une séance supplémentaire — ni en génération
+ *  (cf. jsonPlanHandler.ts::applyDailySessionFloorEnforcement, même
+ *  décision, même date), ni en validation après coup. Conservée en no-op
+ *  (plutôt que supprimée) pour garder la trace de la règle et permettre
+ *  une réactivation future si la doctrine change à nouveau. `objective`/
+ *  `ambition` restent acceptés pour ne pas changer la signature appelante. */
 function validateDailySessionFloor(
-  plan: ParsedPlan,
-  objective?: string,
-  ambition?: string,
+  _plan: ParsedPlan,
+  _objective?: string,
+  _ambition?: string,
 ): { issues: ValidationIssue[]; score: number } {
-  const issues: ValidationIssue[] = [];
-  const objKey = normalizeObjectiveKey(objective || "");
-  const isTriIMor703 = objKey === "IM" || objKey === "703";
-  const amb = (ambition || "").toLowerCase();
-  const isHighAmbition = amb === "world_class" || amb === "elite" || amb === "competitor";
-  if (!isTriIMor703 || !isHighAmbition) return { issues, score: 100 };
-
-  let daysChecked = 0;
-  let daysViolating = 0;
-  for (const week of plan.weeks) {
-    const themeText = `${week.theme} ${week.phase}`.toLowerCase();
-    if (DELOAD_PATTERNS.test(themeText) || weekHasRaceDay(week)) continue;
-
-    const byDay = new Map<number, ParsedSession[]>();
-    for (const s of week.sessions) {
-      if (!byDay.has(s.dayIndex)) byDay.set(s.dayIndex, []);
-      byDay.get(s.dayIndex)!.push(s);
-    }
-    for (const sessions of byDay.values()) {
-      const active = sessions.filter((s) => !s.isRest);
-      if (active.length === 0) continue; // jour repos complet — 1/semaine autorisé
-      // Exemption bug réel (audit coach) : un "brick" (T1/T2, triple brick
-      // S/B/R…) ou une fiche signature LCW (long ride race-pace samedi, run
-      // jambes fatiguées dimanche, simulation back-to-back complète) combine
-      // DÉJÀ 2-3 disciplines dans une seule séance listée — le plancher
-      // "2-3 séances/jour" mesure le nombre de DISCIPLINES/stimuli du jour,
-      // pas le nombre de lignes dans le tableau. Sans cette exemption, le
-      // contrôle flaguait à tort les week-ends LCW comme des lacunes de
-      // volume alors qu'ils sont volontairement une séance unique, longue et
-      // spécifique (c'est tout le principe du format LCW).
-      if (active.length === 1) {
-        const only = active[0];
-        const text = `${only.title} ${only.details}`;
-        const catalogId = extractCatalogId(only.title, only.details, only.catalogId)?.toUpperCase() ?? "";
-        const isMultiDisciplineSingleSession =
-          /\bbrick\b/i.test(text) || catalogId.includes("BRICK") || catalogId.startsWith("B_LCW_");
-        if (isMultiDisciplineSingleSession) continue;
-      }
-      daysChecked++;
-      if (active.length < 2) {
-        daysViolating++;
-        issues.push({
-          rule: "daily_session_floor",
-          severity: "error",
-          week: week.weekNumber,
-          message: `S${week.weekNumber} ${active[0].dayName}: 1 seule séance ("${active[0].title}") — ERREUR GRAVE pour ambition ${amb} (World Class/Elite/Competitor IM/70.3 : 2-3 séances/jour, sauf 1 jour repos/semaine)`,
-        });
-      }
-    }
-  }
-  const score = daysChecked === 0 ? 100 : Math.max(0, 100 - Math.round((daysViolating / daysChecked) * 100));
-  return { issues, score };
+  return { issues: [], score: 100 };
 }
 
 /** Rule 14 : Titre H1 (systemPrompt.ts "RÈGLE #0 — BLOQUANTE").

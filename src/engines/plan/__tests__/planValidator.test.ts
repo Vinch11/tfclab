@@ -1051,15 +1051,14 @@ describe("planValidator", () => {
       expect(result.issues.filter(i => i.rule === "trail_dplus_presence")).toHaveLength(0);
     });
 
-    it("flague un jour à 1 séance pour IM ambition elite (ERREUR GRAVE)", () => {
+    it("ne flague PLUS un jour à 1 séance pour IM ambition elite (règle désactivée — décision coach 2026-10-21 : 1-2 séances/jour sont légitimes)", () => {
       const week = makeWeek(1, [
         { sport: "Natation", title: "Nat technique", details: "", dayIndex: 1 },
         { sport: "Vélo", title: "Vélo Z2", details: "", dayIndex: 1 },
-        { sport: "Course", title: "Footing seul", details: "", dayIndex: 2 }, // 1 seule séance ce jour
+        { sport: "Course", title: "Footing seul", details: "", dayIndex: 2 }, // 1 seule séance ce jour — désormais un choix légitime
       ], "Chantier", "Chantier");
       const result = validatePlan(makePlan([week]), "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "elite");
-      const issue = result.issues.find(i => i.rule === "daily_session_floor" && i.severity === "error");
-      expect(issue).toBeDefined();
+      expect(result.issues.filter(i => i.rule === "daily_session_floor")).toHaveLength(0);
     });
 
     it("ne flague pas quand chaque jour actif a ≥2 séances pour IM ambition world_class", () => {
@@ -1669,14 +1668,10 @@ describe("planValidator", () => {
       expect(repetitionIssue).toBeDefined();
     });
 
-    it("un thème mentionnant l'objectif (\"Ironman Build\") n'exempte plus daily_session_floor à tort", () => {
-      const week = makeWeek(1, [
-        { sport: "Course", title: "Footing seul", details: "", dayIndex: 2 },
-      ], "Ironman Build", "Chantier");
-      const result = validatePlan(makePlan([week]), "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "elite");
-      const issue = result.issues.find(i => i.rule === "daily_session_floor" && i.severity === "error");
-      expect(issue).toBeDefined();
-    });
+    // Ancien test "un thème mentionnant l'objectif ('Ironman Build')
+    // n'exempte plus daily_session_floor à tort" supprimé : daily_session_floor
+    // est désactivée (décision coach 2026-10-21, cf. tests dédiés plus haut) —
+    // ce cas précis n'a plus d'invariant à vérifier pour cette règle.
 
     it("la VRAIE semaine de course (marqueur 🏁/\"Jour J\") continue d'exempter anti_repetition", () => {
       const sameSession = { sport: "Course", title: "Rappel allure course", details: "Séance courte" };

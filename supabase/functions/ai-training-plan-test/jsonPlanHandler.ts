@@ -1480,34 +1480,24 @@ export function applyLcwSignatureEnforcement(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PLANCHER SÉANCES/JOUR ELITE+ — filet déterministe (post-reconciler)
+// PLANCHER SÉANCES/JOUR ELITE+ — DÉSACTIVÉ (décision coach, 2026-10-21)
 // ─────────────────────────────────────────────────────────────────────────────
-// Bug réel confirmé sur PLUSIEURS plans "Vince" réels successifs (70.3,
-// ambition élevée) : systemPrompt.ts / promptHelpers.ts ("DOUBLES & TRIPLES
-// SÉANCES — OBLIGATOIRE") demandent 2-3 séances/jour pour World Class/Elite/
-// Competitor sur IM/70.3 (sauf 1 jour de repos/semaine) — mais rien en aval
-// ne le fait respecter, exactement le même schéma que le bug signatures LCW
-// (PR précédent) : planValidator.ts::validateDailySessionFloor le DÉTECTE
-// après coup ("ERREUR GRAVE") mais ne corrige jamais rien. Sur chaque plan
-// réel audité, plusieurs lundis/jours se retrouvent avec une unique séance
-// de renfo (30-50min) alors que l'ambition exige un vrai double.
+// Ce filet forçait l'ajout d'une séance complémentaire quand un jour (hors
+// repos) n'avait qu'1 séance pour World Class/Elite/Competitor IM/70.3, au
+// nom d'un plancher "2-3 séances/jour OBLIGATOIRE" (systemPrompt.ts /
+// promptHelpers.ts). Revue du premier plan réel généré (B-10K-TO-70.3) :
+// décision explicite du coach — 1 ou 2 séances/jour sont des choix sportifs
+// légitimes ; l'ambition elite ne doit JAMAIS imposer artificiellement une
+// séance supplémentaire. Conservé en no-op (plutôt que supprimé) pour
+// garder la trace de ce qui a existé et permettre une réactivation future
+// si la doctrine change à nouveau — cf.
+// planValidator.ts::validateDailySessionFloor (même décision, même date).
 interface DailyFloorRepair {
   code: "daily_floor_enforced" | "daily_floor_unresolved";
   severity: "warning" | "critical";
   weekNumber: number;
   day: DayLower;
   reason: string;
-}
-
-const DAILY_FLOOR_ELIGIBLE_AMBITIONS = new Set(["world_class", "elite", "competitor"]);
-const DAILY_FLOOR_SPORT_PRIORITY: Array<"run" | "bike" | "swim" | "strength"> = ["run", "bike", "swim", "strength"];
-
-/** Même exemption que planValidator.ts::validateDailySessionFloor : un brick
- *  ou une séance signature LCW combine déjà 2-3 disciplines en une ligne. */
-function isMultiDisciplineSingleSession(s: { sport?: string; title?: string; details?: string; catalogId?: string | null }): boolean {
-  const catalogId = String(s.catalogId ?? "").toUpperCase();
-  const text = `${s.title ?? ""} ${s.details ?? ""}`;
-  return s.sport === "brick" || /\bbrick\b/i.test(text) || catalogId.includes("BRICK") || catalogId.startsWith("B_LCW_");
 }
 
 export function applyDailySessionFloorEnforcement(
@@ -1519,140 +1509,13 @@ export function applyDailySessionFloorEnforcement(
   repairCatalogsByChunk?: RepairWorkoutMetadata[][],
   legacyTestMode?: LegacyRepairTestMode,
 ): { chunks: PlanChunk[]; repairs: DailyFloorRepair[]; traces: string[] } {
-  const repairs: DailyFloorRepair[] = [];
-  const traces: string[] = [];
-
-  const objKey = normalizeObjKey(String(objective ?? ""));
-  const isTriIMor703 = objKey === "IM" || objKey === "703";
-  const amb = String(ambition ?? "").toLowerCase();
-  if (!isTriIMor703 || !DAILY_FLOOR_ELIGIBLE_AMBITIONS.has(amb)) {
-    traces.push(`[DAILY_FLOOR] skipped_reason=not_eligible (objective=${objKey}, ambition=${amb || "none"})`);
-    return { chunks, repairs, traces };
-  }
-  if (!weeklyQuotas || typeof weeklyQuotas !== "object") {
-    traces.push("[DAILY_FLOOR] skipped_reason=no_weekly_quotas");
-    return { chunks, repairs, traces };
-  }
-  const candidatesByChunk = buildCandidatesByChunk(catalogDumpsByChunk, repairCatalogsByChunk, legacyTestMode);
-  // Repli catalogue global — cf. commentaire équivalent dans applyReconciler
-  // (le dump rotationné d'un chunk peut ne contenir aucune fiche du sport
-  // complémentaire requis, sans que ça reflète une vraie absence côté
-  // catalogue).
-  const allCandidatesAllChunks = candidatesByChunk.flat();
-
-  chunks.forEach((chunk, ci) => {
-    const candidates = candidatesByChunk[ci] ?? [];
-    for (const week of chunk.weeks ?? []) {
-      const entry = weeklyQuotas[week.weekNumber];
-      if (!entry) { traces.push(`[DAILY_FLOOR] S${week.weekNumber} action=skipped_reason=no_quota`); continue; }
-      if (entry.weekType === "recovery" || entry.weekType === "taper" || entry.weekType === "race") {
-        traces.push(`[DAILY_FLOOR] S${week.weekNumber} action=skipped_reason=weekType_${entry.weekType}`);
-        continue;
-      }
-      const maxPerDay = entry.quota?.maxSessionsPerDay ?? 2;
-
-      const byDay = new Map<DayLower, PlanSession[]>();
-      for (const d of DAY_ORDER_FR) byDay.set(d, []);
-      for (const s of week.sessions ?? []) {
-        const c = canonDay(s.day);
-        if (c) byDay.get(c)!.push(s);
-      }
-
-      for (const [day, sessions] of byDay) {
-        const active = sessions.filter(s => s.sport !== "rest");
-        if (active.length === 0) continue; // jour repos complet — autorisé (1x/sem)
-        if (active.length !== 1) continue;
-        const only = active[0];
-        if (isMultiDisciplineSingleSession(only)) continue;
-        if (maxPerDay < 2) continue; // quota du plan ne permet pas de doubler ce jour
-
-        // Sport complémentaire : le premier de la liste de priorité qui n'est
-        // pas déjà présent ce jour-là ET que le quota hebdo autorise (max > 0).
-        const onlySport = normalizeSport(only.sport);
-        const complementSport = DAILY_FLOOR_SPORT_PRIORITY.find(sp => {
-          if (sp === onlySport) return false;
-          const q = (entry.quota as any)[sp];
-          return q && q.max > 0;
-        });
-        if (!complementSport) {
-          traces.push(`[DAILY_FLOOR] S${week.weekNumber} ${day} action=unresolved_no_complement_sport (only=${onlySport})`);
-          repairs.push({
-            code: "daily_floor_unresolved", severity: "critical", weekNumber: week.weekNumber, day,
-            reason: `1 seule séance (${only.title}) mais aucun sport complémentaire autorisé par le quota hebdo pour doubler ce jour`,
-          });
-          continue;
-        }
-        // Fix A4 (audit "génération de plan IA") : ce filet comblait un jour
-        // creux avec un sport complémentaire filtré endurance/recovery,
-        // toujours forcé isKeySession:false — sans jamais vérifier si ce
-        // sport a par ailleurs 0 séance clé cette semaine (même critère
-        // qu'applyReconciler bloc (b), KEY_FLOOR_SPORTS/isKeyClass ci-dessus).
-        // Si oui, il pouvait AGGRAVER A1/A2 (choisir "recovery" par pure
-        // proximité de durée, quand une fiche "endurance" tout aussi proche
-        // aurait compté comme séance clé) au lieu de les compenser.
-        const presentKeyForComplement = KEY_FLOOR_SPORTS.has(complementSport)
-          ? (week.sessions ?? []).filter(s => s.sport === complementSport
-              && isKeyClass(classifyIntensity((s as any).zones, `${s.title ?? ""} ${(s as any).details ?? ""}`))).length
-          : null;
-        const needsKeySession = presentKeyForComplement === 0;
-
-        const targetDur = complementSport === "strength" ? 40 : 45;
-        const buildComplementPool = (src: typeof candidates) => src
-          .filter(c => c.sport === complementSport)
-          .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, null, {
-            objective,
-            phase: String((week as any).phase ?? ""),
-            weekType: entry.weekType,
-            operation: "insertion",
-          }))
-          .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
-          .filter(x => x.cls === "endurance" || x.cls === "recovery" || (complementSport === "strength" && x.cls === "unknown"))
-          .sort((a, b) => {
-            // Sport déjà à 0 séance clé cette semaine : préférer une fiche
-            // "endurance" (compte comme clé, cf. isKeyClass) à une fiche
-            // "recovery" — combler le trou plutôt que le creuser.
-            if (needsKeySession) {
-              const aScore = a.cls === "endurance" ? 0 : 1;
-              const bScore = b.cls === "endurance" ? 0 : 1;
-              if (aScore !== bScore) return aScore - bScore;
-            }
-            return Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur);
-          });
-        // Repli catalogue global si le dump local du chunk n'a rien (cf.
-        // commentaire allCandidatesAllChunks ci-dessus).
-        const poolLocal = buildComplementPool(candidates);
-        const pool = poolLocal.length > 0 ? poolLocal : buildComplementPool(allCandidatesAllChunks);
-        const pickedEntry = pool[0] ?? null;
-        const picked = pickedEntry?.c ?? null;
-        if (!picked) {
-          traces.push(`[DAILY_FLOOR] S${week.weekNumber} ${day} action=unresolved_no_candidate (complement=${complementSport})`);
-          repairs.push({
-            code: "daily_floor_unresolved", severity: "critical", weekNumber: week.weekNumber, day,
-            reason: `1 seule séance (${only.title}) — aucune fiche catalogue ${complementSport} disponible pour compléter ce jour`,
-          });
-          continue;
-        }
-        const dur = Math.max(picked.durationMin[0], Math.min(picked.durationMin[1], targetDur));
-        const newSess: any = {
-          day, title: picked.title,
-          details: `${picked.structure || picked.title}. [ID: ${picked.id}]`,
-          // isKeySession reflète honnêtement la classe RÉELLEMENT choisie —
-          // avant ce fix, toujours false même quand la fiche choisie était
-          // "endurance" (une vraie séance clé pour KEY_FLOOR_SPORTS).
-          isKeySession: isKeyClass(pickedEntry!.cls), durationMin: dur, zones: picked.zones,
-          sport: complementSport, custom: false, catalogId: picked.id,
-        };
-        (week.sessions as any[]).push(newSess);
-        traces.push(`[DAILY_FLOOR] S${week.weekNumber} ${day} enforced +${complementSport}=${picked.id} (was 1×${onlySport} only)`);
-        repairs.push({
-          code: "daily_floor_enforced", severity: "warning", weekNumber: week.weekNumber, day,
-          reason: `1 seule séance ("${only.title}") non conforme à l'ambition ${amb} (IM/70.3 : 2-3 séances/jour) — ${picked.id} ajouté`,
-        });
-      }
-    }
-  });
-
-  return { chunks, repairs, traces };
+  void weeklyQuotas; void catalogDumpsByChunk; void objective; void ambition;
+  void repairCatalogsByChunk; void legacyTestMode;
+  return {
+    chunks,
+    repairs: [],
+    traces: ["[DAILY_FLOOR] skipped_reason=rule_disabled_by_coach_decision_2026-10-21"],
+  };
 }
 
 /** Legacy markdown fixtures must opt in explicitly; the production handler never uses these wrappers. */

@@ -3,15 +3,14 @@ import { validatePlan } from "../planValidator";
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 
 /**
- * Bug réel signalé par le coach (dialog "problèmes critiques" à la
- * sauvegarde) : après le fix qui fait enfin apparaître le week-end signature
- * LCW ("🔑 LCW Long Bike SAT", "🔑 LCW Run Off-Legs SUN"), la Règle #21
- * Plancher séances/jour (World Class/Elite/Competitor IM/70.3 : 2-3
- * séances/jour) les flague comme "1 seule séance — ERREUR GRAVE". Même chose
- * pour "Triple brick — simulation enchaînement complet S/B/R" et "Brick
- * natation→vélo — T1 simulation". Ces séances combinent DÉJÀ 2-3 disciplines
- * dans une seule ligne du plan — le plancher mesure le nombre de
- * disciplines/stimuli du jour, pas le nombre de lignes dans le tableau.
+ * Règle 21 "Plancher séances/jour Elite+" DÉSACTIVÉE (décision coach,
+ * revue du premier plan réel B-10K-TO-70.3, 2026-10-21) : 1 ou 2 séances/jour
+ * restent des choix sportifs légitimes, l'ambition elite ne doit jamais
+ * imposer artificiellement une séance supplémentaire — cf.
+ * planValidator.ts::validateDailySessionFloor. Ce fichier vérifie que la
+ * règle ne flague plus AUCUN cas, y compris les vraies séances uniques
+ * non-brick qu'elle flaguait auparavant (ancien comportement conservé en
+ * commentaire par traçabilité historique).
  */
 function makeSession(overrides: Partial<ParsedSession> = {}): ParsedSession {
   return {
@@ -41,7 +40,7 @@ function makePlan(weeks: ParsedWeek[]): ParsedPlan {
   return { title: "Plan TFCL™ — 70.3 LCW Test — 7 semaines", phases: [], weeks, totalWeeks: weeks.length };
 }
 
-describe("validateDailySessionFloor — exemption brick / signature LCW (une séance = plusieurs disciplines)", () => {
+describe("validateDailySessionFloor — règle désactivée (décision coach 2026-10-21)", () => {
   it("ne flague pas une fiche signature LCW seule sur son jour (samedi long bike race-pace)", () => {
     const week = makeWeek(5, [
       { dayIndex: 5, dayName: "Samedi", sport: "Vélo", title: "🔑 LCW Long Bike SAT", catalogId: "B_LCW_BIKE_LONG_RACE_SAT" },
@@ -59,12 +58,19 @@ describe("validateDailySessionFloor — exemption brick / signature LCW (une sé
     expect(result.issues.filter((i) => i.rule === "daily_session_floor")).toHaveLength(0);
   });
 
-  it("continue de flaguer une vraie séance unique NON-brick (pas d'exemption abusive)", () => {
+  it("ne flague PLUS une vraie séance unique NON-brick (ancien comportement : ERREUR GRAVE — désactivé, 1 séance/jour est un choix légitime)", () => {
     const week = makeWeek(1, [
       { dayIndex: 4, dayName: "Vendredi", sport: "Course", title: "🔑 Hill Skills", details: "Footing côtes" },
     ]);
     const result = validatePlan(makePlan([week]), "703", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "competitor");
-    const issue = result.issues.find((i) => i.rule === "daily_session_floor" && i.severity === "error");
-    expect(issue).toBeDefined();
+    expect(result.issues.filter((i) => i.rule === "daily_session_floor")).toHaveLength(0);
+  });
+
+  it("ne flague rien non plus pour World Class, quel que soit le nombre de séances/jour", () => {
+    const week = makeWeek(1, [
+      { dayIndex: 1, dayName: "Lundi", sport: "Course", title: "Footing seul", details: "" },
+    ]);
+    const result = validatePlan(makePlan([week]), "IM", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, "world_class");
+    expect(result.issues.filter((i) => i.rule === "daily_session_floor")).toHaveLength(0);
   });
 });
