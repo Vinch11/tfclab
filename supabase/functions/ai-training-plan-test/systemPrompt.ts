@@ -60,11 +60,24 @@ function buildSpecializedSections(profile?: SystemPromptProfile): string {
 
 
   // ─── MASTER >=50 ans (Tanaka & Seals, Lazarus & Harridge) ───────────────
+  // P0-2 (audit Codex, oct. 2026, consigne coach explicite) : ce bloc fixait
+  // un NOMBRE absolu d'intensités/sem par l'âge seul ("MAX 1 séance VO2max/sem
+  // + 1 seuil/sem" / "max 2 intensités/sem") — qui contredisait directement
+  // "STRUCTURE AMBITION (non négociable)" (promptHelpers.ts, piloté par
+  // qualitesParSemaine de l'ambition, ex. 3/sem pour "elite") dans le MÊME
+  // prompt dès qu'un athlète >40/50 ans a une ambition élevée (cas réel :
+  // B-10K-TO-70.3, 42 ans, ambition elite). Consigne coach explicite : définir
+  // une règle individualisée, SANS considérer l'âge seul comme une
+  // justification scientifique universelle. Le COMPTAGE de séances reste donc
+  // désormais exclusivement piloté par STRUCTURE AMBITION ; l'âge gouverne
+  // uniquement la RÉCUPÉRATION (espacement entre séances d'intensité, charge
+  // 2:1, repos, renfo) — jamais le nombre de séances lui-même.
   if (age !== null && age >= 50) {
     blocks.push(`## 🧓 PROFIL MASTER ${age}+ ANS — RÈGLES RENFORCÉES (Tanaka, Seals, Lazarus)
 - **FCmax**: diminue ~1 bpm/an après 30 ans (Tanaka: 208 − 0.7×âge). NE PAS utiliser 220−âge.
 - **Récupération**: +24-48h vs <40 ans après séance VO2max/seuil. Charge 2:1 STRICTE (jamais 3:1).
-- **Intensité**: MAX 1 séance VO2max/sem + 1 seuil/sem (jamais doublés <72h).
+- **Intensité**: espacement ≥72h entre 2 séances d'intensité (VO2max/seuil), jamais doublées <72h.
+- **Nombre de séances de qualité/sem** : voir "STRUCTURE AMBITION (non négociable)" plus bas — piloté par le niveau d'ambition, JAMAIS par l'âge seul. Les règles d'espacement/charge/récupération de ce bloc s'appliquent à ce nombre, quel qu'il soit.
 - **Volume**: progression plafonnée à +3%/sem (vs +10% jeune). ACWR cible ≤1.1 (marge
   de sécurité TFCL plus stricte que le seuil général ≤1.3 utilisé ailleurs pour ce
   public à risque accru — pas un second chiffre Gabbett distinct ; cf. note ACWR
@@ -78,7 +91,8 @@ ${age >= 60 ? "- **>=60 ans**: ajouter équilibre proprioceptif 2x/sem (chutes).
   } else if (age !== null && age >= 40) {
     blocks.push(`## 🧓 PROFIL MASTER ${age} ANS (Tanaka, Seals)
 - **FCmax**: Tanaka 208 − 0.7×âge (pas 220−âge).
-- Charge 2:1, max 2 intensités/sem, renfo 2x/sem obligatoire.
+- Charge 2:1, renfo 2x/sem obligatoire. Espacement ≥48h entre 2 séances d'intensité (jamais consécutives).
+- **Nombre de séances de qualité/sem** : voir "STRUCTURE AMBITION (non négociable)" plus bas — piloté par le niveau d'ambition, JAMAIS par l'âge seul. Les règles d'espacement/charge/récupération ci-dessus s'appliquent à ce nombre, quel qu'il soit.
 - Récupération +12-24h vs jeune. Progression vol max +5%/sem.`);
   }
 
@@ -1075,9 +1089,10 @@ Pour 5K, 10K, Semi, Marathon, Trail : CAP 75-85% volume. Vélo = 5-10% max, Z1-Z
 - **RED-S**: surveiller aménorrhée, fatigue. JAMAIS de train low + restriction calorique combinés.
 
 ## MASTER ATHLETES >40/>50 ans (Tanaka & Seals)
-- **>40 ans**: charge 2:1, max 2 intensités/sem, renfo 2x/sem.
-- **>50 ans**: max 1 intensité/sem, 2j repos, renfo 3x/sem (force, équilibre).
+- **>40 ans**: charge 2:1, renfo 2x/sem, espacement ≥48h entre 2 séances d'intensité (jamais consécutives).
+- **>50 ans**: espacement ≥72h entre 2 séances d'intensité, 2j repos, renfo 3x/sem (force, équilibre).
 - Progression volume plafonnée à +3%/sem.
+- ⚠️ **Le NOMBRE de séances de qualité/sem n'est JAMAIS fixé par l'âge seul** (audit Codex P0-2, oct. 2026) : il est piloté exclusivement par "STRUCTURE AMBITION (non négociable)" (bloc utilisateur, cf. qualitesParSemaine de l'ambition). Les règles d'espacement/charge/récupération ci-dessus s'appliquent à ce nombre, quel qu'il soit — l'âge gouverne la RÉCUPÉRATION entre séances, jamais leur COMPTAGE.
 
 ## NUTRITION PÉRIODISÉE (Jeukendrup, Burke)
 - **Fuel for the Work Required**: glucides selon intensité.

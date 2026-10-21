@@ -44,10 +44,16 @@ Deno.test("buildStructuredDiagnosticBlock — maxDoubleDaysPerWeek absent → au
 Deno.test("buildStructuredDiagnosticBlock — maxDoubleDaysPerWeek ne modifie aucune ligne de volume (weeklyHours/sessionsPerWeek inchangés)", () => {
   const withCap = buildStructuredDiagnosticBlock(minimalConfig({ weeklyHours: 17, sessionsPerWeek: 11, maxDoubleDaysPerWeek: 4 }), 32);
   const withoutCap = buildStructuredDiagnosticBlock(minimalConfig({ weeklyHours: 17, sessionsPerWeek: 11 }), 32);
-  assertStringIncludes(withCap, "📊 Volume: 17h/sem");
+  // P0-1 (audit Codex, oct. 2026) a changé le LIBELLÉ de cette ligne ("📊
+  // Volume: Xh/sem" brut → "📊 Volume cible hebdo (...) : Yh/sem", Y =
+  // cible ambition unique partagée avec le bloc utilisateur, cf.
+  // resolveEffectiveVolumeCible) — l'intention de CE test (maxDoubleDaysPerWeek
+  // ne doit modifier AUCUNE ligne de volume) reste intacte, seul le texte
+  // attendu change.
+  assertStringIncludes(withCap, "📊 Volume cible hebdo");
   assertStringIncludes(withCap, "📊 Séances: 11/sem");
   // Les lignes de volume sont strictement identiques entre les deux versions.
-  const volumeLine = (s: string) => s.split("\n").find((l) => l.includes("📊 Volume:"));
+  const volumeLine = (s: string) => s.split("\n").find((l) => l.includes("📊 Volume cible hebdo"));
   const sessionsLine = (s: string) => s.split("\n").find((l) => l.includes("📊 Séances:"));
   assertEquals(volumeLine(withCap), volumeLine(withoutCap));
   assertEquals(sessionsLine(withCap), sessionsLine(withoutCap));
