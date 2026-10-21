@@ -144,7 +144,16 @@ export function usePilotCockpit() {
     return checkBudgetBeforeLaunch(budget, expectedChunks);
   }, [budget]);
 
-  const runProfile = useCallback(async (profile: QAProfile): Promise<PilotCockpitResult> => {
+  /**
+   * Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER
+   * TEST CONTRÔLÉ (consigne coach explicite) : `maxChunks` est
+   * EXPLICITEMENT opt-in (jamais posé par défaut) — quand fourni (>0), pose
+   * `PlanConfig._pilotMaxChunks` pour CE run uniquement, qui borne le
+   * nombre de chunks réellement générés côté fonction Edge (voir index.ts).
+   * Omis = comportement inchangé (génération complète), pour tout appel
+   * existant qui ne le passe jamais.
+   */
+  const runProfile = useCallback(async (profile: QAProfile, maxChunks?: number): Promise<PilotCockpitResult> => {
     if (isLoadingRef.current) {
       throw new Error("Une génération est déjà en cours — attendez la fin.");
     }
@@ -158,7 +167,10 @@ export function usePilotCockpit() {
       preparedContext = preparePilotTrainingPlanContext(profile);
       plan.reset();
       await new Promise((r) => setTimeout(r, 50));
-      await plan.generatePlan(preparedContext.athleteData, { ...preparedContext.planConfig, _outputFormat: "json" });
+      const pilotChunkOverride = Number.isFinite(maxChunks) && (maxChunks as number) > 0
+        ? { _pilotMaxChunks: maxChunks }
+        : {};
+      await plan.generatePlan(preparedContext.athleteData, { ...preparedContext.planConfig, _outputFormat: "json", ...pilotChunkOverride });
       const outcome = await waitForCompletion(() => isLoadingRef.current, Date.now() + RUN_TIMEOUT_MS);
       if (outcome === "timeout") {
         errorMessage = "Timeout (>8 min) — génération non complétée.";
@@ -205,18 +217,48 @@ export function usePilotCockpit() {
         const cfg = preparedContext?.planConfig ?? profile.planConfig;
         // raceFormat n'existe que sur RaceGoal (pas PlanConfig) — cf. useAITrainingPlan.ts
         const isLcw3Day = Array.isArray(cfg.raceGoals) && cfg.raceGoals.some((g) => g?.raceFormat === "lcw_3day");
+        // Sprint qualité Marathon/Ironman (oct. 2026) — ce call était resté
+        // au périmètre d'avant les Corrections B à F (manquait raceGoals/
+        // planStartDate/loadContext et maxDoubleDaysPerWeek). Sans cette
+        // mise à jour, le "rapport de validation sportive" du Cockpit
+        // n'aurait techniquement rien exercé de ces corrections, alors que
+        // `validatePlan` les gère depuis le câblage réel d'AITrainingPlanPage.tsx.
+        // Mêmes conventions que ce câblage réel (voir son commentaire) :
+        // `cfg.raceGoals` porte déjà la liste complète (objectif primaire
+        // A inclus) pour les profils QA qui le renseignent — contrairement
+        // au formulaire coach où il faut le reconstruire depuis deux états
+        // séparés (`objective`/`raceDate` + `raceGoals`).
+        const allGoalsWithObjective = Array.isArray(cfg.raceGoals) && cfg.raceGoals.length > 0
+          ? cfg.raceGoals
+          : (cfg.raceDate ? [{ objective: cfg.objective, raceDate: cfg.raceDate, priority: "A" as const }] : undefined);
+        const raceNums = (allGoalsWithObjective ?? [])
+          .filter((g) => g.raceDate && cfg.planStartDate)
+          .map((g) => {
+            const startMs = Date.parse(cfg.planStartDate!);
+            const raceMs = Date.parse(g.raceDate!);
+            const days = Math.round((raceMs - startMs) / (24 * 3600 * 1000));
+            return days >= 0 ? Math.floor(days / 7) + 1 : null;
+          })
+          .filter((n): n is number => n !== null);
+
         validatorResult = validatePlan(
           parsed,
           cfg.objective,
           cfg.prohibitions,
-          undefined, // raceWeekNumbers
+          raceNums.length > 0 ? raceNums : undefined,
           cfg.identifiedLimiters,
           cfg.identifiedLimitersRaw,
           preparedContext?.athleteData ?? profile.athleteData,
           undefined, // coachLimiterOrder
-          { sessionsPerWeek: cfg.sessionsPerWeek, maxSessionsPerDay: cfg.maxSessionsPerDay },
+          {
+            sessionsPerWeek: cfg.sessionsPerWeek, maxSessionsPerDay: cfg.maxSessionsPerDay,
+            // Correction #E — plafond journées doubles/sem, distinct de maxSessionsPerDay.
+            maxDoubleDaysPerWeek: cfg.maxDoubleDaysPerWeek,
+          },
           cfg.injuryRisk,
-          cfg.ambition,
+          // Correction #D : ambition EFFECTIVE (post-déclassement éventuel),
+          // jamais l'ambition brute — repli sur `cfg.ambition` si ambitionMeta absent.
+          cfg.ambitionMeta?.effective ?? cfg.ambition,
           cfg.constraints,
           isLcw3Day,
           cfg.deloadCadenceWeeks,
@@ -226,6 +268,31 @@ export function usePilotCockpit() {
           cfg.ambitionMeta
             ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
             : null,
+          // Correction #B — jalon run-only daté dans un plan triathlon (ex. 10K → 70.3).
+          allGoalsWithObjective,
+          cfg.planStartDate,
+          // Correction #C/#E — charge habituelle + historique déclaratif
+          // (jamais un TSS fictif). habitualWeeklyHours reprend weeklyHours
+          // (cible/disponibilité de CE plan), même convention que le
+          // câblage réel d'AITrainingPlanPage.tsx.
+          (() => {
+            const base: Record<string, number> = {};
+            if (Number.isFinite(cfg.weeklyHours) && (cfg.weeklyHours as number) > 0) base.habitualWeeklyHours = cfg.weeklyHours as number;
+            const lh = cfg.loadHistory;
+            if (lh?.chronicWeeklyHours != null && lh.chronicWeeklyHours > 0) base.chronicWeeklyHours = lh.chronicWeeklyHours;
+            if (lh?.recentWeeklyHours != null && lh.recentWeeklyHours > 0) base.recentWeeklyHours = lh.recentWeeklyHours;
+            if (lh?.recentWeeksCount != null && lh.recentWeeksCount > 0) base.recentWeeksCount = lh.recentWeeksCount;
+            return Object.keys(base).length > 0 ? base : undefined;
+          })(),
+          // Correction #D — trace ambition brute + motif de déclassement.
+          cfg.ambitionMeta
+            ? {
+              saisie: cfg.ambitionMeta.saisie,
+              effective: cfg.ambitionMeta.effective,
+              downgraded: cfg.ambitionMeta.downgraded,
+              reason: cfg.ambitionMeta.diagnosticNote,
+            }
+            : undefined,
         );
       } catch (e) {
         errorMessage = errorMessage ?? `validatePlan a échoué : ${e instanceof Error ? e.message : String(e)}`;

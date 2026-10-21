@@ -9,6 +9,25 @@ import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTar
 import { capBikeRaceIF, type RaceBikeAmbition } from "../_shared/racePowerCap.ts";
 import { deriveTriathlonZones, formatTriathlonZonesForPrompt } from "../_shared/triathlonZones.ts";
 
+/**
+ * Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER TEST
+ * CONTRÔLÉ (consigne coach explicite) : borne le nombre de chunks
+ * RÉELLEMENT exécutés par la boucle de génération (index.ts) quand
+ * `PlanConfig._pilotMaxChunks` est posé — mode EXPLICITEMENT opt-in,
+ * réservé au Pilot Cockpit (jamais posé par le formulaire coach normal).
+ * Extrait en fonction pure (comme le reste de ce fichier) pour rester
+ * testable sans dépendre du handler Deno.serve monolithique de index.ts.
+ *
+ * `pilotMaxChunks` absent, ≤0 ou non-numérique → `totalChunks` inchangé
+ * (comportement normal, tous les chunks s'exécutent). Sinon →
+ * `min(pilotMaxChunks, totalChunks)` (jamais plus que le plan n'en a réellement).
+ */
+export function computePilotChunksToRun(totalChunks: number, pilotMaxChunks: unknown): number {
+  const n = Number(pilotMaxChunks);
+  if (!Number.isFinite(n) || n <= 0) return totalChunks;
+  return Math.min(n, totalChunks);
+}
+
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
 // FIX #3 (audit recap): Now includes estimated phase bounds for the full plan

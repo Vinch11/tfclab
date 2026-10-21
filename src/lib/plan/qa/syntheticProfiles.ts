@@ -47,6 +47,17 @@ export type QAProfileId =
   // sollicite bien l'IA : un débutant qui vient de terminer le cycle S2R
   // (30min de course continue acquis) et prépare son 1er 5km sur 12 sem.
   | "B-5K-BEGINNER"
+  // Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER TEST
+  // CONTRÔLÉ (consigne coach explicite) : profil RÉEL d'un athlète coaché
+  // (pas un cas générique QA), triathlète confirmé préparant un 10 km
+  // intermédiaire (priorité B, jalon de contrôle) puis un Ironman 70.3 à
+  // Tours (priorité A, meilleure performance visée). Sert à vérifier en
+  // conditions réelles les Corrections B à F (multi-objectif daté, charge
+  // hebdo, cohérence d'ambition, historique de charge déclaratif 8h→17h,
+  // plafond journées doubles) sur UN scénario sportif complet, sans compte
+  // athlète Supabase. Famille de check B4 "multi-sport" (objectif final
+  // 70.3) — voir checks.ts::checkB4For.
+  | "B-10K-TO-70.3"
   | V2ProfileId;
 
 /**
@@ -434,6 +445,105 @@ export const QA_PROFILES: QAProfile[] = [
       constraints: "Profil synthétique Pilot Cockpit — débutant ayant terminé le cycle marche-course (30min continu acquis), prépare son 1er 5km. Objectif distinct du template Start-to-Run statique (jamais généré par IA en production) : ce profil sollicite réellement le moteur de génération individualisée.",
       terrainAvailability: "plat",
       recoveryStrategy: "passive",
+    },
+  },
+  {
+    // Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER
+    // TEST CONTRÔLÉ (consigne coach explicite, sans compte athlète Supabase).
+    // Caractéristiques CONFIRMÉES par le coach : âge, poids, VMA, FTP, CSS,
+    // trainingLevel, ambition, historique de charge (8h chronique → 17h
+    // récent sur 4 sem), dates/priorités des 2 objectifs, contraintes
+    // d'agenda (dispo tous les jours, max 4 journées doubles/sem, max 2
+    // séances/jour, 11 séances/sem).
+    //
+    // Champs physiologiques NON confirmés par le coach (fcMax, VLamax,
+    // sprint/MAP, TTE, pace seuil, économie de course, TSS mesuré) sont
+    // délibérément laissés `null` — jamais inventés — pour ne pas
+    // contaminer ce test de données non déclarées. Seule exception :
+    // `vo2max`, dérivé de la VMA confirmée via la conversion Léger-Mercier
+    // déjà utilisée dans ce fichier pour "B-5K-BEGINNER" (VO2max≈3.5×VMA),
+    // pas une valeur additionnelle inventée.
+    id: "B-10K-TO-70.3",
+    label: "10 km (B, jalon) → Ironman 70.3 Tours (A) · 32 sem · perf/elite",
+    expectedWeeks: 32,
+    expectedChunks: 7, // triVerbose ("70.3"→IRONMAN 70.3) → CHUNK_SIZE=5, ceil(32/5)=7
+    athleteData: {
+      nom: "QA Pilote 10K→70.3 Tours",
+      sex: "male",
+      age: 42,
+      ftp: 300,
+      weightKg: 90,
+      vma: 17,
+      css: 85,
+      // Dérivé (Léger-Mercier ×3.5 depuis la VMA confirmée), PAS une mesure
+      // confirmée par le coach — cf. commentaire ci-dessus.
+      vo2max: 59.5,
+      vlamax: null,
+      vlamaxRun: null,
+      fcMax: null,
+      tte: null,
+      pmax5s: null,
+      p30s: null,
+      p60s: null,
+      map5min: null,
+      paceThresholdSecPerKm: null,
+      runMLSSEffectivePct: null,
+      runMLSSEffectiveSource: null,
+      runEconomyScore: null,
+    },
+    planConfig: {
+      // Objectif PRIMAIRE (priorité A) = celui qui détermine la famille de
+      // check B4 "multi-sport" (natation+vélo+course chaque semaine active)
+      // et le dimensionnement des chunks — le 10K (priorité B) n'est qu'un
+      // jalon intermédiaire sur la route du 70.3.
+      objective: "IRONMAN 70.3",
+      raceName: "QA Pilote 70.3 Tours",
+      raceDate: "2027-06-06",
+      // Convention confirmée dans AITrainingPlanPage.tsx (cf. `allGoalsWithObjective`/
+      // `allRaceGoals`) : `raceGoals` transporte la liste COMPLÈTE, objectif
+      // primaire (A) inclus en premier, puis les objectifs secondaires.
+      raceGoals: [
+        { objective: "IRONMAN 70.3", raceName: "QA Pilote 70.3 Tours", raceDate: "2027-06-06", priority: "A", raceFormat: "continuous" },
+        { objective: "10 KM", raceName: "QA Pilote 10K intermédiaire", raceDate: "2026-12-19", priority: "B", targetTimeMinutes: 40 },
+      ],
+      planStartDate: "2026-10-26",
+      weeksAvailable: 32,
+      // Cible/disponibilité déclarée pour CE plan — reprend le volume
+      // RÉCEMMENT tenu (17h/sem), pas une estimation distincte. C'est
+      // précisément le cas que les Corrections C/E doivent savoir moduler
+      // (ne jamais traiter 17h comme durablement assimilé).
+      weeklyHours: 17,
+      sessionsPerWeek: 11,
+      maxSessionsPerDay: 2,
+      maxDoubleDaysPerWeek: 4,
+      ambition: "elite", // clé canonique de "perf" (cf. AMBITION_ALIASES, ambitionLevel.ts) — UI "Qualifiable"
+      ambitionMeta: {
+        saisie: "elite",
+        effective: "elite", // trainingLevel "trained" → plafond "elite" (AMBITION_MAX_BY_LEVEL) : aucun déclassement
+        saisieLabel: "Qualifiable",
+        effectiveLabel: "Qualifiable",
+        downgraded: false,
+        trainingLevel: "trained",
+        trainingLevelSource: "manual",
+        diagnosticNote: null,
+      },
+      // Historique de charge DÉCLARATIF (Correction #E) — jamais transformé
+      // en TSS fictif, ne modifie jamais volumeRamp/weeklyHours/volumeCible
+      // (invariant vérifié par planConfigBuilder.loadHistoryInvariant.test.ts).
+      loadHistory: {
+        chronicWeeklyHours: 8,
+        recentWeeklyHours: 17,
+        recentWeeksCount: 4,
+      },
+      constraints: "Profil RÉEL coach (pas un cas générique QA) — triathlète confirmé préparant un 10 km intermédiaire (priorité B, jalon de contrôle, objectif ~40 min) puis un Ironman 70.3 à Tours (priorité A, meilleure performance visée). Disponible tous les jours de la semaine, aucune discipline ni jour interdit. Récupération subjective bonne sur les 4 dernières semaines à charge élevée. Répartition récente (17h/sem cumulées) : natation ≈3h, vélo ≈8h, course ≈6h — information contextuelle uniquement, aucun champ structuré de ce moteur ne consomme une répartition par sport de la charge récente à ce jour (limite résiduelle connue, non corrigée dans ce correctif ciblé).",
+      terrainAvailability: "mixte",
+      recoveryStrategy: "passive",
+      // `deloadCadenceWeeks` volontairement NON renseigné (auto) : à 42 ans,
+      // `inferWeekType` (sessionSizingMatrix.ts) applique automatiquement la
+      // cadence 2:1 (tous les 3 semaines) plutôt que 3:1 — comportement par
+      // défaut déjà vérifié et jugé physiologiquement justifié (doctrine
+      // Tanaka/Seals), pas modifié ici. Le coach peut l'overrider via ce
+      // champ (3 = 2:1, 4 = 3:1) s'il souhaite un choix différent.
     },
   },
   // Priorité 2 (Performance Validation Lab V1) — 20 scénarios à 5 dimensions

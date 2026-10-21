@@ -259,7 +259,8 @@ export function checkB4For(profileId: QAProfileId, plan: MergedPlan): CheckResul
     case "B-70.3":
     case "B-IM":
     case "B-SPRINT":
-    case "B-OLYMPIC": {
+    case "B-OLYMPIC":
+    case "B-10K-TO-70.3": {
       const res = checkB4_703(plan);
       return { ...res, label: `${profileId} — swim/bike/run chaque semaine active` };
     }

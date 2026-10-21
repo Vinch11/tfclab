@@ -14,6 +14,7 @@ import {
   detectActivePhase,
   validateChunk1HasRecap,
   buildCanonicalRaceCard,
+  computePilotChunksToRun,
 } from "./promptHelpers.ts";
 import {
   detectLcwFromConfig,
@@ -499,6 +500,23 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
             }
 
+            // Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU
+            // PREMIER TEST CONTRÔLÉ (consigne coach explicite) : mode de
+            // test EXPLICITEMENT opt-in (Pilot Cockpit uniquement, jamais
+            // posé par le formulaire coach normal — voir PlanConfig.
+            // _pilotMaxChunks, useAITrainingPlan.ts), pour examiner les
+            // premières semaines sans lancer automatiquement les chunks
+            // suivants. Absent/≤0 = comportement inchangé (tous les chunks
+            // s'exécutent) pour tout appelant existant qui ne pose jamais ce
+            // champ — vérifié : aucun code après la boucle (assertions
+            // post-génération, compliance, bandeau SSE) ne suppose que TOUS
+            // les chunks ont été générés ; chacun ne lit que ce qui a
+            // réellement été accumulé dans `fullPlanText`/`chunkMetricsHistory`.
+            const chunksToRun = computePilotChunksToRun(chunks.length, planConfig?._pilotMaxChunks);
+            if (chunksToRun < chunks.length) {
+              console.log(`🧪 PILOT TEST MODE (_pilotMaxChunks=${planConfig._pilotMaxChunks}) : seuls ${chunksToRun}/${chunks.length} chunk(s) réels seront générés — génération partielle, pas simulée.`);
+            }
+
             // AUDIT FIX #4: Append condensed entry to global memory (capped ~2KB)
             const updateGlobalMemory = (chunkIdx: number, chunkRange: string, phase: string, blocs: string[], topSessions: string[]) => {
               const blocLine = blocs.length > 0 ? ` | Blocs: ${blocs.join("; ")}` : "";
@@ -695,10 +713,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
 
             // Accumulateur texte plan complet — utilisé par les assertions post-génération.
             let fullPlanText = "";
-            for (let ci = 0; ci < chunks.length; ci++) {
+            for (let ci = 0; ci < chunksToRun; ci++) {
               const chunk = chunks[ci];
               const isFirst = ci === 0;
-              console.log(`▶️ Chunk ${ci + 1}/${chunks.length} — S${chunk.start}-S${chunk.end} : génération en cours…`);
+              console.log(`▶️ Chunk ${ci + 1}/${chunksToRun}${chunksToRun < chunks.length ? ` (plan complet ${chunks.length})` : ""} — S${chunk.start}-S${chunk.end} : génération en cours…`);
               const expectedWeeks = Array.from(
                 { length: chunk.end - chunk.start + 1 },
                 (_, i) => chunk.start + i

@@ -532,6 +532,21 @@ export interface PlanConfig {
    * sessionsPerWeek/jours disponibles — pas de seuil universel.
    */
   maxDoubleDaysPerWeek?: number;
+  /**
+   * Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER
+   * TEST CONTRÔLÉ (consigne coach explicite) : mode de test EXPLICITEMENT
+   * opt-in, réservé au Pilot Cockpit (jamais posé par le formulaire coach
+   * normal). Quand présent et > 0, borne le nombre de chunks RÉELLEMENT
+   * générés par la fonction Edge `ai-training-plan` (voir sa boucle de
+   * chunking, index.ts) à `min(_pilotMaxChunks, nombre réel de chunks du
+   * plan)` — permet d'examiner les premières semaines sans lancer
+   * automatiquement les chunks suivants. Génération RÉELLE sur les chunks
+   * exécutés (jamais simulée) : le chunk 1 ne demande déjà que les semaines
+   * de son propre bloc, qu'il soit suivi d'autres chunks ou non. Absent ou
+   * ≤0 = comportement inchangé (tous les chunks s'exécutent), y compris
+   * pour tout appelant existant qui ne pose jamais ce champ.
+   */
+  _pilotMaxChunks?: number;
   _athleteSex?: string | null;
   /** F-EXPRESS — Profil onboardé via Démarrage Express (FC + poids uniquement, confiance 60%).
    *  Injecte un bloc systemPrompt qui force prescription en zones FC + RPE uniquement. */

@@ -123,22 +123,32 @@ export function PilotCockpitPanel() {
   const [p0RunQuota, setP0RunQuota] = useState("");
   const [p0HighRisk, setP0HighRisk] = useState<"unknown" | "yes" | "no">("unknown");
   const [selectedId, setSelectedId] = useState<string>(PILOT_PROFILES[0].id);
-  const [pendingConfirm, setPendingConfirm] = useState<{ profile: QAProfile; check: BudgetCheckResult } | null>(null);
+  // Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER
+  // TEST CONTRÔLÉ (consigne coach explicite) : mode de test EXPLICITEMENT
+  // opt-in (jamais activé par défaut), limité au 1er chunk uniquement —
+  // permet d'examiner les premières semaines sans lancer automatiquement
+  // les chunks suivants. Ne modifie AUCUNE génération normale (case décochée
+  // par défaut, aucun champ posé dans ce cas — cf. usePilotCockpit.ts).
+  const [limitToFirstChunk, setLimitToFirstChunk] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState<{ profile: QAProfile; check: BudgetCheckResult; maxChunks?: number } | null>(null);
 
   const selectedProfile = PILOT_PROFILES.find((p) => p.id === selectedId) ?? PILOT_PROFILES[0];
   const cumulative = computeCumulative(budget.runs);
 
   const handleLaunchClick = () => {
-    const check = checkBudget(selectedProfile.expectedChunks);
-    setPendingConfirm({ profile: selectedProfile, check });
+    const maxChunks = limitToFirstChunk ? 1 : undefined;
+    const effectiveChunks = maxChunks ? Math.min(maxChunks, selectedProfile.expectedChunks) : selectedProfile.expectedChunks;
+    const check = checkBudget(effectiveChunks);
+    setPendingConfirm({ profile: selectedProfile, check, maxChunks });
   };
 
   const handleConfirmLaunch = async () => {
     const profile = pendingConfirm?.profile;
+    const maxChunks = pendingConfirm?.maxChunks;
     setPendingConfirm(null);
     if (!profile) return;
     try {
-      const result = await runProfile(profile);
+      const result = await runProfile(profile, maxChunks);
       if (result.errorMessage) {
         toast.error(`Échec génération ${profile.id} : ${result.errorMessage}`);
       } else {
@@ -244,8 +254,17 @@ export function PilotCockpitPanel() {
               </button>
             ))}
           </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={limitToFirstChunk}
+              onChange={(e) => setLimitToFirstChunk(e.target.checked)}
+              disabled={isRunning}
+            />
+            Limiter ce run au 1er chunk uniquement (test contrôlé — génération réelle partielle, pas simulée)
+          </label>
           <Button onClick={handleLaunchClick} disabled={isRunning}>
-            {isRunning ? "Génération en cours…" : `Lancer ${selectedProfile.id}`}
+            {isRunning ? "Génération en cours…" : `Lancer ${selectedProfile.id}${limitToFirstChunk ? " (1er chunk)" : ""}`}
           </Button>
           {isRunning && chunkProgress && (
             <div className="text-sm text-muted-foreground">
@@ -466,10 +485,17 @@ export function PilotCockpitPanel() {
       <AlertDialog open={!!pendingConfirm} onOpenChange={(open) => { if (!open) setPendingConfirm(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Lancer {pendingConfirm?.profile.id} — appel IA payant</AlertDialogTitle>
+            <AlertDialogTitle>
+              Lancer {pendingConfirm?.profile.id}{pendingConfirm?.maxChunks ? ` (limité à ${pendingConfirm.maxChunks} chunk)` : ""} — appel IA payant
+            </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-2">
                 <div>{pendingConfirm?.check.message}</div>
+                {pendingConfirm?.maxChunks && (
+                  <div className="text-xs text-amber-600">
+                    Mode test contrôlé : seul{pendingConfirm.maxChunks > 1 ? "s" : ""} {pendingConfirm.maxChunks} chunk{pendingConfirm.maxChunks > 1 ? "s" : ""} sur {pendingConfirm.profile.expectedChunks} sera{pendingConfirm.maxChunks > 1 ? "nt" : ""} réellement généré{pendingConfirm.maxChunks > 1 ? "s" : ""} — génération RÉELLE partielle, jamais simulée.
+                  </div>
+                )}
                 <div className="text-xs">
                   Cette vérification est une estimation affichée avant de cliquer — elle n'empêchera pas la génération d'aller jusqu'au bout
                   si elle dépasse la projection (aucun blocage automatique garanti pendant une génération en cours).

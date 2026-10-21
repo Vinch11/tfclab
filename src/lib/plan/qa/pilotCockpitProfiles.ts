@@ -13,6 +13,15 @@ import { QA_PROFILES, type QAProfile, type QAProfileId } from "./syntheticProfil
  * jamais en conditions réelles. Remplacé par "B-5K-BEGINNER" (débutant
  * post-S2R préparant son 1er 5km, 12 semaines) — cas réel qui, lui,
  * sollicite bien le moteur de génération IA individualisée.
+ *
+ * Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER TEST
+ * CONTRÔLÉ (consigne coach explicite) : "B-10K-TO-70.3" ajouté en 6ᵉ
+ * position (le plus coûteux, 7 chunks — reste en fin de liste, cohérent
+ * avec l'ordre croissant de coût). Catégorie DISTINCTE des 5 profils
+ * "validés" ci-dessus (batterie de couverture objectif/ambition) : c'est le
+ * profil d'un athlète RÉEL coaché (voir syntheticProfiles.ts), destiné à
+ * vérifier en conditions réelles les Corrections B à F sur un scénario
+ * sportif complet — pas un cas générique QA supplémentaire.
  */
 export const PILOT_PROFILE_IDS: QAProfileId[] = [
   "B-5K-BEGINNER",
@@ -20,6 +29,7 @@ export const PILOT_PROFILE_IDS: QAProfileId[] = [
   "B-TRAIL-MOUNTAIN",
   "B-MARATHON",
   "B-IM",
+  "B-10K-TO-70.3",
 ];
 
 function findProfile(id: QAProfileId): QAProfile {
