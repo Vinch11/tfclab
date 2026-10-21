@@ -2357,7 +2357,14 @@ export default function AITrainingPlanPage() {
             maxSessionsPerDay: (() => { const n = parseInt(maxSessionsPerDay); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
           },
           cfg?.injuryRisk,
-          ambition,
+          // Correction sprint qualité Marathon/Ironman (oct. 2026), #D :
+          // ambition EFFECTIVE (post-déclassement éventuel), jamais
+          // l'ambition brute saisie par le coach — les règles sportives de
+          // validatePlan doivent juger le plan sur le niveau RÉELLEMENT
+          // utilisé pour le générer. Repli sur `ambition` (brute) si
+          // ambitionMeta est indisponible, pour ne jamais régresser vers
+          // "aucune valeur".
+          cfg?.ambitionMeta?.effective ?? ambition,
           cfg?.constraints,
           // Fix D1 (audit "génération de plan IA") : raceFormat authoritative
           // (course principale + courses additionnelles) plutôt que de
@@ -2387,6 +2394,18 @@ export default function AITrainingPlanPage() {
             const n = parseFloat(weeklyHours);
             return Number.isFinite(n) && n > 0 ? { habitualWeeklyHours: n } : undefined;
           })(),
+          // Correction sprint qualité Marathon/Ironman (oct. 2026), #D :
+          // traçabilité de l'ambition brute demandée par le coach + motif
+          // du déclassement éventuel — pilote exclusivement
+          // validateAmbitionCoherence (issue informative, jamais un score).
+          cfg?.ambitionMeta
+            ? {
+              saisie: cfg.ambitionMeta.saisie,
+              effective: cfg.ambitionMeta.effective,
+              downgraded: cfg.ambitionMeta.downgraded,
+              reason: cfg.ambitionMeta.diagnosticNote,
+            }
+            : undefined,
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;

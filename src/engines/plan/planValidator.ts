@@ -28,6 +28,9 @@ import {
   calculateTau,
 } from "@/lib/v2/criticalPowerModel";
 import { LIMITER_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
+import { normalizeAmb, mapObjectiveToSport, VOLUME_CAP_MATRIX } from "@/lib/deriveRaceTargets";
+import { AMBITIONS } from "@/lib/raceAnalysis";
+import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -2023,6 +2026,74 @@ function validateWeeklyLoadConsistency(
   const hasError = issues.some((i) => i.severity === "error");
   const score = issues.length === 0 ? 100 : hasError ? 45 : issues.length === 1 ? 75 : 55;
   return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #D (demande coach
+ * explicite, suite à l'audit "ambition brute vs ambitionEffective") :
+ * trace explicitement, à titre PUREMENT INFORMATIF (jamais un score), tout
+ * déclassement d'ambition entre ce que le coach a demandé (`saisie`) et ce
+ * qui a RÉELLEMENT été utilisé pour générer ce plan (`effective` — la même
+ * valeur que celle passée au paramètre `ambition` de `validatePlan`, cf. sa
+ * doc). But explicite : que les règles sportives de cette validation
+ * (séances-clés, plancher séances/jour Elite+, catégories Lorang — toutes
+ * pilotées par ce même `ambition`) jugent le plan sur le niveau RÉELLEMENT
+ * utilisé, jamais sur celui initialement demandé — sinon un déclassement
+ * physiologiquement justifié (niveau d'entraînement insuffisant) produit de
+ * fausses alertes sur un plan qui a pourtant fait exactement ce qu'il
+ * fallait.
+ *
+ * Réutilise les sources canoniques déjà utilisées par la génération
+ * (`normalizeAmb`/`mapObjectiveToSport`/`VOLUME_CAP_MATRIX` de
+ * deriveRaceTargets.ts, `AMBITIONS` de raceAnalysis.ts) pour que les
+ * chiffres cités ici (plafond de volume, séances qualité/semaine) soient
+ * EXACTEMENT ceux appliqués à la génération — jamais une 2e copie
+ * recalculée séparément qui risquerait de diverger. Ne modifie PAS le
+ * mapping ambition↔niveau (ambitionDowngrade.ts) ni les matrices
+ * elles-mêmes — lecture seule, comme tout ce fichier.
+ *
+ * Inactif si `ambitionAudit` est omis (comportement historique inchangé
+ * pour tout appelant existant) ou si aucun déclassement n'a eu lieu
+ * (`downgraded` falsy) — rien à signaler.
+ */
+export interface AmbitionAudit {
+  /** Ambition CANONIQUE (AmbitionLevel) demandée par le coach, avant tout déclassement. */
+  saisie: string;
+  /** Ambition CANONIQUE (AmbitionLevel) RÉELLEMENT utilisée pour générer ce plan. */
+  effective: string;
+  downgraded: boolean;
+  /** Motif lisible du déclassement (ex: ambitionResolution.diagnosticNote). */
+  reason?: string | null;
+}
+
+function validateAmbitionCoherence(
+  objective: string | undefined,
+  ambitionAudit: AmbitionAudit | null | undefined,
+): { issues: ValidationIssue[] } {
+  if (!ambitionAudit || !ambitionAudit.downgraded) return { issues: [] };
+
+  const sport = mapObjectiveToSport(objective);
+  const localSaisie = normalizeAmb(ambitionAudit.saisie);
+  const localEffective = normalizeAmb(ambitionAudit.effective);
+  const capSaisie = VOLUME_CAP_MATRIX[sport][localSaisie];
+  const capEffective = VOLUME_CAP_MATRIX[sport][localEffective];
+  const qSaisie = AMBITIONS.find((a) => a.key === localSaisie)?.qualitesParSemaine;
+  const qEffective = AMBITIONS.find((a) => a.key === localEffective)?.qualitesParSemaine;
+
+  const labelSaisie = AMBITION_DEFINITIONS[ambitionAudit.saisie as AmbitionLevel]?.label ?? ambitionAudit.saisie;
+  const labelEffective = AMBITION_DEFINITIONS[ambitionAudit.effective as AmbitionLevel]?.label ?? ambitionAudit.effective;
+
+  return {
+    issues: [{
+      rule: "ambition_coherence",
+      severity: "info",
+      message: `Ambition déclassée pour la génération : "${labelSaisie}" → "${labelEffective}" — ce plan a été généré ET validé sur "${labelEffective}"`,
+      detail: `Motif : ${ambitionAudit.reason ?? "niveau d'entraînement déclaré/mesuré insuffisant pour l'ambition demandée"}. `
+        + `Conséquences concrètes (sport "${sport}") : plafond de volume hebdo ${capSaisie}h → ${capEffective}h ; `
+        + `séances qualité/semaine ${qSaisie ?? "?"} → ${qEffective ?? "?"}. `
+        + `Les règles sportives de cette validation (séances-clés, plancher séances/jour Elite+, catégories Lorang) jugent ce plan sur "${labelEffective}" — jamais sur "${labelSaisie}" — pour éviter une fausse alerte sur un déclassement volontaire et physiologiquement justifié.`,
+    }],
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -4834,7 +4905,19 @@ export function validatePlan(
   injuryRisk?: { run?: { level: string }; bike?: { level: string } },
   /** #18 lot 2 : clé interne ("world_class"/"elite"/"competitor"/"age_group"/
    *  "finisher", cf. ambitionLevel.ts) — nécessaire au plancher séances/jour
-   *  Elite+ (validateDailySessionFloor), absente des paramètres précédents. */
+   *  Elite+ (validateDailySessionFloor), absente des paramètres précédents.
+   *
+   *  Correction sprint qualité Marathon/Ironman (oct. 2026), #D (demande
+   *  coach explicite) : DOIT être l'ambition EFFECTIVE — celle RÉELLEMENT
+   *  utilisée pour générer ce plan, après déclassement éventuel par
+   *  `computeAmbitionEffective` (ambitionDowngrade.ts) — JAMAIS l'ambition
+   *  brute initialement demandée par le coach. Un appelant qui passerait
+   *  encore l'ambition brute ici ferait juger le plan (séances-clés,
+   *  plancher séances/jour, catégories Lorang) sur un niveau différent de
+   *  celui réellement généré, produisant de fausses alertes sur un
+   *  déclassement pourtant justifié. Pour conserver l'ambition brute à des
+   *  fins de traçabilité/affichage, utiliser `ambitionAudit` ci-dessous —
+   *  jamais ce paramètre. */
   ambition?: string,
   /** Champ libre "Contraintes" de l'athlète (PlanConfig.constraints) — permet
    *  à validateSportRatio de détecter une discipline bannie par le coach et
@@ -4877,6 +4960,15 @@ export function validatePlan(
    * encore).
    */
   loadContext?: WeeklyLoadContext | null,
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #D : trace
+   * l'ambition brute demandée par le coach ET le déclassement éventuel vers
+   * l'ambition effective (passée dans `ambition` ci-dessus) — pilote
+   * exclusivement `validateAmbitionCoherence` (issue purement informative,
+   * jamais un score). Omis = contrôle inactif (comportement inchangé pour
+   * tout appelant qui ne le fournit pas encore).
+   */
+  ambitionAudit?: AmbitionAudit | null,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -4964,6 +5056,7 @@ export function validatePlan(
   const lcwSignaturePresence = validateLcwSignaturePresence(plan, isLcwFormatHint);
   const raceDayOnlyFichePlacement = validateRaceDayOnlyFichePlacement(plan);
   const keySessionSelfDeclaration = validateKeySessionSelfDeclaration(plan);
+  const ambitionCoherence = validateAmbitionCoherence(objective, ambitionAudit);
 
   // Combine all issues
   const allIssues = [
@@ -4975,6 +5068,7 @@ export function validatePlan(
     ...catalogRatio.issues,
     ...prohibitionCompliance.issues,
     ...phaseCoherence.issues,
+    ...ambitionCoherence.issues,
     ...raceDayPresence.issues,
     ...limiterCoherence.issues,
     ...wbalFeasibility.issues,

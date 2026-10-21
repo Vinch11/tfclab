@@ -257,7 +257,12 @@ const VOLUME_CIBLE_MIN_H = 3;
  * Références : Seiler (endurance elite), Stöggl, Rønnestad (dose-response),
  * standards pro triathlon (26-32 h/sem IM elite).
  */
-const VOLUME_CAP_MATRIX: Record<RaceSport, Record<Ambition, number>> = {
+// Exportée (Correction sprint qualité M/IM, oct. 2026, #D) pour que
+// planValidator.ts puisse citer les mêmes plafonds EXACTS que ceux
+// réellement appliqués à la génération, quand il documente un déclassement
+// d'ambition (cf. validateAmbitionCoherence) — jamais une 2e copie qui
+// risquerait de diverger de celle-ci.
+export const VOLUME_CAP_MATRIX: Record<RaceSport, Record<Ambition, number>> = {
   run_route: { finish: 8,  perf: 10, sub: 12, elite: 14, world_class: 16 },
   trail:     { finish: 8,  perf: 10, sub: 12, elite: 14, world_class: 16 },
   tri_70_3:  { finish: 10, perf: 12, sub: 14, elite: 18, world_class: 22 },
