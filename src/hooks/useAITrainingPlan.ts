@@ -122,6 +122,40 @@ export function accumulateChunkUsage(
 }
 
 /**
+ * Incident réel #2 (coach, 2e test B-10K-TO-70.3, consigne coach explicite) :
+ * `mergePlanChunks(collected, totalWeeks)` exige une couverture EXACTE de
+ * `1..totalWeeks` (sinon `MergePlanError("GAP", ...)`) — correct pour une
+ * génération normale, mais `_pilotMaxChunks` (Pilot Cockpit UNIQUEMENT) ne
+ * produit QUE les premières semaines par construction. Le serveur
+ * (jsonPlanHandler.ts) avait déjà été corrigé pour son PROPRE merge interne
+ * — mais ce hook fait un second merge, côté client, totalement indépendant
+ * (`src/lib/plan/mergePlanChunks.ts`, miroir explicite du fichier serveur),
+ * qui ignorait encore `_pilotMaxChunks`.
+ *
+ * Dérivé des semaines RÉELLEMENT reçues (`weekNumbersReceived`, depuis
+ * `collected`), jamais d'une formule recalculée à partir de CHUNK_SIZE —
+ * qui peut varier (LCW, cf. `computeLcwChunkSize` côté serveur) et
+ * diverger silencieusement de ce que le serveur a réellement produit.
+ * Pure, testable sans mock fetch/SSE (même principe que
+ * `accumulateChunkUsage` ci-dessus).
+ *
+ * Strictement gated par `pilotMaxChunks` : absent/≤0 → `totalWeeks`
+ * inchangé, donc une génération normale incomplète continue d'échouer la
+ * validation GAP exactement comme avant (jamais une acceptation silencieuse
+ * de semaines manquantes hors de ce mode explicitement opt-in).
+ */
+export function computePilotMergedTotalWeeks(
+  totalWeeks: number,
+  pilotMaxChunks: unknown,
+  weekNumbersReceived: number[],
+): number {
+  const n = Number(pilotMaxChunks);
+  if (!Number.isFinite(n) || n <= 0) return totalWeeks;
+  if (weekNumbersReceived.length === 0) return totalWeeks;
+  return Math.min(totalWeeks, Math.max(...weekNumbersReceived));
+}
+
+/**
  * Titre du plan complet assemblé après une génération multi-fenêtres — ne
  * doit JAMAIS reprendre tel quel le titre de la fenêtre 1 (ex: "...15
  * semaines (Bloc 1)"), qui ne décrit que son propre périmètre, pas le plan
@@ -1565,7 +1599,12 @@ export function useAITrainingPlan() {
               semanticRepairs.push(`[error] reconciler_exception: ${rmsg}`);
               throw rerr; // diagnostic mode: do not swallow, bubble to outer merge catch
             }
-            const merged = mergePlanChunks(collected, totalWeeks);
+            const mergedTotal = computePilotMergedTotalWeeks(
+              totalWeeks,
+              planConfig._pilotMaxChunks,
+              collected.flatMap((c) => c.weeks.map((w) => w.weekNumber)),
+            );
+            const merged = mergePlanChunks(collected, mergedTotal);
             mergedLocal = merged;
             // P3 — normalisation déterministe de phase (source unique) sur chemin JSON.
             let incompletePhaseWeeks: number[] = [];
