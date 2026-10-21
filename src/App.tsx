@@ -64,6 +64,17 @@ const MobileNavHarness = lazy(() => import("./pages/__e2e/MobileNavHarness"));
 
 const queryClient = new QueryClient();
 
+/**
+ * Prévisualisation GitHub Pages "strictement consultative" — PRÉPARATION
+ * PILOT COCKPIT (consigne coach explicite, branche preview/pilot-cockpit-
+ * readonly, PAS la branche PR #389). `true` UNIQUEMENT si VITE_PREVIEW_
+ * READONLY=1 est posé au build — jamais en dev local, CI ou build Lovable/
+ * production : ces environnements ne posent jamais cette variable, donc
+ * cette constante y est toujours `false` et n'a AUCUN effet sur la table
+ * de routes normale.
+ */
+const PREVIEW_READONLY_NAV = import.meta.env.VITE_PREVIEW_READONLY === "1";
+
 /** Centered spinner shown while a route chunk is loading */
 function RouteFallback() {
   return (
@@ -103,6 +114,23 @@ export default function App() {
             <AuthProvider>
               <AppErrorBoundary>
               <Suspense fallback={<RouteFallback />}>
+                {PREVIEW_READONLY_NAV ? (
+                  // Prévisualisation GitHub Pages "strictement consultative"
+                  // (consigne coach explicite, vérification finale avant
+                  // publication) : table de routes RÉDUITE au strict
+                  // nécessaire — connexion coach + Pilot Cockpit — aucune
+                  // autre fonctionnalité de l'app susceptible d'écrire dans
+                  // Supabase n'est accessible par navigation. Toute autre
+                  // route redirige vers le Cockpit (pas de page blanche, pas
+                  // d'erreur). La branche normale ci-dessous (else) reste
+                  // strictement inchangée — ce bloc ne s'exécute jamais hors
+                  // de ce build dédié.
+                  <Routes>
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/debug/plan-qa" element={<ProtectedRoute><CoachOnlyGate><PlanQAPage /></CoachOnlyGate></ProtectedRoute>} />
+                    <Route path="*" element={<Navigate to="/debug/plan-qa" replace />} />
+                  </Routes>
+                ) : (
                 <Routes>
                   {/* Auth */}
                   <Route path="/auth" element={<AuthPage />} />
@@ -191,6 +219,7 @@ export default function App() {
                   {/* 404 */}
                   <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
                 </Routes>
+                )}
               </Suspense>
               </AppErrorBoundary>
             </AuthProvider>

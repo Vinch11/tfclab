@@ -1,0 +1,60 @@
+name: Preview Pages (Pilot Cockpit — strictement consultatif)
+
+# Prévisualisation GitHub Pages DÉDIÉE (consigne coach explicite,
+# préparation Pilot Cockpit 10K→70.3 Tours) — déclenchée UNIQUEMENT par la
+# branche preview/pilot-cockpit-readonly, jamais par main ni par aucune
+# branche de PR (dont PR #389). Ne contient QUE : build frontend (bun/vite)
+# + publication GitHub Pages native (actions/deploy-pages, officiel
+# GitHub). Aucune étape Supabase (pas de CLI, pas de
+# SUPABASE_ACCESS_TOKEN, aucune migration/déploiement de fonction Edge) ni
+# Lovable (aucun appel à son API) — vérifié ligne par ligne avant
+# publication.
+
+on:
+  push:
+    branches: [preview/pilot-cockpit-readonly]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement Pages à la fois ; un nouveau push annule le précédent
+# en cours plutôt que de les empiler.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Build (prévisualisation strictement consultative — aucun appel IA possible)
+        run: bunx vite build --base=/tfclab/
+        env:
+          # Les 3 variables qui activent le garde anti-Gemini, désactivent
+          # le plugin PWA et fixent le sous-chemin pour React Router — voir
+          # src/lib/previewReadOnlyGuard.ts, vite.config.ts, src/App.tsx.
+          # Jamais posées ailleurs (dev local, CI normale, build Lovable).
+          VITE_PREVIEW_READONLY: "1"
+          VITE_DISABLE_PWA: "1"
+          VITE_BASE_PATH: /tfclab
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
