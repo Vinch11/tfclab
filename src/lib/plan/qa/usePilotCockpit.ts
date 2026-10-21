@@ -152,8 +152,18 @@ export function usePilotCockpit() {
    * nombre de chunks réellement générés côté fonction Edge (voir index.ts).
    * Omis = comportement inchangé (génération complète), pour tout appel
    * existant qui ne le passe jamais.
+   *
+   * JOUR 1 — sécurisation du déploiement (consigne coach explicite) :
+   * `functionName` est lui aussi EXPLICITEMENT opt-in — quand fourni, pose
+   * `PlanConfig._pilotFunctionName` pour CE run uniquement, qui redirige
+   * l'appel vers une fonction Edge de TEST distincte (ex.
+   * "ai-training-plan-test", copie exacte de la fonction de production sur
+   * cette branche non fusionnée) au lieu de "ai-training-plan". Permet de
+   * tester le moteur corrigé sans jamais déployer par-dessus la fonction
+   * utilisée par les athlètes réels. Omis = comportement inchangé (fonction
+   * de production normale).
    */
-  const runProfile = useCallback(async (profile: QAProfile, maxChunks?: number): Promise<PilotCockpitResult> => {
+  const runProfile = useCallback(async (profile: QAProfile, maxChunks?: number, functionName?: string): Promise<PilotCockpitResult> => {
     if (isLoadingRef.current) {
       throw new Error("Une génération est déjà en cours — attendez la fin.");
     }
@@ -170,7 +180,8 @@ export function usePilotCockpit() {
       const pilotChunkOverride = Number.isFinite(maxChunks) && (maxChunks as number) > 0
         ? { _pilotMaxChunks: maxChunks }
         : {};
-      await plan.generatePlan(preparedContext.athleteData, { ...preparedContext.planConfig, _outputFormat: "json", ...pilotChunkOverride });
+      const pilotFunctionOverride = functionName ? { _pilotFunctionName: functionName } : {};
+      await plan.generatePlan(preparedContext.athleteData, { ...preparedContext.planConfig, _outputFormat: "json", ...pilotChunkOverride, ...pilotFunctionOverride });
       const outcome = await waitForCompletion(() => isLoadingRef.current, Date.now() + RUN_TIMEOUT_MS);
       if (outcome === "timeout") {
         errorMessage = "Timeout (>8 min) — génération non complétée.";

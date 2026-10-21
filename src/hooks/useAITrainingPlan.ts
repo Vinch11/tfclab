@@ -39,6 +39,25 @@ import { computeObjectiveCycleSegments } from "@/lib/plan/multiObjectiveClassifi
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
+/**
+ * JOUR 1 — sécurisation du déploiement (consigne coach explicite) :
+ * résout l'URL de génération réellement appelée — fonction de production
+ * ("ai-training-plan") par défaut, ou une fonction Edge de TEST distincte
+ * (ex. "ai-training-plan-test", copie exacte de la fonction de production
+ * sur une branche non fusionnée) quand `pilotFunctionName` est fourni.
+ * Extraite en fonction pure (comme `accumulateChunkUsage` ci-dessous) pour
+ * rester testable sans mock fetch/SSE — aucun précédent de ce genre dans
+ * ce dépôt pour `generatePlan()` lui-même, cf. son propre test.
+ * `pilotFunctionName` absent/vide = comportement inchangé (PLAN_URL de
+ * production), pour tout appelant existant qui ne le fournit jamais.
+ */
+export function resolvePlanUrl(supabaseUrl: string, pilotFunctionName?: string): string {
+  const functionName = pilotFunctionName && pilotFunctionName.trim().length > 0
+    ? pilotFunctionName
+    : "ai-training-plan";
+  return `${supabaseUrl}/functions/v1/${functionName}`;
+}
+
 /** Nombre maximal de blocs standards générés par requête HTTP (cf. generatePlanWindowed). */
 export const MAX_CHUNKS_PER_WINDOW = 3;
 
@@ -547,6 +566,19 @@ export interface PlanConfig {
    * pour tout appelant existant qui ne pose jamais ce champ.
    */
   _pilotMaxChunks?: number;
+  /**
+   * JOUR 1 — sécurisation du déploiement (consigne coach explicite) :
+   * mode de test EXPLICITEMENT opt-in, réservé au Pilot Cockpit, qui
+   * redirige CET appel de génération vers une fonction Edge de TEST
+   * distincte (ex. "ai-training-plan-test", copie exacte de
+   * "ai-training-plan" sur une branche non fusionnée) au lieu de la
+   * fonction de production utilisée par les athlètes réels. Permet de
+   * tester le moteur corrigé sans jamais déployer par-dessus la fonction
+   * de production, donc sans aucun risque de rollback à gérer sur celle-ci.
+   * Absent = comportement inchangé (fonction de production normale), pour
+   * tout appelant existant qui ne pose jamais ce champ.
+   */
+  _pilotFunctionName?: string;
   _athleteSex?: string | null;
   /** F-EXPRESS — Profil onboardé via Démarrage Express (FC + poids uniquement, confiance 60%).
    *  Injecte un bloc systemPrompt qui force prescription en zones FC + RPE uniquement. */
@@ -1227,7 +1259,11 @@ export function useAITrainingPlan() {
         _historyUsedIdCounts: historicalUsage.size > 0 ? serializeHistoricalUsage(historicalUsage) : undefined,
       };
 
-      const resp = await fetch(PLAN_URL, {
+      // JOUR 1 — sécurisation du déploiement : voir resolvePlanUrl ci-dessus.
+      const planUrl = planConfig?._pilotFunctionName
+        ? resolvePlanUrl(import.meta.env.VITE_SUPABASE_URL, planConfig._pilotFunctionName)
+        : PLAN_URL;
+      const resp = await fetch(planUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
