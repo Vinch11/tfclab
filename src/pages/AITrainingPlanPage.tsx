@@ -671,6 +671,15 @@ export default function AITrainingPlanPage() {
   const [planDurationMode, setPlanDurationMode] = useState<"date" | "weeks">("date");
   const [planWeeksInput, setPlanWeeksInput] = useState("");
   const [weeklyHours, setWeeklyHours] = useState("");
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande
+  // coach explicite) : historique de charge DÉCLARATIF (heures), distinct
+  // de `weeklyHours` ci-dessus (cible/disponibilité pour CE plan) — voir
+  // PlanConfig.loadHistory (useAITrainingPlan.ts) pour l'invariant complet
+  // (jamais consommé par la rampe de volume, jamais transformé en TSS).
+  const [chronicWeeklyHours, setChronicWeeklyHours] = useState("");
+  const [recentWeeklyHours, setRecentWeeklyHours] = useState("");
+  const [recentWeeksCount, setRecentWeeksCount] = useState("");
+  const [maxDoubleDaysPerWeek, setMaxDoubleDaysPerWeek] = useState("");
   const [sessionsPerWeek, setSessionsPerWeek] = useState("");
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
@@ -807,6 +816,10 @@ export default function AITrainingPlanPage() {
     setPlanDurationMode("date");
     setPlanWeeksInput("");
     setWeeklyHours("");
+    setChronicWeeklyHours("");
+    setRecentWeeklyHours("");
+    setRecentWeeksCount("");
+    setMaxDoubleDaysPerWeek("");
     setSessionsPerWeek("");
     { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
     setConstraints("");
@@ -834,6 +847,10 @@ export default function AITrainingPlanPage() {
       if (savedState.planDurationMode) setPlanDurationMode(savedState.planDurationMode);
       if (savedState.planWeeksInput) setPlanWeeksInput(savedState.planWeeksInput);
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
+      if (savedState.chronicWeeklyHours) setChronicWeeklyHours(savedState.chronicWeeklyHours);
+      if (savedState.recentWeeklyHours) setRecentWeeklyHours(savedState.recentWeeklyHours);
+      if (savedState.recentWeeksCount) setRecentWeeksCount(savedState.recentWeeksCount);
+      if (savedState.maxDoubleDaysPerWeek) setMaxDoubleDaysPerWeek(savedState.maxDoubleDaysPerWeek);
       if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
       if (savedState.ambition) setAmbition(savedState.ambition);
       if (savedState.constraints) setConstraints(savedState.constraints);
@@ -994,6 +1011,10 @@ export default function AITrainingPlanPage() {
       planDurationMode,
       planWeeksInput,
       weeklyHours,
+      chronicWeeklyHours,
+      recentWeeklyHours,
+      recentWeeksCount,
+      maxDoubleDaysPerWeek,
       sessionsPerWeek,
       ambition,
       constraints,
@@ -1045,7 +1066,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -1559,6 +1580,25 @@ export default function AITrainingPlanPage() {
       terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
       lockAmbition,
       crossTrainingMaintenance: { velo: crossTrainingVelo, natation: crossTrainingNatation },
+      // Correction sprint qualité Marathon/Ironman (oct. 2026), #E : simple
+      // passthrough déclaratif (heures) — jamais consommé par ce builder
+      // pour la rampe de volume/weeklyHours (voir PlanConfig.loadHistory).
+      loadHistory: (() => {
+        const chronic = parseFloat(chronicWeeklyHours);
+        const recent = parseFloat(recentWeeklyHours);
+        const weeks = parseInt(recentWeeksCount, 10);
+        const hasAny = Number.isFinite(chronic) || Number.isFinite(recent) || Number.isFinite(weeks);
+        if (!hasAny) return undefined;
+        return {
+          chronicWeeklyHours: Number.isFinite(chronic) && chronic > 0 ? chronic : undefined,
+          recentWeeklyHours: Number.isFinite(recent) && recent > 0 ? recent : undefined,
+          recentWeeksCount: Number.isFinite(weeks) && weeks > 0 ? weeks : undefined,
+        };
+      })(),
+      maxDoubleDaysPerWeek: (() => {
+        const n = parseInt(maxDoubleDaysPerWeek, 10);
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+      })(),
     };
 
     const built = prepareTrainingPlanContext({
@@ -1568,7 +1608,7 @@ export default function AITrainingPlanPage() {
     }).planConfig;
     // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
     return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
 
 
   const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
@@ -2355,6 +2395,9 @@ export default function AITrainingPlanPage() {
           {
             sessionsPerWeek: (() => { const n = parseInt(sessionsPerWeek); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
             maxSessionsPerDay: (() => { const n = parseInt(maxSessionsPerDay); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
+            // Correction sprint qualité Marathon/Ironman (oct. 2026), #E :
+            // contrainte d'agenda déclarée (distincte de maxSessionsPerDay).
+            maxDoubleDaysPerWeek: (() => { const n = parseInt(maxDoubleDaysPerWeek, 10); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
           },
           cfg?.injuryRisk,
           // Correction sprint qualité Marathon/Ironman (oct. 2026), #D :
@@ -2392,7 +2435,18 @@ export default function AITrainingPlanPage() {
           // jusqu'à l'ajout d'un tel champ.
           (() => {
             const n = parseFloat(weeklyHours);
-            return Number.isFinite(n) && n > 0 ? { habitualWeeklyHours: n } : undefined;
+            const chronic = parseFloat(chronicWeeklyHours);
+            const recent = parseFloat(recentWeeklyHours);
+            const weeks = parseInt(recentWeeksCount, 10);
+            const base: Record<string, number> = {};
+            if (Number.isFinite(n) && n > 0) base.habitualWeeklyHours = n;
+            // Correction sprint qualité Marathon/Ironman (oct. 2026), #E :
+            // historique déclaratif (jamais un TSS), distinct de
+            // habitualWeeklyHours ci-dessus — pilote validateLoadHistoryCoherence.
+            if (Number.isFinite(chronic) && chronic > 0) base.chronicWeeklyHours = chronic;
+            if (Number.isFinite(recent) && recent > 0) base.recentWeeklyHours = recent;
+            if (Number.isFinite(weeks) && weeks > 0) base.recentWeeksCount = weeks;
+            return Object.keys(base).length > 0 ? base : undefined;
           })(),
           // Correction sprint qualité Marathon/Ironman (oct. 2026), #D :
           // traçabilité de l'ambition brute demandée par le coach + motif
@@ -3929,6 +3983,53 @@ export default function AITrainingPlanPage() {
                     <p className="text-[10px] text-muted-foreground">
                       2 recommandé • 0 si blessure
                     </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 border rounded-md p-3">
+                  <Label className="text-xs font-medium">Historique de charge (optionnel)</Label>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    Déclaratif, en heures — distinct du "Heures/sem" ci-dessus (cible de ce plan). Permet de signaler une hausse récente pas encore durablement assimilée, sans jamais inventer de données TSS.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Charge chronique antérieure (h/sem)</Label>
+                      <Input
+                        type="number" min={0} max={40}
+                        value={chronicWeeklyHours}
+                        onChange={e => setChronicWeeklyHours(e.target.value)}
+                        placeholder="Ex: 8"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Charge récente réelle (h/sem)</Label>
+                      <Input
+                        type="number" min={0} max={40}
+                        value={recentWeeklyHours}
+                        onChange={e => setRecentWeeklyHours(e.target.value)}
+                        placeholder="Ex: 17"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Depuis combien de semaines</Label>
+                      <Input
+                        type="number" min={1} max={52}
+                        value={recentWeeksCount}
+                        onChange={e => setRecentWeeksCount(e.target.value)}
+                        placeholder="Ex: 4"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Max journées doubles/sem</Label>
+                      <Input
+                        type="number" min={0} max={7}
+                        value={maxDoubleDaysPerWeek}
+                        onChange={e => setMaxDoubleDaysPerWeek(e.target.value)}
+                        placeholder="Ex: 4"
+                      />
+                    </div>
                   </div>
                 </div>
 

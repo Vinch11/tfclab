@@ -120,6 +120,21 @@ export interface PlanFormConfig {
    * interdite).
    */
   crossTrainingMaintenance?: { velo?: boolean; natation?: boolean };
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E : historique
+   * de charge DÉCLARATIF (heures), distinct de `weeklyHours` (cible/
+   * disponibilité pour CE plan) — voir la doc complète sur
+   * `PlanConfig.loadHistory` (useAITrainingPlan.ts). Simple passthrough
+   * ici : jamais lu ni transformé par ce builder (invariant demande coach
+   * point 5 — ne jamais confondre charge chronique/récente avec la cible).
+   */
+  loadHistory?: {
+    chronicWeeklyHours?: number;
+    recentWeeklyHours?: number;
+    recentWeeksCount?: number;
+  };
+  /** Correction sprint qualité Marathon/Ironman (oct. 2026), #E — voir `PlanConfig.maxDoubleDaysPerWeek`. */
+  maxDoubleDaysPerWeek?: number;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -375,6 +390,10 @@ export function buildPlanConfigFromDiagnostic(
     volumeRamp,
     terrainAvailability: formConfig.terrainAvailability,
     crossTrainingMaintenance: formConfig.crossTrainingMaintenance,
+    // Correction sprint qualité Marathon/Ironman (oct. 2026), #E : simple
+    // passthrough, jamais lu par ce builder (voir doc PlanFormConfig.loadHistory).
+    loadHistory: formConfig.loadHistory,
+    maxDoubleDaysPerWeek: formConfig.maxDoubleDaysPerWeek,
   };
 }
 

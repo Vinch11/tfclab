@@ -503,6 +503,35 @@ export interface PlanConfig {
     recommendation: string;
     target: { min: number; opt: number; max: number };
   };
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande
+   * coach explicite, suite à la découverte d'une hausse de charge 8h→17h
+   * sur 4 semaines) : historique de charge DÉCLARATIF, en heures — distinct
+   * de `recentLoad` ci-dessus (TSS mesuré, Nolio/snapshot uniquement, cf.
+   * `chargeRecenteReference.ts`) et de `weeklyHours` (cible/disponibilité
+   * pour CE plan, inchangé). Alimente UNIQUEMENT le bloc prompt informatif
+   * (promptHelpers.ts) et `validateLoadHistoryCoherence` (planValidator.ts)
+   * — ne modifie JAMAIS `volumeRamp`/`weeklyHours`/`volumeCible` : ces
+   * valeurs ne doivent jamais être transformées en TSS fictif ni se
+   * substituer à la cible/disponibilité déclarée pour ce plan (invariant
+   * explicite, demande coach point 5).
+   */
+  loadHistory?: {
+    /** Volume hebdo chronique tenu AVANT la hausse récente (si une hausse a eu lieu). Jamais déduit si absent. */
+    chronicWeeklyHours?: number;
+    /** Volume hebdo RÉELLEMENT effectué récemment — peut différer de `weeklyHours` (la cible/disponibilité pour ce plan). */
+    recentWeeklyHours?: number;
+    /** Nombre de semaines consécutives à ce volume récent. Absent = durée inconnue, jamais estimée. */
+    recentWeeksCount?: number;
+  };
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E : plafond
+   * explicite du nombre de journées à 2 séances/jour par semaine (distinct
+   * de `maxSessionsPerDay`, qui plafonne le nombre de séances UN jour
+   * donné). Coach-déclaré, jamais déduit automatiquement d'une combinaison
+   * sessionsPerWeek/jours disponibles — pas de seuil universel.
+   */
+  maxDoubleDaysPerWeek?: number;
   _athleteSex?: string | null;
   /** F-EXPRESS — Profil onboardé via Démarrage Express (FC + poids uniquement, confiance 60%).
    *  Injecte un bloc systemPrompt qui force prescription en zones FC + RPE uniquement. */

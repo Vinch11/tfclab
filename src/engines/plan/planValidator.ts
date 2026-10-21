@@ -256,6 +256,14 @@ export interface LorangCategoryDistribution {
 export interface SessionDensityConfig {
   sessionsPerWeek?: number;    // cible coach
   maxSessionsPerDay?: number;  // plafond coach (défaut 2)
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E : plafond
+   * explicite du nombre de journées à ≥2 séances actives/jour, PAR SEMAINE
+   * — distinct de `maxSessionsPerDay` (qui plafonne un jour donné, pas le
+   * nombre de jours doubles). Coach-déclaré, jamais déduit automatiquement.
+   * Omis = contrôle inactif (comportement inchangé).
+   */
+  maxDoubleDaysPerWeek?: number;
 }
 
 export type LimiterGapLike = {
@@ -1943,10 +1951,28 @@ const WEEKLY_LOAD_LOOKBACK_WEEKS = 4;
 const WEEKLY_LOAD_ACWR_THRESHOLD = 1.3; // Gabbett ACWR — même référence que la rampe de volume (planConfigBuilder.ts)
 
 export interface WeeklyLoadContext {
-  /** Charge hebdo habituelle RÉELLEMENT effectuée récemment (déclarative ou mesurée), en heures. Jamais traité comme un plafond. */
+  /** Charge hebdo habituelle RÉELLEMENT effectuée récemment (déclarative ou mesurée), en heures. Jamais traité comme un plafond.
+   *  Correction #E : conservé pour compatibilité ascendante — un appelant qui fournit `chronicWeeklyHours`/`recentWeeklyHours`
+   *  ci-dessous obtient une distinction plus précise ; `habitualWeeklyHours` seul reste le repli historique inchangé (Correction #C). */
   habitualWeeklyHours?: number;
   /** Disponibilité maximale déclarée par le coach, en heures — distincte de la charge habituelle (point 1). Optionnelle : absente, aucune alerte n'est jamais escaladée en "error". */
   maxAvailableWeeklyHours?: number;
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande
+   * coach explicite, suite à une hausse réelle 8h→17h/sem sur 4 semaines) :
+   * historique de charge DÉCLARATIF (heures, jamais un TSS fictif — le
+   * garde-fou CRR/TSS mesuré de `chargeRecenteReference.ts` reste
+   * entièrement séparé et inchangé). Pilote exclusivement
+   * `validateLoadHistoryCoherence`. Omis = contrôle inactif (comportement
+   * inchangé pour tout appelant existant, y compris ceux qui ne fournissent
+   * que `habitualWeeklyHours`/`maxAvailableWeeklyHours` ci-dessus).
+   */
+  /** Volume hebdo chronique tenu AVANT la hausse récente (si une hausse a eu lieu). */
+  chronicWeeklyHours?: number;
+  /** Volume hebdo RÉELLEMENT effectué récemment — peut différer de la cible/disponibilité du plan. */
+  recentWeeklyHours?: number;
+  /** Nombre de semaines consécutives à ce volume récent. Absent = durée inconnue, jamais estimée. */
+  recentWeeksCount?: number;
 }
 
 function validateWeeklyLoadConsistency(
@@ -2025,6 +2051,89 @@ function validateWeeklyLoadConsistency(
 
   const hasError = issues.some((i) => i.severity === "error");
   const score = issues.length === 0 ? 100 : hasError ? 45 : issues.length === 1 ? 75 : 55;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande coach
+ * explicite, suite à la découverte d'une charge réelle passée de 8h/sem à
+ * 17h/sem sur seulement 4 semaines) : signale qu'une hausse DÉCLARATIVE
+ * (heures renseignées par le coach, jamais mesurées) importante a eu lieu
+ * récemment, et que la fenêtre de consolidation n'est peut-être pas encore
+ * terminée — sans jamais la présenter comme un ACWR (ratio charge aiguë/
+ * chronique MESURÉ, cf. `validateWeeklyLoadConsistency` ci-dessus, qui
+ * reste la seule règle à utiliser ce terme, sur des données de CE plan) :
+ * demande coach explicite, point 4. Garde-fou CRR/TSS mesuré
+ * (`chargeRecenteReference.ts`/`resolveVolumeRampLoadAdjustment`)
+ * entièrement CONSERVÉ et séparé — ce contrôle ne le remplace ni ne le
+ * modifie, et ne transforme jamais `chronicWeeklyHours`/`recentWeeklyHours`
+ * en TSS (point 3).
+ *
+ * Deux signaux, jamais une correction automatique :
+ *  1. Hausse déclarative notable : `recentWeeklyHours` / `chronicWeeklyHours`
+ *     > 1.3 (même marge que l'ACWR Gabbett utilisé ailleurs dans ce
+ *     fichier — réutilisée comme repère, pas revendiquée comme une mesure
+ *     physiologique ici). Toujours "warning" (jamais "error") : une donnée
+ *     déclarative ne bloque jamais automatiquement (point 6).
+ *  2. Fenêtre de consolidation (seulement si le signal 1 s'est déclenché) :
+ *     les premières semaines de CE plan (fenêtre = `recentWeeksCount` si
+ *     connu, sinon 4 — le mésocycle déjà utilisé par ce fichier pour le
+ *     motif de décharge 3:1/2:1, PAS un nouveau nombre inventé) ne devraient
+ *     pas dépasser le volume RÉCENT déjà démontré — jamais une réduction
+ *     imposée, seulement un signal si le plan généré remonte plus haut
+ *     avant la fin de cette fenêtre (point 6 : aucune progression/réduction
+ *     automatique, seulement une observation auto-référencée à CET
+ *     athlète).
+ *
+ * Inactif si `chronicWeeklyHours` OU `recentWeeklyHours` est absent —
+ * jamais de signal fabriqué sur un historique partiel (point 5 : ne jamais
+ * deviner la durée/l'ampleur d'une hausse non déclarée).
+ */
+const LOAD_HISTORY_INCREASE_THRESHOLD = 1.3; // repère Gabbett réutilisé — jamais revendiqué comme ACWR mesuré ici
+const LOAD_HISTORY_DEFAULT_CONSOLIDATION_WEEKS = 4; // même mésocycle que le motif de décharge 3:1/2:1 de ce fichier
+
+function validateLoadHistoryCoherence(
+  metrics: WeekMetrics[],
+  totalWeeks: number,
+  loadContext: WeeklyLoadContext | null | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const chronic = loadContext?.chronicWeeklyHours;
+  const recent = loadContext?.recentWeeklyHours;
+  if (!chronic || !recent || chronic <= 0) return { issues, score: 100 };
+
+  const ratio = recent / chronic;
+  if (ratio <= LOAD_HISTORY_INCREASE_THRESHOLD) return { issues, score: 100 };
+
+  const weeksLabel = loadContext?.recentWeeksCount != null
+    ? `depuis ${loadContext.recentWeeksCount} semaine(s)`
+    : "depuis une durée non précisée";
+  issues.push({
+    rule: "load_history",
+    severity: "warning",
+    message: `Hausse de charge déclarative importante : ${chronic}h/sem (charge chronique antérieure) → ${recent}h/sem (charge récente, ${weeksLabel})`,
+    detail: `Comparaison DÉCLARATIVE (heures renseignées par le coach) — pas un ACWR mesuré sur des données d'entraînement réelles. Le volume récent n'est peut-être pas encore durablement assimilé : à valider par le coach avant de considérer ${recent}h/sem comme un palier stable, et avant toute nouvelle hausse.`,
+  });
+
+  const consolidationWeeks = Math.max(1, Math.min(
+    loadContext?.recentWeeksCount ?? LOAD_HISTORY_DEFAULT_CONSOLIDATION_WEEKS,
+    totalWeeks,
+  ));
+  const recentTotalMin = recent * 60;
+  for (const wm of metrics.slice(0, consolidationWeeks)) {
+    if (wm.scheduledWeekType !== "load") continue; // affûtage/décharge/course : hors périmètre, déjà couverts ailleurs
+    if (wm.totalDurationMin > recentTotalMin * TAPER_VOLUME_NOISE_TOLERANCE) {
+      issues.push({
+        rule: "load_history",
+        severity: "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: le plan dépasse déjà le volume récent démontré (${Math.round(wm.totalDurationMin / 60 * 10) / 10}h vs ${recent}h/sem) pendant la fenêtre de consolidation (${consolidationWeeks} semaine(s))`,
+        detail: `La charge récente de CET athlète (${recent}h/sem) n'est documentée que ${weeksLabel} — une hausse supplémentaire avant la fin de cette fenêtre de consolidation n'est pas en soi une erreur, mais mérite d'être validée explicitement par le coach plutôt que d'être automatiquement acceptée comme un palier déjà assimilé.`,
+      });
+    }
+  }
+
+  const score = issues.length <= 1 ? 85 : issues.length <= 3 ? 65 : 50;
   return { issues, score };
 }
 
@@ -3781,6 +3890,23 @@ function validateSessionDensity(
       }
     }
 
+    // Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande
+    // coach explicite, contrainte d'agenda "max 4 journées doubles/semaine") :
+    // distinct du plafond `maxPerDay` ci-dessus (qui borne UN jour donné) —
+    // ici on compte le nombre de JOURS à ≥2 séances actives sur la semaine.
+    if (cfg?.maxDoubleDaysPerWeek != null) {
+      const doubleDays = Array.from(byDay.values()).filter((count) => count >= 2).length;
+      if (doubleDays > cfg.maxDoubleDaysPerWeek) {
+        issues.push({
+          rule: "session_density",
+          severity: "warning",
+          week: w.weekNumber,
+          message: `S${w.weekNumber}: ${doubleDays} journées à 2 séances (max déclaré ${cfg.maxDoubleDaysPerWeek}/semaine)`,
+          detail: `Contrainte d'agenda déclarée par le coach — distincte du plafond séances/jour. À valider : cette semaine dépasse le nombre de journées doubles disponibles pour cet athlète.`,
+        });
+      }
+    }
+
     // Sessions/semaine vs cible coach
     if (target && target > 0) {
       scanned++;
@@ -5008,10 +5134,12 @@ export function validatePlan(
   const taperVolumeReduction = validateTaperVolumeReduction(weekMetrics);
   const milestoneTransition = validateMilestoneTransition(weekMetrics, plan.totalWeeks, objective, raceGoals, planStartDate);
   const weeklyLoadConsistency = validateWeeklyLoadConsistency(weekMetrics, loadContext);
+  const loadHistoryCoherence = validateLoadHistoryCoherence(weekMetrics, plan.totalWeeks, loadContext);
   const progression = {
     issues: [
       ...progressionBase.issues, ...pillarStagnation.issues, ...longSessionProgression.issues,
       ...taperVolumeReduction.issues, ...milestoneTransition.issues, ...weeklyLoadConsistency.issues,
+      ...loadHistoryCoherence.issues,
     ],
     score: Math.min(
       pillarStagnation.stagnant > 0
@@ -5021,6 +5149,7 @@ export function validatePlan(
       taperVolumeReduction.score,
       milestoneTransition.score,
       weeklyLoadConsistency.score,
+      loadHistoryCoherence.score,
     ),
   };
   const sportRatio = validateSportRatio(weekMetrics, objective, constraintsText);

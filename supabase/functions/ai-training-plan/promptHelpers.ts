@@ -527,6 +527,27 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`  ⚠️ Une semaine de décharge (deload) DOIT intervenir tous les 3 microcycles de charge même pendant la rampe.`);
   }
 
+  // 📋 HISTORIQUE DE CHARGE DÉCLARATIF — Correction sprint qualité
+  // Marathon/Ironman (oct. 2026), #E (demande coach explicite, suite à une
+  // hausse réelle 8h→17h/sem sur 4 semaines). Distinct du bloc CHARGE
+  // RÉCENTE ci-dessus (TSS mesuré Nolio/snapshot) : ici, heures DÉCLARÉES
+  // par le coach — jamais transformées en TSS. Purement qualitatif, aucun
+  // chiffre de volume recalculé ici : ne JAMAIS présenter ce ratio comme un
+  // ACWR mesuré (ce terme reste réservé à une mesure réelle).
+  if (config?.loadHistory?.chronicWeeklyHours && config?.loadHistory?.recentWeeklyHours) {
+    const lh = config.loadHistory;
+    const ratio = lh.recentWeeklyHours / lh.chronicWeeklyHours;
+    const weeksStr = typeof lh.recentWeeksCount === "number" ? `depuis ${lh.recentWeeksCount} semaine(s)` : "depuis une durée non précisée";
+    lines.push(`\n📋 HISTORIQUE DE CHARGE DÉCLARATIF (renseigné par le coach, PAS une mesure) :`);
+    lines.push(`  • Charge chronique antérieure : ${lh.chronicWeeklyHours}h/sem — Charge récente réellement effectuée : ${lh.recentWeeklyHours}h/sem, ${weeksStr}.`);
+    if (ratio > 1.3) {
+      lines.push(`  ⚠️ Hausse déclarative notable (${lh.recentWeeklyHours}h vs ${lh.chronicWeeklyHours}h) — ce volume récent n'est PAS à traiter comme un palier durablement assimilé : PRIORISER la consolidation (maintenir ~${lh.recentWeeklyHours}h sans nouvelle hausse) sur les premières semaines plutôt que de repartir d'une rampe calculée comme si ${lh.recentWeeklyHours}h était la charge chronique habituelle.`);
+      lines.push(`  ⚠️ NE PAS appliquer de nouvelle hausse automatique au-delà de ${lh.recentWeeklyHours}h/sem tant que la consolidation n'est pas explicitement validée par le coach.`);
+    } else {
+      lines.push(`  ✅ Pas d'écart déclaratif notable entre charge chronique et récente — aucune consolidation spécifique requise sur ce seul critère.`);
+    }
+  }
+
   // Durée du bloc Fondation calculée depuis le niveau d'entraînement effectif
   // (cf. computeFondationDurationWeeks) — remplace la valeur générique
   // "3-4 sem" donnée plus haut dans les instructions méthodologiques. Un
