@@ -2328,7 +2328,14 @@ export default function AITrainingPlanPage() {
           coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
         );
         const raceNums: number[] = [];
-        const allGoals = [{ raceDate, priority: "A" as const }, ...raceGoals];
+        // Correction sprint qualité Marathon/Ironman (oct. 2026), #B : même
+        // liste que `raceNums` ci-dessous, mais en gardant `objective` (perdu
+        // dans `raceNums`, un simple tableau de numéros de semaine) — seule
+        // donnée dont `validateMilestoneTransition` a besoin pour repérer un
+        // jalon run-only (ex. 10K) dans un plan dont l'objectif final est
+        // triathlon (703/IM).
+        const allGoalsWithObjective: RaceGoal[] = [{ objective, raceDate, priority: "A" as const }, ...raceGoals];
+        const allGoals = allGoalsWithObjective;
         for (const g of allGoals) {
           if (!g.raceDate) continue;
           try {
@@ -2362,6 +2369,12 @@ export default function AITrainingPlanPage() {
           cfg?.ambitionMeta
             ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
             : null,
+          // Correction sprint qualité Marathon/Ironman (oct. 2026), #B :
+          // mêmes objectifs datés que `raceNums` ci-dessus, avec `objective`
+          // conservé — pilote validateMilestoneTransition (jalon run-only
+          // dans un plan triathlon, ex. 10K → 70.3).
+          allGoalsWithObjective.some(g => g.raceDate) ? allGoalsWithObjective : undefined,
+          format(planStartDate, "yyyy-MM-dd"),
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;

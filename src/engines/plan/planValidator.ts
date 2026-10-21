@@ -19,7 +19,7 @@ import { extractCatalogId, extractAllCatalogIds } from "@/lib/catalogIdExtractor
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { HIGH_IMPACT_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
-import { computeGoalWeekFromDates } from "@/lib/plan/multiObjectiveClassification";
+import { computeGoalWeekFromDates, classifyMultiObjectiveGoalsClient, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 import { detectInterval, detectAllIntervals, isCyclingSession } from "./wbalPostProcessor";
 import {
   analyzeCriticalPower,
@@ -121,6 +121,19 @@ export interface WeekMetrics {
    * de la comparaison par la règle elle-même, cf. plus bas).
    */
   longestSessionMinBySport: Record<string, number>;
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #A (demande
+   * coach) : SOMME des durées réelles de la semaine par discipline (mêmes
+   * clés que `sports`) — distinct de `longestSessionMinBySport` (la PLUS
+   * LONGUE séance seule). Alimente `validateTaperVolumeReduction` : vérifier
+   * qu'un affûtage réduit réellement le volume PAR DISCIPLINE (pas
+   * seulement le volume agrégé, qui peut masquer une discipline qui ne
+   * baisse pas du tout). 0 si aucune durée n'a pu être extraite — ne
+   * distingue pas "discipline absente" de "durée non parseable", comme
+   * `longestSessionMinBySport` (même choix, même raison : exclu de toute
+   * comparaison par la règle elle-même plutôt que de deviner).
+   */
+  durationMinBySport: Record<string, number>;
 }
 
 export interface LimiterCoverageItem {
@@ -766,6 +779,7 @@ function extractWeekMetrics(
   let sessionsWithDuration = 0;
   let low = 0, mid = 0, high = 0, unknown = 0;
   const longestSessionMinBySport: Record<string, number> = {};
+  const durationMinBySport: Record<string, number> = {};
   for (const s of activeSessions) {
     const d = parseSessionDurationMin(s);
     if (d !== null && d > 0) {
@@ -774,6 +788,7 @@ function extractWeekMetrics(
       if (isKeySession(s)) keyDurationMin += d;
       const sport = normalizeSport(s.sport);
       longestSessionMinBySport[sport] = Math.max(longestSessionMinBySport[sport] || 0, d);
+      durationMinBySport[sport] = (durationMinBySport[sport] || 0) + d;
     }
     const zoneMinutes = estimateSessionZoneMinutes(s, d);
     low += zoneMinutes.low;
@@ -811,6 +826,7 @@ function extractWeekMetrics(
     keyDurationMin,
     sessionsWithDuration,
     longestSessionMinBySport,
+    durationMinBySport,
   };
 }
 
@@ -1619,6 +1635,223 @@ function validateLongSessionProgression(
   }
 
   const score = worstJump === 0 ? 100 : worstJump > 0.50 ? 60 : 80;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #A (demande coach
+ * explicite, suite au sprint qualité initial) : vérifie le volume RÉELLEMENT
+ * PRESCRIT (durées extraites du texte, `durationMinBySport`/`totalDurationMin`
+ * — jamais le libellé "Affûtage"/la phase déclarée) pendant les semaines
+ * d'affûtage (taper + semaine de course, cf. `scheduledWeekType`) — distinct
+ * de `validateLongSessionProgression` (sortie longue, hausse dangereuse) et
+ * de `validateProgression` (tendance globale sur le PLAN ENTIER) : ici, le
+ * contrôle est RESTREINT à la fenêtre d'affûtage elle-même et vérifie une
+ * BAISSE réelle, discipline par discipline, pas juste l'absence de hausse.
+ *
+ * Volontairement AUTO-RÉFÉRENCÉ (jamais un pourcentage universel) :
+ * - « volume antérieur » : moyenne ET minimum des semaines de charge
+ *   (scheduledWeekType==="load") qui précèdent IMMÉDIATEMENT l'affûtage de
+ *   CE plan — jamais une cible externe. Deux athlètes au même niveau mais
+ *   des volumes différents ont donc des bornes différentes, calculées
+ *   depuis LEUR propre plan.
+ * - « répartition des disciplines » : Natation/Vélo/Course vérifiées
+ *   SÉPARÉMENT (une baisse vélo ne masque jamais une natation figée).
+ * - « niveau de l'athlète » : honoré PAR CONSTRUCTION — en comparant
+ *   chaque athlète uniquement à ses propres semaines précédentes (jamais à
+ *   un autre athlète ni à un volume absolu externe), le contrôle s'adapte
+ *   automatiquement à n'importe quel volume hebdomadaire, du Finisher à
+ *   l'Elite/World Class, sans qu'aucun seuil numérique n'ait besoin d'être
+ *   différent selon le niveau déclaré.
+ *
+ * Deux signaux, jamais une correction automatique (lecture seule, comme
+ * tout ce fichier) :
+ *  1. Par discipline, sur CHAQUE semaine d'affûtage : le volume ne doit pas
+ *     être ≥ (avec une marge de 5% pour le bruit d'extraction de texte) la
+ *     moyenne récente de CETTE discipline — sinon elle n'a tout simplement
+ *     pas été réduite.
+ *  2. Sur la DERNIÈRE semaine d'affûtage (la plus proche de la course) :
+ *     le volume total doit être strictement inférieur à la PLUS LÉGÈRE des
+ *     semaines de charge récentes — un affûtage dont la dernière semaine
+ *     porte encore plus de volume que la semaine la plus légère du bloc
+ *     précédent n'est pas un affûtage, quel que soit le niveau ou la
+ *     répartition.
+ */
+const TAPER_VOLUME_PRIOR_LOOKBACK_WEEKS = 4;
+const TAPER_VOLUME_NOISE_TOLERANCE = 1.05; // 5% — bruit d'extraction de texte, pas un seuil physiologique
+
+function validateTaperVolumeReduction(
+  metrics: WeekMetrics[],
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  const taperWindow = metrics.filter(
+    m => m.scheduledWeekType === "taper" || m.scheduledWeekType === "race",
+  );
+  if (taperWindow.length === 0) return { issues: [], score: 100 };
+
+  const firstTaperIdx = metrics.findIndex(m => m === taperWindow[0]);
+  const priorWeeks: WeekMetrics[] = [];
+  for (let i = firstTaperIdx - 1; i >= 0 && priorWeeks.length < TAPER_VOLUME_PRIOR_LOOKBACK_WEEKS; i--) {
+    if (metrics[i].scheduledWeekType !== "load") break; // s'arrête à la 1ère semaine non "charge" (décharge, autre bloc d'affûtage...)
+    priorWeeks.unshift(metrics[i]);
+  }
+  // Pas assez de semaines de charge de référence juste avant l'affûtage —
+  // s'abstenir plutôt que deviner (même logique que primaryTotal<10 ailleurs
+  // dans ce fichier : silence honnête, pas un signal fabriqué).
+  if (priorWeeks.length < 2) return { issues: [], score: 100 };
+
+  const priorAvgTotal = priorWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / priorWeeks.length;
+  const priorMinTotal = Math.min(...priorWeeks.map(w => w.totalDurationMin));
+  if (priorAvgTotal <= 0) return { issues: [], score: 100 }; // aucune durée exploitable sur la référence — rien à comparer
+
+  const sportsTracked = ["Natation", "Vélo", "Course"];
+  const priorAvgBySport: Record<string, number> = {};
+  for (const sport of sportsTracked) {
+    const avg = priorWeeks.reduce((s, w) => s + (w.durationMinBySport[sport] || 0), 0) / priorWeeks.length;
+    if (avg > 0) priorAvgBySport[sport] = avg;
+  }
+
+  for (const wm of taperWindow) {
+    for (const sport of Object.keys(priorAvgBySport)) {
+      const weekVal = wm.durationMinBySport[sport] || 0;
+      const prior = priorAvgBySport[sport];
+      if (weekVal >= prior * TAPER_VOLUME_NOISE_TOLERANCE) {
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: wm.weekNumber,
+          message: `S${wm.weekNumber}: volume ${sport} pendant l'affûtage non réduit (${weekVal}min vs moyenne récente ${Math.round(prior)}min)`,
+          detail: `Semaine d'affûtage (${wm.scheduledWeekType}) — le volume réel de cette discipline reste au niveau (ou au-dessus) des semaines de charge qui précèdent, mesuré sur CE plan (pas un seuil externe). Vérifie que la réduction annoncée par le thème/la phase de la semaine correspond au contenu réellement prescrit.`,
+        });
+      }
+    }
+  }
+
+  const lastTaperWeek = taperWindow[taperWindow.length - 1];
+  if (lastTaperWeek.totalDurationMin >= priorMinTotal) {
+    issues.push({
+      rule: "progression",
+      severity: "warning",
+      week: lastTaperWeek.weekNumber,
+      message: `S${lastTaperWeek.weekNumber}: volume total de la dernière semaine d'affûtage (${lastTaperWeek.totalDurationMin}min) pas clairement inférieur à la semaine de charge la plus légère récente (${Math.round(priorMinTotal)}min)`,
+      detail: `Même la semaine de charge la plus légère du bloc précédent (sur CE plan) porte autant ou plus de volume que la dernière semaine d'affûtage avant la course — l'affûtage n'est pas visible dans le contenu réellement prescrit, quel que soit le niveau de l'athlète ou la répartition des disciplines.`,
+    });
+  }
+
+  const score = issues.length === 0 ? 100 : issues.length === 1 ? 75 : 55;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #B (demande coach
+ * explicite) : validation APRÈS génération des semaines qui ENTOURENT un
+ * jalon run-only (ex. 10K) dans un plan dont l'objectif FINAL est triathlon
+ * (703/IM) — même périmètre que la correction #6 (rappel de prompt natation/
+ * vélo/briques pour ce même jalon), mais ici on vérifie le PLAN RÉELLEMENT
+ * GÉNÉRÉ plutôt que le texte envoyé au modèle : rien ne garantit qu'un
+ * rappel de prompt soit suivi à 100% — cette règle le constate sur le
+ * contenu réel, sans jamais le corriger (lecture seule, comme tout ce
+ * fichier) : "Une anomalie doit être signalée explicitement au coach, et
+ * non corrigée silencieusement" (demande coach).
+ *
+ * Trois signaux, chacun sur une fenêtre de semaines précise autour du
+ * jalon (jamais sur la moyenne du plan entier, qui masquerait un creux
+ * localisé) :
+ *  1. Maintien natation/vélo pendant la préparation du jalon (S-2/S-1
+ *     avant sa date) — la discipline ne doit pas disparaître des séances.
+ *  2. Récupération réelle la semaine suivant le jalon — volume en baisse
+ *     par rapport à la préparation, pas une reprise immédiate à charge
+ *     pleine (même logique auto-référencée que `validateTaperVolumeReduction`
+ *     ci-dessus, appliquée ici à une seule semaine de récupération plutôt
+ *     qu'à un bloc d'affûtage complet).
+ *  3. Continuité de la préparation vers l'objectif final 2-3 semaines après
+ *     le jalon — le volume doit reprendre une tendance vers le haut après
+ *     la récupération, pas rester durablement déprimé (plan coupé en deux
+ *     blocs déconnectés plutôt qu'une préparation continue).
+ *
+ * `raceGoals`/`planStartDate` optionnels : omis (plan mono-objectif, ou
+ * contexte de date indisponible), cette règle est simplement inactive
+ * (score 100, comportement historique inchangé) — jamais un signal fabriqué
+ * sans données réelles de date.
+ */
+function validateMilestoneTransition(
+  metrics: WeekMetrics[],
+  totalWeeks: number,
+  objective: string | undefined,
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+  planStartDate: string | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (!raceGoals || raceGoals.length < 2 || !planStartDate) return { issues: [], score: 100 };
+
+  const finalObjKey = normalizeObjectiveKey(objective || "");
+  const finalIsTriathlon = finalObjKey === "IM" || finalObjKey === "703";
+  if (!finalIsTriathlon) return { issues: [], score: 100 };
+
+  const byWeek = new Map(metrics.map(m => [m.weekNumber, m]));
+  const milestones = classifyMultiObjectiveGoalsClient(raceGoals)
+    .filter(c => !c.isFullPeak && c.goal.raceDate);
+
+  for (const milestone of milestones) {
+    const goalWeek = computeGoalWeekFromDates(planStartDate, milestone.goal.raceDate);
+    if (goalWeek == null || goalWeek < 1 || goalWeek > totalWeeks) continue; // hors plan — rien à vérifier
+    const label = milestone.goal.raceName || milestone.goal.objective;
+
+    // 1) Maintien natation/vélo pendant la préparation (S-2/S-1 avant le jalon).
+    const prepWeekNums: number[] = [];
+    for (let w = Math.max(1, goalWeek - 2); w <= goalWeek - 1; w++) prepWeekNums.push(w);
+    const prepWeeks = prepWeekNums.map(w => byWeek.get(w)).filter((w): w is WeekMetrics => !!w);
+
+    for (const wm of prepWeeks) {
+      for (const sport of ["Natation", "Vélo"]) {
+        if ((wm.sports[sport] || 0) === 0) {
+          issues.push({
+            rule: "progression",
+            severity: "warning",
+            week: wm.weekNumber,
+            message: `S${wm.weekNumber}: ${sport} absente pendant la préparation du jalon ${label} (S${goalWeek})`,
+            detail: `Objectif final triathlon (${objective}) — les semaines spécifiques course à pied avant un jalon run-only ne doivent pas faire disparaître ${sport.toLowerCase()} du plan (risque de décrochage technique/aérobie en pleine saison triathlon). Si ${sport.toLowerCase()} est explicitement bannie par l'athlète, cette alerte est un faux positif attendu — à confirmer par le coach.`,
+          });
+        }
+      }
+    }
+
+    // 2) Récupération réelle la semaine suivant le jalon.
+    const recoveryWeek = byWeek.get(goalWeek + 1);
+    const prepAvgTotal = prepWeeks.length > 0
+      ? prepWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / prepWeeks.length
+      : null;
+    if (recoveryWeek && prepAvgTotal !== null && prepAvgTotal > 0
+      && recoveryWeek.totalDurationMin >= prepAvgTotal * TAPER_VOLUME_NOISE_TOLERANCE) {
+      issues.push({
+        rule: "progression",
+        severity: "warning",
+        week: recoveryWeek.weekNumber,
+        message: `S${recoveryWeek.weekNumber}: pas de récupération visible après le jalon ${label} (${recoveryWeek.totalDurationMin}min vs moyenne préparation ${Math.round(prepAvgTotal)}min)`,
+        detail: `La semaine suivant un jalon devrait montrer une baisse de volume réelle (récupération), pas une reprise immédiate à charge pleine vers l'objectif final.`,
+      });
+    }
+
+    // 3) Continuité de la préparation finale 2-3 semaines après le jalon.
+    const resumeWeekNums: number[] = [];
+    for (let w = goalWeek + 2; w <= Math.min(totalWeeks, goalWeek + 3); w++) resumeWeekNums.push(w);
+    const resumeWeeks = resumeWeekNums.map(w => byWeek.get(w)).filter((w): w is WeekMetrics => !!w);
+    if (recoveryWeek && resumeWeeks.length > 0) {
+      const resumeAvgTotal = resumeWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / resumeWeeks.length;
+      if (resumeAvgTotal > 0 && resumeAvgTotal <= recoveryWeek.totalDurationMin) {
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: resumeWeeks[0].weekNumber,
+          message: `S${resumeWeeks[0].weekNumber}-S${resumeWeeks[resumeWeeks.length - 1].weekNumber}: la reprise après le jalon ${label} ne progresse pas vers l'objectif final (moyenne ${Math.round(resumeAvgTotal)}min vs semaine de récupération ${recoveryWeek.totalDurationMin}min)`,
+          detail: `Après la récupération post-jalon, le volume devrait reprendre une tendance vers le haut en direction de l'objectif final — un volume qui reste au niveau de la récupération (ou en-dessous) sur plusieurs semaines suggère un plan coupé en deux blocs déconnectés plutôt qu'une préparation continue.`,
+        });
+      }
+    }
+  }
+
+  const score = issues.length === 0 ? 100 : issues.length <= 2 ? 75 : 55;
   return { issues, score };
 }
 
@@ -4454,6 +4687,18 @@ export function validatePlan(
    * inactif (comportement legacy inchangé), jamais un plafond déduit par défaut.
    */
   trainingLevelSignal?: TrainingLevelSignal | null,
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #B : objectifs
+   * datés du plan (même forme que `ClassifiableRaceGoal`, déjà utilisée par
+   * `multiObjectiveClassification.ts` pour la frise stratégique) — pilote
+   * exclusivement `validateMilestoneTransition` (jalon run-only dans un
+   * plan triathlon, ex. 10K → 70.3). Omis = contrôle inactif (comportement
+   * inchangé pour tout appelant qui ne les fournit pas encore).
+   */
+  raceGoals?: ClassifiableRaceGoal[],
+  /** Date de début du plan (ISO "YYYY-MM-DD") — nécessaire à `validateMilestoneTransition`
+   *  pour convertir les dates de `raceGoals` en numéros de semaine. */
+  planStartDate?: string,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -4490,13 +4735,20 @@ export function validatePlan(
   const progressionBase = validateProgression(weekMetrics);
   const pillarStagnation = validatePillarProgressionStagnation(plan);
   const longSessionProgression = validateLongSessionProgression(weekMetrics, objective);
+  const taperVolumeReduction = validateTaperVolumeReduction(weekMetrics);
+  const milestoneTransition = validateMilestoneTransition(weekMetrics, plan.totalWeeks, objective, raceGoals, planStartDate);
   const progression = {
-    issues: [...progressionBase.issues, ...pillarStagnation.issues, ...longSessionProgression.issues],
+    issues: [
+      ...progressionBase.issues, ...pillarStagnation.issues, ...longSessionProgression.issues,
+      ...taperVolumeReduction.issues, ...milestoneTransition.issues,
+    ],
     score: Math.min(
       pillarStagnation.stagnant > 0
         ? Math.max(0, progressionBase.score - Math.min(30, pillarStagnation.stagnant * 15))
         : progressionBase.score,
       longSessionProgression.score,
+      taperVolumeReduction.score,
+      milestoneTransition.score,
     ),
   };
   const sportRatio = validateSportRatio(weekMetrics, objective, constraintsText);
