@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { buildFullDiagnosticDossierHTML, buildDiagnosticProtocolHTML } from "../buildDiagnosticProtocolHTML";
 import { EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 
@@ -63,18 +65,33 @@ describe("buildFullDiagnosticDossierHTML — synthèse finale filtrée par sport
  * ce HTML injecté dans l'iframe de la surcouche iOS, imprime la fenêtre de
  * l'IFRAME (transformée pour l'aperçu écran) plutôt que la page hôte,
  * reproduisant la pagination délirante déjà vue une fois (457 pages).
+ *
+ * Depuis la bascule vers `/print-preview` (2026-10-22), ce document est
+ * TOUJOURS la fenêtre top-level — `EMBEDDED_PRINT_ONCLICK` vaut donc
+ * désormais simplement `"window.print()"`, et sa valeur substituée dans le
+ * HTML rendu est indiscernable d'un `window.print()` codé en dur. La
+ * garantie que ce test doit vérifier n'est donc plus visible dans le HTML
+ * produit, mais dans le SOURCE du builder : il doit toujours référencer la
+ * constante (`${EMBEDDED_PRINT_ONCLICK}`), pas une valeur figée — pour que
+ * tout futur changement du mécanisme d'impression n'ait qu'un seul endroit
+ * à corriger.
  */
 describe("buildDiagnosticProtocolHTML / buildFullDiagnosticDossierHTML — bouton Imprimer embarqué", () => {
+  const source = readFileSync(join(__dirname, "../buildDiagnosticProtocolHTML.ts"), "utf-8");
+
   it('buildDiagnosticProtocolHTML : le bouton embarqué utilise EMBEDDED_PRINT_ONCLICK, pas window.print() en dur', () => {
     const html = buildDiagnosticProtocolHTML("bike-day", "Athlète Test");
     expect(html).toContain(EMBEDDED_PRINT_ONCLICK);
-    expect(html).not.toContain('onclick="window.print()"');
   });
 
   it('buildFullDiagnosticDossierHTML : le bouton embarqué utilise EMBEDDED_PRINT_ONCLICK, pas window.print() en dur', () => {
     const html = buildFullDiagnosticDossierHTML("Athlète Test", "triathlon");
     expect(html).toContain(EMBEDDED_PRINT_ONCLICK);
-    expect(html).not.toContain('onclick="window.print()"');
+  });
+
+  it("le SOURCE du builder référence bien la constante importée, pas une valeur window.print() codée en dur", () => {
+    expect(source).toContain("${EMBEDDED_PRINT_ONCLICK}");
+    expect(source).not.toMatch(/onclick=["']window\.print\(\)["']/);
   });
 });
 
