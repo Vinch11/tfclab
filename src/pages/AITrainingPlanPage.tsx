@@ -770,12 +770,26 @@ export default function AITrainingPlanPage() {
     );
   }, [currentAthlete]);
 
-  // Restore persisted plan + config on athlete change (single mode only)
+  // Restore persisted CONFIG on athlete change (single mode only) — le
+  // CONTENU de plan n'est plus jamais restauré automatiquement ici (décision
+  // coach 2026-10-22, "gestion et sélection des plans") : trois mécanismes
+  // affichaient silencieusement un ancien plan sans action du coach à
+  // l'ouverture de la page ou au changement d'athlète — (1) ce cache
+  // `activePlanKey`, (2) `savedState.response` (cache de formulaire
+  // `persistKey`, cf. plus bas), (3) un appel automatique à la dernière
+  // version sauvegardée en base (cf. fin de cet effet). Les trois sont
+  // retirés : `activePlanKey` n'est plus lu ici que pour ses métadonnées
+  // (date de début de plan, à titre de valeur par défaut de formulaire —
+  // jamais le contenu du plan lui-même). `PlanHistoryCard` (déjà câblé, déjà
+  // explicite : un clic + confirmation de date via `LoadVersionDialog`)
+  // reste l'unique moyen de recharger un plan existant. Le brouillon non
+  // sauvegardé (`draftKey` ci-dessous) reste hors périmètre de cette
+  // consigne — sécurité anti-perte de travail (reload iOS), pas une
+  // "sélection de plan" au sens de la consigne.
   useEffect(() => {
     if (isMultiMode) return;
-    let cancelled = false;
 
-    // Try plan_active_<id> first (full plan + timestamp)
+    // Existence du cache (métadonnées seulement — jamais affiché ici).
     let activeRestored = false;
     let restoredStart: string | null = null;
     hadExistingActivePlanRef.current = false;
@@ -786,15 +800,13 @@ export default function AITrainingPlanPage() {
           const parsed = JSON.parse(rawActive);
           if (parsed?.response) {
             hadExistingActivePlanRef.current = true;
-            setResponse(parsed.response);
-            setLoadedFromCacheAt(parsed.generatedAt || null);
             if (parsed.planStartDate) restoredStart = parsed.planStartDate;
             activeRestored = true;
           }
         }
       } catch {}
     }
-    if (!activeRestored) setLoadedFromCacheAt(null);
+    setLoadedFromCacheAt(null);
 
 
     // Réinitialise TOUJOURS chaque champ du formulaire à sa valeur par
@@ -839,7 +851,8 @@ export default function AITrainingPlanPage() {
     crossTrainingNatationTouchedRef.current = false;
 
     if (savedState) {
-      if (!activeRestored && savedState.response) setResponse(savedState.response);
+      // savedState.response volontairement jamais appliqué ici — cf.
+      // commentaire au-dessus de cet effet (décision coach 2026-10-22).
       if (savedState.objective) setObjective(savedState.objective);
       if (savedState.raceName) setRaceName(savedState.raceName);
       if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
@@ -904,43 +917,19 @@ export default function AITrainingPlanPage() {
       } catch { setPlanOverride(null); }
     }
 
-    // Aucun plan local pour CET athlète : on efface l'affichage (sinon le plan
-    // de l'athlète précédent restait visible) puis on restaure la dernière
-    // version sauvegardée en base pour cet athlète.
+    // Plus aucun affichage automatique de plan pour CET athlète, qu'il
+    // existe ou non un cache local ou une version sauvegardée en base —
+    // décision coach 2026-10-22 (cf. commentaire en tête de cet effet).
+    // `reset()` vide toujours l'état JSON du hook (sinon le plan de
+    // l'athlète précédent resterait visible). Seul `PlanHistoryCard` (clic +
+    // confirmation de date) peut désormais afficher une version existante.
     const hasLocalPlan = activeRestored || Boolean(savedState?.response);
+    if (!hasDraft) setPlanOverride(null);
+    reset();
+    setIsSaved(false);
     if (!hasLocalPlan) {
-      if (!hasDraft) setPlanOverride(null);
-      reset();
-      setIsSaved(false);
-      setLoadedFromCacheAt(null);
       setPlanStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
-
-      const athleteId = currentAthlete?.id;
-      if (athleteId) {
-        (async () => {
-          const { data } = await supabase
-            .from("plan_versions")
-            .select("plan_json, created_at")
-            .eq("athlete_id", athleteId)
-            .order("created_at", { ascending: false })
-            .limit(1);
-          if (cancelled) return;
-          const version = data?.[0] as { plan_json: any } | undefined;
-          if (!version?.plan_json) return;
-          const pj = version.plan_json || {};
-          const totalWeeks = Array.isArray(pj.weeks) ? pj.weeks.length : (pj._weeksCount ?? 0);
-          let start: Date | null = null;
-          if (pj._planStartDate) {
-            const d = parseISO(pj._planStartDate);
-            if (!isNaN(d.getTime())) start = d;
-          }
-          if (!start && pj._raceDate) start = inferLegacyPlanStartDate(pj, totalWeeks, pj._raceDate);
-          applyLoadedVersion(version, start || startOfWeek(new Date(), { weekStartsOn: 1 }));
-        })();
-      }
     }
-
-    return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
 

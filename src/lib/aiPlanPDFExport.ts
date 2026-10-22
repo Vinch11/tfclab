@@ -330,6 +330,48 @@ function getSportBadge(sport: string): string {
 export type PlanPDFOrientation = "landscape" | "portrait";
 export type PlanPDFDetailLevel = "full" | "compact";
 
+export interface PlanExportCompleteness {
+  complete: boolean;
+  expectedWeeks: number;
+  actualWeeks: number;
+  missingWeekNumbers: number[];
+}
+
+/**
+ * Vérifie que l'export contient réellement toutes les semaines du plan —
+ * consigne coach explicite : "si le plan enregistré est incomplet, le
+ * signaler clairement au lieu de prétendre que l'export est complet."
+ * Fonction pure (testable isolément) : ne dépend d'aucun rendu HTML/navigateur.
+ */
+export function computePlanExportCompleteness(plan: ParsedPlan): PlanExportCompleteness {
+  const expectedWeeks = plan.totalWeeks > 0 ? plan.totalWeeks : plan.weeks.length;
+  const presentNumbers = new Set(plan.weeks.map((w) => w.weekNumber));
+  const missingWeekNumbers: number[] = [];
+  for (let n = 1; n <= expectedWeeks; n++) {
+    if (!presentNumbers.has(n)) missingWeekNumbers.push(n);
+  }
+  return {
+    complete: missingWeekNumbers.length === 0,
+    expectedWeeks,
+    actualWeeks: plan.weeks.length,
+    missingWeekNumbers,
+  };
+}
+
+function buildIncompletePlanWarningHTML(completeness: PlanExportCompleteness): string {
+  if (completeness.complete) return "";
+  const missingStr = completeness.missingWeekNumbers.length <= 12
+    ? completeness.missingWeekNumbers.map((n) => `S${n}`).join(", ")
+    : `${completeness.missingWeekNumbers.length} semaines (dont S${completeness.missingWeekNumbers[0]}…S${completeness.missingWeekNumbers[completeness.missingWeekNumbers.length - 1]})`;
+  // Volontairement SANS classe "no-print" : doit rester visible à l'écran
+  // ET dans le PDF imprimé — c'est justement le cas où il ne faut jamais
+  // laisser croire que l'export est complet.
+  return `
+  <div style="background:#FDECEA;border:2px solid #D0433A;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:13px;color:#7a1f1f;font-weight:600;">
+    ⚠️ PLAN INCOMPLET — ${completeness.actualWeeks}/${completeness.expectedWeeks} semaines présentes dans ce document. Semaine(s) manquante(s) : ${missingStr}. Ne pas considérer cet export comme le plan complet — vérifier/régénérer avant utilisation.
+  </div>`;
+}
+
 export interface PDFGapContext {
   ambition?: string | null;
   /** Ambition effective (après déclassement niveau d'entraînement). Utilisée pour la structure. */
@@ -371,6 +413,9 @@ function buildPlanHTML(
 
   // Libellés de phase orientés limiteur (couche affichage uniquement)
   const phaseLabelMap = buildPhaseLabelMap(plan.phases, plan.strategicRecap?.limiters);
+
+  const completeness = computePlanExportCompleteness(plan);
+  const incompleteWarningHTML = buildIncompletePlanWarningHTML(completeness);
 
   const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
@@ -507,9 +552,19 @@ function buildPlanHTML(
       h2 { font-size: 14px; margin-top: 14px; page-break-after: avoid; break-after: avoid; }
       h3 { page-break-after: avoid; break-after: avoid; }
 
-      /* Une semaine = un bloc insécable autant que possible */
-      .week-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 14px !important; }
-      .week-block + .week-block { page-break-before: auto; }
+      /* Semaine : PAS de page-break-inside:avoid ici (retiré — retour coach
+         "le PDF d'un plan de 34 semaines s'arrête visuellement au début de
+         la semaine 30"). Une semaine chargée (élite, 11+ séances enrichies
+         de leur fiche complète) dépasse régulièrement la hauteur d'une page
+         A4 — forcer "insécable" sur un bloc dont la hauteur n'est jamais
+         bornée pousse le moteur de pagination à répéter un rééquilibrage
+         coûteux sur chaque semaine suivante (grands espaces blancs forcés),
+         ce qui est le risque concret le plus probable derrière un rendu qui
+         s'arrête avant la fin sur un document long. Le niveau "séance" ci-
+         dessous (tr.session-row, fiche-row) reste insécable — lui est
+         réellement borné à la taille d'une séance, jamais d'une semaine
+         entière. */
+      .week-block { margin-bottom: 14px !important; }
 
       /* Si une semaine déborde, on garde l'en-tête avec les premières lignes */
       table { page-break-inside: auto; }
@@ -547,9 +602,10 @@ function buildPlanHTML(
   <div class="no-print" style="background:#e3f2fd;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:13px;">
     📄 Utilisez <strong>Ctrl+P</strong> (ou <strong>⌘+P</strong> sur Mac) → <strong>Imprimer en PDF</strong> pour exporter ce plan.
   </div>
+  ${incompleteWarningHTML}
   <h1>${plan.title}</h1>
   ${athleteName ? `<p style="color:#666;margin:0 0 8px 0;">Athlète : ${athleteName}</p>` : ""}
-  <p style="color:#888;font-size:12px;margin:0 0 12px 0;">${plan.totalWeeks} semaines • ${plan.phases.length} phases</p>
+  <p style="color:#888;font-size:12px;margin:0 0 12px 0;">${completeness.actualWeeks}/${completeness.expectedWeeks} semaines • ${plan.phases.length} phases</p>
   <div style="margin-bottom:16px;">${phasesSummary}</div>
   ${plan.diagnostic ? `<div style="background:#f9f9f9;padding:10px 14px;border-radius:6px;font-size:12px;color:#555;margin-bottom:20px;border-left:3px solid #5555E0;"><strong>Diagnostic TFCL™</strong><br/>${plan.diagnostic.replace(/\n/g, "<br/>")}</div>` : ""}
   ${buildGapAmbitionHTML(gapContext)}
