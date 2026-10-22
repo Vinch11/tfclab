@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { buildTestingWeekDossierHTML } from "../buildTestingWeekProtocolHTML";
 import { TFCL_TESTING_WEEK } from "@/data/tfclTestingWeek";
 import { CAP_TESTING_WEEK } from "@/data/capTestingWeek";
@@ -199,10 +201,22 @@ describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionn�
    * une fois ce HTML injecté dans l'iframe de la surcouche iOS, imprime la
    * fenêtre de l'IFRAME (transformée pour l'aperçu écran) plutôt que la
    * page hôte, reproduisant la pagination délirante déjà vue une fois.
+   *
+   * Depuis la bascule vers `/print-preview` (2026-10-22), ce document est
+   * TOUJOURS la fenêtre top-level — `EMBEDDED_PRINT_ONCLICK` vaut donc
+   * désormais simplement `"window.print()"`, indiscernable dans le HTML
+   * rendu d'un `window.print()` codé en dur. La garantie se vérifie donc
+   * maintenant sur le SOURCE du builder (référence la constante, pas une
+   * valeur figée), pas sur le HTML produit.
    */
   it('le bouton "Imprimer / PDF" embarqué utilise EMBEDDED_PRINT_ONCLICK, pas window.print() en dur', () => {
     expect(html).toContain(EMBEDDED_PRINT_ONCLICK);
-    expect(html).not.toContain('onclick="window.print()"');
+  });
+
+  it("le SOURCE du builder référence bien la constante importée, pas une valeur window.print() codée en dur", () => {
+    const source = readFileSync(join(__dirname, "../buildTestingWeekProtocolHTML.ts"), "utf-8");
+    expect(source).toContain("${EMBEDDED_PRINT_ONCLICK}");
+    expect(source).not.toMatch(/onclick=["']window\.print\(\)["']/);
   });
 });
 

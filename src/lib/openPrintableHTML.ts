@@ -7,25 +7,15 @@ const DOC_WIDTH = 820;
  * Bug réel (retour coach, persistant même après un re-déploiement confirmé) :
  * plusieurs rapports générés (buildDiagnosticProtocolHTML.ts,
  * buildTestingWeekProtocolHTML.ts, ExportTools.tsx, ObjectiveStrategyCard.tsx)
- * embarquent LEUR PROPRE bouton "🖨️ Imprimer / PDF" dans le HTML généré
- * (`onclick="window.print()"`) — plus visible à l'écran que le bouton
- * générique de la barre d'outils de la surcouche iOS, donc celui que le
- * coach presse en pratique. Sur desktop, ce document s'ouvre comme un vrai
- * onglet top-level : `window.print()` y est correct. Mais dans la surcouche
- * iOS (`openInlineOverlay`), ce même HTML est injecté dans une IFRAME —
- * `window` y désigne alors la fenêtre de l'iframe, pas la page hôte, et son
- * impression hérite du `transform: scale(...)` posé pour l'aperçu écran,
- * d'où la pagination délirante déjà vue une fois (457 pages) et jamais
- * vraiment corrigée pour CE bouton-ci (seul celui de la barre d'outils avait
- * été corrigé). Ce snippet, à utiliser à la place de `window.print()` dans
- * TOUT bouton/script embarqué dans un document généré, délègue à
- * `window.top.__tfcPrint` quand il existe (posé par `openInlineOverlay`,
- * qui applique la feuille de style d'impression correcte avant d'imprimer le
- * top-level) — et retombe sur `window.print()` normal sinon (onglet
- * desktop réel, pas de framing).
+ * embarquent LEUR PROPRE bouton "🖨️ Imprimer / PDF" dans le HTML généré.
+ * Depuis la bascule vers une vraie page d'impression dédiée (voir
+ * `openPrintPreviewDocument` ci-dessous), ce document est TOUJOURS la
+ * fenêtre top-level (plus jamais une iframe de surcouche) : `window.print()`
+ * y est donc toujours correct, sans détour. Le nom de cette constante est
+ * conservé (import existant dans 4 fichiers + leurs tests) mais elle est
+ * désormais une simple référence à `window.print()`.
  */
-export const EMBEDDED_PRINT_ONCLICK =
-  "(window.top && window.top.__tfcPrint ? window.top.__tfcPrint() : window.print())";
+export const EMBEDDED_PRINT_ONCLICK = "window.print()";
 
 export interface OpenPrintableHTMLOptions {
   /** Shown in the helper banner (not used for downloads). */
@@ -47,32 +37,16 @@ export function isIOSDevice(): boolean {
 /**
  * App installée sur l'écran d'accueil (mode standalone). Sur iOS, `window.
  * print()` ne produit AUCUNE UI dans ce mode — pas d'erreur, pas de dialogue :
- * le bouton "Imprimer" ne fait simplement rien, ce qui explique la confusion
- * ("je ne sais plus imprimer") signalée par le coach. Aucun contournement JS
- * pur n'existe pour rouvrir le vrai chrome Safari depuis un WKWebView
- * standalone — d'où le bouton "Partager" (Web Share API) ajouté en repli,
- * qui fonctionne lui en mode standalone.
+ * le bouton "Imprimer" ne fait simplement rien. Limitation de plateforme
+ * (aucun contournement JS pur n'existe pour rouvrir le vrai chrome Safari
+ * depuis un WKWebView standalone) — d'où le bouton "Partager" (Web Share
+ * API) ajouté dans la bannière d'aide, qui lui fonctionne en standalone.
  */
 function isStandalonePWA(): boolean {
   return (
     (navigator as any).standalone === true ||
     (typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches)
   );
-}
-
-/** Partage le document comme fichier HTML via le share sheet natif (AirDrop, Fichiers, Mail…). */
-async function shareReportFile(html: string, filenameHint?: string): Promise<boolean> {
-  try {
-    const nav = navigator as any;
-    if (typeof nav.share !== "function" || typeof nav.canShare !== "function") return false;
-    const safeName = (filenameHint ?? "rapport").replace(/[^a-zA-Z0-9-_ ]+/g, "_").trim() || "rapport";
-    const file = new File([html], `${safeName}.html`, { type: "text/html" });
-    if (!nav.canShare({ files: [file] })) return false;
-    await nav.share({ files: [file], title: filenameHint ?? "Rapport" });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 function injectBefore(html: string, needle: string, insertion: string): string {
@@ -91,14 +65,13 @@ function injectBefore(html: string, needle: string, insertion: string): string {
  * téléphone. Mobile Safari n'imprime pas en reflowant selon `@page` comme
  * un moteur de pagination classique : il découpe une CAPTURE du rendu
  * écran en tranches de la hauteur d'une page papier. Sans largeur fixée,
- * l'onglet ouvert par `window.open()` + `document.write()` (surtout sans
- * navigation réelle) peut hériter de la largeur ÉTROITE de l'écran du
- * téléphone plutôt que la largeur virtuelle ~980px que Safari utilise
- * d'habitude pour les pages "desktop" sans viewport déclaré — le texte
- * reflow alors sur une hauteur totale démesurée, qui une fois tranchée en
- * pages A4 donne des centaines de pages quasi vides. Fixe la largeur de
- * rendu à celle pour laquelle le document est réellement mis en page,
- * indépendamment de la largeur d'écran réelle.
+ * la page peut hériter de la largeur ÉTROITE de l'écran du téléphone
+ * plutôt que la largeur virtuelle ~980px que Safari utilise d'habitude pour
+ * les pages "desktop" sans viewport déclaré — le texte reflow alors sur une
+ * hauteur totale démesurée, qui une fois tranchée en pages A4 donne des
+ * centaines de pages quasi vides. Fixe la largeur de rendu à celle pour
+ * laquelle le document est réellement mis en page, indépendamment de la
+ * largeur d'écran réelle.
  */
 function ensureFixedViewport(html: string, width: number): string {
   const meta = `<meta name="viewport" content="width=${width}">`;
@@ -112,30 +85,95 @@ function ensureFixedViewport(html: string, width: number): string {
   return meta + html;
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function escapeJsString(s: string): string {
+  return JSON.stringify(s);
+}
+
+/**
+ * Bannière d'aide + actions, injectée dans le document généré. Le bouton
+ * "Imprimer / PDF" appelle directement `window.print()` : depuis la
+ * décision coach du 2026-10-22, ce document est TOUJOURS la fenêtre
+ * top-level d'une vraie page dédiée (`/print-preview`), jamais une iframe —
+ * aucun détour n'est donc nécessaire. "Partager" (Web Share API, détecté à
+ * l'exécution) reste utile pour le cas iOS "app installée à l'écran
+ * d'accueil", où `window.print()` ne produit aucune UI (limitation de
+ * plateforme, pas un bug de ce code).
+ */
 function withPrintHelper(html: string, filenameHint?: string): string {
   const isIOS = isIOSDevice();
   const name = filenameHint ? `« ${escapeHtml(filenameHint)} »` : "ce document";
+  const shareTitle = escapeJsString(filenameHint ?? "Rapport");
+  const shareFileName = escapeJsString(
+    (filenameHint ?? "rapport").replace(/[^a-zA-Z0-9-_ ]+/g, "_").trim() || "rapport"
+  );
 
   const style = `
     <style>
-      .tfc-print-helper{position:sticky;top:0;z-index:9999;margin:0 0 16px 0;padding:12px 14px;border:1px solid rgba(0,0,0,.12);border-radius:12px;background:#fff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+      .tfc-print-helper{position:sticky;top:0;z-index:9999;margin:0 0 16px 0;padding:12px 14px;border:1px solid rgba(0,0,0,.12);border-radius:12px;background:#fff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+      .tfc-print-helper .tfc-print-helper-text{flex:1;min-width:200px;}
       .tfc-print-helper h3{margin:0 0 6px 0;font-size:14px;line-height:1.2;}
       .tfc-print-helper p{margin:0;font-size:12px;line-height:1.35;opacity:.85;}
       .tfc-print-helper code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;}
+      .tfc-print-helper button{flex:0 0 auto;min-height:36px;padding:8px 14px;border-radius:10px;border:1px solid rgba(0,0,0,.15);background:#111;color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
+      .tfc-print-helper button.tfc-print-helper-share{background:#fff;color:#111;}
       @media print { .tfc-print-helper{display:none !important;} }
     </style>
   `;
 
   const helper = `
     <div class="tfc-print-helper">
-      <h3>Impression / Enregistrement PDF</h3>
-      <p>
-        ${isIOS
-          ? `Sur iPhone/iPad : ouvrez <b>Partager</b> → <b>Imprimer</b> → pincez l’aperçu puis <b>Partager</b> → <b>Enregistrer dans Fichiers</b> (PDF).`
-          : `Sur ordinateur : <code>Ctrl+P</code> (Windows) ou <code>Cmd+P</code> (Mac) puis choisissez “Enregistrer en PDF”.`}
-        <br/>Document : ${name}
-      </p>
+      <div class="tfc-print-helper-text">
+        <h3>Impression / Enregistrement PDF</h3>
+        <p>
+          ${isIOS
+            ? `Appuyez sur <b>Imprimer / PDF</b>, puis pincez l'aperçu et choisissez <b>Enregistrer dans Fichiers</b> (PDF).`
+            : `Cliquez sur <b>Imprimer / PDF</b>, ou <code>Ctrl+P</code> (Windows) / <code>Cmd+P</code> (Mac), puis choisissez "Enregistrer en PDF".`}
+          <br/>Document : ${name}
+        </p>
+      </div>
+      <button type="button" onclick="window.print()">Imprimer / PDF</button>
+      <button type="button" class="tfc-print-helper-share" id="tfc-print-helper-share" style="display:none;">Partager</button>
     </div>
+    <script>
+      (function () {
+        try {
+          var nav = window.navigator;
+          var canShareFiles = typeof nav.canShare === "function" && (function () {
+            try {
+              return nav.canShare({ files: [new File([""], "test.html", { type: "text/html" })] });
+            } catch (e) {
+              return false;
+            }
+          })();
+          if (!canShareFiles) return;
+          var btn = document.getElementById("tfc-print-helper-share");
+          if (!btn) return;
+          btn.style.display = "";
+          btn.addEventListener("click", function () {
+            try {
+              var html = document.documentElement.outerHTML;
+              var file = new File(["<!doctype html>" + html], ${shareFileName} + ".html", { type: "text/html" });
+              if (nav.canShare({ files: [file] })) {
+                nav.share({ files: [file], title: ${shareTitle} });
+              }
+            } catch (e) {
+              /* ignore */
+            }
+          });
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
   `;
 
   // Ensure helper CSS is in <head> when possible
@@ -162,297 +200,98 @@ function withPrintHelper(html: string, filenameHint?: string): string {
     : out + helper;
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-/**
- * Fallback iOS / popup bloqué : affiche le document dans une surcouche plein écran
- * (iframe srcdoc) avec une barre d'actions Imprimer / Fermer.
- * iOS Safari refuse d'ouvrir une URL blob: dans un onglet, d'où cette approche.
- */
-const PRINT_OVERLAY_STYLE_ID = "tfc-print-overlay-style";
-
-/**
- * Bug réel (retour coach, capture d'écran) : le bouton "Imprimer / PDF" de la
- * surcouche ouvrait bien le dialogue d'impression iOS, mais avec une
- * pagination délirante (457 pages pour un rapport d'une poignée de pages).
- * Cause : `frame.contentWindow.print()` imprime le document DE L'IFRAME, qui
- * porte le `transform: scale(...)` appliqué par `syncHeight()` pour
- * l'aperçu écran (mise à l'échelle dans la largeur mobile) — Safari iOS
- * calcule la pagination sur cette boîte transformée au lieu du rendu
- * visuel réel, explosant le nombre de pages. On imprime donc la fenêtre
- * TOP-LEVEL (dont l'impression est fiable, cf. le bouton "Imprimer" déjà
- * robuste de `CoachChecklistPage`), avec une feuille de style imprimée qui
- * masque tout sauf la surcouche et neutralise le scale/position/overflow
- * posés pour l'aperçu écran (sinon l'iframe serait rognée à la hauteur de
- * l'écran au lieu de son contenu réel).
- */
-function injectPrintOnlyStyle(filenameHint?: string): void {
-  document.getElementById(PRINT_OVERLAY_STYLE_ID)?.remove();
-  const style = document.createElement("style");
-  style.id = PRINT_OVERLAY_STYLE_ID;
-  style.textContent = `
-    @media print {
-      body > *:not(#tfc-print-overlay) { display: none !important; }
-      #tfc-print-overlay {
-        position: static !important;
-        inset: auto !important;
-        height: auto !important;
-        display: block !important;
-      }
-      #tfc-print-overlay .tfc-print-bar,
-      #tfc-print-overlay .tfc-print-hint { display: none !important; }
-      #tfc-print-overlay .tfc-print-scroller {
-        position: static !important;
-        overflow: visible !important;
-        height: auto !important;
-      }
-      #tfc-print-overlay .tfc-print-stage {
-        width: auto !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
-      #tfc-print-overlay .tfc-print-frame {
-        transform: none !important;
-        position: static !important;
-      }
-    }
-  `;
-  document.head.appendChild(style);
-  if (filenameHint) document.title = filenameHint;
-}
-
-function removePrintOnlyStyle(): void {
-  document.getElementById(PRINT_OVERLAY_STYLE_ID)?.remove();
-}
-
-function openInlineOverlay(html: string, filenameHint?: string): void {
-  const existing = document.getElementById("tfc-print-overlay");
-  if (existing) existing.remove();
-  removePrintOnlyStyle();
-
-  const overlay = document.createElement("div");
-  overlay.id = "tfc-print-overlay";
-  overlay.style.cssText =
-    "position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;flex-direction:column;";
-
-  const bar = document.createElement("div");
-  bar.className = "tfc-print-bar";
-  bar.style.cssText =
-    "flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));border-bottom:1px solid rgba(0,0,0,.12);background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;";
-
-  const title = document.createElement("span");
-  title.textContent = filenameHint ?? "Rapport";
-  title.style.cssText =
-    "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;color:#111;";
-
-  const btnStyle =
-    "flex:0 0 auto;min-height:36px;padding:8px 14px;border-radius:10px;border:1px solid rgba(0,0,0,.15);background:#111;color:#fff;font-size:13px;font-weight:600;";
-
-  const printBtn = document.createElement("button");
-  printBtn.textContent = "Imprimer / PDF";
-  printBtn.style.cssText = btnStyle;
-
-  const nav = navigator as any;
-  const canShareFiles = typeof nav.canShare === "function" && (() => {
-    try {
-      return nav.canShare({ files: [new File([""], "test.html", { type: "text/html" })] });
-    } catch {
-      return false;
-    }
-  })();
-  const shareBtn = document.createElement("button");
-  shareBtn.textContent = "Partager";
-  shareBtn.style.cssText = btnStyle + "background:#fff;color:#111;";
-
-  const closeBtn = document.createElement("button");
-  closeBtn.textContent = "Fermer";
-  closeBtn.style.cssText = btnStyle + "background:#fff;color:#111;";
-
-  // App installée à l'écran d'accueil (standalone) : window.print() n'ouvre
-  // aucune UI dans ce mode sur iOS (limitation plateforme, pas un bug de ce
-  // code) — on le signale clairement et on met en avant "Partager" (Web
-  // Share API), qui lui fonctionne en standalone.
-  const hint = document.createElement("div");
-  hint.className = "tfc-print-hint";
-  if (isStandalonePWA()) {
-    hint.textContent = "📱 Depuis l'app installée, \"Imprimer\" peut ne rien faire (limitation iOS). Utilise plutôt \"Partager\" → Enregistrer dans Fichiers, puis ouvre le fichier et imprime/exporte en PDF depuis là.";
-    hint.style.cssText =
-      "flex:0 0 auto;padding:6px 12px;font-size:11.5px;line-height:1.4;color:#7a4b00;background:#fff6e5;border-bottom:1px solid rgba(0,0,0,.08);";
-  }
-
-  // iOS Safari ne scrolle pas à l'intérieur d'une iframe : on l'étire à la
-  // hauteur du contenu et on scrolle le conteneur parent à la place.
-  const scroller = document.createElement("div");
-  scroller.className = "tfc-print-scroller";
-  scroller.style.cssText =
-    "flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#fff;";
-
-  // Le document est mis en page pour une largeur A4 : on force cette largeur
-  // dans l'iframe (sinon Safari imprime la mise en page « mobile » écrasée)
-  // et on la réduit visuellement pour l'écran.
-  const stage = document.createElement("div");
-  stage.className = "tfc-print-stage";
-  stage.style.cssText = "position:relative;width:100%;overflow:hidden;";
-
-  const frame = document.createElement("iframe");
-  frame.className = "tfc-print-frame";
-  frame.style.cssText = `display:block;width:${DOC_WIDTH}px;border:0;background:#fff;transform-origin:top left;`;
-  frame.setAttribute("scrolling", "no");
-  frame.setAttribute("title", filenameHint ?? "Rapport");
-
-  const syncHeight = () => {
-    try {
-      const d = frame.contentDocument;
-      if (!d?.body) return;
-      // Bug réel trouvé (vérifié par rendu réel, user-agent iPhone, retour
-      // coach "le pdf s'ouvre mais il n'y a que l'entête") : scrollHeight
-      // d'un body/html sans hauteur explicite "plancher" à la hauteur déjà
-      // posée sur CETTE iframe (son propre viewport interne), pas à la
-      // hauteur réelle du contenu, dès que le contenu est plus court que ce
-      // plancher — reproduit isolément : une iframe forcée à 50 000px fait
-      // immédiatement remonter body.scrollHeight à 50 000, pour un contenu
-      // de quelques pixels. Comme ce handler augmente justement
-      // frame.style.height à chaque appel, et se redéclenche à chaque
-      // redimensionnement du body (ResizeObserver), chaque mesure lit AU
-      // MOINS la hauteur posée au tour précédent : boucle de rétroaction
-      // sans convergence, qui a fait grimper l'iframe à plus de 280 000px
-      // pour un document réel d'environ 18 000px — bien au-delà de ce
-      // qu'un moteur d'impression peut raisonnablement rendre, d'où un PDF
-      // qui n'affiche plus qu'une entête une fois cette hauteur imprimée.
-      // Fix : mesurer la position du bas du contenu réel (getBoundingClientRect
-      // de chaque enfant direct de body, insensible à la hauteur déjà posée
-      // sur l'iframe) plutôt que scrollHeight/offsetHeight.
-      let h = 0;
-      for (const child of Array.from(d.body.children)) {
-        h = Math.max(h, child.getBoundingClientRect().bottom);
-      }
-      if (h <= 0) h = d.body.scrollHeight;
-      if (h > 0) frame.style.height = `${h + 40}px`;
-      const available = stage.clientWidth || scroller.clientWidth || DOC_WIDTH;
-      const scale = Math.min(1, available / DOC_WIDTH);
-      frame.style.transform = `scale(${scale})`;
-      stage.style.height = `${(h + 40) * scale}px`;
-    } catch {
-      // Ignore
-    }
-  };
-
-
-  const originalTitle = document.title;
-  const restoreTitle = () => { document.title = originalTitle; };
-  // Imprime le document DE L'IFRAME, après avoir retiré la mise à l'échelle
-  // d'aperçu (cause des 457 pages). Imprimer la page hôte contenant l'iframe
-  // n'est pas fiable sur iOS (iframe rognée → pages blanches).
-  const doPrint = () => {
-    const prevTransform = frame.style.transform;
-    frame.style.transform = "none";
-    const restore = () => {
-      frame.style.transform = prevTransform;
-      syncHeight();
-    };
-    try {
-      const w = frame.contentWindow;
-      if (!w) throw new Error("no frame window");
-      w.addEventListener("afterprint", restore, { once: true });
-      w.focus();
-      w.print();
-      setTimeout(restore, 1500);
-    } catch {
-      restore();
-      injectPrintOnlyStyle(filenameHint);
-      window.print();
-    }
-  };
-  // Exposé sur `window` pour que le bouton "🖨️ Imprimer / PDF" BAKED DANS LE
-  // DOCUMENT GÉNÉRÉ lui-même (buildDiagnosticProtocolHTML.ts et consorts —
-  // visible dans l'aperçu, pas le bouton de la barre d'outils) puisse
-  // déclencher le MÊME print top-level plutôt que `window.print()` sur sa
-  // propre fenêtre d'iframe (cf. PRINT_BUTTON_SNIPPET dans ce fichier).
-  (window as unknown as Record<string, unknown>).__tfcPrint = doPrint;
-  printBtn.onclick = doPrint;
-  shareBtn.onclick = () => {
-    void shareReportFile(html, filenameHint);
-  };
-  closeBtn.onclick = () => {
-    document.body.style.overflow = "";
-    restoreTitle();
-    removePrintOnlyStyle();
-    window.removeEventListener("afterprint", restoreTitle);
-    delete (window as unknown as Record<string, unknown>).__tfcPrint;
-    overlay.remove();
-  };
-  window.addEventListener("afterprint", restoreTitle);
-
-  bar.append(title, printBtn, ...(canShareFiles ? [shareBtn] : []), closeBtn);
-  overlay.append(bar);
-  if (hint.textContent) overlay.append(hint);
-  stage.append(frame);
-  scroller.append(stage);
-  overlay.append(scroller);
-  document.body.appendChild(overlay);
-
-  document.body.style.overflow = "hidden";
-
-  const doc = frame.contentWindow?.document;
-  if (doc) {
-    doc.open();
-    doc.write(html);
-    doc.close();
-  } else {
-    frame.srcdoc = html;
-  }
-
-  frame.addEventListener("load", syncHeight);
-  // Le contenu (images, polices) peut arriver après le premier rendu.
-  [100, 400, 1000, 2500].forEach((ms) => setTimeout(syncHeight, ms));
-  window.addEventListener("resize", syncHeight);
-  try {
-    const inner = frame.contentDocument;
-    if (inner?.body && typeof ResizeObserver !== "undefined") {
-      new ResizeObserver(syncHeight).observe(inner.body);
-    }
-  } catch {
-    // Ignore
-  }
-
-}
-
 function stripScripts(html: string): string {
   return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+}
+
+/** Clé sessionStorage utilisée pour relayer un document vers `/print-preview`. */
+const PRINT_PREVIEW_STORAGE_PREFIX = "tfc:printPreview:";
+
+/**
+ * Décision coach explicite (2026-10-22, suite à un retour de PDF
+ * ENTIÈREMENT VIDE à l'impression sur PC) : remplace le mécanisme
+ * `blob:` + `window.open()` (et, avant lui pour iOS, la surcouche iframe
+ * plein écran) par une VRAIE page du site (`/print-preview`, voir
+ * `src/pages/PrintPreviewPage.tsx`), chargée par une navigation NORMALE
+ * (même origine, pas de `blob:`), qui réaffiche le document déjà généré
+ * puis laisse l'utilisateur déclencher l'impression native dessus.
+ *
+ * Pourquoi : une `blob:` URL n'est valable que dans le contexte du
+ * document qui l'a créée ; sa fiabilité face à l'impression RÉELLE et
+ * interactive d'un navigateur (Ctrl+P → aperçu → "Enregistrer en PDF")
+ * n'est garantie par aucune spécification — seule l'API CDP
+ * `Page.printToPDF` (utilisée par les tests automatisés, y compris ceux de
+ * ce fichier) est documentée comme fiable sur ce type d'URL ; elle ne
+ * couvre pas le chemin réellement emprunté par un clic humain sur
+ * "Imprimer" dans un vrai navigateur. En relayant le document via
+ * `sessionStorage` vers une page RÉELLEMENT servie par l'application
+ * (même mécanisme qu'une navigation normale, exactement comme le bouton
+ * "Imprimer" déjà robuste de `CoachChecklistPage`), on élimine cette classe
+ * entière de risques — sur desktop ET iPhone, avec le même code.
+ *
+ * `sessionStorage` est transmis automatiquement à l'onglet ouvert par
+ * `window.open()` (copie, spec HTML — même origine, même session) : pas de
+ * requête réseau supplémentaire, pas de limite de taille d'URL.
+ */
+function openPrintPreviewDocument(html: string, filenameHint?: string, autoPrint?: boolean): void {
+  const key = `${PRINT_PREVIEW_STORAGE_PREFIX}${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  try {
+    sessionStorage.setItem(key, html);
+  } catch {
+    // Document inhabituellement volumineux (quota sessionStorage dépassé) —
+    // mieux vaut prévenir que d'ouvrir un onglet qui échouera silencieusement.
+    window.alert(
+      "Ce document est trop volumineux pour l'aperçu d'impression. Réduisez le contenu exporté ou contactez le support."
+    );
+    return;
+  }
+
+  const url = `/print-preview?d=${encodeURIComponent(key)}${autoPrint ? "&autoPrint=1" : ""}${
+    filenameHint ? `&title=${encodeURIComponent(filenameHint)}` : ""
+  }`;
+
+  let win: Window | null = null;
+  try {
+    win = window.open(url, "_blank");
+  } catch {
+    win = null;
+  }
+
+  if (!win) {
+    try { sessionStorage.removeItem(key); } catch { /* best effort */ }
+    window.alert(
+      "La fenêtre d'impression a été bloquée par votre navigateur. Autorisez les pop-ups pour ce site, puis réessayez."
+    );
+  }
 }
 
 /**
  * Imprime la page actuellement affichée (boutons "Imprimer" qui utilisent les
  * classes Tailwind `print:*` sur la page en cours, plutôt qu'un rapport HTML
  * généré à part). Sur iOS en mode standalone (app installée sur l'écran
- * d'accueil), `window.print()` ne produit AUCUNE UI (cf. isStandalonePWA) —
- * c'est la cause de "je ne sais plus imprimer" quand ces boutons ne font
- * visiblement rien. Dans ce cas, on bascule sur un instantané statique de la
- * page affichée dans la même surcouche robuste (bouton Imprimer + repli
- * Partager) que les rapports générés, plutôt que de laisser le clic sans
- * aucun effet visible.
+ * d'accueil), `window.print()` ne produit AUCUNE UI (cf. isStandalonePWA).
+ * Dans ce cas, on remplace le document COURANT (pas de nouvel onglet : le
+ * mode standalone ne garantit pas qu'une vraie fenêtre séparée s'ouvre) par
+ * un instantané statique de la page affichée, avec les mêmes boutons
+ * Imprimer / Partager que les rapports générés.
  */
 export function printCurrentDocument(filenameHint?: string): void {
   if (isIOSDevice() && isStandalonePWA()) {
     const baseTag = `<base href="${window.location.href}">`;
     const snapshot = injectBefore(stripScripts(document.documentElement.outerHTML), "</head>", baseTag);
-    openInlineOverlay(`<!doctype html>${snapshot}`, filenameHint);
+    const finalHtml = withPrintHelper(`<!doctype html>${snapshot}`, filenameHint);
+    document.open();
+    document.write(finalHtml);
+    document.close();
     return;
   }
   window.print();
 }
 
 /**
- * Opens a printable HTML document in a new tab/window, with a robust fallback for popup blockers.
- * Uses a Blob URL (avoids URL-length limits). Sur iOS (et si le popup est bloqué),
- * bascule sur une surcouche plein écran interne.
+ * Ouvre un document HTML imprimable dans une page dédiée (`/print-preview`),
+ * sur desktop comme sur iPhone — voir `openPrintPreviewDocument` ci-dessus
+ * pour le détail de ce choix.
  */
 export function openPrintableHTML(html: string, options: OpenPrintableHTMLOptions = {}): void {
   // Socle de design Bevel commun à tous les rapports exportés.
@@ -462,75 +301,5 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
     ? withViewport
     : withPrintHelper(withViewport, options.filenameHint);
 
-  // Décision coach explicite (2026-10-22) : plus jamais de génération de
-  // fichier PDF PAR L'APPLICATION (html2canvas + jsPDF, module dédié
-  // supprimé) — y compris sur iOS. Le parcours doit toujours être : ouvrir
-  // une page HTML dédiée affichant l'intégralité du plan, puis un bouton
-  // "Imprimer / Enregistrer en PDF" qui utilise l'impression NATIVE du
-  // navigateur (jamais une étape de "préparation du PDF" par l'app).
-  //
-  // Historique (voir AGENTS.md pour le détail complet) : avant cette
-  // décision, plusieurs mécanismes d'impression native sur iOS avaient
-  // chacun échoué de façon catastrophique (document.write : pagination qui
-  // explose ; navigation blob: HTML : onglet qui n'affiche que l'entête ;
-  // boucle de rétroaction de hauteur dans la surcouche : corrigée) — ce qui
-  // avait motivé la génération PDF par capture d'écran comme contournement.
-  // La surcouche interne ci-dessous a depuis été fiabilisée indépendamment
-  // (hauteur mesurée correctement, scale neutralisé avant impression,
-  // repli "Partager" si l'impression échoue) : elle reste le même document
-  // HTML que celui ouvert dans un onglet sur desktop, juste présenté en
-  // plein écran avec son propre bouton Imprimer — exactement ce que la
-  // consigne demande, sans reconstruire de nouveau système d'affichage.
-  if (isIOSDevice()) {
-    openInlineOverlay(finalHtml, options.filenameHint);
-    return;
-  }
-
-  const blob = new Blob([finalHtml], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-
-  // Bug réel (retour coach : "j'ai un fichier de 0 octets" à l'impression) —
-  // `window.open(url, "_blank", "noopener,noreferrer")` : la spec impose que
-  // le navigateur renvoie TOUJOURS `null` quand `noopener` est passé, MÊME
-  // quand la popup s'ouvre avec succès (c'est le but de `noopener` : ne pas
-  // donner de référence à l'appelant). Le code croyait donc systématiquement
-  // la popup bloquée, et appelait `URL.revokeObjectURL(url)` immédiatement —
-  // alors que l'onglet réellement ouvert était encore en train de charger ce
-  // même blob: URL. Course perdue → onglet vide → PDF de 0 octet à l'impression.
-  // Fix : ouvrir SANS `noopener` pour récupérer une vraie référence (détection
-  // de blocage fiable), puis couper `opener` manuellement une fois la
-  // référence obtenue — même garantie de sécurité (pas de reverse-tabnabbing),
-  // sans perdre la détection. `noreferrer` était de toute façon sans effet
-  // ici : une URL blob: n'envoie jamais d'en-tête Referer.
-  let win: Window | null = null;
-  try {
-    win = window.open(url, "_blank");
-    if (win) {
-      try { win.opener = null; } catch { /* best effort */ }
-    }
-  } catch {
-    win = null;
-  }
-
-  // Popup bloqué → surcouche interne (fiable partout, aucune navigation requise)
-  if (!win) {
-    URL.revokeObjectURL(url);
-    openInlineOverlay(finalHtml, options.filenameHint);
-    return;
-  }
-
-  if (options.autoPrint) {
-    // Give the new tab time to render.
-    setTimeout(() => {
-      try {
-        win.focus();
-        win.print();
-      } catch {
-        // Ignore
-      }
-    }, 600);
-  }
-
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  openPrintPreviewDocument(finalHtml, options.filenameHint, options.autoPrint);
 }
-

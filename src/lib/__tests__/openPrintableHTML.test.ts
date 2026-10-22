@@ -1,32 +1,41 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { openPrintableHTML, printCurrentDocument, EMBEDDED_PRINT_ONCLICK } from "../openPrintableHTML";
 
 /**
- * Bug réel (retour coach : "dès que je veux imprimer un document en PDF j'ai
- * un fichier de seulement 0 octets") — `window.open(url, "_blank",
- * "noopener,noreferrer")` : la spec impose que le navigateur renvoie
- * TOUJOURS `null` quand `noopener` est passé, MÊME quand la popup s'ouvre
- * avec succès (c'est le but de `noopener` : ne pas donner de référence à
- * l'appelant). Le code croyait donc systématiquement la popup bloquée, et
- * appelait `URL.revokeObjectURL(url)` immédiatement — alors que l'onglet
- * réellement ouvert était encore en train de charger ce même blob: URL.
- * Course perdue → onglet vide → PDF de 0 octet à l'impression.
- *
- * Ces tests figent le contrat attendu : `window.open` est appelé SANS
- * `noopener`/`noreferrer` (pour recevoir une vraie référence), et le blob
- * n'est PAS révoqué tant qu'une fenêtre a réellement été ouverte.
+ * Bug réel (retour coach, 2026-10-22, APRÈS la PR #391 qui avait supprimé la
+ * génération de PDF par l'app sur iOS) : "sur PC, lorsque j'ouvre la vue
+ * d'impression puis utilise Ctrl+P pour enregistrer le document en PDF, le
+ * fichier obtenu est entièrement vide." Diagnostic : le chemin desktop
+ * ouvrait toujours une URL `blob:` via `window.open()`. Une `blob:` URL n'est
+ * valable que dans le contexte du document qui l'a créée ; sa fiabilité
+ * face à l'impression RÉELLE et interactive d'un navigateur (Ctrl+P →
+ * aperçu → "Enregistrer en PDF") n'est garantie par aucune spécification —
+ * seule l'API CDP `Page.printToPDF` (utilisée par les tests automatisés)
+ * est documentée comme fiable sur ce type d'URL. Un test Playwright
+ * recourant à `page.pdf()` sur un tel onglet NE reproduit PAS le bug
+ * (confirmé empiriquement pendant l'investigation : contenu identique,
+ * avec ou sans blob) — ce qui exclut cette piste de test comme preuve de
+ * fiabilité réelle. Correctif à la source : plus aucune `blob:` URL nulle
+ * part dans ce fichier. Le document est relayé via `sessionStorage` vers
+ * une VRAIE page du site (`/print-preview`, voir
+ * `src/pages/PrintPreviewPage.tsx`), chargée par une navigation normale —
+ * exactement comme n'importe quelle autre page de l'app. Voir aussi le
+ * test Playwright `e2e/print-plan-export.spec.ts`, qui valide bout-en-bout
+ * (vrai moteur d'impression du navigateur) que cette nouvelle page produit
+ * un PDF complet pour un plan de 34 semaines.
  */
-describe("openPrintableHTML — ouverture popup pour impression/PDF", () => {
+describe("openPrintableHTML — relais vers la page d'impression dédiée /print-preview (plus aucune blob: URL)", () => {
   const originalOpen = window.open;
-  const originalIsMac = navigator.platform;
-  let revokeSpy: ReturnType<typeof vi.spyOn>;
-  let createSpy: ReturnType<typeof vi.spyOn>;
+  const originalPlatform = navigator.platform;
+  const originalAlert = window.alert;
+  let setItemSpy: ReturnType<typeof vi.spyOn>;
+  let removeItemSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    revokeSpy = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
-    createSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock-url");
+    sessionStorage.clear();
+    setItemSpy = vi.spyOn(sessionStorage, "setItem");
+    removeItemSpy = vi.spyOn(sessionStorage, "removeItem");
+    window.alert = vi.fn();
     Object.defineProperty(navigator, "platform", { value: "Win32", configurable: true });
     Object.defineProperty(navigator, "userAgent", {
       value: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -36,230 +45,153 @@ describe("openPrintableHTML — ouverture popup pour impression/PDF", () => {
 
   afterEach(() => {
     window.open = originalOpen;
-    Object.defineProperty(navigator, "platform", { value: originalIsMac, configurable: true });
+    window.alert = originalAlert;
+    Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
     vi.restoreAllMocks();
-    document.getElementById("tfc-print-overlay")?.remove();
+    sessionStorage.clear();
   });
 
-  it("ouvre la popup SANS 'noopener'/'noreferrer' (sinon window.open renvoie toujours null, même en cas de succès)", () => {
-    const fakeWin = { focus: vi.fn(), print: vi.fn() } as unknown as Window;
-    const openSpy = vi.fn().mockReturnValue(fakeWin);
+  it("n'appelle plus jamais Blob/URL.createObjectURL — aucune blob: URL n'est créée pour l'impression", () => {
+    const createObjectURLSpy = vi.spyOn(URL, "createObjectURL");
+    window.open = vi.fn().mockReturnValue({ focus: vi.fn(), print: vi.fn() }) as typeof window.open;
+
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    expect(createObjectURLSpy).not.toHaveBeenCalled();
+  });
+
+  it("stocke le document final dans sessionStorage, puis ouvre /print-preview avec la clé correspondante", () => {
+    const openSpy = vi.fn().mockReturnValue({ focus: vi.fn(), print: vi.fn() });
     window.open = openSpy as typeof window.open;
 
-    openPrintableHTML("<html><body>Rapport</body></html>");
+    openPrintableHTML("<html><body>Rapport Semaine 34</body></html>", { filenameHint: "Plan Test" });
 
     expect(openSpy).toHaveBeenCalledTimes(1);
-    const [, , features] = openSpy.mock.calls[0];
-    expect(
-      String(features ?? ""),
-      "window.open ne doit plus être appelé avec noopener/noreferrer — cela force un retour null même quand la popup réussit",
-    ).not.toMatch(/noopener/i);
+    const [url, target] = openSpy.mock.calls[0];
+    expect(target).toBe("_blank");
+    expect(String(url)).toMatch(/^\/print-preview\?d=/);
+
+    const keyMatch = String(url).match(/[?&]d=([^&]+)/);
+    expect(keyMatch).not.toBeNull();
+    const key = decodeURIComponent(keyMatch![1]);
+    const stored = sessionStorage.getItem(key);
+    expect(stored).not.toBeNull();
+    expect(stored).toContain("Rapport Semaine 34");
   });
 
-  it("quand window.open réussit (retourne une fenêtre), NE révoque PAS le blob immédiatement — sinon l'onglet ouvert se retrouve vide (bug du fichier 0 octet)", () => {
-    const fakeWin = { focus: vi.fn(), print: vi.fn(), opener: {} } as unknown as Window;
-    window.open = vi.fn().mockReturnValue(fakeWin) as typeof window.open;
+  it("transmet filenameHint et autoPrint dans l'URL de /print-preview", () => {
+    const openSpy = vi.fn().mockReturnValue({ focus: vi.fn(), print: vi.fn() });
+    window.open = openSpy as typeof window.open;
 
-    openPrintableHTML("<html><body>Rapport</body></html>");
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Mon Plan", autoPrint: true });
 
-    expect(
-      revokeSpy,
-      "le blob de l'onglet réellement ouvert ne doit pas être révoqué de façon synchrone",
-    ).not.toHaveBeenCalled();
+    const [url] = openSpy.mock.calls[0];
+    expect(String(url)).toContain("autoPrint=1");
+    expect(String(url)).toContain(`title=${encodeURIComponent("Mon Plan")}`);
   });
 
-  it("coupe bien `opener` sur la fenêtre ouverte une fois la référence obtenue (garde la protection anti reverse-tabnabbing sans perdre la détection de blocage)", () => {
-    const fakeWin = { focus: vi.fn(), print: vi.fn(), opener: {} } as unknown as Window;
-    window.open = vi.fn().mockReturnValue(fakeWin) as typeof window.open;
-
-    openPrintableHTML("<html><body>Rapport</body></html>");
-
-    expect(fakeWin.opener).toBeNull();
-  });
-
-  it("quand window.open est réellement bloqué (retourne null), révoque le blob et bascule sur la surcouche interne", () => {
+  it("si window.open est bloqué (retourne null), avertit l'utilisateur et nettoie la clé sessionStorage orpheline", () => {
     window.open = vi.fn().mockReturnValue(null) as typeof window.open;
 
     openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
 
-    expect(revokeSpy).toHaveBeenCalledWith("blob:mock-url");
-    expect(document.getElementById("tfc-print-overlay")).not.toBeNull();
+    expect(window.alert).toHaveBeenCalledTimes(1);
+    expect(String((window.alert as ReturnType<typeof vi.fn>).mock.calls[0][0])).toMatch(/pop-up|bloqué/i);
+    // La clé qui venait d'être écrite est retirée : pas de fuite accumulée
+    // dans sessionStorage si l'utilisateur relance l'export plusieurs fois.
+    expect(removeItemSpy).toHaveBeenCalled();
   });
-});
 
-/**
- * Décision coach explicite (2026-10-22) : plus jamais de génération de
- * fichier PDF PAR L'APPLICATION (html2canvas + jsPDF, ex-iosPdfExport.ts,
- * supprimé) — y compris sur iOS. "Préparation du PDF" (l'étape que ce
- * mécanisme affichait) ne doit plus jamais apparaître : le parcours doit
- * toujours être page HTML dédiée affichant l'intégralité du plan + bouton
- * "Imprimer / Enregistrer en PDF" qui déclenche l'impression NATIVE du
- * navigateur. Ce test vérifie qu'iOS bascule désormais IMMÉDIATEMENT et
- * SYNCHRONEMENT sur la surcouche interne (même document HTML que le reste
- * de l'app, cf. PR #390) — jamais de détour par une génération de fichier.
- */
-describe("openPrintableHTML (iOS) — aucune génération de PDF par l'application, bascule directe sur la surcouche HTML", () => {
-  const originalUserAgent = navigator.userAgent;
-  const originalPlatform = navigator.platform;
+  it("si sessionStorage refuse l'écriture (quota dépassé), avertit l'utilisateur et n'ouvre aucun onglet", () => {
+    setItemSpy.mockImplementation(() => {
+      throw new DOMException("quota", "QuotaExceededError");
+    });
+    const openSpy = vi.fn();
+    window.open = openSpy as typeof window.open;
 
-  beforeEach(() => {
+    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
+
+    expect(window.alert).toHaveBeenCalledTimes(1);
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  it("sur iPhone, suit exactement le même chemin que sur desktop (plus de branchement par plateforme, plus de surcouche iframe)", () => {
     Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
     Object.defineProperty(navigator, "userAgent", {
       value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
       configurable: true,
     });
-  });
+    const openSpy = vi.fn().mockReturnValue({ focus: vi.fn(), print: vi.fn() });
+    window.open = openSpy as typeof window.open;
 
-  afterEach(() => {
-    Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
-    Object.defineProperty(navigator, "userAgent", { value: originalUserAgent, configurable: true });
-    document.getElementById("tfc-print-overlay")?.remove();
-    vi.restoreAllMocks();
-  });
-
-  it("affiche immédiatement la surcouche HTML (pas d'étape « Préparation du PDF », pas de détour asynchrone)", () => {
     openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
 
-    // Synchrone : pas de vi.waitFor nécessaire — contrairement à l'ancien
-    // chemin (import dynamique + génération async), la surcouche apparaît
-    // dans le même tick que l'appel.
-    const overlay = document.getElementById("tfc-print-overlay");
-    expect(overlay).not.toBeNull();
-    expect(overlay?.textContent).not.toContain("Préparation du PDF");
-  });
-
-  it("le document affiché dans la surcouche contient bien le plan transmis (même HTML que le reste de l'app, pas de reconstruction)", () => {
-    openPrintableHTML("<html><body>Rapport Semaine 34</body></html>", { filenameHint: "Test" });
-
-    const frame = document.querySelector<HTMLIFrameElement>(".tfc-print-frame");
-    expect(frame).not.toBeNull();
-  });
-
-  it("n'importe plus jamais le module de génération PDF (html2canvas/jsPDF) — supprimé, aucun code ne doit plus y faire référence", () => {
-    const source = readFileSync(join(__dirname, "../openPrintableHTML.ts"), "utf-8");
-    expect(source).not.toContain("iosPdfExport");
-    expect(source).not.toContain("exportPdfOnIOS");
-  });
-});
-
-/**
- * Bug réel (retour coach, capture d'écran) : dans la surcouche iOS, le
- * bouton "Imprimer / PDF" ouvrait bien le dialogue d'impression, mais avec
- * une pagination délirante ("Pages 1-457" pour un rapport d'une poignée de
- * pages). Cause : il appelait `frame.contentWindow.print()`, qui imprime le
- * document DE L'IFRAME — lequel porte un `transform: scale(...)` posé pour
- * l'aperçu écran (mise à l'échelle dans la largeur mobile). Safari iOS
- * pagine sur cette boîte transformée au lieu du rendu visuel réel. `doPrint`
- * retire d'abord ce scale avant d'imprimer l'iframe, et si ça échoue quand
- * même, retombe sur l'impression de la fenêtre top-level avec une feuille de
- * style qui masque tout sauf la surcouche et neutralise le
- * scale/position/overflow d'aperçu.
- */
-describe("openPrintableHTML (iOS, surcouche interne) — le bouton Imprimer n'imprime plus l'iframe transformée telle quelle", () => {
-  const originalUserAgent = navigator.userAgent;
-  const originalPlatform = navigator.platform;
-  const originalPrint = window.print;
-  const originalOpen = window.open;
-
-  beforeEach(() => {
-    Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
-    Object.defineProperty(navigator, "userAgent", {
-      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
-      configurable: true,
-    });
-    window.print = vi.fn();
-  });
-
-  afterEach(() => {
-    Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
-    Object.defineProperty(navigator, "userAgent", { value: originalUserAgent, configurable: true });
-    window.print = originalPrint;
-    window.open = originalOpen;
-    document.getElementById("tfc-print-overlay")?.remove();
-    document.getElementById("tfc-print-overlay-style")?.remove();
-    vi.restoreAllMocks();
-  });
-
-  function getOverlayButton(label: string): HTMLButtonElement {
-    const overlay = document.getElementById("tfc-print-overlay");
-    const btn = Array.from(overlay?.querySelectorAll("button") ?? []).find(
-      (b) => b.textContent === label
-    );
-    if (!btn) throw new Error(`Bouton "${label}" introuvable dans la surcouche`);
-    return btn as HTMLButtonElement;
-  }
-
-  it('clique sur "Imprimer / PDF" → imprime la fenêtre top-level (window.print), pas l\'iframe transformée', async () => {
-    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
-    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
-
-    getOverlayButton("Imprimer / PDF").click();
-
-    expect(window.print).toHaveBeenCalledTimes(1);
-  });
-
-  it('injecte une feuille de style imprimée qui masque tout sauf la surcouche et neutralise le scale posé pour l\'aperçu écran', async () => {
-    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
-    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
-
-    getOverlayButton("Imprimer / PDF").click();
-
-    const style = document.getElementById("tfc-print-overlay-style");
-    expect(style).not.toBeNull();
-    expect(style?.textContent).toMatch(/body > \*:not\(#tfc-print-overlay\)/);
-    expect(style?.textContent).toMatch(/transform:\s*none\s*!important/);
-  });
-
-  it('"Fermer" retire la feuille de style imprimée (pas de fuite sur le reste de la session)', async () => {
-    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
-    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
-
-    getOverlayButton("Imprimer / PDF").click();
-    expect(document.getElementById("tfc-print-overlay-style")).not.toBeNull();
-
-    getOverlayButton("Fermer").click();
-    expect(document.getElementById("tfc-print-overlay-style")).toBeNull();
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    expect(String(openSpy.mock.calls[0][0])).toMatch(/^\/print-preview\?d=/);
     expect(document.getElementById("tfc-print-overlay")).toBeNull();
   });
+});
 
-  /**
-   * Bug réel (retour coach, PERSISTANT après le fix ci-dessus et un
-   * re-déploiement confirmé) : plusieurs rapports générés
-   * (buildDiagnosticProtocolHTML.ts, buildTestingWeekProtocolHTML.ts,
-   * ExportTools.tsx, ObjectiveStrategyCard.tsx) embarquent LEUR PROPRE
-   * bouton "🖨️ Imprimer / PDF" dans le HTML généré — plus visible à
-   * l'écran (badge flottant sur le document) que le bouton générique de la
-   * barre d'outils, donc celui que le coach presse en pratique. Ce bouton
-   * appelait encore `window.print()` en dur, qui dans l'iframe de la
-   * surcouche désigne la fenêtre de l'iframe (transformée) — reproduisant
-   * EXACTEMENT le bug des 457 pages, alors que seul le bouton de la barre
-   * d'outils avait été corrigé. `window.__tfcPrint` est le point d'ancrage
-   * que ces boutons embarqués utilisent (via `window.top.__tfcPrint`,
-   * cf. EMBEDDED_PRINT_ONCLICK) pour déclencher le MÊME print top-level
-   * correctement préparé.
-   */
-  it("expose window.__tfcPrint pendant que la surcouche est ouverte (point d'ancrage pour les boutons Imprimer embarqués dans le HTML généré)", async () => {
-    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
-    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
+/**
+ * La bannière d'aide injectée dans le document (sauf `includeInstructions:
+ * false`) porte désormais un vrai bouton "Imprimer / PDF" cliquable — pas
+ * seulement une instruction textuelle "Ctrl+P" (inutilisable au doigt sur
+ * iPhone, qui n'a pas de clavier). Ce bouton appelle directement
+ * `window.print()` : depuis la bascule vers `/print-preview`, le document
+ * est TOUJOURS la fenêtre top-level, jamais une iframe — aucun détour
+ * `window.top.__tfcPrint` n'est plus nécessaire.
+ */
+describe("openPrintableHTML — bannière d'aide avec bouton Imprimer fonctionnel", () => {
+  const originalOpen = window.open;
 
-    expect(typeof (window as unknown as Record<string, unknown>).__tfcPrint).toBe("function");
-
-    (window as unknown as { __tfcPrint: () => void }).__tfcPrint();
-    expect(window.print).toHaveBeenCalledTimes(1);
-    expect(document.getElementById("tfc-print-overlay-style")).not.toBeNull();
+  afterEach(() => {
+    window.open = originalOpen;
+    sessionStorage.clear();
+    vi.restoreAllMocks();
   });
 
-  it("retire window.__tfcPrint à la fermeture (pas de fuite globale une fois la surcouche fermée)", async () => {
-    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
-    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
-    getOverlayButton("Fermer").click();
+  function captureStoredHtml(): string {
+    const openSpy = vi.fn().mockReturnValue({ focus: vi.fn(), print: vi.fn() });
+    window.open = openSpy as typeof window.open;
+    openPrintableHTML("<html><head></head><body>Rapport</body></html>", { filenameHint: "Test" });
+    const [url] = openSpy.mock.calls[0];
+    const key = decodeURIComponent(String(url).match(/[?&]d=([^&]+)/)![1]);
+    return sessionStorage.getItem(key)!;
+  }
 
-    expect((window as unknown as Record<string, unknown>).__tfcPrint).toBeUndefined();
+  it('inclut un bouton "Imprimer / PDF" dont le onclick appelle window.print() directement (pas de détour iframe)', () => {
+    const html = captureStoredHtml();
+    expect(html).toContain('onclick="window.print()"');
+    expect(html).not.toContain("Préparation du PDF");
   });
 
-  it("EMBEDDED_PRINT_ONCLICK délègue à window.top.__tfcPrint quand il existe, sinon retombe sur window.print() normal", () => {
-    expect(EMBEDDED_PRINT_ONCLICK).toContain("window.top.__tfcPrint");
-    expect(EMBEDDED_PRINT_ONCLICK).toContain("window.print()");
+  it("n'inclut PAS la bannière quand includeInstructions: false est passé", () => {
+    const openSpy = vi.fn().mockReturnValue({ focus: vi.fn(), print: vi.fn() });
+    window.open = openSpy as typeof window.open;
+    openPrintableHTML("<html><head></head><body>Rapport</body></html>", {
+      filenameHint: "Test",
+      includeInstructions: false,
+    });
+    const [url] = openSpy.mock.calls[0];
+    const key = decodeURIComponent(String(url).match(/[?&]d=([^&]+)/)![1]);
+    const html = sessionStorage.getItem(key)!;
+    expect(html).not.toContain("tfc-print-helper");
+  });
+});
+
+/**
+ * `EMBEDDED_PRINT_ONCLICK` est utilisé par plusieurs builders de rapport
+ * (buildDiagnosticProtocolHTML.ts, buildTestingWeekProtocolHTML.ts,
+ * ExportTools.tsx, ObjectiveStrategyCard.tsx) pour leur propre bouton
+ * "Imprimer / PDF" embarqué dans le HTML généré. Depuis la bascule vers
+ * `/print-preview`, ce document est TOUJOURS la fenêtre top-level : plus
+ * besoin du détour `window.top.__tfcPrint` (qui n'existe plus, l'iframe de
+ * surcouche ayant été supprimée) — `window.print()` seul est désormais
+ * toujours correct.
+ */
+describe("EMBEDDED_PRINT_ONCLICK", () => {
+  it("vaut simplement window.print() — plus de détour __tfcPrint (l'iframe de surcouche a été supprimée)", () => {
+    expect(EMBEDDED_PRINT_ONCLICK).toBe("window.print()");
   });
 });
 
@@ -268,25 +200,36 @@ describe("openPrintableHTML (iOS, surcouche interne) — le bouton Imprimer n'im
  * PDF via iPhone") — plusieurs boutons "Imprimer" (Briefing Jour J, Checklist
  * Coach) appellent `window.print()` directement sur la page affichée. Sur
  * iOS, quand l'app est installée sur l'écran d'accueil (mode standalone),
- * `window.print()` ne produit AUCUNE UI — ni dialogue, ni erreur — alors que
- * la même limitation avait déjà été identifiée et contournée pour les
- * rapports HTML générés (surcouche interne + repli Partager). `printCurrentDocument`
- * doit appliquer le même contournement à l'impression de la page en cours.
+ * `window.print()` ne produit AUCUNE UI — ni dialogue, ni erreur.
+ * `printCurrentDocument` doit appliquer un contournement à l'impression de
+ * la page en cours : remplacer le document COURANT (pas de nouvel onglet —
+ * le mode standalone ne garantit pas qu'une vraie fenêtre séparée s'ouvre)
+ * par un instantané statique de la page affichée, avec le même bouton
+ * Imprimer/Partager que les rapports générés.
  */
 describe("printCurrentDocument — impression de la page affichée (pas d'un rapport généré à part)", () => {
   const originalPlatform = navigator.platform;
   const originalUserAgent = navigator.userAgent;
   const originalPrint = window.print;
+  let writeSpy: ReturnType<typeof vi.spyOn>;
+  let openDocSpy: ReturnType<typeof vi.spyOn>;
+  let closeDocSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     window.print = vi.fn();
+    // `document.write` remplacerait réellement le DOM du test runner —
+    // on l'espionne sans l'exécuter, exactement ce qui est vérifié ici :
+    // QUE le code l'appelle, pas l'effet réel sur le document (couvert
+    // en conditions réelles par le test Playwright).
+    writeSpy = vi.spyOn(document, "write").mockImplementation(() => {});
+    openDocSpy = vi.spyOn(document, "open").mockImplementation(() => document as unknown as Window);
+    closeDocSpy = vi.spyOn(document, "close").mockImplementation(() => {});
   });
 
   afterEach(() => {
     Object.defineProperty(navigator, "platform", { value: originalPlatform, configurable: true });
     Object.defineProperty(navigator, "userAgent", { value: originalUserAgent, configurable: true });
     window.print = originalPrint;
-    document.getElementById("tfc-print-overlay")?.remove();
     vi.restoreAllMocks();
   });
 
@@ -300,10 +243,10 @@ describe("printCurrentDocument — impression de la page affichée (pas d'un rap
     printCurrentDocument("Test");
 
     expect(window.print).toHaveBeenCalledTimes(1);
-    expect(document.getElementById("tfc-print-overlay")).toBeNull();
+    expect(writeSpy).not.toHaveBeenCalled();
   });
 
-  it("sur iPhone en mode standalone (app installée), N'appelle PAS window.print() (no-op silencieux côté iOS) — bascule sur la surcouche interne à la place", () => {
+  it("sur iPhone en mode standalone (app installée), N'appelle PAS window.print() — remplace le document courant par un instantané imprimable", () => {
     Object.defineProperty(navigator, "platform", { value: "iPhone", configurable: true });
     Object.defineProperty(navigator, "userAgent", {
       value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
@@ -314,7 +257,10 @@ describe("printCurrentDocument — impression de la page affichée (pas d'un rap
     printCurrentDocument("Test");
 
     expect(window.print).not.toHaveBeenCalled();
-    expect(document.getElementById("tfc-print-overlay")).not.toBeNull();
+    expect(openDocSpy).toHaveBeenCalledTimes(1);
+    expect(writeSpy).toHaveBeenCalledTimes(1);
+    expect(closeDocSpy).toHaveBeenCalledTimes(1);
+    expect(String(writeSpy.mock.calls[0][0])).toContain('onclick="window.print()"');
   });
 
   it("sur iPhone en Safari normal (pas standalone), appelle window.print() directement (le dialogue natif fonctionne hors app installée)", () => {
@@ -328,6 +274,6 @@ describe("printCurrentDocument — impression de la page affichée (pas d'un rap
     printCurrentDocument("Test");
 
     expect(window.print).toHaveBeenCalledTimes(1);
-    expect(document.getElementById("tfc-print-overlay")).toBeNull();
+    expect(writeSpy).not.toHaveBeenCalled();
   });
 });
