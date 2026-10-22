@@ -41,10 +41,16 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
+import { auditedWorkoutMetadataFor } from "@/lib/workoutPhysiologyMetadata";
+import type { WorkoutTrainingLevel } from "@/types/workoutLibrary";
+
 /** Signal de niveau tel que reçu par buildWorkoutCatalog/runReconciler. */
 export interface BeginnerIntensitySignal {
   trainingLevel: string;
   trainingLevelSource: string;
+  weeklyHours?: number | null;
+  /** Décision explicite du coach, limitée aux IDs énumérés. */
+  approvedAdvancedSessionIds?: readonly string[];
 }
 
 /**
@@ -73,6 +79,12 @@ const LEVEL_PREREQUISITE_FICHE_IDS = new Set([
  */
 const RELIABLE_LEVEL_SOURCES = new Set(["manual", "auto-tss"]);
 const BEGINNER_LEVELS = new Set(["untrained", "light"]);
+const LEVEL_RANK: Readonly<Record<WorkoutTrainingLevel, number>> = {
+  untrained: 0,
+  light: 1,
+  trained: 2,
+  highly_trained: 3,
+};
 
 /**
  * `true` seulement si TOUTES ces conditions sont réunies :
@@ -89,9 +101,25 @@ export function isLevelPrerequisiteIncompatible(
   ficheId: string | null | undefined,
   signal: BeginnerIntensitySignal | null | undefined,
 ): boolean {
+  const id = String(ficheId || "").toUpperCase();
+  const auditedPrerequisites = auditedWorkoutMetadataFor(id)?.prerequisites;
+
+  if (signal?.approvedAdvancedSessionIds?.some(approved => approved.toUpperCase() === id)) {
+    return false;
+  }
+
+  if (auditedPrerequisites?.requireVerifiedProfile) {
+    if (!signal || !RELIABLE_LEVEL_SOURCES.has(signal.trainingLevelSource)) return true;
+    const actualRank = LEVEL_RANK[signal.trainingLevel as WorkoutTrainingLevel];
+    const requiredLevel = auditedPrerequisites.minimumTrainingLevel;
+    if (requiredLevel && (actualRank == null || actualRank < LEVEL_RANK[requiredLevel])) return true;
+    const minimumHours = auditedPrerequisites.minimumWeeklyHours;
+    if (minimumHours != null && (signal.weeklyHours == null || signal.weeklyHours < minimumHours)) return true;
+    return false;
+  }
+
   if (!signal) return false;
   if (!RELIABLE_LEVEL_SOURCES.has(signal.trainingLevelSource)) return false;
   if (!BEGINNER_LEVELS.has(signal.trainingLevel)) return false;
-  const id = String(ficheId || "").toUpperCase();
   return LEVEL_PREREQUISITE_FICHE_IDS.has(id);
 }

@@ -966,7 +966,11 @@ export function useAITrainingPlan() {
       // réel transmis au catalogue — jamais dérivé d'`ambition` (cf. JSDoc
       // `beginnerIntensitySignal`, workoutCatalogBuilder.ts).
       const beginnerIntensitySignal = planConfig.ambitionMeta
-        ? { trainingLevel: planConfig.ambitionMeta.trainingLevel, trainingLevelSource: planConfig.ambitionMeta.trainingLevelSource }
+        ? {
+            trainingLevel: planConfig.ambitionMeta.trainingLevel,
+            trainingLevelSource: planConfig.ambitionMeta.trainingLevelSource,
+            weeklyHours: planConfig.weeklyHours ?? null,
+          }
         : null;
 
       for (let i = 0; i < phaseRanges.length; i++) {
