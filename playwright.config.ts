@@ -37,6 +37,10 @@ export default defineConfig({
     {
       name: "Mobile Safari",
       use: { ...devices["iPhone 13"] },
+      // page.pdf() (Page.printToPDF) n'est supporté que par Chromium — ce
+      // spec vérifie le PDF produit par le moteur d'impression du
+      // navigateur, impossible à exercer sous WebKit via Playwright.
+      testIgnore: /print-plan-export\.spec\.ts/,
     },
   ],
   webServer: {
