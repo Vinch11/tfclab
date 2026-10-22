@@ -232,7 +232,7 @@ function removePrintOnlyStyle(): void {
   document.getElementById(PRINT_OVERLAY_STYLE_ID)?.remove();
 }
 
-function openInlineOverlay(html: string, filenameHint?: string, errorNote?: string): void {
+function openInlineOverlay(html: string, filenameHint?: string): void {
   const existing = document.getElementById("tfc-print-overlay");
   if (existing) existing.remove();
   removePrintOnlyStyle();
@@ -285,19 +285,6 @@ function openInlineOverlay(html: string, filenameHint?: string, errorNote?: stri
     hint.textContent = "📱 Depuis l'app installée, \"Imprimer\" peut ne rien faire (limitation iOS). Utilise plutôt \"Partager\" → Enregistrer dans Fichiers, puis ouvre le fichier et imprime/exporte en PDF depuis là.";
     hint.style.cssText =
       "flex:0 0 auto;padding:6px 12px;font-size:11.5px;line-height:1.4;color:#7a4b00;background:#fff6e5;border-bottom:1px solid rgba(0,0,0,.08);";
-  }
-
-  // Diagnostic : la génération PDF directe (iosPdfExport.ts) échouait
-  // silencieusement en production (erreur avalée par un `if
-  // (import.meta.env.DEV)`), donc impossible de savoir POURQUOI sans accès
-  // à un vrai iPhone. On affiche désormais le message d'erreur réel ici,
-  // visible et copiable par le coach, pour pouvoir enfin corriger la vraie
-  // cause au lieu de deviner.
-  const errorHint = document.createElement("div");
-  if (errorNote) {
-    errorHint.textContent = `⚠️ Génération PDF directe indisponible (${errorNote}). Aperçu imprimable ci-dessous à la place.`;
-    errorHint.style.cssText =
-      "flex:0 0 auto;padding:6px 12px;font-size:11px;line-height:1.4;color:#7a1f1f;background:#fdeceb;border-bottom:1px solid rgba(0,0,0,.08);user-select:text;-webkit-user-select:text;";
   }
 
   // iOS Safari ne scrolle pas à l'intérieur d'une iframe : on l'étire à la
@@ -405,7 +392,6 @@ function openInlineOverlay(html: string, filenameHint?: string, errorNote?: stri
 
   bar.append(title, printBtn, ...(canShareFiles ? [shareBtn] : []), closeBtn);
   overlay.append(bar);
-  if (errorHint.textContent) overlay.append(errorHint);
   if (hint.textContent) overlay.append(hint);
   stage.append(frame);
   scroller.append(stage);
@@ -476,40 +462,27 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
     ? withViewport
     : withPrintHelper(withViewport, options.filenameHint);
 
-  // Historique complet (voir AGENTS.md / commentaires de iosPdfExport.ts
-  // pour le détail) : QUATRE mécanismes d'impression native sur iOS ont
-  // chacun échoué de façon catastrophique, par des causes différentes —
-  // document.write (pagination qui explose), navigation blob: HTML (onglet
-  // qui n'affiche que l'entête), et même la surcouche interne une fois ces
-  // deux-là écartés (boucle de rétroaction de hauteur mesurée à plus de
-  // 280 000px pour un document réel d'environ 18 000px, corrigée, puis
-  // retour coach : "dossier de 430 pages blanches" à l'impression malgré
-  // cette correction — cause non identifiée, probablement interne au
-  // moteur d'impression de Mobile Safari lui-même).
+  // Décision coach explicite (2026-10-22) : plus jamais de génération de
+  // fichier PDF PAR L'APPLICATION (html2canvas + jsPDF, module dédié
+  // supprimé) — y compris sur iOS. Le parcours doit toujours être : ouvrir
+  // une page HTML dédiée affichant l'intégralité du plan, puis un bouton
+  // "Imprimer / Enregistrer en PDF" qui utilise l'impression NATIVE du
+  // navigateur (jamais une étape de "préparation du PDF" par l'app).
   //
-  // Seule la génération PDF par capture d'écran (html2canvas, jsPDF) a été
-  // PROUVÉE fonctionner par un test réel (Playwright+Chromium, module
-  // bundlé tel quel, pas une réplique) : contenu complet et correct sur
-  // les 14 pages d'un rapport réel, de façon reproductible. Son seul
-  // défaut réel (pas de marges) est maintenant corrigé (marge de 12mm sur
-  // chaque page). Elle redevient donc le chemin principal sur iOS — un
-  // résultat fonctionnel avec des marges est strictement préférable à une
-  // impression "native" qui produit des centaines de pages vides. Repli
-  // sur la surcouche interne (elle aussi fiabilisée entre-temps) en cas
-  // d'échec de la génération.
+  // Historique (voir AGENTS.md pour le détail complet) : avant cette
+  // décision, plusieurs mécanismes d'impression native sur iOS avaient
+  // chacun échoué de façon catastrophique (document.write : pagination qui
+  // explose ; navigation blob: HTML : onglet qui n'affiche que l'entête ;
+  // boucle de rétroaction de hauteur dans la surcouche : corrigée) — ce qui
+  // avait motivé la génération PDF par capture d'écran comme contournement.
+  // La surcouche interne ci-dessous a depuis été fiabilisée indépendamment
+  // (hauteur mesurée correctement, scale neutralisé avant impression,
+  // repli "Partager" si l'impression échoue) : elle reste le même document
+  // HTML que celui ouvert dans un onglet sur desktop, juste présenté en
+  // plein écran avec son propre bouton Imprimer — exactement ce que la
+  // consigne demande, sans reconstruire de nouveau système d'affichage.
   if (isIOSDevice()) {
-    import("@/lib/print/iosPdfExport")
-      .then(({ exportPdfOnIOS }) => exportPdfOnIOS(finalHtml, options.filenameHint))
-      .catch((err) => {
-        if (import.meta.env.DEV) console.error("[iosPdfExport]", err);
-        // Diagnostic : cette génération a échoué à chaque test réel
-        // rapporté par le coach (toujours un repli sur cette surcouche,
-        // jamais l'écran "PDF prêt" attendu), sans qu'on sache pourquoi —
-        // l'erreur était avalée silencieusement en production. Affichée
-        // ici en clair pour casser ce cycle de corrections à l'aveugle.
-        const message = err instanceof Error ? err.message : String(err);
-        openInlineOverlay(finalHtml, options.filenameHint, message);
-      });
+    openInlineOverlay(finalHtml, options.filenameHint);
     return;
   }
 

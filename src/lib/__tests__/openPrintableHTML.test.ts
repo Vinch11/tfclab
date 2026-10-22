@@ -1,21 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { openPrintableHTML, printCurrentDocument, EMBEDDED_PRINT_ONCLICK } from "../openPrintableHTML";
-
-// Sur iOS, openPrintableHTML essaie d'abord la génération PDF native
-// (src/lib/print/iosPdfExport.ts, dynamic import — html2canvas + jsPDF,
-// seul mécanisme PROUVÉ fonctionnel par rendu réel après l'échec répété de
-// plusieurs mécanismes d'impression native, cf. le commentaire au-dessus de
-// l'appel dans openPrintableHTML.ts) avant de retomber sur la surcouche
-// interne. On contrôle ce mock par test (résolu = succès, rejeté = repli
-// sur la surcouche) — ces tests couvrent l'orchestration et la surcouche,
-// pas la génération PDF elle-même (testée séparément via de vrais rendus
-// Playwright/Chromium, html2canvas n'étant pas simulable fidèlement en
-// jsdom).
-vi.mock("@/lib/print/iosPdfExport", () => ({
-  exportPdfOnIOS: vi.fn(),
-}));
-import { exportPdfOnIOS } from "@/lib/print/iosPdfExport";
-const mockedExportPdfOnIOS = vi.mocked(exportPdfOnIOS);
 
 /**
  * Bug réel (retour coach : "dès que je veux imprimer un document en PDF j'ai
@@ -102,31 +88,17 @@ describe("openPrintableHTML — ouverture popup pour impression/PDF", () => {
 });
 
 /**
- * Sur iOS, `openPrintableHTML` essaie d'abord la génération PDF native
- * (html2canvas + jsPDF, src/lib/print/iosPdfExport.ts), avec repli sur la
- * surcouche interne si ça échoue.
- *
- * Historique (plusieurs mécanismes d'impression native essayés tour à
- * tour, chacun ayant échoué de façon catastrophique pour une cause
- * différente — voir le commentaire au-dessus de l'appel dans
- * openPrintableHTML.ts) :
- * 1. Capture d'écran en priorité un temps — retour coach : "mise en page
- *    catastrophique, pas de marges, pas de saut de page". Corrigé depuis
- *    (marges ajoutées) — c'est la génération testée ici.
- * 2. `window.open("", "_blank")` + `document.write(...)` → "PDF de 400
- *    pages avec juste une entête".
- * 3. Navigation vers une URL blob: de type text/html → "le pdf s'ouvre
- *    mais il n'y a que l'entête".
- * 4. Surcouche interne seule (sans la génération PDF en priorité) → boucle
- *    de rétroaction de hauteur (corrigée), puis malgré cette correction :
- *    "dossier de 430 pages blanches" à l'impression — cause non identifiée,
- *    probablement interne au moteur d'impression de Mobile Safari.
- *
- * La génération par capture d'écran est la SEULE approche prouvée
- * fonctionner par un rendu réel (Playwright/Chromium, module bundlé tel
- * quel) de façon reproductible.
+ * Décision coach explicite (2026-10-22) : plus jamais de génération de
+ * fichier PDF PAR L'APPLICATION (html2canvas + jsPDF, ex-iosPdfExport.ts,
+ * supprimé) — y compris sur iOS. "Préparation du PDF" (l'étape que ce
+ * mécanisme affichait) ne doit plus jamais apparaître : le parcours doit
+ * toujours être page HTML dédiée affichant l'intégralité du plan + bouton
+ * "Imprimer / Enregistrer en PDF" qui déclenche l'impression NATIVE du
+ * navigateur. Ce test vérifie qu'iOS bascule désormais IMMÉDIATEMENT et
+ * SYNCHRONEMENT sur la surcouche interne (même document HTML que le reste
+ * de l'app, cf. PR #390) — jamais de détour par une génération de fichier.
  */
-describe("openPrintableHTML (iOS) — génère le PDF nativement (iosPdfExport), surcouche seulement si ça échoue", () => {
+describe("openPrintableHTML (iOS) — aucune génération de PDF par l'application, bascule directe sur la surcouche HTML", () => {
   const originalUserAgent = navigator.userAgent;
   const originalPlatform = navigator.platform;
 
@@ -136,7 +108,6 @@ describe("openPrintableHTML (iOS) — génère le PDF nativement (iosPdfExport),
       value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
       configurable: true,
     });
-    mockedExportPdfOnIOS.mockReset();
   });
 
   afterEach(() => {
@@ -146,40 +117,28 @@ describe("openPrintableHTML (iOS) — génère le PDF nativement (iosPdfExport),
     vi.restoreAllMocks();
   });
 
-  it("appelle exportPdfOnIOS avec le document préparé et n'affiche PAS la surcouche interne", async () => {
-    mockedExportPdfOnIOS.mockResolvedValue(undefined);
-
+  it("affiche immédiatement la surcouche HTML (pas d'étape « Préparation du PDF », pas de détour asynchrone)", () => {
     openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
 
-    await vi.waitFor(() => expect(mockedExportPdfOnIOS).toHaveBeenCalledTimes(1));
-    expect(mockedExportPdfOnIOS.mock.calls[0][0]).toContain("Rapport");
-    expect(mockedExportPdfOnIOS.mock.calls[0][1]).toBe("Test");
-    expect(document.getElementById("tfc-print-overlay")).toBeNull();
+    // Synchrone : pas de vi.waitFor nécessaire — contrairement à l'ancien
+    // chemin (import dynamique + génération async), la surcouche apparaît
+    // dans le même tick que l'appel.
+    const overlay = document.getElementById("tfc-print-overlay");
+    expect(overlay).not.toBeNull();
+    expect(overlay?.textContent).not.toContain("Préparation du PDF");
   });
 
-  it("si exportPdfOnIOS échoue, bascule sur la surcouche interne", async () => {
-    mockedExportPdfOnIOS.mockRejectedValue(new Error("échec simulé"));
+  it("le document affiché dans la surcouche contient bien le plan transmis (même HTML que le reste de l'app, pas de reconstruction)", () => {
+    openPrintableHTML("<html><body>Rapport Semaine 34</body></html>", { filenameHint: "Test" });
 
-    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
-
-    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
+    const frame = document.querySelector<HTMLIFrameElement>(".tfc-print-frame");
+    expect(frame).not.toBeNull();
   });
 
-  /**
-   * Bug réel : cette génération échouait silencieusement en production sur
-   * chaque test réel du coach (toujours un repli sur la surcouche, jamais
-   * l'écran "PDF prêt" attendu) — mais l'erreur n'était loguée qu'en dev
-   * (`if (import.meta.env.DEV)`), impossible donc de savoir POURQUOI sans
-   * accès à un vrai iPhone. Le message d'erreur réel doit être visible dans
-   * la surcouche de repli pour casser ce cycle de corrections à l'aveugle.
-   */
-  it("affiche le message d'erreur réel dans la surcouche de repli", async () => {
-    mockedExportPdfOnIOS.mockRejectedValue(new Error("raison précise de l'échec"));
-
-    openPrintableHTML("<html><body>Rapport</body></html>", { filenameHint: "Test" });
-
-    await vi.waitFor(() => expect(document.getElementById("tfc-print-overlay")).not.toBeNull());
-    expect(document.getElementById("tfc-print-overlay")?.textContent).toContain("raison précise de l'échec");
+  it("n'importe plus jamais le module de génération PDF (html2canvas/jsPDF) — supprimé, aucun code ne doit plus y faire référence", () => {
+    const source = readFileSync(join(__dirname, "../openPrintableHTML.ts"), "utf-8");
+    expect(source).not.toContain("iosPdfExport");
+    expect(source).not.toContain("exportPdfOnIOS");
   });
 });
 
@@ -209,11 +168,6 @@ describe("openPrintableHTML (iOS, surcouche interne) — le bouton Imprimer n'im
       configurable: true,
     });
     window.print = vi.fn();
-    // iOS essaie d'abord la génération PDF native (exportPdfOnIOS) avant de
-    // retomber sur la surcouche interne — on simule un échec pour exercer ce
-    // repli, celui que ces tests couvrent.
-    mockedExportPdfOnIOS.mockReset();
-    mockedExportPdfOnIOS.mockRejectedValue(new Error("échec simulé"));
   });
 
   afterEach(() => {
