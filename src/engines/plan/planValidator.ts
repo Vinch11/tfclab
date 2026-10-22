@@ -19,7 +19,7 @@ import { extractCatalogId, extractAllCatalogIds } from "@/lib/catalogIdExtractor
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { HIGH_IMPACT_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
-import { computeGoalWeekFromDates } from "@/lib/plan/multiObjectiveClassification";
+import { computeGoalWeekFromDates, classifyMultiObjectiveGoalsClient, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 import { detectInterval, detectAllIntervals, isCyclingSession } from "./wbalPostProcessor";
 import {
   analyzeCriticalPower,
@@ -28,6 +28,9 @@ import {
   calculateTau,
 } from "@/lib/v2/criticalPowerModel";
 import { LIMITER_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
+import { normalizeAmb, mapObjectiveToSport, VOLUME_CAP_MATRIX } from "@/lib/deriveRaceTargets";
+import { AMBITIONS } from "@/lib/raceAnalysis";
+import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -109,6 +112,31 @@ export interface WeekMetrics {
   keyDurationMin: number;
   /** F-23: Number of sessions with a parseable duration (sample size) */
   sessionsWithDuration: number;
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026) : durée (min) de
+   * la séance la PLUS LONGUE de la semaine, par discipline (mêmes clés que
+   * `sports`/`keySessionsBySport`) — distinct de `totalDurationMin` (somme).
+   * Alimente `validateLongSessionProgression` : rien ne suivait jusqu'ici
+   * l'évolution semaine après semaine de la sortie longue (le facteur de
+   * risque de surcharge le plus documenté), seulement le volume agrégé.
+   * 0 si la discipline est absente cette semaine ou si aucune durée n'a pu
+   * être extraite du texte (pas de distinction — les deux cas sont exclus
+   * de la comparaison par la règle elle-même, cf. plus bas).
+   */
+  longestSessionMinBySport: Record<string, number>;
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #A (demande
+   * coach) : SOMME des durées réelles de la semaine par discipline (mêmes
+   * clés que `sports`) — distinct de `longestSessionMinBySport` (la PLUS
+   * LONGUE séance seule). Alimente `validateTaperVolumeReduction` : vérifier
+   * qu'un affûtage réduit réellement le volume PAR DISCIPLINE (pas
+   * seulement le volume agrégé, qui peut masquer une discipline qui ne
+   * baisse pas du tout). 0 si aucune durée n'a pu être extraite — ne
+   * distingue pas "discipline absente" de "durée non parseable", comme
+   * `longestSessionMinBySport` (même choix, même raison : exclu de toute
+   * comparaison par la règle elle-même plutôt que de deviner).
+   */
+  durationMinBySport: Record<string, number>;
 }
 
 export interface LimiterCoverageItem {
@@ -228,6 +256,14 @@ export interface LorangCategoryDistribution {
 export interface SessionDensityConfig {
   sessionsPerWeek?: number;    // cible coach
   maxSessionsPerDay?: number;  // plafond coach (défaut 2)
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E : plafond
+   * explicite du nombre de journées à ≥2 séances actives/jour, PAR SEMAINE
+   * — distinct de `maxSessionsPerDay` (qui plafonne un jour donné, pas le
+   * nombre de jours doubles). Coach-déclaré, jamais déduit automatiquement.
+   * Omis = contrôle inactif (comportement inchangé).
+   */
+  maxDoubleDaysPerWeek?: number;
 }
 
 export type LimiterGapLike = {
@@ -753,12 +789,17 @@ function extractWeekMetrics(
   let keyDurationMin = 0;
   let sessionsWithDuration = 0;
   let low = 0, mid = 0, high = 0, unknown = 0;
+  const longestSessionMinBySport: Record<string, number> = {};
+  const durationMinBySport: Record<string, number> = {};
   for (const s of activeSessions) {
     const d = parseSessionDurationMin(s);
     if (d !== null && d > 0) {
       totalDurationMin += d;
       sessionsWithDuration++;
       if (isKeySession(s)) keyDurationMin += d;
+      const sport = normalizeSport(s.sport);
+      longestSessionMinBySport[sport] = Math.max(longestSessionMinBySport[sport] || 0, d);
+      durationMinBySport[sport] = (durationMinBySport[sport] || 0) + d;
     }
     const zoneMinutes = estimateSessionZoneMinutes(s, d);
     low += zoneMinutes.low;
@@ -795,6 +836,8 @@ function extractWeekMetrics(
     totalDurationMin,
     keyDurationMin,
     sessionsWithDuration,
+    longestSessionMinBySport,
+    durationMinBySport,
   };
 }
 
@@ -1130,6 +1173,59 @@ export function demandingSessionCap(activeCount: number): number {
   return Math.max(1, Math.floor(activeCount / 2));
 }
 
+/**
+ * Dernière correction ciblée (consigne coach explicite, contre-vérification
+ * Codex sur b691980), point B — INTENSITÉ : "STRUCTURE AMBITION (non
+ * négociable)" (promptHelpers.ts) impose un nombre fixe de qualités/semaine
+ * selon l'ambition (ex. 3 pour "elite") — SEULEMENT dans le prompt envoyé au
+ * modèle, sans jamais être vérifié sur le plan RÉELLEMENT généré, ni adapté
+ * au type de semaine réellement programmée. Rien n'empêchait jusqu'ici une
+ * semaine `scheduledWeekType==="recovery"` d'hériter du même nombre de
+ * séances exigeantes qu'une semaine de charge — une semaine de récupération
+ * doit réduire charge ET intensité ensemble, pas seulement le volume.
+ *
+ * Ne reformule PAS le prompt (déjà fait, Correction P0-2) : contrôle le
+ * RÉSULTAT réellement généré, seule garantie fiable contre un LLM qui
+ * n'applique pas la nuance demandée dans le texte d'instruction.
+ *
+ * Réutilise `isGenuinelyDemandingSession` (même classifieur que
+ * `validateDemandingSessionAccumulation`/`validateWeeklyHardDayDensity` —
+ * jamais une 2e définition de "séance exigeante" qui risquerait de diverger).
+ * Seuil volontairement bas (>1) : une semaine de récupération peut
+ * légitimement garder UNE touche d'intensité courte (maintien neuromusculaire),
+ * jamais 2 ou plus — au-delà, ce n'est plus une semaine de récupération.
+ */
+const RECOVERY_WEEK_DEMANDING_SESSIONS_CAP = 1;
+
+function validateRecoveryWeekIntensity(
+  plan: ParsedPlan,
+  weekMetrics: WeekMetrics[],
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const weekTypeByNumber = new Map(weekMetrics.map((m) => [m.weekNumber, m.scheduledWeekType]));
+  let compliant = 0;
+  let checked = 0;
+  for (const week of plan.weeks) {
+    if (weekTypeByNumber.get(week.weekNumber) !== "recovery") continue;
+    const active = week.sessions.filter((s) => !s.isRest);
+    if (active.length === 0) continue;
+    checked++;
+    const demanding = active.filter((s) => isGenuinelyDemandingSession(s));
+    if (demanding.length > RECOVERY_WEEK_DEMANDING_SESSIONS_CAP) {
+      issues.push({
+        rule: "recovery_week_intensity",
+        severity: "error",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: ${demanding.length} séance(s) exigeante(s) ("${demanding.map((s) => s.title).join('", "')}") pendant une semaine de RÉCUPÉRATION — incompatible avec ce type de semaine (max ${RECOVERY_WEEK_DEMANDING_SESSIONS_CAP} toléré).`,
+        detail: `Le nombre de qualités/semaine fixé par l'ambition ("STRUCTURE AMBITION") ne doit jamais s'appliquer tel quel à une semaine de récupération — charge ET intensité doivent baisser ensemble, pas seulement le volume.`,
+      });
+    } else {
+      compliant++;
+    }
+  }
+  return { issues, score: checked === 0 ? 100 : Math.max(0, Math.min(100, Math.round((compliant / checked) * 100))) };
+}
+
 export interface TrainingLevelSignal {
   trainingLevel: string;
   trainingLevelSource: string;
@@ -1415,7 +1511,15 @@ function validateKeySessions(
     compliant += weekCompliant;
   }
 
-  const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek).length || 1;
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : la boucle
+  // ci-dessus exclut déjà chaque semaine via `isDeloadOrTaperForKeySessions`
+  // (Fix A7, weekType réellement calculé) — mais ce dénominateur recalculait
+  // l'exclusion sur le `m.isDeload` brut (texte OU ≤3 séances), une
+  // définition PLUS LARGE. Une semaine "load" compressée à ≤3 séances (pas
+  // un vrai déload) contribuait alors à `compliant` (boucle, définition
+  // étroite) sans jamais compter dans `total` (ici, définition large) :
+  // score potentiellement >100% / incohérent pour un plan à faible volume.
+  const total = metrics.filter(m => !m.isContentOrScheduleDeload && !m.isRaceWeek).length || 1;
   return { issues, score: Math.max(0, Math.min(100, Math.round((compliant / total) * 100))) };
 }
 
@@ -1425,7 +1529,22 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 
   if (metrics.length < 3) return { issues: [], score: 100 };
 
-  const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #5 (découvert en
+  // écrivant un test réel du comportement d'affûtage Ironman) : le message
+  // de cette règle dit lui-même "hors semaines de décharge ET taper", mais
+  // `loadWeeks` ne filtrait que sur `isDeload` (texte OU activeSessions<=3)
+  // — une semaine de taper RÉELLE (3 semaines pour IM, scheduledWeekType
+  // correctement calculé par position) mais dont le champ `phase` n'a pas
+  // (encore) été relabellisé "taper"/"Affûtage" par la génération (même
+  // classe de bug que taperVolumeOverride.ts, commentaire "C1" : seule la
+  // dernière semaine de taper est parfois correctement étiquetée) restait
+  // comptée ici. Un affûtage IM réel et bien formé (volume qui baisse
+  // légitimement sur 3 semaines) se faisait alors signaler à tort "Volume en
+  // baisse" — repro exacte dans planValidator.imTaper.test.ts. `isContentOrS
+  // choleDeload` (déjà utilisé par validatePolarization/validateSportRatio/
+  // le saut brusque ci-dessous) exclut ces semaines sur la base du planning
+  // RÉELLEMENT calculé à la génération, pas du texte.
+  const loadWeeks = metrics.filter(m => !m.isContentOrScheduleDeload && !m.isRaceWeek);
   if (loadWeeks.length < 3) return { issues: [], score: 100 };
 
   // F-23: prefer real weekly duration if coverage is decent (≥60% sessions parsed)
@@ -1452,10 +1571,17 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
   }
 
   // Sudden jumps (> +30% week to week)
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : `isDeload`
+  // (texte OU activeSessions<=3) exemptait à tort cette vérification pour
+  // toute semaine à ≤3 séances, même chargée (pas un vrai déload) — exactement
+  // le profil à faible fréquence des nouveaux athlètes. `prev.activeSessions
+  // < 3` juste après reste un plancher de bruit DIFFÉRENT et toujours
+  // légitime (une variation en % n'est pas fiable sur de très petits nombres
+  // absolus) — conservé tel quel, seule l'identification du déload change.
   for (let i = 1; i < metrics.length; i++) {
     const prev = metrics[i - 1];
     const curr = metrics[i];
-    if (prev.isDeload || curr.isDeload || curr.isRaceWeek || prev.activeSessions < 3) continue;
+    if (prev.isContentOrScheduleDeload || curr.isContentOrScheduleDeload || curr.isRaceWeek || prev.activeSessions < 3) continue;
 
     const prevVol = volumeOf(prev);
     const currVol = volumeOf(curr);
@@ -1494,6 +1620,666 @@ function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[
 
   const progressionOk = avgLast >= avgFirst * 0.85 && issues.filter(i => i.severity === "error").length === 0;
   return { issues, score: progressionOk ? 90 : 60 };
+}
+
+/**
+ * Progression de la sortie longue — correction sprint qualité Marathon/
+ * Ironman (oct. 2026). `validateProgression` ci-dessus ne regarde que le
+ * volume AGRÉGÉ de la semaine ; rien ne suivait l'évolution de la séance la
+ * PLUS LONGUE d'une discipline donnée — le facteur de risque de surcharge le
+ * plus documenté (course à pied comme vélo/triathlon longue distance) et
+ * explicitement demandé par le coach pour Marathon (course) et Ironman
+ * (vélo ET course séparément).
+ *
+ * Avertissement seulement (pas bloquant) pour ce premier lot de correctifs :
+ * un faux positif mal calibré sous pression de délai serait pire qu'un
+ * contrôle encore permissif — cf. plan d'exécution 5 jours. Seuil +20%
+ * dérivé de la même marge de sécurité déjà citée dans ce fichier et dans le
+ * prompt (ACWR ≤ 1.3, Gabbett) pour la rampe de volume globale — plus
+ * tolérant que le +10% strict de la rampe Sem 1-2 (une seule séance varie
+ * naturellement plus que le volume total), mais plus strict que le +35%
+ * déjà utilisé par `validateProgression` pour le volume agrégé (c'est
+ * justement l'élément le plus à risque, pas l'ensemble de la semaine).
+ * Calibrage ouvert à révision coach — ce n'est pas un seuil qu'aucune
+ * donnée réelle n'est encore venue confirmer.
+ *
+ * N'utilise PAS `isDeload` (motif encore défectueux à plusieurs endroits de
+ * ce fichier, cf. correction dédiée) mais directement
+ * `isContentOrScheduleDeload`, déjà correct, pour cette règle neuve.
+ */
+const LONG_SESSION_JUMP_WARNING_PCT = 0.20;
+const LONG_SESSION_MIN_BASELINE_MIN = 30; // ignore le bruit sous ~30min (pas une "sortie longue")
+
+function validateLongSessionProgression(
+  metrics: WeekMetrics[],
+  objective?: string | null,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (metrics.length < 3) return { issues: [], score: 100 };
+
+  const objKey = normalizeObjectiveKey(objective || "");
+  const isTriathlon = TRIATHLON_OBJECTIVE_KEYS.has(objKey);
+  // Marathon/Semi/10K/5K/Trail*/StartToRun : seule la sortie longue course
+  // compte. IM/70.3/Sprint/Olympic : vélo ET course, suivies séparément —
+  // une progression saine du vélo ne compense pas une sortie longue course
+  // qui s'allonge trop vite (fatigue croisée), et inversement.
+  const sportsToTrack = isTriathlon ? ["Vélo", "Course"] : ["Course"];
+
+  const loadWeeksCount = metrics.filter(m => !m.isContentOrScheduleDeload && !m.isRaceWeek).length;
+  if (loadWeeksCount < 3) return { issues: [], score: 100 };
+
+  // Comme validateProgression : on NE comble PAS le trou d'une semaine de
+  // décharge/course en comparant les deux semaines de charge qui l'encadrent
+  // comme si elles étaient consécutives — une paire touchant un déload/une
+  // course est simplement ignorée, pas pontée (un retour de volume normal
+  // après déload ne doit pas être confondu avec un saut dangereux).
+  let worstJump = 0;
+  for (const sport of sportsToTrack) {
+    for (let i = 1; i < metrics.length; i++) {
+      const prev = metrics[i - 1];
+      const curr = metrics[i];
+      if (prev.isContentOrScheduleDeload || curr.isContentOrScheduleDeload || prev.isRaceWeek || curr.isRaceWeek) continue;
+
+      const prevMin = prev.longestSessionMinBySport[sport] || 0;
+      const currMin = curr.longestSessionMinBySport[sport] || 0;
+      if (prevMin < LONG_SESSION_MIN_BASELINE_MIN || currMin === 0) continue;
+
+      const jump = (currMin - prevMin) / prevMin;
+      if (jump > LONG_SESSION_JUMP_WARNING_PCT) {
+        worstJump = Math.max(worstJump, jump);
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: curr.weekNumber,
+          message: `S${curr.weekNumber}: sortie longue ${sport} +${Math.round(jump * 100)}% vs S${prev.weekNumber} (${prevMin}min → ${currMin}min)`,
+          detail: `Progression de la sortie longue recommandée ≤${Math.round(LONG_SESSION_JUMP_WARNING_PCT * 100)}%/semaine (marge de sécurité, calibrage ouvert à révision coach) — c'est l'élément le plus associé au risque de surcharge, distinct du volume hebdomadaire agrégé déjà vérifié par ailleurs.`,
+        });
+      }
+    }
+  }
+
+  const score = worstJump === 0 ? 100 : worstJump > 0.50 ? 60 : 80;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #A (demande coach
+ * explicite, suite au sprint qualité initial) : vérifie le volume RÉELLEMENT
+ * PRESCRIT (durées extraites du texte, `durationMinBySport`/`totalDurationMin`
+ * — jamais le libellé "Affûtage"/la phase déclarée) pendant les semaines
+ * d'affûtage (taper + semaine de course, cf. `scheduledWeekType`) — distinct
+ * de `validateLongSessionProgression` (sortie longue, hausse dangereuse) et
+ * de `validateProgression` (tendance globale sur le PLAN ENTIER) : ici, le
+ * contrôle est RESTREINT à la fenêtre d'affûtage elle-même et vérifie une
+ * BAISSE réelle, discipline par discipline, pas juste l'absence de hausse.
+ *
+ * Volontairement AUTO-RÉFÉRENCÉ (jamais un pourcentage universel) :
+ * - « volume antérieur » : moyenne ET minimum des semaines de charge
+ *   (scheduledWeekType==="load") qui précèdent IMMÉDIATEMENT l'affûtage de
+ *   CE plan — jamais une cible externe. Deux athlètes au même niveau mais
+ *   des volumes différents ont donc des bornes différentes, calculées
+ *   depuis LEUR propre plan.
+ * - « répartition des disciplines » : Natation/Vélo/Course vérifiées
+ *   SÉPARÉMENT (une baisse vélo ne masque jamais une natation figée).
+ * - « niveau de l'athlète » : honoré PAR CONSTRUCTION — en comparant
+ *   chaque athlète uniquement à ses propres semaines précédentes (jamais à
+ *   un autre athlète ni à un volume absolu externe), le contrôle s'adapte
+ *   automatiquement à n'importe quel volume hebdomadaire, du Finisher à
+ *   l'Elite/World Class, sans qu'aucun seuil numérique n'ait besoin d'être
+ *   différent selon le niveau déclaré.
+ *
+ * Deux signaux, jamais une correction automatique (lecture seule, comme
+ * tout ce fichier) :
+ *  1. Par discipline, sur CHAQUE semaine d'affûtage : le volume ne doit pas
+ *     être ≥ (avec une marge de 5% pour le bruit d'extraction de texte) la
+ *     moyenne récente de CETTE discipline — sinon elle n'a tout simplement
+ *     pas été réduite.
+ *  2. Sur la DERNIÈRE semaine d'affûtage (la plus proche de la course) :
+ *     le volume total doit être strictement inférieur à la PLUS LÉGÈRE des
+ *     semaines de charge récentes — un affûtage dont la dernière semaine
+ *     porte encore plus de volume que la semaine la plus légère du bloc
+ *     précédent n'est pas un affûtage, quel que soit le niveau ou la
+ *     répartition.
+ */
+const TAPER_VOLUME_PRIOR_LOOKBACK_WEEKS = 4;
+const TAPER_VOLUME_NOISE_TOLERANCE = 1.05; // 5% — bruit d'extraction de texte, pas un seuil physiologique
+
+function validateTaperVolumeReduction(
+  metrics: WeekMetrics[],
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  const taperWindow = metrics.filter(
+    m => m.scheduledWeekType === "taper" || m.scheduledWeekType === "race",
+  );
+  if (taperWindow.length === 0) return { issues: [], score: 100 };
+
+  const firstTaperIdx = metrics.findIndex(m => m === taperWindow[0]);
+  const priorWeeks: WeekMetrics[] = [];
+  for (let i = firstTaperIdx - 1; i >= 0 && priorWeeks.length < TAPER_VOLUME_PRIOR_LOOKBACK_WEEKS; i--) {
+    if (metrics[i].scheduledWeekType !== "load") break; // s'arrête à la 1ère semaine non "charge" (décharge, autre bloc d'affûtage...)
+    priorWeeks.unshift(metrics[i]);
+  }
+  // Pas assez de semaines de charge de référence juste avant l'affûtage —
+  // s'abstenir plutôt que deviner (même logique que primaryTotal<10 ailleurs
+  // dans ce fichier : silence honnête, pas un signal fabriqué).
+  if (priorWeeks.length < 2) return { issues: [], score: 100 };
+
+  const priorAvgTotal = priorWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / priorWeeks.length;
+  const priorMinTotal = Math.min(...priorWeeks.map(w => w.totalDurationMin));
+  if (priorAvgTotal <= 0) return { issues: [], score: 100 }; // aucune durée exploitable sur la référence — rien à comparer
+
+  const sportsTracked = ["Natation", "Vélo", "Course"];
+  const priorAvgBySport: Record<string, number> = {};
+  for (const sport of sportsTracked) {
+    const avg = priorWeeks.reduce((s, w) => s + (w.durationMinBySport[sport] || 0), 0) / priorWeeks.length;
+    if (avg > 0) priorAvgBySport[sport] = avg;
+  }
+
+  for (const wm of taperWindow) {
+    for (const sport of Object.keys(priorAvgBySport)) {
+      const weekVal = wm.durationMinBySport[sport] || 0;
+      const prior = priorAvgBySport[sport];
+      if (weekVal >= prior * TAPER_VOLUME_NOISE_TOLERANCE) {
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: wm.weekNumber,
+          message: `S${wm.weekNumber}: volume ${sport} pendant l'affûtage non réduit (${weekVal}min vs moyenne récente ${Math.round(prior)}min)`,
+          detail: `Semaine d'affûtage (${wm.scheduledWeekType}) — le volume réel de cette discipline reste au niveau (ou au-dessus) des semaines de charge qui précèdent, mesuré sur CE plan (pas un seuil externe). Vérifie que la réduction annoncée par le thème/la phase de la semaine correspond au contenu réellement prescrit.`,
+        });
+      }
+    }
+  }
+
+  const lastTaperWeek = taperWindow[taperWindow.length - 1];
+  if (lastTaperWeek.totalDurationMin >= priorMinTotal) {
+    issues.push({
+      rule: "progression",
+      severity: "warning",
+      week: lastTaperWeek.weekNumber,
+      message: `S${lastTaperWeek.weekNumber}: volume total de la dernière semaine d'affûtage (${lastTaperWeek.totalDurationMin}min) pas clairement inférieur à la semaine de charge la plus légère récente (${Math.round(priorMinTotal)}min)`,
+      detail: `Même la semaine de charge la plus légère du bloc précédent (sur CE plan) porte autant ou plus de volume que la dernière semaine d'affûtage avant la course — l'affûtage n'est pas visible dans le contenu réellement prescrit, quel que soit le niveau de l'athlète ou la répartition des disciplines.`,
+    });
+  }
+
+  const score = issues.length === 0 ? 100 : issues.length === 1 ? 75 : 55;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #B (demande coach
+ * explicite) : validation APRÈS génération des semaines qui ENTOURENT un
+ * jalon run-only (ex. 10K) dans un plan dont l'objectif FINAL est triathlon
+ * (703/IM) — même périmètre que la correction #6 (rappel de prompt natation/
+ * vélo/briques pour ce même jalon), mais ici on vérifie le PLAN RÉELLEMENT
+ * GÉNÉRÉ plutôt que le texte envoyé au modèle : rien ne garantit qu'un
+ * rappel de prompt soit suivi à 100% — cette règle le constate sur le
+ * contenu réel, sans jamais le corriger (lecture seule, comme tout ce
+ * fichier) : "Une anomalie doit être signalée explicitement au coach, et
+ * non corrigée silencieusement" (demande coach).
+ *
+ * Trois signaux, chacun sur une fenêtre de semaines précise autour du
+ * jalon (jamais sur la moyenne du plan entier, qui masquerait un creux
+ * localisé) :
+ *  1. Maintien natation/vélo pendant la préparation du jalon (S-2/S-1
+ *     avant sa date) — la discipline ne doit pas disparaître des séances.
+ *  2. Récupération réelle la semaine suivant le jalon — volume en baisse
+ *     par rapport à la préparation, pas une reprise immédiate à charge
+ *     pleine (même logique auto-référencée que `validateTaperVolumeReduction`
+ *     ci-dessus, appliquée ici à une seule semaine de récupération plutôt
+ *     qu'à un bloc d'affûtage complet).
+ *  3. Continuité de la préparation vers l'objectif final 2-3 semaines après
+ *     le jalon — le volume doit reprendre une tendance vers le haut après
+ *     la récupération, pas rester durablement déprimé (plan coupé en deux
+ *     blocs déconnectés plutôt qu'une préparation continue).
+ *
+ * `raceGoals`/`planStartDate` optionnels : omis (plan mono-objectif, ou
+ * contexte de date indisponible), cette règle est simplement inactive
+ * (score 100, comportement historique inchangé) — jamais un signal fabriqué
+ * sans données réelles de date.
+ */
+const MILESTONE_SPECIFICITY_TOLERANCE_PP = 15; // points de pourcentage — tolérance au bruit, pas un seuil physiologique
+
+function validateMilestoneTransition(
+  metrics: WeekMetrics[],
+  totalWeeks: number,
+  objective: string | undefined,
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+  planStartDate: string | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (!raceGoals || raceGoals.length < 2 || !planStartDate) return { issues: [], score: 100 };
+
+  const finalObjKey = normalizeObjectiveKey(objective || "");
+  const finalIsTriathlon = finalObjKey === "IM" || finalObjKey === "703";
+  if (!finalIsTriathlon) return { issues: [], score: 100 };
+
+  const byWeek = new Map(metrics.map(m => [m.weekNumber, m]));
+  const milestones = classifyMultiObjectiveGoalsClient(raceGoals)
+    .filter(c => !c.isFullPeak && c.goal.raceDate);
+
+  for (const milestone of milestones) {
+    const goalWeek = computeGoalWeekFromDates(planStartDate, milestone.goal.raceDate);
+    if (goalWeek == null || goalWeek < 1 || goalWeek > totalWeeks) continue; // hors plan — rien à vérifier
+    const label = milestone.goal.raceName || milestone.goal.objective;
+
+    // 1) Maintien natation/vélo pendant la préparation (S-2/S-1 avant le jalon).
+    const prepWeekNums: number[] = [];
+    for (let w = Math.max(1, goalWeek - 2); w <= goalWeek - 1; w++) prepWeekNums.push(w);
+    const prepWeeks = prepWeekNums.map(w => byWeek.get(w)).filter((w): w is WeekMetrics => !!w);
+
+    for (const wm of prepWeeks) {
+      for (const sport of ["Natation", "Vélo"]) {
+        if ((wm.sports[sport] || 0) === 0) {
+          issues.push({
+            rule: "progression",
+            severity: "warning",
+            week: wm.weekNumber,
+            message: `S${wm.weekNumber}: ${sport} absente pendant la préparation du jalon ${label} (S${goalWeek})`,
+            detail: `Objectif final triathlon (${objective}) — les semaines spécifiques course à pied avant un jalon run-only ne doivent pas faire disparaître ${sport.toLowerCase()} du plan (risque de décrochage technique/aérobie en pleine saison triathlon). Si ${sport.toLowerCase()} est explicitement bannie par l'athlète, cette alerte est un faux positif attendu — à confirmer par le coach.`,
+          });
+        }
+      }
+    }
+
+    // 2) Récupération réelle la semaine suivant le jalon.
+    const recoveryWeek = byWeek.get(goalWeek + 1);
+    const prepAvgTotal = prepWeeks.length > 0
+      ? prepWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / prepWeeks.length
+      : null;
+    if (recoveryWeek && prepAvgTotal !== null && prepAvgTotal > 0
+      && recoveryWeek.totalDurationMin >= prepAvgTotal * TAPER_VOLUME_NOISE_TOLERANCE) {
+      issues.push({
+        rule: "progression",
+        severity: "warning",
+        week: recoveryWeek.weekNumber,
+        message: `S${recoveryWeek.weekNumber}: pas de récupération visible après le jalon ${label} (${recoveryWeek.totalDurationMin}min vs moyenne préparation ${Math.round(prepAvgTotal)}min)`,
+        detail: `La semaine suivant un jalon devrait montrer une baisse de volume réelle (récupération), pas une reprise immédiate à charge pleine vers l'objectif final.`,
+      });
+    }
+
+    // 3) Continuité de la préparation finale 2-3 semaines après le jalon.
+    const resumeWeekNums: number[] = [];
+    for (let w = goalWeek + 2; w <= Math.min(totalWeeks, goalWeek + 3); w++) resumeWeekNums.push(w);
+    const resumeWeeks = resumeWeekNums.map(w => byWeek.get(w)).filter((w): w is WeekMetrics => !!w);
+    if (recoveryWeek && resumeWeeks.length > 0) {
+      const resumeAvgTotal = resumeWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / resumeWeeks.length;
+      if (resumeAvgTotal > 0 && resumeAvgTotal <= recoveryWeek.totalDurationMin) {
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: resumeWeeks[0].weekNumber,
+          message: `S${resumeWeeks[0].weekNumber}-S${resumeWeeks[resumeWeeks.length - 1].weekNumber}: la reprise après le jalon ${label} ne progresse pas vers l'objectif final (moyenne ${Math.round(resumeAvgTotal)}min vs semaine de récupération ${recoveryWeek.totalDurationMin}min)`,
+          detail: `Après la récupération post-jalon, le volume devrait reprendre une tendance vers le haut en direction de l'objectif final — un volume qui reste au niveau de la récupération (ou en-dessous) sur plusieurs semaines suggère un plan coupé en deux blocs déconnectés plutôt qu'une préparation continue.`,
+        });
+      }
+    }
+
+    // 4) Réorientation de la spécificité (natation/vélo) pendant la reprise —
+    //    demande coach explicite : signaler l'absence de réorientation SANS
+    //    imposer une répartition fixe à toutes les phases. Comparaison
+    //    auto-référencée à la répartition moyenne du reste de CE plan
+    //    (semaines de charge hors fenêtre du jalon), jamais un pourcentage
+    //    universel.
+    const exclusionWeeks = new Set<number>([...prepWeekNums, goalWeek, goalWeek + 1, ...resumeWeekNums]);
+    const baselineWeeks = metrics.filter(
+      (m) => m.scheduledWeekType === "load" && !exclusionWeeks.has(m.weekNumber) && m.totalDurationMin > 0,
+    );
+    if (baselineWeeks.length >= 2 && resumeWeeks.length > 0) {
+      const swimBikeShare = (weeks: WeekMetrics[]): number | null => {
+        const total = weeks.reduce((s, w) => s + w.totalDurationMin, 0);
+        if (total <= 0) return null;
+        const swimBike = weeks.reduce(
+          (s, w) => s + (w.durationMinBySport["Natation"] || 0) + (w.durationMinBySport["Vélo"] || 0),
+          0,
+        );
+        return (swimBike / total) * 100;
+      };
+      const baselineShare = swimBikeShare(baselineWeeks);
+      const resumeShare = swimBikeShare(resumeWeeks);
+      if (
+        baselineShare !== null && resumeShare !== null
+        && resumeShare < baselineShare - MILESTONE_SPECIFICITY_TOLERANCE_PP
+      ) {
+        issues.push({
+          rule: "progression",
+          severity: "warning",
+          week: resumeWeeks[0].weekNumber,
+          message: `S${resumeWeeks[0].weekNumber}-S${resumeWeeks[resumeWeeks.length - 1].weekNumber}: part natation+vélo pendant la reprise après le jalon ${label} nettement inférieure à la part habituelle de CE plan (${Math.round(resumeShare)}% vs ${Math.round(baselineShare)}% en moyenne hors fenêtre du jalon)`,
+          detail: `La reprise semble rester centrée sur la course à pied plutôt que de réorienter vers la spécificité de l'objectif final triathlon. Une reprise progressive (course d'abord, natation/vélo réintroduits ensuite) peut être volontaire ponctuellement — mais ne doit pas durer indéfiniment. Comparaison auto-référencée à la répartition moyenne du reste de CE plan (semaines de charge hors fenêtre du jalon) — jamais une répartition fixe imposée.`,
+        });
+      }
+    }
+  }
+
+  const score = issues.length === 0 ? 100 : issues.length <= 2 ? 75 : 55;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #C (demande coach
+ * explicite, après lecture des scénarios de validation) : vérifie la
+ * COHÉRENCE de la charge hebdomadaire réellement prescrite — par rapport à
+ * l'historique de CE plan et, quand elle est fournie, à la charge habituelle
+ * et/ou à la disponibilité maximale déclarées par le coach pour cet athlète.
+ *
+ * Volontairement INACTIF si `loadContext` est entièrement omis (aucun
+ * appelant existant n'en dispose encore) — comportement historique inchangé,
+ * même logique que `raceGoals`/`planStartDate` pour #B.
+ *
+ * Point 1 (demande coach) : `habitualWeeklyHours` n'est JAMAIS traité comme
+ * un plafond absolu — une semaine de pic au-dessus de la charge habituelle
+ * n'est PAS en soi signalée. Seule une HAUSSE BRUTALE par rapport à
+ * l'historique récent de CE plan l'est (ratio charge aiguë / charge
+ * chronique > 1.3 — règle ACWR de Gabbett, déjà la référence utilisée
+ * ailleurs dans ce code pour la rampe de volume initiale — cf.
+ * planConfigBuilder.ts — pas un seuil inventé ici pour l'occasion).
+ * `maxAvailableWeeklyHours`, quand fourni, ne déclenche JAMAIS une alerte
+ * seul — il sert uniquement à ESCALADER en "error" (bloquant, point 4) une
+ * hausse déjà détectée qui dépasse EN PLUS ce plafond explicitement déclaré.
+ * Sans disponibilité max déclarée, toute hausse détectée reste "warning" (à
+ * valider par le coach) — jamais bloquante par défaut sans donnée réelle.
+ *
+ * Point 3 : deux niveaux de comparaison, une charge globale stable peut
+ * masquer une hausse excessive d'une seule discipline :
+ *  1. Volume TOTAL de la semaine vs moyenne des semaines de charge
+ *     (`scheduledWeekType==="load"`) qui précèdent, sur CE plan.
+ *  2. Volume PAR DISCIPLINE (Natation/Vélo/Course séparément) — signalé en
+ *     plus UNIQUEMENT si le volume total n'a pas déjà déclenché le signal 1
+ *     (éviter de signaler deux fois le même pic).
+ *
+ * Point 5 (repli documenté) : si CE plan n'a pas encore assez de semaines de
+ * charge antérieures (début de plan) MAIS que `habitualWeeklyHours` est
+ * fourni, il sert de référence de repli — le `detail` de l'issue le précise
+ * explicitement. Sans aucune des deux données pour une semaine donnée, elle
+ * est ignorée (silence honnête, pas de signal fabriqué).
+ *
+ * Hors périmètre volontairement : semaines `scheduledWeekType` "recovery"/
+ * "taper"/"race" — une baisse y est attendue (couverte par
+ * `validateTaperVolumeReduction`/`validateLoadPattern`), signaler une
+ * "hausse" y serait hors-sujet pour cette règle précise.
+ */
+const WEEKLY_LOAD_LOOKBACK_WEEKS = 4;
+const WEEKLY_LOAD_ACWR_THRESHOLD = 1.3; // Gabbett ACWR — même référence que la rampe de volume (planConfigBuilder.ts)
+
+export interface WeeklyLoadContext {
+  /** Charge hebdo habituelle RÉELLEMENT effectuée récemment (déclarative ou mesurée), en heures. Jamais traité comme un plafond.
+   *  Correction #E : conservé pour compatibilité ascendante — un appelant qui fournit `chronicWeeklyHours`/`recentWeeklyHours`
+   *  ci-dessous obtient une distinction plus précise ; `habitualWeeklyHours` seul reste le repli historique inchangé (Correction #C). */
+  habitualWeeklyHours?: number;
+  /** Disponibilité maximale déclarée par le coach, en heures — distincte de la charge habituelle (point 1). Optionnelle : absente, aucune alerte n'est jamais escaladée en "error". */
+  maxAvailableWeeklyHours?: number;
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande
+   * coach explicite, suite à une hausse réelle 8h→17h/sem sur 4 semaines) :
+   * historique de charge DÉCLARATIF (heures, jamais un TSS fictif — le
+   * garde-fou CRR/TSS mesuré de `chargeRecenteReference.ts` reste
+   * entièrement séparé et inchangé). Pilote exclusivement
+   * `validateLoadHistoryCoherence`. Omis = contrôle inactif (comportement
+   * inchangé pour tout appelant existant, y compris ceux qui ne fournissent
+   * que `habitualWeeklyHours`/`maxAvailableWeeklyHours` ci-dessus).
+   */
+  /** Volume hebdo chronique tenu AVANT la hausse récente (si une hausse a eu lieu). */
+  chronicWeeklyHours?: number;
+  /** Volume hebdo RÉELLEMENT effectué récemment — peut différer de la cible/disponibilité du plan. */
+  recentWeeklyHours?: number;
+  /** Nombre de semaines consécutives à ce volume récent. Absent = durée inconnue, jamais estimée. */
+  recentWeeksCount?: number;
+}
+
+function validateWeeklyLoadConsistency(
+  metrics: WeekMetrics[],
+  loadContext: WeeklyLoadContext | null | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (!loadContext || (!loadContext.habitualWeeklyHours && !loadContext.maxAvailableWeeklyHours)) {
+    return { issues: [], score: 100 };
+  }
+  const habitualTotalMin = loadContext.habitualWeeklyHours ? loadContext.habitualWeeklyHours * 60 : null;
+  const maxAvailableMin = loadContext.maxAvailableWeeklyHours ? loadContext.maxAvailableWeeklyHours * 60 : null;
+  const sportsTracked = ["Natation", "Vélo", "Course"];
+
+  for (let i = 0; i < metrics.length; i++) {
+    const wm = metrics[i];
+    if (wm.scheduledWeekType !== "load") continue; // pics de décharge/affûtage/course : hors périmètre de cette règle
+
+    const priorWeeks: WeekMetrics[] = [];
+    for (let j = i - 1; j >= 0 && priorWeeks.length < WEEKLY_LOAD_LOOKBACK_WEEKS; j--) {
+      if (metrics[j].scheduledWeekType !== "load") break; // s'arrête à la 1ère semaine non "charge"
+      priorWeeks.unshift(metrics[j]);
+    }
+
+    let chronicAvgTotal: number | null = null;
+    let usedDeclaredFallback = false;
+    if (priorWeeks.length >= 2) {
+      const avg = priorWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / priorWeeks.length;
+      if (avg > 0) chronicAvgTotal = avg;
+    }
+    if (chronicAvgTotal === null && habitualTotalMin) {
+      chronicAvgTotal = habitualTotalMin;
+      usedDeclaredFallback = true;
+    }
+    if (chronicAvgTotal === null) continue; // ni historique de CE plan, ni donnée déclarée exploitable
+
+    const ratio = wm.totalDurationMin / chronicAvgTotal;
+    let totalFlagged = false;
+    if (ratio > WEEKLY_LOAD_ACWR_THRESHOLD) {
+      totalFlagged = true;
+      const exceedsMaxAvailable = maxAvailableMin != null && wm.totalDurationMin > maxAvailableMin;
+      const baselineNote = usedDeclaredFallback
+        ? `Pas encore assez de semaines de charge antérieures sur CE plan — comparaison faite à la charge habituelle déclarée par le coach (${loadContext.habitualWeeklyHours}h/semaine), pas à l'historique du plan.`
+        : `Comparaison auto-référencée aux ${priorWeeks.length} semaines de charge précédentes de CE plan.`;
+      const escalationNote = exceedsMaxAvailable
+        ? ` Le volume dépasse en plus la disponibilité maximale déclarée (${loadContext.maxAvailableWeeklyHours}h) — anomalie bloquante, pas seulement à valider.`
+        : ` Ratio > ${WEEKLY_LOAD_ACWR_THRESHOLD} (ACWR Gabbett) : hausse notable, PAS automatiquement une erreur — une semaine de pic de périodisation peut être légitime, à valider par le coach.`;
+      issues.push({
+        rule: "progression",
+        severity: exceedsMaxAvailable ? "error" : "warning",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: hausse brute de charge totale (${(wm.totalDurationMin / 60).toFixed(1)}h vs ${(chronicAvgTotal / 60).toFixed(1)}h de référence, ratio ${ratio.toFixed(2)})${exceedsMaxAvailable ? " — dépasse la disponibilité maximale déclarée" : ""}`,
+        detail: baselineNote + escalationNote,
+      });
+    }
+
+    if (!totalFlagged && priorWeeks.length >= 2) {
+      // Point 3 : une charge globale stable peut masquer une discipline en hausse excessive.
+      for (const sport of sportsTracked) {
+        const priorAvgSport = priorWeeks.reduce((s, w) => s + (w.durationMinBySport[sport] || 0), 0) / priorWeeks.length;
+        if (priorAvgSport <= 0) continue;
+        const weekVal = wm.durationMinBySport[sport] || 0;
+        const sportRatio = weekVal / priorAvgSport;
+        if (sportRatio > WEEKLY_LOAD_ACWR_THRESHOLD) {
+          issues.push({
+            rule: "progression",
+            severity: "warning",
+            week: wm.weekNumber,
+            message: `S${wm.weekNumber}: hausse brute ${sport} (${Math.round(weekVal)}min vs ${Math.round(priorAvgSport)}min de référence) alors que la charge totale de la semaine reste stable`,
+            detail: `La charge hebdomadaire globale ne signale rien d'anormal, mais ${sport.toLowerCase()} augmente seul(e) de plus de ${Math.round((WEEKLY_LOAD_ACWR_THRESHOLD - 1) * 100)}% par rapport aux semaines de charge précédentes de CE plan — une autre discipline a probablement baissé en compensation. À valider par le coach, pas une anomalie bloquante en soi.`,
+          });
+        }
+      }
+    }
+  }
+
+  const hasError = issues.some((i) => i.severity === "error");
+  const score = issues.length === 0 ? 100 : hasError ? 45 : issues.length === 1 ? 75 : 55;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande coach
+ * explicite, suite à la découverte d'une charge réelle passée de 8h/sem à
+ * 17h/sem sur seulement 4 semaines) : signale qu'une hausse DÉCLARATIVE
+ * (heures renseignées par le coach, jamais mesurées) importante a eu lieu
+ * récemment, et que la fenêtre de consolidation n'est peut-être pas encore
+ * terminée — sans jamais la présenter comme un ACWR (ratio charge aiguë/
+ * chronique MESURÉ, cf. `validateWeeklyLoadConsistency` ci-dessus, qui
+ * reste la seule règle à utiliser ce terme, sur des données de CE plan) :
+ * demande coach explicite, point 4. Garde-fou CRR/TSS mesuré
+ * (`chargeRecenteReference.ts`/`resolveVolumeRampLoadAdjustment`)
+ * entièrement CONSERVÉ et séparé — ce contrôle ne le remplace ni ne le
+ * modifie, et ne transforme jamais `chronicWeeklyHours`/`recentWeeklyHours`
+ * en TSS (point 3).
+ *
+ * Deux signaux, jamais une correction automatique :
+ *  1. Hausse déclarative notable : `recentWeeklyHours` / `chronicWeeklyHours`
+ *     > 1.3 (même marge que l'ACWR Gabbett utilisé ailleurs dans ce
+ *     fichier — réutilisée comme repère, pas revendiquée comme une mesure
+ *     physiologique ici). Toujours "warning" (jamais "error") : une donnée
+ *     déclarative ne bloque jamais automatiquement (point 6).
+ *  2. Fenêtre de consolidation (seulement si le signal 1 s'est déclenché) :
+ *     les premières semaines de CE plan (fenêtre = `recentWeeksCount` si
+ *     connu, sinon 4 — le mésocycle déjà utilisé par ce fichier pour le
+ *     motif de décharge 3:1/2:1, PAS un nouveau nombre inventé) ne devraient
+ *     pas dépasser le volume RÉCENT déjà démontré — jamais une réduction
+ *     imposée, seulement un signal si le plan généré remonte plus haut
+ *     avant la fin de cette fenêtre (point 6 : aucune progression/réduction
+ *     automatique, seulement une observation auto-référencée à CET
+ *     athlète).
+ *
+ * Inactif si `chronicWeeklyHours` OU `recentWeeklyHours` est absent —
+ * jamais de signal fabriqué sur un historique partiel (point 5 : ne jamais
+ * deviner la durée/l'ampleur d'une hausse non déclarée).
+ */
+const LOAD_HISTORY_INCREASE_THRESHOLD = 1.3; // repère Gabbett réutilisé — jamais revendiqué comme ACWR mesuré ici
+const LOAD_HISTORY_DEFAULT_CONSOLIDATION_WEEKS = 4; // même mésocycle que le motif de décharge 3:1/2:1 de ce fichier
+// Dernière correction ciblée (consigne coach explicite, contre-vérification
+// Codex sur b691980), point A : tolérance en MINUTES (bruit d'arrondi
+// d'extraction de texte), jamais un pourcentage — `TAPER_VOLUME_NOISE_TOLERANCE`
+// (5%, pensé pour un usage différent plus haut dans ce fichier) masquait un
+// dépassement réel de la limite effective de consolidation (ex. 17h48 vs 17h,
+// +4,7%, sous ce seuil de 5%).
+const CONSOLIDATION_CEILING_TOLERANCE_MIN = 5;
+
+function validateLoadHistoryCoherence(
+  metrics: WeekMetrics[],
+  totalWeeks: number,
+  loadContext: WeeklyLoadContext | null | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const chronic = loadContext?.chronicWeeklyHours;
+  const recent = loadContext?.recentWeeklyHours;
+  if (!chronic || !recent || chronic <= 0) return { issues, score: 100 };
+
+  const ratio = recent / chronic;
+  if (ratio <= LOAD_HISTORY_INCREASE_THRESHOLD) return { issues, score: 100 };
+
+  const weeksLabel = loadContext?.recentWeeksCount != null
+    ? `depuis ${loadContext.recentWeeksCount} semaine(s)`
+    : "depuis une durée non précisée";
+  issues.push({
+    rule: "load_history",
+    severity: "warning",
+    message: `Hausse de charge déclarative importante : ${chronic}h/sem (charge chronique antérieure) → ${recent}h/sem (charge récente, ${weeksLabel})`,
+    detail: `Comparaison DÉCLARATIVE (heures renseignées par le coach) — pas un ACWR mesuré sur des données d'entraînement réelles. Le volume récent n'est peut-être pas encore durablement assimilé : à valider par le coach avant de considérer ${recent}h/sem comme un palier stable, et avant toute nouvelle hausse.`,
+  });
+
+  const consolidationWeeks = Math.max(1, Math.min(
+    loadContext?.recentWeeksCount ?? LOAD_HISTORY_DEFAULT_CONSOLIDATION_WEEKS,
+    totalWeeks,
+  ));
+  const recentTotalMin = recent * 60;
+  for (const wm of metrics.slice(0, consolidationWeeks)) {
+    if (wm.scheduledWeekType !== "load") continue; // affûtage/décharge/course : hors périmètre, déjà couverts ailleurs
+    // Dernière correction ciblée (consigne coach explicite, contre-vérification
+    // Codex sur b691980), point A — VOLUME : la limite EFFECTIVE de la fenêtre
+    // de consolidation (`recent`, ex. 17h) n'était vérifiée qu'avec la marge de
+    // bruit d'extraction de texte réutilisée ailleurs dans ce fichier
+    // (`TAPER_VOLUME_NOISE_TOLERANCE`, 5% — pensée pour du bruit d'extraction,
+    // jamais revendiquée comme une marge physiologique), ET toujours en
+    // "warning" — un dépassement de 17h48 (+4,7%) passait sous ce seuil et
+    // n'était même pas signalé. Remplacée ici par une tolérance minute dédiée
+    // (pur bruit d'arrondi d'extraction, pas un pourcentage) et une sévérité
+    // "error" : CETTE limite effective est désormais une contrainte vérifiée
+    // à la validation finale, pas seulement une recommandation dans le prompt
+    // (Correction P0-1). Reste strictement scopée à la fenêtre de
+    // consolidation déclarée par le coach (`consolidationWeeks` ci-dessus,
+    // jamais au-delà) et seulement quand `loadHistory` signale une hausse
+    // récente — jamais un plafond permanent/universel : une fois la fenêtre
+    // passée (ou en l'absence de ce signal déclaratif), rien n'empêche une
+    // progression individualisée vers la cible ambition.
+    if (wm.totalDurationMin > recentTotalMin + CONSOLIDATION_CEILING_TOLERANCE_MIN) {
+      issues.push({
+        rule: "load_history",
+        severity: "error",
+        week: wm.weekNumber,
+        message: `S${wm.weekNumber}: le plan dépasse la limite EFFECTIVE de consolidation (${Math.round(wm.totalDurationMin / 60 * 10) / 10}h vs ${recent}h/sem, limite réellement appliquée pour ce plan) pendant la fenêtre de consolidation (${consolidationWeeks} semaine(s))`,
+        detail: `La charge récente de CET athlète (${recent}h/sem) n'est documentée que ${weeksLabel} — tant que cette fenêtre de consolidation n'est pas terminée, ${recent}h/sem est la limite EFFECTIVE de ce plan (cf. Correction P0-1, prompt de génération), pas seulement une recommandation. Ceci n'est PAS un plafond permanent : une fois la fenêtre passée, ou si le coach valide explicitement un nouveau palier, la progression vers la cible ambition reste individualisée et possible.`,
+      });
+    }
+  }
+
+  const score = issues.length <= 1 ? 85 : issues.length <= 3 ? 65 : 50;
+  return { issues, score };
+}
+
+/**
+ * Correction sprint qualité Marathon/Ironman (oct. 2026), #D (demande coach
+ * explicite, suite à l'audit "ambition brute vs ambitionEffective") :
+ * trace explicitement, à titre PUREMENT INFORMATIF (jamais un score), tout
+ * déclassement d'ambition entre ce que le coach a demandé (`saisie`) et ce
+ * qui a RÉELLEMENT été utilisé pour générer ce plan (`effective` — la même
+ * valeur que celle passée au paramètre `ambition` de `validatePlan`, cf. sa
+ * doc). But explicite : que les règles sportives de cette validation
+ * (séances-clés, plancher séances/jour Elite+, catégories Lorang — toutes
+ * pilotées par ce même `ambition`) jugent le plan sur le niveau RÉELLEMENT
+ * utilisé, jamais sur celui initialement demandé — sinon un déclassement
+ * physiologiquement justifié (niveau d'entraînement insuffisant) produit de
+ * fausses alertes sur un plan qui a pourtant fait exactement ce qu'il
+ * fallait.
+ *
+ * Réutilise les sources canoniques déjà utilisées par la génération
+ * (`normalizeAmb`/`mapObjectiveToSport`/`VOLUME_CAP_MATRIX` de
+ * deriveRaceTargets.ts, `AMBITIONS` de raceAnalysis.ts) pour que les
+ * chiffres cités ici (plafond de volume, séances qualité/semaine) soient
+ * EXACTEMENT ceux appliqués à la génération — jamais une 2e copie
+ * recalculée séparément qui risquerait de diverger. Ne modifie PAS le
+ * mapping ambition↔niveau (ambitionDowngrade.ts) ni les matrices
+ * elles-mêmes — lecture seule, comme tout ce fichier.
+ *
+ * Inactif si `ambitionAudit` est omis (comportement historique inchangé
+ * pour tout appelant existant) ou si aucun déclassement n'a eu lieu
+ * (`downgraded` falsy) — rien à signaler.
+ */
+export interface AmbitionAudit {
+  /** Ambition CANONIQUE (AmbitionLevel) demandée par le coach, avant tout déclassement. */
+  saisie: string;
+  /** Ambition CANONIQUE (AmbitionLevel) RÉELLEMENT utilisée pour générer ce plan. */
+  effective: string;
+  downgraded: boolean;
+  /** Motif lisible du déclassement (ex: ambitionResolution.diagnosticNote). */
+  reason?: string | null;
+}
+
+function validateAmbitionCoherence(
+  objective: string | undefined,
+  ambitionAudit: AmbitionAudit | null | undefined,
+): { issues: ValidationIssue[] } {
+  if (!ambitionAudit || !ambitionAudit.downgraded) return { issues: [] };
+
+  const sport = mapObjectiveToSport(objective);
+  const localSaisie = normalizeAmb(ambitionAudit.saisie);
+  const localEffective = normalizeAmb(ambitionAudit.effective);
+  const capSaisie = VOLUME_CAP_MATRIX[sport][localSaisie];
+  const capEffective = VOLUME_CAP_MATRIX[sport][localEffective];
+  const qSaisie = AMBITIONS.find((a) => a.key === localSaisie)?.qualitesParSemaine;
+  const qEffective = AMBITIONS.find((a) => a.key === localEffective)?.qualitesParSemaine;
+
+  const labelSaisie = AMBITION_DEFINITIONS[ambitionAudit.saisie as AmbitionLevel]?.label ?? ambitionAudit.saisie;
+  const labelEffective = AMBITION_DEFINITIONS[ambitionAudit.effective as AmbitionLevel]?.label ?? ambitionAudit.effective;
+
+  return {
+    issues: [{
+      rule: "ambition_coherence",
+      severity: "info",
+      message: `Ambition déclassée pour la génération : "${labelSaisie}" → "${labelEffective}" — ce plan a été généré ET validé sur "${labelEffective}"`,
+      detail: `Motif : ${ambitionAudit.reason ?? "niveau d'entraînement déclaré/mesuré insuffisant pour l'ambition demandée"}. `
+        + `Conséquences concrètes (sport "${sport}") : plafond de volume hebdo ${capSaisie}h → ${capEffective}h ; `
+        + `séances qualité/semaine ${qSaisie ?? "?"} → ${qEffective ?? "?"}. `
+        + `Les règles sportives de cette validation (séances-clés, plancher séances/jour Elite+, catégories Lorang) jugent ce plan sur "${labelEffective}" — jamais sur "${labelSaisie}" — pour éviter une fausse alerte sur un déclassement volontaire et physiologiquement justifié.`,
+    }],
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1577,9 +2363,20 @@ function validateSportRatio(
   const issues: ValidationIssue[] = [];
 
   // Aggregate sport counts across all non-deload weeks
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : `wm.isDeload`
+  // (texte OU activeSessions<=3) exemptait à tort TOUTE semaine à ≤3 séances
+  // — pour un plan à faible volume (débutant/finisseur, exactement le profil
+  // visé par les nouveaux athlètes), chaque semaine satisfait trivialement
+  // cette condition, donc `totals` restait vide/nul pour tout le plan : cette
+  // règle devenait silencieuse sur un déséquilibre réel. `isContentOrSchedule
+  // Deload` (texte OU weekType réellement calculé à la génération, jamais le
+  // simple nombre de séances) est déjà la définition correcte — réservée à la
+  // polarisation jusqu'ici (cf. doc du champ), étendue ici après vérification
+  // que cette règle a bien le même besoin ("la semaine est-elle HONNÊTEMENT
+  // une décharge ?", pas "la charge a-t-elle été RÉELLEMENT réduite ?").
   const totals: Record<string, number> = {};
   for (const wm of metrics) {
-    if (wm.isDeload || wm.isRaceWeek) continue;
+    if (wm.isContentOrScheduleDeload || wm.isRaceWeek) continue;
     for (const [sport, count] of Object.entries(wm.sports)) {
       totals[sport] = (totals[sport] || 0) + count;
     }
@@ -3170,6 +3967,23 @@ function validateSessionDensity(
       }
     }
 
+    // Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande
+    // coach explicite, contrainte d'agenda "max 4 journées doubles/semaine") :
+    // distinct du plafond `maxPerDay` ci-dessus (qui borne UN jour donné) —
+    // ici on compte le nombre de JOURS à ≥2 séances actives sur la semaine.
+    if (cfg?.maxDoubleDaysPerWeek != null) {
+      const doubleDays = Array.from(byDay.values()).filter((count) => count >= 2).length;
+      if (doubleDays > cfg.maxDoubleDaysPerWeek) {
+        issues.push({
+          rule: "session_density",
+          severity: "warning",
+          week: w.weekNumber,
+          message: `S${w.weekNumber}: ${doubleDays} journées à 2 séances (max déclaré ${cfg.maxDoubleDaysPerWeek}/semaine)`,
+          detail: `Contrainte d'agenda déclarée par le coach — distincte du plafond séances/jour. À valider : cette semaine dépasse le nombre de journées doubles disponibles pour cet athlète.`,
+        });
+      }
+    }
+
     // Sessions/semaine vs cible coach
     if (target && target > 0) {
       scanned++;
@@ -3382,7 +4196,13 @@ function validateLorangCategories(
   for (const w of plan.weeks) {
     const active = w.sessions.filter((s) => !s.isRest);
     const weekThemeText = `${w.theme} ${w.phase}`.toLowerCase();
-    const isDeload = DELOAD_PATTERNS.test(weekThemeText) || active.length <= 3;
+    // Correction sprint qualité Marathon/Ironman (oct. 2026), #3 : l'ancien
+    // `|| active.length <= 3` exemptait à tort la Règle 1 (≥1 séance A/B)
+    // pour toute semaine à EXACTEMENT 3 séances (le plancher `bd.active>=3`
+    // ci-dessous l'aurait sinon évaluée) même si c'était 3 séances toutes
+    // maximales — pas un déload. Texte seul (même définition que
+    // validateSessionDensity, déjà sans ce proxy de comptage).
+    const isDeload = DELOAD_PATTERNS.test(weekThemeText);
     // Niveau 2 : bloc seuil concentré explicitement nommé (norvégien double-seuil,
     // Sweet Spot étendu) — même exemption que Rule 1, cf. THRESHOLD_BLOCK_PATTERNS.
     const isThresholdBlock = THRESHOLD_BLOCK_PATTERNS.test(weekThemeText);
@@ -3771,72 +4591,26 @@ function validateTrailDPlusPresence(
   return { issues, score };
 }
 
-/** Rule 21 : Plancher séances/jour Elite+ (systemPrompt.ts "DOUBLES & TRIPLES
- *  SÉANCES — OBLIGATOIRE" : "Si un jour n'a qu'1 séance pour Elite/Competitor
- *  IM/70.3 (hors repos), c'est une ERREUR" / promptHelpers.ts:1769-1800 "Un
- *  jour avec 1 seule séance (hors repos) est une ERREUR GRAVE pour World
- *  Class/Elite/Competitor"). `ambition` utilise les clés internes en vigueur
- *  dans promptHelpers.ts : "world_class"/"elite"/"competitor" — PAS "Elite"
- *  au sens historique du label UI (relabellisé "Qualifiable", cf.
- *  ambitionLevel.ts). Nécessite le nouveau paramètre `ambition` de
- *  validatePlan (non disponible pour les autres règles de ce fichier). */
+/** Rule 21 : Plancher séances/jour Elite+ — DÉSACTIVÉE (décision coach,
+ *  revue du premier plan réel B-10K-TO-70.3, 2026-10-21).
+ *
+ *  Cette règle flaguait en "ERREUR GRAVE" tout jour (hors repos) n'ayant
+ *  qu'1 séance pour World Class/Elite/Competitor IM/70.3, au nom d'un
+ *  plancher "2-3 séances/jour OBLIGATOIRE" (systemPrompt.ts /
+ *  promptHelpers.ts). Décision explicite du coach : 1 ou 2 séances/jour
+ *  restent des choix sportifs légitimes ; l'ambition elite ne doit JAMAIS
+ *  imposer artificiellement une séance supplémentaire — ni en génération
+ *  (cf. jsonPlanHandler.ts::applyDailySessionFloorEnforcement, même
+ *  décision, même date), ni en validation après coup. Conservée en no-op
+ *  (plutôt que supprimée) pour garder la trace de la règle et permettre
+ *  une réactivation future si la doctrine change à nouveau. `objective`/
+ *  `ambition` restent acceptés pour ne pas changer la signature appelante. */
 function validateDailySessionFloor(
-  plan: ParsedPlan,
-  objective?: string,
-  ambition?: string,
+  _plan: ParsedPlan,
+  _objective?: string,
+  _ambition?: string,
 ): { issues: ValidationIssue[]; score: number } {
-  const issues: ValidationIssue[] = [];
-  const objKey = normalizeObjectiveKey(objective || "");
-  const isTriIMor703 = objKey === "IM" || objKey === "703";
-  const amb = (ambition || "").toLowerCase();
-  const isHighAmbition = amb === "world_class" || amb === "elite" || amb === "competitor";
-  if (!isTriIMor703 || !isHighAmbition) return { issues, score: 100 };
-
-  let daysChecked = 0;
-  let daysViolating = 0;
-  for (const week of plan.weeks) {
-    const themeText = `${week.theme} ${week.phase}`.toLowerCase();
-    if (DELOAD_PATTERNS.test(themeText) || weekHasRaceDay(week)) continue;
-
-    const byDay = new Map<number, ParsedSession[]>();
-    for (const s of week.sessions) {
-      if (!byDay.has(s.dayIndex)) byDay.set(s.dayIndex, []);
-      byDay.get(s.dayIndex)!.push(s);
-    }
-    for (const sessions of byDay.values()) {
-      const active = sessions.filter((s) => !s.isRest);
-      if (active.length === 0) continue; // jour repos complet — 1/semaine autorisé
-      // Exemption bug réel (audit coach) : un "brick" (T1/T2, triple brick
-      // S/B/R…) ou une fiche signature LCW (long ride race-pace samedi, run
-      // jambes fatiguées dimanche, simulation back-to-back complète) combine
-      // DÉJÀ 2-3 disciplines dans une seule séance listée — le plancher
-      // "2-3 séances/jour" mesure le nombre de DISCIPLINES/stimuli du jour,
-      // pas le nombre de lignes dans le tableau. Sans cette exemption, le
-      // contrôle flaguait à tort les week-ends LCW comme des lacunes de
-      // volume alors qu'ils sont volontairement une séance unique, longue et
-      // spécifique (c'est tout le principe du format LCW).
-      if (active.length === 1) {
-        const only = active[0];
-        const text = `${only.title} ${only.details}`;
-        const catalogId = extractCatalogId(only.title, only.details, only.catalogId)?.toUpperCase() ?? "";
-        const isMultiDisciplineSingleSession =
-          /\bbrick\b/i.test(text) || catalogId.includes("BRICK") || catalogId.startsWith("B_LCW_");
-        if (isMultiDisciplineSingleSession) continue;
-      }
-      daysChecked++;
-      if (active.length < 2) {
-        daysViolating++;
-        issues.push({
-          rule: "daily_session_floor",
-          severity: "error",
-          week: week.weekNumber,
-          message: `S${week.weekNumber} ${active[0].dayName}: 1 seule séance ("${active[0].title}") — ERREUR GRAVE pour ambition ${amb} (World Class/Elite/Competitor IM/70.3 : 2-3 séances/jour, sauf 1 jour repos/semaine)`,
-        });
-      }
-    }
-  }
-  const score = daysChecked === 0 ? 100 : Math.max(0, 100 - Math.round((daysViolating / daysChecked) * 100));
-  return { issues, score };
+  return { issues: [], score: 100 };
 }
 
 /** Rule 14 : Titre H1 (systemPrompt.ts "RÈGLE #0 — BLOQUANTE").
@@ -4288,7 +5062,19 @@ export function validatePlan(
   injuryRisk?: { run?: { level: string }; bike?: { level: string } },
   /** #18 lot 2 : clé interne ("world_class"/"elite"/"competitor"/"age_group"/
    *  "finisher", cf. ambitionLevel.ts) — nécessaire au plancher séances/jour
-   *  Elite+ (validateDailySessionFloor), absente des paramètres précédents. */
+   *  Elite+ (validateDailySessionFloor), absente des paramètres précédents.
+   *
+   *  Correction sprint qualité Marathon/Ironman (oct. 2026), #D (demande
+   *  coach explicite) : DOIT être l'ambition EFFECTIVE — celle RÉELLEMENT
+   *  utilisée pour générer ce plan, après déclassement éventuel par
+   *  `computeAmbitionEffective` (ambitionDowngrade.ts) — JAMAIS l'ambition
+   *  brute initialement demandée par le coach. Un appelant qui passerait
+   *  encore l'ambition brute ici ferait juger le plan (séances-clés,
+   *  plancher séances/jour, catégories Lorang) sur un niveau différent de
+   *  celui réellement généré, produisant de fausses alertes sur un
+   *  déclassement pourtant justifié. Pour conserver l'ambition brute à des
+   *  fins de traçabilité/affichage, utiliser `ambitionAudit` ci-dessous —
+   *  jamais ce paramètre. */
   ambition?: string,
   /** Champ libre "Contraintes" de l'athlète (PlanConfig.constraints) — permet
    *  à validateSportRatio de détecter une discipline bannie par le coach et
@@ -4311,6 +5097,35 @@ export function validatePlan(
    * inactif (comportement legacy inchangé), jamais un plafond déduit par défaut.
    */
   trainingLevelSignal?: TrainingLevelSignal | null,
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #B : objectifs
+   * datés du plan (même forme que `ClassifiableRaceGoal`, déjà utilisée par
+   * `multiObjectiveClassification.ts` pour la frise stratégique) — pilote
+   * exclusivement `validateMilestoneTransition` (jalon run-only dans un
+   * plan triathlon, ex. 10K → 70.3). Omis = contrôle inactif (comportement
+   * inchangé pour tout appelant qui ne les fournit pas encore).
+   */
+  raceGoals?: ClassifiableRaceGoal[],
+  /** Date de début du plan (ISO "YYYY-MM-DD") — nécessaire à `validateMilestoneTransition`
+   *  pour convertir les dates de `raceGoals` en numéros de semaine. */
+  planStartDate?: string,
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #C : charge
+   * habituelle/disponibilité maximale déclarées par le coach — pilote
+   * exclusivement `validateWeeklyLoadConsistency`. Omis = contrôle inactif
+   * (comportement inchangé pour tout appelant qui ne les fournit pas
+   * encore).
+   */
+  loadContext?: WeeklyLoadContext | null,
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #D : trace
+   * l'ambition brute demandée par le coach ET le déclassement éventuel vers
+   * l'ambition effective (passée dans `ambition` ci-dessus) — pilote
+   * exclusivement `validateAmbitionCoherence` (issue purement informative,
+   * jamais un score). Omis = contrôle inactif (comportement inchangé pour
+   * tout appelant qui ne le fournit pas encore).
+   */
+  ambitionAudit?: AmbitionAudit | null,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -4338,19 +5153,36 @@ export function validatePlan(
   const hardDayDensity = validateWeeklyHardDayDensity(plan);
   const raceSpecificSportGap = validateRaceSpecificSportGap(plan);
   const demandingAccumulation = validateDemandingSessionAccumulation(plan, trainingLevelSignal);
+  const recoveryWeekIntensity = validateRecoveryWeekIntensity(plan, weekMetrics);
   const polarization = {
-    issues: [...polarizationBase.issues, ...hardDayDensity.issues, ...raceSpecificSportGap.issues, ...demandingAccumulation.issues],
-    score: Math.round((polarizationBase.score + hardDayDensity.score + raceSpecificSportGap.score + demandingAccumulation.score) / 4),
+    issues: [...polarizationBase.issues, ...hardDayDensity.issues, ...raceSpecificSportGap.issues, ...demandingAccumulation.issues, ...recoveryWeekIntensity.issues],
+    score: Math.round((polarizationBase.score + hardDayDensity.score + raceSpecificSportGap.score + demandingAccumulation.score + recoveryWeekIntensity.score) / 5),
   };
   const loadPattern = validateLoadPattern(weekMetrics);
   const keySessions = validateKeySessions(weekMetrics, objective, ambition);
   const progressionBase = validateProgression(weekMetrics);
   const pillarStagnation = validatePillarProgressionStagnation(plan);
+  const longSessionProgression = validateLongSessionProgression(weekMetrics, objective);
+  const taperVolumeReduction = validateTaperVolumeReduction(weekMetrics);
+  const milestoneTransition = validateMilestoneTransition(weekMetrics, plan.totalWeeks, objective, raceGoals, planStartDate);
+  const weeklyLoadConsistency = validateWeeklyLoadConsistency(weekMetrics, loadContext);
+  const loadHistoryCoherence = validateLoadHistoryCoherence(weekMetrics, plan.totalWeeks, loadContext);
   const progression = {
-    issues: [...progressionBase.issues, ...pillarStagnation.issues],
-    score: pillarStagnation.stagnant > 0
-      ? Math.max(0, progressionBase.score - Math.min(30, pillarStagnation.stagnant * 15))
-      : progressionBase.score,
+    issues: [
+      ...progressionBase.issues, ...pillarStagnation.issues, ...longSessionProgression.issues,
+      ...taperVolumeReduction.issues, ...milestoneTransition.issues, ...weeklyLoadConsistency.issues,
+      ...loadHistoryCoherence.issues,
+    ],
+    score: Math.min(
+      pillarStagnation.stagnant > 0
+        ? Math.max(0, progressionBase.score - Math.min(30, pillarStagnation.stagnant * 15))
+        : progressionBase.score,
+      longSessionProgression.score,
+      taperVolumeReduction.score,
+      milestoneTransition.score,
+      weeklyLoadConsistency.score,
+      loadHistoryCoherence.score,
+    ),
   };
   const sportRatio = validateSportRatio(weekMetrics, objective, constraintsText);
   const catalogRatioBase = validateCatalogRatio(plan);
@@ -4385,6 +5217,7 @@ export function validatePlan(
   const lcwSignaturePresence = validateLcwSignaturePresence(plan, isLcwFormatHint);
   const raceDayOnlyFichePlacement = validateRaceDayOnlyFichePlacement(plan);
   const keySessionSelfDeclaration = validateKeySessionSelfDeclaration(plan);
+  const ambitionCoherence = validateAmbitionCoherence(objective, ambitionAudit);
 
   // Combine all issues
   const allIssues = [
@@ -4396,6 +5229,7 @@ export function validatePlan(
     ...catalogRatio.issues,
     ...prohibitionCompliance.issues,
     ...phaseCoherence.issues,
+    ...ambitionCoherence.issues,
     ...raceDayPresence.issues,
     ...limiterCoherence.issues,
     ...wbalFeasibility.issues,

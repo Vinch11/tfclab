@@ -4,8 +4,8 @@ import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import { normalizeGoal } from "@/lib/workoutCatalogBuilder";
 
 describe("PILOT_PROFILES", () => {
-  it("contient exactement les 5 profils validés, dans l'ordre d'exécution décidé", () => {
-    expect(PILOT_PROFILE_IDS).toEqual(["B-5K-BEGINNER", "B-10K", "B-TRAIL-MOUNTAIN", "B-MARATHON", "B-IM"]);
+  it("contient exactement les 5 profils validés + le profil réel coach 10K→70.3 Tours, dans l'ordre d'exécution décidé", () => {
+    expect(PILOT_PROFILE_IDS).toEqual(["B-5K-BEGINNER", "B-10K", "B-TRAIL-MOUNTAIN", "B-MARATHON", "B-IM", "B-10K-TO-70.3"]);
     expect(PILOT_PROFILES.map((p) => p.id)).toEqual(PILOT_PROFILE_IDS);
   });
 
@@ -30,17 +30,18 @@ describe("PILOT_PROFILES", () => {
     expect(beginner.athleteData.vo2max).toBeLessThan(45);
   });
 
-  it("chaque profil a un expectedChunks positif cohérent avec le calcul exact (débutant 5K=3, 10K=3, trail montagne=3, marathon=4, ironman=4)", () => {
+  it("chaque profil a un expectedChunks positif cohérent avec le calcul exact (débutant 5K=3, 10K=3, trail montagne=3, marathon=4, ironman=4, 10K→70.3 Tours=7)", () => {
     const byId = Object.fromEntries(PILOT_PROFILES.map((p) => [p.id, p.expectedChunks]));
     expect(byId["B-5K-BEGINNER"]).toBe(3);
     expect(byId["B-10K"]).toBe(3);
     expect(byId["B-TRAIL-MOUNTAIN"]).toBe(3);
     expect(byId["B-MARATHON"]).toBe(4);
     expect(byId["B-IM"]).toBe(4);
+    expect(byId["B-10K-TO-70.3"]).toBe(7);
   });
 
-  it("le total de chunks des 5 profils est 17 (mis à jour après le correctif B-5K-BEGINNER, repère de budget)", () => {
+  it("le total de chunks des 6 profils est 24 (17 + 7 pour le profil réel coach 10K→70.3 Tours, repère de budget)", () => {
     const total = PILOT_PROFILES.reduce((sum, p) => sum + p.expectedChunks, 0);
-    expect(total).toBe(17);
+    expect(total).toBe(24);
   });
 });

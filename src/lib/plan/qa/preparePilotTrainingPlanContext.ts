@@ -92,6 +92,17 @@ export function buildPilotFormConfig(config: PlanConfig): PlanFormConfig {
     trainingLevel: config.ambitionMeta?.trainingLevel,
     terrainAvailability: config.terrainAvailability,
     crossTrainingMaintenance: config.crossTrainingMaintenance,
+    // Bug trouvé lors de la préparation du test 10K→70.3 Tours (audit coach,
+    // oct. 2026) : ces deux champs (Correction #E) n'étaient JAMAIS transmis
+    // ici. Conséquence concrète — pas seulement théorique : `preparePilotTrainingPlanContext`
+    // ci-dessous fait `{...profile.planConfig, ...prepared.planConfig, ...}` ;
+    // `prepared.planConfig` (construit à partir de CE `PlanFormConfig`) porte
+    // TOUJOURS les clés `loadHistory`/`maxDoubleDaysPerWeek` (même si `undefined`),
+    // et un spread écrase une clé présente-mais-undefined — donc la vraie
+    // valeur posée sur `profile.planConfig.loadHistory`/`maxDoubleDaysPerWeek`
+    // était silencieusement effacée avant d'atteindre `generatePlan`.
+    loadHistory: config.loadHistory,
+    maxDoubleDaysPerWeek: config.maxDoubleDaysPerWeek,
   };
 }
 

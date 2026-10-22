@@ -1,0 +1,338 @@
+// =============================================================================
+// NUTRITION MADER-HECK + TTE ÂGE + CAP INJURY RISK — Guardrails prompt injection
+// Miroir compact des modules client :
+//   - src/lib/v2/nutritionUnified.ts → computeBaseRateMader (F26/F30)
+//   - src/lib/tteEffectif.ts / ttePro.ts → getTTETarget âge-ajusté (F33)
+//   - src/lib/capInjuryRisk.ts → computeCAPInjuryRisk
+// Objectif : injecter un bloc "🥗 Nutrition & 🛡️ Garde-fous" dans le diagnostic
+// prompt de l'edge function (jusqu'ici absent — audit lot #1).
+// =============================================================================
+
+type Sport = "bike" | "cap" | "trail" | "ultra" | "swim" | "run" | "running";
+
+interface InjuryRiskEnvelopeCompact {
+  level: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" | string;
+  score: number;
+  why: string;
+  guardrails: string[];
+}
+
+interface GuardrailsInput {
+  objective: string | null | undefined;
+  ambition: string | null | undefined;
+  age: number | null | undefined;
+  weightKg: number | null | undefined;
+  vo2max: number | null | undefined;
+  vlamax: number | null | undefined;
+  vlamaxRun: number | null | undefined;
+  sportMain: string | null | undefined;
+  heatCondition?: boolean;
+  raceDurationHours?: number | null;
+  /**
+   * Risque blessure RÉEL (Fatigue + VLamax + TTE, cf. injuryRiskUnified.ts),
+   * calculé côté client dans buildPlanConfigFromDiagnostic et transmis via
+   * PlanConfig.injuryRisk. Remplace `capRiskLevel` (proxy dégradé âge+VLamax
+   * seul, CAP uniquement) quand disponible — couvre aussi le vélo, absent
+   * jusqu'ici de tout garde-fou de génération.
+   */
+  injuryRiskPrecomputed?: {
+    run?: InjuryRiskEnvelopeCompact;
+    bike?: InjuryRiskEnvelopeCompact;
+  };
+}
+
+// Durées cibles par défaut (heures) par objectif × ambition — cohérence
+// getRaceDurationHours (voir REFERENCE_STANDARDS). Fourchette prudente.
+const DEFAULT_RACE_HOURS: Record<string, [number, number]> = {
+  "StartToRun": [0.5, 0.9],
+  "5K":         [0.3, 0.5],
+  "10K":        [0.6, 1.1],
+  "Semi":       [1.4, 2.3],
+  "Marathon":   [2.8, 5.0],
+  "Trail":      [3.0, 6.0],
+  "TrailLong":  [6.0, 12.0],
+  "Ultra":      [12.0, 24.0],
+  "Sprint":     [1.0, 1.5],
+  "Olympic":    [2.0, 3.5],
+  "703":        [4.0, 6.5],
+  "IM":         [9.0, 14.0],
+};
+
+function normObj(o: string | null | undefined): string {
+  const s = String(o ?? "").toLowerCase();
+  if (s.includes("70.3") || s === "703") return "703";
+  if (s.includes("ironman") || s === "im") return "IM";
+  if (s.includes("olymp")) return "Olympic";
+  if (s.includes("sprint")) return "Sprint";
+  if (s.includes("ultra")) return "Ultra";
+  if (s.includes("trail") && s.includes("long")) return "TrailLong";
+  if (s.includes("trail")) return "Trail";
+  if (s.includes("semi") || s.includes("half")) return "Semi";
+  if (s.includes("marathon")) return "Marathon";
+  if (s.includes("10k")) return "10K";
+  if (s.includes("5k")) return "5K";
+  if (s.includes("start")) return "StartToRun";
+  return "Marathon";
+}
+
+function sportOfObjective(obj: string, sportMain?: string | null): Sport {
+  if (sportMain) {
+    const s = sportMain.toLowerCase();
+    if (s.includes("bike") || s.includes("velo")) return "bike";
+    if (s.includes("ultra")) return "ultra";
+    if (s.includes("trail")) return "trail";
+    if (s.includes("run") || s.includes("cap")) return "cap";
+  }
+  if (obj === "IM" || obj === "703" || obj === "Sprint" || obj === "Olympic") return "bike";
+  if (obj === "Ultra" || obj === "TrailLong") return "ultra";
+  if (obj === "Trail") return "trail";
+  return "cap";
+}
+
+// -----------------------------------------------------------------------------
+// 1) CHO base rate (Mader-Heck)
+//
+// Audit fix — cette fonction utilisait une approximation linéaire ad hoc
+// (cho_frac = f(intensité, VLamax)) totalement différente du modèle réel de
+// partition glucides/lipides utilisé côté client (calculateFatOxidation /
+// calculateCarbOxidation, src/lib/v2/maderMetabolicModel.ts — courbe FatMax
+// en cloche, ancrée sur VO2max/VLamax). Les deux formules divergeaient
+// jusqu'à 96% aux intensités de course courantes pour un profil élite bien
+// entraîné (VLamax basse) : l'approximation linéaire ne priorise pas assez
+// l'oxydation lipidique à intensité modérée, donc surestime largement les
+// glucides nécessaires par rapport au modèle physiologique réel. Remplacée
+// par un port fidèle de calculateFatOxidation/calculateCarbOxidation —
+// mêmes constantes, même courbe FatMax — pour que le bloc nutrition injecté
+// dans le prompt IA corresponde à ce qu'affiche le client pour le même
+// profil.
+// -----------------------------------------------------------------------------
+const ENERGY_PER_O2 = 20.9; // kJ per liter O2 (mixed substrate)
+const FAT_ENERGY_DENSITY = 38.9; // kJ per gram fat
+const CARB_ENERGY_DENSITY = 17.2; // kJ per gram carbohydrate
+
+function calculateFatOxidationGmin(intensity: number, vo2max: number, vlx: number): number {
+  if (intensity <= 0) return 0;
+  const maxFatOx = 0.5 + (vo2max - 40) * 0.02 - vlx * 0.15;
+  const peakFatOx = Math.max(0.3, Math.min(1.2, maxFatOx));
+  const fatMaxIntensity = 75 - vlx * 50;
+  const risePhase = intensity / fatMaxIntensity;
+  const fallPhase = Math.exp(-Math.pow((intensity - fatMaxIntensity) / 25, 2));
+  let fatOx = intensity <= fatMaxIntensity ? peakFatOx * Math.min(1, risePhase) : peakFatOx * fallPhase;
+  if (intensity > 85) fatOx *= Math.max(0, 1 - (intensity - 85) / 15);
+  return Math.max(0, fatOx);
+}
+
+function calculateCarbOxidationGmin(intensity: number, vo2: number, vlx: number, weightKg: number): number {
+  if (intensity <= 0) return 0;
+  const vo2_abs = (vo2 * weightKg / 1000) * (intensity / 100); // L/min
+  const totalEnergy = vo2_abs * ENERGY_PER_O2; // kJ/min
+  const fatEnergy = calculateFatOxidationGmin(intensity, vo2, vlx) * FAT_ENERGY_DENSITY;
+  const carbEnergy = Math.max(0, totalEnergy - fatEnergy);
+  return carbEnergy / CARB_ENERGY_DENSITY;
+}
+
+function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durationH: number, intensityPct: number): { rate: number; capMax: number; method: "mader" | "fallback" | "insufficient" } {
+  // AUDIT #6 — VLamax sport-résolu prioritaire.
+  // `input.vlamax` provient de `diagnostic.effectifs.vlamax.value` (résolveur
+  // sport-aware côté client : CAP-estimator pour run/trail, vlamax vélo sinon).
+  // `input.vlamaxRun` = valeur brute snapshot, utilisée en dernier recours.
+  // ⚠️ Aucun fake default (mémoire `insufficient-data-no-fake-defaults`).
+  const vlx = input.vlamax ?? input.vlamaxRun ?? null;
+  const vo2 = input.vo2max ?? null;
+  const weight = input.weightKg ?? null;
+
+  if (vlx == null || vo2 == null || weight == null) {
+    // Données insuffisantes → pas de prescription Mader, laisser le prompt
+    // système signaler l'absence plutôt que d'inventer 0.45 / 50 / 70 kg.
+    const capMax = sport === "ultra" ? 60 : sport === "trail" ? 70 : (sport === "cap") ? 75 : 90;
+    return { rate: 0, capMax, method: "insufficient" };
+  }
+
+  const carbOxGmin = calculateCarbOxidationGmin(intensityPct, vo2, vlx, weight);
+  let totalOxGh = carbOxGmin * 60;
+  if (input.heatCondition) totalOxGh *= 1.10; // +10% chaleur (une seule fois)
+
+  const glycogen = weight * 5;
+  const totalNeed = totalOxGh * durationH;
+  const access = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * durationH));
+  const coverage = Math.min(0.85, (glycogen * access) / Math.max(1, totalNeed));
+  const minExoFrac = durationH < 1 ? 0 : durationH < 2 ? 0.25 : durationH < 3 ? 0.40 : 0.50;
+  let exoGh = totalOxGh * Math.max(minExoFrac, 1 - coverage);
+
+  const capLike = sport === "cap" || sport === "trail" || sport === "ultra";
+  const ultra = sport === "ultra";
+  if (capLike) exoGh *= 0.82;
+  if (ultra && durationH >= 6) exoGh *= 0.82;
+
+  const capMax = ultra ? 60 : sport === "trail" ? 70 : capLike ? 75 : 90;
+  const minFloor = durationH < 1 ? 0 : 30;
+  const rate = Math.max(minFloor, Math.min(capMax, Math.round(exoGh)));
+  return { rate, capMax, method: "mader" };
+}
+
+function hydrationRange(sport: Sport, weightKg: number, heat: boolean): [number, number] {
+  const capLike = sport === "cap" || sport === "trail" || sport === "ultra";
+  const lo = capLike ? 5 : 7;
+  const hi = capLike ? 8 : 10;
+  // Miroir de nutritionUnified.ts::computeHydration (heatFactor). Les deux
+  // valeurs avaient divergé (1.25 ici vs 1.35 côté client) — le guardrail
+  // sous-corrigeait la chaleur de 10 points par rapport au module qu'il est
+  // censé refléter.
+  const mul = heat ? 1.35 : 1.0;
+  return [Math.round(lo * weightKg * mul), Math.round(hi * weightKg * mul)];
+}
+
+function sodiumRange(heat: boolean, sport: Sport): [number, number] {
+  const ultra = sport === "ultra";
+  const trail = sport === "trail";
+  // Miroir de nutritionUnified.ts::computeHydration : ultra et trail ont des
+  // bases distinctes côté client (ultra plus haute — 800-1200 vs 600-900
+  // mg/h). Elles étaient auparavant regroupées ici sous un même "long" à
+  // base [500,900], ce qui plafonnait l'ultra sous le point réel calculé
+  // côté client (1000 mg/h hors chaleur, 1200 mg/h en chaleur).
+  const base: [number, number] = ultra ? [700, 1000] : trail ? [500, 900] : [400, 700];
+  if (heat) return [base[0] + 200, base[1] + 300];
+  return base;
+}
+
+// -----------------------------------------------------------------------------
+// 2) TTE âge-ajusté (F33) — masters
+// -----------------------------------------------------------------------------
+function tteAgeAdjust(age: number | null | undefined): { delta: number; label: string } {
+  if (!age || age < 30) return { delta: 0, label: "adulte <30 (aucun ajustement)" };
+  if (age < 40) return { delta: -2, label: "master 30-39 (−2 min sur cible TTE)" };
+  if (age < 50) return { delta: -5, label: "master 40-49 (−5 min sur cible TTE)" };
+  return { delta: -8, label: "master 50+ (−8 min sur cible TTE)" };
+}
+
+// -----------------------------------------------------------------------------
+// 3) CAP injury risk (compact) + garde-fou master + world_class
+// -----------------------------------------------------------------------------
+function capRiskLevel(age: number | null | undefined, vlamaxForRun: number | null | undefined, sport: Sport, ambition: string): { level: "low" | "moderate" | "high" | "very-high"; reasons: string[] } {
+  const reasons: string[] = [];
+  let score = 0;
+  if (sport === "cap" || sport === "trail" || sport === "ultra") {
+    if (age && age >= 50) { score += 2; reasons.push(`âge ${age} (impact ostéo-tendineux ↑)`); }
+    else if (age && age >= 40) { score += 1; reasons.push(`âge ${age} (récupération ralentie)`); }
+    if (vlamaxForRun && vlamaxForRun > 0.60) { score += 1; reasons.push(`VLamax run ${vlamaxForRun.toFixed(2)} élevée (raideur musculaire)`); }
+    if (ambition === "elite" || ambition === "world_class") { score += 1; reasons.push(`ambition ${ambition} (charge spécifique élevée)`); }
+    if (ambition === "world_class" && age && age >= 50) { score += 2; reasons.push(`⚠️ combinaison master 50+ × world_class`); }
+  }
+  const level = score >= 4 ? "very-high" : score >= 3 ? "high" : score >= 1 ? "moderate" : "low";
+  return { level, reasons };
+}
+
+// -----------------------------------------------------------------------------
+// Assemblage
+// -----------------------------------------------------------------------------
+export function buildNutritionAndSafetyBlock(input: GuardrailsInput): string {
+  const objKey = normObj(input.objective);
+  const sport = sportOfObjective(objKey, input.sportMain);
+  const ambition = String(input.ambition ?? "age_group").toLowerCase();
+  const range = DEFAULT_RACE_HOURS[objKey] ?? [3, 5];
+  const durationH = input.raceDurationHours && input.raceDurationHours > 0
+    ? input.raceDurationHours
+    : (range[0] + range[1]) / 2;
+
+  // Intensité race % VO2max approximative par objectif
+  const intensityPct = objKey === "IM" ? 68
+    : objKey === "703" ? 75
+    : objKey === "Marathon" ? 78
+    : objKey === "Semi" ? 85
+    : objKey === "10K" ? 90
+    : objKey === "5K" ? 95
+    : objKey === "Ultra" ? 60
+    : objKey === "TrailLong" ? 65
+    : objKey === "Trail" ? 72
+    : 75;
+
+  const cho = computeCHO(input, objKey, sport, durationH, intensityPct);
+  const weightForHydration = input.weightKg;
+  const heat = !!input.heatCondition;
+  const [hydLo, hydHi] = weightForHydration != null
+    ? hydrationRange(sport, weightForHydration, heat)
+    : [0, 0];
+  const [naLo, naHi] = sodiumRange(heat, sport);
+  const tteAdj = tteAgeAdjust(input.age);
+  // AUDIT #6 — VLamax sport-résolu prioritaire pour capRisk également.
+  const vlamaxForRunRisk = input.vlamax ?? input.vlamaxRun ?? null;
+  const risk = capRiskLevel(input.age, vlamaxForRunRisk, sport, ambition);
+
+  const lines: string[] = [];
+  lines.push(`\n### 🥗 NUTRITION MADER-HECK & 🛡️ GARDE-FOUS SANTÉ (Diagnostic auto)`);
+  lines.push(`Ces prescriptions sont calculées côté serveur à partir du profil réel (Mader-Heck, F26-F31, F33). Elles PRIMENT sur toute règle générique de nutrition ou de charge.`);
+
+  lines.push(`\n**Nutrition course (${objKey}, ${sport}, ~${durationH.toFixed(1)}h @ ${intensityPct}% VO₂max${heat ? ", chaleur >28°C" : ""})**`);
+  if (cho.method === "insufficient") {
+    lines.push(`- Glucides : **Données insuffisantes** (VLamax / VO₂max / poids manquants — aucune prescription Mader-Heck possible).`);
+  } else {
+    lines.push(`- Glucides : **${cho.rate} g/h** (cap physiologique ${cho.capMax} g/h, méthode : ${cho.method})`);
+  }
+  if (weightForHydration != null) {
+    lines.push(`- Hydratation : **${hydLo}-${hydHi} ml/h** (${weightForHydration}kg${heat ? ", chaleur +25%" : ""})`);
+  } else {
+    lines.push(`- Hydratation : **Poids athlète non renseigné** — impossible d'individualiser.`);
+  }
+  lines.push(`- Sodium : **${naLo}-${naHi} mg/h**${heat ? " (chaleur : +200 à +300 mg)" : ""}`);
+  lines.push(`- ⚠️ Chaleur = **+10% CHO déjà intégré** (F30 : ne jamais double-compter dans les séances tardives).`);
+  if (durationH >= 6) lines.push(`- 🕐 Événement >6h : tolérance digestive dégradée (−15%), prévoir gut training progressif dès Phase Build.`);
+  if (objKey === "10K" || objKey === "5K" || objKey === "StartToRun") {
+    lines.push(`- 🥤 Événement court (<1h) : plancher CHO = 0 (F31), aucune obligation en course. Séances longues (>1h30) suivent le taux ci-dessus.`);
+  }
+  if (cho.method !== "insufficient") {
+    lines.push(`- 📚 Séances "nutrition sim" en Race-Specific : reproduire ce taux exact (${cho.rate}g/h${weightForHydration != null ? ` + ${hydLo}-${hydHi}ml/h` : ""}).`);
+  }
+
+  lines.push(`\n**TTE âge-ajusté (F33)**`);
+  if (input.age) {
+    lines.push(`- Âge déclaré : ${input.age} → **${tteAdj.label}**`);
+    lines.push(`- Toute cible TTE injectée dans le plan DOIT appliquer cet ajustement (source unique : \`getTTETarget(objectif, age)\`).`);
+  } else {
+    lines.push(`- ⚠️ Âge non renseigné → utilise cibles TTE adultes standards SANS ajustement master. Ne pas fabriquer d'ajustement fictif.`);
+  }
+
+  const runRiskReal = input.injuryRiskPrecomputed?.run;
+  const bikeRiskReal = input.injuryRiskPrecomputed?.bike;
+
+  if (runRiskReal || bikeRiskReal) {
+    // Score réel (Fatigue + VLamax + TTE) — remplace le proxy âge+VLamax seul.
+    if (runRiskReal) {
+      lines.push(`\n**Risque blessure CAP — Niveau : ${runRiskReal.level} (${runRiskReal.score}/100)**`);
+      lines.push(`- ${runRiskReal.why}`);
+      for (const g of runRiskReal.guardrails) lines.push(`- ${g}`);
+      if (runRiskReal.level === "ELEVE" || runRiskReal.level === "CRITIQUE") {
+        lines.push(`- 🚨 **CONTRAINTE GÉNÉRATION** : plafonner le volume CAP qualité (fractionné/côtes/VO2max) à ≤2×/sem, réduire la durée des sorties longues, ne pas empiler qualité CAP + sortie longue la même semaine sans jour de récup entre les deux.`);
+        if (input.age && input.age >= 50 && (ambition === "elite" || ambition === "world_class")) {
+          lines.push(`- 🚨 **Master 50+ × ${ambition}** : combinaison à haut risque santé. Le plan DOIT mentionner explicitement les précautions (récup ≥48h post-fractionné, monitoring HRV, semaine décharge tous les 3, pas tous les 4).`);
+        }
+      }
+    }
+    if (bikeRiskReal) {
+      lines.push(`\n**Risque blessure Vélo — Niveau : ${bikeRiskReal.level} (${bikeRiskReal.score}/100)**`);
+      lines.push(`- ${bikeRiskReal.why}`);
+      for (const g of bikeRiskReal.guardrails) lines.push(`- ${g}`);
+      if (bikeRiskReal.level === "ELEVE" || bikeRiskReal.level === "CRITIQUE") {
+        lines.push(`- 🚨 **CONTRAINTE GÉNÉRATION** : plafonner les sorties vélo longues, éviter le travail force/basse cadence (SFR) tant que le risque reste élevé, densifier la récupération entre séances qualité.`);
+      }
+    }
+  } else {
+    // Repli : proxy dégradé (âge + VLamax uniquement, CAP seulement) — utilisé
+    // seulement si le score réel n'a pas pu être transmis (config incomplet).
+    lines.push(`\n**Risque blessure CAP (${sport}) — Niveau : ${risk.level.toUpperCase()}**`);
+    if (risk.reasons.length > 0) {
+      for (const r of risk.reasons) lines.push(`- ${r}`);
+      if (risk.level === "high" || risk.level === "very-high") {
+        lines.push(`- 🚨 **Charge cap : plafonner volume run à −15% vs matrice standard**, densifier récup active (Z1-Z2 vélo), interdire fractionné VMA >2×/sem.`);
+        if (input.age && input.age >= 50 && (ambition === "elite" || ambition === "world_class")) {
+          lines.push(`- 🚨 **Master 50+ × ${ambition}** : combinaison à haut risque santé. Le plan DOIT mentionner explicitement les précautions (récup ≥48h post-fractionné, monitoring HRV, semaine décharge tous les 3, pas tous les 4).`);
+        }
+      } else if (risk.level === "moderate") {
+        lines.push(`- 🟡 Risque modéré : respecter progression volume ≤10%/semaine, 1 séance récup active/sem.`);
+      }
+    } else {
+      lines.push(`- ✅ Aucun facteur de risque détecté au-delà du standard.`);
+    }
+  }
+
+  return lines.join("\n");
+}

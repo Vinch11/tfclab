@@ -33,7 +33,7 @@ import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalizatio
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
-  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9" | "B10" | "B11" | "B12" | "B13" | "B14";
+  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9" | "B10" | "B11" | "B12" | "B13" | "B14" | "B15";
   label: string;
   level: CheckLevel;
   pass: boolean;
@@ -259,7 +259,8 @@ export function checkB4For(profileId: QAProfileId, plan: MergedPlan): CheckResul
     case "B-70.3":
     case "B-IM":
     case "B-SPRINT":
-    case "B-OLYMPIC": {
+    case "B-OLYMPIC":
+    case "B-10K-TO-70.3": {
       const res = checkB4_703(plan);
       return { ...res, label: `${profileId} — swim/bike/run chaque semaine active` };
     }

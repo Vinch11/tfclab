@@ -1,0 +1,2826 @@
+// ═══════════════════════════════════════════════════════════════
+// PROMPT HELPERS — User prompt builder, CP/W' model, diagnostics
+// ═══════════════════════════════════════════════════════════════
+
+import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, taperWeeksForObjectiveServer, canBeIndependentPeak, minGapWeeksForFullPeak, SPORT_RATIO_REFS, type CatalogDurationStats } from "./sportRatioMatrix.ts";
+import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
+import { buildNutritionAndSafetyBlock } from "./nutritionAndSafetyGuardrails.ts";
+import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
+import { capBikeRaceIF, type RaceBikeAmbition } from "../_shared/racePowerCap.ts";
+import { deriveTriathlonZones, formatTriathlonZonesForPrompt } from "../_shared/triathlonZones.ts";
+
+/**
+ * Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER TEST
+ * CONTRÔLÉ (consigne coach explicite) : borne le nombre de chunks
+ * RÉELLEMENT exécutés par la boucle de génération (index.ts) quand
+ * `PlanConfig._pilotMaxChunks` est posé — mode EXPLICITEMENT opt-in,
+ * réservé au Pilot Cockpit (jamais posé par le formulaire coach normal).
+ * Extrait en fonction pure (comme le reste de ce fichier) pour rester
+ * testable sans dépendre du handler Deno.serve monolithique de index.ts.
+ *
+ * `pilotMaxChunks` absent, ≤0 ou non-numérique → `totalChunks` inchangé
+ * (comportement normal, tous les chunks s'exécutent). Sinon →
+ * `min(pilotMaxChunks, totalChunks)` (jamais plus que le plan n'en a réellement).
+ */
+export function computePilotChunksToRun(totalChunks: number, pilotMaxChunks: unknown): number {
+  const n = Number(pilotMaxChunks);
+  if (!Number.isFinite(n) || n <= 0) return totalChunks;
+  return Math.min(n, totalChunks);
+}
+
+/**
+ * Sprint qualité Marathon/Ironman (oct. 2026) — audit Codex, P0-1 (consigne
+ * coach explicite) : `derived.volumeCible` (ambition × weeklyHours, cf.
+ * deriveRaceTargets.ts) était affiché comme "SOURCE UNIQUE, NON NÉGOCIABLE"
+ * dans le MÊME prompt où `config.weeklyHours` brut était aussi affiché —
+ * pour B-10K-TO-70.3 (17h/sem déclaré, ambition elite ×1.1 → 18h), le modèle
+ * recevait deux cibles hebdo différentes sans relation expliquée. Constaté
+ * sur ce profil précis à cause d'une consolidation de charge récente en
+ * cours (`config.loadHistory` : 8h→17h/sem sur 4 semaines, Correction #E) :
+ * tant qu'elle n'est pas validée par le coach, 17h est un PLAFOND PROVISOIRE
+ * de consolidation, PAS un volume obligatoire (consigne coach explicite) —
+ * la cible affichée ne doit donc jamais dépasser la charge récente
+ * démontrée. Seuil de déclenchement 1.3 = même repère Gabbett ACWR déjà
+ * utilisé ailleurs dans ce fichier (ligne ~576, bloc HISTORIQUE DE CHARGE
+ * DÉCLARATIF) et dans planValidator.ts (`validateLoadHistoryCoherence`) —
+ * jamais un nouveau seuil inventé pour l'occasion.
+ *
+ * Inactif (retourne `volumeCible` inchangé) si `loadHistory` est absent,
+ * incomplet, ou si la hausse déclarative ne dépasse pas ce seuil, ou si la
+ * charge récente dépasse déjà la cible ambition (rien à plafonner) —
+ * comportement historique inchangé pour tout appelant qui ne fournit pas de
+ * `loadHistory` significatif.
+ */
+export function resolveEffectiveVolumeCible(
+  volumeCible: number | null,
+  loadHistory?: { chronicWeeklyHours?: number | null; recentWeeklyHours?: number | null } | null,
+): { effectiveVolumeCible: number | null; consolidationCapApplied: boolean } {
+  if (volumeCible == null) return { effectiveVolumeCible: null, consolidationCapApplied: false };
+  const chronic = loadHistory?.chronicWeeklyHours;
+  const recent = loadHistory?.recentWeeklyHours;
+  if (!chronic || !recent || chronic <= 0 || recent <= 0) {
+    return { effectiveVolumeCible: volumeCible, consolidationCapApplied: false };
+  }
+  const ratio = recent / chronic;
+  if (ratio <= 1.3 || recent >= volumeCible) {
+    return { effectiveVolumeCible: volumeCible, consolidationCapApplied: false };
+  }
+  return { effectiveVolumeCible: recent, consolidationCapApplied: true };
+}
+
+// === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
+// Builds a compact structured block from planConfig for re-injection in chunks
+// FIX #3 (audit recap): Now includes estimated phase bounds for the full plan
+
+/**
+ * 🏙️ HARD-BAN TERRAIN BLOCK — Injecté en TÊTE de CHAQUE chunk (chunk 1, N, retries).
+ * Quand l'athlète déclare terrain "plat"/"vallonné"/"mixte", on bannit explicitement
+ * les patterns "montagne / +XXXXm D+" pour éviter que l'IA mime les exemples
+ * du systemPrompt (qui contiennent de nombreuses tables avec +1200m/+1500m D+).
+ */
+export function buildTerrainHardBanBlock(config: any): string {
+  const ta = config?.terrainAvailability;
+  if (!ta || ta === "montagne") return "";
+  // Phase 1C-A — Le contenu EXPÉ HORS-VILLE / compensations montagne n'a de sens
+  // que pour un objectif trail/ultra/mountain. Injecter ces règles sur un plan
+  // route (semi/marathon/10K) ou triathlon (70.3/IM) pousse le modèle à copier
+  // verbatim l'ID EXPE_HORS_VILLE_SL_DPLUS dans des séances custom, ce que
+  // l'audit sport-objective coherence rejette ensuite (F-21 style gating).
+  // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) : utilisait
+  // TOUJOURS `config.objective` (l'objectif FINAL) — pour une fenêtre non-trail
+  // du cycle en cours d'un plan multi-objectif dont l'objectif final EST trail
+  // (ou l'inverse), ce bloc terrain se déclenchait/s'omettait sur le mauvais
+  // objectif. `catalogObjective` (objectif du cycle EN COURS) prime quand présent.
+  const objRaw = String(config?.catalogObjective ?? config?.objective ?? "").toLowerCase();
+  const isTrailObjective = /trail|utmb|ccc|occ|skyrun|hardrock|tor des|western states|mountain|montagne/.test(objRaw)
+    || (objRaw.includes("ultra") && !objRaw.includes("ironman"));
+  if (!isTrailObjective) return "";
+  const tp = config?.trailProfile;
+  // Fallback when trailProfile is missing : on raisonne sur weeklyHours / défaut.
+  const weeklyPeakDPlus = tp?.weeklyDPlusPeakM ?? 2000;
+
+  const lines: string[] = [];
+  lines.push(`\n🚨🚨🚨 CONTRAINTE TERRAIN — PRIORITÉ ABSOLUE (override TOUS les exemples du system prompt, même "+1200m D+ montagne") :`);
+  if (ta === "plat") {
+    const maxDPlusWeekday = 150;
+    const maxDPlusWeekend = Math.round(weeklyPeakDPlus * 0.6);
+    lines.push(`  • Athlète URBAIN en terrain PLAT (ex: Bruxelles, Amsterdam, Paris intra) — AUCUN dénivelé naturel disponible en semaine.`);
+    lines.push(`  • ❌ INTERDIT en SEMAINE (lun-ven) : toute séance "montagne", "sentier montagne", "+500m D+" ou plus, "SL trail montagne", "back-to-back montagne", "massif".`);
+    lines.push(`  • ❌ INTERDIT de prescrire >${maxDPlusWeekday}m D+ sur une séance de semaine (impossible à exécuter).`);
+    lines.push(`  • ✅ QUOTA OBLIGATOIRE PAR SEMAINE : minimum 2 séances [URBAIN] dans chaque semaine de Build/Peak (tapis incliné, escaliers, côtes urbaines, excentrique salle). Chaque titre DOIT commencer par [URBAIN].`);
+    lines.push(`  • ✅ Catalogue URBAIN à PIOCHER : URBAN_TAPIS_INCLINE_SEUIL, URBAN_COTES_URBAINES_VMA, URBAN_ESCALIERS_PYRAMIDE, URBAN_EXCENTRIQUE_DESCENTE_SALLE, URBAN_TAPIS_SL_LONG, URBAN_DOUBLE_TAPIS_AM_PM, URBAN_PARC_BOUCLES_VALLONNEES, V2_STR_ESCALIERS_TRAIL. Utilise leurs IDs explicitement.`);
+    lines.push(`  • 🎒 ✅ WEEK-ENDS EXPÉ HORS-VILLE — PLANIFICATION OBLIGATOIRE (ne PAS oublier, c'est le pilier D+ du plan) :`);
+    lines.push(`      → Build : MINIMUM 1 week-end expé tous les 14 jours (= 2/mois). Choisir EXPE_HORS_VILLE_SL_DPLUS (sam OU dim, ${maxDPlusWeekend}m D+ max).`);
+    lines.push(`      → Peak (4-6 dernières sem avant course) : MINIMUM 2 week-ends expé/mois dont AU MOINS 1 EXPE_HORS_VILLE_BACK_TO_BACK (sam+dim consécutifs en massif).`);
+    lines.push(`      → Si course inclut descentes techniques : ajouter 1× EXPE_HORS_VILLE_DESCENTE_TECHNIQUE /mois en Build/Peak.`);
+    lines.push(`      → Chaque expé week-end DOIT apparaître nommément dans le plan avec titre commençant par [EXPÉ HORS-VILLE] et l'ID catalogue correspondant. NE PAS se contenter de "SL trail" générique.`);
+    lines.push(`      → Si l'athlète indique l'impossibilité expé un week-end donné : substituer par URBAN_DOUBLE_TAPIS_AM_PM (sam 2h + dim 3h tapis incliné), mais cela reste l'EXCEPTION pas la règle.`);
+    lines.push(`  • Sem 1 (S1) : pas d'expé week-end (adaptation). Compensations urbaines uniquement. EXPÉ démarre dès S2-S3.`);
+    lines.push(`  • VALIDATION : plan INVALIDE si (a) <2 séances [URBAIN]/sem en Build/Peak, OU (b) <2 séances [EXPÉ HORS-VILLE]/mois en Build, OU (c) aucun back-to-back EXPÉ en Peak, OU (d) "montagne/+XXXm D+" en lun-ven.`);
+  } else if (ta === "vallonne") {
+    lines.push(`  • Athlète en terrain VALLONNÉ (collines 50-200m max) — pas de massif montagneux accessible en semaine.`);
+    lines.push(`  • ❌ INTERDIT en semaine : séances "montagne >500m D+ continu", "SL trail montagne 1500m+", "altitude".`);
+    lines.push(`  • ✅ QUOTA : minimum 1 séance [URBAIN] (tapis incliné ou excentrique salle) par semaine en Build/Peak, + 1-2 séances "collines locales" (VMA côtes / seuil montée).`);
+    lines.push(`  • ✅ Catalogue à pioche : URBAN_TAPIS_INCLINE_SEUIL, URBAN_EXCENTRIQUE_DESCENTE_SALLE + sessions VMA côtes du catalogue trail.`);
+    lines.push(`  • ✅ Week-ends massif (<2h route) : 1× tous les 10-15j possible. Tagger [EXPÉ HORS-VILLE].`);
+  } else if (ta === "mixte") {
+    lines.push(`  • Athlète MIXTE : urbain en semaine, accès montagne week-end uniquement.`);
+    lines.push(`  • ❌ INTERDIT en semaine (lun-ven) : séances "montagne >500m D+", "SL trail montagne".`);
+    lines.push(`  • ✅ QUOTA : minimum 1 séance [URBAIN] (tapis/escaliers/excentrique) par semaine en lun-ven.`);
+    lines.push(`  • ✅ Concentrer TOUTES les séances montagne (SL D+ long, descente technique, back-to-back) sur sam/dim.`);
+  }
+  return lines.join("\n");
+}
+
+/**
+ * Segmente un plan multi-objectifs en cycles — un segment par pic de forme
+ * complet daté (cf. `classifyMultiObjectiveGoals`), séparés par une vraie
+ * régénération de `REGEN_WEEKS_BETWEEN_PEAKS` semaines. Retourne `null` si le
+ * plan est mono-objectif (ou n'a pas ≥2 pics complets datés) : l'appelant
+ * doit alors traiter le plan comme UN SEUL cycle continu (comportement
+ * historique).
+ *
+ * Extrait de `buildStructuredDiagnosticBlock` (audit "système de
+ * périodisation") pour être réutilisé aussi par `inferPhaseFromWeek`
+ * (jsonPlanHandler.ts) — SANS ce partage, la sélection du catalogue de
+ * séances par phase (base/build/peak/taper) suivait un découpage DIFFÉRENT
+ * de celui du texte de guidance du prompt : une course intermédiaire (ex.
+ * Marathon en S22 d'un plan de 40 sem vers l'IM) recevait des fiches
+ * catalogue "build" au lieu de fiches "taper" pour sa PROPRE semaine de
+ * course — un bug réel, découvert en auditant ce chemin séparément, qui
+ * pouvait faire produire du contenu de charge la semaine même de la course.
+ */
+export const MULTI_OBJECTIVE_REGEN_WEEKS_BETWEEN_PEAKS = 2; // cohérent avec "1-2 sem RÉCUPÉRATION RÉELLE" (règle 2 multi-objectifs)
+
+export interface MultiObjectiveWeekSegment {
+  startWeek: number;
+  endWeek: number;
+  objective: string;
+  goalWeek: number;
+  isLastCycle: boolean;
+}
+
+export function computeMultiObjectiveSegments(config: any, totalWeeks: number): MultiObjectiveWeekSegment[] | null {
+  if (!Array.isArray(config?.raceGoals) || config.raceGoals.length < 2) return null;
+
+  const fullPeaks = classifyMultiObjectiveGoals(config.raceGoals)
+    .filter((c) => c.isFullPeak && c.goal.raceDate)
+    .map((c) => {
+      const raw = computeGoalWeekForConfig(config, c.goal);
+      // Mirror client (multiObjectiveClassification.ts, computeObjectiveCycleSegments) :
+      // objectif final juste au-delà de la dernière semaine (décalage d'une
+      // semaine entre date de début et durée) — on le ramène sur la dernière
+      // semaine plutôt que de perdre toute la segmentation par cycle.
+      const goalWeek = c.isLast && typeof raw === "number" && raw > totalWeeks && raw <= totalWeeks + 1 ? totalWeeks : raw;
+      return { ...c, goalWeek };
+    })
+    .filter((c): c is typeof c & { goalWeek: number } => typeof c.goalWeek === "number" && c.goalWeek >= 1 && c.goalWeek <= totalWeeks)
+    .sort((a, b) => a.goalWeek - b.goalWeek);
+
+  if (fullPeaks.length < 2) return null;
+
+  const segments: MultiObjectiveWeekSegment[] = [];
+  let cursor = 1;
+  fullPeaks.forEach((c, i) => {
+    const isLastSegment = i === fullPeaks.length - 1;
+    const segEnd = isLastSegment ? totalWeeks : c.goalWeek;
+    if (segEnd - cursor + 1 >= 2) {
+      segments.push({
+        startWeek: cursor,
+        endWeek: segEnd,
+        objective: String(c.goal.objective || ""),
+        goalWeek: c.goalWeek,
+        isLastCycle: isLastSegment,
+      });
+    }
+    cursor = segEnd + MULTI_OBJECTIVE_REGEN_WEEKS_BETWEEN_PEAKS + 1;
+  });
+  return segments.length > 0 ? segments : null;
+}
+
+/**
+ * Durée de Fondation réduite pour un cycle qui redémarre APRÈS un pic de
+ * forme complet (2e pic ou plus d'un plan multi-objectifs), PAS pour un
+ * athlète qui commence son plan. Mirror simplifié (cas "highly_trained"
+ * uniquement) de `computeFondationDurationWeeks` (planConfigBuilder.ts,
+ * côté client — inaccessible depuis cette edge function Deno).
+ *
+ * Un athlète qui vient de courir un Marathon ou un IM n'est PAS désentraîné
+ * après 1-2 semaines de vraie récupération : sa base aérobie est intacte,
+ * potentiellement renforcée par la course elle-même. Lui appliquer le même
+ * pourcentage de Fondation qu'un cycle qui démarre de zéro (audit "système
+ * de périodisation") contredirait à la fois la physiologie et la règle
+ * explicite du prompt ("COHÉRENCE DES PHASES — RÈGLES INVIOLABLES" :
+ * "jamais de retour à Fondation une fois quittée") : ce court palier est une
+ * réadaptation technique/neuromusculaire, pas une reconstruction de base.
+ */
+function computeReducedFondationWeeksPostPeak(segmentWeeks: number): number {
+  const base = 3; // = computeFondationDurationWeeks("highly_trained", …)
+  const capFromTotal = Math.max(2, Math.round(segmentWeeks * 0.35));
+  return Math.max(2, Math.min(base, capFromTotal, 6));
+}
+
+/**
+ * Calcule les bornes de phase (Fondation/Chantier/Consolidation/Race-Specific/
+ * Affûtage — ou Adaptation/Développement/Consolidation/Affûtage en finisher)
+ * pour UN cycle de blocs concentrés (Issurin 2008/2010), sur une plage de
+ * semaines [segStart, segEnd] (numérotation GLOBALE du plan). Extrait de
+ * l'ancien corps de `buildStructuredDiagnosticBlock` (FIX C5 + audit V8) pour
+ * être appelable plusieurs fois sur un plan multi-objectifs (cf. appelant).
+ */
+function buildPhaseBoundsSegmentLines(
+  segStart: number,
+  segEnd: number,
+  objKey: string,
+  isFinisher: boolean,
+  L1: string,
+  L2: string,
+  headerSuffix: string,
+  // Bug réel corrigé (audit "système de périodisation") : ce bloc recalculait
+  // sa PROPRE durée de Fondation via un pourcentage basé sur le limiteur,
+  // indépendamment de `config.fondationDurationWeeks` (calculée côté client
+  // selon le niveau d'entraînement réel — cf. computeFondationDurationWeeks,
+  // planConfigBuilder.ts — et injectée juste au-dessus dans ce même prompt
+  // comme valeur FAISANT AUTORITÉ : "utilise CETTE valeur, pas le générique").
+  // Les deux pouvaient donc afficher deux durées différentes pour "la
+  // Fondation de CET athlète" dans le même prompt. Quand un override est
+  // fourni, il prime sur le calcul par pourcentage.
+  fondationWeeksOverride?: number,
+): string[] {
+  const lines: string[] = [];
+  const tw = segEnd - segStart + 1;
+  const off = segStart - 1; // décalage pour convertir une semaine locale (1..tw) en semaine globale du plan
+
+  const taperWeeks = Math.max(1, taperWeeksForObjectiveServer(objKey));
+  const targetRaceSpecific = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
+  const raceSpecificWeeks = Math.max(0, Math.min(targetRaceSpecific, tw - taperWeeks - 2));
+  const remainingWeeks = Math.max(2, tw - taperWeeks - raceSpecificWeeks);
+
+  const isVlamaxLimiter = /vlamax|glycoly|anaerob/i.test(L1);
+  const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
+  const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
+  const isVo2maxLimiter = /vo2max/i.test(L1);
+
+  let fondationPct = 0.35;
+  if (isEconomyLimiter) fondationPct = 0.42;
+  else if (isVlamaxLimiter) fondationPct = 0.30;
+  else if (isDurabilityLimiter) fondationPct = 0.30;
+
+  let fondationWeeks = (typeof fondationWeeksOverride === "number" && fondationWeeksOverride > 0)
+    ? Math.max(1, Math.min(fondationWeeksOverride, remainingWeeks - 1))
+    : Math.max(1, Math.floor(remainingWeeks * fondationPct));
+  let buildWeeks = remainingWeeks - fondationWeeks;
+  if (buildWeeks < 1) {
+    buildWeeks = 1;
+    fondationWeeks = Math.max(1, remainingWeeks - 1);
+  }
+
+  const L1Short = L1 ? L1.split(/[\s(,]/)[0] : "Limiteur #1";
+  const L2Short = L2 ? L2.split(/[\s(,]/)[0] : "Limiteur #2";
+
+  const planLengthTag = tw < 8 ? " — PLAN COURT (densité prioritaire sur volume)" : tw < 12 ? " — PLAN MOYEN" : "";
+  lines.push(`\n📅 BORNES DE PHASE ESTIMÉES${headerSuffix} (${tw} semaines, ajustées selon L1="${L1Short}")${planLengthTag} :`);
+  if (isFinisher) {
+    lines.push(`  Phase 1 — Adaptation : S${off + 1}-S${off + fondationWeeks}`);
+    lines.push(`  Phase 2 — Développement : S${off + fondationWeeks + 1}-S${off + fondationWeeks + buildWeeks}`);
+    if (raceSpecificWeeks > 0) lines.push(`  Phase 3 — Consolidation : S${off + fondationWeeks + buildWeeks + 1}-S${off + tw - taperWeeks}`);
+    lines.push(`  Phase ${raceSpecificWeeks > 0 ? "4" : "3"} — Affûtage : S${off + tw - taperWeeks + 1}-S${off + tw}`);
+  } else {
+    const chantierEnd = fondationWeeks + Math.max(1, Math.ceil(buildWeeks * (isVlamaxLimiter || isDurabilityLimiter ? 0.55 : 0.5)));
+    const consolEnd = fondationWeeks + buildWeeks;
+    lines.push(`  Bloc Fondation${isVo2maxLimiter ? " (SANS VO2max — réservé au Bloc Chantier dédié)" : " + Intensité"} : S${off + 1}-S${off + fondationWeeks}${isEconomyLimiter ? " (étendu: adaptation motrice L1)" : ""}`);
+    lines.push(`  Bloc Chantier [${L1Short}↓] : S${off + fondationWeeks + 1}-S${off + chantierEnd}${isVlamaxLimiter ? " (étendu: chantier métabolique prioritaire)" : ""}`);
+    if (consolEnd > chantierEnd) lines.push(`  Bloc Consolidation [${L2Short}] : S${off + chantierEnd + 1}-S${off + consolEnd}`);
+    if (raceSpecificWeeks > 0) lines.push(`  Bloc Race-Specific : S${off + consolEnd + 1}-S${off + tw - taperWeeks}`);
+    lines.push(`  Bloc Affûtage : S${off + tw - taperWeeks + 1}-S${off + tw}`);
+  }
+  if (tw < 8) {
+    lines.push(`  ⚠️ PLAN COURT (<8 sem) : pas de redondance. CHAQUE séance compte. Densité Z3/Z4 maintenue dès S1 (pas de "vraie" base aérobie possible).`);
+  }
+  return lines;
+}
+
+export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): string {
+  const lines: string[] = [];
+  
+  // Objective & Ambition
+  // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) : ces 3
+  // lignes affichaient TOUJOURS l'objectif FINAL du plan, même pour une
+  // fenêtre du cycle intermédiaire — un diagnostic disant "Objectif: Ironman,
+  // Sport cible résolu: triathlon" juste avant un verrou sport disant
+  // "COURSE ROUTE, natation interdite" (catalogObjective-aware) est la même
+  // contradiction que les autres blocs déjà corrigés, même si purement
+  // informatif. `diagDerived` plus bas (cible temps/allure canonique) reste
+  // volontairement lié à l'objectif FINAL (source unique inter-chunks, comme
+  // buildCanonicalRaceCard) — seul l'AFFICHAGE ci-dessous devient cycle-aware.
+  const diagLabelObjective = config?.catalogObjective ?? config?.objective ?? "";
+  const objKey = normalizeObjKey(diagLabelObjective || "");
+  const ambKey = normalizeAmbKey(config?.ambition || "");
+  const resolvedSport = mapObjectiveToSport(config?.objective || "");
+  const resolvedSportForLabel = mapObjectiveToSport(diagLabelObjective || "");
+  lines.push(`🎯 Objectif: ${diagLabelObjective || "N/A"} (normalisé: ${objKey})`);
+  lines.push(`🏅 Ambition: ${config?.ambition || "N/A"} (normalisé: ${ambKey})`);
+  lines.push(`🏷️ Sport cible résolu: ${resolvedSportForLabel}`);
+  const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
+  // Snapshot-based target (source unique). Fallback silencieux si VMA absente.
+  const diagDerived = deriveRaceTargets({
+    vmaKmh: typeof config?._athleteVma === "number" ? config._athleteVma : null,
+    thresholdPaceSecPerKm: typeof config?._athletePaceThresholdSecPerKm === "number" ? config._athletePaceThresholdSecPerKm : null,
+    objective: config?.objective || "",
+    // Cle canonique deja normalisee (ambKey), jamais le libelle brut config.ambition :
+    // deriveRaceTargets a son propre lookup exact "elite" -> ancien palier interne,
+    // qui collisionne avec le libelle "Elite" (actuel de world_class, voir normalizeAmbKey).
+    ambition: ambKey,
+    literatureHintText: diagTimeTarget,
+    sport: mapObjectiveToSport(config?.objective || ""),
+    // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : ajoutés pour que
+    // `diagDerived.volumeCible` soit calculé avec les MÊMES entrées que `derived`
+    // dans buildUserPrompt plus bas — sinon le bloc diagnostic (chunk 1) et le
+    // bloc utilisateur affichent potentiellement deux cibles volume différentes
+    // sans le savoir. Absent de l'appel jusqu'ici → `diagDerived.volumeCible`
+    // était systématiquement `null` (cf. computeVolumeCible), donc jamais utilisé.
+    weeklyHours: typeof config?.weeklyHours === "number" && config.weeklyHours > 0 ? config.weeklyHours : null,
+    trainingLevel: (config as any)?.ambitionMeta?.trainingLevel ?? null,
+  });
+  if (diagDerived.source === "snapshot" && diagDerived.raceTimeSec != null) {
+    lines.push(`🎯 Cible course (snapshot) : ${diagDerived.humanSummary}`);
+    if (diagTimeTarget) lines.push(`   Fourchette littérature (secondaire, JAMAIS à citer comme objectif du plan) : ${diagTimeTarget}`);
+    if (diagDerived.warning) lines.push(`⚠️ ${diagDerived.warning}`);
+    // BUG constaté sans cette contrainte explicite : le champ `diagnostic` et la
+    // fiche du jour de course citaient un temps/allure DIFFÉRENT de la cible
+    // snapshot ci-dessus (souvent inspiré de la fourchette littérature), créant
+    // une incohérence visible dans le plan (ex: titre "Objectif 38min" mais
+    // fiche du jour de course "Objectif 43'17"). Contrainte dure ci-dessous.
+    lines.push(`⛔ RÈGLE ABSOLUE (diagnostic + fiche jour de course) : tout temps/allure cible mentionné dans \`diagnostic\` ou dans la séance du jour de course DOIT être EXACTEMENT "${diagDerived.humanSummary}" — jamais la fourchette littérature ci-dessus, jamais un autre chiffre. Un seul chiffre cible existe dans tout le plan : celui-ci.`);
+  } else if (diagTimeTarget) {
+    lines.push(`🎯 Temps cible (littérature, snapshot indisponible) : ${diagTimeTarget}`);
+  }
+  
+  // Limiters (structured, ranked) — utilise la liste RAW légère (noms de métriques)
+  // pour rester compact (chunks 2..N réinjectent ce bloc).
+  const limitersRaw: string[] | undefined = config?.identifiedLimitersRaw;
+  if (limitersRaw && limitersRaw.length > 0) {
+    lines.push(`\n🔴 LIMITEURS CLASSÉS (${limitersRaw.length} identifiés) :`);
+    limitersRaw.forEach((l: string, i: number) => {
+      const tag = i === 0 ? "L1 (PRIORITAIRE)" : i === 1 ? "L2 (SECONDAIRE)" : `L${i + 1}`;
+      lines.push(`  ${tag}: ${l}`);
+    });
+    // Durée du bloc Chantier calculée depuis l'ampleur réelle du gap sur L1
+    // (cf. computeChantierDurationWeeks) — remplace la valeur générique
+    // "3-4 sem" donnée plus haut dans les instructions méthodologiques.
+    if (typeof config?.chantierDurationWeeks === "number" && config.chantierDurationWeeks > 0) {
+      lines.push(`  📅 Durée du bloc Chantier [L1] pour CET athlète : ${config.chantierDurationWeeks} semaines (calculée selon l'ampleur du gap + la durée totale du plan — utilise CETTE valeur, pas le "3-4 sem" générique indiqué plus haut).`);
+    }
+  } else {
+    lines.push(`\n⚠️ Aucun limiteur identifié — plan généraliste.`);
+  }
+  
+  // Active levers
+  if (config?.activeLevers && config.activeLevers.length > 0) {
+    lines.push(`\n⚡ Leviers actifs: ${config.activeLevers.join(", ")}`);
+  }
+
+  // P2 — décision issue du même pipeline que le diagnostic coach. Ce bloc
+  // rend consommables l'action, les adaptations et le niveau de confiance;
+  // le catalogue reste piloté déterministiquement par les limiteurs et les
+  // prohibitions, ce que la trace QA distingue explicitement.
+  const strategy = config?.strategyContext;
+  if (strategy && strategy.source !== "unavailable") {
+    lines.push(`\n🧭 STRATÉGIE PHYSIOLOGIQUE CALCULÉE (${strategy.source}, confiance ${strategy.confidence ?? "inconnue"}) :`);
+    if (strategy.primaryAction) lines.push(`  • Action prioritaire : ${strategy.primaryAction}`);
+    if (Array.isArray(strategy.levers)) {
+      for (const lever of strategy.levers) {
+        lines.push(`  • Levier #${lever.priority}: ${lever.label} — ${lever.reason}`);
+        if (Array.isArray(lever.adaptations) && lever.adaptations.length > 0) {
+          lines.push(`    Adaptations recherchées : ${lever.adaptations.join(" ; ")}`);
+        }
+      }
+    }
+    if (Array.isArray(strategy.trainingFocus?.do) && strategy.trainingFocus.do.length > 0) {
+      lines.push(`  • Focus DO : ${strategy.trainingFocus.do.join(" ; ")}`);
+    }
+    if (Array.isArray(strategy.trainingFocus?.avoid) && strategy.trainingFocus.avoid.length > 0) {
+      lines.push(`  • Focus AVOID : ${strategy.trainingFocus.avoid.join(" ; ")}`);
+    }
+    if (strategy.recommendedWeekType) {
+      lines.push(`  • Type de semaine suggéré : ${strategy.recommendedWeekType} (indication stratégique, jamais un remplacement des règles de phase/décharge).`);
+    }
+  }
+  
+  // Prohibitions — injected in detail later (see L3853+), only add brief reminder here
+  // (detailed injection with PRIORITÉ ABSOLUE is done below in the athlete profile section)
+
+  // 📍 PROFIL COURSE TRAIL — pré-calculé côté code (D+/km, terrain, D+ hebdo cible)
+  // Injecté UNE SEULE FOIS dans chunk 1 (≈80 tokens). Évite hallucination du profil.
+  if (config?.trailProfile) {
+    const tp = config.trailProfile;
+    const durMin = tp.estimatedRaceDurationMin;
+    const durStr = durMin
+      ? `${Math.floor(durMin / 60)}h${(durMin % 60).toString().padStart(2, "0")}`
+      : "n/r";
+    lines.push(`\n📍 PROFIL COURSE TRAIL (valeurs finales, ne pas recalculer) :`);
+    lines.push(`  • Distance: ${tp.distanceKm} km · D+: ${tp.elevationGainM} m · Ratio: ${tp.dPlusPerKm} m/km → terrain "${tp.terrainLabel}"`);
+    lines.push(`  • Durée estimée: ${durStr}${tp.needsNightSimulation ? " (≥6h → simulations nocturnes obligatoires)" : ""}`);
+    lines.push(`  • D+ hebdo cible: base ${tp.weeklyDPlusBaseM}m → peak ${tp.weeklyDPlusPeakM}m`);
+    lines.push(`  • 🚦 RAMPE D+ MAX: +30%/sem (marge de sécurité inspirée de l'ACWR ≤1.3 — Gabbett ; recherche menée sur sport co/contact, pas endurance, extrapolée ici en marge prudente plutôt que comme preuve directe pour le trail). NE PAS sauter de base→peak en <4 sem. Décharge -40-50% D+ toutes les 3-4 sem (cf. RÈGLES D+, cohérent avec la décharge volume générale).`);
+    if (tp.descentTechnicalRequired) {
+      lines.push(`  • ⚠️ Descente technique OBLIGATOIRE 1x/sem en Build/Peak (ratio ≥35 m/km)`);
+    }
+    if (tp.needsAcclimatation) {
+      lines.push(`  • ⚠️ Altitude max ≥2000m → bloc d'acclimatation (3-4 sem) ou simulation hypoxie`);
+    }
+    lines.push(`  • Gut Training cible: ${tp.gutTrainingTargetGPerH} g CHO/h testé en simulation longue`);
+    lines.push(`  • 📝 TITRE DU PLAN — OBLIGATOIRE : le titre "# Plan TFCL™ — ..." DOIT mentionner exactement "${tp.distanceKm}km" (et non une autre distance inventée). Format imposé : "# Plan TFCL™ — [Nom course] (${tp.distanceKm}km) — N semaines".`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUDIT LOT #2 — GARDE-FOUS TRAIL / ULTRA / MASTER × WORLD_CLASS
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) :
+    // catalogObjective (cycle en cours) prime sur objective (objectif final) —
+    // sinon ces garde-fous trail/ultra se déclenchent/s'omettent sur le mauvais
+    // objectif pour une fenêtre d'un plan multi-objectif mixte trail/non-trail.
+    const objRaw = String(config?.catalogObjective ?? config?.objective ?? "").toLowerCase();
+    const isTrail = objRaw.includes("trail") || objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("ccc") || objRaw.includes("occ") || objRaw.includes("skyrun") || objRaw.includes("hardrock") || objRaw.includes("western states") || objRaw.includes("tor des");
+    const isUltra = objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("hardrock") || objRaw.includes("tor des") || objRaw.includes("western states");
+    const isMountain = objRaw.includes("montagne") || objRaw.includes("mountain") || objRaw.includes("utmb") || objRaw.includes("ccc") || objRaw.includes("skyrun") || objRaw.includes("hardrock");
+
+    // Garde-fou #1 : Trail Montagne/Ultra sans trailProfile → prompt bloquant informatif
+    if (isTrail && !config?.trailProfile && (isMountain || isUltra)) {
+      lines.push(`\n🚨 TRAIL ${isUltra ? "ULTRA" : "MONTAGNE"} SANS PROFIL COURSE — RÈGLE DÉFENSIVE OBLIGATOIRE`);
+      lines.push(`  • Aucune fiche course (km/D+/altitude) n'a été renseignée → tu NE PEUX PAS inventer un profil précis.`);
+      lines.push(`  • Prescris un plan **générique ${isUltra ? "ultra-trail" : "trail montagne"}** basé sur les fourchettes suivantes UNIQUEMENT :`);
+      if (isUltra) {
+        lines.push(`    - Distance cible : 80-170 km · D+ cible : 4000-10000 m · Durée : 15-30h`);
+        lines.push(`    - D+ hebdo peak : 3000-6000 m · SL max : 5-8h · Back-to-back 2j obligatoire dès Build`);
+      } else {
+        lines.push(`    - Distance cible : 25-50 km · D+ cible : 1500-3500 m · Durée : 4-8h`);
+        lines.push(`    - D+ hebdo peak : 1500-3000 m · SL max : 3-4h`);
+      }
+      lines.push(`  • **Le titre du plan DOIT signaler explicitement "(profil course non renseigné)"** pour prévenir le coach.`);
+      lines.push(`  • Recommander en Phase 1 : "compléter la fiche course dans l'app pour affiner D+ hebdo cible, gut training, simulation nocturne".`);
+    }
+
+    // Garde-fou #2 : Trail Ultra ≤6 semaines → warning "phases écrasées"
+    const weeks = (config?.weeksAvailable as number | undefined) ?? (totalWeeks ?? null);
+    if (isUltra && weeks && weeks <= 6) {
+      lines.push(`\n⚠️ ULTRA-TRAIL EN ${weeks} SEMAINES — DÉLAI SOUS-CRITIQUE`);
+      lines.push(`  • La préparation ultra recommandée est ≥16 sem (Millet 2018, Hoffman 2016). En ${weeks} sem, tu NE PEUX PAS construire une base aérobie ni progresser le D+ hebdo à +30%/sem sans risque tendino-articulaire.`);
+      lines.push(`  • Objectif ajusté OBLIGATOIRE : **"finir sans blessure"** (pas de chrono cible). Aucun bloc VMA/seuil dur — priorité 100% Z1-Z2 volume + D+ progressif.`);
+      lines.push(`  • Phases compressées : Fondation 2 sem · Build 2 sem · Peak 1 sem · Taper 1 sem. Aucune phase Race-Specific longue.`);
+      lines.push(`  • Le diagnostic TFCL du plan DOIT mentionner explicitement "délai sous-critique — objectif finish uniquement".`);
+    }
+
+    // Garde-fou #3 : Master 50+ × world_class (tous objectifs, pas seulement CAP)
+    // ⚠️ config.ambition est toujours le libelle UI ("Elite", jamais "world_class"
+    // litteralement) : passer par normalizeAmbKey, sinon ce garde-fou sante ne se
+    // declenche jamais pour un vrai athlete 50+ ambition Elite.
+    const age = (config?.age as number | undefined) ?? null;
+    const amb = normalizeAmbKey(String(config?.ambition ?? ""));
+    if (age && age >= 50 && amb === "world_class") {
+      lines.push(`\n🚨 MASTER 50+ × WORLD_CLASS — GARDE-FOU SANTÉ (tous objectifs)`);
+      lines.push(`  • Combinaison à très haut risque cardio-vasculaire et musculo-squelettique.`);
+      lines.push(`  • RÈGLES OBLIGATOIRES à intégrer explicitement dans le plan :`);
+      lines.push(`    - Semaine décharge tous les **3 semaines** (pas 4) — volume −40%, intensité −20%.`);
+      lines.push(`    - Récupération ≥ **48h** après toute séance dure (VMA, seuil long, SL >2h30).`);
+      lines.push(`    - Bilan cardiologique récent (<12 mois) recommandé — mentionner dans les prérequis santé.`);
+      lines.push(`    - Monitoring HRV matinal quotidien ; toute chute >15% vs baseline = journée récup imposée.`);
+      lines.push(`    - Pas de doubles séances quotidiennes au-delà de 2×/sem (récupération centrale limitée).`);
+      lines.push(`  • Le diagnostic TFCL du plan DOIT titrer une section "🩺 Précautions Master 50+ world_class".`);
+    }
+  }
+
+
+
+  // 🏙️ ATHLÈTE URBAIN — substitutions montagne obligatoires
+  // Injecté chunk 1 quand le coach déclare terrain=plat/vallonné/mixte sur un objectif trail/montagne/ultra.
+  // Sans cela, l'IA prescrit des séances montagne irréalisables (frustration + non-adhérence).
+  // Fonctionne MÊME SANS fiche course renseignée : on utilise des fourchettes par défaut conservatrices.
+  // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) : les 3 tests
+  // ci-dessous utilisaient `config.objective` (objectif FINAL) — catalogObjective
+  // (cycle en cours) prime désormais quand présent, même raison que le garde-fou
+  // AUDIT LOT #2 juste au-dessus.
+  const urbanGuardObjective = String(config?.catalogObjective ?? config?.objective ?? "");
+  if (
+    config?.terrainAvailability
+    && config.terrainAvailability !== "montagne"
+    && (
+      // Phase 1C-A — Gating trail-only : ne jamais injecter d'EXPÉ HORS-VILLE
+      // ni de vocabulaire montagne D+ pour objectifs route/triathlon.
+      /trail|utmb|ccc|occ|skyrun|hardrock|tor des|western states|mountain|montagne/i.test(urbanGuardObjective)
+      || (/ultra/i.test(urbanGuardObjective) && !/ironman/i.test(urbanGuardObjective))
+    )
+  ) {
+    const ta = config.terrainAvailability as "plat" | "vallonne" | "mixte";
+    const objRaw = urbanGuardObjective.toLowerCase();
+    const isUltra = objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("hardrock") || objRaw.includes("tor des") || objRaw.includes("western states");
+    // Valeur par défaut si pas de fiche course : ultra 4500m, trail montagne 2250m (fourchettes du garde-fou #1)
+    const dPlusWeekly = config?.trailProfile?.weeklyDPlusPeakM ?? (isUltra ? 4500 : 2250);
+    const profileNote = config?.trailProfile ? "" : " (estimation par défaut car fiche course non renseignée)";
+    const labelMap = { plat: "PLAT (urbain, aucun dénivelé semaine)", vallonne: "VALLONNÉ (collines 50-200m)", mixte: "MIXTE (urbain semaine + montagne weekend)" };
+    lines.push(`\n🏙️ ATHLÈTE URBAIN — TERRAIN DÉCLARÉ : ${labelMap[ta]}`);
+    lines.push(`  ⚠️ Le profil course exige ~${dPlusWeekly}m D+/sem en peak${profileNote}, mais l'athlète vit en terrain ${ta === "plat" ? "plat" : ta === "vallonne" ? "vallonné" : "mixte"}.`);
+    lines.push(`  RÈGLES DE SUBSTITUTION OBLIGATOIRES (à appliquer pour CHAQUE semaine du plan) :`);
+    if (ta === "plat") {
+      lines.push(`  • Remplacer toute "séance montagne / D+ long" semaine par : (1) tapis roulant incliné 8-15% [60-120min], (2) répétitions escaliers building/parking [25-45min], ou (3) côtes urbaines courtes répétées (passerelles, ponts) [40-70min].`);
+      lines.push(`  • Sorties longues (SL) D+ : programmer 1× tous les 15j en WEEK-END "EXPÉDITION" hors-ville (Ardennes, Vosges, Hautes Fagnes, etc.) — distance et temps de trajet à intégrer comme contrainte.`);
+      lines.push(`  • Back-to-back week-ends (Build/Peak) : OBLIGATOIRE 2-3× / phase en sortie hors-ville. Si impossible, fractionner en 2 doubles (samedi 2h tapis incliné + dimanche 3h tapis incliné).`);
+      lines.push(`  • Descente technique : substituer par travail excentrique en salle (presse 120° avec phase descente 3-4s, step-downs lents 4×8/côté, Nordic curls) — minimum 2×/sem en Build.`);
+      lines.push(`  • Calculer D+ hebdo cumulé réaliste : ~60% du target théorique (${Math.round(dPlusWeekly * 0.6)}m) atteint en compensation + 40% concentré sur les 2-3 week-ends expé/mois.`);
+    } else if (ta === "vallonne") {
+      lines.push(`  • Utiliser au MAX les collines locales : 2-3× /sem en VMA côtes / seuil montée sur les bosses 50-200m disponibles (répétitions multiples).`);
+      lines.push(`  • Compléter avec : tapis incliné 8-15% pour les blocs de seuil montée long (>30min continu impossible sur les collines courtes).`);
+      lines.push(`  • Sortie longue D+ : programmer 1× tous les 10-15j en week-end hors-ville (massif accessible <2h route).`);
+      lines.push(`  • D+ hebdo cible réaliste : ~80% du target théorique (${Math.round(dPlusWeekly * 0.8)}m).`);
+    } else {
+      // mixte
+      lines.push(`  • Semaine en ville : 70% du D+ cible via tapis incliné + côtes urbaines + escaliers.`);
+      lines.push(`  • Week-end montagne : SL D+ long + back-to-back possibles. Concentrer les séances clés montagne (descente technique, D+ long >2000m) sur ces 2 jours.`);
+      lines.push(`  • Pendant phase Spécifique (4-6 dernières sem) : viser 2 week-ends montagne / mois minimum.`);
+      lines.push(`  • D+ hebdo cible réaliste : ~90% du target théorique (${Math.round(dPlusWeekly * 0.9)}m).`);
+    }
+    lines.push(`  • Catalogue séances à PRIVILÉGIER : "V2_STR_ESCALIERS_TRAIL", "URBAN_TAPIS_INCLINE_SEUIL", "URBAN_COTES_URBAINES_VMA", "URBAN_ESCALIERS_PYRAMIDE", "URBAN_EXCENTRIQUE_DESCENTE_SALLE".`);
+    lines.push(`  • Chaque séance "compensation urbaine" DOIT être annotée [URBAIN] dans le titre pour traçabilité.`);
+    lines.push(`  • Chaque week-end hors-ville DOIT être annoté [EXPÉ HORS-VILLE] dans le titre.`);
+    lines.push(`  • Si bloc d'acclimatation altitude requis (course >2000m) : recommander stage 7-14j sur place J-21 à J-7 (intégrer dans constraints du plan).`);
+  }
+
+  // Volume constraints
+  if (config?.weeklyHours) {
+    // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : affichait
+    // auparavant TOUJOURS `config.weeklyHours` brut (ex: 17h), alors que le
+    // bloc utilisateur plus bas affiche `effectiveVolumeCible` (ex: 18h pour
+    // B-10K-TO-70.3, cap ambition) comme "SOURCE UNIQUE, NON NÉGOCIABLE" —
+    // deux cibles hebdo différentes dans le MÊME prompt. Réutilise
+    // `resolveEffectiveVolumeCible` (même fonction, mêmes entrées) pour que
+    // CE chiffre et celui du bloc utilisateur soient TOUJOURS identiques.
+    const { effectiveVolumeCible: diagEffectiveVolume, consolidationCapApplied: diagCapApplied } =
+      resolveEffectiveVolumeCible(diagDerived.volumeCible, config?.loadHistory);
+    const diagVolumeLabel = diagEffectiveVolume ?? config.weeklyHours;
+    lines.push(`\n📊 Volume cible hebdo (= VOLUME CIBLE HEBDO ci-après, même valeur) : ${diagVolumeLabel}h/sem${diagCapApplied ? " — plafonné consolidation (cf. historique de charge déclaratif ci-dessous)" : ""}`);
+  }
+  if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
+  if (config?.maxSessionsPerDay) lines.push(`📊 Max/jour: ${config.maxSessionsPerDay}`);
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #F (demande
+  // coach explicite) : contrainte d'agenda distincte de "Max/jour"
+  // ci-dessus — borne le NOMBRE de journées à 2 séances sur la semaine,
+  // pas le nombre de séances un jour donné. Fait partie de
+  // `structuredDiagnostic`, donc réinjectée dans CHAQUE chunk (voir
+  // index.ts : `diagnosticBlock`/`structuredDiagnostic` repris identiques
+  // au chunk 1 et à tous les suivants) — pas seulement le premier bloc.
+  // MAXIMUM explicite, jamais un objectif : une semaine avec MOINS de
+  // journées doubles (décharge, affûtage, tout autre contexte) reste
+  // toujours conforme. Ne modifie aucune règle de volume — uniquement la
+  // répartition des séances sur la semaine.
+  if (config?.maxDoubleDaysPerWeek != null) {
+    lines.push(`📊 Max journées doubles/sem: ${config.maxDoubleDaysPerWeek} — MAXIMUM à ne jamais dépasser, PAS un objectif à atteindre. Moins de journées doubles reste toujours conforme (ex: semaines de décharge/affûtage, qui en comportent naturellement moins). Ne pas ajuster le volume total pour satisfaire artificiellement cette contrainte — seule la répartition des séances sur la semaine doit être revue si besoin.`);
+  }
+
+  // Charge récente — contexte d'absorption (CTL/ATL proxy via TSS 7j)
+  if (config?.recentLoad) {
+    const rl = config.recentLoad;
+    const statusEmoji =
+      rl.status === "overload" ? "🔴" :
+      rl.status === "high" ? "🟠" :
+      rl.status === "optimal" ? "🟢" :
+      rl.status === "low" ? "🔵" : "⚪";
+    lines.push(`\n${statusEmoji} CHARGE RÉCENTE (TSS 7j) : ${rl.tss7d ?? "N/R"} — statut "${rl.status}" — cible objectif : min ${rl.target.min} / opt ${rl.target.opt} / max ${rl.target.max}`);
+    if (rl.status === "overload" || rl.status === "high") {
+      lines.push(`  ⚠️ Athlète déjà chargé : NE PAS dépasser +5-7 TSS/sem en S1-S2. Prévoir 1 semaine d'allègement avant montée en charge.`);
+    } else if (rl.status === "low") {
+      lines.push(`  ⚠️ Athlète peu chargé : progression +5-7 TSS/sem MAX. Pas de saut brutal de volume sur S1-S2 pour éviter blessure.`);
+    } else if (rl.status === "unknown") {
+      lines.push(`  ⚠️ Charge inconnue : démarrer prudemment au volume cible MIN, monter de +5-7 TSS/sem.`);
+    } else {
+      lines.push(`  ✅ Charge cohérente avec l'objectif. Progression normale +5-7 TSS/sem possible.`);
+    }
+  }
+
+  // 🚦 RAMPE DE VOLUME OBLIGATOIRE — contrainte dure Sem 1 + ramp-up
+  // Injectée chunk 1 uniquement (buildStructuredDiagnosticBlock = chunk 1).
+  // Dérivée de `trainingLevel` (coach) + `weeklyHours` cible.
+  if (config?.volumeRamp) {
+    const vr = config.volumeRamp;
+    const levelLabel = {
+      untrained: "Non entraîné",
+      light: "Entraînement léger",
+      trained: "Entraîné",
+      highly_trained: "Très entraîné / Peak form",
+    }[vr.trainingLevel as string] || vr.trainingLevel;
+    const capStr = vr.week1HoursCap !== null ? ` (plafond absolu ${vr.week1HoursCap}h)` : "";
+    lines.push(`\n🚦 RAMPE DE VOLUME OBLIGATOIRE — niveau déclaré "${levelLabel}" :`);
+    if (vr.recentLoadAdjustment) {
+      lines.push(`  ⚠️ AJUSTÉ PAR LA CHARGE RÉCENTE RÉELLE : ${vr.recentLoadAdjustment.reason}`);
+    }
+    lines.push(`  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
+    lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la cible)${capStr}`);
+    lines.push(`  • Rampe : atteindre ${vr.weeklyHoursTarget}h en ~${vr.rampWeeks} semaine(s), progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem (règle des 10%, marge ACWR ≤ 1.3 — Gabbett ; population sport co/contact d'origine, extrapolée en marge de sécurité prudente pour l'endurance, pas comme preuve causale directe)`);
+    lines.push(`  ⚠️ NE PAS appliquer le volume cible "weeklyHours" dès Sem 1 : c'est la cible APRÈS la rampe, pas le point de départ.`);
+    lines.push(`  ⚠️ Une semaine de décharge (deload) DOIT intervenir tous les 3 microcycles de charge même pendant la rampe.`);
+  }
+
+  // 📋 HISTORIQUE DE CHARGE DÉCLARATIF — Correction sprint qualité
+  // Marathon/Ironman (oct. 2026), #E (demande coach explicite, suite à une
+  // hausse réelle 8h→17h/sem sur 4 semaines). Distinct du bloc CHARGE
+  // RÉCENTE ci-dessus (TSS mesuré Nolio/snapshot) : ici, heures DÉCLARÉES
+  // par le coach — jamais transformées en TSS. Purement qualitatif, aucun
+  // chiffre de volume recalculé ici : ne JAMAIS présenter ce ratio comme un
+  // ACWR mesuré (ce terme reste réservé à une mesure réelle).
+  if (config?.loadHistory?.chronicWeeklyHours && config?.loadHistory?.recentWeeklyHours) {
+    const lh = config.loadHistory;
+    const ratio = lh.recentWeeklyHours / lh.chronicWeeklyHours;
+    const weeksStr = typeof lh.recentWeeksCount === "number" ? `depuis ${lh.recentWeeksCount} semaine(s)` : "depuis une durée non précisée";
+    lines.push(`\n📋 HISTORIQUE DE CHARGE DÉCLARATIF (renseigné par le coach, PAS une mesure) :`);
+    lines.push(`  • Charge chronique antérieure : ${lh.chronicWeeklyHours}h/sem — Charge récente réellement effectuée : ${lh.recentWeeklyHours}h/sem, ${weeksStr}.`);
+    if (ratio > 1.3) {
+      lines.push(`  ⚠️ Hausse déclarative notable (${lh.recentWeeklyHours}h vs ${lh.chronicWeeklyHours}h) — ce volume récent n'est PAS à traiter comme un palier durablement assimilé : PRIORISER la consolidation (maintenir ~${lh.recentWeeklyHours}h sans nouvelle hausse) sur les premières semaines plutôt que de repartir d'une rampe calculée comme si ${lh.recentWeeklyHours}h était la charge chronique habituelle.`);
+      lines.push(`  ⚠️ NE PAS appliquer de nouvelle hausse automatique au-delà de ${lh.recentWeeklyHours}h/sem tant que la consolidation n'est pas explicitement validée par le coach.`);
+    } else {
+      lines.push(`  ✅ Pas d'écart déclaratif notable entre charge chronique et récente — aucune consolidation spécifique requise sur ce seul critère.`);
+    }
+  }
+
+  // Durée du bloc Fondation calculée depuis le niveau d'entraînement effectif
+  // (cf. computeFondationDurationWeeks) — remplace la valeur générique
+  // "3-4 sem" donnée plus haut dans les instructions méthodologiques. Un
+  // athlète moins entraîné a besoin de plus de temps pour reconstruire une
+  // base aérobie avant le travail spécifique.
+  if (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0) {
+    lines.push(`\n📅 Durée du bloc Fondation pour CET athlète : ${config.fondationDurationWeeks} semaines (calculée selon le niveau d'entraînement + la durée totale du plan — utilise CETTE valeur, pas le "3-4 sem" générique indiqué plus haut).`);
+  }
+
+  // FIX C5 + audit V8: Limiter-aware phase heuristics — works for ANY plan ≥4 semaines.
+  // Avant: gating à tw>10 laissait l'IA improviser sur 4-10 sem (cas typique trail 6 sem).
+  if (totalWeeks && totalWeeks >= 4) {
+    const tw = totalWeeks;
+    const isFinisher = ambKey === "finisher";
+    // Utilise la liste RAW (noms métriques) ; fallback sur identifiedLimiters si absent
+    const rawList: string[] = (config?.identifiedLimitersRaw && config.identifiedLimitersRaw.length > 0)
+      ? config.identifiedLimitersRaw
+      : (config?.identifiedLimiters || []);
+    const L1 = (rawList[0] || "").toLowerCase();
+    const L2 = (rawList[1] || "").toLowerCase();
+
+    // Bug réel corrigé (audit "structure d'un plan multi-objectifs long" —
+    // Marathon + IM à ~5 mois d'écart) : ce bloc calculait un SEUL cycle
+    // Fondation→Chantier→Affûtage continu sur la totalité du plan, sans
+    // aucune notion de `raceGoals` — une course intermédiaire datée (ex:
+    // Marathon en S22 d'un plan de 40 sem vers l'IM) tombait alors en plein
+    // "Bloc Chantier", contredisant DIRECTEMENT la section "Ancrage absolu"
+    // (plus bas dans ce même prompt) qui exige un taper à cette semaine.
+    // La littérature de périodisation double/triple (Bompa & Haff ; Issurin
+    // 2010, Block Periodization) et la règle 1 des "RÈGLES MULTI-OBJECTIFS"
+    // ci-dessous ("chacun a droit à sa propre montée en charge et son propre
+    // affûtage") disent explicitement que CHAQUE pic de forme complet reçoit
+    // son propre cycle de blocs concentrés, séparé du suivant par une vraie
+    // régénération — pas un unique cycle indifférencié. Segmente donc ce
+    // bloc par pic de forme complet via `computeMultiObjectiveSegments`
+    // (fonction PARTAGÉE avec `inferPhaseFromWeek`, jsonPlanHandler.ts — la
+    // sélection du catalogue de séances par phase doit suivre EXACTEMENT le
+    // même découpage que ce texte de guidance, sinon la course elle-même
+    // recevrait des fiches "build" au lieu de fiches "taper").
+    type PhaseSegment = { startWeek: number; endWeek: number; objKey: string; headerSuffix: string; fondationWeeksOverride?: number };
+    const multiSegments = computeMultiObjectiveSegments(config, tw);
+    let segments: PhaseSegment[];
+    if (multiSegments) {
+      segments = multiSegments.map((seg, i) => ({
+        startWeek: seg.startWeek,
+        endWeek: seg.endWeek,
+        objKey: normalizeObjKey(seg.objective),
+        headerSuffix: ` — Cycle ${i + 1}/${multiSegments.length}, vers ${seg.objective} en S${seg.goalWeek}${i > 0 ? " (Fondation = réadaptation courte post-pic, PAS une reconstruction de base aérobie)" : ""}`,
+        // Bug scientifique réel corrigé (audit "système de périodisation") :
+        // seul le 1er cycle part d'un athlète réellement à son niveau
+        // d'entraînement déclaré (config.fondationDurationWeeks). Les
+        // cycles suivants redémarraient un plein bloc "Fondation" au même
+        // pourcentage qu'un cycle qui part de zéro — alors que l'athlète
+        // sort d'un pic de forme COMPLET (Marathon, IM…), pas d'un arrêt
+        // d'entraînement. `computeReducedFondationWeeksPostPeak` le traite
+        // comme "highly_trained" (réadaptation courte), jamais comme une
+        // reconstruction de base aérobie depuis zéro — fidèle à la règle du
+        // prompt ("jamais de retour à Fondation une fois quittée") tout en
+        // gardant un court palier de réadaptation post-récupération.
+        fondationWeeksOverride: i === 0
+          ? (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0 ? config.fondationDurationWeeks : undefined)
+          : computeReducedFondationWeeksPostPeak(seg.endWeek - seg.startWeek + 1),
+      }));
+    } else {
+      // Cas mono-objectif (ou multi-objectifs sans ≥2 pics complets datés) :
+      // comportement inchangé, un seul cycle sur la totalité du plan.
+      segments = [{
+        startWeek: 1,
+        endWeek: tw,
+        objKey,
+        headerSuffix: "",
+        fondationWeeksOverride: (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0) ? config.fondationDurationWeeks : undefined,
+      }];
+    }
+
+    segments.forEach((seg, i) => {
+      if (i > 0) {
+        const prevEnd = segments[i - 1].endWeek;
+        lines.push(`\n🔁 RÉGÉNÉRATION POST-PIC : S${prevEnd + 1}-S${seg.startWeek - 1} — vraie récupération (-40% volume, pas d'intensité), avant de relancer la montée en charge du cycle suivant (règle 2 multi-objectifs, plus bas).`);
+      }
+      lines.push(...buildPhaseBoundsSegmentLines(seg.startWeek, seg.endWeek, seg.objKey, isFinisher, L1, L2, seg.headerSuffix, seg.fondationWeeksOverride));
+    });
+
+    lines.push(`  ⚠️ Ces bornes sont INDICATIVES mais adaptées aux limiteurs détectés. Le Récapitulatif Stratégique du chunk 1 fait foi.`);
+  }
+  
+  return lines.join("\n");
+}
+
+/**
+ * Vrai seulement si VLamax élevée ou FatMax bas a été RÉELLEMENT identifié
+ * comme limiteur de cet athlète — jamais un réflexe par objectif ou par
+ * défaut. Centralisé ici pour que les DEUX endroits du prompt qui peuvent
+ * prescrire du Train Low (le rappel de cohérence Ironman plus bas, et
+ * l'audit durabilité F-24 ci-dessous) restent alignés sur la même condition
+ * — exactement la classe de bug (deux endroits qui répètent la même règle
+ * et finissent par diverger) rencontrée plusieurs fois cet audit.
+ */
+function hasVlamaxOrFatMaxLimiter(config: any): boolean {
+  return Array.isArray(config?.identifiedLimiters)
+    && config.identifiedLimiters.some((l: string) => /vlamax|fatmax/i.test(String(l)));
+}
+
+/**
+ * Résout les flags de maintien croisé (coach-configurable, cf.
+ * `PlanConfig.crossTrainingMaintenance` côté client) — défaut = comportement
+ * historique (vélo Z1 récup autorisé, natation interdite) si le coach n'a
+ * rien précisé. Centralisé ici pour que le VERROU SPORT (source de vérité,
+ * `buildObjectiveSportLockLines`) et les RAPPEL COHÉRENCE texturels
+ * (Marathon/Semi/10K/5K plus bas) ne puissent jamais diverger — exactement
+ * la classe de bug (deux endroits qui répètent la même règle et finissent
+ * par se contredire) rencontrée plusieurs fois cet audit.
+ */
+function resolveCrossTrainingMaintenance(config: any): { velo: boolean; natation: boolean } {
+  const raw = config?.crossTrainingMaintenance;
+  return {
+    velo: raw?.velo !== false,
+    natation: raw?.natation === true,
+  };
+}
+
+/** Phrase standard "vélo/natation en maintien" pour les objectifs run_route/trail. */
+function buildCrossTrainingPhrase(xtrain: { velo: boolean; natation: boolean }): string {
+  const natationPart = xtrain.natation
+    ? "Natation autorisée en maintien léger uniquement (Z1 technique/CSS, 20-30min, max 1×/2 semaines), jamais en qualité, jamais pilier du plan."
+    : "Natation 0%.";
+  const veloPart = xtrain.velo
+    ? "Vélo autorisé UNIQUEMENT en récupération active Z1-Z2, max 1–2×/sem (45–75min), jamais en qualité, jamais en brique."
+    : "Vélo interdit.";
+  return `${natationPart} ${veloPart}`;
+}
+
+function buildObjectiveSportLockLines(config: any): string[] {
+  // `catalogObjective` (objectif du cycle en cours) prime sur `objective`
+  // (objectif final du plan) quand présent — même correctif que ci-dessus
+  // pour `getSportDistributionConstraint` : sans ça, cette fonction ne
+  // produisait JAMAIS de verrou "RUNNING ROUTE" pour une fenêtre du cycle
+  // Marathon d'un plan Ironman, puisque `sport` restait résolu sur
+  // "ironman" (mapObjectiveToSport) au lieu de "run_route".
+  const objective = String(config?.catalogObjective || config?.objective || "");
+  const objectiveKey = normalizeObjKey(objective);
+  const sport = mapObjectiveToSport(objective);
+
+  if (sport === "run_route") {
+    const xtrain = resolveCrossTrainingMaintenance(config);
+    const natationLine = xtrain.natation
+      ? `- ✅ NATATION AUTORISÉE EN MAINTIEN LÉGER UNIQUEMENT : Z1 technique/CSS, 20-30 min, max 1×/2 semaines. Jamais en qualité, jamais pilier du plan.`
+      : `- ⛔ NATATION INTERDITE : aucune ligne Sport="Natation", "Swim", "Piscine", "CSS", "crawl".`;
+    const veloLines = xtrain.velo
+      ? [
+          `- ✅ VÉLO AUTORISÉ EN RÉCUPÉRATION ACTIVE UNIQUEMENT : Z1-Z2 (≤75% FTP), 45–75 min, max 1–2×/semaine, lendemain de sortie longue ou de séance CAP qualité. Objectif = flush circulatoire + épargne articulaire.`,
+          `- ⛔ VÉLO QUALITÉ INTERDIT : aucun vélo en Z3+, seuil, VO2, SFR, intervalles, sortie longue vélo, FTP test.`,
+        ]
+      : [`- ⛔ VÉLO INTERDIT : aucune ligne Sport="Vélo", "Bike", "Cyclisme", y compris en récupération.`];
+    const sportsAutorises = [
+      "CAP/Course",
+      "Renfo/PPG/Mobilité",
+      ...(xtrain.velo ? ["Vélo Z1-Z2 récup (optionnel)"] : []),
+      ...(xtrain.natation ? ["Natation Z1 maintien (optionnel)"] : []),
+      "Repos",
+      "Course objectif",
+    ].join(", ");
+    const repartition = [
+      "CAP 82-90%",
+      "Renfo/Mobilité 8-15%",
+      xtrain.velo ? "Vélo récup 0-5%" : null,
+      xtrain.natation ? "Natation maintien 0-3%" : "Natation 0%",
+    ].filter(Boolean).join(" | ");
+    return [
+      `\n### 🚨 VERROU SPORT OBJECTIF — RUNNING ROUTE (${objectiveKey})`,
+      `Objectif résolu: ${objective || "N/A"} → ${sport}. Ce plan est un plan **100% course à pied + renforcement/mobilité**.`,
+      natationLine,
+      ...veloLines,
+      `- ⛔ BRIQUES INTERDITES : aucun enchaînement vélo→CAP en séance clé, aucun swim→bike, triathlon, transition T1/T2.`,
+      `- ✅ SPORTS AUTORISÉS dans les tableaux : ${sportsAutorises}.`,
+      `- La ligne "Répartition sport" DOIT afficher : ${repartition}.`,
+      `- Si un exemple générique du system prompt parle de triathlon, natation, ou vélo qualité, tu DOIS l'ignorer pour cet objectif.`,
+    ];
+  }
+
+  if (sport === "trail") {
+    const xtrain = resolveCrossTrainingMaintenance(config);
+    const natationLine = xtrain.natation
+      ? `- ✅ NATATION AUTORISÉE EN MAINTIEN LÉGER UNIQUEMENT : Z1 technique/CSS, 20-30 min, max 1×/2 semaines.`
+      : `- ⛔ NATATION INTERDITE : aucune séance piscine/CSS/crawl.`;
+    return [
+      `\n### 🚨 VERROU SPORT OBJECTIF — TRAIL (${objectiveKey})`,
+      `Objectif résolu: ${objective || "N/A"} → ${sport}. Ce plan est un plan trail/CAP + renforcement.`,
+      natationLine,
+      `- ⛔ BRIQUES TRIATHLON INTERDITES : aucun enchaînement vélo→CAP comme séance spécifique.`,
+      `- Vélo seulement si récupération active Z1-Z2, max 1×/sem, jamais séance qualité ni pilier du plan.`,
+      `- ✅ SPORTS AUTORISÉS : CAP/Trail, Renfo/PPG/Mobilité, Repos, Course objectif.`,
+    ];
+  }
+
+  return [];
+}
+
+// === EXTRACT STRATEGIC RECAP from chunk 1 text ===
+// FIX #1 (audit recap): Robust multi-pattern extraction for the Récapitulatif Stratégique
+export function extractStrategicRecap(chunkText: string): string {
+  // Pattern 1: Standard "## Récapitulatif Stratégique" with optional numbering/emoji
+  // Captures everything until the next ## heading or ### Semaine
+  const patterns = [
+    // ## Récapitulatif Stratégique / ## 2. Récapitulatif / ## 📊 Récapitulatif
+    /(?:#{2,3}\s*(?:\d+\.\s*)?(?:[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*)?R[ée]capitulatif[^\n]*\n)([\s\S]*?)(?=\n#{2,3}\s*(?:\d+\.\s*)?(?:[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*)?(?:Semaine|Bloc|Phase|Programme|Plan\s))/iu,
+    // Broader: match until any ## header that's NOT part of the recap
+    /(?:#{2,3}\s*(?:\d+\.\s*)?(?:[\u{1F300}-\u{1FAFF}\u2600-\u27BF]+\s*)?R[ée]capitulatif[^\n]*\n)([\s\S]*?)(?=\n#{2,3}\s)/iu,
+  ];
+
+  for (const pattern of patterns) {
+    const match = chunkText.match(pattern);
+    if (match && match[1].trim().length > 50) {
+      // F-12 (audit IA plan v8): bumped 4000 → 6000 chars to preserve full periodization
+      // narrative on long plans (Ironman 28w, Trail Mountain 24w). Token budget profiler
+      // (scripts/profileChunkTokenBudget.py) confirms <5% Gemini Flash 1M context, +500 tok/chunk safe.
+      return match[1].trim().slice(0, 6000);
+    }
+  }
+
+  // Fallback: capture any table that references Blocs/Phases with week ranges
+  const blocTableMatch = chunkText.match(
+    /(\|[^\n]*(?:Bloc|Phase|Limiteur)[^\n]*\|\s*\n\|[\s\-:|]+\|\s*\n(?:\|[^\n]+\|\s*\n)+)/i
+  );
+  if (blocTableMatch) {
+    return blocTableMatch[1].trim().slice(0, 3500);
+  }
+
+  // Fallback: capture Synergies + Limiteurs sections (bullet lists + tables combined)
+  const limiterTableMatch = chunkText.match(
+    /(\|[^\n]*(?:#|Rang|Priorit)[^\n]*Limiteur[^\n]*\|\s*\n\|[\s\-:|]+\|\s*\n(?:\|[^\n]+\|\s*\n)+)/i
+  );
+  const synergyMatch = chunkText.match(
+    /(?:#{2,4}\s*Synergies[^\n]*\n)((?:\s*[-•]\s*[^\n]+\n?)+)/i
+  );
+  const combined = [
+    limiterTableMatch ? limiterTableMatch[1].trim() : "",
+    synergyMatch ? `Synergies:\n${synergyMatch[1].trim()}` : "",
+  ].filter(Boolean).join("\n\n");
+  if (combined.length > 80) return combined.slice(0, 6000);
+
+  // Last resort: capture lines mentioning phase boundaries (S1-SN patterns)
+  const phaseLines = chunkText.match(/(?:Fondation|Chantier|Build|Consolidation|Race.Specific|Aff[ûu]tage|Taper|Sp[ée]cifique|D[ée]veloppement|Pr[ée]paration)[^\n]*S\d+[^\n]*/gi) || [];
+  if (phaseLines.length > 0) {
+    return phaseLines.slice(0, 20).join("\n");
+  }
+
+  return "";
+}
+
+// === DETECT ACTIVE PHASE from generated text ===
+// FIX #4 (audit recap): Broader detection — matches multiple header formats
+export function detectActivePhase(text: string, currentPhase: string): string {
+  // Match various header formats for phase/bloc names
+  const patterns = [
+    /##\s*Bloc\s*\d+\s*[:—–\-]\s*([^\n(]+)/gi,        // ## Bloc 3 : Race-Specific
+    /##\s*Bloc\s+([^\n(]+)\s*\(S/gi,                     // ## Bloc Chantier VLamax↓ (S7-S12)
+    /##\s*(Fondation|Chantier|Consolidation|Build|Race.Specific|Affûtage|Taper|Adaptation|Développement)[^\n]*/gi,
+    /###\s*Phase\s*\d*\s*[:—–\-]?\s*([^\n]+)/gi,        // ### Phase 2 : Build
+    /\*\*Phase\s*(?:active)?\s*[:—–]?\s*\*\*\s*([^\n]+)/gi, // **Phase active :** Build
+  ];
+
+  let lastPhase = "";
+  for (const pattern of patterns) {
+    let m: RegExpExecArray | null;
+    while ((m = pattern.exec(text)) !== null) {
+      const candidate = (m[1] || m[0]).replace(/^##\s*Bloc\s*\d+\s*[:—–\-]?\s*/i, "").replace(/\*\*/g, "").trim();
+      if (candidate && candidate.length > 2 && candidate.length < 80) {
+        lastPhase = candidate;
+      }
+    }
+  }
+
+  return lastPhase || currentPhase;
+}
+
+// === VALIDATE CHUNK 1 OUTPUT ===
+// FIX #6 (audit recap): Check that chunk 1 contains a Récapitulatif with phase boundaries
+export function validateChunk1HasRecap(chunkText: string): { hasRecap: boolean; hasPhases: boolean } {
+  const hasRecap = /##\s*(?:2\.\s*)?R[ée]capitulatif/i.test(chunkText);
+  const hasPhases = /S\d+\s*[-–—]\s*S\d+/i.test(chunkText) || /Semaines?\s*\d+\s*[-–àto]\s*\d+/i.test(chunkText);
+  return { hasRecap, hasPhases };
+}
+
+// === SHARED CP/W' COMPUTATION (used by both buildCPWprimeSection and chunk prompts) ===
+// FIXED: P5s and FTP excluded from regression (Jones 2019) — only P30s, P60s, MAP5min used
+// FIXED: effectiveCP bounding by FTP, W' bounded [10kJ floor, 35kJ ceiling] (R8 — aligned with client-side criticalPowerModel.ts)
+export function computeCPWprime(data: any): { cpRound: number; effectiveCP: number; wprimeKJ: number; wprimeJ: number; wprimeEffJ: number; cpBounded: boolean; wprimeCapped: boolean } | null {
+  // Only use points within the valid 2-parameter model range (~30s–5min)
+  const regressionPoints: { dur: number; pow: number }[] = [];
+  if (data?.p30s && data.p30s > 0) regressionPoints.push({ dur: 30, pow: data.p30s });
+  if (data?.p60s && data.p60s > 0) regressionPoints.push({ dur: 60, pow: data.p60s });
+  if (data?.map5min && data.map5min > 0) regressionPoints.push({ dur: 300, pow: data.map5min });
+  if (regressionPoints.length < 2) return null;
+
+  const n = regressionPoints.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  for (const p of regressionPoints) {
+    const x = p.dur, y = p.pow * p.dur;
+    sumX += x; sumY += y; sumXY += x * y; sumX2 += x * x;
+  }
+  const denom = n * sumX2 - sumX * sumX;
+  if (Math.abs(denom) < 1e-10) return null;
+
+  const cp = (n * sumXY - sumX * sumY) / denom;
+  const wprime = (sumY - cp * sumX) / n;
+  if (cp < 30 || cp > 800 || wprime < 500 || wprime > 80000) return null;
+
+  const cpRound = Math.round(cp);
+  const ftp = data?.ftp ? Number(data.ftp) : null;
+
+  // Effective CP — bounded by FTP when CP is suspect (aligned with client-side)
+  const CP_FTP_MAX_GAP = 20;
+  const CP_FTP_EFFECTIVE_OFFSET = 10;
+  let effectiveCP = cpRound;
+  let cpBounded = false;
+  if (ftp && ftp > 0 && cpRound > ftp + CP_FTP_MAX_GAP) {
+    effectiveCP = ftp + CP_FTP_EFFECTIVE_OFFSET;
+    cpBounded = true;
+  }
+
+  // R8: W' bounds — plancher 10 kJ + plafond 35 kJ (aligné avec effectiveWprime() côté client)
+  // Plancher : fiabilité minimale des prescriptions de repos
+  // Plafond : limite physiologique haute (au-delà : artefact de régression)
+  const W_PRIME_FLOOR = 10000; // 10 kJ
+  const W_PRIME_CEILING = 35000; // 35 kJ
+  const wprimeEffJ = Math.min(Math.max(wprime, W_PRIME_FLOOR), W_PRIME_CEILING);
+  const wprimeCapped = wprime > W_PRIME_CEILING;
+
+  return { cpRound, effectiveCP, wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime, wprimeEffJ, cpBounded, wprimeCapped };
+}
+
+// === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
+// ─── RECOVERY STRATEGY ────────────────────────────────────────────────────
+// Permet au coach de choisir le profil de récupération inter-séries qui sera
+// utilisé pour calculer les durées de repos via le modèle W'bal (Skiba 2012).
+//   - "passive"        : récupération à 0 W (debout/marche, pédalage <50W)
+//   - "active-light"   : récupération à 30% CP (Z1, "spinning" léger)
+//   - "active-tempo"   : récupération à 50% CP (haut Z1 / bas Z2)
+// Une récupération active augmente le tau de réplétion W' → repos prescrits
+// plus longs pour atteindre la même qualité de reconstitution.
+//
+// Audit fix — ces pourcentages (50%/70%) divergeaient de resolveRecoveryPower
+// (src/lib/v2/criticalPowerModel.ts) et recoveryPowerForStrategy
+// (src/lib/wbalLibraryRecalc.ts), qui appliquent 30%/50% pour les mêmes
+// libellés "active-light"/"active-tempo" — malgré le commentaire F-07
+// ci-dessous affirmant l'alignement. Un coach choisissant "active-light"
+// dans le simulateur (30% CP) voyait donc des repos calculés sur une base
+// différente de ceux prescrits par l'IA pour la même consigne nommée.
+// Valeurs realignées sur la source client (double confirmée par les 2
+// fichiers frontend qui s'accordent entre eux).
+export type RecoveryStrategy = "passive" | "active-light" | "active-tempo";
+
+export function resolveRecoveryPower(
+  strategy: RecoveryStrategy,
+  effectiveCP: number
+): { recPow: number; label: string; pctCP: number } {
+  switch (strategy) {
+    case "active-light":
+      return { recPow: Math.round(effectiveCP * 0.30), label: "Active légère (30% CP — Z1, spinning)", pctCP: 30 };
+    case "active-tempo":
+      return { recPow: Math.round(effectiveCP * 0.50), label: "Active tempo (50% CP — haut Z1/bas Z2)", pctCP: 50 };
+    case "passive":
+    default:
+      return { recPow: 0, label: "Passive (0 W — debout/marche)", pctCP: 0 };
+  }
+}
+
+// F-07: pure helpers aligned with src/lib/v2/criticalPowerModel.ts so that edge-side
+// recovery prescriptions stay consistent with client-side W'bal simulation.
+export function calcTauEdge(effectiveCP: number, recPow: number): number {
+  const dcp = effectiveCP - recPow;
+  if (dcp <= 0) return Infinity;
+  return Math.max(200, Math.min(1500, 546 * Math.exp(-0.01 * dcp) + 316));
+}
+
+export function calcRecoveryEdge(
+  effectiveCP: number,
+  wprimeEffJ: number,
+  intPow: number,
+  intDur: number,
+  recPow: number
+): { rest: number; maxReps: number } {
+  if (intPow <= effectiveCP) return { rest: 60, maxReps: 20 };
+  const wbalAfter = Math.max(0, wprimeEffJ - (intPow - effectiveCP) * intDur);
+  const depleted = wprimeEffJ - wbalAfter;
+  const safeRecPow = recPow >= effectiveCP ? 0 : recPow;
+  const tau = calcTauEdge(effectiveCP, safeRecPow);
+  const target75 = wprimeEffJ * 0.75;
+  const remaining = wprimeEffJ - target75;
+  const optRest =
+    depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
+  const wCost = (intPow - effectiveCP) * intDur;
+  let maxReps = 0;
+  let simWbal = wprimeEffJ;
+  for (let rep = 0; rep < 30; rep++) {
+    simWbal = Math.max(0, simWbal - wCost);
+    if (simWbal <= 0) break;
+    maxReps++;
+    const depNow = wprimeEffJ - simWbal;
+    simWbal = wprimeEffJ - depNow * Math.exp(-optRest / tau);
+    if (simWbal - wCost <= 0) break;
+  }
+  return { rest: optRest, maxReps: Math.max(1, maxReps) };
+}
+
+export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrategy = "passive"): string | null {
+  // Reuse shared computation
+  const result = computeCPWprime(data);
+  if (!result) return null;
+
+  const { cpRound, effectiveCP, wprimeKJ, wprimeJ: wprime, wprimeEffJ, cpBounded, wprimeCapped } = result;
+
+  // All points for display (including overlay-only P5s and FTP)
+  const points: { dur: number; pow: number; label: string; regression: boolean }[] = [];
+  if (data.pmax5s && data.pmax5s > 0) points.push({ dur: 5, pow: data.pmax5s, label: "P5s", regression: false });
+  if (data.p30s && data.p30s > 0) points.push({ dur: 30, pow: data.p30s, label: "P30s", regression: true });
+  if (data.p60s && data.p60s > 0) points.push({ dur: 60, pow: data.p60s, label: "P60s", regression: true });
+  if (data.map5min && data.map5min > 0) points.push({ dur: 300, pow: data.map5min, label: "MAP5min", regression: true });
+  if (data.ftp && data.ftp > 0) points.push({ dur: 3600, pow: data.ftp, label: "FTP", regression: false });
+  const regressionPts = points.filter(p => p.regression);
+  const n = regressionPts.length;
+
+  // R² — computed on regression points only
+  let sumX = 0, sumY = 0;
+  for (const p of regressionPts) { sumX += p.dur; sumY += p.pow * p.dur; }
+  const yMean = sumY / n;
+  let ssTot = 0, ssRes = 0;
+  for (const p of regressionPts) {
+    const yA = p.pow * p.dur;
+    const yP = cpRound * p.dur + wprime;
+    ssTot += (yA - yMean) ** 2;
+    ssRes += (yA - yP) ** 2;
+  }
+  const r2 = ssTot > 0 ? Math.round((1 - ssRes / ssTot) * 1000) / 1000 : 0;
+  const weight = data.weightKg ? Number(data.weightKg) : null;
+  const ftp = data.ftp ? Number(data.ftp) : null;
+
+  const lines: string[] = [];
+  lines.push(`\n#### ⚡ Modèle Critical Power / W' (Skiba — individualisé)`);
+  lines.push(`- **CP (régression brute)** : ${cpRound}W${weight ? ` (${(cpRound / weight).toFixed(2)} W/kg)` : ""}`);
+  if (cpBounded) {
+    lines.push(`- **⚠️ CP effectif (borné par FTP)** : ${effectiveCP}W${weight ? ` (${(effectiveCP / weight).toFixed(2)} W/kg)` : ""}`);
+    lines.push(`  → Le CP brut (${cpRound}W) est artificiellement gonflé (écart >${cpRound - (ftp || 0)}W avec FTP). Le CP effectif = FTP+10W est utilisé pour les prescriptions de repos.`);
+  }
+  if (ftp) {
+    lines.push(`- **FTP (terrain)** : ${ftp}W — référence principale pour l'intensité des séances`);
+    lines.push(`  → Le FTP reste la métrique de référence pour calibrer les zones d'entraînement. CP n'est utilisé que pour le modèle W'bal de repos inter-séries.`);
+  }
+  const wEffKJ = Math.round(wprimeEffJ / 100) / 10;
+  const wprimeFloored = wprimeEffJ > wprime;
+  lines.push(`- **W' (capacité anaérobie)** : ${wprimeKJ} kJ${weight ? ` (${Math.round(wprime / weight)} J/kg)` : ""}`);
+  if (wprimeFloored) {
+    lines.push(`- **⚠️ W' effectif (plancher physiologique)** : ${wEffKJ} kJ — Le W' mesuré (${wprimeKJ} kJ) est sous le seuil physiologique. Un plancher de 10 kJ est appliqué pour les prescriptions de repos.`);
+  }
+  if (wprimeCapped) {
+    lines.push(`- **⚠️ W' effectif (plafond physiologique)** : ${wEffKJ} kJ — Le W' mesuré (${wprimeKJ} kJ) dépasse le plafond physiologique de 35 kJ (artefact de régression probable). Un plafond de 35 kJ est appliqué pour les prescriptions de repos.`);
+  }
+  lines.push(`- **Qualité du modèle** : R²=${r2} (${r2 > 0.95 ? "excellent" : r2 > 0.90 ? "bon" : "acceptable"}, ${n} points)`);
+  lines.push(`- **Qualité des données** : ${!cpBounded && !wprimeFloored && !wprimeCapped ? "✅ Cohérent" : "⚠️ Bornes appliquées"}`);
+
+  // CRITICAL: Always prioritize FTP over CP for training intensities
+  lines.push(`\n#### 🎯 HIÉRARCHIE D'INTENSITÉ`);
+  lines.push(`- **Zones d'entraînement** → TOUJOURS basées sur le FTP (${ftp || "n/a"}W), PAS sur le CP`);
+  lines.push(`- **Repos inter-séries** → calculés via W'bal avec CP effectif (${effectiveCP}W) et W' effectif (${wEffKJ} kJ)`);
+  lines.push(`- **CP brut (${cpRound}W)** → affiché uniquement pour information, JAMAIS utilisé comme cible d'intensité`);
+
+  // W'bal recovery prescriptions — delegate to F-07 helpers (aligned with
+  // src/lib/v2/criticalPowerModel.ts). calcTauEdge returns Infinity when recPow ≥ CP and
+  // calcRecoveryEdge falls back to passive rest in that defensive case.
+  const calcRecovery = (intPow: number, intDur: number, recPow: number) =>
+    calcRecoveryEdge(effectiveCP, wprimeEffJ, intPow, intDur, recPow);
+
+  const fmtRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
+
+  // Stratégie de récupération choisie par le coach (par défaut: passive).
+  // Détermine la puissance de récupération entre les répétitions, sauf pour les
+  // formats qui ont une sémantique propre (over-under, 5min Z3-tempo).
+  const baseRecovery = resolveRecoveryPower(recoveryStrategy, effectiveCP);
+  const formats = [
+    { label: "30/30 VO2max", pct: 1.20, dur: 30, recPow: baseRecovery.recPow, fixed: false },
+    { label: "1min @120%", pct: 1.20, dur: 60, recPow: baseRecovery.recPow, fixed: false },
+    { label: "3min @VO2max", pct: 1.15, dur: 180, recPow: baseRecovery.recPow, fixed: false },
+    // 5min @105% : récup mi-active conservée pour éviter un repos > 8min sur passif strict
+    { label: "5min @105%", pct: 1.05, dur: 300, recPow: Math.max(baseRecovery.recPow, Math.round(effectiveCP * 0.5)), fixed: false },
+    // Over-under : la sémantique impose un "under" à 85% CP (intrinsèque au format)
+    { label: "Over-under 3min", pct: 1.05, dur: 180, recPow: Math.round(effectiveCP * 0.85), fixed: true },
+    { label: "Sprint 10s", pct: 2.00, dur: 10, recPow: baseRecovery.recPow, fixed: false },
+  ];
+
+  lines.push(`\n#### 🔄 Durées de Repos Optimales W'bal (Skiba 2012 — CP effectif ${effectiveCP}W, W' effectif ${wEffKJ}kJ)`);
+  lines.push(`- **Stratégie de récupération inter-séries** : ${baseRecovery.label}`);
+  if (recoveryStrategy !== "passive") {
+    lines.push(`  → Une récupération active augmente le temps de réplétion W' : les durées de repos ci-dessous sont allongées par rapport à un repos passif.`);
+  }
+  lines.push(`| Format | Puissance | Récup. | Repos optimal | Reps max |`);
+  lines.push(`|--------|-----------|--------|---------------|----------|`);
+  for (const f of formats) {
+    const pow = Math.round(effectiveCP * f.pct);
+    const rec = calcRecovery(pow, f.dur, f.recPow);
+    const powLabel = weight ? `${pow}W (${(pow / weight).toFixed(1)}W/kg)` : `${pow}W`;
+    const recPowLabel = f.fixed ? `${f.recPow}W (fixe — over)` : f.recPow === 0 ? "0W (passif)" : `${f.recPow}W`;
+    lines.push(`| ${f.label} | ${powLabel} | ${recPowLabel} | ${fmtRest(rec.rest)} | ${rec.maxReps} |`);
+  }
+  lines.push(`\n⚠️ UTILISE CES DURÉES DE REPOS quand tu prescris des intervalles. Elles sont calculées à partir du W' individuel de l'athlète (${wEffKJ} kJ), du CP effectif (${effectiveCP}W) et de la stratégie de récupération choisie (${baseRecovery.label}).`);
+  lines.push(`- Repos trop court = W' non reconstitué → qualité dégradée dès rep 3`);
+  lines.push(`- Repos trop long = stimulus insuffisant`);
+  if (recoveryStrategy === "passive") {
+    lines.push(`- Mode passif : prescris explicitement "récup debout/marche" ou "<50W" entre les reps.`);
+  } else if (recoveryStrategy === "active-light") {
+    lines.push(`- Mode actif léger : prescris explicitement "spinning Z1 ~${baseRecovery.recPow}W" entre les reps.`);
+  } else {
+    lines.push(`- Mode actif tempo : prescris explicitement "récup roulée ~${baseRecovery.recPow}W (haut Z1/bas Z2)" entre les reps — typique des séances over-under.`);
+  }
+  lines.push(`\n📝 OBLIGATION D'AFFICHAGE W'bal : Dans CHAQUE séance d'intervalles, mentionne explicitement dans la description :`);
+  lines.push(`  1. La durée de repos prescrite ET sa justification W'bal (ex: "Repos 2min30 — calibré W'bal ${wEffKJ}kJ, récup ${baseRecovery.recPow}W")`);
+  lines.push(`  2. Le nombre de répétitions max soutenable (ex: "×6 reps max avant dégradation W'")`);
+  lines.push(`  3. Si le format est supra-CP, précise "effort supra-CP (${effectiveCP}W)" dans le titre ou la description`);
+  lines.push(`  Cela garantit au coach la traçabilité physiologique de chaque prescription d'intervalles.`);
+
+  return lines.join("\n");
+}
+
+/**
+ * Multi-objectifs — classification "pic complet" vs "jalon intermédiaire"
+ * (audit "structure d'un plan à plusieurs objectifs", Marathon + Ironman à
+ * ~5 mois d'écart). AVANT ce fix, deux mécanismes indépendants décidaient
+ * chacun de leur côté qui est "le vrai pic du plan" :
+ *  - la ligne "DERNIÈRE semaine du plan / taper complet" (chronologie pure) ;
+ *  - le "RAPPEL FINAL" ("Objectif principal (A) : le pic de forme PRINCIPAL
+ *    vise cette course") — basé sur l'étiquette de priorité, indépendante de
+ *    la date.
+ * Si l'objectif étiqueté "A" (toujours le champ objectif principal du
+ * formulaire — cf. AITrainingPlanPage.tsx) n'est PAS la course
+ * chronologiquement dernière, le prompt contenait alors deux instructions
+ * contradictoires sur laquelle des deux courses est le "vrai" pic.
+ *
+ * Remplacé par une classification UNIQUE, basée sur l'écart calendaire réel
+ * (cf. sportRatioMatrix.ts::canBeIndependentPeak/minGapWeeksForFullPeak,
+ * littérature périodisation double/triple — Bompa & Haff, Issurin 2010) :
+ * une course non-dernière peut recevoir un traitement de pic complet
+ * (affûtage propre à sa discipline) si son format s'y prête ET si l'écart
+ * avant la course suivante est suffisant pour une vraie récupération + un
+ * bloc spécifique complet. Sinon, jalon avec mini-taper générique.
+ */
+export interface ClassifiedRaceGoal {
+  goal: any;
+  /** true = pic de forme complet (affûtage propre à sa discipline) ; false = jalon intermédiaire (mini-taper). */
+  isFullPeak: boolean;
+  /** true = c'est la course chronologiquement dernière du plan. */
+  isLast: boolean;
+  /** Semaines d'affûtage propres à l'objectif de CETTE course (utile uniquement si isFullPeak). */
+  taperWeeks: number;
+}
+
+export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoal[] {
+  const sorted = [...(raceGoals || [])].sort((a: any, b: any) => {
+    if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
+    const prio: Record<string, number> = { A: 1, B: 2, C: 3 };
+    return (prio[a.priority] || 3) - (prio[b.priority] || 3);
+  });
+  const dated = sorted.filter((g: any) => g.raceDate);
+
+  return sorted.map((goal: any) => {
+    const taperWeeks = taperWeeksForObjectiveServer(goal.objective);
+    if (!goal.raceDate) return { goal, isFullPeak: false, isLast: false, taperWeeks };
+
+    const idx = dated.indexOf(goal);
+    const isLast = idx === dated.length - 1;
+    if (isLast) return { goal, isFullPeak: true, isLast: true, taperWeeks };
+
+    if (!canBeIndependentPeak(goal.objective)) {
+      return { goal, isFullPeak: false, isLast: false, taperWeeks };
+    }
+    const next = dated[idx + 1];
+    const d1 = new Date(goal.raceDate).getTime();
+    const d2 = new Date(next.raceDate).getTime();
+    const gapWeeks = Math.round((d2 - d1) / (7 * 24 * 3600 * 1000));
+    const isFullPeak = Number.isFinite(gapWeeks) && gapWeeks >= minGapWeeksForFullPeak(goal.objective);
+    return { goal, isFullPeak, isLast: false, taperWeeks };
+  });
+}
+
+/** Partagé (module-level) : anciennement dupliqué en closure locale dans
+ *  `buildUserPrompt` ET recalculé indépendamment dans `buildStructuredDiagnosticBlock`
+ *  pour la segmentation multi-objectifs — extrait pour garantir une SEULE source
+ *  de vérité sur "quelle semaine correspond à quelle date", évitant la classe de
+ *  bug déjà rencontrée sur les paires MIROIR client/serveur (divergence silencieuse
+ *  entre deux implémentations censées être identiques). */
+export function parseIsoDateUtc(iso?: string): number | undefined {
+  if (!iso) return undefined;
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return undefined;
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  const d = Number(match[3]);
+  return Date.UTC(y, m - 1, d);
+}
+
+/**
+ * Partagé (module-level) : cf. note sur `parseIsoDateUtc` ci-dessus.
+ *
+ * Bug réel corrigé (audit "génération de plan IA", plan Emanuela) : pour la
+ * DERNIÈRE course du plan (`opts.isLast`), la date de course tombe souvent
+ * UNE semaine calendaire après `weeksAvailable` (décalage d'une semaine
+ * entre date de début et durée exacte de la course — même quirk déjà
+ * documenté et corrigé dans `computeMultiObjectiveSegments` ci-dessus ET
+ * dans le mirror client `computeObjectiveCycleSegments`). Sans clamp ICI,
+ * `computeGoalWeekForConfig` renvoyait ce numéro de semaine hors-plan (ex.
+ * S40 pour un plan de 39 semaines) aux DEUX autres appelants de cette
+ * fonction ("Ancrage absolu... DERNIÈRE semaine DOIT être..." et "RAPPEL
+ * FINAL MULTI-OBJECTIFS") — qui n'avaient PAS leur propre clamp. Résultat :
+ * le prompt demandait au modèle de placer le Jour de Course sur une semaine
+ * qui n'existe jamais dans le plan généré, donc le Jour J n'apparaissait
+ * JAMAIS et le modèle répétait des ouvertures J-1 sans jamais conclure.
+ * Centralisé ICI (plutôt que dans chaque appelant) pour que les 3
+ * consommateurs de cette fonction ne puissent plus diverger — exactement la
+ * classe de bug déjà rencontrée plusieurs fois cette session.
+ */
+export function computeGoalWeekForConfig(
+  config: any,
+  goal: any,
+  opts?: { isLast?: boolean },
+): number | undefined {
+  let raw: number | undefined;
+
+  // PRIORITÉ ABSOLUE: calculer depuis les dates (source de vérité)
+  if (goal?.raceDate && config?.planStartDate) {
+    const raceUtc = parseIsoDateUtc(goal.raceDate);
+    const startUtc = parseIsoDateUtc(config.planStartDate);
+    if (raceUtc !== undefined && startUtc !== undefined) {
+      const days = Math.round((raceUtc - startUtc) / (24 * 3600 * 1000));
+      if (days >= 0) raw = Math.floor(days / 7) + 1;
+    }
+  }
+
+  // Fallback uniquement si aucune date exploitable
+  if (raw === undefined && typeof goal?.weeksUntilRace === "number" && Number.isFinite(goal.weeksUntilRace)) {
+    raw = Math.max(1, Math.floor(goal.weeksUntilRace));
+  }
+
+  if (raw === undefined) return undefined;
+
+  const totalWeeks = typeof config?.weeksAvailable === "number" ? config.weeksAvailable : undefined;
+  if (opts?.isLast && typeof totalWeeks === "number" && raw > totalWeeks && raw <= totalWeeks + 1) {
+    return totalWeeks;
+  }
+  return raw;
+}
+
+export function buildUserPrompt(data: any, config: any, catalogDurationStats?: CatalogDurationStats | null): string {
+  const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
+
+  const formatIsoDateFr = (iso?: string): string => {
+    if (!iso) return "";
+    const utc = parseIsoDateUtc(iso);
+    if (utc === undefined) return iso;
+    return new Intl.DateTimeFormat("fr-FR", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(utc));
+  };
+
+  const computeGoalWeek = (goal: any, isLast?: boolean): number | undefined => computeGoalWeekForConfig(config, goal, { isLast });
+
+  const getWeekBounds = (weekNumber?: number): { start: string; end: string } | undefined => {
+    if (!weekNumber || !config?.planStartDate) return undefined;
+    const startUtc = parseIsoDateUtc(config.planStartDate);
+    if (startUtc === undefined) return undefined;
+
+    const weekStartUtc = startUtc + (weekNumber - 1) * 7 * 24 * 3600 * 1000;
+    const weekEndUtc = weekStartUtc + 6 * 24 * 3600 * 1000;
+
+    const fmt = (ms: number) =>
+      new Intl.DateTimeFormat("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(ms));
+
+    return { start: fmt(weekStartUtc), end: fmt(weekEndUtc) };
+  };
+
+  // --- Config ---
+  lines.push("### Configuration du Plan");
+
+  // Multi-objective support
+  if (config.raceGoals && config.raceGoals.length > 0) {
+    const isMulti = config.raceGoals.length > 1;
+    if (isMulti) {
+      lines.push("\n#### 🎯 PLANIFICATION MULTI-OBJECTIFS");
+      lines.push("Ce plan couvre PLUSIEURS courses/objectifs. Tu DOIS structurer la périodisation pour TOUS les atteindre :\n");
+    } else {
+      lines.push("\n#### 🎯 OBJECTIF COURSE");
+    }
+
+    const sortedGoals = [...config.raceGoals].sort((a: any, b: any) => {
+      if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
+      const prio: Record<string, number> = { A: 1, B: 2, C: 3 };
+      return (prio[a.priority] || 3) - (prio[b.priority] || 3);
+    });
+
+    // F-26: Helpers — format coach-provided targetTimeMinutes + derive race pace
+    const formatTargetTime = (min: number): string => {
+      const h = Math.floor(min / 60);
+      const m = Math.round(min % 60);
+      return h > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${m}min`;
+    };
+    const deriveRacePace = (goal: any): string | null => {
+      if (!goal?.targetTimeMinutes || goal.targetTimeMinutes <= 0) return null;
+      let dist: number | null = (typeof goal.distanceKm === "number" && goal.distanceKm > 0) ? goal.distanceKm : null;
+      if (!dist) {
+        const obj = String(goal.objective || "");
+        if (/marathon/i.test(obj) && !/semi/i.test(obj)) dist = 42.195;
+        else if (/semi/i.test(obj)) dist = 21.0975;
+        else if (/10\s*k/i.test(obj)) dist = 10;
+        else if (/5\s*k/i.test(obj)) dist = 5;
+      }
+      if (!dist) return null;
+      const p = goal.targetTimeMinutes / dist;
+      const pm = Math.floor(p);
+      const ps = Math.round((p - pm) * 60);
+      return `${pm}:${String(ps).padStart(2, "0")}/km`;
+    };
+
+    // Classification pic complet / jalon intermédiaire — basée sur l'écart
+    // calendaire réel entre courses datées, pas sur l'étiquette A/B/C (cf.
+    // classifyMultiObjectiveGoals ci-dessus pour la justification complète).
+    const classification = classifyMultiObjectiveGoals(config.raceGoals);
+    const classifiedByGoal = new Map(classification.map((c) => [c.goal, c]));
+
+    sortedGoals.forEach((goal: any, idx: number) => {
+      const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
+      // Bug réel corrigé (audit "génération de plan IA", plan Emanuela) :
+      // `isLast` permet à `computeGoalWeekForConfig` de clamper le décalage
+      // d'une semaine (course tombant juste après la fin du plan) UNIQUEMENT
+      // pour la dernière course chronologique — cf. sa doc.
+      const goalWeek = computeGoalWeek(goal, classifiedByGoal.get(goal)?.isLast);
+      const bounds = getWeekBounds(goalWeek);
+      const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
+      lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}${weekAnchor}`);
+      // F-26: Coach-provided target time → derive race pace + anchor key sessions
+      if (goal.targetTimeMinutes && goal.targetTimeMinutes > 0) {
+        const tFmt = formatTargetTime(goal.targetTimeMinutes);
+        const pace = deriveRacePace(goal);
+        lines.push(`→ ⏱️ **Temps cible coach (PRIORITÉ)** : ${tFmt}${pace ? ` → allure cible **${pace}**` : ""}.`);
+        lines.push(`→ Les séances spécifiques (race-pace, simulation, sortie longue progressive) DOIVENT inclure des blocs à ${pace || `l'allure cible (${tFmt})`}. Le temps statistique éventuel est SECONDAIRE.`);
+
+        // F-24 — Audit durabilité : TTE effectif vs durée cible de course
+        const tteVal = typeof data?.tte === "number" ? data.tte : null;
+        if (tteVal && tteVal > 0) {
+          const raceDurMin = goal.targetTimeMinutes;
+          const durabilityTarget = Math.max(raceDurMin - 15, 30);
+          const shortMin = Math.round(durabilityTarget - tteVal); // positif = carence
+          const isTriOrBrick = /IM|703|triathl|Olympic|Sprint/i.test(String(goal.objective || ""));
+          if (shortMin <= 0) {
+            lines.push(`→ 🟢 **Durabilité OK** : TTE effectif ${tteVal} min ≥ ${durabilityTarget} min (cible course − 15 min de marge). Pas de sur-volume requis.`);
+          } else if (shortMin <= 15) {
+            lines.push(`→ 🟡 **Durabilité limite** : TTE effectif ${tteVal} min vs cible ${durabilityTarget} min (carence ${shortMin} min). Renforcer progressivement la sortie longue (Z2 → Z2-Z3), atteindre 70-80% de la durée course en pic.`);
+          } else if (shortMin <= 30) {
+            lines.push(`→ 🟠 **Durabilité INSUFFISANTE (carence ${shortMin} min)** : TTE ${tteVal} min vs cible ${durabilityTarget} min pour ${tFmt}.`);
+            lines.push(`   • Sortie longue Z2 obligatoire 1×/sem, progression +10-15 min/sem jusqu'à ≥ ${Math.round(raceDurMin * 0.75)} min en pic.`);
+            // Bug réel (ChatGPT, plan 10K "Vince") : cette ligne prescrivait du
+            // Train Low pour TOUT objectif dès qu'un écart TTE était détecté —
+            // y compris un 10K (30-45min de course, où le "mur" glycogénique
+            // n'est pas le facteur limitant), sans jamais vérifier si VLamax/
+            // FatMax avait été identifié comme limiteur de CET athlète. Même
+            // fix que le rappel de cohérence Ironman plus bas (cf.
+            // hasVlamaxOrFatMaxLimiter) : le jeûne n'est plus un réflexe
+            // générique "carence de durabilité", seulement une réponse à un
+            // limiteur physiologique réellement diagnostiqué.
+            if (hasVlamaxOrFatMaxLimiter(config)) {
+              lines.push(`   • Ajouter 1 séance hebdo de Train Low (Z2 à jeun 60-90 min) pour FatMax + économie glycogène (limiteur VLamax/FatMax identifié).`);
+            } else {
+              lines.push(`   • PAS de Train Low par défaut ici — aucun limiteur VLamax/FatMax identifié chez cet athlète. Combler la carence par du volume Z2 alimenté normalement.`);
+            }
+            if (isTriOrBrick) lines.push(`   • Inclure 1 BRICK vélo→course chaque 10-14 jours pour transfert spécifique de durabilité.`);
+            else lines.push(`   • Bloc spécifique en pré-compétition : 1 SL à allure course progressive (40-60% du temps cible en finissant à pace).`);
+          } else {
+            lines.push(`→ 🔴 **DURABILITÉ = LIMITEUR MAJEUR (carence ${shortMin} min)** : TTE ${tteVal} min très en dessous de la cible ${durabilityTarget} min pour ${tFmt}. Risque de DNF / mur métabolique élevé.`);
+            lines.push(`   • PRIORITÉ #1 du plan : volume aérobie soutenu. SL Z2 hebdomadaire OBLIGATOIRE, progression jusqu'à ≥ ${Math.round(raceDurMin * 0.80)} min en pic.`);
+            if (hasVlamaxOrFatMaxLimiter(config)) {
+              lines.push(`   • 2 séances/sem Train Low (Z2 60-120 min à jeun) → adaptation FatMax + résistance fatigue (limiteur VLamax/FatMax identifié).`);
+            } else {
+              lines.push(`   • PAS de Train Low par défaut ici — aucun limiteur VLamax/FatMax identifié chez cet athlète. Combler la carence par du volume Z2 alimenté normalement, pas par la restriction glucidique.`);
+            }
+            if (isTriOrBrick) lines.push(`   • BRICK vélo→course 1×/sem en bloc spécifique (transfert durabilité pluri-disciplinaire).`);
+            else lines.push(`   • Bloc spécifique : 2 SL à allure course progressive (50-70% temps cible en finissant à pace) + 1 simulation longue (75% durée course).`);
+            lines.push(`   • Réduire l'intensité haute (Z5/Z6) à 1 séance/sem max pendant le bloc base, pour libérer du volume aérobie.`);
+          }
+        }
+      }
+
+      if (goalWeek && goal.raceDate) {
+        lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
+        lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
+        const classified = classifiedByGoal.get(goal);
+        if (classified?.isLast) {
+          lines.push(`→ La DERNIÈRE semaine du plan (S${goalWeek}) DOIT être la SEMAINE DE COURSE avec : taper complet de ${classified.taperWeeks} semaine(s), activation J-2/J-1, et Jour de Course le jour exact de la compétition.`);
+        } else if (classified?.isFullPeak) {
+          // Pic de forme complet MAIS pas la dernière course chronologique
+          // (écart suffisant avant la course suivante pour un vrai second
+          // cycle — cf. classifyMultiObjectiveGoals). Affûtage propre à SA
+          // discipline, explicitement chiffré ici pour rester cohérent avec
+          // le bloc segmenté "BORNES DE PHASE ESTIMÉES" (plus haut dans ce
+          // même prompt, cf. buildPhaseBoundsSegmentLines) qui calcule
+          // désormais lui aussi un cycle dédié par pic de forme complet.
+          //
+          // Bug réel corrigé (même audit) : `goalWeek - taperWeeks` compte
+          // taperWeeks+1 semaines inclusivement (ex: goalWeek=22, taperWeeks=2
+          // → "S20 à S22" = 3 semaines calendaires, mal étiqueté "2 semaines")
+          // — un off-by-one qui, une fois le bloc segmenté ajouté, aurait
+          // affiché DEUX bornes différentes ("S20-S22" ici vs "S21-S22" dans
+          // le bloc segmenté) pour le MÊME taper de la MÊME course.
+          const taperStartWeek = Math.max(1, goalWeek - classified.taperWeeks + 1);
+          lines.push(`→ 🎯 **PIC DE FORME COMPLET** (pas la dernière course du plan, mais l'écart avant la course suivante est suffisant pour un second cycle complet — cf. littérature périodisation double/triple) : affûtage complet de ${classified.taperWeeks} semaine(s) de S${taperStartWeek} à S${goalWeek}, activation J-2/J-1, Jour de Course le jour exact de la compétition. Puis 1-2 semaines de RÉCUPÉRATION RÉELLE (-40% volume, pas d'intensité) avant de relancer une montée en charge progressive et spécifique vers l'objectif suivant.`);
+        } else {
+          // Jalon intermédiaire (pas la dernière course chronologique, écart
+          // insuffisant ou format non éligible à un second pic indépendant) :
+          // NE PAS affirmer que c'est la dernière semaine du plan — ça
+          // contredirait directement les règles multi-objectifs ci-dessous
+          // (mini-taper, ne pas sacrifier la progression vers le(s) pic(s)
+          // complet(s)). Le plan continue après cette semaine.
+          lines.push(`→ S${goalWeek} DOIT contenir : mini-taper (7-10j), activation J-2/J-1, et Jour de Course le jour exact de la compétition — CE N'EST PAS la dernière semaine du plan, qui continue ensuite vers le(s) pic(s) de forme complet(s) (cf. règles multi-objectifs ci-dessous).`);
+        }
+        // Cartographie explicite J-N → jour calendaire, calculée déterministe.
+        // BUG constaté sans ceci : le modèle place le shakeout "J-1" (catalogue)
+        // sur le mauvais jour (ex: vendredi au lieu de samedi pour une course
+        // dimanche), laissant le vrai J-1 vide. On ne laisse plus le modèle
+        // déduire lui-même quel jour de semaine correspond à J-1/J-2/J-3.
+        const raceUtcUnique = parseIsoDateUtc(goal.raceDate);
+        if (raceUtcUnique !== undefined) {
+          const dayMs = 24 * 3600 * 1000;
+          const jLabels: Array<[number, string]> = [[3, "J-3"], [2, "J-2"], [1, "J-1"], [0, "JOUR J (course)"]];
+          lines.push(`→ Calendrier EXACT des derniers jours (ne pas recalculer, utiliser tel quel) :`);
+          for (const [offset, label] of jLabels) {
+            const dateIso = new Date(raceUtcUnique - offset * dayMs).toISOString().slice(0, 10);
+            lines.push(`   • ${formatIsoDateFr(dateIso)} = ${label}`);
+          }
+          lines.push(`→ La fiche catalogue "Shakeout J-1" DOIT être placée EXACTEMENT sur la date J-1 ci-dessus (pas J-2, pas J-3). Si une activation J-2 existe aussi, elle va sur la date J-2 — ce sont deux jours distincts, aucun des deux ne doit rester vide.`);
+        }
+      }
+    });
+
+    if (isMulti) {
+      lines.push("\n### FORMAT OBLIGATOIRE EN SORTIE (MULTI-OBJECTIFS)");
+      lines.push("Au début de la réponse, ajoute OBLIGATOIREMENT une section `## Jalons multi-objectifs` avec:");
+      lines.push("- Une ligne par objectif (A, B, C) avec la semaine cible exacte (ex: `Objectif B Marathon → S5`).");
+      lines.push("- Les semaines de mini-taper et récupération pour chaque objectif B/C (ex: `Mini-taper B: S4`, `Récup post-B: S6`).");
+      lines.push("Si cette section est absente, la réponse est INVALIDE.");
+
+      // Calculate inter-race gaps
+      const datesGoals = sortedGoals.filter((g: any) => g.raceDate);
+      if (datesGoals.length >= 2) {
+        lines.push("\n**Intervalles entre courses :**");
+        for (let i = 1; i < datesGoals.length; i++) {
+          const d1 = new Date(datesGoals[i - 1].raceDate);
+          const d2 = new Date(datesGoals[i].raceDate);
+          const gapWeeks = Math.round((d2.getTime() - d1.getTime()) / (7 * 24 * 3600 * 1000));
+          lines.push(`- ${datesGoals[i - 1].objective} → ${datesGoals[i].objective} : **${gapWeeks} semaines**`);
+        }
+      }
+
+      const fullPeaks = classification.filter((c) => c.isFullPeak && c.goal.raceDate);
+      const jalons = classification.filter((c) => !c.isFullPeak && c.goal.raceDate);
+
+      lines.push("\n**⚠️ RÈGLES MULTI-OBJECTIFS :**");
+      if (fullPeaks.length > 1) {
+        // Plusieurs pics de forme complets (littérature périodisation double/
+        // triple — Bompa & Haff, Issurin 2010 — Block Periodization) : chacun
+        // reçoit sa PROPRE montée en charge et son PROPRE affûtage complet,
+        // pas de hiérarchie "principal vs secondaire" entre eux.
+        lines.push(`1. **Ce plan comporte ${fullPeaks.length} PICS DE FORME COMPLETS et INDÉPENDANTS** (pas un seul objectif principal + des jalons) : ${fullPeaks.map((c) => `${c.goal.objective}${c.goal.raceName ? ` (${c.goal.raceName})` : ""} — affûtage ${c.taperWeeks} sem.`).join(" · ")}. Chacun a droit à sa propre montée en charge et son propre affûtage dimensionné à sa discipline — ne dégrade PAS le premier pic pour "économiser" en vue du second, et inversement.`);
+        lines.push("2. Après CHAQUE pic complet (sauf le dernier), insère une VRAIE semaine de récupération (-40% volume, pas d'intensité) avant de relancer une montée en charge progressive et spécifique vers le pic suivant.");
+      } else if (fullPeaks.length === 1) {
+        lines.push(`1. **${fullPeaks[0].goal.objective}${fullPeaks[0].goal.raceName ? ` (${fullPeaks[0].goal.raceName})` : ""} = PIC DE FORME PRINCIPAL** : le plan est optimisé GLOBALEMENT pour cet objectif, avec un affûtage complet de ${fullPeaks[0].taperWeeks} semaine(s).`);
+      }
+      if (jalons.length > 0) {
+        lines.push(`3. **Jalon(s) intermédiaire(s)** (${jalons.map((c) => c.goal.objective).join(", ")}) : reçoivent un mini-taper de 7-10 jours avant la course + adaptation des 1-2 semaines post-course (récupération + relance). Ce sont des courses de préparation/jalons, pas des pics de forme — ne pas sacrifier la progression vers le(s) pic(s) complet(s) pour un pic total sur un jalon.`);
+      }
+      lines.push("4. **Ne PAS créer de blocs totalement déconnectés.** La préparation reste continue : les jalons intermédiaires ne sont que des ajustements ponctuels, et même entre deux pics complets, la transition (récupération puis relance) s'inscrit dans un seul plan cohérent, pas deux plans mis bout à bout.");
+    }
+    lines.push("");
+  } else {
+    if (config.objective) lines.push(`- **Objectif course :** ${config.objective}`);
+    if (config.raceName) lines.push(`- **Nom de la course :** ${config.raceName}`);
+    if (config.raceDate) lines.push(`- **Date de course :** ${config.raceDate}`);
+  }
+
+  // Inject time target — SOURCE UNIQUE : deriveRaceTargets (snapshot-based).
+  // La fourchette littérature (getTimeTargetHint) est utilisée uniquement comme
+  // référence populationnelle + détection d'incompatibilité ambition ↔ physiologie.
+  // F-26: si le coach a saisi un targetTimeMinutes explicite, le temps statistique devient secondaire.
+  const athleteSex = data?.sex || data?.sexe || null;
+  const timeTarget = getTimeTargetHint(config.objective || "", config.ambition || "", athleteSex);
+  const coachTimeProvided = Array.isArray(config.raceGoals)
+    && config.raceGoals.some((g: any) => g?.targetTimeMinutes && g.targetTimeMinutes > 0);
+
+  const vmaForDerive = typeof data?.vma === "number" ? Number(data.vma) : null;
+  const paceThrForDerive = typeof data?.paceThresholdSecPerKm === "number" ? Number(data.paceThresholdSecPerKm) : null;
+  const weeklyHoursForDerive = typeof config?.weeklyHours === "number" && config.weeklyHours > 0 ? Number(config.weeklyHours) : null;
+  const derived = deriveRaceTargets({
+    vmaKmh: vmaForDerive,
+    thresholdPaceSecPerKm: paceThrForDerive,
+    objective: config.objective || "",
+    // Cle canonique normalisee, jamais le libelle brut (voir diagDerived plus haut).
+    ambition: normalizeAmbKey(config.ambition || ""),
+    literatureHintText: timeTarget,
+    weeklyHours: weeklyHoursForDerive,
+    trainingLevel: (config as any)?.ambitionMeta?.trainingLevel ?? null,
+    sport: mapObjectiveToSport(config.objective || ""),
+  });
+
+  console.log(`🎯 deriveRaceTargets : VMA snapshot ${vmaForDerive ?? "n/a"} km/h · seuil ${paceThrForDerive ?? "n/a"} s/km · objectif "${config.objective}" · ambition "${config.ambition}" → source=${derived.source} · time=${derived.raceTimeSec ?? "n/a"}s · pace=${derived.racePaceSecPerKm ?? "n/a"}s/km · divLittérature=${derived.divergencePct ?? "n/a"}% · volumeCible=${derived.volumeCible ?? "n/a"}h · qualites=${derived.qualitesParSemaine}/sem · complexite=${derived.complexiteSeances}`);
+
+  if (derived.source === "snapshot" && derived.raceTimeSec != null && derived.paceRange && derived.timeRange) {
+    lines.push(`- **🎯 CIBLE COURSE (snapshot — source unique) :** ${derived.humanSummary}`);
+    lines.push(`  → Fourchette temps ±90s : ${Math.floor(derived.timeRange.lo / 60)}min${String(derived.timeRange.lo % 60).padStart(2, "0")}s → ${Math.floor(derived.timeRange.hi / 60)}min${String(derived.timeRange.hi % 60).padStart(2, "0")}s. Fourchette allure ±5s : ${Math.floor(derived.paceRange.lo / 60)}:${String(derived.paceRange.lo % 60).padStart(2, "0")}-${Math.floor(derived.paceRange.hi / 60)}:${String(derived.paceRange.hi % 60).padStart(2, "0")}/km.`);
+    lines.push(`  → **La ligne "Jour de Course" DOIT afficher cet objectif temps.** Les séances Simulation/Race-pace/Juge de Paix DOIVENT être prescrites dans cette fourchette d'allure.`);
+    if (timeTarget) {
+      lines.push(`  → Standard populationnel (référence, ne pas prescrire) : ${timeTarget}.`);
+    }
+    if (derived.warning) {
+      lines.push(`  → 🚨 **INCOHÉRENCE AMBITION vs PHYSIOLOGIE** : ${derived.warning}`);
+      lines.push(`     Utilise la cible SNAPSHOT ci-dessus. N'utilise AUCUN allure/temps issu du standard populationnel dans les séances.`);
+    }
+    if (coachTimeProvided) {
+      lines.push(`  → ⚠️ Un **temps cible coach** a été saisi pour au moins un objectif ci-dessus. Il prime sur la cible snapshot pour l'allure spécifique, mais reste comparé à la cible snapshot par le coach.`);
+    }
+    lines.push(`  → Les ZONES D'ENTRAÎNEMENT (Z1-Z7) restent 100% individualisées à partir des valeurs physiologiques (VMA, FTP, FCmax) — ne JAMAIS les recalculer depuis le temps cible.`);
+  } else if (timeTarget) {
+    lines.push(`- **🎯 Temps cible (standard populationnel — SNAPSHOT INDISPONIBLE) :** ${timeTarget}`);
+    lines.push(`  → ⚠️ VMA / allure seuil non renseignée : la cible est populationnelle, pas individualisée. À traiter comme indicative.`);
+  }
+
+  // === PACE TARGETS — SOURCE UNIQUE D'ALLURES (Chantier 1) ===
+  // Toutes les allures des séances DOIVENT être tirées de ces valeurs. Aucune allure inventée.
+  if (derived.paceTargets) {
+    const pt = derived.paceTargets;
+    const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`;
+    // BUG constaté : l'ancien format "Xh YY" (ex: "0h38" pour un 10K en 38min)
+    // était absurde pour toute course < 1h — l'IA ignorait l'instruction et
+    // inventait un autre chiffre (souvent tiré du standard populationnel,
+    // ex: "43'17" au lieu de "38min41" pour un objectif snapshot 10K).
+    const fmtRaceTime = (sec: number) => {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = Math.round(sec % 60);
+      return h > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${m}min${String(s).padStart(2, "0")}`;
+    };
+    lines.push(``);
+    lines.push(`### 🎯 ALLURES CANONIQUES — SOURCE UNIQUE (NON NÉGOCIABLE)`);
+    lines.push(`⛔ **INTERDIT de calculer des allures via %VMA, de mémoire, ou par déduction.** Utiliser UNIQUEMENT les valeurs du bloc PACE_TARGETS ci-dessous. Toute allure absente de ce bloc est INTERDITE dans le plan.`);
+    lines.push(`Ces allures sont calculées à partir de l'objectif snapshot (${derived.humanSummary}). **Toutes les allures des séances DOIVENT être tirées de ces valeurs — aucune allure inventée.**`);
+    lines.push(`- **Allure course cible (objectif)** : ${fmt(pt.allureSemiCible)}`);
+    lines.push(`- **Seuil bas (Z4b)** : ${fmt(pt.seuilBas)}`);
+    lines.push(`- **Seuil haut (Z5)** : ${fmt(pt.seuilHaut)}`);
+    if (pt.allureVO2max) lines.push(`- **Allure VO2max (~97% VMA)** : ${fmt(pt.allureVO2max)}`);
+    if (pt.allureZ2) lines.push(`- **Endurance Z2 (65-75% VMA)** : ${fmt(pt.allureZ2.hi)} → ${fmt(pt.allureZ2.lo)}`);
+    lines.push(`→ Toute séance "Allure Semi / Race-pace / Juge de Paix" DOIT être à **${fmt(pt.allureSemiCible)} ±5s**.`);
+    lines.push(`→ Toute consigne coach "si ça brûle, ralentis à X" DOIT proposer une allure PLUS LENTE (ex: ${fmt(pt.allureSemiCible + 8)}), jamais plus rapide que l'allure cible.`);
+    lines.push(`→ Le Jour J DOIT afficher "Objectif ${derived.raceTimeSec ? fmtRaceTime(derived.raceTimeSec) : "?"} (${fmt(pt.allureSemiCible)})" — EXACTEMENT ce chiffre, jamais le standard populationnel ni un autre temps.`);
+    lines.push(``);
+  }
+
+  if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
+  if (config.weeklyHours) {
+    lines.push(`- **Heures dispo/semaine (saisie athlète) :** ${config.weeklyHours}h`);
+    // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : affichait
+    // auparavant TOUJOURS `derived.volumeCible` brut (ambition × weeklyHours)
+    // comme "SOURCE UNIQUE, NON NÉGOCIABLE" — pour B-10K-TO-70.3 (17h déclaré,
+    // ambition elite ×1.1 → 18h), cette ligne contredisait directement la
+    // ligne "Heures dispo/semaine" juste au-dessus (17h), dans le MÊME prompt.
+    // `resolveEffectiveVolumeCible` plafonne à la charge récente démontrée
+    // (`config.loadHistory`) quand une consolidation est en cours (ratio >1.3,
+    // Gabbett) : pour ce profil, 17h est un plafond PROVISOIRE de
+    // consolidation, pas un volume obligatoire (consigne coach explicite).
+    const { effectiveVolumeCible, consolidationCapApplied } = resolveEffectiveVolumeCible(derived.volumeCible, config?.loadHistory);
+    if (effectiveVolumeCible != null) {
+      lines.push(`- **📦 VOLUME CIBLE HEBDO (SOURCE UNIQUE, NON NÉGOCIABLE) :** ${effectiveVolumeCible}h`);
+      if (consolidationCapApplied) {
+        lines.push(`  → Formule ambition : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) = ${derived.volumeCible}h — borné [3h, ${derived.volumeCibleMaxH}h] (cap sport/ambition).`);
+        lines.push(`  → ⚠️ PLAFONNÉ à ${effectiveVolumeCible}h (charge récente RÉELLEMENT démontrée — cf. HISTORIQUE DE CHARGE DÉCLARATIF) : ${derived.volumeCible}h reste la cible à LONG TERME une fois la consolidation validée par le coach, PAS la cible de CE plan tant que ce n'est pas le cas. Ne JAMAIS dépasser ${effectiveVolumeCible}h/sem sur cette base.`);
+      } else {
+        lines.push(`  → Formule : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) — borné [3h, ${derived.volumeCibleMaxH}h] (cap sport/ambition).`);
+      }
+      lines.push(`  → **Les en-têtes de volume hebdomadaire DOIVENT afficher exactement cette valeur** (modulée par la phase : Base 100%, Build 100%, Peak 100%, Décharge ×0.7, Taper voir courbe existante).`);
+      lines.push(`  → INTERDICTION d'inventer une fourchette de volume alternative. La somme réelle des durées de séances de chaque semaine DOIT converger vers cette cible (±15%).`);
+    }
+  } else {
+    lines.push(`- **Heures/semaine :** Non spécifié — utilise le volume OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
+  }
+
+  if (config.sessionsPerWeek) {
+    lines.push(`- **⛔ SÉANCES/SEMAINE — CONTRAINTE DURE (SAISIE UTILISATEUR) :** EXACTEMENT ${config.sessionsPerWeek} séances/semaine.`);
+    lines.push(`  → Comptent : swim, bike, run, brick, test, race-sim (toute séance cardio prescrite).`);
+    lines.push(`  → NE COMPTENT PAS : renforcement musculaire / PPG / musculation / mobilité / yoga / étirements (ces séances s'ajoutent au quota et sont gérées par le paramètre "strengthSessionsPerWeek").`);
+    lines.push(`  → Cette valeur PRIME sur toute recommandation d'ambition ou de littérature. Si la matrice ambition suggère plus/moins, respecter ${config.sessionsPerWeek}.`);
+    lines.push(`  → Chaque semaine du plan DOIT contenir exactement ${config.sessionsPerWeek} séances cardio (hors renfo). Une semaine avec un nombre différent est une erreur bloquante.`);
+  } else {
+    lines.push(`- **Séances/semaine :** Non spécifié — utilise le nombre de séances OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
+  }
+  if (config.strengthSessionsPerWeek !== undefined && config.strengthSessionsPerWeek !== null) {
+    if (config.strengthSessionsPerWeek === 0) {
+      lines.push(`- **⚠️ Renforcement musculaire : 0 séance/sem — NE PAS inclure de séance de renforcement/musculation/PPG dans le plan.**`);
+    } else {
+      lines.push(`- **🏋️ Renforcement musculaire : ${config.strengthSessionsPerWeek} séance(s)/sem — Inclure EXACTEMENT ${config.strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine dans le plan.**`);
+    }
+  }
+  if (config.maxSessionsPerDay) {
+    const maxLabel = config.maxSessionsPerDay === 1 ? "1 séance/jour max (PAS de doubles)" :
+                     config.maxSessionsPerDay === 2 ? "2 séances/jour max (doubles autorisées, PAS de triples)" :
+                     "3 séances/jour max (doubles et triples autorisées)";
+    lines.push(`- **⚠️ Max séances par jour :** ${maxLabel}`);
+    if (config.maxSessionsPerDay === 1) {
+      lines.push(`  → RÈGLE STRICTE : 1 seule séance par jour. Aucune double séance. Chaque jour n'a qu'UNE SEULE ligne dans le tableau.`);
+    } else if (config.maxSessionsPerDay === 2) {
+      lines.push(`  → RÈGLE STRICTE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
+    } else if (config.maxSessionsPerDay === 3) {
+      // CHANTIER doubles/triples — sport-aware pour éviter contamination triathlon
+      // dans les plans running/trail. Cause historique du bug (Marathon world_class
+      // recevant un exemple codé en dur en triathlon).
+      // Audit "génération de plan IA" (suite PR #263/#265/#267/#268) : même
+      // classe de bug que "DOUBLES/TRIPLES SÉANCES" (déjà corrigé) — utilisait
+      // `config.objective` (objectif FINAL) seul, ce qui affichait l'exemple
+      // "Lundi matin : Natation..." (structure triathlon) pour une fenêtre du
+      // cycle intermédiaire Marathon d'un plan Ironman/70.3.
+      const sportForDoubles = mapObjectiveToSport(config.catalogObjective || config.objective || "");
+      const isRunningPlan = sportForDoubles === "run_route" || sportForDoubles === "trail";
+      const isTriPlan = sportForDoubles === "tri_70_3" || sportForDoubles === "ironman";
+
+      // Fourchette de séances issue du référentiel (fallback : pas de minimum chiffré)
+      const objKeyForDoubles = normalizeObjKey(config.catalogObjective || config.objective || "");
+      const ambKeyForDoubles = normalizeAmbKey(config.ambition || "");
+      const spwRef = SPORT_RATIO_REFS[objKeyForDoubles]?.[ambKeyForDoubles]?.sessionsPerWeek;
+      const spwMin = spwRef ? spwRef[0] : null;
+      const spwMax = spwRef ? spwRef[1] : null;
+
+      lines.push(`  → RÈGLE STRICTE : Doubles et triples séances OBLIGATOIRES pour un athlète élite.`);
+      if (spwMin && spwMax) {
+        lines.push(`  → **MINIMUM ${spwMin} séances par semaine, idéalement ${spwMin}-${spwMax}** (référentiel ${objKeyForDoubles}/${ambKeyForDoubles}).`);
+      }
+      lines.push(`  → Chaque jour d'entraînement (hors repos) DOIT avoir 2 ou 3 lignes dans le tableau.`);
+      lines.push(`  → Utilise "Lundi matin", "Lundi midi", "Lundi soir" pour séparer les séances.`);
+
+      if (isRunningPlan) {
+        lines.push(`  → Exemple de structure semaine type RUNNING élite (1 jour repos) :`);
+        lines.push(`    Lundi matin : CAP EF Z1-Z2 45-60min | Lundi soir : Renfo/Core 30-40min`);
+        lines.push(`    Mardi matin : CAP qualité (VMA/Seuil) | Mardi soir : CAP Z1 récup courte 30-40min`);
+        lines.push(`    Mercredi matin : CAP EF vallonnée + strides | Mercredi soir : Mobilité 20-30min`);
+        lines.push(`    Jeudi matin : CAP tempo/seuil | Jeudi soir : Renfo léger ou repos`);
+        lines.push(`    Vendredi matin : CAP EF récup Z1 | Vendredi soir : Mobilité/Foam roller`);
+        lines.push(`    Samedi : Sortie longue CAP (Z2 + progressif)`);
+        lines.push(`    Dimanche : CAP EF + strides OU jour repos complet`);
+        lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum renfo/core, mobilité ou footing Z1 récup.`);
+        // Bug réel (audit "plan multi-objectifs Sables d'Olonne", relayé via
+        // revue ChatGPT) : ce bloc interdisait TOUJOURS la natation ici
+        // ("INTERDICTION ABSOLUE : AUCUNE séance de natation"), sans jamais
+        // consulter `resolveCrossTrainingMaintenance` — alors que
+        // `buildObjectiveSportLockLines` (même fichier) sait déjà dire
+        // "✅ NATATION AUTORISÉE EN MAINTIEN LÉGER" quand le coach l'a coché
+        // (crossTrainingMaintenance.natation, AITrainingPlanPage.tsx). Sur un
+        // cycle Marathon intermédiaire d'un plan Ironman, les deux blocs se
+        // contredisaient frontalement dans le MÊME prompt — le modèle a
+        // suivi l'interdiction absolue, la natation est restée totalement
+        // absente pendant 21 semaines malgré la case cochée. Fix : même
+        // source de vérité (`resolveCrossTrainingMaintenance`), aucune
+        // logique dupliquée.
+        const xtrainDoubles = resolveCrossTrainingMaintenance(config);
+        if (sportForDoubles === "run_route") {
+          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUN vélo en qualité (Z3+/seuil/VO2/intervalles/SFR), AUCUNE brique triathlon. ${buildCrossTrainingPhrase(xtrainDoubles)} Doubles/triples = CAP + renfo/mobilité principalement.`);
+        } else {
+          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE brique triathlon, AUCUN vélo qualité. ${buildCrossTrainingPhrase(xtrainDoubles)} Toute brique ou séance vélo qualité = erreur bloquante.`);
+        }
+      } else if (isTriPlan) {
+        lines.push(`  → Exemple de structure semaine type TRIATHLON avec 1 jour repos :`);
+        lines.push(`    Lundi matin : Natation technique | Lundi midi : Renfo/Core | Lundi soir : Vélo Z2`);
+        lines.push(`    Mardi matin : Natation seuil | Mardi soir : CAP intervalles`);
+        lines.push(`    Mercredi matin : Vélo intensité | Mercredi midi : Renfo | Mercredi soir : CAP récup`);
+        lines.push(`    etc.`);
+        lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum natation technique, renfo/core ou Z1 récup.`);
+      } else {
+        lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum renfo/core, mobilité ou récup active.`);
+      }
+      if (spwMin) lines.push(`  → VÉRIFIE que le total de séances par semaine est ≥ ${spwMin} avant de soumettre.`);
+    }
+    // Anti-contradiction: never mix rest + real session on same day
+    lines.push(`- **⚠️ Anti-contradiction :** Si un jour a une séance d'entraînement, NE PAS ajouter de ligne "Repos" pour ce même jour. Le Repos est UNIQUEMENT pour les jours sans aucune séance.`);
+  }
+  if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
+  if (derived) {
+    const complexRule = derived.complexiteSeances === "simple"
+      ? "INTERDIT : doubles seuils, train-low, plyométrie avancée, doubles séances quotidiennes systématiques."
+      : derived.complexiteSeances === "intermediaire"
+        ? "AUTORISÉ : progressions classiques, tempo, seuils simples, intervalles VMA. INTERDIT : doubles seuils, train-low avancé, plyo pliométrique avancée."
+        : "AUTORISÉ : doubles seuils, train-low, plyo avancée, back-to-back, séances complexes multi-blocs.";
+    lines.push(`- **🧩 STRUCTURE AMBITION (non négociable) :** ${derived.qualitesParSemaine} qualité(s)/semaine · complexité "${derived.complexiteSeances}".`);
+    lines.push(`  → ${complexRule}`);
+    // P0-2 (audit Codex, oct. 2026, consigne coach explicite) : ce nombre est
+    // désormais la SEULE source du comptage de séances d'intensité (voir
+    // systemPrompt.ts, section MASTER >40/>50 ans — corrigée pour ne plus
+    // imposer un nombre concurrent fondé sur l'âge seul). Rappel explicite ici
+    // des règles de récupération qui restent actives pour CE nombre.
+    const athleteAgeForMaster = typeof data?.age === "number" ? data.age : null;
+    if (athleteAgeForMaster !== null && athleteAgeForMaster >= 40) {
+      const spacingH = athleteAgeForMaster >= 50 ? 72 : 48;
+      lines.push(`  → ⚠️ Athlète ${athleteAgeForMaster} ans (règles MASTER, cf. system prompt) : ce nombre de qualité(s)/semaine s'applique TEL QUEL (jamais réduit par l'âge seul) — mais respecte charge 2:1 et espacement ≥${spacingH}h entre 2 séances d'intensité.`);
+    }
+  }
+
+
+  // === CONTRAINTE EXPLICITE : RATIOS DE RÉPARTITION SPORTIVE PAR NIVEAU D'AMBITION ===
+  // Bug réel (audit "génération de plan IA", plans Manu/Emanuela) : cette
+  // contrainte utilisait TOUJOURS `config.objective` (l'objectif FINAL du
+  // plan, ex. "Ironman"), même pour une fenêtre appartenant à un cycle
+  // intermédiaire (ex. "Marathon", PR #259/#263). Résultat : pour les
+  // semaines du cycle Marathon, le SYSTEM prompt disait "NATATION INTERDITE"
+  // (PR #263, cycle-aware) tandis que ce bloc du USER prompt exigeait encore
+  // "Natation minimum X%, Vélo minimum Y% — CIBLES ABSOLUES, REJETÉ si non
+  // respecté" (référentiel Ironman) — contradiction frontale, alors même que
+  // le catalogue envoyé pour ces semaines ne contient plus aucune fiche
+  // natation/vélo (PR #259). Coincé entre "0 fiche disponible" et "minimum
+  // obligatoire", le modèle invente des séances natation/vélo hors-catalogue
+  // (marquées [CUSTOM] dans les plans réels observés) au lieu de respecter
+  // l'interdiction. Fix : utiliser l'objectif du CYCLE EN COURS
+  // (`catalogObjective`, déjà calculé côté client) quand présent — même
+  // logique que `resolveSystemPromptObjective` (jsonPlanHandler.ts).
+  const sportRatioObjective = (config.catalogObjective || config.objective || "").toUpperCase();
+  const sportRatios = getSportDistributionConstraint(sportRatioObjective, (config.ambition || "").toLowerCase(), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);
+  if (sportRatios) {
+    lines.push(sportRatios);
+  }
+  lines.push(...buildObjectiveSportLockLines(config));
+
+  // === PISTE 2 : CAPS DE DURÉE PROGRESSIFS (dérivés du catalogue réel) ===
+  // Empêche l'IA de prescrire des séances irréalistes (ex: 4h vélo en S1 pour finisher)
+  // ou trop courtes en pic (ex: 1h30 LR en S10 pour elite Ironman).
+  // Les bornes viennent du catalogue TFCL™ validé — pas de chiffres arbitraires.
+  if (catalogDurationStats && Object.keys(catalogDurationStats).length > 0) {
+    const ambKeyDur = normalizeAmbKey(config?.ambition || "");
+    // Ramp factor S1-S2 : finisher démarre plus prudemment, elite peut taper plus haut tôt
+    const startFactor = ambKeyDur === "finisher" ? 0.75 : ambKeyDur === "elite" ? 0.95 : 0.85;
+    const midFactor   = ambKeyDur === "finisher" ? 0.90 : 1.00;
+    lines.push(`\n### ⏱️ CAPS DE DURÉE PROGRESSIFS PAR SÉANCE (dérivés du catalogue, NON-NÉGOCIABLES)`);
+    lines.push(`Chaque séance individuelle DOIT respecter ces bornes selon la phase du plan.`);
+    lines.push(`Objectif : éviter sur-prescription précoce (blessure) et sous-stimulation tardive (sous-performance).\n`);
+    lines.push(`| Sport | S1-S2 (max/séance) | S3-mi-plan (max) | Pic/Race-Specific (max) | Médiane catalogue |`);
+    lines.push(`|-------|--------------------|------------------|-------------------------|-------------------|`);
+    for (const [sport, st] of Object.entries(catalogDurationStats)) {
+      const start = Math.round(st.medianDur * startFactor / 5) * 5;
+      const mid   = Math.round(((st.medianDur + st.maxDur) / 2) * midFactor / 5) * 5;
+      const peak  = st.maxDur;
+      lines.push(`| ${sport} | ${start} min | ${mid} min | ${peak} min | ${st.medianDur} min |`);
+    }
+    lines.push(`\n⚠️ Règles d'application :`);
+    lines.push(`- **NE PAS dépasser** le cap S1-S2 sur les 2 premières semaines, même pour une séance d'endurance.`);
+    lines.push(`- **NE PAS descendre sous 60% du cap pic** sur les semaines de pic/race-specific (sinon stimulus insuffisant).`);
+    lines.push(`- Le **taper** (2 dernières semaines) peut redescendre librement (-30 à -50% du pic).`);
+    lines.push(`- Si une séance du catalogue dépasse ces caps, tu peux la prescrire mais en tronquant à la borne (ex: "réduire à ${ambKeyDur === "finisher" ? "75%" : "85%"} pour S1").`);
+  }
+
+  if (config.constraints) lines.push(`- **Contraintes :** ${config.constraints}`);
+
+  // === CALENDAR MAPPING: inject exact dates for each week so the AI can anchor races precisely ===
+  if (config.planStartDate && config.weeksAvailable) {
+    const startMs = parseIsoDateUtc(config.planStartDate);
+    if (startMs !== undefined) {
+      const totalW = config.weeksAvailable as number;
+      lines.push(`\n### 📅 CALENDRIER ABSOLU (source de vérité pour les dates)`);
+      lines.push(`Le plan commence le ${formatIsoDateFr(config.planStartDate)} (lundi). Voici le calendrier exact :\n`);
+      
+      // Build a lookup of race dates per week for annotation
+      const racesByWeek: Record<number, string[]> = {};
+      if (config.raceGoals) {
+        config.raceGoals.forEach((g: any) => {
+          const w = computeGoalWeek(g);
+          if (w) {
+            if (!racesByWeek[w]) racesByWeek[w] = [];
+            racesByWeek[w].push(`${g.priority}: ${g.objective}${g.raceName ? ` (${g.raceName})` : ""} le ${g.raceDate}`);
+          }
+        });
+      }
+
+      for (let w = 1; w <= Math.min(totalW, 30); w++) {
+        const wStartMs = startMs + (w - 1) * 7 * 86400000;
+        const wEndMs = wStartMs + 6 * 86400000;
+        const fmtShort = (ms: number) => new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", timeZone: "UTC" }).format(new Date(ms));
+        const annotation = racesByWeek[w] ? ` ← 🏁 ${racesByWeek[w].join(", ")}` : "";
+        lines.push(`- **S${w}** : du ${fmtShort(wStartMs)} au ${fmtShort(wEndMs)}${annotation}`);
+      }
+      
+      lines.push(`\n⚠️ UTILISE CE CALENDRIER pour nommer tes semaines : "### Semaine N (du JJ/MM au JJ/MM) — [Thème]".`);
+      lines.push(`⚠️ Quand une course est marquée dans ce calendrier, elle DOIT apparaître dans la semaine correspondante, PAS la semaine d'avant ni d'après.`);
+    }
+  }
+
+  // --- Athlete Profile ---
+  lines.push("\n### Profil Athlète");
+  if (data.nom) lines.push(`- **Nom :** ${data.nom}`);
+
+  lines.push("\n#### Moteur Aérobie");
+  if (data.ftp) lines.push(`- FTP vélo : ${data.ftp}W`);
+  if (data.weightKg) lines.push(`- Poids : ${data.weightKg}kg`);
+  if (data.ftp && data.weightKg) lines.push(`- W/kg : ${(data.ftp / data.weightKg).toFixed(2)}`);
+  if (data.vo2max) lines.push(`- VO₂max : ${data.vo2max} mL/kg/min`);
+  if (data.tte) lines.push(`- TTE : ${data.tte} min`);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // GARDE-FOU #1 (audit Cath juillet 2026) — Race Power Cap par TTE
+  // Cap logarithmique Coggan/Skiba/Karsten : borne l'IF vélo course en fonction
+  // de la TTE observée. Évite qu'un plan 70.3/IM prescrive 82-85% FTP en race
+  // alors que TTE=35' rend l'IF max soutenable ≈ 0.72-0.75.
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Audit "génération de plan IA" (suite PR #263/#265/#267) : `rpcObjective`
+  // utilisait TOUJOURS `config.objective` (l'objectif FINAL du plan) — pour
+  // une fenêtre du cycle intermédiaire Marathon d'un plan Ironman/70.3, ce
+  // bloc affichait quand même une section "RACE POWER VÉLO" complète (IF
+  // bornée par TTE, cibles watts) alors que le verrou sport de cette même
+  // fenêtre interdit déjà le vélo qualité. `catalogObjective` (objectif du
+  // cycle EN COURS) prime quand présent, même logique que
+  // `resolveSystemPromptObjective` (jsonPlanHandler.ts).
+  const rpcObjective = (config?.catalogObjective ?? config?.objective ?? "").toString();
+  // ⚠️ config.ambition est le libelle UI ("Elite"), pas la cle canonique : passer
+  // par normalizeAmbKey (sinon "Elite" retombait sur le baseline IF "age_group"
+  // faute de match dans la liste littérale ci-dessous).
+  const rpcAmbition = normalizeAmbKey(String(config?.ambition ?? "age_group")) as RaceBikeAmbition;
+  const rpcCap = capBikeRaceIF({
+    objective: rpcObjective,
+    ambition: rpcAmbition,
+    tteMin: typeof data.tte === "number" ? data.tte : null,
+  });
+  if (rpcCap) {
+    lines.push(`\n#### 🎯 RACE POWER VÉLO — Bornage TTE (Coggan/Skiba/Karsten)`);
+    lines.push(`- **IF baseline ambition ${rpcAmbition}** : ${(rpcCap.baselineIF * 100).toFixed(0)}% FTP`);
+    lines.push(`- **IF SOUTENABLE en race (borné TTE)** : **${rpcCap.cappedPctFTP}% FTP** ${rpcCap.wasCapped ? "⚠️ (bridé par TTE)" : "✅"}`);
+    lines.push(`- ${rpcCap.rationale}`);
+    if (rpcCap.wasCapped) {
+      lines.push(`- ⛔ **INTERDICTION** : ne prescris JAMAIS d'intensité race > ${rpcCap.cappedPctFTP + 2}% FTP dans les séances "brick race pace", "simulation course", "long ride @race pace", "T2 race". Toute mention "82-85% FTP" pour un athlète TTE ${data.tte} min est INVALIDE.`);
+      lines.push(`- ✅ **PRESCRIPTION CORRECTE** : cible race = ${rpcCap.cappedPctFTP - 2}-${rpcCap.cappedPctFTP + 2}% FTP. Sweet Spot d'entraînement peut aller à 88-92% mais SEULEMENT sur intervalles ≤ TTE.`);
+    }
+  }
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // GARDE-FOU #3 (audit Cath juillet 2026) — Zones triathlon SOURCE UNIQUE
+  // Élimine la dérive Z2 vélo 95→124W d'une séance à l'autre. Injecté seulement
+  // pour objectifs 70.3 / IM. Consomme capBikeRaceIF pour la race power.
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    // Même correctif que rpcObjective ci-dessus : catalogObjective (cycle en
+    // cours) prime sur objective (objectif final) pour décider si cette
+    // fenêtre doit voir les zones triathlon (natation/vélo/course).
+    const objL = (config?.catalogObjective ?? config?.objective ?? "").toString().toLowerCase();
+    const isTri = objL.includes("70.3") || objL === "703" || objL.includes("ironman") || objL === "im";
+    if (isTri) {
+      try {
+        const triAmb = (["finisher", "age_group", "competitor", "elite", "world_class"].includes(rpcAmbition) ? rpcAmbition : "age_group") as RaceBikeAmbition;
+        const zones = deriveTriathlonZones({
+          ftpW: typeof data.ftp === "number" ? data.ftp : (data.ftp ? Number(data.ftp) : null),
+          vmaKmh: typeof data.vma === "number" ? data.vma : (data.vma ? Number(data.vma) : null),
+          objective: rpcObjective,
+          ambition: triAmb,
+          tteMinBike: typeof data.tte === "number" ? data.tte : (data.tte ? Number(data.tte) : null),
+        });
+        lines.push(formatTriathlonZonesForPrompt(zones));
+      } catch (e) {
+        console.warn("⚠️ [triathlonZones] échec injection :", e);
+      }
+    }
+  }
+
+
+
+
+
+
+  lines.push("\n#### Glycolytique");
+  if (data.vlamax) lines.push(`- VLamax vélo : ${data.vlamax} mmol/L/s`);
+  if (data.vlamaxRun) lines.push(`- VLamax course : ${data.vlamaxRun} mmol/L/s`);
+
+  // ✅ AUDIT FIX : injection dynamique de la cible VLamax (objectif × ambition × sport)
+  const sportForVlamax = (data.sport_main || data.sportMain || (config?.objective?.startsWith?.("Marathon") || config?.objective?.startsWith?.("Semi") || config?.objective === "Trail" ? "run" : null)) ?? null;
+  const vlmRange = getVLamaxRangeForPlan(config?.objective, config?.ambition, sportForVlamax);
+  // AUDIT #6 — `data.vlamax` = `diagnostic.effectifs.vlamax.value` (résolveur
+  // sport-aware : CAP-estimator pour run/trail, vlamax vélo sinon). Prioritaire
+  // sur `data.vlamaxRun` (valeur brute snapshot).
+  const vlmCurrent = data.vlamax ?? data.vlamaxRun ?? null;
+  const vlmStatus = vlmCurrent == null
+    ? "non renseignée"
+    : vlmCurrent < vlmRange.min
+      ? `🔻 SOUS la cible (${(vlmRange.min - vlmCurrent).toFixed(2)} en dessous) → travail de capacité glycolytique requis`
+      : vlmCurrent > vlmRange.max
+        ? `🔺 AU-DESSUS de la cible (+${(vlmCurrent - vlmRange.max).toFixed(2)}) → priorité VLamax↓ (Z2 long, Train Low, SFR, seuil long continu)`
+        : `✅ DANS la cible`;
+  lines.push(`- 🎯 **Cible VLamax pour ${config?.objective || "?"} (${config?.ambition || "age_group"}${sportForVlamax ? `, ${sportForVlamax}` : ""}) :** min ${vlmRange.min.toFixed(2)} / optimal ${vlmRange.optimal.toFixed(2)} / max ${vlmRange.max.toFixed(2)} mmol/L/s`);
+  lines.push(`- État actuel : ${vlmStatus}`);
+  lines.push(`- ⚠️ RÈGLE : N'utilise QUE cette fenêtre cible pour juger « VLamax trop haute / trop basse ». Ignore toute valeur générique du prompt système.`);
+
+  lines.push("\n#### Neuromusculaire");
+  if (data.pmax5s) lines.push(`- Pmax 5s : ${data.pmax5s}W`);
+  if (data.p30s) lines.push(`- P30s : ${data.p30s}W`);
+  if (data.p60s) lines.push(`- P60s : ${data.p60s}W`);
+  if (data.map5min) lines.push(`- MAP 5min : ${data.map5min}W`);
+
+  // === CRITICAL POWER / W' MODEL (Skiba 2012 — individualisé) ===
+  const recoveryStrategy: RecoveryStrategy = (config?.recoveryStrategy === "active-light" || config?.recoveryStrategy === "active-tempo")
+    ? config.recoveryStrategy
+    : "passive";
+  const cpwSection = buildCPWprimeSection(data, recoveryStrategy);
+  if (cpwSection) lines.push(cpwSection);
+
+  lines.push("\n#### Autres Métriques");
+  if (data.vma) lines.push(`- VMA : ${data.vma} km/h`);
+  if (data.css) lines.push(`- CSS natation : ${data.css} sec/100m`);
+  if (data.fcMax) lines.push(`- FC Max : ${data.fcMax} bpm`);
+
+  // --- Computed training zones & pace anchors (TFCL Z1→Z7 methodology) ---
+  const formatPace = (totalSec: number) => {
+    const m = Math.floor(totalSec / 60);
+    const s = Math.round(totalSec % 60);
+    return `${m}'${s.toString().padStart(2, "0")}"`;
+  };
+
+  // Build TFCL Z1→Z7 zones table with actual values
+  const vmaKmh = data.vma ? Number(data.vma) : null;
+  const ftpW = data.ftp ? Number(data.ftp) : null;
+  const fcMaxBpm = data.fcMax ? Number(data.fcMax) : null;
+
+  lines.push(`\n#### ⚠️ GRILLE ZONES D'ENTRAÎNEMENT TFCL™ Z1→Z7 (VOCABULAIRE DE RÉFÉRENCE)`);
+  lines.push(`Ces zones sont les leviers physiologiques utilisés par le coach. Tu DOIS prescrire les séances en utilisant UNIQUEMENT ces zones (Z1..Z7, Z4a/Z4b toujours distingués).`);
+  // Bug réel (audit "plan multi-objectifs Sables d'Olonne", relayé via revue
+  // ChatGPT — "trop de science décorative") : ce bloc affirmait "tu DOIS...
+  // NE PAS inventer d'autres valeurs" puis listait plus bas des allures
+  // ABSOLUES calculées sur un %VMA de POPULATION fixe (ex: "Allure Marathon
+  // (Z4a) : 4'15-4'20/km" pour tout le monde) — alors que le bloc Phase 2B
+  // "INTENSITÉS — RELATIF UNIQUEMENT" (formatTargetTableBlock, même prompt
+  // final, cf. jsonPlanHandler.ts) dit l'inverse : "INTERDIT d'écrire des...
+  // absolus... l'application les calcule pour l'athlète" via renderIntensities.ts
+  // (Phase 2B v2, résolution individualisée au rendu depuis la targetTable
+  // réelle). Les deux instructions se contredisaient dans le MÊME prompt.
+  // Fix : ce tableau redevient un simple repère de lecture (comme le fait déjà
+  // le bloc Phase 2B pour sa propre table TRAINING_ZONES) ; le texte des
+  // séances reste 100% RELATIF, seule source de vérité pour les valeurs
+  // absolues = la targetTable individualisée, appliquée au rendu.
+  lines.push(`⛔ Les colonnes FC/VMA/FTP/Allure ci-dessous sont un REPÈRE DE LECTURE, PAS un texte à recopier : le plan reste 100% RELATIF (cf. bloc INTENSITÉS — RELATIF UNIQUEMENT). N'écris JAMAIS d'allure/puissance/FC absolue dans le title/details d'une séance — uniquement le LABEL de zone (ex: "Z4a"). L'application calcule et affiche la valeur individualisée de l'athlète au rendu.\n`);
+
+  // Zone definitions: [name, description, fcLow, fcHigh, vmaLow, vmaHigh, ftpLow, ftpHigh]
+  const zones: [string, string, number, number, number, number, number, number][] = [
+    ["Z1 Récupération", "Récupération, affûtage, échauffement, lactate de base", 0, 70, 0, 60, 0, 55],
+    ["Z2 Endurance Fondamentale", "Lipolyse, volume mitochondrial, base aérobie", 70, 78, 60, 70, 56, 75],
+    ["Z3 Endurance Active", "Base aérobie solide, force si basse cadence", 78, 83, 70, 78, 76, 90],
+    ["Z4a Allure Marathon / Sweet Spot", "Économie de course, durabilité, spécifique long", 83, 87, 78, 83, 88, 93],
+    ["Z4b Allure Semi", "Tolérance à l'inconfort, mental, spécifique moyen", 87, 91, 83, 88, 94, 98],
+    ["Z5 Seuil (MLSS)", "Repousser le seuil anaérobie, MLSS", 91, 94, 88, 92, 99, 105],
+    ["Z6 VO2max / VMA", "VO2max, cylindrée cardiaque", 95, 100, 95, 105, 106, 120],
+    ["Z7 Neuromusculaire / Anaérobie Alactique", "Explosivité, force max, vitesse pure", 0, 0, 120, 200, 150, 300],
+  ];
+
+  lines.push(`| Zone | Description | FC | VMA | FTP | Allure CAP |`);
+  lines.push(`|------|-------------|----|----|-----|------------|`);
+  for (const [name, desc, fcL, fcH, vmaL, vmaH, ftpL, ftpH] of zones) {
+    const fcStr = fcMaxBpm
+      ? (fcL === 0 && name.includes("Z1") ? `0-${Math.round(fcMaxBpm * fcH / 100)}` :
+         fcL === 0 && name.includes("Z7") ? "N/A" :
+         `${Math.round(fcMaxBpm * fcL / 100)}-${Math.round(fcMaxBpm * fcH / 100)}`)
+      : `${fcL}-${fcH}%`;
+    const vmaStr = `${vmaL}-${vmaH}%`;
+    const ftpStr = ftpW
+      ? `${Math.round(ftpW * ftpL / 100)}-${Math.round(ftpW * ftpH / 100)}W`
+      : `${ftpL}-${ftpH}%`;
+    // Compute pace range for running if VMA available
+    let paceStr = "—";
+    if (vmaKmh && vmaKmh > 0 && vmaL > 0 && vmaH <= 200) {
+      const paceHigh = 3600 / (vmaKmh * vmaL / 100); // slower (low % VMA)
+      const paceLow = 3600 / (vmaKmh * vmaH / 100);  // faster (high % VMA)
+      paceStr = `${formatPace(paceLow)}-${formatPace(paceHigh)}/km`;
+    }
+    lines.push(`| ${name} | ${desc} | ${fcStr} | ${vmaStr} | ${ftpStr} | ${paceStr} |`);
+  }
+
+  // Explicit pace hierarchy rule
+  if (vmaKmh && vmaKmh > 0) {
+    // ── ANCRAGE SEUIL RUN INDIVIDUALISÉ (TFCL™ Modèle C, RMSE 2.64%) ───────
+    // Si pace_threshold observé OU prédit via VLamax run + CE → ancrer Z5 sur cette valeur
+    const mlssPct = data.runMLSSEffectivePct ? Number(data.runMLSSEffectivePct) : null;
+    const mlssSource = data.runMLSSEffectiveSource as string | null;
+    const observedPaceSec = data.paceThresholdSecPerKm ? Number(data.paceThresholdSecPerKm) : null;
+    if (observedPaceSec && observedPaceSec > 0) {
+      lines.push(`\n🎯 **Allure seuil INDIVIDUALISÉE (test de terrain observé)** : ${formatPace(observedPaceSec)}/km`);
+      lines.push(`→ Cette valeur PRIME sur la fourchette Z5 générique ci-dessus pour TA compréhension de où se situe le seuil de cet athlète. Séances de seuil long / Norvégienne / MLSS = label "Z5" dans le texte (jamais cette allure chiffrée, cf. règle 100% RELATIF ci-dessus) — l'application affiche cette allure individualisée au rendu.`);
+    } else if (mlssPct && mlssPct > 0 && mlssSource === "predicted") {
+      const predictedSpeedKmh = vmaKmh * mlssPct / 100;
+      const predictedPaceSec = 3600 / predictedSpeedKmh;
+      lines.push(`\n🧪 **Allure seuil ESTIMÉE (Modèle C — VLamax run + Économie, RMSE ±2.64%)** : ${formatPace(predictedPaceSec)}/km (≈ ${mlssPct.toFixed(1)}% VMA)`);
+      lines.push(`→ Pas de test de seuil disponible : utilise cette estimation comme repère de calibration Z5 (pas de test 30min ou MLSS terrain effectué). Le texte des séances reste "Z5" — jamais cette allure chiffrée.`);
+    }
+
+    lines.push(`\n🚨 HIÉRARCHIE INVIOLABLE (du plus lent au plus rapide) : Z2 > Z4a Marathon > Z4b Semi > Z5 Seuil > Z6 VMA`);
+    lines.push(`Si une allure spécifique course est plus rapide que le seuil (Z5), c'est une ERREUR. Allure semi TOUJOURS plus lente que seuil.`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUDIT LOT #1 : Nutrition Mader-Heck + TTE âge + CAP injury risk
+  // Injecté à chaque diagnostic — supplée F26-F31, F33, capInjuryRisk (client-only).
+  // ═══════════════════════════════════════════════════════════════════════════
+  try {
+    const nutriBlock = buildNutritionAndSafetyBlock({
+      objective: config?.objective,
+      // Cle canonique normalisee : buildNutritionAndSafetyBlock compare l'ambition
+      // par egalite stricte ("elite"/"world_class") sans normaliser, donc le
+      // libelle brut "Elite" (config.ambition) ne matchait jamais "world_class".
+      ambition: normalizeAmbKey(String(config?.ambition ?? "")),
+      age: data.age ?? null,
+      weightKg: data.weightKg ?? null,
+      vo2max: data.vo2max ?? null,
+      vlamax: data.vlamax ?? null,
+      vlamaxRun: data.vlamaxRun ?? null,
+      sportMain: data.sport_main || data.sportMain || null,
+      heatCondition: !!config?.heatCondition,
+      raceDurationHours: config?.raceDurationHours ?? null,
+      injuryRiskPrecomputed: config?.injuryRisk,
+    });
+    lines.push(nutriBlock);
+  } catch (e) {
+    console.warn("⚠️ [nutritionAndSafetyGuardrails] échec injection :", e);
+  }
+
+  // --- Identified weaknesses (ranked by importance) ---
+  // Audit "démarrage guidé" (QuickStartWizard) : ce bloc + sa matrice Dan
+  // Lorang prescrivent explicitement du seuil, de la VMA, des côtes et des
+  // sprints (ex: "TTE faible → Seuil continu Norvégienne", "Économie basse →
+  // Côtes/Rønnestad") — le wizard route pourtant systématiquement un
+  // débutant Start to Run vers un de ces limiteurs (durability/TTE ou
+  // neuromuscular/Économie selon la gêne articulaire déclarée), et
+  // `buildCoachOverrides` (AITrainingPlanPage.tsx) alimente
+  // `identifiedLimiters` SANS distinction d'objectif. Résultat : chaque plan
+  // S2R généré via le wizard recevait cette matrice dans le MÊME prompt que
+  // S2R_STRUCTURE_RULES ("Pas de seuil, pas de VMA, pas de fractionné rapide,
+  // pas de côtes avant S9", systemPrompt.ts) — contradiction directe. Ce
+  // bloc générique n'a de toute façon pas de sens pour un débutant : le
+  // catalogue et les règles S2R pilotent déjà ses séances clés (progression
+  // RPE/impact, pas de cible métabolique), cf. enrichedWorkoutsStartToRun.ts.
+  // catalogObjective (cycle en cours) prime — un plan Start-to-Run n'est
+  // jamais lui-même multi-objectif en pratique, mais par cohérence avec les
+  // autres correctifs "génération de plan IA" (PR #263/#265/#267/#268).
+  const isStartToRunObjective = /start.?to.?run|d[ée]but/i.test(String(config?.catalogObjective || config?.objective || ""));
+  if (!isStartToRunObjective && config.identifiedLimiters && config.identifiedLimiters.length > 0) {
+    lines.push("\n### 🔴 LIMITEURS IDENTIFIÉS PAR L'APP — CLASSÉS PAR IMPORTANCE — SÉANCES CLÉS OBLIGATOIRES");
+    lines.push("Les limiteurs ci-dessous sont calculés et classés par le diagnostic TFCL™ (impact pondéré = importance × gap vs cible).");
+    lines.push("Le plan DOIT adresser CHAQUE limiteur, du plus critique au moins critique, avec une périodisation séquentielle.");
+    lines.push("");
+    config.identifiedLimiters.forEach((l: string) => lines.push(l));
+
+    // ====== ENHANCED: Detailed limiter-to-session matrix per phase ======
+    lines.push("\n### 📋 MATRICE SÉANCE CLÉ × LIMITEUR × PHASE (Dan Lorang / TFCL™)");
+    lines.push("Utilise cette matrice pour sélectionner les séances clés EXACTES selon le limiteur identifié et la phase de préparation.\n");
+
+    lines.push("| Limiteur | Phase Base (4-6 sem) | Phase Build (4-6 sem) | Phase Spécifique (3-4 sem) | Phase Taper (1-2 sem) |");
+    lines.push("|----------|---------------------|----------------------|---------------------------|----------------------|");
+    lines.push("| VO2max bas | Billat 30/30 (2×8min), 3×3min @VMA | 5×1200m @100% VMA r=3min, VMA longue 4×4min | VMA courte (200-400m) + rappels race pace | 2×(4×200m) @VMA rappel, volume -60% |");
+    lines.push("| VLamax trop haute | Z2 long 2h-2h30 Train Low, EF fondamentale 90min+, SFR 3×8min @50rpm | Z2 long 2h30-3h à jeun, EF aérobie pur 2h+, Seuil continu long 2×20min (synergie TTE↑→VLamax↓), SFR force basse cadence 40-50rpm | Simulation course Z2-Z3 progressive, Train Low maintien, Seuil long 1×30min rappel | Z2 60-90min, 1 rappel EF long |");
+    lines.push("| TTE faible (<45min) | Seuil continu 2×15min @Z5, Norvégienne simple | Seuil 2×20min→1×30min, Double seuil Norvégienne 2x/sem | Seuil long 1×35-40min, Race pace intégré | 1×20min seuil rappel, volume -50% |");
+    lines.push("| FTP/kg bas | Sweet spot 3×12min @88-93% FTP, Z3 tempo 45min | Sweet spot 2×20min, over-unders 6×(3min@105%+2min@85%), Norvégienne vélo | FTP test simulation, race power practice | 1×15min sweet spot rappel |");
+    lines.push("| Économie basse | Côtes 8×30s, SFR 3×8min @50rpm, Rønnestad force 2x/sem | Côtes longues 6×2min, pliométrie 80 contacts, force maintien 1x/sem | Rappels côtes courtes, strides post-EF | Strides 6×100m, 1 séance force légère |");
+    lines.push("| FatMax bas | Train Low Z2 2h à jeun, Z1 longue 1h30 | Z2 longue 2h30-3h Train Low 2-3x/sem, Gut Training progressif | Simulation nutrition course, Z2 Train Low maintien | Z2 1h à jeun, rappel nutrition |");
+    lines.push("| Pmax/Sprint faible | Sprints 6×10s all-out r=3min, force max Rønnestad | Sprints 8×15s, pliométrie drop jumps + bounds, SFR | Rappels 4×8s, maintien plio 1x/sem | 3×6s rappel neuromusculaire |");
+    lines.push("| Endurance durabilité | Sorties longues progressives (+10-15min/sem), Z2 2h+ | SL avec finish rapide 25km (derniers 8km @Z4a), briques | Simulation course complète, SL race pace finish | SL courte 60-70min Z2 |");
+
+    lines.push("\n### 🔄 SYNERGIES ENTRE LIMITEURS (Exploiter les interactions positives)");
+    lines.push("| Action principale | Effets secondaires positifs |");
+    lines.push("|-------------------|---------------------------|");
+    lines.push("| VLamax↓ (Z2 long + Train Low) | → TTE↑, FatMax↑, économie glycogène↑ |");
+    lines.push("| VO2max↑ (Billat/VMA) | → FTP/kg↑, vitesse aérobie↑, récupération inter-effort↑ |");
+    lines.push("| TTE↑ (seuil long continu) | → VLamax↓ (synergie : déplétion glycolytique via effort soutenu au seuil), allure course↑, résistance fatigue↑ |");
+    lines.push("| SFR / Force basse cadence (40-60rpm) | → VLamax↓ (rationale théorique : recrutement précoce fibres Type I, discipline glycolytique — preuves d'entraînement encore limitées et contradictoires sur la performance, cf. revue Hansen & Rønnestad 2017) |");
+    lines.push("| Force max lourde (squats 4×4RM, Rønnestad et al. 2010) | → économie↑ (+4.8% mesuré, sans gain VO2max/poids), prévention blessures, puissance neuromusculaire↑ |");
+    lines.push("| FatMax↑ (Train Low) | → VLamax↓ (synergie plausible), autonomie glycogène↑, durabilité↑ |");
+    lines.push("⚠️ IMPORTANT : Le seuil long continu et la force basse cadence (SFR) sont des leviers PLAUSIBLES pour réduire la VLamax (rationale mécanistique cohérent), mais PAS un résultat démontré par essai contrôlé — la littérature d'entraînement sur ce point précis reste clairsemée. Quand L1=VLamax, prescris ces séances EN PLUS du Z2 long/Train Low ; garde un œil sur la réponse individuelle plutôt que sur une promesse de résultat garanti.");
+    lines.push("⚠️ FatMax — fiabilité de mesure : le taux d'oxydation des lipides mesuré sur un seul test a une reproductibilité jour-à-jour FAIBLE (CV intra-sujet ~21-26%, Achten/Gleeson/Jeukendrup 2002). Traite la cible FatMax comme une estimation de départ à réévaluer, pas une valeur fixe précise.\n");
+
+    lines.push("### ⚙️ RÈGLES DE PÉRIODISATION SÉQUENTIELLE STRICTES");
+    lines.push("1. **Limiteur #1 (🔴 CRITIQUE)** :");
+    lines.push("   - Reçoit la Séance Clé #1 de CHAQUE semaine de la Phase Base à la fin de la Phase Build.");
+    lines.push("   - Fréquence : 2-3 stimuli/sem en Base, 2 stimuli/sem en Build, 1-2 rappels en Spécifique.");
+    lines.push("   - Le volume/intensité de ce stimulus suit la colonne correspondante dans la matrice ci-dessus.");
+    lines.push("2. **Limiteur #2 (🔴 ou 🟡)** :");
+    lines.push("   - Reçoit la Séance Clé #2 dès la Phase Base (1-2x/sem), montée en importance en Build (2x/sem).");
+    lines.push("   - Si #2 est synergique avec #1, combiner dans certaines séances (ex: Z2 long Train Low travaille VLamax↓ ET FatMax↑).");
+    lines.push("3. **Limiteurs #3+ (🟡 SOUS-OPTIMAUX)** :");
+    lines.push("   - Intégrés comme composantes secondaires : ex. strides post-EF (économie), rappels force 1x/sem (maintien Rønnestad).");
+    lines.push("   - Montée en priorité en Phase Spécifique si les limiteurs #1 et #2 ont suffisamment progressé.");
+    lines.push("4. **Principe de non-régression** :");
+    lines.push("   - Quand on passe au limiteur suivant, maintenir les acquis du limiteur précédent avec 1 rappel/sem minimum.");
+    lines.push("   - Jamais d'abandon complet d'un travail spécifique après une phase.");
+    lines.push("5. **Phase Taper** :");
+    lines.push("   - Rappels courts de CHAQUE limiteur travaillé (volume -50 à -60%, intensité maintenue).");
+    lines.push("   - 1 séance rappel par limiteur adressé dans la dernière semaine pré-course.");
+
+    lines.push("\n⚠️ RÈGLE SÉANCES CLÉS PAR LIMITEUR (RÉSUMÉ RAPIDE) :");
+    lines.push("- Limiteur #1 = 'VO2max bas' → clé #1 = VMA/VO2max (Billat 30/30, 5×1200m).");
+    lines.push("- Limiteur #1 = 'VLamax trop haute' → clé #1 = Z2 long Train Low, clé #2 = Sweet Spot long basse cadence (2×20-30min @88-92% FTP, 55-65 RPM), clé #3 = SFR/force basse cadence + seuil long continu.");
+    lines.push("- Limiteur #1 = 'TTE faible' → clé #1 = seuil continu long (Norvégienne 2×20min→1×40min).");
+    lines.push("- Limiteur #1 = 'Économie basse' → clé #1 = côtes/SFR + force max (Rønnestad).");
+    lines.push("- Limiteur #1 = 'FatMax bas' → clé #1 = Z2 longue à jeun Train Low (2h30+).");
+    lines.push("- Limiteur #1 = 'FTP/kg bas' → clé #1 = sweet spot + over-unders + Norvégienne vélo.");
+    lines.push("- Le Limiteur #2 reçoit la séance clé #2 avec la même logique.");
+    lines.push("- En Phase Spécifique, les séances clés deviennent race-specific tout en maintenant le travail sur les limiteurs principaux.");
+  }
+
+  if (config.activeLevers && config.activeLevers.length > 0) {
+    lines.push("\n### Leviers TFCL™ Actifs");
+    config.activeLevers.forEach((l: string) => lines.push(`- ⚡ ${l}`));
+    lines.push("Les leviers actifs doivent être intégrés dans les séances clés 🔑 et les consignes coach.");
+  }
+
+  // --- Prohibitions (Sprint Ban, VO2max restrictions, etc.) ---
+  if (config.prohibitions && config.prohibitions.length > 0) {
+    lines.push("\n### 🚨 INTERDICTIONS / AUTORISATIONS SPÉCIFIQUES À CET ATHLÈTE — PRIORITÉ ABSOLUE");
+    lines.push("⚠️ Ces règles sont calculées par le moteur TFCL™ en fonction de l'objectif, l'ambition et le profil métabolique.");
+    lines.push("Tu DOIS les respecter IMPÉRATIVEMENT. Elles PRIMENT sur les recommandations générales de périodisation.");
+    lines.push("Toute séance qui viole ces interdictions sera rejetée par le moteur de validation.");
+    config.prohibitions.forEach((p: string) => lines.push(`- ${p}`));
+
+    // FIX #4 (audit Cath juillet 2026) — Clarification physiologique nominative
+    // pour éviter que l'IA confonde "VO2max intermittent" avec "sprint neuromusculaire".
+    const hasSprintBan = config.prohibitions.some((p: string) => /sprint\s*ban/i.test(p));
+    if (hasSprintBan) {
+      lines.push("");
+      lines.push("#### 📖 DÉFINITION STRICTE DU SPRINT BAN (à respecter à la lettre)");
+      lines.push("**❌ INTERDIT sous Sprint Ban** (filière ATP-CP + glycolyse rapide, ↑ VLamax) :");
+      lines.push("- Sprints all-out ≤ 20s : `6×10s all-out`, `8×15s max`, `10×20s explosif`");
+      lines.push("- Tabata (20/10 all-out), micro-intervalles supra-max (15/15, 10/20, 10/10)");
+      lines.push("- Pmax / force-vitesse maximale / pliométrie explosive (drop jumps, hurdle rebounds, bounds)");
+      lines.push("- Séances estampillées `[Custom]`, `_SPRINT_`, `_PMAX_`, `_NM_` (neuromusculaire pur)");
+      lines.push("- Efforts erratiques non-structurés, surges aléatoires");
+      lines.push("");
+      lines.push("**✅ AUTORISÉ malgré le Sprint Ban** (filière aérobie, ↑ VO2max sans ↑ VLamax) :");
+      lines.push("- **30/30 Billat, 40/20, 30/15 à 100–110% VMA/PMA** — c'est du VO2max intermittent, PAS un sprint");
+      lines.push("- VO2max classique court et contrôlé : 3-4×3min @105-110% FTP, repos ≥4min");
+      lines.push("- Strides courts (5-8×15-20s) en fin d'EF pour l'économie neuromusculaire aérobie");
+      lines.push("- Force max en salle (renfo, gainage, ppg, mobilité) — pas de plyo explosive");
+      lines.push("");
+      lines.push("**RÈGLE ABSOLUE** : ne JAMAIS inventer de séance `[Custom]` sprint/pmax/neuro sous Sprint Ban. ");
+      lines.push("Utilise UNIQUEMENT les IDs du catalogue TFCL fourni. Si une séance VMA courte type 30/30 est prescrite, ");
+      lines.push("elle DOIT viser 100-110% VMA (pas all-out) et être explicitement taggée `VO2max` (pas `sprint`).");
+    }
+  }
+
+
+  // --- Adaptation Predictor Projections ---
+  if (config.adaptationProjections && config.adaptationProjections.length > 0) {
+    lines.push("\n### 🔮 PROJECTIONS ADAPTATION PREDICTOR™ (Impact attendu du bloc d'entraînement)");
+    lines.push("Le module Adaptation Predictor™ a simulé l'impact physiologique attendu. Le plan DOIT s'aligner sur ces projections.");
+    lines.push("");
+
+    for (const proj of config.adaptationProjections) {
+      const isBest = config.adaptationProjections.indexOf(proj) === 0;
+      const tag = isBest ? "⭐ STRATÉGIE RECOMMANDÉE" : "Alternative";
+      lines.push(`#### ${tag} : ${proj.leverLabel} (Score impact: ${proj.impactScore}/100 — ${proj.impactLabel})`);
+      
+      if (proj.metrics && proj.metrics.length > 0) {
+        lines.push("Adaptations physiologiques attendues (bloc 4-6 semaines) :");
+        for (const m of proj.metrics) {
+          const arrow = m.direction === "up" ? "↑" : m.direction === "down" ? "↓" : "→";
+          const sign = m.deltaPct > 0 ? "+" : "";
+          lines.push(`  - ${m.label}: ${m.current?.toFixed(2) ?? "?"} → ${m.projected?.toFixed(2) ?? "?"} (${sign}${m.deltaPct.toFixed(1)}% ${arrow})`);
+        }
+      }
+
+      if (proj.performanceImpacts && proj.performanceImpacts.length > 0) {
+        const impacts = proj.performanceImpacts
+          .filter((p: any) => Math.abs(p.improvementPct) > 0.1)
+          .map((p: any) => `${p.distance}: ${p.improvementPct > 0 ? "+" : ""}${p.improvementPct.toFixed(1)}%`)
+          .join(", ");
+        if (impacts) {
+          lines.push(`  Impact performance estimé : ${impacts}`);
+        }
+      }
+
+      lines.push(`  💡 ${proj.recommendation}`);
+      lines.push("");
+    }
+
+    lines.push("CONSIGNE : Le plan doit PRIORITAIREMENT appliquer la stratégie recommandée (⭐). Les séances clés doivent refléter les adaptations projetées.");
+    lines.push("Mentionne dans le récapitulatif stratégique les projections attendues du Predictor™.");
+  }
+
+  // Sport coherence reminder based on objective
+  // FIX: Use normalizeObjKey for reliable matching (was using strict === on uppercase string,
+  // which NEVER matched objectives like "Ironman", "Ironman 70.3", "Semi-marathon", etc.)
+  // Audit "génération de plan IA" (suite PR #265) : ce bloc utilisait TOUJOURS
+  // `config.objective` (l'objectif FINAL du plan) — pour une fenêtre du cycle
+  // intermédiaire d'un plan multi-objectif (ex. Marathon dans un plan Ironman),
+  // il réinjectait "RAPPEL COHÉRENCE IRONMAN" (Vélo 45-55%, natation
+  // obligatoire, IDs catalogue natation/vélo) alors même que le verrou sport
+  // (déjà corrigé, catalogObjective-aware) interdit la natation pour ce
+  // cycle — recréant exactement la contradiction de la PR #265, via un autre
+  // bloc du même prompt.
+  const objKeyForRappel = normalizeObjKey(config.catalogObjective || config.objective || "");
+
+  // ─── HARD BAN TRAIL UNIVERSEL POUR TOUT PLAN TRIATHLON (IM / 70.3 / LCW) ───
+  // Empêche l'IA d'inventer des séances trail/montagne/dénivelé dans un plan triathlon,
+  // quel que soit le format (continuous, LCW) ou la distance. Complément des exclusions
+  // catalogue côté client (voir useAITrainingPlan.getCatalogExclusions).
+  if (objKeyForRappel === "IM" || objKeyForRappel === "703") {
+    lines.push("\n### 🚫 HARD BAN TRAIL — PLAN TRIATHLON (RÈGLE ABSOLUE, NON-NÉGOCIABLE)");
+    lines.push("Un plan triathlon (IM, 70.3, LCW) se prépare EXCLUSIVEMENT sur route / piste / piscine / eau libre / home-trainer. Il est **STRICTEMENT INTERDIT** de prescrire :");
+    lines.push("- Toute séance en terrain trail, sentier, montagne, off-road, chemin, forêt technique.");
+    lines.push("- Tout ID de séance commençant par `HEDGEHOG_`, `URBAN_`, `TRAIL_` ou contenant `_TRAIL_` (ex : `URBAN_TAPIS_INCLINE_SEUIL`, `HEDGEHOG_VMA_COURTE`, `A_TRAIL_SL_MONTAGNE`).");
+    lines.push("- Toute mention de : dénivelé, D+, mètres cumulés positifs, bâtons, sac à dos trail, ravitaillement trail, cairn, sentier, montagne, massif, col.");
+    lines.push("- Toute séance 'côtes' au-delà de 200m D+ cumulés (max autorisé : côtes courtes VMA 6-10×30\"–1' en boucle route).");
+    lines.push("");
+    lines.push("**Substituts autorisés** pour travailler la puissance : `B_BIKE_SST_*`, `B_BIKE_VO2_*`, `B_RUN_TEMPO_*`, `B_RUN_VMA_*`, `B_RUN_SEUIL_*` (route/piste plate).");
+    lines.push("**Si aucun ID catalogue triathlon ne correspond** : crée une séance `[CUSTOM]` route/piste/piscine, JAMAIS une variante trail.");
+    lines.push("");
+  }
+
+  if (objKeyForRappel === "IM") {
+
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE IRONMAN");
+    lines.push("Objectif IRONMAN → applique les ratios Lorang/Frodeno :");
+    lines.push("- Vélo 45-55% | CAP 25-35% | Natation 15-20% | Renfo 5-10%");
+    lines.push("- Min 3 natation/sem (technique + CSS + OWS), 4 vélo/sem, 3 CAP/sem");
+    lines.push("- Briques vélo→CAP 1-2x/sem en phase spécifique");
+    // Bug réel (audit "trop de fasted/train-low", ChatGPT sur le plan multi-
+    // objectifs Séville→Sables d'Olonne, point #6) : cette ligne mandatait le
+    // Train Low 2-3×/sem en phase base pour TOUT plan Ironman, sans jamais
+    // regarder si VLamax élevée ou FatMax bas étaient réellement identifiés
+    // comme limiteurs de CET athlète (cf. matrice "SÉANCE CLÉ × LIMITEUR ×
+    // PHASE" ci-dessus, qui prescrit déjà le Train Low de façon ciblée quand
+    // c'est indiqué). Un athlète dont les limiteurs réels sont ailleurs
+    // (Économie, Pmax, TTE...) recevait quand même l'injonction "Ironman =
+    // jeûne" — et un athlète AVEC VLamax/FatMax en limiteur cumulait cette
+    // ligne ET la prescription de la matrice, doublant la fréquence réelle de
+    // jeûne. Fix : le Train Low n'est plus un réflexe "Ironman" par défaut,
+    // seulement une conséquence d'un limiteur physiologique réellement
+    // identifié (déjà couvert par la matrice) — "une petite dose ponctuelle,
+    // pas un pilier systématique de l'endurance", cohérent avec la réserve
+    // déjà exprimée plus haut sur les leviers VLamax "plausibles mais non
+    // démontrés" (Hansen & Rønnestad 2017).
+    if (hasVlamaxOrFatMaxLimiter(config)) {
+      lines.push("- Train Low : limiteur VLamax/FatMax identifié → applique la fréquence de la matrice ci-dessus, jamais plus (pas de cumul avec une consigne générique).");
+    } else {
+      lines.push("- Train Low : PAS un réflexe systématique \"Ironman\" — seulement si VLamax élevée ou FatMax bas est identifié comme limiteur (aucun ici). Sinon, aucune séance à jeun prescrite par défaut.");
+    }
+    lines.push("- Gut Training progressif obligatoire");
+
+    // ─── DURABILITÉ RUN IM — OBLIGATOIRE BUILD/PEAK (élite/competitor) ───
+    // Comble l'angle mort identifié par audit coach élite IM femme :
+    // manque de long runs 1h45-2h15, bricks longs marathon-pace, late-race fractions.
+    // Ces séances sont la signature qui sépare l'élite IM des âge-groupeurs.
+    const ambKeyIM = normalizeAmbKey(config.ambition || "");
+    if (ambKeyIM === "elite" || ambKeyIM === "competitor") {
+      lines.push("\n### 🎯 DURABILITÉ RUN IRONMAN — OBLIGATOIRE BUILD + PEAK (élite/competitor)");
+      lines.push("Pour une élite IM, le marathon se gagne dans les 12 derniers km. Le plan DOIT intégrer ces séances signature :");
+      lines.push("");
+      lines.push("**Catalogue dédié IM Run Durability — utilise ces IDs en priorité absolue :**");
+      lines.push("- `A_IM_RUN_LONG_DURABILITY_2H` — Long run 1h45-2h15 Z2 + nutrition race + cadence cible.");
+      lines.push("- `B_IM_BRICK_LONG_MARATHON_PACE` — Brick 4-5h vélo Z2/SST + 60-90' run @ pace IM (signature absolue de l'élite IM).");
+      lines.push("- `B_IM_RUN_LATE_RACE_FRACTIONS` — Long run 1h30-2h avec 20-30' final @ pace IM (simule km 35-42).");
+      lines.push("- `A_IM_RUN_FATIGUED_NEXT_DAY` — Long run dimanche après gros vélo samedi (back-to-back Lorang/Frodeno).");
+      lines.push("- `B_IM_RUN_MARATHON_SPLIT` — 2× 60' @ pace IM matin+soir (peak uniquement, 1×/3 sem max).");
+      lines.push("- `B_IM_RUN_NEG_SPLIT_LR` — Long run progressif 3 tiers jusqu'à pace IM (pacing discipline).");
+      lines.push("");
+      lines.push("**Règle de prescription NON-NÉGOCIABLE :**");
+      lines.push("- **Build IM (S25-S50% du plan)** : minimum **1 séance IM run durability par semaine** (rotation entre long run 2h, brick long, late-race fractions, back-to-back).");
+      lines.push("- **Peak IM (S55-S85% du plan)** : minimum **2 séances IM run durability par semaine** (typiquement : brick long samedi + long run fatigué dimanche, OU long run 2h mardi + late-race fractions samedi).");
+      lines.push("- **Back-to-back weekend** (brick long samedi + long run dimanche) : 1×/2 sem minimum en Build tardif et Peak.");
+      lines.push("- **Brick long marathon-pace** (`B_IM_BRICK_LONG_MARATHON_PACE`) : 4-6 occurrences entre S8 et S20 d'un plan IM 24 sem.");
+      lines.push("- Si tu prescris une SL run classique en Build/Peak IM, vérifie d'abord qu'aucune séance ci-dessus ne couvre mieux le besoin de durabilité.");
+      lines.push("");
+      lines.push("**Pourquoi c'est critique** : Stryd Durability Index, Maunder 2021 (run durability post-bike), Coyle 1991 — la signature physiologique du marathon IM (courir vite après 5h vélo en fatigue musculaire/glycogénique) NE PEUT PAS être entraînée par des long runs en frais isolés.");
+    }
+  } else if (objKeyForRappel === "703") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE 70.3");
+    lines.push("Objectif 70.3 → applique les ratios Lorang/Haug :");
+    lines.push("- Vélo 40-50% | CAP 30-40% | Natation 15-20% | Renfo 5-10%");
+    lines.push("- Min 3 natation/sem, 3 vélo/sem, 3 CAP/sem");
+    lines.push("- Plus d'intensité seuil/tempo qu'en IM");
+
+    // ─── DURABILITÉ + RACE-SIM 70.3 — OBLIGATOIRE BUILD/PEAK (podium/elite/competitor) ───
+    // Comble les angles morts identifiés par audit coach 70.3 podium :
+    // race-pace CAP long manquant, briques race-pace 70.3 sous-prescrites,
+    // OWS race-sim et drafting/quick start piscine absents des plans standards.
+    const amb703 = normalizeAmbKey(config.ambition || "");
+    if (amb703 === "elite" || amb703 === "competitor" || amb703 === "podium") {
+      lines.push("\n### 🎯 DURABILITÉ + RACE-SIM 70.3 — OBLIGATOIRE BUILD + PEAK (podium/elite/competitor)");
+      lines.push("Pour un podium 70.3, le semi off-bike se gagne par la spécificité du pace ET la qualité du départ + drafting. Le plan DOIT intégrer ces séances signature :");
+      lines.push("");
+      lines.push("**Catalogue dédié 70.3 Podium Durability — utilise ces IDs en priorité absolue :**");
+      lines.push("- `A_703_RUN_RACE_PACE_LONG` — Long CAP 1h30-1h50 avec 45-60min @ pace 70.3 (séance manquante #1 des plans standards).");
+      lines.push("- `B_703_BRICK_RACE_PACE` — Brick 2h-2h30 vélo race-pace 70.3 + 60-75' run race-pace (signature absolue podium 70.3).");
+      lines.push("- `B_703_RUN_OFF_BIKE_FAST_FINISH` — Long run avec finish 20' @ pace 70.3 après SST vélo.");
+      lines.push("- `B_703_RUN_NEG_SPLIT` — Long run progressif 3 tiers jusqu'à pace 70.3 (pacing discipline).");
+      lines.push("- `B_703_SWIM_OWS_RACE_SIM` — Eau libre 2-3 km avec quick start + drafting + sighting (dès que l'eau libre est ouverte).");
+      lines.push("- `B_703_SWIM_QUICK_START_DRAFT` — Piscine race-sim : départ explosif 100m + drafting pieds + 300m race-pace.");
+      lines.push("");
+      lines.push("**Règle de prescription NON-NÉGOCIABLE :**");
+      lines.push("- **Build 70.3 (S25-S50% du plan)** : minimum **1 séance 70.3 race-pace/race-sim par semaine** (rotation : long race-pace, off-bike fast finish, neg split, OWS si disponible).");
+      lines.push("- **Peak 70.3 (S55-S90% du plan)** : minimum **2 séances 70.3 race-pace/race-sim par semaine** (typiquement : brick race-pace samedi + long run race-pace mardi/jeudi, + 1 séance natation race-sim/OWS/sem).");
+      lines.push("- **Brick race-pace 70.3** (`B_703_BRICK_RACE_PACE`) : 4-6 occurrences entre S6 et S14 d'un plan 70.3 16 sem. Jamais 2 sem de suite.");
+      lines.push("- **Natation race-sim** : `B_703_SWIM_QUICK_START_DRAFT` (piscine) 1×/sem hors-saison eau libre, puis `B_703_SWIM_OWS_RACE_SIM` (OWS) 1×/2 sem dès que l'eau libre est accessible.");
+      lines.push("- Si tu prescris une SL run classique en Build/Peak 70.3, vérifie qu'aucune séance ci-dessus ne couvre mieux le besoin spécifique.");
+      lines.push("");
+      lines.push("**Pourquoi c'est critique** : Lorang, Haug/Frodeno training logs, Stryd Durability Index, Maunder 2021 — un podium 70.3 ne se construit pas avec du volume Z2 isolé. La signature physiologique (courir vite après 2h-2h30 aéro + gagner le drafting au départ natation) DOIT être entraînée spécifiquement.");
+    }
+
+    // ─── LCW (Long Course Weekend) — Format 3 JOURS ÉCLATÉ ───
+    // ⚠️ HORS filtre ambition podium/elite : le format LCW s'applique à TOUTES
+    // les ambitions dès qu'un athlète s'inscrit à ce type de course (Wales/Belgium).
+    // Détection prioritaire : flag `raceFormat === "lcw_3day"` (champ explicite UI).
+    // Fallback : regex sur raceName ("Long Course Weekend" / "LCW") pour rétrocompat.
+    const goalsLCW = Array.isArray(config.raceGoals) ? config.raceGoals : [];
+    const hasLCWFlag = goalsLCW.some((g: any) => g?.raceFormat === "lcw_3day");
+    const raceNamesLCW: string[] = [
+      ...goalsLCW.map((g: any) => String(g?.raceName || "")),
+      String(config.raceName || ""),
+      String(config.objective || ""),
+    ].filter(Boolean);
+    const isLCW = hasLCWFlag || raceNamesLCW.some((n) => /long\s*course\s*weekend|\blcw\b/i.test(n));
+    if (isLCW) {
+      // ⚠️ Cible ABSOLUE (J-21 à J-28 avant la course) calculée pour CE plan,
+      // plutôt que de laisser le LLM réconcilier lui-même "Peak" (déduit du
+      // % de progression dans le plan) et "3-4 semaines avant la course".
+      // Sur un plan LCW COURT (ex. 7 semaines), ces deux critères se
+      // contredisent : la phase "Peak" (calculée en %) tombe à J-7/J-14,
+      // pas J-21/J-28, qui lui-même retombe en phase "Build". Un plan
+      // généré en respectant "Peak ET J-21/28" à la lettre ne peut alors
+      // PAS satisfaire la checklist — cause probable (en plus du bug de
+      // chunking déjà corrigé) de l'absence totale de B_LCW_BACK_TO_BACK_PEAK
+      // observée sur un plan réel de ce type.
+      const lcwTotalWeeks = typeof config.weeksAvailable === "number" && config.weeksAvailable > 0
+        ? config.weeksAvailable
+        : null;
+      const lcwSimWeekLate = lcwTotalWeeks ? Math.max(1, lcwTotalWeeks - 3) : null;
+      const lcwSimWeekEarly = lcwTotalWeeks ? Math.max(1, lcwTotalWeeks - 4) : null;
+      const lcwSimWeekInstruction = lcwTotalWeeks && lcwSimWeekEarly && lcwSimWeekLate
+        ? (lcwSimWeekEarly === lcwSimWeekLate
+            ? `Pour CE plan de ${lcwTotalWeeks} semaines, cela correspond très précisément à la **semaine ${lcwSimWeekLate}**.`
+            : `Pour CE plan de ${lcwTotalWeeks} semaines, cela correspond très précisément aux **semaines ${lcwSimWeekEarly} ou ${lcwSimWeekLate}**.`)
+          + ` Utilise ce numéro de semaine directement — ne recalcule pas "Peak" toi-même à partir d'un pourcentage de progression dans le plan. Sur un plan LCW COURT, la semaine J-21/J-28 peut être nominalement labellée "Build" par le découpage automatique en phases : ce n'est PAS une erreur, la distance réelle en jours avant la course prime TOUJOURS sur le nom de la phase pour cette règle précise (le but est de laisser 2-3 semaines de récupération/surcompensation après la simulation, peu importe l'étiquette de phase de la semaine qui la porte).`
+        : null;
+      lines.push("");
+      lines.push("### 🏴 FORMAT LONG COURSE WEEKEND (LCW) — COURSE À ÉTAPES 3 JOURS");
+      lines.push("⚠️ **TITRE DU PLAN — OBLIGATOIRE POUR LCW** : le H1 DOIT contenir explicitement le sigle **`LCW`** (et non seulement `70.3`). Format imposé : `# Plan TFCL™ — 70.3 LCW [Nom course] — N semaines`. Un titre du type `703 — Structure Qualifiable` sans mention `LCW` est INVALIDE et doit être corrigé avant rendu.");
+      lines.push("⚠️ La course objectif est un **Long Course Weekend** (LCW Wales/Belgium) : format **ÉCLATÉ sur 3 jours** :");
+      lines.push("- **Vendredi** : Natation (Long Swim, ~3.8 km généralement).");
+      lines.push("- **Samedi** : Vélo (Long Bike, ~112 km / 70 mi).");
+      lines.push("- **Dimanche** : Course à pied (Marathon ou Half selon édition).");
+      lines.push("Ce N'EST PAS un 70.3 continu. Le paradigme physiologique change : succession d'efforts intenses séparés par **nuits de récupération INCOMPLÈTE** (course à étapes).");
+      lines.push("");
+      lines.push("**ADAPTATIONS NON-NÉGOCIABLES pour LCW (remplacent partiellement les règles 70.3 continu ci-dessus) :**");
+      lines.push("1. **Briques T2 immédiates INTERDITES.** Bannis `B_703_BRICK_RACE_PACE` et tout enchaînement vélo→run <30min. Prescris à la place les séances signature LCW du catalogue :");
+      lines.push("   - `B_LCW_SWIM_FRI_EVENING` — Natation continue rythmée **VENDREDI soir OBLIGATOIREMENT** (2.5-3.8km, allure race, timing course). Jamais Jeudi ni Samedi : le suffixe `_FRI_EVENING` de l'ID impose le jour.");
+      lines.push("   - `B_LCW_BIKE_LONG_RACE_SAT` — Long ride race-pace samedi 2h30-3h @ IF 0.82-0.85 (SANS run derrière — puissance plus haute autorisée).");
+      lines.push("   - `B_LCW_RUN_OFF_LEGS_SUN` — Long run race-pace dimanche 60-90min sur jambes fatiguées vélo veille (angle mort absolu des plans 70.3 continus).");
+      lines.push("2. **Répétition générale** : prescris **`B_LCW_BACK_TO_BACK_PEAK`** UNE FOIS, 3-4 sem avant course (SIMULATION complète Ven+Sam+Dim, reproduction exacte du paradigme LCW)."
+        + (lcwSimWeekInstruction ? ` ${lcwSimWeekInstruction}` : ""));
+      lines.push("3. **Pacing plus agressif autorisé** : sans contrainte de courir immédiatement après le vélo, la cible vélo peut glisser de 80-85% FTP → **85-88% FTP** (IF ~0.85). La course peut viser allure semi/marathon **proche du vrai potentiel** (pas de pénalité fatigue centrale vélo-fraîche).");
+      lines.push("4. **Nutrition INTER-ÉTAPES = arme absolue** : prescris **`B_LCW_NUTRITION_RECHARGE`** ≥3× dans le plan (associé à chaque back-to-back weekend en Build/Peak). Protocole détaillé Burke 2018 / Costa 2019.");
+      lines.push("5. **Fatigue résiduelle ENTRE jours** : conserve les séances 'CAP Z2 Fatigued' / lendemain de grosse charge — elles préparent EXACTEMENT le dimanche LCW (courir sur jambes raides post-vélo veille).");
+      lines.push("6. **Race Week LCW** : la semaine de course occupe 3 jours (Ven/Sam/Dim). Planifie 3 entrées 'COURSE OBJECTIF — Étape Natation/Vélo/Course' aux dates exactes.");
+      lines.push("");
+      lines.push("**Règle de fréquence LCW (NON-NÉGOCIABLE) :**");
+      lines.push("- Build LCW : minimum **1 weekend Sam+Dim par mois** avec `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
+      lines.push("- Peak LCW : **2 weekends Sam+Dim** + **1 fois** `B_LCW_BACK_TO_BACK_PEAK` complet + **3 rappels** `B_LCW_NUTRITION_RECHARGE`.");
+      lines.push("");
+      lines.push("**✅ CHECKLIST DE SORTIE LCW (bloquante — vérifie AVANT de finaliser le plan) :**");
+      lines.push("Avant de rendre le plan final, tu DOIS pouvoir cocher chacune de ces cases. Si une case manque, RÉÉCRIS la semaine concernée.");
+      lines.push("- [ ] `B_LCW_BACK_TO_BACK_PEAK` **présent exactement 1 fois** dans le plan, positionné à **J-21/J-28 avant la course** (ni plus tôt, ni plus tard — la phase nominale de cette semaine, Build ou Peak selon le découpage automatique, N'A PAS D'IMPORTANCE pour cette règle précise)."
+        + (lcwSimWeekInstruction ? ` ${lcwSimWeekInstruction}` : "")
+        + " Cette séance-pivot occupe le weekend entier (Ven soir + Sam matin + Dim matin) et NE PEUT PAS être remplacée par la simple juxtaposition de `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` — c'est la SIMULATION COURSE COMPLÈTE avec bilan écrit obligatoire.");
+      lines.push("- [ ] Au moins **2 weekends Peak** contiennent `B_LCW_BIKE_LONG_RACE_SAT` (Sam) + `B_LCW_RUN_OFF_LEGS_SUN` (Dim) consécutifs.");
+      lines.push("- [ ] Au moins **1 weekend Build** contient `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
+      lines.push("- [ ] `B_LCW_NUTRITION_RECHARGE` apparaît **≥3 fois** dans le plan, associé à chaque back-to-back weekend.");
+      lines.push("- [ ] `B_LCW_SWIM_FRI_EVENING` apparaît **≥2 fois** en Build/Peak, programmée **STRICTEMENT le VENDREDI** (jamais Jeudi/Samedi — le nom même de la séance `..._FRI_EVENING` impose le vendredi soir pour reproduire le timing exact de la course LCW). Si tu l'as placée un autre jour, DÉPLACE-LA au vendredi et réaménage la semaine.");
+      lines.push("- [ ] AUCUNE brique T2 immédiate (`B_703_BRICK_RACE_PACE` ou équivalent) n'est prescrite.");
+      lines.push("- [ ] La semaine de course contient 3 entrées 'COURSE OBJECTIF' distinctes (Ven natation / Sam vélo / Dim course).");
+      lines.push("");
+      lines.push("**🚫 SUBSTITUTIONS SÉMANTIQUES INTERDITES (LCW) — LISTE NOIRE EXPLICITE :**");
+      lines.push("Les IDs suivants sont des cousins sémantiques du LCW mais N'ONT PAS la même signature physiologique (durabilité 3 jours consécutifs + recharge glycogénique inter-étapes + nuit courte). Il est **INTERDIT** de les utiliser en remplacement des IDs `B_LCW_*` :");
+      lines.push("- ⚠️ `A_IM_RUN_FATIGUED_NEXT_DAY` (long run fatigue résiduelle — durabilité musculaire IM) : **AUTORISÉE MAIS CONDITIONNELLE**. Ne peut être prescrite QUE si un long-bike (`B_LCW_BIKE_LONG_RACE_SAT`, `B_IM_BIKE_LONG_*`, ou sortie vélo ≥2h30 Z2-Z3) est planifié **la veille exacte**. Sans gros vélo veille → prescris `B_LCW_RUN_OFF_LEGS_SUN` (dimanche post-`B_LCW_BIKE_LONG_RACE_SAT` samedi) OU une long run classique Z2 sans marqueur 'fatigue résiduelle'.");
+      lines.push("- ❌ `B_IM_BRICK_LONG_MARATHON_PACE` → utilise `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` **séparés de 12-18h** (le brick T2 IM masque le vrai stimulus LCW = récup incomplète entre étapes).");
+      lines.push("- ❌ `B_703_BRICK_RACE_PACE` → banni intégralement en LCW (voir règle #1 ci-dessus).");
+      lines.push("- ❌ Long swim matinal du samedi/dimanche → utilise `B_LCW_SWIM_FRI_EVENING` vendredi soir (timing course non-négociable).");
+      lines.push("- ❌ Repas classique post-séance → utilise `B_LCW_NUTRITION_RECHARGE` (protocole recharge agressif Burke 2018 spécifique inter-étapes).");
+      lines.push("");
+      lines.push("**🚫 BANNIS ABSOLUS (LCW = TRIATHLON 70.3, PAS TRAIL) — RÈGLE DURE :**");
+      lines.push("- ❌ AUCUNE séance TRAIL. IDs interdits : tout ID commençant par `HEDGEHOG_`, `URBAN_`, `TRAIL_` ou contenant `_TRAIL_`. AUCUNE mention de D+/dénivelé, sentier, bâtons, sacs à dos, ravito trail. Un plan 70.3 LCW se prépare sur route/piste/piscine/eau libre — JAMAIS en montagne.");
+      lines.push("- ❌ RÈGLE STRICTE 'FATIGUE RÉSIDUELLE' : une long run marquée 'fatiguée / off-legs / lendemain gros vélo' (ID `A_IM_RUN_FATIGUED_NEXT_DAY` ou `B_LCW_RUN_OFF_LEGS_SUN`) n'est autorisée QUE si la journée précédente contient un long-bike ≥2h30 en Z2-Z3 ou race-pace. Sans ce vélo veille : prescris une long run classique Z2 sans marqueur 'fatigue résiduelle'.");
+
+
+      lines.push("");
+      lines.push("**Rappel dose-réponse (Stellingwerff 2018, Areta 2013, Jentjens & Jeukendrup 2003) :** une seule exposition au paradigme LCW en Peak = découverte, pas adaptation. Le minimum ≥3 expositions Build+Peak est le **seuil physiologique** en dessous duquel l'athlète découvre la course à étapes le jour J = risque majeur d'implosion étape 3. Ces quotas ne sont pas des préférences éditoriales : ce sont des **prescriptions physiologiques**.");
+      lines.push("");
+      lines.push("**Référence** : LCW Wales (Tenby) et LCW Belgium = format historique à étapes, distinct du 70.3 continu. Sources : organisation LCW, Burke 2018 (glycogen recovery), Costa 2019 (multi-day nutrition), Areta 2013 (muscle protein synthesis), Stellingwerff 2018 (race-simulation frequency), Doering 2016 (inter-session recovery).");
+
+    }
+
+  } else if (objKeyForRappel === "Marathon") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE MARATHON");
+    lines.push("- CAP 85-90% | Renfo 10-15%");
+    lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
+    lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
+    lines.push(`- Plan marathon = CAP + renfo/mobilité. ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
+  } else if (objKeyForRappel === "Semi") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
+    lines.push("- CAP 85-90% | Renfo 10-15%");
+    lines.push("- Accent VMA + seuil. Minimum 4-5 séances CAP/sem.");
+    lines.push("- Séances types : EF Z2, Tempo allure semi, VMA 30/30, Seuil 2×20min, SL 15-20km, Fartlek, Côtes");
+    lines.push(`- ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
+  } else if (objKeyForRappel === "TrailUltra") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL ULTRA (>80km)");
+    lines.push("- CAP/Trail 65-75% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
+    lines.push("- D+ progressif : base 1500m/sem → build 4000m/sem → peak 5000-6000m/sem");
+    lines.push("- Back-to-back weekends OBLIGATOIRES en Build/Peak");
+    lines.push("- Simulation ultra 6-8h : 1x/mois en Build, 1x en Peak");
+    lines.push("- Simulation nuit OBLIGATOIRE : 2-3 sorties nocturnes");
+    lines.push("- Force excentrique lourde 2x/sem + proprioception avancée");
+    lines.push("- Gut Training progressif 40→90g/h testé en simulation");
+    lines.push("- Bâtons : entraînement spécifique si utilisés en course");
+    lines.push("- Taper ultra = 14-21j (plus long que route)");
+  } else if (objKeyForRappel === "TrailMountain") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL MONTAGNE (42-80km)");
+    lines.push("- CAP/Trail 70-80% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
+    lines.push("- D+ progressif : base 1000m/sem → build 3000m/sem → peak 4000m/sem");
+    lines.push("- Back-to-back weekends en Build/Peak (SL samedi + SL dimanche)");
+    lines.push("- Seuil montée long 2x/sem. Descente technique 1x/sem");
+    lines.push("- Force excentrique lourd 2x/sem + proprioception");
+    lines.push("- Simulation nuit : 1-2 sorties en Peak");
+    lines.push("- Gut Training progressif 40→70g/h");
+  } else if (["Trail", "TrailShort"].includes(objKeyForRappel)) {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL COURT (<42km)");
+    lines.push("- CAP/Trail 70-80% | Renfo 20-25% | Vélo Z1 optionnel 0-5%");
+    lines.push("- D+ progressif : base 500m/sem → build 1500m/sem → peak 2000m/sem");
+    lines.push("- VMA côtes 2x/sem + seuil montée 1x/sem + descente technique 1x/sem");
+    lines.push("- Force excentrique prioritaire (prévention quadriceps)");
+    lines.push("- Proprioception obligatoire (Bosu, single leg, terrain instable)");
+    lines.push("- Séances TOUJOURS en terrain trail/sentier, jamais route");
+  } else if (["10K", "5K"].includes(objKeyForRappel)) {
+    lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${objKeyForRappel}`);
+    lines.push("- CAP 85-90% | Renfo 10-15%");
+    lines.push("- 1 seuil/tempo + 1 VMA + 1 sortie longue/sem + EF Z2");
+    lines.push(`- ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
+  } else if (objKeyForRappel === "StartToRun") {
+    lines.push("\n### ⚠️ RAPPEL COHÉRENCE START TO RUN (DÉBUTANT)");
+    lines.push("- PROGRAMME DÉBUTANT : alternance marche/course progressive.");
+    lines.push("- Sem 1-4 : 70% marche / 30% course. Sem 5-8 : 50/50. Sem 9-12 : 70% course.");
+    lines.push("- JAMAIS 2 jours consécutifs de course les premières semaines.");
+    lines.push("- Renfo/mobilité = 25-40% du volume (prévention blessures prioritaire).");
+    lines.push("- Max 3-4 séances/sem. Repos = progression.");
+    lines.push("- Allure : conversationnelle. Cadence : 170-180 spm.");
+    lines.push("- Pas de fractionné tant que l'athlète ne court pas 30min continu.");
+  }
+
+  // Multi-objective: also emit sport coherence for jalons (goals that do NOT
+  // get a full peak elsewhere — cf. classifyMultiObjectiveGoals/isFullPeak).
+  // Fix "rappel contradictoire multi-objectifs" (audit coach) : ce bloc
+  // filtrait auparavant sur `priority !== "A"` brut — un objectif B/C qui
+  // obtenait malgré tout un PIC DE FORME COMPLET (écart calendaire suffisant,
+  // cf. classifyMultiObjectiveGoals/minGapWeeksForFullPeak) recevait ICI un
+  // rappel contradictoire ("Mini-taper 7-10j... relance vers objectif A") en
+  // plus de sa vraie section "PIC DE FORME COMPLET" plus haut dans le prompt.
+  // Cible maintenant les vrais JALONS (isFullPeak=false), quelle que soit
+  // leur étiquette A/B/C — un 2e (ou 3e) objectif A suffisamment espacé est
+  // déjà couvert par sa propre section pic complet, jamais par ce rappel.
+  if (config.raceGoals && config.raceGoals.length > 1) {
+    const classificationForReminders = classifyMultiObjectiveGoals(config.raceGoals);
+    const otherGoals = classificationForReminders
+      .filter((c) => !c.isFullPeak && c.goal.raceDate)
+      .map((c) => c.goal);
+    // Correction sprint qualité Marathon/Ironman (oct. 2026), #6 : un jalon
+    // run-only (10K/5K/StartToRun/Sprint/Olympic...) tombait toujours dans
+    // la branche générique ci-dessous ("séances spécifiques à cet objectif"),
+    // SANS rappel natation/vélo — correct pour un objectif FINAL run-only
+    // (Marathon-final + jalon 10K : rien à maintenir en triathlon), mais pas
+    // pour un plan triathlon (IM/703 final) utilisant un 10K comme jalon de
+    // forme intermédiaire : les 1-2 semaines "spécifiques course à pied"
+    // avant ce jalon risquaient de faire disparaître natation/vélo du plan
+    // sans aucun rappel contraire, exactement le "risque de concaténation"
+    // identifié par l'audit qualité plans IA (transition 10K → 70.3). Gardé
+    // narrow : seul l'objectif FINAL (`config.objective`, jamais celui du
+    // jalon) décide, et la branche Marathon/Semi ci-dessous (calibrée pour
+    // un objectif final RUN-ONLY, ex. Marathon-final + jalon Semi) reste
+    // intouchée — aucune régression sur ses propres règles d'affûtage.
+    const finalObjKeyForJalons = normalizeObjKey(config.catalogObjective || config.objective || "");
+    const finalIsTriathlonForJalons = ["IM", "703"].includes(finalObjKeyForJalons);
+    for (const goal of otherGoals) {
+      const goalObjKey = normalizeObjKey(goal.objective || "");
+      const goalName = goal.raceName ? ` (${goal.raceName})` : "";
+      if (["IM", "703"].includes(goalObjKey) || (finalIsTriathlonForJalons && !["Marathon", "Semi"].includes(goalObjKey))) {
+        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
+        lines.push(`- Intégrer natation + vélo + briques dans la préparation vers ce jalon.`);
+        lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course.`);
+        lines.push(`- Post-course : 1-2 semaines récupération avant relance.`);
+      } else if (["Marathon", "Semi"].includes(goalObjKey)) {
+        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
+        lines.push(`- Les semaines précédant ce jalon doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
+        lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
+        lines.push(`- Post-course : 1 semaine récupération avant relance vers l'objectif principal.`);
+      } else {
+        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
+        lines.push(`- Inclure des séances spécifiques à cet objectif dans les semaines précédant la date de course.`);
+        lines.push(`- Mini-taper 7j avant + récupération post-course.`);
+      }
+    }
+  }
+
+  // Double sessions reminder based on ambition
+  // ⚠️ config.ambition est le libelle UI ("Confirmé", "Compétiteur", "Elite"...),
+  // jamais litteralement une des cles ci-dessous : sans normalizeAmbKey, TOUTES
+  // les ambitions sauf "Découverte" retombaient silencieusement dans la branche
+  // FINISHER (else) faute de match — sous-prescription severe des doubles/triples
+  // IM/70.3 pour Confirmé/Compétiteur/Qualifiable/Elite.
+  const ambition = normalizeAmbKey(config.ambition || "");
+  // Audit "génération de plan IA" (suite PR #265) : même bug que
+  // objKeyForRappel plus haut — `config.objective` seul (objectif FINAL)
+  // faisait imposer les doubles/triples natation+vélo+CAP même pendant une
+  // fenêtre du cycle intermédiaire d'un plan multi-objectif (ex. Marathon
+  // dans un plan Ironman), où le verrou sport interdit déjà la natation.
+  const objKeyForTriCheck = normalizeObjKey(config.catalogObjective || config.objective || "");
+  const isTriathlon = ["IM", "703"].includes(objKeyForTriCheck);
+  if (isTriathlon) {
+    lines.push("\n### 🔥🔥🔥 DOUBLES/TRIPLES SÉANCES — RÈGLE #1 LA PLUS IMPORTANTE 🔥🔥🔥");
+    lines.push("Un plan triathlon IM/70.3 n'est PAS un plan de course à pied. Un triathlète s'entraîne PLUSIEURS FOIS PAR JOUR.");
+    lines.push("⛔ Un jour avec 1 seule séance (hors repos) est une ERREUR GRAVE pour World Class/Elite/Competitor.");
+    lines.push("");
+    if (ambition === "world_class" || ambition === "worldclass" || ambition === "world-class") {
+      lines.push("Ambition WORLD CLASS (top 3% AG) → minimum 18-22 séances/semaine, 12-16 doubles et 2-4 triples par semaine.");
+      lines.push("- CHAQUE jour (sauf 1 jour repos absolu) DOIT avoir 2 ou 3 séances.");
+      lines.push("- Référence directe : semaine-type Frodeno/Blummenfelt en pic de prépa Kona/Mondial.");
+      lines.push("- Volume cible : 26-34h/sem. Nat 5-6 séances, Vélo 5-6, CAP 4-5, Renfo 2-3.");
+      lines.push("- Triples obligatoires 3-4 fois/sem : Nat matin + Vélo midi + CAP soir.");
+      lines.push("- Inclure 1-2 micro-cycles 'choc' (3 jours doubles + 1 jour triple).");
+    } else if (ambition === "elite") {
+      lines.push("Ambition ELITE (top 10% AG) → minimum 14-16 séances/semaine, 10-14 doubles ou triples.");
+      lines.push("- Chaque jour (sauf repos) DOIT avoir 2 ou 3 séances séparées.");
+      lines.push("- Utilise la semaine-type Frodeno/Blummenfelt comme référence directe.");
+      lines.push("- Volume cible : 22-30h/sem. Nat 4-5 séances, Vélo 4-5, CAP 3-4, Renfo 2-3.");
+      lines.push("- Exemples de TRIPLES : Nat matin + Vélo midi + CAP soir. Nat matin + Vélo midi + Renfo soir.");
+    } else if (ambition === "competitor") {
+      lines.push("Ambition COMPETITOR → minimum 10-12 séances/semaine, 5-8 doubles.");
+      lines.push("- Au moins 5 jours avec doubles séances.");
+      // Fix F2 (audit "génération de plan IA", vague 6) : "15-22h/sem" ne
+      // recoupait même pas la fourchette 11-14h du moteur de quotas
+      // déterministe (sessionSizingMatrix.ts::MATRIX, seule contrainte
+      // réellement appliquée/non négociable pour ce palier) — corrigé pour
+      // ne plus présenter deux volumes horaires différents à l'IA.
+      lines.push("- Volume cible : 11-14h/sem. Nat 3-4 séances, Vélo 3-4, CAP 3-4, Renfo 2.");
+    } else if (ambition === "age_group" || ambition === "agegroup") {
+      lines.push("Ambition AGE GROUP → 8-10 séances/semaine, 2-4 doubles.");
+      lines.push("- 2-3 jours avec doubles séances (nat matin + renfo soir, brique).");
+      // Fix F2 : idem, alignée sur 8-11h/sem (sessionSizingMatrix.ts::MATRIX)
+      // au lieu de "10-15h/sem" (chevauchement partiel seulement avant fix).
+      lines.push("- Volume cible : 8-11h/sem.");
+    } else {
+      lines.push("Ambition FINISHER → 5-7 séances/semaine, pas de doubles.");
+      // Fix F3 (audit "génération de plan IA", vague 6) : "1 séance/jour max"
+      // contredisait le plafond réellement appliqué par le moteur de quotas
+      // (maxSessionsPerDay=2 pour Finisher 703/IM) — reformulé pour ne plus
+      // présenter une règle stricte que le quota ne fait pas respecter.
+      lines.push("- 1 séance/jour dans la grande majorité des cas (le doublage n'est PAS un objectif pour ce palier). Focus terminer en sécurité.");
+    }
+    lines.push("- Format : UNE LIGNE PAR SÉANCE dans le tableau. 'Mardi matin', 'Mardi midi', 'Mardi soir' = 3 lignes séparées.");
+    lines.push("- JAMAIS 2 intensités le même jour sauf brique planifiée.");
+    lines.push("- Le tableau d'une semaine Elite/World Class IM doit avoir 14-20 lignes (pas 7 !).");
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GARDE-FOU #6 (audit Cath juillet 2026) — Vocabulaire ambition-cohérent
+    // Bannit les mots "élite/podium/pro" dans les descriptions de séances
+    // quand l'athlète est finisher/age_group (contamination catalogue).
+    // ─────────────────────────────────────────────────────────────────────────
+    if (ambition === "finisher" || ambition === "age_group" || ambition === "agegroup") {
+      lines.push("");
+      lines.push("### 🚫 VOCABULAIRE INTERDIT (ambition " + ambition + ")");
+      lines.push(`Tu N'UTILISES JAMAIS les mots suivants dans les intitulés/descriptions de séances : "élite", "elite", "podium", "pro", "signature podium", "top 10%", "world class".`);
+      lines.push("Ces mots créent une dissonance pour l'athlète et suggèrent un niveau de charge inapproprié.");
+      lines.push(`Remplace par : "spécifique", "clé", "objectif", "prioritaire", "de référence".`);
+      lines.push("Cette règle s'applique MÊME quand tu prescris une séance du catalogue dont l'ID contient PODIUM ou ELITE (ex: `A_703_RUN_RACE_PACE_LONG` du pack Podium 70.3) : garde l'ID mais reformule la description.");
+    }
+  }
+
+
+  const weeks = config.weeksAvailable || 12;
+
+  // Multi-objective final reminder
+  if (config.raceGoals && config.raceGoals.length > 1) {
+    const classification = classifyMultiObjectiveGoals(config.raceGoals);
+    const sortedGoals = classification.map((c) => c.goal);
+    const fullPeaks = classification.filter((c) => c.isFullPeak && c.goal.raceDate);
+    const jalons = classification.filter((c) => !c.isFullPeak && c.goal.raceDate);
+
+    lines.push(`\n---`);
+    lines.push(`## 🔥🔥🔥 RAPPEL FINAL MULTI-OBJECTIFS — RÈGLE ABSOLUE 🔥🔥🔥`);
+    lines.push(`Ce plan a ${config.raceGoals.length} objectifs de course. Tu DOIS TOUS les intégrer dans la planification :\n`);
+
+    sortedGoals.forEach((goal: any) => {
+      const classified = classification.find((c) => c.goal === goal)!;
+      const prioLabel = classified.isFullPeak
+        ? (fullPeaks.length > 1 ? "🎯 PIC DE FORME COMPLET" : "🅰️ OBJECTIF PRINCIPAL (pic de forme)")
+        : "🅱️ JALON INTERMÉDIAIRE (mini-taper)";
+      const goalWeek = computeGoalWeek(goal, classified.isLast);
+      const bounds = getWeekBounds(goalWeek);
+      const weekInfo = goalWeek ? ` — Semaine cible: S${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
+      lines.push(`- **${goal.objective}**${goal.raceName ? ` — ${goal.raceName}` : ""}${goal.raceDate ? ` — ${goal.raceDate}` : ""}${weekInfo} → ${prioLabel}`);
+      if (goal.raceDate) {
+        lines.push(`  ↳ Date absolue obligatoire: ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}).`);
+      }
+    });
+
+    if (jalons.length > 0) {
+      lines.push(`\n### Structure obligatoire pour chaque jalon intermédiaire :`);
+      jalons.forEach((c) => {
+        const g = c.goal;
+        const w = computeGoalWeek(g);
+        const bounds = getWeekBounds(w);
+        if (w) {
+          lines.push(`- **${g.objective}${g.raceName ? ` (${g.raceName})` : ""}** : mini-taper en S${Math.max(1, w - 1)}, course en S${w}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}, récupération en S${w + 1}. Date course IMPÉRATIVE: ${g.raceDate || "n/a"}.`);
+        }
+      });
+      lines.push(`1. **Semaines pré-course jalon** : les 1-2 semaines avant chaque course-jalon doivent montrer une RÉDUCTION de volume (-20 à -30%) avec maintien d'intensité courte (mini-taper). Marque-les explicitement "Mini-Taper pour [nom course]".`);
+      lines.push(`2. **Semaine de course jalon** : la semaine contenant la course doit l'inclure comme séance principale (ex: "🏁 COURSE : Marathon de Paris"). Volume très réduit le reste de la semaine.`);
+      lines.push(`3. **Semaine post-course jalon** : semaine de récupération (-40% volume, pas d'intensité, régénération). Marque-la "Récupération post-${jalons[0]?.goal?.objective ?? "course jalon"}".`);
+      lines.push(`4. **Relance vers le(s) pic(s) de forme complet(s)** : après la récupération, reprendre la progression vers l'objectif suivant avec une montée en charge progressive.`);
+      lines.push(`\n⚠️ Si tu génères le plan sans mentionner ce(s) jalon(s) ni inclure de mini-taper/récupération autour de sa date, le plan est INVALIDE. RECOMMENCE.`);
+    }
+
+    if (fullPeaks.length === 1) {
+      lines.push(`\nObjectif principal : ${fullPeaks[0].goal.objective}${fullPeaks[0].goal.raceDate ? ` le ${fullPeaks[0].goal.raceDate}` : ""}. Le pic de forme PRINCIPAL vise cette course (affûtage ${fullPeaks[0].taperWeeks} semaine(s)).`);
+    } else if (fullPeaks.length > 1) {
+      // Périodisation double/triple (Bompa & Haff ; Issurin 2010 — Block
+      // Periodization) : plusieurs pics de forme complets légitimes dans une
+      // même saison quand l'écart calendaire le permet (cf.
+      // classifyMultiObjectiveGoals) — pas de hiérarchie artificielle entre eux.
+      lines.push(`\n${fullPeaks.length} pics de forme COMPLETS et INDÉPENDANTS dans ce plan — chacun avec sa propre montée en charge et son propre affûtage, sans hiérarchie entre eux : ${fullPeaks.map((c) => `${c.goal.objective}${c.goal.raceDate ? ` (${c.goal.raceDate})` : ""} — affûtage ${c.taperWeeks} sem.`).join(" · ")}.`);
+    }
+  }
+
+  lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
+
+  return lines.join("\n");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CARTE DE COURSE CANONIQUE — SOURCE UNIQUE inter-chunks
+//
+// Objectif (audit Claude juillet 2026) : éliminer les dérives entre chunks où
+// le CSS, la race-power vélo et l'allure race-pace CAP réapparaissent avec
+// des valeurs différentes ("trois CSS, trois race powers"). Un seul bloc
+// déterministe est calculé côté serveur à partir du snapshot + rpcCap, puis
+// injecté à l'identique dans CHAQUE chunk (chunk 1, continuations, retries).
+//
+// Consommé par index.ts pour seed `prescribedPaces` AVANT le chunk 1, au lieu
+// de reposer sur une extraction regex du texte du chunk 1 (qui héritait des
+// éventuelles incohérences de la première génération).
+// ═══════════════════════════════════════════════════════════════════════════════
+function fmtPaceCanonical(secPerKm: number): string {
+  const m = Math.floor(secPerKm / 60);
+  const s = Math.round(secPerKm % 60);
+  return `${m}:${String(s).padStart(2, "0")}/km`;
+}
+
+function fmtCssPaceCanonical(secPer100m: number): string {
+  const m = Math.floor(secPer100m / 60);
+  const s = Math.round(secPer100m % 60);
+  return m > 0 ? `${m}:${String(s).padStart(2, "0")}/100m` : `${s}s/100m`;
+}
+
+export function buildCanonicalRaceCard(athleteData: any, config: any): string {
+  const data = athleteData ?? {};
+  const objectiveStr = (config?.objective ?? "").toString();
+  // Cle canonique normalisee (config.ambition est le libelle UI, ex. "Elite" —
+  // voir normalizeAmbKey pour le detail de la collision "elite"/"Elite" corrigee).
+  const ambitionStr = normalizeAmbKey((config?.ambition ?? "age_group").toString());
+
+  // 1) Allures CAP canoniques (deriveRaceTargets)
+  const vmaForDerive = typeof data.vma === "number" ? Number(data.vma) : (data.vma ? Number(data.vma) : null);
+  const paceThrForDerive = typeof data.paceThresholdSecPerKm === "number"
+    ? Number(data.paceThresholdSecPerKm)
+    : (data.paceThresholdSecPerKm ? Number(data.paceThresholdSecPerKm) : null);
+
+  let derived: any = null;
+  try {
+    derived = deriveRaceTargets({
+      vmaKmh: vmaForDerive,
+      thresholdPaceSecPerKm: paceThrForDerive,
+      objective: objectiveStr,
+      ambition: ambitionStr,
+      literatureHintText: null,
+      weeklyHours: typeof config?.weeklyHours === "number" ? config.weeklyHours : null,
+      trainingLevel: config?.ambitionMeta?.trainingLevel ?? null,
+      sport: mapObjectiveToSport(objectiveStr),
+    } as any);
+  } catch (_e) {
+    derived = null;
+  }
+
+  // 2) Race power vélo (rpcCap)
+  // Audit "génération de plan IA" (suite PR #263/#265/#267) : contrairement à
+  // `objectiveStr` ci-dessus (allures CAP — volontairement l'objectif FINAL,
+  // "SOURCE UNIQUE inter-chunks"), la section vélo doit refléter le cycle EN
+  // COURS : sans ça, une fenêtre du cycle Marathon d'un plan Ironman/70.3
+  // affichait quand même une "CARTE DE COURSE CANONIQUE" avec race power vélo
+  // complet, contredisant le verrou sport de cette même fenêtre.
+  const bikeRaceObjective = (config?.catalogObjective ?? config?.objective ?? "").toString();
+  const validAmbitions = ["finisher", "age_group", "competitor", "elite", "world_class"];
+  const rpcAmb = (validAmbitions.includes(ambitionStr) ? ambitionStr : "age_group") as RaceBikeAmbition;
+  const rpcCap = capBikeRaceIF({
+    objective: bikeRaceObjective,
+    ambition: rpcAmb,
+    tteMin: typeof data.tte === "number" ? data.tte : (data.tte ? Number(data.tte) : null),
+  });
+
+  const parts: string[] = [];
+  parts.push(`### 🎯 CARTE DE COURSE CANONIQUE (SOURCE UNIQUE inter-chunks, NON NÉGOCIABLE)`);
+  parts.push(`⛔ Ces valeurs sont calculées UNE seule fois pour ce plan. Utilise EXACTEMENT ces chiffres dans TOUS les chunks. Toute autre valeur (CSS différente, race-power différente, allure course différente) = ERREUR BLOQUANTE.`);
+
+  // ─── Race pace CAP ───
+  if (derived?.paceTargets) {
+    const pt = derived.paceTargets;
+    parts.push(``);
+    parts.push(`**🏃 Course à pied — Allures canoniques :**`);
+    parts.push(`- **Allure race objectif (SEULE valeur race-pace autorisée)** : ${fmtPaceCanonical(pt.allureSemiCible)}`);
+    parts.push(`- Seuil bas (Z4b) : ${fmtPaceCanonical(pt.seuilBas)} · Seuil haut (Z5) : ${fmtPaceCanonical(pt.seuilHaut)}`);
+    if (pt.allureVO2max) parts.push(`- Allure VO2max (~97% VMA) : ${fmtPaceCanonical(pt.allureVO2max)}`);
+    if (pt.allureZ2) parts.push(`- Endurance Z2 : ${fmtPaceCanonical(pt.allureZ2.hi)} → ${fmtPaceCanonical(pt.allureZ2.lo)}`);
+  }
+
+  // ─── Race power bike ───
+  const ftpNum = typeof data.ftp === "number" ? data.ftp : (data.ftp ? Number(data.ftp) : null);
+  if (rpcCap) {
+    parts.push(``);
+    parts.push(`**🚴 Vélo — Race power canonique (Coggan/Skiba/Karsten) :**`);
+    const wattsLo = ftpNum ? Math.round(ftpNum * (rpcCap.cappedPctFTP - 2) / 100) : null;
+    const wattsHi = ftpNum ? Math.round(ftpNum * (rpcCap.cappedPctFTP + 2) / 100) : null;
+    const wattsRef = ftpNum ? Math.round(ftpNum * rpcCap.cappedPctFTP / 100) : null;
+    parts.push(`- **IF race (SEULE valeur race-power vélo autorisée)** : **${rpcCap.cappedPctFTP}% FTP** (IF ${rpcCap.cappedIF.toFixed(2)})${wattsRef ? ` = **~${wattsRef}W**` : ""}${wattsLo && wattsHi ? ` · fourchette ${wattsLo}-${wattsHi}W` : ""}${rpcCap.wasCapped ? " ⚠️ (bridé par TTE)" : ""}`);
+    if (rpcCap.wasCapped) {
+      parts.push(`- ⛔ INTERDIT toute race-power >${rpcCap.cappedPctFTP + 2}% FTP dans les séances "brick race-pace", "simulation course", "long ride @race pace".`);
+    }
+  }
+
+  // ─── Race CSS natation (seulement pour 70.3 / IM) ───
+  // Même correctif que bikeRaceObjective ci-dessus : dérivé de
+  // catalogObjective (cycle en cours) plutôt que de l'objectif final — sinon
+  // cette section affichait un CSS/race-pace natation canonique même pendant
+  // une fenêtre non-tri du cycle en cours.
+  const objLForSwim = bikeRaceObjective.toLowerCase();
+  const isTri = objLForSwim.includes("70.3") || objLForSwim === "703" || objLForSwim.includes("ironman") || objLForSwim === "im";
+  if (isTri) {
+    const cssSec = typeof data.css === "number" ? Number(data.css) : (data.css ? Number(data.css) : null);
+    if (cssSec && cssSec > 0) {
+      // Race pace natation : +3-5s/100m au-dessus du CSS (Ironman) ou +1-3s (70.3)
+      const isIM = objLForSwim.includes("ironman") || objLForSwim === "im";
+      const raceOffset = isIM ? 4 : 2;
+      const racePace = cssSec + raceOffset;
+      parts.push(``);
+      parts.push(`**🏊 Natation — CSS & Race-pace canoniques :**`);
+      parts.push(`- CSS mesuré : **${fmtCssPaceCanonical(cssSec)}** (SEULE valeur CSS autorisée dans tout le plan)`);
+      parts.push(`- Allure race natation ${isIM ? "IM" : "70.3"} (CSS+${raceOffset}s) : **${fmtCssPaceCanonical(racePace)}** (SEULE valeur race-pace nat autorisée)`);
+      parts.push(`- Endurance nat (CSS+8 à +12s) : ${fmtCssPaceCanonical(cssSec + 8)} → ${fmtCssPaceCanonical(cssSec + 12)}`);
+    }
+  }
+
+  // ─── HR seuil ───
+  const fcMaxNum = typeof data.fcMax === "number" ? data.fcMax : (data.fcMax ? Number(data.fcMax) : null);
+  if (fcMaxNum && fcMaxNum > 0) {
+    parts.push(``);
+    parts.push(`**❤️ FC canonique (FCmax ${fcMaxNum} bpm) :**`);
+    parts.push(`- Seuil (Z4) : ${Math.round(fcMaxNum * 0.85)}-${Math.round(fcMaxNum * 0.92)} bpm · Race objectif : ${Math.round(fcMaxNum * 0.82)}-${Math.round(fcMaxNum * 0.88)} bpm`);
+    parts.push(`- Z2 endurance : ${Math.round(fcMaxNum * 0.65)}-${Math.round(fcMaxNum * 0.75)} bpm`);
+  }
+
+  parts.push(``);
+  parts.push(`→ **CHECKLIST bloqueur** : avant toute prescription "race-pace", "simulation course", "brick race-pace", "juge de paix", vérifier que l'allure/puissance/CSS correspond EXACTEMENT à la carte ci-dessus (±5s pour les allures course, ±2% FTP pour le vélo, ±2s/100m pour la nat). Sinon = ERREUR.`);
+
+  return parts.join("\n");
+}
+

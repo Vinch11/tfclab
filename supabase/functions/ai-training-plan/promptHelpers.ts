@@ -9,6 +9,65 @@ import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTar
 import { capBikeRaceIF, type RaceBikeAmbition } from "../_shared/racePowerCap.ts";
 import { deriveTriathlonZones, formatTriathlonZonesForPrompt } from "../_shared/triathlonZones.ts";
 
+/**
+ * Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER TEST
+ * CONTRÔLÉ (consigne coach explicite) : borne le nombre de chunks
+ * RÉELLEMENT exécutés par la boucle de génération (index.ts) quand
+ * `PlanConfig._pilotMaxChunks` est posé — mode EXPLICITEMENT opt-in,
+ * réservé au Pilot Cockpit (jamais posé par le formulaire coach normal).
+ * Extrait en fonction pure (comme le reste de ce fichier) pour rester
+ * testable sans dépendre du handler Deno.serve monolithique de index.ts.
+ *
+ * `pilotMaxChunks` absent, ≤0 ou non-numérique → `totalChunks` inchangé
+ * (comportement normal, tous les chunks s'exécutent). Sinon →
+ * `min(pilotMaxChunks, totalChunks)` (jamais plus que le plan n'en a réellement).
+ */
+export function computePilotChunksToRun(totalChunks: number, pilotMaxChunks: unknown): number {
+  const n = Number(pilotMaxChunks);
+  if (!Number.isFinite(n) || n <= 0) return totalChunks;
+  return Math.min(n, totalChunks);
+}
+
+/**
+ * Sprint qualité Marathon/Ironman (oct. 2026) — audit Codex, P0-1 (consigne
+ * coach explicite) : `derived.volumeCible` (ambition × weeklyHours, cf.
+ * deriveRaceTargets.ts) était affiché comme "SOURCE UNIQUE, NON NÉGOCIABLE"
+ * dans le MÊME prompt où `config.weeklyHours` brut était aussi affiché —
+ * pour B-10K-TO-70.3 (17h/sem déclaré, ambition elite ×1.1 → 18h), le modèle
+ * recevait deux cibles hebdo différentes sans relation expliquée. Constaté
+ * sur ce profil précis à cause d'une consolidation de charge récente en
+ * cours (`config.loadHistory` : 8h→17h/sem sur 4 semaines, Correction #E) :
+ * tant qu'elle n'est pas validée par le coach, 17h est un PLAFOND PROVISOIRE
+ * de consolidation, PAS un volume obligatoire (consigne coach explicite) —
+ * la cible affichée ne doit donc jamais dépasser la charge récente
+ * démontrée. Seuil de déclenchement 1.3 = même repère Gabbett ACWR déjà
+ * utilisé ailleurs dans ce fichier (ligne ~576, bloc HISTORIQUE DE CHARGE
+ * DÉCLARATIF) et dans planValidator.ts (`validateLoadHistoryCoherence`) —
+ * jamais un nouveau seuil inventé pour l'occasion.
+ *
+ * Inactif (retourne `volumeCible` inchangé) si `loadHistory` est absent,
+ * incomplet, ou si la hausse déclarative ne dépasse pas ce seuil, ou si la
+ * charge récente dépasse déjà la cible ambition (rien à plafonner) —
+ * comportement historique inchangé pour tout appelant qui ne fournit pas de
+ * `loadHistory` significatif.
+ */
+export function resolveEffectiveVolumeCible(
+  volumeCible: number | null,
+  loadHistory?: { chronicWeeklyHours?: number | null; recentWeeklyHours?: number | null } | null,
+): { effectiveVolumeCible: number | null; consolidationCapApplied: boolean } {
+  if (volumeCible == null) return { effectiveVolumeCible: null, consolidationCapApplied: false };
+  const chronic = loadHistory?.chronicWeeklyHours;
+  const recent = loadHistory?.recentWeeklyHours;
+  if (!chronic || !recent || chronic <= 0 || recent <= 0) {
+    return { effectiveVolumeCible: volumeCible, consolidationCapApplied: false };
+  }
+  const ratio = recent / chronic;
+  if (ratio <= 1.3 || recent >= volumeCible) {
+    return { effectiveVolumeCible: volumeCible, consolidationCapApplied: false };
+  }
+  return { effectiveVolumeCible: recent, consolidationCapApplied: true };
+}
+
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
 // FIX #3 (audit recap): Now includes estimated phase bounds for the full plan
@@ -274,6 +333,14 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     ambition: ambKey,
     literatureHintText: diagTimeTarget,
     sport: mapObjectiveToSport(config?.objective || ""),
+    // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : ajoutés pour que
+    // `diagDerived.volumeCible` soit calculé avec les MÊMES entrées que `derived`
+    // dans buildUserPrompt plus bas — sinon le bloc diagnostic (chunk 1) et le
+    // bloc utilisateur affichent potentiellement deux cibles volume différentes
+    // sans le savoir. Absent de l'appel jusqu'ici → `diagDerived.volumeCible`
+    // était systématiquement `null` (cf. computeVolumeCible), donc jamais utilisé.
+    weeklyHours: typeof config?.weeklyHours === "number" && config.weeklyHours > 0 ? config.weeklyHours : null,
+    trainingLevel: (config as any)?.ambitionMeta?.trainingLevel ?? null,
   });
   if (diagDerived.source === "snapshot" && diagDerived.raceTimeSec != null) {
     lines.push(`🎯 Cible course (snapshot) : ${diagDerived.humanSummary}`);
@@ -480,9 +547,35 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   }
 
   // Volume constraints
-  if (config?.weeklyHours) lines.push(`\n📊 Volume: ${config.weeklyHours}h/sem`);
+  if (config?.weeklyHours) {
+    // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : affichait
+    // auparavant TOUJOURS `config.weeklyHours` brut (ex: 17h), alors que le
+    // bloc utilisateur plus bas affiche `effectiveVolumeCible` (ex: 18h pour
+    // B-10K-TO-70.3, cap ambition) comme "SOURCE UNIQUE, NON NÉGOCIABLE" —
+    // deux cibles hebdo différentes dans le MÊME prompt. Réutilise
+    // `resolveEffectiveVolumeCible` (même fonction, mêmes entrées) pour que
+    // CE chiffre et celui du bloc utilisateur soient TOUJOURS identiques.
+    const { effectiveVolumeCible: diagEffectiveVolume, consolidationCapApplied: diagCapApplied } =
+      resolveEffectiveVolumeCible(diagDerived.volumeCible, config?.loadHistory);
+    const diagVolumeLabel = diagEffectiveVolume ?? config.weeklyHours;
+    lines.push(`\n📊 Volume cible hebdo (= VOLUME CIBLE HEBDO ci-après, même valeur) : ${diagVolumeLabel}h/sem${diagCapApplied ? " — plafonné consolidation (cf. historique de charge déclaratif ci-dessous)" : ""}`);
+  }
   if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
   if (config?.maxSessionsPerDay) lines.push(`📊 Max/jour: ${config.maxSessionsPerDay}`);
+  // Correction sprint qualité Marathon/Ironman (oct. 2026), #F (demande
+  // coach explicite) : contrainte d'agenda distincte de "Max/jour"
+  // ci-dessus — borne le NOMBRE de journées à 2 séances sur la semaine,
+  // pas le nombre de séances un jour donné. Fait partie de
+  // `structuredDiagnostic`, donc réinjectée dans CHAQUE chunk (voir
+  // index.ts : `diagnosticBlock`/`structuredDiagnostic` repris identiques
+  // au chunk 1 et à tous les suivants) — pas seulement le premier bloc.
+  // MAXIMUM explicite, jamais un objectif : une semaine avec MOINS de
+  // journées doubles (décharge, affûtage, tout autre contexte) reste
+  // toujours conforme. Ne modifie aucune règle de volume — uniquement la
+  // répartition des séances sur la semaine.
+  if (config?.maxDoubleDaysPerWeek != null) {
+    lines.push(`📊 Max journées doubles/sem: ${config.maxDoubleDaysPerWeek} — MAXIMUM à ne jamais dépasser, PAS un objectif à atteindre. Moins de journées doubles reste toujours conforme (ex: semaines de décharge/affûtage, qui en comportent naturellement moins). Ne pas ajuster le volume total pour satisfaire artificiellement cette contrainte — seule la répartition des séances sur la semaine doit être revue si besoin.`);
+  }
 
   // Charge récente — contexte d'absorption (CTL/ATL proxy via TSS 7j)
   if (config?.recentLoad) {
@@ -517,11 +610,35 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     }[vr.trainingLevel as string] || vr.trainingLevel;
     const capStr = vr.week1HoursCap !== null ? ` (plafond absolu ${vr.week1HoursCap}h)` : "";
     lines.push(`\n🚦 RAMPE DE VOLUME OBLIGATOIRE — niveau déclaré "${levelLabel}" :`);
+    if (vr.recentLoadAdjustment) {
+      lines.push(`  ⚠️ AJUSTÉ PAR LA CHARGE RÉCENTE RÉELLE : ${vr.recentLoadAdjustment.reason}`);
+    }
     lines.push(`  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
     lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la cible)${capStr}`);
     lines.push(`  • Rampe : atteindre ${vr.weeklyHoursTarget}h en ~${vr.rampWeeks} semaine(s), progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem (règle des 10%, marge ACWR ≤ 1.3 — Gabbett ; population sport co/contact d'origine, extrapolée en marge de sécurité prudente pour l'endurance, pas comme preuve causale directe)`);
     lines.push(`  ⚠️ NE PAS appliquer le volume cible "weeklyHours" dès Sem 1 : c'est la cible APRÈS la rampe, pas le point de départ.`);
     lines.push(`  ⚠️ Une semaine de décharge (deload) DOIT intervenir tous les 3 microcycles de charge même pendant la rampe.`);
+  }
+
+  // 📋 HISTORIQUE DE CHARGE DÉCLARATIF — Correction sprint qualité
+  // Marathon/Ironman (oct. 2026), #E (demande coach explicite, suite à une
+  // hausse réelle 8h→17h/sem sur 4 semaines). Distinct du bloc CHARGE
+  // RÉCENTE ci-dessus (TSS mesuré Nolio/snapshot) : ici, heures DÉCLARÉES
+  // par le coach — jamais transformées en TSS. Purement qualitatif, aucun
+  // chiffre de volume recalculé ici : ne JAMAIS présenter ce ratio comme un
+  // ACWR mesuré (ce terme reste réservé à une mesure réelle).
+  if (config?.loadHistory?.chronicWeeklyHours && config?.loadHistory?.recentWeeklyHours) {
+    const lh = config.loadHistory;
+    const ratio = lh.recentWeeklyHours / lh.chronicWeeklyHours;
+    const weeksStr = typeof lh.recentWeeksCount === "number" ? `depuis ${lh.recentWeeksCount} semaine(s)` : "depuis une durée non précisée";
+    lines.push(`\n📋 HISTORIQUE DE CHARGE DÉCLARATIF (renseigné par le coach, PAS une mesure) :`);
+    lines.push(`  • Charge chronique antérieure : ${lh.chronicWeeklyHours}h/sem — Charge récente réellement effectuée : ${lh.recentWeeklyHours}h/sem, ${weeksStr}.`);
+    if (ratio > 1.3) {
+      lines.push(`  ⚠️ Hausse déclarative notable (${lh.recentWeeklyHours}h vs ${lh.chronicWeeklyHours}h) — ce volume récent n'est PAS à traiter comme un palier durablement assimilé : PRIORISER la consolidation (maintenir ~${lh.recentWeeklyHours}h sans nouvelle hausse) sur les premières semaines plutôt que de repartir d'une rampe calculée comme si ${lh.recentWeeklyHours}h était la charge chronique habituelle.`);
+      lines.push(`  ⚠️ NE PAS appliquer de nouvelle hausse automatique au-delà de ${lh.recentWeeklyHours}h/sem tant que la consolidation n'est pas explicitement validée par le coach.`);
+    } else {
+      lines.push(`  ✅ Pas d'écart déclaratif notable entre charge chronique et récente — aucune consolidation spécifique requise sur ce seul critère.`);
+    }
   }
 
   // Durée du bloc Fondation calculée depuis le niveau d'entraînement effectif
@@ -1496,9 +1613,24 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) {
     lines.push(`- **Heures dispo/semaine (saisie athlète) :** ${config.weeklyHours}h`);
-    if (derived.volumeCible != null) {
-      lines.push(`- **📦 VOLUME CIBLE HEBDO (SOURCE UNIQUE, NON NÉGOCIABLE) :** ${derived.volumeCible}h`);
-      lines.push(`  → Formule : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) — borné [3h, ${derived.volumeCibleMaxH}h] (cap sport/ambition).`);
+    // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : affichait
+    // auparavant TOUJOURS `derived.volumeCible` brut (ambition × weeklyHours)
+    // comme "SOURCE UNIQUE, NON NÉGOCIABLE" — pour B-10K-TO-70.3 (17h déclaré,
+    // ambition elite ×1.1 → 18h), cette ligne contredisait directement la
+    // ligne "Heures dispo/semaine" juste au-dessus (17h), dans le MÊME prompt.
+    // `resolveEffectiveVolumeCible` plafonne à la charge récente démontrée
+    // (`config.loadHistory`) quand une consolidation est en cours (ratio >1.3,
+    // Gabbett) : pour ce profil, 17h est un plafond PROVISOIRE de
+    // consolidation, pas un volume obligatoire (consigne coach explicite).
+    const { effectiveVolumeCible, consolidationCapApplied } = resolveEffectiveVolumeCible(derived.volumeCible, config?.loadHistory);
+    if (effectiveVolumeCible != null) {
+      lines.push(`- **📦 VOLUME CIBLE HEBDO (SOURCE UNIQUE, NON NÉGOCIABLE) :** ${effectiveVolumeCible}h`);
+      if (consolidationCapApplied) {
+        lines.push(`  → Formule ambition : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) = ${derived.volumeCible}h — borné [3h, ${derived.volumeCibleMaxH}h] (cap sport/ambition).`);
+        lines.push(`  → ⚠️ PLAFONNÉ à ${effectiveVolumeCible}h (charge récente RÉELLEMENT démontrée — cf. HISTORIQUE DE CHARGE DÉCLARATIF) : ${derived.volumeCible}h reste la cible à LONG TERME une fois la consolidation validée par le coach, PAS la cible de CE plan tant que ce n'est pas le cas. Ne JAMAIS dépasser ${effectiveVolumeCible}h/sem sur cette base.`);
+      } else {
+        lines.push(`  → Formule : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) — borné [3h, ${derived.volumeCibleMaxH}h] (cap sport/ambition).`);
+      }
       lines.push(`  → **Les en-têtes de volume hebdomadaire DOIVENT afficher exactement cette valeur** (modulée par la phase : Base 100%, Build 100%, Peak 100%, Décharge ×0.7, Taper voir courbe existante).`);
       lines.push(`  → INTERDICTION d'inventer une fourchette de volume alternative. La somme réelle des durées de séances de chaque semaine DOIT converger vers cette cible (±15%).`);
     }
@@ -1611,6 +1743,16 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         : "AUTORISÉ : doubles seuils, train-low, plyo avancée, back-to-back, séances complexes multi-blocs.";
     lines.push(`- **🧩 STRUCTURE AMBITION (non négociable) :** ${derived.qualitesParSemaine} qualité(s)/semaine · complexité "${derived.complexiteSeances}".`);
     lines.push(`  → ${complexRule}`);
+    // P0-2 (audit Codex, oct. 2026, consigne coach explicite) : ce nombre est
+    // désormais la SEULE source du comptage de séances d'intensité (voir
+    // systemPrompt.ts, section MASTER >40/>50 ans — corrigée pour ne plus
+    // imposer un nombre concurrent fondé sur l'âge seul). Rappel explicite ici
+    // des règles de récupération qui restent actives pour CE nombre.
+    const athleteAgeForMaster = typeof data?.age === "number" ? data.age : null;
+    if (athleteAgeForMaster !== null && athleteAgeForMaster >= 40) {
+      const spacingH = athleteAgeForMaster >= 50 ? 72 : 48;
+      lines.push(`  → ⚠️ Athlète ${athleteAgeForMaster} ans (règles MASTER, cf. system prompt) : ce nombre de qualité(s)/semaine s'applique TEL QUEL (jamais réduit par l'âge seul) — mais respecte charge 2:1 et espacement ≥${spacingH}h entre 2 séances d'intensité.`);
+    }
   }
 
 
@@ -2374,19 +2516,35 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     const otherGoals = classificationForReminders
       .filter((c) => !c.isFullPeak && c.goal.raceDate)
       .map((c) => c.goal);
+    // Correction sprint qualité Marathon/Ironman (oct. 2026), #6 : un jalon
+    // run-only (10K/5K/StartToRun/Sprint/Olympic...) tombait toujours dans
+    // la branche générique ci-dessous ("séances spécifiques à cet objectif"),
+    // SANS rappel natation/vélo — correct pour un objectif FINAL run-only
+    // (Marathon-final + jalon 10K : rien à maintenir en triathlon), mais pas
+    // pour un plan triathlon (IM/703 final) utilisant un 10K comme jalon de
+    // forme intermédiaire : les 1-2 semaines "spécifiques course à pied"
+    // avant ce jalon risquaient de faire disparaître natation/vélo du plan
+    // sans aucun rappel contraire, exactement le "risque de concaténation"
+    // identifié par l'audit qualité plans IA (transition 10K → 70.3). Gardé
+    // narrow : seul l'objectif FINAL (`config.objective`, jamais celui du
+    // jalon) décide, et la branche Marathon/Semi ci-dessous (calibrée pour
+    // un objectif final RUN-ONLY, ex. Marathon-final + jalon Semi) reste
+    // intouchée — aucune régression sur ses propres règles d'affûtage.
+    const finalObjKeyForJalons = normalizeObjKey(config.catalogObjective || config.objective || "");
+    const finalIsTriathlonForJalons = ["IM", "703"].includes(finalObjKeyForJalons);
     for (const goal of otherGoals) {
       const goalObjKey = normalizeObjKey(goal.objective || "");
       const goalName = goal.raceName ? ` (${goal.raceName})` : "";
-      if (["Marathon", "Semi"].includes(goalObjKey)) {
-        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
-        lines.push(`- Les semaines précédant ce jalon doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
-        lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
-        lines.push(`- Post-course : 1 semaine récupération avant relance vers l'objectif principal.`);
-      } else if (["IM", "703"].includes(goalObjKey)) {
+      if (["IM", "703"].includes(goalObjKey) || (finalIsTriathlonForJalons && !["Marathon", "Semi"].includes(goalObjKey))) {
         lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
         lines.push(`- Intégrer natation + vélo + briques dans la préparation vers ce jalon.`);
         lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course.`);
         lines.push(`- Post-course : 1-2 semaines récupération avant relance.`);
+      } else if (["Marathon", "Semi"].includes(goalObjKey)) {
+        lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
+        lines.push(`- Les semaines précédant ce jalon doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
+        lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
+        lines.push(`- Post-course : 1 semaine récupération avant relance vers l'objectif principal.`);
       } else {
         lines.push(`\n### ⚠️ RAPPEL : Jalon${goalName} — ${goal.objective}`);
         lines.push(`- Inclure des séances spécifiques à cet objectif dans les semaines précédant la date de course.`);

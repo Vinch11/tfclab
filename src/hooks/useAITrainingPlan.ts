@@ -39,6 +39,25 @@ import { computeObjectiveCycleSegments } from "@/lib/plan/multiObjectiveClassifi
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
+/**
+ * JOUR 1 — sécurisation du déploiement (consigne coach explicite) :
+ * résout l'URL de génération réellement appelée — fonction de production
+ * ("ai-training-plan") par défaut, ou une fonction Edge de TEST distincte
+ * (ex. "ai-training-plan-test", copie exacte de la fonction de production
+ * sur une branche non fusionnée) quand `pilotFunctionName` est fourni.
+ * Extraite en fonction pure (comme `accumulateChunkUsage` ci-dessous) pour
+ * rester testable sans mock fetch/SSE — aucun précédent de ce genre dans
+ * ce dépôt pour `generatePlan()` lui-même, cf. son propre test.
+ * `pilotFunctionName` absent/vide = comportement inchangé (PLAN_URL de
+ * production), pour tout appelant existant qui ne le fournit jamais.
+ */
+export function resolvePlanUrl(supabaseUrl: string, pilotFunctionName?: string): string {
+  const functionName = pilotFunctionName && pilotFunctionName.trim().length > 0
+    ? pilotFunctionName
+    : "ai-training-plan";
+  return `${supabaseUrl}/functions/v1/${functionName}`;
+}
+
 /** Nombre maximal de blocs standards générés par requête HTTP (cf. generatePlanWindowed). */
 export const MAX_CHUNKS_PER_WINDOW = 3;
 
@@ -100,6 +119,40 @@ export function accumulateChunkUsage(
     next.totalTokens += u.totalTokens ?? 0;
   }
   return next;
+}
+
+/**
+ * Incident réel #2 (coach, 2e test B-10K-TO-70.3, consigne coach explicite) :
+ * `mergePlanChunks(collected, totalWeeks)` exige une couverture EXACTE de
+ * `1..totalWeeks` (sinon `MergePlanError("GAP", ...)`) — correct pour une
+ * génération normale, mais `_pilotMaxChunks` (Pilot Cockpit UNIQUEMENT) ne
+ * produit QUE les premières semaines par construction. Le serveur
+ * (jsonPlanHandler.ts) avait déjà été corrigé pour son PROPRE merge interne
+ * — mais ce hook fait un second merge, côté client, totalement indépendant
+ * (`src/lib/plan/mergePlanChunks.ts`, miroir explicite du fichier serveur),
+ * qui ignorait encore `_pilotMaxChunks`.
+ *
+ * Dérivé des semaines RÉELLEMENT reçues (`weekNumbersReceived`, depuis
+ * `collected`), jamais d'une formule recalculée à partir de CHUNK_SIZE —
+ * qui peut varier (LCW, cf. `computeLcwChunkSize` côté serveur) et
+ * diverger silencieusement de ce que le serveur a réellement produit.
+ * Pure, testable sans mock fetch/SSE (même principe que
+ * `accumulateChunkUsage` ci-dessus).
+ *
+ * Strictement gated par `pilotMaxChunks` : absent/≤0 → `totalWeeks`
+ * inchangé, donc une génération normale incomplète continue d'échouer la
+ * validation GAP exactement comme avant (jamais une acceptation silencieuse
+ * de semaines manquantes hors de ce mode explicitement opt-in).
+ */
+export function computePilotMergedTotalWeeks(
+  totalWeeks: number,
+  pilotMaxChunks: unknown,
+  weekNumbersReceived: number[],
+): number {
+  const n = Number(pilotMaxChunks);
+  if (!Number.isFinite(n) || n <= 0) return totalWeeks;
+  if (weekNumbersReceived.length === 0) return totalWeeks;
+  return Math.min(totalWeeks, Math.max(...weekNumbersReceived));
 }
 
 /**
@@ -503,6 +556,63 @@ export interface PlanConfig {
     recommendation: string;
     target: { min: number; opt: number; max: number };
   };
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E (demande
+   * coach explicite, suite à la découverte d'une hausse de charge 8h→17h
+   * sur 4 semaines) : historique de charge DÉCLARATIF, en heures — distinct
+   * de `recentLoad` ci-dessus (TSS mesuré, Nolio/snapshot uniquement, cf.
+   * `chargeRecenteReference.ts`) et de `weeklyHours` (cible/disponibilité
+   * pour CE plan, inchangé). Alimente UNIQUEMENT le bloc prompt informatif
+   * (promptHelpers.ts) et `validateLoadHistoryCoherence` (planValidator.ts)
+   * — ne modifie JAMAIS `volumeRamp`/`weeklyHours`/`volumeCible` : ces
+   * valeurs ne doivent jamais être transformées en TSS fictif ni se
+   * substituer à la cible/disponibilité déclarée pour ce plan (invariant
+   * explicite, demande coach point 5).
+   */
+  loadHistory?: {
+    /** Volume hebdo chronique tenu AVANT la hausse récente (si une hausse a eu lieu). Jamais déduit si absent. */
+    chronicWeeklyHours?: number;
+    /** Volume hebdo RÉELLEMENT effectué récemment — peut différer de `weeklyHours` (la cible/disponibilité pour ce plan). */
+    recentWeeklyHours?: number;
+    /** Nombre de semaines consécutives à ce volume récent. Absent = durée inconnue, jamais estimée. */
+    recentWeeksCount?: number;
+  };
+  /**
+   * Correction sprint qualité Marathon/Ironman (oct. 2026), #E : plafond
+   * explicite du nombre de journées à 2 séances/jour par semaine (distinct
+   * de `maxSessionsPerDay`, qui plafonne le nombre de séances UN jour
+   * donné). Coach-déclaré, jamais déduit automatiquement d'une combinaison
+   * sessionsPerWeek/jours disponibles — pas de seuil universel.
+   */
+  maxDoubleDaysPerWeek?: number;
+  /**
+   * Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER
+   * TEST CONTRÔLÉ (consigne coach explicite) : mode de test EXPLICITEMENT
+   * opt-in, réservé au Pilot Cockpit (jamais posé par le formulaire coach
+   * normal). Quand présent et > 0, borne le nombre de chunks RÉELLEMENT
+   * générés par la fonction Edge `ai-training-plan` (voir sa boucle de
+   * chunking, index.ts) à `min(_pilotMaxChunks, nombre réel de chunks du
+   * plan)` — permet d'examiner les premières semaines sans lancer
+   * automatiquement les chunks suivants. Génération RÉELLE sur les chunks
+   * exécutés (jamais simulée) : le chunk 1 ne demande déjà que les semaines
+   * de son propre bloc, qu'il soit suivi d'autres chunks ou non. Absent ou
+   * ≤0 = comportement inchangé (tous les chunks s'exécutent), y compris
+   * pour tout appelant existant qui ne pose jamais ce champ.
+   */
+  _pilotMaxChunks?: number;
+  /**
+   * JOUR 1 — sécurisation du déploiement (consigne coach explicite) :
+   * mode de test EXPLICITEMENT opt-in, réservé au Pilot Cockpit, qui
+   * redirige CET appel de génération vers une fonction Edge de TEST
+   * distincte (ex. "ai-training-plan-test", copie exacte de
+   * "ai-training-plan" sur une branche non fusionnée) au lieu de la
+   * fonction de production utilisée par les athlètes réels. Permet de
+   * tester le moteur corrigé sans jamais déployer par-dessus la fonction
+   * de production, donc sans aucun risque de rollback à gérer sur celle-ci.
+   * Absent = comportement inchangé (fonction de production normale), pour
+   * tout appelant existant qui ne pose jamais ce champ.
+   */
+  _pilotFunctionName?: string;
   _athleteSex?: string | null;
   /** F-EXPRESS — Profil onboardé via Démarrage Express (FC + poids uniquement, confiance 60%).
    *  Injecte un bloc systemPrompt qui force prescription en zones FC + RPE uniquement. */
@@ -534,9 +644,16 @@ export interface PlanConfig {
    */
   crossTrainingMaintenance?: { velo?: boolean; natation?: boolean };
   /**
-   * Rampe de volume des premières semaines — dérivée de `trainingLevel`.
+   * Rampe de volume des premières semaines — dérivée de `trainingLevel`, puis
+   * réconciliée avec la Charge Récente de Référence (CRR) réellement mesurée
+   * (NOLIO/SNAPSHOT) via `resolveVolumeRampLoadAdjustment` (planConfigBuilder.ts) :
+   * une charge réelle basse ou en surcharge abaisse le palier effectif utilisé
+   * pour la rampe, sans jamais le faire pour une simple estimation manuelle
+   * dérivée du niveau déclaré lui-même (pas de circularité). `trainingLevel`
+   * reste le niveau déclaré par le coach ; `recentLoadAdjustment` n'apparaît
+   * que si la CRR mesurée a effectivement abaissé le palier.
    * Contrainte dure injectée chunk 1 pour borner Sem 1 et le ramp-up.
-   * Absent si `trainingLevel` non fourni ou si tss7d réel disponible (CRR prime).
+   * Absent si `trainingLevel` non fourni.
    */
   volumeRamp?: {
     trainingLevel: "untrained" | "light" | "trained" | "highly_trained";
@@ -546,6 +663,11 @@ export interface PlanConfig {
     weeklyHoursTarget: number;    // Rappel cible
     week1HoursMax: number;        // Sem 1 effective max (h)
     weeklyIncreasePctMax: number; // Progression max/sem (ex: 0.10 = +10%/sem)
+    /** Présent uniquement si la CRR réellement mesurée a abaissé le palier déclaré. */
+    recentLoadAdjustment?: {
+      effectiveLevel: "untrained" | "light" | "trained" | "highly_trained";
+      reason: string;
+    };
   };
   /**
    * ─── RÉGÉNÉRATION DE FENÊTRE — contexte de position globale ───────────────
@@ -1171,7 +1293,11 @@ export function useAITrainingPlan() {
         _historyUsedIdCounts: historicalUsage.size > 0 ? serializeHistoricalUsage(historicalUsage) : undefined,
       };
 
-      const resp = await fetch(PLAN_URL, {
+      // JOUR 1 — sécurisation du déploiement : voir resolvePlanUrl ci-dessus.
+      const planUrl = planConfig?._pilotFunctionName
+        ? resolvePlanUrl(import.meta.env.VITE_SUPABASE_URL, planConfig._pilotFunctionName)
+        : PLAN_URL;
+      const resp = await fetch(planUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1473,7 +1599,12 @@ export function useAITrainingPlan() {
               semanticRepairs.push(`[error] reconciler_exception: ${rmsg}`);
               throw rerr; // diagnostic mode: do not swallow, bubble to outer merge catch
             }
-            const merged = mergePlanChunks(collected, totalWeeks);
+            const mergedTotal = computePilotMergedTotalWeeks(
+              totalWeeks,
+              planConfig._pilotMaxChunks,
+              collected.flatMap((c) => c.weeks.map((w) => w.weekNumber)),
+            );
+            const merged = mergePlanChunks(collected, mergedTotal);
             mergedLocal = merged;
             // P3 — normalisation déterministe de phase (source unique) sur chemin JSON.
             let incompletePhaseWeeks: number[] = [];
@@ -1499,12 +1630,20 @@ export function useAITrainingPlan() {
             if (incompletePhaseWeeks.length > 0) parsed.incompletePhaseWeeks = incompletePhaseWeeks;
             // Audit scientifique P0 — F12 : validation finale post-mutations
             // (B13 critique : doublon catalogId/cumul "à jeun" ; B14 avertissement :
-            // cohérence phase/fiche) — tourne ICI, après que `runReconciler` a
-            // terminé TOUTES ses passes (enforceTaperWeeks, ensureRaceDaySession,
-            // enforceAthleteConstraints...), sur le plan RÉEL livré au coach —
-            // pas seulement dans le harnais QA synthétique.
+            // cohérence phase/fiche ; B15 avertissement, Correction sprint qualité
+            // M/IM oct. 2026 #4 : cohérence ambition chronométrique↔physiologie,
+            // même ambition EFFECTIVE que targetTable ci-dessus) — tourne ICI,
+            // après que `runReconciler` a terminé TOUTES ses passes
+            // (enforceTaperWeeks, ensureRaceDaySession, enforceAthleteConstraints...),
+            // sur le plan RÉEL livré au coach — pas seulement dans le harnais QA
+            // synthétique.
             try {
-              const finalValidation = computeFinalValidationIssues(merged, semanticRepairs);
+              const finalValidation = computeFinalValidationIssues(merged, semanticRepairs, {
+                vmaKmh: athleteData.vma ?? null,
+                thresholdPaceSecPerKm: athleteData.paceThresholdSecPerKm ?? null,
+                objective: planConfig.objective ?? "",
+                ambition: planConfig.ambitionMeta?.effective ?? planConfig.ambition ?? "",
+              });
               if (finalValidation.issues.length > 0) parsed.finalValidationIssues = finalValidation.issues;
               setFinalValidationIssues(finalValidation.issues);
               if (finalValidation.hasCritical) {

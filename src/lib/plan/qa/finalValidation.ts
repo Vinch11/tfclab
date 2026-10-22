@@ -11,6 +11,7 @@
  */
 import { checkB13, checkB13ToValidationIssues, type FinalValidationPlanLike } from "./checkB13";
 import { checkB14, checkB14ToValidationIssues } from "./checkB14";
+import { checkB15, checkB15ToValidationIssues, type AmbitionPhysiologyInput } from "./checkB15";
 
 export interface FinalValidationIssue {
   rule: string;
@@ -115,14 +116,26 @@ export function repairTracesToValidationIssues(traces: readonly string[] | undef
   return issues;
 }
 
-/** Lecture seule — ne modifie jamais le plan reçu. */
+/** Lecture seule — ne modifie jamais le plan reçu.
+ *
+ * `ambitionPhysiology` (Correction sprint qualité M/IM, oct. 2026, #4) est
+ * optionnel : omis, B15 est simplement sauté (comportement inchangé pour
+ * tout appelant qui ne le fournit pas encore) — fourni, il rebranche le
+ * contrôle ambition↔physiologie (déjà calculé en pré-génération dans
+ * GapAmbitionPanel) sur ce point d'entrée unique post-mutations, pour qu'il
+ * atteigne le coach à chaque génération réelle, pas seulement s'il a
+ * consulté le panneau. */
 export function computeFinalValidationIssues(
   plan: FinalValidationPlanLike,
   repairTraces?: readonly string[],
+  ambitionPhysiology?: AmbitionPhysiologyInput | null,
 ): FinalValidationSummary {
   const critical = checkB13ToValidationIssues(checkB13(plan));
   const warnings = checkB14ToValidationIssues(checkB14(plan));
   const repairIssues = repairTracesToValidationIssues(repairTraces);
-  const issues: FinalValidationIssue[] = [...critical, ...warnings, ...repairIssues];
+  const ambitionGapIssues = ambitionPhysiology
+    ? checkB15ToValidationIssues(checkB15(ambitionPhysiology))
+    : [];
+  const issues: FinalValidationIssue[] = [...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
   return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
 }

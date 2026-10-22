@@ -23,7 +23,14 @@ const OBJECTIVE_DIST_KM: Record<string, number> = {
   Marathon: 42.195,
 };
 
-function normalizeObj(obj: string): string | null {
+/**
+ * Exportée (Correction sprint qualité M/IM, oct. 2026, #4) pour être
+ * réutilisée par `raceStandards.ts` (checkB15, cohérence ambition↔physiologie
+ * post-génération) — même normalisation canonique que celle déjà utilisée
+ * ici pour indexer OBJECTIVE_DIST_KM, plutôt qu'une 3e copie (une existait
+ * déjà, non exportée, dans GapAmbitionPanel.tsx::normObjective).
+ */
+export function normalizeObj(obj: string): string | null {
   const s = obj.trim().toLowerCase();
   if (/^5\s*k/.test(s) || s === "5k") return "5K";
   if (/^10\s*k/.test(s) || s === "10k") return "10K";
@@ -32,7 +39,8 @@ function normalizeObj(obj: string): string | null {
   return null;
 }
 
-function normalizeAmb(amb: string): Ambition {
+/** Exportée pour la même raison que `normalizeObj` ci-dessus. */
+export function normalizeAmb(amb: string): Ambition {
   const s = amb.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   if (AMBITION_MAP[s]) return AMBITION_MAP[s];
   if (s.includes("world") || s.includes("mond")) return "world_class";
@@ -249,7 +257,12 @@ const VOLUME_CIBLE_MIN_H = 3;
  * Références : Seiler (endurance elite), Stöggl, Rønnestad (dose-response),
  * standards pro triathlon (26-32 h/sem IM elite).
  */
-const VOLUME_CAP_MATRIX: Record<RaceSport, Record<Ambition, number>> = {
+// Exportée (Correction sprint qualité M/IM, oct. 2026, #D) pour que
+// planValidator.ts puisse citer les mêmes plafonds EXACTS que ceux
+// réellement appliqués à la génération, quand il documente un déclassement
+// d'ambition (cf. validateAmbitionCoherence) — jamais une 2e copie qui
+// risquerait de diverger de celle-ci.
+export const VOLUME_CAP_MATRIX: Record<RaceSport, Record<Ambition, number>> = {
   run_route: { finish: 8,  perf: 10, sub: 12, elite: 14, world_class: 16 },
   trail:     { finish: 8,  perf: 10, sub: 12, elite: 14, world_class: 16 },
   tri_70_3:  { finish: 10, perf: 12, sub: 14, elite: 18, world_class: 22 },
