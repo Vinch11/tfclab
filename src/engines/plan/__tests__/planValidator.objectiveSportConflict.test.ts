@@ -77,6 +77,25 @@ describe("validateObjectiveSportCoherence — régression B-5K-BEGINNER", () => 
     expect(issues[0].message).toContain("incompatibilité objectif/contraintes");
   });
 
+  /**
+   * GRAND SPRINT P0, Sprint 2 (2026-10-23) : une restriction PARTIELLE
+   * ("en eau froide", "sauf en home trainer"…) ne doit plus être lue comme
+   * un bannissement total par `parseAthleteConstraints` — ce test vérifie
+   * l'effet de bout en bout sur ce garde-fou : une discipline réellement
+   * absente du plan reste signalée même si le texte libre mentionne une
+   * restriction ambiguë de cette même discipline, tant qu'elle n'est pas
+   * un vrai bannissement total.
+   */
+  it("[Sprint 2] une restriction partielle ambiguë ('en eau froide') ne masque PAS une absence réelle de la discipline — toujours signalée", () => {
+    const issues = conflictIssues(makeAllBikePlan(), "5 KM", "course à pied interdite en compétition");
+    expect(issues.length).toBe(1);
+    expect(issues[0].severity).toBe("error");
+    // Pas de contournement silencieux : le message reste celui d'une anomalie
+    // de génération (aucune contrainte le justifiant), pas une incompatibilité
+    // objectif/contraintes (réservée aux VRAIS bannissements totaux).
+    expect(issues[0].message).not.toContain("incompatibilité objectif/contraintes");
+  });
+
   it("plafonne le score global à 69 malgré de bons sous-scores ailleurs (CRITICAL_SCORE_CEILING)", () => {
     const vr = validatePlan(
       makeAllBikePlan(), "5 KM", undefined, undefined, undefined, undefined, undefined, undefined, undefined,

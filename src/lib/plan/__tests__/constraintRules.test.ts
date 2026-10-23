@@ -76,6 +76,51 @@ describe("parseAthleteConstraints — véritables interdictions globales (forme 
   });
 });
 
+/**
+ * GRAND SPRINT P0, Sprint 2 ("fiabiliser les contraintes sportives",
+ * 2026-10-23) : `detectBannedSportStrict` ne regardait jamais ce qui suit
+ * la proximité négation↔sport — "natation interdite EN EAU FROIDE" et "pas
+ * de natation EN MER" étaient donc lus comme des bannissements TOTAUX,
+ * exactement comme "natation interdite" tout court. Conséquence réelle :
+ * `redistributeTargetsForBannedSports` (planValidator.ts) redistribue le
+ * quota natation à 0% pour tout le plan sur une simple ambiguïté de lieu/
+ * condition, jamais une vraie interdiction totale demandée par le coach.
+ */
+describe("parseAthleteConstraints — distinguer interdiction totale et restriction partielle (Sprint 2)", () => {
+  it("'natation interdite en eau froide' → PAS un ban total, reporté dans ambiguousRestrictions", () => {
+    const rules = parseAthleteConstraints("natation interdite en eau froide");
+    expect(rules.bannedSports).toEqual([]);
+    expect(rules.ambiguousRestrictions).toEqual(["natation interdite en eau froide"]);
+    expect(rules.rawText).toBe("natation interdite en eau froide"); // texte verbatim toujours transmis au prompt
+  });
+
+  it("'pas de natation en mer, autorisée en piscine' → ban détecté puis réautorisé par le fragment suivant", () => {
+    const rules = parseAthleteConstraints("pas de natation en mer, autorisée en piscine");
+    expect(rules.bannedSports).toEqual([]);
+    expect(rules.ambiguousRestrictions.length).toBeGreaterThan(0);
+  });
+
+  it("'vélo interdit sauf en home trainer' → restriction partielle, pas un ban total", () => {
+    const rules = parseAthleteConstraints("vélo interdit sauf en home trainer");
+    expect(rules.bannedSports).toEqual([]);
+  });
+
+  it("'natation interdite temporairement' → restriction partielle (bornée dans le temps), pas un ban permanent", () => {
+    const rules = parseAthleteConstraints("natation interdite temporairement");
+    expect(rules.bannedSports).toEqual([]);
+  });
+
+  it("une vraie interdiction totale SANS qualificatif reste détectée normalement (aucune régression)", () => {
+    expect(parseAthleteConstraints("natation interdite").bannedSports).toEqual(["swim"]);
+    expect(parseAthleteConstraints("pas de natation").bannedSports).toEqual(["swim"]);
+  });
+
+  it("une interdiction totale accompagnée d'une blessure réelle (pas un qualificatif de lieu/condition) reste un ban total", () => {
+    const rules = parseAthleteConstraints("pas de course à pied, douleur au genou");
+    expect(rules.bannedSports).toEqual(["run"]);
+  });
+});
+
 describe("parseAthleteConstraints — bans de jour (comportement inchangé, risque plus faible)", () => {
   it("détecte 'pas de vélo le mardi' comme un ban de jour, pas un ban global", () => {
     const rules = parseAthleteConstraints("pas de vélo le mardi");
