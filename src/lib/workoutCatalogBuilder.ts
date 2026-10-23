@@ -7,7 +7,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport } from "@/types/workoutLibrary";
+import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport, WorkoutPhysiology } from "@/types/workoutLibrary";
 import { WorkoutLibrary } from "./workoutLibrary";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, HIGH_IMPACT_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
@@ -16,7 +16,7 @@ import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
 import { isRaceSimIncompatibleWithObjective } from "./plan/raceSimCompatibility";
-import { isLevelPrerequisiteIncompatible } from "./plan/levelPrerequisiteCompatibility";
+import { isLevelPrerequisiteIncompatible, type BeginnerIntensitySignal } from "./plan/levelPrerequisiteCompatibility";
 import { buildRepairWorkoutMetadata } from "./plan/repairCatalogMetadata";
 import type { RepairWorkoutMetadata } from "../../supabase/functions/_shared/repairSportingEquivalence";
 
@@ -79,6 +79,8 @@ export interface CatalogEntry {
   canonicalDurationMin?: number;
   structure: string; // Condensed single-line
   variants?: string;
+  /** Intention relue ; absente signifie que la fiche n'a pas encore été vérifiée. */
+  physiology?: WorkoutPhysiology;
   dPlusTargetM?: number | { min: number; max: number };
   /**
    * Contre-indication de placement déclarée par la fiche (ex. "Trop proche
@@ -682,7 +684,7 @@ export function buildWorkoutCatalog(
      * les fiches zone max >4 (Z5+) le sont, selon la même famille déjà
      * utilisée pour le garde-fou de substitution (planReconciler.ts).
      */
-    beginnerIntensitySignal?: { trainingLevel: string; trainingLevelSource: string } | null;
+    beginnerIntensitySignal?: BeginnerIntensitySignal | null;
     /**
      * Mission 2B (audit "sécurisation du catalogue injecté à Gemini", suite
      * PR #377) : `ficheRequiresUnconfirmedContext` (Sleep Low/Train Low/jeûne,
@@ -1604,6 +1606,7 @@ export function buildWorkoutCatalog(
     canonicalDurationMin: resolveCanonicalDuration(w, chunkPhase),
     structure: condenseStructure(w),
     variants: pickVariant(w, goals),
+    ...(w.physiology ? { physiology: w.physiology } : {}),
     ...(w.dPlusTargetM ? { dPlusTargetM: w.dPlusTargetM } : {}),
     ...(isMeaningfulAvoid(w.avoid) ? { avoid: w.avoid } : {}),
     repairMetadata: buildRepairWorkoutMetadata(w),
@@ -1723,11 +1726,11 @@ export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string
   const avoidCol = hasAvoid ? " Éviter |" : "";
   const avoidSep = hasAvoid ? "------------|" : "";
   const header = hasTrailDPlus
-    ? `| ID | Cat | Objectif | Phases | Durée cible (min) | D+ cible (m) | Zone-cible | Structure |${avoidCol}`
-    : `| ID | Cat | Objectif | Phases | Durée cible (min) | Zone-cible | Structure |${avoidCol}`;
+    ? `| ID | Cat | Objectif | Intention physiologique | Phases | Durée cible (min) | D+ cible (m) | Zone-cible | Structure |${avoidCol}`
+    : `| ID | Cat | Objectif | Intention physiologique | Phases | Durée cible (min) | Zone-cible | Structure |${avoidCol}`;
   const sep = hasTrailDPlus
-    ? `|-----|-----|----------|--------|-------------|--------------|------------|-----------|${avoidSep}`
-    : `|-----|-----|----------|--------|-------------|------------|-----------|${avoidSep}`;
+    ? `|-----|-----|----------|--------------------------|--------|-------------|--------------|------------|-----------|${avoidSep}`
+    : `|-----|-----|----------|--------------------------|--------|-------------|------------|-----------|${avoidSep}`;
 
   for (const { info, entries } of ordered) {
     lines.push(`\n#### ${info.emoji} ${info.label} — ${entries.length} séance(s)`);
@@ -1748,10 +1751,11 @@ export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string
         ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
         : "—";
       const avoidCell = hasAvoid ? ` ${e.avoid || "—"} |` : "";
+      const physiologicalIntent = e.physiology?.primary ?? "not_verified";
       if (hasTrailDPlus) {
-        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${dPlus} | ${zoneCible} | ${struct} |${avoidCell}`);
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${physiologicalIntent} | ${phases} | ${dur} | ${dPlus} | ${zoneCible} | ${struct} |${avoidCell}`);
       } else {
-        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${zoneCible} | ${struct} |${avoidCell}`);
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${physiologicalIntent} | ${phases} | ${dur} | ${zoneCible} | ${struct} |${avoidCell}`);
       }
     }
   }
@@ -1776,8 +1780,9 @@ export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string
   lines.push("5. Les séances de récupération et repos ne nécessitent pas d'ID catalogue (mais gardent une description : durée, zone, type).");
   lines.push("6. 🚫 **NON-CROSS-SPORT** : chaque ID vit dans UN SEUL groupe sport ci-dessus. Un slot vélo ne peut recevoir qu'un ID du groupe 🚴 VÉLO ; un slot course qu'un ID 🏃 COURSE (⛰️ TRAIL uniquement si l'objectif du plan est un trail) ; un slot natation qu'un ID 🏊 NATATION ; un slot renfo qu'un ID 💪 RENFO. Les IDs 🔁 BRICK sont réservés aux enchaînements planifiés comme tels. Toute violation = séance rejetée.");
   lines.push("7. 🚫 **Pas de watts dans une séance course**, pas d'allure /km dans une séance vélo, pas de puissance dans une séance natation. Chaque sport a sa métrique dédiée (Watts vélo, allure/VMA course, CSS/temps 100m natation).");
+  lines.push("8. **Intention physiologique** : lorsqu'elle est vérifiée, conserve cette intention principale pendant l'adaptation. `not_verified` signifie qu'aucune attribution fiable n'est disponible et ne doit jamais être interprété comme un joker.");
   if (hasAvoid) {
-    lines.push("8. ⚠️ **Colonne Éviter = contre-indication de placement.** Une fiche portant \"Trop proche course\"/\"Veille compétition\" ne doit JAMAIS être placée dans les derniers jours avant J (taper/race week) ; une fiche portant \"Fatigue élevée/accumulée/chronique\" ne doit JAMAIS être placée juste après une séance clé ou en semaine de récupération/décharge. Respecte cette contrainte au même titre que la Phase.");
+    lines.push("9. ⚠️ **Colonne Éviter = contre-indication de placement.** Une fiche portant \"Trop proche course\"/\"Veille compétition\" ne doit JAMAIS être placée dans les derniers jours avant J (taper/race week) ; une fiche portant \"Fatigue élevée/accumulée/chronique\" ne doit JAMAIS être placée juste après une séance clé ou en semaine de récupération/décharge. Respecte cette contrainte au même titre que la Phase.");
   }
 
   return lines.join("\n");

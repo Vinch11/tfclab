@@ -4679,7 +4679,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     when: "Build/Peak — athlètes élites ou bien entraînés. VMA > 17 km/h recommandé.",
     phase: ["build", "peak"],
     avoid: "Athlètes débutants ou VMA < 15 km/h (trop intense) · VLamax > 0.65 · Fatigue > 6/10",
-    durationMin: [55, 70],
+    durationMin: [75, 90],
     metricKey: "allure",
     sportKey: "course",
     defaultSportId: 2,
@@ -4947,14 +4947,14 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     when: "Build/Peak — athlètes avancés. Complément du 30/30 pour les adaptations centrales profondes.",
     phase: ["build", "peak"],
     avoid: "Débutants · VLamax > 0.65 · Fatigue élevée",
-    durationMin: [60, 75],
+    durationMin: [80, 95],
     metricKey: "allure",
     sportKey: "course",
     defaultSportId: 2,
     tags: ["Billat", "VO2max", "5min", "intervalles longs", "VFC", "volume stroke"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min Z4 R:2 min + 2×30s à vVO2max R:3 min", zones: ["Z1", "Z2", "Z4", "Z5"] },
-      { part: "Main", text: "5×[5 min à 100-105% VMA + 3-4 min récup active Z1-Z2]. Réf : Billat 2001 — les intervalles de 4-6 min à vVO2max induisent les plus grandes adaptations du volume d'éjection systolique (VES) et du débit cardiaque max. Le 30/30 est plus efficace pour le temps à VO2max mais le 5×5min crée des adaptations cardiaques structurelles plus profondes (hypertrophie cardiaque fonctionnelle). Progression : S1=4×4min, S2=4×5min, S3=5×4min, S4=5×5min.", zones: ["Z5", "Z6", "Z1", "Z2"] },
+      { part: "Main", text: "5×[5 min à 100-105% VMA + 3-4 min récup active Z1-Z2]. Intervalles longs destinés à augmenter le temps passé à forte sollicitation aérobie. Arrêter la série si l'allure prescrite n'est plus tenue ; 5×5 min constitue la dose maximale de la progression, pas une obligation indépendante du profil. Progression : S1=4×4min, S2=4×5min, S3=5×4min, S4=5×5min.", zones: ["Z5", "Z6", "Z1", "Z2"] },
       { part: "Cool-down", text: "12 min Z1 + marche 5 min", zones: ["Z1"] }
     ],
     variants: {
@@ -5342,7 +5342,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     sport: "course",
     objectif: "Journée Double Threshold norvégienne complète — matin seuil bas + soir seuil haut",
     necessite: "Recommandé",
-    when: "Build — 2x/semaine (ex: mardi et jeudi). Réservé athlètes avec volume ≥ 8h/semaine.",
+    when: "Build — protocole avancé. Réservé aux athlètes hautement entraînés avec volume ≥ 8h/semaine et récupération contrôlée.",
     phase: ["build"],
     avoid: "Athlètes < 6h/semaine · Sans récupération suffisante (48h depuis dernière séance intense) · Compétition dans les 5 jours",
     durationMin: [110, 150],
@@ -5352,7 +5352,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Norwegian", "double threshold", "journée complète", "matin", "soir", "Ingebrigtsen", "Bakken"],
     structure: [
       { part: "Warm-up", text: "MATIN (6h-8h) : 15 min Z1→Z2 + 4×80m strides légers. Mesurer lactate si disponible (cible < 1.5 mmol/L au départ).", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "MATIN : 5×6 min à seuil bas (82-86% FCmax, ~2.0-2.5 mmol/L) R:1 min Z1. Durée ~55 min total. Repas post-séance matin : 60g glucides + 25g protéines dans les 30 min. Repos complet 4-5h (sommeil si possible). SOIR (16h-18h) : Ré-échauffement 12 min Z1. 8-10×1000m à seuil haut (88-92% FCmax, ~3.0-4.0 mmol/L) R:1 min Z1. Durée ~70 min total. Réf : Stenqvist 2021 — le double threshold day accumule 25-35 min au seuil en une journée vs 15-20 min pour une séance unique. Adaptation plus rapide du TTE sur 4-6 semaines.", zones: ["Z3", "Z4"] },
+      { part: "Main", text: "MATIN : 5×6 min à seuil bas (82-86% FCmax, ~2.0-2.5 mmol/L) R:1 min Z1, soit 30 min de travail. Durée ~55 min total. Repas post-séance matin : 60g glucides + 25g protéines dans les 30 min. Repos complet 4-5h (sommeil si possible). SOIR (16h-18h) : Ré-échauffement 12 min Z1. 8-10×1000m à seuil haut (88-92% FCmax, ~3.0-4.0 mmol/L) R:1 min Z1. Durée ~70 min total. La dose totale dépend de l'allure réelle des 1000m et doit être contrôlée par le coach ; interrompre si les cibles lactate, allure ou récupération ne sont plus tenues.", zones: ["Z3", "Z4"] },
       { part: "Cool-down", text: "SOIR : 12 min Z1 + marche 5 min. Dîner : glucides 80g + protéines 30g. Sommeil 9h minimum (adaptation maximale).", zones: ["Z1"] }
     ],
     variants: {
@@ -5911,7 +5911,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
   {
     id: "CANOVA_TRI_BRICK_SPECIFIC",
     cat: "C",
-    sport: "course",
+    sport: "brick",
     objectif: "Brick spécifique Canova triathlon — vélo + run à allures race pour développer la spécificité de transition",
     necessite: "Recommandé",
     when: "Build/Peak — spécifique triathlon. Simule les conditions exactes de course (post-vélo).",
@@ -8490,6 +8490,8 @@ WorkoutLibrary.push(...EnrichedWorkoutsShortFormats);
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
 enrichWorkoutGoals(WorkoutLibrary);
+import { enrichWorkoutPhysiology } from "./workoutPhysiologyMetadata";
+enrichWorkoutPhysiology(WorkoutLibrary);
 import { widenEndurancePhases } from "./plan/phaseWidener";
 widenEndurancePhases(WorkoutLibrary);
 

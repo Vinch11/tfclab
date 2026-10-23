@@ -2052,7 +2052,7 @@ export interface RunReconcilerOptions {
    * (manual/auto-tss, jamais fallback-prudent) et le niveau untrained/light.
    * `null`/absent = contrôle inactif (comportement legacy inchangé).
    */
-  beginnerIntensitySignal?: { trainingLevel: string; trainingLevelSource: string } | null;
+  beginnerIntensitySignal?: BeginnerIntensitySignal | null;
 }
 
 
