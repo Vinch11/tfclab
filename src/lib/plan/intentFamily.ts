@@ -17,7 +17,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { LibraryWorkout } from "@/types/workoutLibrary";
+import type { LibraryWorkout, PhysiologicalIntent } from "@/types/workoutLibrary";
 
 export type IntentFamily =
   | "endurance_fondamentale"
@@ -62,6 +62,22 @@ const FAMILY_PATTERNS: Array<{ family: IntentFamily; rx: RegExp }> = [
 
 /** Cache pour éviter la re-classification à chaque appel. */
 const CACHE = new WeakMap<LibraryWorkout, IntentFamily>();
+
+const STRUCTURED_INTENT_FAMILY: Readonly<Record<PhysiologicalIntent, IntentFamily>> = {
+  moderate_lt1: "endurance_fondamentale",
+  recovery: "recuperation",
+  mlss: "seuil",
+  vo2max: "vo2",
+  neuromuscular: "sprint",
+  max_strength: "force",
+  strength_endurance: "force",
+  technique_economy: "technique",
+  mobility_prevention: "technique",
+  mixed_specific: "brick",
+  race_specific: "race_pace",
+  fatmax: "fatmax",
+  test: "test",
+};
 
 /** Zone max du bloc "Main" structuré d'une fiche (0 si aucune zone détectée). */
 function mainZoneMaxOf(w: LibraryWorkout): number {
@@ -112,6 +128,14 @@ export function classifyIntentEvidence(text: string, mainZoneMax = 0): IntentEvi
 export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   const cached = CACHE.get(w);
   if (cached) return cached;
+
+  // Les métadonnées relues décrivent le contenu réel et priment toujours sur
+  // les mots secondaires présents dans les récupérations, références ou notes.
+  if (w.physiology?.primary) {
+    const structured = STRUCTURED_INTENT_FAMILY[w.physiology.primary];
+    CACHE.set(w, structured);
+    return structured;
+  }
 
   // Audit réel (B-5K-BEGINNER, 15/10) : `B_RUN_FARTLEK_60_PRO` — Main
   // 10×(1' Z4a / 2' Z2), un vrai travail d'intervalles — était classée

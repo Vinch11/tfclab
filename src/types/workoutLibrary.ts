@@ -10,6 +10,57 @@ export type TrainingSport = "swim" | "bike" | "run" | "strength" | "mixed" | "cy
 export type TrainingMetric = "power" | "HR" | "pace" | "css" | "puissance" | "allure" | "cardiaque" | "fc";
 export type PhaseTag = "base" | "build" | "peak" | "taper";
 
+/**
+ * Intention physiologique canonique d'une fiche.
+ *
+ * Cette taxonomie décrit le stimulus principal réel. Elle ne remplace pas
+ * les zones propres à chaque discipline et ne doit jamais être déduite d'un
+ * simple mot présent dans le titre ou les notes de la séance.
+ */
+export type PhysiologicalIntent =
+  // Domaines métaboliques : IDs identiques à tfclDoctrine.ts.
+  | "moderate_lt1"
+  | "recovery"
+  | "mlss"
+  | "vo2max"
+  | "neuromuscular"
+  | "max_strength"
+  | "strength_endurance"
+  | "technique_economy"
+  | "mobility_prevention"
+  | "mixed_specific"
+  | "race_specific"
+  | "fatmax"
+  | "test";
+
+export interface WorkoutPhysiology {
+  primary: PhysiologicalIntent;
+  secondary?: PhysiologicalIntent[];
+  /** Justification courte fondée sur le contenu prescrit. */
+  rationale: string;
+}
+
+export type WorkoutTrainingLevel = "untrained" | "light" | "trained" | "highly_trained";
+
+export interface WorkoutPrerequisites {
+  minimumTrainingLevel?: WorkoutTrainingLevel;
+  minimumWeeklyHours?: number;
+  /** Si vrai, l'absence de preuves suffisantes ferme l'accès par défaut. */
+  requireVerifiedProfile?: boolean;
+  /**
+   * La séance reste consultable dans la bibliothèque mais n'est jamais
+   * proposée ni réintroduite automatiquement. À réserver aux protocoles dont
+   * un prérequis critique n'est pas représenté dans les données TFCLab.
+   */
+  blockAutomaticSelection?: boolean;
+  /**
+   * Une décision explicite et nominative du coach est requise en plus des
+   * autres prérequis. L'accord ne contourne ni `blockAutomaticSelection`, ni
+   * les preuves de profil demandées.
+   */
+  requireExplicitCoachApproval?: boolean;
+}
+
 // Partie de structure d'une séance
 export interface WorkoutStructurePart {
   part: string; // "Warm-up", "Main", "Cool-down"
@@ -117,6 +168,10 @@ export interface LibraryWorkout {
   // Profil W'bal optionnel — permet le recalcul automatique des temps de repos
   // au chargement de la séance, basé sur le CP/W' de l'athlète (Skiba 2012).
   wbalProfile?: WbalProfile;
+  /** Métadonnée physiologique relue. Absente tant que la fiche n'est pas auditée. */
+  physiology?: WorkoutPhysiology;
+  /** Prérequis déterministes des protocoles avancés. */
+  prerequisites?: WorkoutPrerequisites;
 }
 
 // Session planifiée étendue avec référence workout
