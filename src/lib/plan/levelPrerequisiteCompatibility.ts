@@ -1,17 +1,16 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * COMPATIBILITÉ NIVEAU D'ENTRAÎNEMENT / PRÉREQUIS DE FICHE (Mission Axe C)
+ * COMPATIBILITÉ NIVEAU / PRÉREQUIS DE SÉCURITÉ DES FICHES
  *
- * Consigne coach : hard-ban DÉTERMINISTE, nominatif, scopé aux seules
- * incompatibilités démontrées par relecture du CONTENU RÉEL (texte `avoid`/
- * `when`, pas le nom de la méthode ou de son créateur) — cf.
- * MISSION_AXE_C_VALIDATION.md §1. Même principe que
+ * Garde-fou DÉTERMINISTE, nominatif, scopé aux incompatibilités démontrées
+ * par relecture du CONTENU RÉEL. Il combine l'axe historique de niveau et
+ * les politiques ciblées de `workoutSafetyPrerequisites.ts`. Même principe que
  * `raceSimCompatibility.ts` : une fonction pure, partagée entre
  * `workoutCatalogBuilder.ts::scoreWorkout`/`SourceLibrary` (catalogue
  * injecté à Gemini) et `planReconciler.ts::findReplacement` (substitutions
  * post-génération), pour ne jamais maintenir deux listes divergentes.
  *
- * 8 fiches (sur les 10 initialement confirmées) reçoivent ce garde-fou — 2
+ * L'axe historique couvre 8 fiches (sur les 10 initialement confirmées) — 2
  * en sont explicitement exclues (`BILLAT_RUN_30_30_PRO`, `BILLAT_RUN_3MIN_3MIN`)
  * car leur SEUL critère de niveau indépendant est un seuil de VMA
  * (respectivement "VMA > 16 km/h" et "VMA > 17 km/h recommandé" /
@@ -26,7 +25,7 @@
  * estimation." Ces 2 fiches restent donc disponibles sans aucune exclusion
  * dans cette implémentation, à tous les niveaux.
  *
- * Pour les 8 fiches retenues, le hard-ban ne s'appuie QUE sur un critère
+ * Pour ces 8 fiches, le hard-ban ne s'appuie QUE sur un critère
  * indépendant de VMA/VLamax, explicitement documenté et vérifiable avec le
  * signal déjà disponible (`trainingLevel`/`trainingLevelSource`) :
  *  - Seuil de semaines/mois d'entraînement régulier (ex. "Moins de 4
@@ -41,10 +40,17 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
+import { auditedWorkoutMetadataFor } from "@/lib/workoutPhysiologyMetadata";
+import { auditedSafetyPrerequisitesFor } from "@/lib/workoutSafetyPrerequisites";
+import type { WorkoutTrainingLevel } from "@/types/workoutLibrary";
+
 /** Signal de niveau tel que reçu par buildWorkoutCatalog/runReconciler. */
 export interface BeginnerIntensitySignal {
   trainingLevel: string;
   trainingLevelSource: string;
+  weeklyHours?: number | null;
+  /** Décision explicite du coach, limitée aux IDs énumérés. */
+  approvedAdvancedSessionIds?: readonly string[];
 }
 
 /**
@@ -73,25 +79,62 @@ const LEVEL_PREREQUISITE_FICHE_IDS = new Set([
  */
 const RELIABLE_LEVEL_SOURCES = new Set(["manual", "auto-tss"]);
 const BEGINNER_LEVELS = new Set(["untrained", "light"]);
+const LEVEL_RANK: Readonly<Record<WorkoutTrainingLevel, number>> = {
+  untrained: 0,
+  light: 1,
+  trained: 2,
+  highly_trained: 3,
+};
 
 /**
- * `true` seulement si TOUTES ces conditions sont réunies :
- *  - `ficheId` fait partie des 8 fiches à prérequis de niveau confirmé ;
- *  - un signal de niveau est fourni (jamais par défaut si absent) ;
- *  - sa source est fiable (`manual`/`auto-tss` — jamais `fallback-prudent`,
- *    jamais une source inconnue) ;
- *  - le niveau indique un profil non confirmé (`untrained`/`light`).
- * L'absence d'information n'est jamais traitée comme une preuve
- * d'incompatibilité — même principe que `ficheUnconfirmedContextReason`
- * et `isRaceSimIncompatibleWithObjective`.
+ * Renvoie `true` quand la politique nominative ne peut pas être satisfaite.
+ * Les règles historiques sans profil obligatoire conservent leur comportement
+ * ouvert en cas d'absence de signal. Les règles de sécurité explicitement
+ * fermées refusent la sélection automatique quand une preuve manque ; cela ne
+ * constitue ni une contre-indication médicale ni une suppression de la fiche.
  */
 export function isLevelPrerequisiteIncompatible(
   ficheId: string | null | undefined,
   signal: BeginnerIntensitySignal | null | undefined,
 ): boolean {
+  const id = String(ficheId || "").toUpperCase();
+  const auditedPrerequisites = {
+    ...(auditedWorkoutMetadataFor(id)?.prerequisites ?? {}),
+    ...(auditedSafetyPrerequisitesFor(id) ?? {}),
+  };
+  const hasAuditedPrerequisites = Object.keys(auditedPrerequisites).length > 0;
+  const explicitlyApproved = !!signal?.approvedAdvancedSessionIds?.some(
+    approved => approved.toUpperCase() === id,
+  );
+
+  // L'hypoxie et l'exposition chaleur restent accessibles dans la bibliothèque
+  // pour une programmation manuelle, mais aucune décision générale de coach
+  // ne peut les remettre dans un catalogue ou une substitution automatique.
+  if (auditedPrerequisites.blockAutomaticSelection) return true;
+
+  // Compatibilité historique : l'approbation des prérequis déjà présents
+  // avant cet audit conserve son comportement. Les nouvelles politiques de
+  // sécurité avec revue obligatoire continuent, elles, à vérifier le profil.
+  if (explicitlyApproved && !auditedPrerequisites.requireExplicitCoachApproval) {
+    return false;
+  }
+
+  if (auditedPrerequisites.requireExplicitCoachApproval && !explicitlyApproved) return true;
+
+  if (auditedPrerequisites.requireVerifiedProfile) {
+    if (!signal || !RELIABLE_LEVEL_SOURCES.has(signal.trainingLevelSource)) return true;
+    const actualRank = LEVEL_RANK[signal.trainingLevel as WorkoutTrainingLevel];
+    const requiredLevel = auditedPrerequisites.minimumTrainingLevel;
+    if (requiredLevel && (actualRank == null || actualRank < LEVEL_RANK[requiredLevel])) return true;
+    const minimumHours = auditedPrerequisites.minimumWeeklyHours;
+    if (minimumHours != null && (signal.weeklyHours == null || signal.weeklyHours < minimumHours)) return true;
+    return false;
+  }
+
+  if (hasAuditedPrerequisites) return false;
+
   if (!signal) return false;
   if (!RELIABLE_LEVEL_SOURCES.has(signal.trainingLevelSource)) return false;
   if (!BEGINNER_LEVELS.has(signal.trainingLevel)) return false;
-  const id = String(ficheId || "").toUpperCase();
   return LEVEL_PREREQUISITE_FICHE_IDS.has(id);
 }

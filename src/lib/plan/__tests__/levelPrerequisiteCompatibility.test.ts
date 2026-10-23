@@ -19,6 +19,8 @@ const EIGHT_IDS = [
   "COGGAN_BIKE_CP_DEPLETION",
   "V3_BIKE_VO2_TABATA",
 ];
+const SAFETY_REVIEW_IDS = ["KENYAN_WEEK_STRUCTURE_MARATHON", "V3_BIKE_VO2_TABATA"];
+const LEGACY_LEVEL_ONLY_IDS = EIGHT_IDS.filter(id => !SAFETY_REVIEW_IDS.includes(id));
 
 // Volontairement HORS périmètre — seul critère indépendant = VMA non transmise.
 const VMA_ONLY_IDS = ["BILLAT_RUN_30_30_PRO", "BILLAT_RUN_3MIN_3MIN"];
@@ -37,20 +39,20 @@ describe("isLevelPrerequisiteIncompatible — Mission Axe C", () => {
   });
 
   it("niveau trained ou highly_trained (même source fiable) : jamais exclues", () => {
-    for (const id of EIGHT_IDS) {
+    for (const id of LEGACY_LEVEL_ONLY_IDS) {
       expect(isLevelPrerequisiteIncompatible(id, { trainingLevel: "trained", trainingLevelSource: "manual" })).toBe(false);
       expect(isLevelPrerequisiteIncompatible(id, { trainingLevel: "highly_trained", trainingLevelSource: "manual" })).toBe(false);
     }
   });
 
   it("source non fiable (fallback-prudent), même avec untrained : jamais exclues", () => {
-    for (const id of EIGHT_IDS) {
+    for (const id of LEGACY_LEVEL_ONLY_IDS) {
       expect(isLevelPrerequisiteIncompatible(id, { trainingLevel: "untrained", trainingLevelSource: "fallback-prudent" })).toBe(false);
     }
   });
 
   it("signal absent (undefined/null) : jamais exclues — l'absence d'info n'est jamais une preuve", () => {
-    for (const id of EIGHT_IDS) {
+    for (const id of LEGACY_LEVEL_ONLY_IDS) {
       expect(isLevelPrerequisiteIncompatible(id, undefined)).toBe(false);
       expect(isLevelPrerequisiteIncompatible(id, null)).toBe(false);
     }

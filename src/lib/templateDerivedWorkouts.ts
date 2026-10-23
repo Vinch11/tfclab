@@ -1173,7 +1173,7 @@ export const TemplateDerivedWorkouts: LibraryWorkout[] = [
     id: "TPL_MAR_RENFO_LOURD",
     cat: "C",
     sport: "strength",
-    objectif: "Force lourde marathon — Squat, Fentes, Deadlift (8-10 réps). Muscle fort = muscle économe",
+    objectif: "Force-endurance lourde marathon — Squat, Fentes, Deadlift (8-10 réps)",
     necessite: "Recommandé",
     when: "Phase Construction → Seuil (S1-S11)",
     phase: ["base", "build"],
@@ -1185,7 +1185,7 @@ export const TemplateDerivedWorkouts: LibraryWorkout[] = [
       ["Main", "Squats + Fentes + Deadlift (séries 8-10 réps). Phase excentrique contrôlée", []]
     ]),
     variants: {
-      marathon: "S1-S4: Force Max. S5-S8: +Pliométrie. S9-S11: Phase excentrique 3s"
+      marathon: "S1-S4: Force-endurance lourde. S5-S8: +Pliométrie. S9-S11: Phase excentrique 3s"
     },
     goals: GOALS_MAR,
     tags: ["renforcement", "force-lourde", "marathon", "template-marathon"]
