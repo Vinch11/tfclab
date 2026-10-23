@@ -1,0 +1,44 @@
+id,priority,title,status,consequence,evidence,association,effort,regression_risk,recommended_owner
+QP-001,P0,Objectif 5 km sans course,corrigé et fusionné,Plan inutilisable,RAPPORT_B5K_BEGINNER_CORRECTIFS.md et PR 375,PR 375,M,moyen,Claude
+QP-002,P0,Charge et densité débutant incompatibles,corrigé et fusionné,Risque sportif et contraintes ignorées,PR 376 et fixture B-5K,PR 376,M,moyen,Claude
+QP-003,P0,Protocoles spéciaux non confirmés,corrigé et fusionné,Exposition à un contexte non demandé,PR 377-378,PR 377-378,M,moyen,Claude
+QP-004,P0,Simulations longue distance dans plan 5/10 km,corrigé et fusionné,Spécificité sportive perdue,PR 379,PR 379,S,faible,Claude
+QP-005,P0,Séances confirmées accessibles aux non entraînés,corrigé et fusionné,Risque de dose inadaptée,PR 380,PR 380,S,faible,Claude
+QP-006,P0,Substitution sans équivalence sportive,corrigé et fusionné,Intention initiale détruite,REPAIR_SPORTING_EQUIVALENCE.md et PR 383,PR 383,L,moyen,Codex
+QP-007,P0,Prérequis critiques de bibliothèque,corrigé et fusionné,Protocoles risqués auto-sélectionnés,PR 393,PR 393,M,moyen,Codex
+QP-008,P0,Couverture sécurité débutant surinterprétable,corrigé et fusionné pour diagnostic,Absence de blocage complet,docs audit P0 et PR 388,PR 387-388,M,moyen,Claude
+QP-009,P0,70.3 sans natation,corrigé mais non fusionné,Plan triathlon inutilisable,commit 8bc61949,fix/p0-plan-validity-guardrails-20261023,S,faible,Claude
+QP-010,P0,Jalon 10 km devenu objectif final 70.3,corrigé mais non fusionné,Mauvaise compétition finale,commit 8bc61949,fix/p0-plan-validity-guardrails-20261023,S,faible,Claude
+QP-011,P0,Source exacte des 8 P0 absente,non vérifiable,Traçabilité d'audit incomplète,recherche dépôt branches et pièces jointes,rapport Claude manquant,NA,NA,Claude
+QP-012,P1,Famille d'intention et décharge,corrigé et fusionné,Faux remplacement et surcharge recovery,PR 381,PR 381,M,moyen,Claude
+QP-013,P1,Heat et faux positifs Pilot Cockpit,corrigé et fusionné,Plan et diagnostic trompeurs,RAPPORT_PILOTE_2026-10-15.md et PR 382,PR 382,M,faible,Codex
+QP-014,P1,Doublons et cumul à jeun,corrigé et fusionné,Répétition excessive,PR 369-370,PR 369-370,S,faible,Claude
+QP-015,P1,Prompt Train Low et trous de phase,corrigé et fusionné,Prescription contradictoire,PR 366-368,PR 366-368,M,faible,Claude
+QP-016,P1,Cible volume vs charge récente,corrigé et fusionné,Volume initial excessif,PR 389,PR 389,M,moyen,Claude
+QP-017,P1,Progression longue décharge et taper,corrigé et fusionné,Récupération insuffisante,PR 389,PR 389,M,moyen,Claude
+QP-018,P1,Maintien triathlon pendant jalon run,corrigé et fusionné,Spécificité triathlon insuffisante,PR 389,PR 389,S,faible,Claude
+QP-019,P1,Cockpit hors chaîne physiologique,corrigé et fusionné,Diagnostic non représentatif,PR 384,PR 384,M,moyen,Codex
+QP-020,P1,Repos minimal silencieux,corrigé mais non fusionné,Avertissement final manquant,commit 8bc61949,fix/p0-plan-validity-guardrails-20261023,S,faible,Claude
+QP-021,P1,897 fiches sans certification structurée,confirmé ouvert,Sélection difficile à justifier,audit 897 fiches,aucune,XL,élevé,revue coach
+QP-022,P1,Durée de 567 fiches non vérifiable,confirmé ouvert,Dose non prouvable,audit 897 fiches,aucune,L,moyen,Codex et coach
+QP-023,P1,Durées de plan perdues par le parseur,confirmé ouvert,Intensité hebdomadaire fausse,RAPPORT_PILOTE_2026-10-15.md,aucune,M,moyen,Codex
+QP-024,P1,TTE durabilité économie sans plafond,confirmé ouvert,Projections irréalistes,AUDIT_SCIENTIFIQUE_P0.md F2,aucune,M,élevé,revue coach puis Claude
+QP-025,P1,MLSS faible cohorte sans kill-switch,confirmé ouvert,Projection non maîtrisée,AUDIT_SCIENTIFIQUE_P0.md F8-F9,aucune,L,élevé,revue coach
+QP-026,P1,99 prérequis avancés candidats,suspecté,Séances potentiellement inadmissibles,audit 897 et PR 393,PR 393 partiel,L,moyen,revue coach
+QP-027,P1,40 divergences objectif-stimulus candidates,suspecté,Intention possible incohérente,audit 897,aucune,M,moyen,revue coach
+QP-028,P1,Attribution finale not_verified,suspecté,Justification séance absente,SESSION_PHYSIOLOGICAL_TRACEABILITY.md,PR 385,L,moyen,Codex et coach
+QP-029,P1,Export réel 70.3 absent,non vérifiable,Incident non rejouable,RAPPORT_QUALITE_PLANS_T1T2T3.md,export manquant,S,faible,Claude
+QP-030,P2,Zones ambiguës et libellés hors référentiel,confirmé ouvert,Intensité non interprétable,audit 897,aucune,L,moyen,revue coach
+QP-031,P2,Effets de leviers non sourcés,confirmé ouvert,Projection peu auditée,AUDIT_SCIENTIFIQUE_P0.md F1,aucune,M,faible,revue coach
+QP-032,P2,Facteur durée linéaire non sourcé,confirmé ouvert,Projection simplifiée,AUDIT_SCIENTIFIQUE_P0.md F3,aucune,M,moyen,revue coach
+QP-033,P2,Confiance VLamax non consommée,suspecté,Décision trop certaine,AUDIT_SCIENTIFIQUE_P0.md F7,aucune,M,élevé,revue coach puis Claude
+QP-034,P2,Formule FatMax course non validée,suspecté,Zones potentiellement biaisées,AUDIT_SCIENTIFIQUE_P0.md F11,aucune,M,élevé,revue coach
+QP-035,P2,Instructions athlète non contrôlées,suspecté,Exécution ambiguë,couverture validateurs,aucune,L,moyen,revue coach
+QP-036,P2,Réutilisation inter-plans non mesurée,non vérifiable,Exposition inconnue,absence corpus longitudinal,aucune,M,faible,Codex
+QP-037,P2,Charge récente par sport non structurée,suspecté,Répartition personnalisée insuffisante,syntheticProfiles.ts ligne 538,attend sprint P0,L,élevé,Claude
+QP-038,P3,Statut de traçabilité explicite,corrigé et fusionné,Pas de succès inventé,PR 385,PR 385,M,faible,Codex
+QP-039,P3,Exports PDF tronqués ou vides,corrigé et fusionné,Rapport incomplet,PR 390-392,PR 390-392,M,faible,Claude
+QP-040,P3,Pas de registre machine-readable unique,confirmé ouvert,Dette dispersée,présent registre,cette branche,S,faible,Codex
+QP-041,P3,Confiance des rapports coach hétérogène,suspecté,Surinterprétation possible,F7-F9 et PR 384-385,plusieurs,L,moyen,revue coach et Codex
+QP-042,P3,Angles morts non quantifiables,non vérifiable,Faux sentiment de sécurité,QUALITY_COVERAGE.md,aucune,continu,NA,Codex
+
