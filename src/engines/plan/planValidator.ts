@@ -698,10 +698,16 @@ export function parseSessionDurationMin(session: ParsedSession): number | null {
     }
   }
 
-  // "45min", "45 min", "45'", "45′" — pure minutes (avoid "30/30" or rep counts by requiring a unit)
-  const mRe = /(?<!\d)(\d{1,3})\s*(?:min(?:utes?)?|'|′)(?!\d)/g;
+  // "45min", "45 min", "45'", "45′", "49.5min" — pure minutes (avoid "30/30"
+  // or rep counts by requiring a unit). Partie décimale optionnelle : Sprint
+  // 5 (audit "fiabilisation moteur", 2026-10-23) — sans elle, "49.5min"
+  // matchait seulement "5min" (le groupe \d{1,3} ne retombait que sur le
+  // chiffre juste avant "min", le "." cassant le match sur "49"), lisant 5
+  // au lieu de 49-50 : un faux calcul issu d'un arrondi/format décimal, pas
+  // d'une vraie répétition courte.
+  const mRe = /(?<!\d)(\d{1,3}(?:[.,]\d+)?)\s*(?:min(?:utes?)?|'|′)(?!\d)/g;
   while ((m = mRe.exec(text)) !== null) {
-    const mm = parseInt(m[1], 10);
+    const mm = Math.round(parseFloat(m[1].replace(",", ".")));
     // Skip very small values that are likely interval lengths (e.g. "3'" in "5x3'")
     // Heuristic: minutes >= 15 are likely session durations, smaller are intervals
     if (mm >= 15 && mm <= 300) {
@@ -713,6 +719,63 @@ export function parseSessionDurationMin(session: ParsedSession): number | null {
   if (!found) return null;
   // Cap at 4h (single session) to avoid runaway sums from rep durations
   return Math.min(total, 240);
+}
+
+/**
+ * GRAND SPRINT P0, Sprint 5 ("charge et prescription réelle"), 2026-10-23 :
+ * `parseSessionDurationMin` s'abstient honnêtement (retourne `null`, jamais
+ * une valeur inventée) quand une séance ne contient aucun jeton de durée
+ * explicite reconnu (ex. "5x1km allure 10K" — un bloc en distance sans
+ * allure fiable pour en déduire une durée, une alternance/répétition
+ * décrite autrement qu'en min/h). Mais `WeekMetrics.totalDurationMin`
+ * (extractWeekMetrics ci-dessus) ne fait QUE sommer les durées parseables —
+ * une séance non calculable contribue 0, SILENCIEUSEMENT, exactement comme
+ * si elle durait 0 minute. Sur une semaine où la plupart des séances ne
+ * sont pas calculables, `totalDurationMin` peut donc afficher une fraction
+ * minime du volume réellement prescrit (cas démontré : une semaine à
+ * 235min réellement prescrites lue comme 55min, les ~180min restantes
+ * venant de séances sans jeton min/h reconnu).
+ *
+ * `validateProgression` (ci-dessous, préexistant) se protégeait déjà de ce
+ * cas via un seuil de couverture (`sessionsWithDuration/activeSessions
+ * >= 0.6`) avant de faire confiance à `totalDurationMin`, repliant sur le
+ * nombre de séances sinon — mais `validateTaperVolumeReduction`,
+ * `validateMilestoneTransition` (check #2) et `validateWeeklyLoadConsistency`
+ * comparaient `totalDurationMin` directement, sans ce garde-fou : une
+ * semaine d'affûtage mal couverte pouvait paraître "correctement réduite"
+ * (ou l'inverse) sur une comparaison faite de deux nombres largement sous-
+ * comptés. Généralisé ici en un helper partagé, même seuil (0.6) que
+ * `validateProgression` pour rester cohérent plan-entier : abstention
+ * honnête (score 100, aucune issue) plutôt qu'un verdict fondé sur une
+ * durée non fiablement calculable — jamais un signal fabriqué.
+ */
+function weekHasReliableDuration(w: WeekMetrics): boolean {
+  return w.activeSessions === 0 || w.sessionsWithDuration / Math.max(1, w.activeSessions) >= 0.6;
+}
+
+/**
+ * Sprint 5 : "rendre les durées non calculables explicitement identifiables"
+ * — les contrôles ci-dessus s'ABSTIENNENT silencieusement dès qu'une
+ * semaine n'a pas une couverture de durée fiable (cf. weekHasReliableDuration),
+ * mais une abstention silencieuse reste une absence de signal, pas une
+ * information positive pour le coach. Ce contrôle dédié rend l'incertitude
+ * elle-même visible : severity "info" (jamais un score pondéré, jamais une
+ * alerte bloquante) — ce n'est pas une anomalie du plan, c'est une limite
+ * connue de l'extraction automatique de durée depuis le texte des séances.
+ */
+function validateDurationCoverage(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  for (const wm of metrics) {
+    if (wm.activeSessions === 0 || weekHasReliableDuration(wm)) continue;
+    issues.push({
+      rule: "duration_not_calculable",
+      severity: "info",
+      week: wm.weekNumber,
+      message: `S${wm.weekNumber}: durée non fiablement calculable pour ${wm.activeSessions - wm.sessionsWithDuration}/${wm.activeSessions} séance(s) (ex. blocs en distance/allure, alternances sans jeton min/h explicite)`,
+      detail: `Les contrôles basés sur le volume horaire réel (affûtage, charge hebdomadaire, continuité post-jalon) s'abstiennent pour cette semaine plutôt que de comparer des durées partiellement sous-comptées — le volume réellement prescrit peut être supérieur à ce que ${wm.totalDurationMin}min laisse supposer.`,
+    });
+  }
+  return { issues, score: 100 };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1765,6 +1828,19 @@ function validateTaperVolumeReduction(
   // dans ce fichier : silence honnête, pas un signal fabriqué).
   if (priorWeeks.length < 2) return { issues: [], score: 100 };
 
+  // Sprint 5 : couverture de durée insuffisante sur l'une des semaines
+  // comparées (référence OU affûtage) — abstention plutôt qu'un verdict
+  // fondé sur un totalDurationMin largement sous-compté (cf. docstring
+  // weekHasReliableDuration ci-dessus). Exclut la semaine de course elle-
+  // même de cette exigence : son contenu réel est volontairement bref
+  // (Jour J, pacing/nutrition) — une faible couverture de durée y est
+  // attendue, pas un signal d'extraction défaillante comme pour une
+  // semaine de contenu d'entraînement normal.
+  const nonRaceTaperWeeks = taperWindow.filter(w => w.scheduledWeekType !== "race");
+  if (!priorWeeks.every(weekHasReliableDuration) || !nonRaceTaperWeeks.every(weekHasReliableDuration)) {
+    return { issues: [], score: 100 };
+  }
+
   const priorAvgTotal = priorWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / priorWeeks.length;
   const priorMinTotal = Math.min(...priorWeeks.map(w => w.totalDurationMin));
   if (priorAvgTotal <= 0) return { issues: [], score: 100 }; // aucune durée exploitable sur la référence — rien à comparer
@@ -1885,7 +1961,12 @@ function validateMilestoneTransition(
 
     // 2) Récupération réelle la semaine suivant le jalon.
     const recoveryWeek = byWeek.get(goalWeek + 1);
-    const prepAvgTotal = prepWeeks.length > 0
+    // Sprint 5 : couverture de durée insuffisante sur une des semaines
+    // comparées — abstention plutôt qu'un verdict fondé sur un
+    // totalDurationMin sous-compté (cf. weekHasReliableDuration).
+    const durationReliable = prepWeeks.every(weekHasReliableDuration)
+      && (!recoveryWeek || weekHasReliableDuration(recoveryWeek));
+    const prepAvgTotal = durationReliable && prepWeeks.length > 0
       ? prepWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / prepWeeks.length
       : null;
     if (recoveryWeek && prepAvgTotal !== null && prepAvgTotal > 0
@@ -1903,7 +1984,8 @@ function validateMilestoneTransition(
     const resumeWeekNums: number[] = [];
     for (let w = goalWeek + 2; w <= Math.min(totalWeeks, goalWeek + 3); w++) resumeWeekNums.push(w);
     const resumeWeeks = resumeWeekNums.map(w => byWeek.get(w)).filter((w): w is WeekMetrics => !!w);
-    if (recoveryWeek && resumeWeeks.length > 0) {
+    if (recoveryWeek && weekHasReliableDuration(recoveryWeek) && resumeWeeks.length > 0
+      && resumeWeeks.every(weekHasReliableDuration)) {
       const resumeAvgTotal = resumeWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / resumeWeeks.length;
       if (resumeAvgTotal > 0 && resumeAvgTotal <= recoveryWeek.totalDurationMin) {
         issues.push({
@@ -2052,7 +2134,11 @@ function validateWeeklyLoadConsistency(
 
     let chronicAvgTotal: number | null = null;
     let usedDeclaredFallback = false;
-    if (priorWeeks.length >= 2) {
+    // Sprint 5 : un historique de CE plan dérivé de semaines à couverture de
+    // durée insuffisante n'est pas une référence fiable — abstention sur
+    // cette référence (repli sur la charge déclarée si disponible) plutôt
+    // qu'un ratio calculé sur un totalDurationMin sous-compté.
+    if (priorWeeks.length >= 2 && priorWeeks.every(weekHasReliableDuration)) {
       const avg = priorWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / priorWeeks.length;
       if (avg > 0) chronicAvgTotal = avg;
     }
@@ -2061,6 +2147,10 @@ function validateWeeklyLoadConsistency(
       usedDeclaredFallback = true;
     }
     if (chronicAvgTotal === null) continue; // ni historique de CE plan, ni donnée déclarée exploitable
+    // La semaine courante elle-même doit aussi être fiablement calculable —
+    // sinon le ratio compare une référence valide à un totalDurationMin
+    // sous-compté pour CETTE semaine.
+    if (!weekHasReliableDuration(wm)) continue;
 
     const ratio = wm.totalDurationMin / chronicAvgTotal;
     let totalFlagged = false;
@@ -2182,6 +2272,11 @@ function validateLoadHistoryCoherence(
   const recentTotalMin = recent * 60;
   for (const wm of metrics.slice(0, consolidationWeeks)) {
     if (wm.scheduledWeekType !== "load") continue; // affûtage/décharge/course : hors périmètre, déjà couverts ailleurs
+    // Sprint 5 : une semaine à couverture de durée insuffisante peut afficher
+    // un totalDurationMin largement sous-compté — ce contrôle manquerait
+    // alors un VRAI dépassement de la limite de consolidation plutôt que
+    // d'en inventer un (cf. weekHasReliableDuration).
+    if (!weekHasReliableDuration(wm)) continue;
     // Dernière correction ciblée (consigne coach explicite, contre-vérification
     // Codex sur b691980), point A — VOLUME : la limite EFFECTIVE de la fenêtre
     // de consolidation (`recent`, ex. 17h) n'était vérifiée qu'avec la marge de
@@ -5451,6 +5546,7 @@ export function validatePlan(
   const bannedSportReintroduced = validateBannedSportNotReintroduced(weekMetrics, constraintsText);
   const finalObjectiveMismatch = validateFinalObjectiveMatchesMainGoal(objective, raceGoals);
   const raceCalendarCoherence = validateRaceCalendarCoherence(raceGoals, planStartDate, plan.totalWeeks);
+  const durationCoverage = validateDurationCoverage(weekMetrics);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
   // #18 lot 1 : règles INVIOLABLE/OBLIGATOIRE sans contrôle post-génération jusqu'ici
   const titleFormat = validateTitleFormat(plan);
@@ -5494,6 +5590,7 @@ export function validatePlan(
     ...bannedSportReintroduced.issues,
     ...finalObjectiveMismatch.issues,
     ...raceCalendarCoherence.issues,
+    ...durationCoverage.issues,
     ...injuryRiskCompliance.issues,
     ...titleFormat.issues,
     ...strategicRecapUniqueness.issues,
