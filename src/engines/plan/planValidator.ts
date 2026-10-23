@@ -2569,6 +2569,58 @@ function validateObjectiveSportCoherence(
   return { issues, score: 0 };
 }
 
+const CONSTRAINT_SPORT_TO_PLAN_LABEL: Partial<Record<ConstraintSport, string>> = {
+  swim: "Natation", bike: "Vélo", run: "Course", strength: "Renfo",
+};
+
+/**
+ * Sprint 3 (audit "fiabilisation moteur", 2026-10-23) — "empêcher toute
+ * substitution automatique de réintroduire une violation critique" : le
+ * réconciliateur SERVEUR (jsonPlanHandler.ts) ne consulte `bannedSports`
+ * nulle part dans ses fonctions d'insertion/substitution/déduplication
+ * (`findCatalogCandidateForSport` et consorts) — seul le bloc PROMPT
+ * (`buildAthleteConstraintsBlock`) en a connaissance. Si une correction
+ * déterministe post-génération réintroduit même UNE séance de la discipline
+ * explicitement bannie par le coach (ex. quota floor, dédoublonnage), rien
+ * ne le détectait jusqu'ici : `validateSportRatio` tolère une discipline à
+ * target=[0,0] jusqu'à ±3% (donc un faible nombre de séances réintroduites
+ * peut rester sous ce seuil et passer inaperçu), et `validateObjectiveSportCoherence`
+ * ne vérifie que l'ABSENCE d'une discipline obligatoire, jamais la PRÉSENCE
+ * d'une discipline bannie (ce n'est, par définition, jamais "obligatoire").
+ * Erreur bloquante (severity "error", jamais une tolérance de %) : une
+ * discipline explicitement bannie par le coach n'admet aucune séance, pas
+ * même une seule — contrairement à un écart de ratio, il n'y a ici aucune
+ * ambiguïté de seuil possible.
+ */
+function validateBannedSportNotReintroduced(
+  metrics: WeekMetrics[],
+  constraintsText: string | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const rules = parseAthleteConstraints(constraintsText);
+  if (rules.bannedSports.length === 0) return { issues: [], score: 100 };
+
+  const issues: ValidationIssue[] = [];
+  for (const sportKey of rules.bannedSports) {
+    const label = CONSTRAINT_SPORT_TO_PLAN_LABEL[sportKey];
+    if (!label) continue; // "any" (ban de jour générique) hors scope de ce contrôle
+    // Une séance "Brick" (bike+run combiné) réintroduit implicitement du vélo
+    // ET de la course — jamais de la natation (même convention que le calcul
+    // de ratio ci-dessus, L.2388-2389).
+    const brickContribution = label === "Vélo" || label === "Course" ? 1 : 0;
+    const total = metrics.reduce((sum, wm) =>
+      sum + (wm.sports[label] || 0) + brickContribution * (wm.sports["Brick"] || 0), 0);
+    if (total > 0) {
+      issues.push({
+        rule: "banned_sport_reintroduced",
+        severity: "error",
+        message: `${label} explicitement interdite par le coach, mais ${total} séance(s) présente(s) dans le plan final — une correction ou une substitution automatique a probablement réintroduit cette discipline après génération.`,
+        detail: `Contraintes renseignées : « ${rules.rawText} ». Aucune correction automatique ne doit pouvoir réintroduire silencieusement une discipline explicitement bannie — vérifiez le plan et, si disponible, la trace de réparation (réconciliateur) pour cette discipline avant utilisation.`,
+      });
+    }
+  }
+  return { issues, score: issues.length > 0 ? 0 : 100 };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // FINAL OBJECTIVE ↔ MAIN GOAL COHERENCE (bloquant, hors score pondéré)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -5396,6 +5448,7 @@ export function validatePlan(
   const lorang_ = validateLorangCategories(plan, objective, ambition);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
   const objectiveSportConflict = validateObjectiveSportCoherence(weekMetrics, objective, constraintsText);
+  const bannedSportReintroduced = validateBannedSportNotReintroduced(weekMetrics, constraintsText);
   const finalObjectiveMismatch = validateFinalObjectiveMatchesMainGoal(objective, raceGoals);
   const raceCalendarCoherence = validateRaceCalendarCoherence(raceGoals, planStartDate, plan.totalWeeks);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
@@ -5438,6 +5491,7 @@ export function validatePlan(
     ...dailySessionFloor.issues,
     ...sportObjective.issues,
     ...objectiveSportConflict.issues,
+    ...bannedSportReintroduced.issues,
     ...finalObjectiveMismatch.issues,
     ...raceCalendarCoherence.issues,
     ...injuryRiskCompliance.issues,
@@ -5528,11 +5582,14 @@ export function validatePlan(
   const wbalErrors = wbalFeasibility.issues.filter(i => i.severity === "error").length;
   const injuryRiskErrors = injuryRiskCompliance.issues.filter(i => i.severity === "error").length;
   const objectiveSportConflictErrors = objectiveSportConflict.issues.filter(i => i.severity === "error").length;
+  const bannedSportReintroducedErrors = bannedSportReintroduced.issues.filter(i => i.severity === "error").length;
   const finalObjectiveMismatchErrors = finalObjectiveMismatch.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
     : finalObjectiveMismatchErrors > 0
     ? `🏁 Objectif final incohérent — la compétition de fin de plan ne correspond pas à l'objectif principal déclaré, voir détail — décision du coach requise avant utilisation`
+    : bannedSportReintroducedErrors > 0
+    ? `🚫 Discipline bannie par le coach réintroduite dans le plan final — une correction automatique a probablement annulé une interdiction explicite, voir détail`
     : objectiveSportConflictErrors > 0
     ? `🎯 Objectif/contenu incompatible — 0 séance de la discipline exigée par l'objectif, voir détail — décision du coach requise avant utilisation`
     : injuryRiskErrors > 0

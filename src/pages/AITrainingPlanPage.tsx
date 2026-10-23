@@ -454,8 +454,20 @@ async function buildRegenPhaseCatalogs(
  * dans planValidator.ts) ne peut pas non plus se résoudre par une
  * correction de contenu ; elle exige que le coach revoie les dates/
  * priorités des objectifs saisis.
+ *
+ * `banned_sport_reintroduced` ajoutée (GRAND SPRINT P0, Sprint 3,
+ * 2026-10-23) : une discipline explicitement bannie par le coach mais
+ * tout de même présente dans le plan final (cf.
+ * validateBannedSportNotReintroduced, planValidator.ts) — typiquement une
+ * correction/substitution automatique post-génération qui a réintroduit la
+ * discipline bannie. Aucune "Sauvegarder quand même" possible : il n'existe
+ * aucun seuil acceptable pour une discipline que le coach a explicitement
+ * exclue, et accepter malgré tout reviendrait à entériner le contournement
+ * silencieux d'une instruction coach explicite.
  */
-export const NON_DEROGABLE_RULES = new Set(["objective_sport_conflict", "final_objective_mismatch"]);
+export const NON_DEROGABLE_RULES = new Set([
+  "objective_sport_conflict", "final_objective_mismatch", "banned_sport_reintroduced",
+]);
 
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();

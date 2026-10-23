@@ -20,6 +20,11 @@ import { NON_DEROGABLE_RULES } from "../AITrainingPlanPage";
  * — même famille qu'`objective_sport_conflict` : aucune correction de
  * contenu ne peut la résoudre, seule une décision du coach (dates/priorités
  * des objectifs saisis) le peut.
+ *
+ * GRAND SPRINT P0, Sprint 3 (2026-10-23) : extension à
+ * `banned_sport_reintroduced` (cf. planValidator.ts::validateBannedSportNotReintroduced)
+ * — une discipline explicitement bannie par le coach mais réintroduite par
+ * une correction automatique n'admet aucun seuil dérogeable.
  */
 describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrainingPlanPage)", () => {
   it("bloque réellement objective_sport_conflict (incohérence fondamentale objectif/contenu)", () => {
@@ -28,6 +33,10 @@ describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrain
 
   it("[CORRECTIF audit 70.3] bloque réellement final_objective_mismatch (incompatibilité objectif principal / compétition finale)", () => {
     expect(NON_DEROGABLE_RULES.has("final_objective_mismatch")).toBe(true);
+  });
+
+  it("[Sprint 3] bloque réellement banned_sport_reintroduced (discipline bannie réintroduite par une correction automatique)", () => {
+    expect(NON_DEROGABLE_RULES.has("banned_sport_reintroduced")).toBe(true);
   });
 
   it("ne bloque PAS les autres règles critiques existantes — restent dérogeables via confirmation explicite", () => {
@@ -49,8 +58,8 @@ describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrain
     }
   });
 
-  it("périmètre volontairement restreint à exactement 2 règles — pas un blocage de toutes les erreurs critiques", () => {
-    expect(NON_DEROGABLE_RULES.size).toBe(2);
+  it("périmètre volontairement restreint à exactement 3 règles — pas un blocage de toutes les erreurs critiques", () => {
+    expect(NON_DEROGABLE_RULES.size).toBe(3);
   });
 
   /**
