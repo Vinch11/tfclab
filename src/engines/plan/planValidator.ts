@@ -698,10 +698,16 @@ export function parseSessionDurationMin(session: ParsedSession): number | null {
     }
   }
 
-  // "45min", "45 min", "45'", "45′" — pure minutes (avoid "30/30" or rep counts by requiring a unit)
-  const mRe = /(?<!\d)(\d{1,3})\s*(?:min(?:utes?)?|'|′)(?!\d)/g;
+  // "45min", "45 min", "45'", "45′", "49.5min" — pure minutes (avoid "30/30"
+  // or rep counts by requiring a unit). Partie décimale optionnelle : Sprint
+  // 5 (audit "fiabilisation moteur", 2026-10-23) — sans elle, "49.5min"
+  // matchait seulement "5min" (le groupe \d{1,3} ne retombait que sur le
+  // chiffre juste avant "min", le "." cassant le match sur "49"), lisant 5
+  // au lieu de 49-50 : un faux calcul issu d'un arrondi/format décimal, pas
+  // d'une vraie répétition courte.
+  const mRe = /(?<!\d)(\d{1,3}(?:[.,]\d+)?)\s*(?:min(?:utes?)?|'|′)(?!\d)/g;
   while ((m = mRe.exec(text)) !== null) {
-    const mm = parseInt(m[1], 10);
+    const mm = Math.round(parseFloat(m[1].replace(",", ".")));
     // Skip very small values that are likely interval lengths (e.g. "3'" in "5x3'")
     // Heuristic: minutes >= 15 are likely session durations, smaller are intervals
     if (mm >= 15 && mm <= 300) {
@@ -713,6 +719,63 @@ export function parseSessionDurationMin(session: ParsedSession): number | null {
   if (!found) return null;
   // Cap at 4h (single session) to avoid runaway sums from rep durations
   return Math.min(total, 240);
+}
+
+/**
+ * GRAND SPRINT P0, Sprint 5 ("charge et prescription réelle"), 2026-10-23 :
+ * `parseSessionDurationMin` s'abstient honnêtement (retourne `null`, jamais
+ * une valeur inventée) quand une séance ne contient aucun jeton de durée
+ * explicite reconnu (ex. "5x1km allure 10K" — un bloc en distance sans
+ * allure fiable pour en déduire une durée, une alternance/répétition
+ * décrite autrement qu'en min/h). Mais `WeekMetrics.totalDurationMin`
+ * (extractWeekMetrics ci-dessus) ne fait QUE sommer les durées parseables —
+ * une séance non calculable contribue 0, SILENCIEUSEMENT, exactement comme
+ * si elle durait 0 minute. Sur une semaine où la plupart des séances ne
+ * sont pas calculables, `totalDurationMin` peut donc afficher une fraction
+ * minime du volume réellement prescrit (cas démontré : une semaine à
+ * 235min réellement prescrites lue comme 55min, les ~180min restantes
+ * venant de séances sans jeton min/h reconnu).
+ *
+ * `validateProgression` (ci-dessous, préexistant) se protégeait déjà de ce
+ * cas via un seuil de couverture (`sessionsWithDuration/activeSessions
+ * >= 0.6`) avant de faire confiance à `totalDurationMin`, repliant sur le
+ * nombre de séances sinon — mais `validateTaperVolumeReduction`,
+ * `validateMilestoneTransition` (check #2) et `validateWeeklyLoadConsistency`
+ * comparaient `totalDurationMin` directement, sans ce garde-fou : une
+ * semaine d'affûtage mal couverte pouvait paraître "correctement réduite"
+ * (ou l'inverse) sur une comparaison faite de deux nombres largement sous-
+ * comptés. Généralisé ici en un helper partagé, même seuil (0.6) que
+ * `validateProgression` pour rester cohérent plan-entier : abstention
+ * honnête (score 100, aucune issue) plutôt qu'un verdict fondé sur une
+ * durée non fiablement calculable — jamais un signal fabriqué.
+ */
+function weekHasReliableDuration(w: WeekMetrics): boolean {
+  return w.activeSessions === 0 || w.sessionsWithDuration / Math.max(1, w.activeSessions) >= 0.6;
+}
+
+/**
+ * Sprint 5 : "rendre les durées non calculables explicitement identifiables"
+ * — les contrôles ci-dessus s'ABSTIENNENT silencieusement dès qu'une
+ * semaine n'a pas une couverture de durée fiable (cf. weekHasReliableDuration),
+ * mais une abstention silencieuse reste une absence de signal, pas une
+ * information positive pour le coach. Ce contrôle dédié rend l'incertitude
+ * elle-même visible : severity "info" (jamais un score pondéré, jamais une
+ * alerte bloquante) — ce n'est pas une anomalie du plan, c'est une limite
+ * connue de l'extraction automatique de durée depuis le texte des séances.
+ */
+function validateDurationCoverage(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  for (const wm of metrics) {
+    if (wm.activeSessions === 0 || weekHasReliableDuration(wm)) continue;
+    issues.push({
+      rule: "duration_not_calculable",
+      severity: "info",
+      week: wm.weekNumber,
+      message: `S${wm.weekNumber}: durée non fiablement calculable pour ${wm.activeSessions - wm.sessionsWithDuration}/${wm.activeSessions} séance(s) (ex. blocs en distance/allure, alternances sans jeton min/h explicite)`,
+      detail: `Les contrôles basés sur le volume horaire réel (affûtage, charge hebdomadaire, continuité post-jalon) s'abstiennent pour cette semaine plutôt que de comparer des durées partiellement sous-comptées — le volume réellement prescrit peut être supérieur à ce que ${wm.totalDurationMin}min laisse supposer.`,
+    });
+  }
+  return { issues, score: 100 };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1765,6 +1828,19 @@ function validateTaperVolumeReduction(
   // dans ce fichier : silence honnête, pas un signal fabriqué).
   if (priorWeeks.length < 2) return { issues: [], score: 100 };
 
+  // Sprint 5 : couverture de durée insuffisante sur l'une des semaines
+  // comparées (référence OU affûtage) — abstention plutôt qu'un verdict
+  // fondé sur un totalDurationMin largement sous-compté (cf. docstring
+  // weekHasReliableDuration ci-dessus). Exclut la semaine de course elle-
+  // même de cette exigence : son contenu réel est volontairement bref
+  // (Jour J, pacing/nutrition) — une faible couverture de durée y est
+  // attendue, pas un signal d'extraction défaillante comme pour une
+  // semaine de contenu d'entraînement normal.
+  const nonRaceTaperWeeks = taperWindow.filter(w => w.scheduledWeekType !== "race");
+  if (!priorWeeks.every(weekHasReliableDuration) || !nonRaceTaperWeeks.every(weekHasReliableDuration)) {
+    return { issues: [], score: 100 };
+  }
+
   const priorAvgTotal = priorWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / priorWeeks.length;
   const priorMinTotal = Math.min(...priorWeeks.map(w => w.totalDurationMin));
   if (priorAvgTotal <= 0) return { issues: [], score: 100 }; // aucune durée exploitable sur la référence — rien à comparer
@@ -1885,7 +1961,12 @@ function validateMilestoneTransition(
 
     // 2) Récupération réelle la semaine suivant le jalon.
     const recoveryWeek = byWeek.get(goalWeek + 1);
-    const prepAvgTotal = prepWeeks.length > 0
+    // Sprint 5 : couverture de durée insuffisante sur une des semaines
+    // comparées — abstention plutôt qu'un verdict fondé sur un
+    // totalDurationMin sous-compté (cf. weekHasReliableDuration).
+    const durationReliable = prepWeeks.every(weekHasReliableDuration)
+      && (!recoveryWeek || weekHasReliableDuration(recoveryWeek));
+    const prepAvgTotal = durationReliable && prepWeeks.length > 0
       ? prepWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / prepWeeks.length
       : null;
     if (recoveryWeek && prepAvgTotal !== null && prepAvgTotal > 0
@@ -1903,7 +1984,8 @@ function validateMilestoneTransition(
     const resumeWeekNums: number[] = [];
     for (let w = goalWeek + 2; w <= Math.min(totalWeeks, goalWeek + 3); w++) resumeWeekNums.push(w);
     const resumeWeeks = resumeWeekNums.map(w => byWeek.get(w)).filter((w): w is WeekMetrics => !!w);
-    if (recoveryWeek && resumeWeeks.length > 0) {
+    if (recoveryWeek && weekHasReliableDuration(recoveryWeek) && resumeWeeks.length > 0
+      && resumeWeeks.every(weekHasReliableDuration)) {
       const resumeAvgTotal = resumeWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / resumeWeeks.length;
       if (resumeAvgTotal > 0 && resumeAvgTotal <= recoveryWeek.totalDurationMin) {
         issues.push({
@@ -2052,7 +2134,11 @@ function validateWeeklyLoadConsistency(
 
     let chronicAvgTotal: number | null = null;
     let usedDeclaredFallback = false;
-    if (priorWeeks.length >= 2) {
+    // Sprint 5 : un historique de CE plan dérivé de semaines à couverture de
+    // durée insuffisante n'est pas une référence fiable — abstention sur
+    // cette référence (repli sur la charge déclarée si disponible) plutôt
+    // qu'un ratio calculé sur un totalDurationMin sous-compté.
+    if (priorWeeks.length >= 2 && priorWeeks.every(weekHasReliableDuration)) {
       const avg = priorWeeks.reduce((s, w) => s + w.totalDurationMin, 0) / priorWeeks.length;
       if (avg > 0) chronicAvgTotal = avg;
     }
@@ -2061,6 +2147,10 @@ function validateWeeklyLoadConsistency(
       usedDeclaredFallback = true;
     }
     if (chronicAvgTotal === null) continue; // ni historique de CE plan, ni donnée déclarée exploitable
+    // La semaine courante elle-même doit aussi être fiablement calculable —
+    // sinon le ratio compare une référence valide à un totalDurationMin
+    // sous-compté pour CETTE semaine.
+    if (!weekHasReliableDuration(wm)) continue;
 
     const ratio = wm.totalDurationMin / chronicAvgTotal;
     let totalFlagged = false;
@@ -2182,6 +2272,11 @@ function validateLoadHistoryCoherence(
   const recentTotalMin = recent * 60;
   for (const wm of metrics.slice(0, consolidationWeeks)) {
     if (wm.scheduledWeekType !== "load") continue; // affûtage/décharge/course : hors périmètre, déjà couverts ailleurs
+    // Sprint 5 : une semaine à couverture de durée insuffisante peut afficher
+    // un totalDurationMin largement sous-compté — ce contrôle manquerait
+    // alors un VRAI dépassement de la limite de consolidation plutôt que
+    // d'en inventer un (cf. weekHasReliableDuration).
+    if (!weekHasReliableDuration(wm)) continue;
     // Dernière correction ciblée (consigne coach explicite, contre-vérification
     // Codex sur b691980), point A — VOLUME : la limite EFFECTIVE de la fenêtre
     // de consolidation (`recent`, ex. 17h) n'était vérifiée qu'avec la marge de
@@ -2489,6 +2584,20 @@ const SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT: Record<"swim" | "bike" | "run", Const
  *   génération. Dans les deux cas : erreur bloquante (severity "error", donc
  *   CRITICAL_SCORE_CEILING s'applique), jamais une substitution silencieuse
  *   d'une autre discipline.
+ *
+ * Audit "plan 70.3 sans natation" (2026-10-23) : un objectif MULTI-discipline
+ * (IM/703/Sprint/Olympic) sortait jusqu'ici immédiatement de ce contrôle
+ * ("hors scope") — cas réel constaté : plan 70.3 de 32 semaines généré avec
+ * 0 natation, 7 vélo, 163 course. `validateSportRatio` (seul autre contrôle
+ * de discipline pour le multi-sport) ne couvre que les ÉCARTS DE RATIO : si
+ * une discipline est absente, son % cible est par construction redistribué
+ * vers les disciplines restantes (`redistributeTargetsForBannedSports`),
+ * donc 0% peut devenir "conforme" sans qu'aucun bannissement explicite ne le
+ * justifie. Le bloc ci-dessous ajoute un filet de PRÉSENCE (jamais un quota
+ * hebdomadaire — uniquement "0 séance sur l'ensemble du plan") pour chaque
+ * discipline que SPORT_RATIO_TARGETS déclare attendue (borne basse de sa
+ * plage de ratio > 0), avec la même exception de bannissement explicite du
+ * coach que ci-dessus.
  */
 function validateObjectiveSportCoherence(
   metrics: WeekMetrics[],
@@ -2499,32 +2608,246 @@ function validateObjectiveSportCoherence(
   const target = SPORT_RATIO_TARGETS[objKey];
   if (!target) return { issues: [], score: 100 };
 
-  const sportKeys = Object.keys(target) as Array<"swim" | "bike" | "run">;
-  if (sportKeys.length !== 1) return { issues: [], score: 100 }; // multi-sport (IM/703/Sprint/Olympic) — hors scope de ce contrôle
-
-  const mandatory = sportKeys[0];
-  const label = SPORT_RATIO_KEY_TO_LABEL[mandatory];
-  const totalSessions = metrics.reduce((sum, wm) => sum + (wm.sports[label] || 0), 0);
-  if (totalSessions > 0) return { issues: [], score: 100 };
-
   const hasAnyActiveSession = metrics.some((wm) =>
     Object.entries(wm.sports).some(([sport, count]) => sport !== "Repos" && count > 0),
   );
   if (!hasAnyActiveSession) return { issues: [], score: 100 }; // plan vide — couvert par d'autres règles
 
   const rules = parseAthleteConstraints(constraintsText);
-  const constraintSport = SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT[mandatory];
-  const banned = rules.bannedSports.includes(constraintSport);
+  const sportKeys = Object.keys(target) as Array<"swim" | "bike" | "run">;
+
+  if (sportKeys.length === 1) {
+    const mandatory = sportKeys[0];
+    const label = SPORT_RATIO_KEY_TO_LABEL[mandatory];
+    const totalSessions = metrics.reduce((sum, wm) => sum + (wm.sports[label] || 0), 0);
+    if (totalSessions > 0) return { issues: [], score: 100 };
+
+    const constraintSport = SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT[mandatory];
+    const banned = rules.bannedSports.includes(constraintSport);
+    const excerpt = rules.rawText.length > 200 ? `${rules.rawText.slice(0, 200)}…` : rules.rawText;
+
+    const message = banned
+      ? `Objectif "${objective}" repose entièrement sur ${label}, et une contrainte du texte libre l'interdit explicitement (« ${excerpt} ») — incompatibilité objectif/contraintes à trancher par le coach avant d'utiliser ce plan (0 séance de ${label} sur l'ensemble du plan).`
+      : `Objectif "${objective}" repose entièrement sur ${label}, mais 0 séance de ${label} sur l'ensemble du plan, sans contrainte explicite le justifiant — anomalie de génération à corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).`;
+
+    return {
+      issues: [{ rule: "objective_sport_conflict", severity: "error", message }],
+      score: 0,
+    };
+  }
+
+  // Multi-sport : absence totale d'une discipline obligatoire (borne basse
+  // de ratio > 0), sauf bannissement explicite du coach.
+  const missingMandatory = sportKeys.filter((sportKey) => {
+    const lo = target[sportKey]![0];
+    if (lo <= 0) return false; // pas "obligatoire" pour cet objectif
+    const label = SPORT_RATIO_KEY_TO_LABEL[sportKey];
+    const totalSessions = metrics.reduce((sum, wm) => sum + (wm.sports[label] || 0), 0);
+    if (totalSessions > 0) return false;
+    const constraintSport = SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT[sportKey];
+    return !rules.bannedSports.includes(constraintSport);
+  });
+
+  if (missingMandatory.length === 0) return { issues: [], score: 100 };
+
   const excerpt = rules.rawText.length > 200 ? `${rules.rawText.slice(0, 200)}…` : rules.rawText;
+  const issues: ValidationIssue[] = missingMandatory.map((sportKey) => {
+    const label = SPORT_RATIO_KEY_TO_LABEL[sportKey];
+    const [lo, hi] = target[sportKey]!;
+    return {
+      rule: "objective_sport_conflict",
+      severity: "error",
+      message: `Objectif "${objective}" (multi-discipline) attend ${label} (${lo}-${hi}% du plan), mais 0 séance de ${label} sur l'ensemble du plan, sans contrainte explicite le justifiant (contraintes renseignées : « ${excerpt || "aucune"} ») — anomalie de génération à corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).`,
+    };
+  });
 
-  const message = banned
-    ? `Objectif "${objective}" repose entièrement sur ${label}, et une contrainte du texte libre l'interdit explicitement (« ${excerpt} ») — incompatibilité objectif/contraintes à trancher par le coach avant d'utiliser ce plan (0 séance de ${label} sur l'ensemble du plan).`
-    : `Objectif "${objective}" repose entièrement sur ${label}, mais 0 séance de ${label} sur l'ensemble du plan, sans contrainte explicite le justifiant — anomalie de génération à corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).`;
+  return { issues, score: 0 };
+}
 
+const CONSTRAINT_SPORT_TO_PLAN_LABEL: Partial<Record<ConstraintSport, string>> = {
+  swim: "Natation", bike: "Vélo", run: "Course", strength: "Renfo",
+};
+
+/**
+ * Sprint 3 (audit "fiabilisation moteur", 2026-10-23) — "empêcher toute
+ * substitution automatique de réintroduire une violation critique" : le
+ * réconciliateur SERVEUR (jsonPlanHandler.ts) ne consulte `bannedSports`
+ * nulle part dans ses fonctions d'insertion/substitution/déduplication
+ * (`findCatalogCandidateForSport` et consorts) — seul le bloc PROMPT
+ * (`buildAthleteConstraintsBlock`) en a connaissance. Si une correction
+ * déterministe post-génération réintroduit même UNE séance de la discipline
+ * explicitement bannie par le coach (ex. quota floor, dédoublonnage), rien
+ * ne le détectait jusqu'ici : `validateSportRatio` tolère une discipline à
+ * target=[0,0] jusqu'à ±3% (donc un faible nombre de séances réintroduites
+ * peut rester sous ce seuil et passer inaperçu), et `validateObjectiveSportCoherence`
+ * ne vérifie que l'ABSENCE d'une discipline obligatoire, jamais la PRÉSENCE
+ * d'une discipline bannie (ce n'est, par définition, jamais "obligatoire").
+ * Erreur bloquante (severity "error", jamais une tolérance de %) : une
+ * discipline explicitement bannie par le coach n'admet aucune séance, pas
+ * même une seule — contrairement à un écart de ratio, il n'y a ici aucune
+ * ambiguïté de seuil possible.
+ */
+function validateBannedSportNotReintroduced(
+  metrics: WeekMetrics[],
+  constraintsText: string | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  const rules = parseAthleteConstraints(constraintsText);
+  if (rules.bannedSports.length === 0) return { issues: [], score: 100 };
+
+  const issues: ValidationIssue[] = [];
+  for (const sportKey of rules.bannedSports) {
+    const label = CONSTRAINT_SPORT_TO_PLAN_LABEL[sportKey];
+    if (!label) continue; // "any" (ban de jour générique) hors scope de ce contrôle
+    // Une séance "Brick" (bike+run combiné) réintroduit implicitement du vélo
+    // ET de la course — jamais de la natation (même convention que le calcul
+    // de ratio ci-dessus, L.2388-2389).
+    const brickContribution = label === "Vélo" || label === "Course" ? 1 : 0;
+    const total = metrics.reduce((sum, wm) =>
+      sum + (wm.sports[label] || 0) + brickContribution * (wm.sports["Brick"] || 0), 0);
+    if (total > 0) {
+      issues.push({
+        rule: "banned_sport_reintroduced",
+        severity: "error",
+        message: `${label} explicitement interdite par le coach, mais ${total} séance(s) présente(s) dans le plan final — une correction ou une substitution automatique a probablement réintroduit cette discipline après génération.`,
+        detail: `Contraintes renseignées : « ${rules.rawText} ». Aucune correction automatique ne doit pouvoir réintroduire silencieusement une discipline explicitement bannie — vérifiez le plan et, si disponible, la trace de réparation (réconciliateur) pour cette discipline avant utilisation.`,
+      });
+    }
+  }
+  return { issues, score: issues.length > 0 ? 0 : 100 };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FINAL OBJECTIVE ↔ MAIN GOAL COHERENCE (bloquant, hors score pondéré)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Bug réel démontré (audit "plan 70.3 sans natation", 2026-10-23) : un plan
+ * dont l'objectif principal déclaré est "703" a été généré avec 0 natation,
+ * 7 vélo, 163 course, et une compétition finale "Corrida WSL 10 km" au lieu
+ * du 70.3. Cause tracée : `classifyMultiObjectiveGoalsClient` (cf.
+ * multiObjectiveClassification.ts) classe les objectifs datés PAR DATE
+ * SEULE — la priorité coach ("A"/"B"/"C") n'est utilisée que si une date
+ * manque — et désigne INCONDITIONNELLEMENT le dernier objectif daté comme
+ * pic final (`isFullPeak: true`), sans passer par les filtres d'éligibilité
+ * (`canBeIndependentPeak`/`minGapWeeksForFullPeak`) qui ne s'appliquent
+ * qu'aux objectifs non-derniers. Si un jalon secondaire (priorité B/C, ex.
+ * un 10K de préparation) a une date postérieure à celle de l'objectif
+ * principal (priorité A) — même par une simple erreur de saisie — ce jalon
+ * devient le pic final du plan : son objectif devient `catalogObjective`
+ * pour la fenêtre de génération correspondante (`planWindowRegen.ts`,
+ * `jsonPlanHandler.ts`), qui pilote à son tour le verrou de répartition
+ * disciplines du prompt système (`buildObjectiveSportLock`,
+ * `systemPrompt.ts`) — d'où l'absence de natation/vélo et la compétition
+ * finale erronée, par UN SEUL mécanisme.
+ *
+ * Ce contrôle ne corrige PAS la classification elle-même (hors scope de ce
+ * correctif — voir AGENTS.md pour la recommandation de correction à la
+ * source, non implémentée ici par décision du coach) : il détecte, en
+ * réutilisant la MÊME fonction de classification déjà utilisée par
+ * `validateMilestoneTransition` ci-dessus sur les MÊMES `raceGoals` déjà
+ * transmis à `validatePlan`, si l'objectif du pic final qu'elle calcule
+ * diverge de l'objectif principal déclaré par le coach — signal direct
+ * d'une substitution d'objectif final, qu'elle vienne de ce mécanisme
+ * précis ou d'un autre. Erreur bloquante (non-dérogeable, voir
+ * NON_DEROGABLE_RULES côté AITrainingPlanPage.tsx) : jamais une correction
+ * silencieuse, toujours une décision du coach.
+ */
+function validateFinalObjectiveMatchesMainGoal(
+  objective: string | undefined,
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  if (!objective || !raceGoals || raceGoals.length < 2) return { issues: [], score: 100 };
+
+  // Correction Sprint 1 (hiérarchie multiobjectifs, 2026-10-23) :
+  // `classifyMultiObjectiveGoalsClient` n'accorde plus `isFullPeak: true`
+  // au dernier objectif daté sans condition — seul le dernier objectif daté
+  // ÉLIGIBLE à un pic indépendant (`canBeIndependentPeak`) l'obtient
+  // désormais. `isLast` (littéralement "dernier objectif daté") n'est donc
+  // PLUS un proxy fiable du "pic final gouvernant" : un jalon inéligible
+  // (ex. 10K) resté chronologiquement après l'objectif principal reste
+  // `isLast: true` mais `isFullPeak: false` — le chercher via `isLast`
+  // produirait un FAUX POSITIF ici (la classification a déjà correctement
+  // neutralisé ce cas). Le "pic final gouvernant" est maintenant le DERNIER
+  // élément, par date, parmi ceux dont `isFullPeak` est vrai — exactement
+  // le même critère que `computeObjectiveCycleSegments` utilise pour
+  // désigner `isLastCycle: true` (dernier `goalWeek` parmi les pics
+  // complets). Plusieurs pics complets légitimes (PR #389, ex. Marathon A +
+  // Ironman B lointain) restent sans faux positif : le pic gouvernant est
+  // alors le plus TARDIF d'entre eux, cohérent avec l'objectif déclaré quel
+  // que soit celui qui vient chronologiquement en premier.
+  const classified = classifyMultiObjectiveGoalsClient(raceGoals);
+  const fullPeaks = classified.filter((c) => c.isFullPeak && c.goal.raceDate);
+  const fullPeak = fullPeaks[fullPeaks.length - 1];
+  if (!fullPeak) return { issues: [], score: 100 };
+
+  const mainObjKey = normalizeObjectiveKey(objective);
+  const peakObjKey = normalizeObjectiveKey(fullPeak.goal.objective || "");
+  if (!mainObjKey || !peakObjKey || mainObjKey === peakObjKey) return { issues: [], score: 100 };
+
+  const label = fullPeak.goal.raceName || fullPeak.goal.objective;
   return {
-    issues: [{ rule: "objective_sport_conflict", severity: "error", message }],
+    issues: [{
+      rule: "final_objective_mismatch",
+      severity: "error",
+      message: `L'objectif principal déclaré ("${objective}") ne correspond pas au pic final calculé pour ce plan ("${label}") — un objectif secondaire semble avoir remplacé l'objectif principal en fin de plan.`,
+      detail: `Vérifiez les dates et priorités des objectifs saisis : un objectif secondaire dont la date tombe après celle de l'objectif principal peut lui prendre la place de pic final, même si sa priorité est inférieure (A > B > C). Cette incohérence doit être corrigée (date ou priorité) avant d'utiliser ce plan — aucune correction automatique ne doit la contourner silencieusement.`,
+    }],
     score: 0,
   };
+}
+
+/**
+ * Sprint 1/4 (audit "fiabilisation moteur", 2026-10-23) — "Détecter les
+ * incohérences calendaires" : les objectifs datés transmis à `validatePlan`
+ * (`raceGoals`/`planStartDate`, déjà câblés pour `validateMilestoneTransition`/
+ * `validateFinalObjectiveMatchesMainGoal`) peuvent contenir des dates
+ * incohérentes avec le plan généré — une date de course ANTÉRIEURE à la
+ * date de début du plan (erreur de saisie probable : année ou mois inversé),
+ * ou une date qui tombe largement AU-DELÀ de la durée réelle du plan
+ * (`plan.totalWeeks`). Avant ce correctif, ce genre d'incohérence n'était
+ * jamais signalé en tant que tel : une date antérieure au départ est
+ * silencieusement exclue du calcul de `raceNums` (AITrainingPlanPage.tsx,
+ * `if (days >= 0) raceNums.push(...)`), et une date hors plan produit un
+ * numéro de semaine qui ne correspond à aucune semaine réelle (cf. le fix
+ * ci-dessus sur `validateRaceDayPresence`, qui ne fait que réagir à la
+ * conséquence sans jamais nommer la cause calendaire elle-même). Avertissement
+ * uniquement (jamais bloquant) : une tolérance de +1 semaine est acceptée
+ * (même tolérance que `computeObjectiveCycleSegments`, décalage normal
+ * dates↔durée de plan), et un jalon légitimement positionné APRÈS le pic
+ * final du plan (ex. une course de clôture post-saison) reste possible —
+ * signalé pour confirmation du coach, jamais corrigé silencieusement.
+ */
+function validateRaceCalendarCoherence(
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+  planStartDate: string | undefined,
+  totalWeeks: number,
+): { issues: ValidationIssue[]; score: number } {
+  if (!raceGoals || raceGoals.length === 0 || !planStartDate || !(totalWeeks > 0)) {
+    return { issues: [], score: 100 };
+  }
+
+  const issues: ValidationIssue[] = [];
+  for (const goal of raceGoals) {
+    if (!goal.raceDate) continue;
+    const label = goal.raceName || goal.objective;
+    const week = computeGoalWeekFromDates(planStartDate, goal.raceDate);
+    if (week === undefined) {
+      issues.push({
+        rule: "calendar_incoherence",
+        severity: "warning",
+        message: `📅 Course "${label}" datée avant le début du plan (${goal.raceDate}) — vérifiez la date saisie (année/mois probablement inversé).`,
+        detail: "Une course dont la date tombe avant le début du plan n'est prise en compte par aucun calcul de semaine (jour de course, jalon, pic final) — elle est silencieusement ignorée tant que la date n'est pas corrigée.",
+      });
+    } else if (week > totalWeeks + 1) {
+      issues.push({
+        rule: "calendar_incoherence",
+        severity: "warning",
+        message: `📅 Course "${label}" datée S${week}, au-delà des ${totalWeeks} semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.`,
+        detail: "Cette course ne peut être prise en compte (jour de course, jalon, affûtage) car sa date calculée tombe hors des semaines réellement générées.",
+      });
+    }
+  }
+  return { issues, score: issues.length > 0 ? 70 : 100 };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3771,7 +4094,26 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
 
   for (const weekNum of targetWeeks) {
     const week = plan.weeks.find(w => w.weekNumber === weekNum);
-    if (!week) continue;
+    if (!week) {
+      // Sprint 4 (audit "fiabilisation moteur", 2026-10-23) : avant ce fix,
+      // une semaine cible calculée (date de course → numéro de semaine) qui
+      // ne correspond à AUCUNE semaine réelle du plan généré (erreur de
+      // calendrier : date de course mal positionnée, plan plus court que
+      // prévu, décalage de durée) désactivait silencieusement tout le
+      // contrôle `race_day` pour cette course — ni signal "jour de course
+      // absent" ni aucun autre avertissement, alors que l'incohérence est
+      // justement la cause qui empêche de la détecter normalement. Devient
+      // un avertissement explicite plutôt qu'une correction silencieuse.
+      issues.push({
+        rule: "race_day",
+        severity: "warning",
+        week: weekNum,
+        message: `📅 Incohérence calendaire — la semaine S${weekNum} calculée pour une course n'existe pas dans ce plan de ${plan.weeks.length} semaine(s)`,
+        detail: "La date de cette course, une fois convertie en numéro de semaine depuis la date de début du plan, tombe hors des semaines réellement générées — vérifiez la date de la course et la durée du plan avant d'utiliser ce plan.",
+      });
+      score = Math.min(score, 50);
+      continue;
+    }
 
     const allSessions = week.sessions || [];
     const realSessions = allSessions.filter(s => !s.isRest);
@@ -4019,6 +4361,54 @@ function validateSessionDensity(
     ? Math.round((compliant / scanned) * 100) - Math.min(30, issues.filter((i) => i.severity === "error" && /jour/.test(i.message)).length * 10)
     : Math.max(0, 100 - issues.length * 20);
   return { issues, score: Math.max(0, Math.min(100, score)) };
+}
+
+/**
+ * GRAND SPRINT P0, Sprint 6 ("décisions du coach"), 2026-10-23 — "contrôler
+ * la présence du renforcement demandé" : `strengthSessionsPerWeek` (UI
+ * "Renforcement/sem", 0-3) est transmis au prompt système comme une
+ * instruction stricte ("Inclure EXACTEMENT N séance(s) de renforcement/PPG
+ * par semaine"), mais rien ne vérifiait jusqu'ici que le plan réellement
+ * généré respecte ce nombre — ni sa présence (N>0), ni son absence stricte
+ * (N=0, "Aucun" explicitement choisi par le coach). Comparaison STRICTE
+ * (delta=0 attendu), pas la tolérance ±1 de `validateSessionDensity`
+ * ci-dessus : le prompt demande un nombre EXACT, pas approximatif. Semaines
+ * de décharge/course exclues (hors périmètre, comme partout ailleurs dans
+ * ce fichier). `strengthSessionsPerWeek` omis/`null` = contrôle inactif —
+ * aucune donnée de contrat disponible, jamais un signal fabriqué.
+ */
+function validateStrengthSessionsRequested(
+  plan: ParsedPlan,
+  metrics: WeekMetrics[],
+  strengthSessionsPerWeek: number | null | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  if (strengthSessionsPerWeek == null || strengthSessionsPerWeek < 0) return { issues: [], score: 100 };
+
+  const issues: ValidationIssue[] = [];
+  let scanned = 0;
+  let compliant = 0;
+  for (let i = 0; i < plan.weeks.length; i++) {
+    const w = plan.weeks[i];
+    const wm = metrics[i];
+    if (!wm || wm.isContentOrScheduleDeload || wm.isRaceWeek) continue; // hors périmètre, comme ailleurs dans ce fichier
+    scanned++;
+    const actual = wm.sports["Renfo"] || 0;
+    const delta = actual - strengthSessionsPerWeek;
+    if (delta === 0) {
+      compliant++;
+      continue;
+    }
+    issues.push({
+      rule: "strength_sessions_requested",
+      severity: Math.abs(delta) === 1 ? "warning" : "error",
+      week: w.weekNumber,
+      message: `S${w.weekNumber}: ${actual} séance(s) de renforcement vs ${strengthSessionsPerWeek} demandée(s) par le coach (Δ${delta > 0 ? "+" : ""}${delta})`,
+      detail: `Le coach a demandé EXACTEMENT ${strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine (UI "Renforcement/sem") — cette instruction est transmise au prompt système mais son respect n'était jusqu'ici jamais vérifié sur le plan réellement généré.`,
+    });
+  }
+
+  const score = scanned > 0 ? Math.round((compliant / scanned) * 100) : 100;
+  return { issues, score };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -5126,6 +5516,18 @@ export function validatePlan(
    * tout appelant qui ne le fournit pas encore).
    */
   ambitionAudit?: AmbitionAudit | null,
+  /**
+   * GRAND SPRINT P0, Sprint 6 ("décisions du coach"), 2026-10-23 : nombre
+   * de séances de renforcement/PPG EXACTEMENT demandées par semaine
+   * (PlanConfig.strengthSessionsPerWeek, UI "Renforcement/sem", 0-3) —
+   * transmis au prompt système ("Inclure EXACTEMENT N séance(s) de
+   * renforcement... par semaine") mais jusqu'ici jamais vérifié sur le plan
+   * réellement généré. Pilote exclusivement `validateStrengthSessionsRequested`.
+   * Omis/`null` = contrôle inactif (comportement inchangé pour tout
+   * appelant qui ne le fournit pas encore) — jamais un signal fabriqué en
+   * l'absence de cette donnée du contrat.
+   */
+  strengthSessionsPerWeek?: number | null,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -5198,9 +5600,14 @@ export function validatePlan(
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
+  const strengthSessionsRequested = validateStrengthSessionsRequested(plan, weekMetrics, strengthSessionsPerWeek);
   const lorang_ = validateLorangCategories(plan, objective, ambition);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
   const objectiveSportConflict = validateObjectiveSportCoherence(weekMetrics, objective, constraintsText);
+  const bannedSportReintroduced = validateBannedSportNotReintroduced(weekMetrics, constraintsText);
+  const finalObjectiveMismatch = validateFinalObjectiveMatchesMainGoal(objective, raceGoals);
+  const raceCalendarCoherence = validateRaceCalendarCoherence(raceGoals, planStartDate, plan.totalWeeks);
+  const durationCoverage = validateDurationCoverage(weekMetrics);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
   // #18 lot 1 : règles INVIOLABLE/OBLIGATOIRE sans contrôle post-génération jusqu'ici
   const titleFormat = validateTitleFormat(plan);
@@ -5234,6 +5641,7 @@ export function validatePlan(
     ...limiterCoherence.issues,
     ...wbalFeasibility.issues,
     ...sessionDensity_.issues,
+    ...strengthSessionsRequested.issues,
     ...lorang_.issues,
     ...startToRunStrength.issues,
     ...trailBackToBack.issues,
@@ -5241,6 +5649,10 @@ export function validatePlan(
     ...dailySessionFloor.issues,
     ...sportObjective.issues,
     ...objectiveSportConflict.issues,
+    ...bannedSportReintroduced.issues,
+    ...finalObjectiveMismatch.issues,
+    ...raceCalendarCoherence.issues,
+    ...durationCoverage.issues,
     ...injuryRiskCompliance.issues,
     ...titleFormat.issues,
     ...strategicRecapUniqueness.issues,
@@ -5329,8 +5741,14 @@ export function validatePlan(
   const wbalErrors = wbalFeasibility.issues.filter(i => i.severity === "error").length;
   const injuryRiskErrors = injuryRiskCompliance.issues.filter(i => i.severity === "error").length;
   const objectiveSportConflictErrors = objectiveSportConflict.issues.filter(i => i.severity === "error").length;
+  const bannedSportReintroducedErrors = bannedSportReintroduced.issues.filter(i => i.severity === "error").length;
+  const finalObjectiveMismatchErrors = finalObjectiveMismatch.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : finalObjectiveMismatchErrors > 0
+    ? `🏁 Objectif final incohérent — la compétition de fin de plan ne correspond pas à l'objectif principal déclaré, voir détail — décision du coach requise avant utilisation`
+    : bannedSportReintroducedErrors > 0
+    ? `🚫 Discipline bannie par le coach réintroduite dans le plan final — une correction automatique a probablement annulé une interdiction explicite, voir détail`
     : objectiveSportConflictErrors > 0
     ? `🎯 Objectif/contenu incompatible — 0 séance de la discipline exigée par l'objectif, voir détail — décision du coach requise avant utilisation`
     : injuryRiskErrors > 0

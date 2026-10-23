@@ -34,6 +34,19 @@ export interface AthleteConstraintRules {
   rawText: string;
   /** true si au moins une règle dure a été extraite. */
   hasHardRules: boolean;
+  /**
+   * Sprint 2 (audit "fiabilisation moteur", 2026-10-23) : fragments où une
+   * interdiction de sport a été détectée grammaticalement MAIS accompagnée
+   * d'un qualificatif restrictif (lieu, condition, fréquence — cf.
+   * PARTIAL_QUALIFIER_RX) qui en fait probablement une restriction PARTIELLE
+   * plutôt qu'un bannissement total ("natation interdite EN EAU FROIDE" ≠
+   * "natation interdite"). Ces fragments ne rejoignent PAS `bannedSports`
+   * (jamais de redistribution de quota à 0% sur une simple ambiguïté — cf.
+   * `redistributeTargetsForBannedSports`, planValidator.ts) mais sont
+   * reportés ici pour que le coach puisse les voir distinctement et les
+   * reformuler si un vrai bannissement total était voulu.
+   */
+  ambiguousRestrictions: string[];
 }
 
 const SPORT_PATTERNS: Array<{ sport: ConstraintSport; rx: RegExp }> = [
@@ -114,6 +127,48 @@ function detectBannedSportStrict(fragment: string): ConstraintSport | null {
   return null;
 }
 
+/**
+ * Bug réel (audit "fiabilisation moteur", 2026-10-23, Sprint 2) :
+ * `detectBannedSportStrict` ci-dessus exige une proximité grammaticale
+ * négation↔sport, mais ne regarde JAMAIS ce qui suit cette proximité —
+ * "natation interdite EN EAU FROIDE" et "pas de natation EN MER" matchent
+ * donc comme des bannissements TOTAUX identiques à "natation interdite",
+ * alors que le coach restreint une CONDITION précise (lieu/température),
+ * pas la natation en général (ex. en piscine chauffée). Conséquence réelle :
+ * `redistributeTargetsForBannedSports` (planValidator.ts) redistribue le
+ * quota natation à 0% pour tout le plan et traite 0 séance de natation
+ * comme conforme, alors que le coach attend des séances natation en
+ * piscine partout sauf en mer/eau froide.
+ *
+ * Correctif, même philosophie que BAN_PATTERNS ci-dessus (préférer
+ * l'abstention à l'invention) : un fragment qui contient À LA FOIS un ban
+ * détecté ET un qualificatif restrictif reconnu (lieu/condition/durée) ne
+ * rejoint PAS `bannedSports` — il reste en texte libre (transmis tel quel
+ * au prompt, `rawText`), seule distinction visible dans `ambiguousRestrictions`
+ * pour que le coach puisse reformuler s'il voulait vraiment un ban total.
+ * Le seul mécanisme de désambiguïsation existant avant ce correctif était
+ * la présence d'un NOM DE JOUR explicite (→ `dayBan`, pas un ban global) ;
+ * celui-ci généralise le même principe à d'autres qualificatifs fréquents.
+ */
+const PARTIAL_QUALIFIER_RX = new RegExp(
+  [
+    "\\bsauf\\b", "\\bexcept[ée]e?\\b", "\\bhormis\\b",
+    "\\bseulement\\b", "\\buniquement\\b",
+    "\\ben\\s+(?:eau|mer|rivi[èe]re|lac|ext[ée]rieur|altitude|comp[ée]tition)\\b",
+    "\\bopen\\s*water\\b",
+    "\\ben\\s+cas\\s+de\\b", "\\bsous\\s+conditions?\\b",
+    "\\btemporairement\\b", "\\bpour\\s+le\\s+moment\\b", "\\bpour\\s+l['’]instant\\b",
+    "\\bjusqu['’]\\s*[aà]\\b", "\\b[àa]\\s+partir\\s+de\\b",
+  ].join("|"),
+  "i",
+);
+
+/** Réautorisation explicite d'un sport précédemment banni dans le même
+ *  champ libre — ex. "pas de natation en mer, autorisée en piscine". Même
+ *  philosophie que PARTIAL_QUALIFIER_RX : un ban détecté plus tôt dans le
+ *  texte n'est définitif que si rien plus loin ne le nuance explicitement. */
+const REAUTHORIZATION_RX = /\b(autoris[ée]e?s?|permis(?:e)?s?|possible|ok|tol[ée]r[ée]e?s?)\b/i;
+
 function normalizeDay(raw: string): WeekDay | null {
   const d = raw
     .toLowerCase()
@@ -144,6 +199,7 @@ export function parseAthleteConstraints(
     injuries: [],
     rawText,
     hasHardRules: false,
+    ambiguousRestrictions: [],
   };
   if (!rawText) return rules;
 
@@ -185,7 +241,14 @@ export function parseAthleteConstraints(
     // explicite — risque de faux positif bien plus faible en pratique).
     const bannedSport = detectBannedSportStrict(frag);
     if (days.length === 0 && bannedSport !== null) {
-      if (!rules.bannedSports.includes(bannedSport)) rules.bannedSports.push(bannedSport);
+      // Sprint 2 : un qualificatif restrictif (lieu/condition/durée) dans ce
+      // même fragment fait probablement de ce ban une restriction PARTIELLE,
+      // pas un bannissement total — cf. docstring PARTIAL_QUALIFIER_RX.
+      if (PARTIAL_QUALIFIER_RX.test(frag)) {
+        if (!rules.ambiguousRestrictions.includes(frag)) rules.ambiguousRestrictions.push(frag);
+      } else if (!rules.bannedSports.includes(bannedSport)) {
+        rules.bannedSports.push(bannedSport);
+      }
       continue;
     }
 
@@ -195,6 +258,21 @@ export function parseAthleteConstraints(
         rules.injuries.push(frag);
         break;
       }
+    }
+  }
+
+  // Sprint 2 : réautorisation explicite plus loin dans le MÊME champ libre
+  // ("pas de natation en mer, autorisée en piscine") — un ban détecté par
+  // co-occurrence négation↔sport n'est définitif que si rien d'autre dans
+  // le texte ne le nuance explicitement pour ce sport précis.
+  for (const frag of fragments) {
+    if (!REAUTHORIZATION_RX.test(frag)) continue;
+    const sport = detectSport(frag);
+    if (sport === "any") continue;
+    const idx = rules.bannedSports.indexOf(sport);
+    if (idx !== -1) {
+      rules.bannedSports.splice(idx, 1);
+      if (!rules.ambiguousRestrictions.includes(frag)) rules.ambiguousRestrictions.push(frag);
     }
   }
 

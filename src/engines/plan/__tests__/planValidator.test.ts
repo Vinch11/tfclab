@@ -1794,3 +1794,95 @@ describe("validateKeySessions — plancher par sport (audit génération de plan
   });
 });
 
+/**
+ * Audit "plan 70.3 sans natation" (2026-10-23), garde-fous P0 — tests
+ * obligatoires complémentaires (hors ceux déjà verrouillés dans
+ * planValidator.objectiveSportConflict.test.ts et
+ * planValidator.finalObjectiveMismatch.test.ts).
+ */
+describe("garde-fous P0 (audit plan 70.3 sans natation) — tests obligatoires complémentaires", () => {
+  /**
+   * [TEST OBLIGATOIRE] confirmatoire : un vélo "quasi absent" (présent, mais
+   * largement sous la cible 40-50% d'un 70.3) N'EST PAS "0 séance" — le
+   * filet de présence (garde-fou 1, validateObjectiveSportCoherence) ne le
+   * détecte donc PAS, par construction (il ne couvre que l'absence TOTALE).
+   * C'est `validateSportRatio` (règle "sport_ratio", déjà existante, non
+   * modifiée par ce correctif) qui couvre ce cas par son écart de ratio.
+   * Ce test confirme que le filet global reste complet : présence totale
+   * (garde-fou 1) + écart de ratio (sport_ratio, préexistant) couvrent
+   * ensemble "0 séance" ET "quasiment 0 séance", sans trou entre les deux.
+   */
+  it("70.3 avec vélo quasi absent (1 séance sur tout le plan, ≈2% du total) : objective_sport_conflict se tait (vélo non totalement absent), mais sport_ratio signale l'écart", () => {
+    const weeks: ParsedWeek[] = [];
+    for (let w = 1; w <= 8; w++) {
+      const sessions: Partial<ParsedSession>[] = [
+        { sport: "Natation", title: "Technique + continu", details: "Endurance" },
+        { sport: "Natation", title: "Séance clé 🔑", details: "Seuil nage" },
+        { sport: "Course", title: "EF Z2", details: "Endurance" },
+        { sport: "Course", title: "EF Z2", details: "Endurance" },
+        { sport: "Course", title: "Séance clé 🔑", details: "Seuil" },
+        { sport: "Course", title: "Sortie longue 🔑", details: "SL progressive" },
+      ];
+      if (w === 1) sessions.push({ sport: "Vélo", title: "Sortie découverte", details: "Z1" });
+      weeks.push(makeWeek(w, sessions, "Build"));
+    }
+    const result = validatePlan(makePlan(weeks), "703");
+
+    const presenceIssues = result.issues.filter(i => i.rule === "objective_sport_conflict");
+    expect(presenceIssues.some(i => i.message.includes("Vélo"))).toBe(false);
+
+    const ratioIssues = result.issues.filter(i => i.rule === "sport_ratio");
+    expect(ratioIssues.some(i => i.message.includes("Vélo"))).toBe(true);
+  });
+
+  /**
+   * [TEST OBLIGATOIRE] "les corrections automatiques ne peuvent contourner
+   * les barrières" : `validatePlan` n'accepte AUCUN paramètre de type
+   * "trace de réparation acquittée" ou "déjà validé par le réconciliateur" —
+   * contrairement à `computeFinalValidationIssues` (finalValidation.ts) qui,
+   * lui, sait marquer un repair code comme résolu via `resolvedLater` si une
+   * trace de succès apparaît plus loin dans le flux. `validateObjectiveSportCoherence`
+   * et `validateFinalObjectiveMatchesMainGoal` ne lisent QUE le contenu final
+   * du plan (séances réellement présentes) et les `raceGoals`/`objective`
+   * déclarés — aucun flag de contournement n'existe dans leur signature.
+   * Ce test le démontre : fournir des paramètres qui, pour D'AUTRES règles,
+   * changent le verdict (contraintes, ambition, niveau d'entraînement,
+   * densité de séances, limiteurs identifiés…) laisse les deux garde-fous
+   * inchangés tant que le contenu réel (0 natation) et l'objectif/raceGoals
+   * ne changent pas eux-mêmes.
+   */
+  it("aucune combinaison de paramètres annexes (contraintes non pertinentes, ambition, densité, limiteurs) ne supprime objective_sport_conflict pour un 70.3 réellement sans natation", () => {
+    const weeks: ParsedWeek[] = [];
+    for (let w = 1; w <= 8; w++) {
+      weeks.push(makeWeek(w, [
+        { sport: "Vélo", title: "Z2 progressif", details: "Endurance" },
+        { sport: "Vélo", title: "Séance clé 🔑", details: "Sweet Spot" },
+        { sport: "Course", title: "EF Z2", details: "Endurance" },
+        { sport: "Course", title: "Séance clé 🔑", details: "Seuil" },
+        { sport: "Course", title: "Sortie longue 🔑", details: "SL progressive" },
+      ], "Build"));
+    }
+    const plan = makePlan(weeks);
+
+    const baseline = validatePlan(plan, "703");
+    expect(baseline.issues.some(i => i.rule === "objective_sport_conflict" && i.message.includes("Natation"))).toBe(true);
+
+    // Même plan, mais avec une avalanche de paramètres annexes qui pilotent
+    // d'AUTRES règles (jamais la présence de natation) — aucun n'efface
+    // l'anomalie réelle de contenu.
+    const withExtraParams = validatePlan(
+      plan, "703",
+      ["course à pied en côte"], // prohibitions (sans rapport)
+      undefined, undefined, undefined,
+      { age: 35 }, // athleteData
+      undefined,
+      { sessionsPerWeek: 5 }, // sessionDensity (sans rapport)
+      { run: { level: "low" } }, // injuryRisk (sans rapport)
+      "competitor", // ambition
+      "Pas de longues sorties le dimanche", // constraintsText — ne bannit PAS la natation
+    );
+    expect(withExtraParams.issues.some(i => i.rule === "objective_sport_conflict" && i.message.includes("Natation"))).toBe(true);
+    expect(withExtraParams.score).toBeLessThanOrEqual(69); // CRITICAL_SCORE_CEILING tient malgré ces paramètres
+  });
+});
+

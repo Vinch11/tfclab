@@ -134,7 +134,12 @@ describe("validateMilestoneTransition — transition 10K → 70.3 (jalon run-onl
   });
 
   it("la reprise (S8-S9) qui reste au niveau de la récupération, sans progresser vers le 70.3 → signalé", () => {
-    const plan = buildPlan({ prepHasSwimBike: true, recoveryFactor: 0.4, resumeFactor: 0.9 }); // reprise < récupération
+    // resumeFactor=0.5 (pas 0.9) : S8/S9 incluent une natation fixe (30/35min,
+    // non mise à l'échelle par resumeFactor, cf. triWeek ci-dessus) en plus
+    // de vélo/course mis à l'échelle — resumeFactor doit rester assez bas
+    // pour que la MOYENNE totale S8-S9 reste sous le total de récupération
+    // (S7=100min), malgré cette composante fixe.
+    const plan = buildPlan({ prepHasSwimBike: true, recoveryFactor: 0.4, resumeFactor: 0.5 }); // reprise < récupération
     const result = validatePlan(plan, "703", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, RACE_GOALS_10K_TO_703, PLAN_START_DATE);
     const continuityIssue = result.issues.find(i => i.rule === "progression" && /ne progresse pas vers l'objectif final/i.test(i.message));
     expect(continuityIssue).toBeDefined();
