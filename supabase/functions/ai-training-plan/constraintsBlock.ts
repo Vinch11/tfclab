@@ -23,6 +23,11 @@ export interface AthleteConstraintRules {
   injuries: string[];
   rawText: string;
   hasHardRules: boolean;
+  /** Sprint 2 (audit "fiabilisation moteur", 2026-10-23) — miroir client,
+   *  cf. constraintRules.ts pour la docstring complète : fragments où un ban
+   *  a été détecté mais nuancé par un qualificatif restrictif ou une
+   *  réautorisation plus loin dans le texte — jamais ajoutés à `bannedSports`. */
+  ambiguousRestrictions: string[];
 }
 
 const SPORT_PATTERNS: Array<{ sport: ConstraintSport; rx: RegExp }> = [
@@ -87,6 +92,29 @@ function detectBannedSportStrict(fragment: string): ConstraintSport | null {
   return null;
 }
 
+/**
+ * Sprint 2 (audit "fiabilisation moteur", 2026-10-23) — miroir client, cf.
+ * constraintRules.ts pour la docstring complète : un fragment qui détecte un
+ * ban ET un qualificatif restrictif (lieu/condition/durée) ne rejoint pas
+ * `bannedSports` — ambiguïté probable entre interdiction totale et partielle
+ * ("natation interdite EN EAU FROIDE" ≠ "natation interdite").
+ */
+const PARTIAL_QUALIFIER_RX = new RegExp(
+  [
+    "\\bsauf\\b", "\\bexcept[ée]e?\\b", "\\bhormis\\b",
+    "\\bseulement\\b", "\\buniquement\\b",
+    "\\ben\\s+(?:eau|mer|rivi[èe]re|lac|ext[ée]rieur|altitude|comp[ée]tition)\\b",
+    "\\bopen\\s*water\\b",
+    "\\ben\\s+cas\\s+de\\b", "\\bsous\\s+conditions?\\b",
+    "\\btemporairement\\b", "\\bpour\\s+le\\s+moment\\b", "\\bpour\\s+l['’]instant\\b",
+    "\\bjusqu['’]\\s*[aà]\\b", "\\b[àa]\\s+partir\\s+de\\b",
+  ].join("|"),
+  "i",
+);
+
+/** Réautorisation explicite d'un sport précédemment banni dans le même champ libre. */
+const REAUTHORIZATION_RX = /\b(autoris[ée]e?s?|permis(?:e)?s?|possible|ok|tol[ée]r[ée]e?s?)\b/i;
+
 function normalizeDay(raw: string): WeekDay | null {
   const d = deaccent(raw.toLowerCase()).trim();
   return WEEK_DAYS.find((w) => deaccent(w) === d) ?? null;
@@ -96,6 +124,7 @@ export function parseAthleteConstraints(text: string | null | undefined): Athlet
   const rawText = String(text ?? "").trim();
   const rules: AthleteConstraintRules = {
     dayBans: [], bannedSports: [], injuries: [], rawText, hasHardRules: false,
+    ambiguousRestrictions: [],
   };
   if (!rawText) return rules;
 
@@ -131,7 +160,11 @@ export function parseAthleteConstraints(text: string | null | undefined): Athlet
 
     const bannedSport = detectBannedSportStrict(frag);
     if (days.length === 0 && bannedSport !== null) {
-      if (!rules.bannedSports.includes(bannedSport)) rules.bannedSports.push(bannedSport);
+      if (PARTIAL_QUALIFIER_RX.test(frag)) {
+        if (!rules.ambiguousRestrictions.includes(frag)) rules.ambiguousRestrictions.push(frag);
+      } else if (!rules.bannedSports.includes(bannedSport)) {
+        rules.bannedSports.push(bannedSport);
+      }
       continue;
     }
 
@@ -140,6 +173,17 @@ export function parseAthleteConstraints(text: string | null | undefined): Athlet
         rules.injuries.push(frag);
         break;
       }
+    }
+  }
+
+  for (const frag of fragments) {
+    if (!REAUTHORIZATION_RX.test(frag)) continue;
+    const sport = detectSport(frag);
+    if (sport === "any") continue;
+    const idx = rules.bannedSports.indexOf(sport);
+    if (idx !== -1) {
+      rules.bannedSports.splice(idx, 1);
+      if (!rules.ambiguousRestrictions.includes(frag)) rules.ambiguousRestrictions.push(frag);
     }
   }
 
@@ -184,6 +228,11 @@ export function buildAthleteConstraintsBlock(constraints: string | null | undefi
     lines.push(`\n**Blessures / limitations déclarées :**`);
     for (const inj of rules.injuries) lines.push(`- 🩹 « ${inj} »`);
     lines.push(`- Conséquences obligatoires : pas de sprint maximal ni de pliométrie tant que la zone est citée, côtes et descentes réduites, progression de volume ≤ 5%/semaine sur la discipline concernée, et mention explicite de l'adaptation dans les notes de la séance concernée.`);
+  }
+
+  if (rules.ambiguousRestrictions.length > 0) {
+    lines.push(`\n**Restrictions partielles détectées (PAS un bannissement total) :**`);
+    for (const r of rules.ambiguousRestrictions) lines.push(`- ⚠️ « ${r} » : interprète cette restriction littéralement (lieu/condition précis) — ne supprime PAS la discipline concernée du reste du plan.`);
   }
 
   if (!rules.hasHardRules) {

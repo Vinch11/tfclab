@@ -141,6 +141,19 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
     expect(r.hasCritical).toBe(false);
   });
 
+  it("[CORRECTIF audit 70.3, garde-fou 4] une violation du repos minimal (rest_floor_breached) détectée par le réconciliateur serveur remonte comme avertissement visible, pas silencieusement ignorée", () => {
+    const plan: FinalValidationPlanLike = { weeks: [] };
+    const r = computeFinalValidationIssues(plan, [
+      "[RECONCILER] S32 action=rest_floor_breached empty=1<min=2",
+    ]);
+    expect(r.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ rule: "rest_floor_breached", severity: "warning" }),
+    ]));
+    // Avertissement visible, mais PAS une erreur bloquante : repli délibéré
+    // du réconciliateur, pas une anomalie de génération à corriger avant usage.
+    expect(r.hasCritical).toBe(false);
+  });
+
   it("conserve ensemble les anomalies serveur et client au merge", () => {
     const plan: FinalValidationPlanLike = { weeks: [] };
     const r = computeFinalValidationIssues(plan, [

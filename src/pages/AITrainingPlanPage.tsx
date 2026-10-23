@@ -443,11 +443,31 @@ async function buildRegenPhaseCatalogs(
  * est une interdiction réelle du sport exigé via les contraintes : dans les
  * deux cas, aucune correction de contenu ne peut résoudre l'incohérence
  * sans que le coach revoie l'objectif ou les contraintes). Liste
- * volontairement restreinte à cette seule règle — ne bloque PAS les autres
- * erreurs critiques (densité, limiteur non ciblé, jour de course absent,
- * etc.), qui restent dérogeables via confirmation explicite.
+ * volontairement restreinte — ne bloque PAS les autres erreurs critiques
+ * (densité, limiteur non ciblé, jour de course absent, etc.), qui restent
+ * dérogeables via confirmation explicite.
+ *
+ * `final_objective_mismatch` ajoutée (audit "plan 70.3 sans natation",
+ * 2026-10-23) : même famille que `objective_sport_conflict` — une
+ * incohérence entre l'objectif principal déclaré et le pic final
+ * réellement calculé pour le plan (cf. validateFinalObjectiveMatchesMainGoal
+ * dans planValidator.ts) ne peut pas non plus se résoudre par une
+ * correction de contenu ; elle exige que le coach revoie les dates/
+ * priorités des objectifs saisis.
+ *
+ * `banned_sport_reintroduced` ajoutée (GRAND SPRINT P0, Sprint 3,
+ * 2026-10-23) : une discipline explicitement bannie par le coach mais
+ * tout de même présente dans le plan final (cf.
+ * validateBannedSportNotReintroduced, planValidator.ts) — typiquement une
+ * correction/substitution automatique post-génération qui a réintroduit la
+ * discipline bannie. Aucune "Sauvegarder quand même" possible : il n'existe
+ * aucun seuil acceptable pour une discipline que le coach a explicitement
+ * exclue, et accepter malgré tout reviendrait à entériner le contournement
+ * silencieux d'une instruction coach explicite.
  */
-export const NON_DEROGABLE_RULES = new Set(["objective_sport_conflict"]);
+export const NON_DEROGABLE_RULES = new Set([
+  "objective_sport_conflict", "final_objective_mismatch", "banned_sport_reintroduced",
+]);
 
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();
@@ -2452,6 +2472,12 @@ export default function AITrainingPlanPage() {
               reason: cfg.ambitionMeta.diagnosticNote,
             }
             : undefined,
+          // GRAND SPRINT P0, Sprint 6 ("décisions du coach") : nombre de
+          // séances de renforcement EXACTEMENT demandées par semaine (UI
+          // "Renforcement/sem") — déjà transmis au prompt système comme
+          // instruction stricte, jamais vérifié sur le plan généré avant
+          // ce correctif. Pilote exclusivement validateStrengthSessionsRequested.
+          (() => { const n = parseInt(strengthSessionsPerWeek, 10); return Number.isFinite(n) && n >= 0 ? n : undefined; })(),
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;
