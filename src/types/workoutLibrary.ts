@@ -47,6 +47,18 @@ export interface WorkoutPrerequisites {
   minimumWeeklyHours?: number;
   /** Si vrai, l'absence de preuves suffisantes ferme l'accès par défaut. */
   requireVerifiedProfile?: boolean;
+  /**
+   * La séance reste consultable dans la bibliothèque mais n'est jamais
+   * proposée ni réintroduite automatiquement. À réserver aux protocoles dont
+   * un prérequis critique n'est pas représenté dans les données TFCLab.
+   */
+  blockAutomaticSelection?: boolean;
+  /**
+   * Une décision explicite et nominative du coach est requise en plus des
+   * autres prérequis. L'accord ne contourne ni `blockAutomaticSelection`, ni
+   * les preuves de profil demandées.
+   */
+  requireExplicitCoachApproval?: boolean;
 }
 
 // Partie de structure d'une séance

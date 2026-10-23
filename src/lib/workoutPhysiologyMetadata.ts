@@ -3,6 +3,7 @@ import type {
   WorkoutPhysiology,
   WorkoutPrerequisites,
 } from "@/types/workoutLibrary";
+import { auditedSafetyPrerequisitesFor } from "@/lib/workoutSafetyPrerequisites";
 
 export interface AuditedWorkoutMetadata {
   physiology: WorkoutPhysiology;
@@ -92,8 +93,12 @@ export function auditedWorkoutMetadataFor(
 export function enrichWorkoutPhysiology(workouts: LibraryWorkout[]): void {
   for (const workout of workouts) {
     const audited = auditedWorkoutMetadataFor(workout.id);
-    if (!audited) continue;
-    workout.physiology = audited.physiology;
-    if (audited.prerequisites) workout.prerequisites = audited.prerequisites;
+    const safetyPrerequisites = auditedSafetyPrerequisitesFor(workout.id);
+    if (audited) workout.physiology = audited.physiology;
+    const prerequisites = {
+      ...(audited?.prerequisites ?? {}),
+      ...(safetyPrerequisites ?? {}),
+    };
+    if (Object.keys(prerequisites).length > 0) workout.prerequisites = prerequisites;
   }
 }

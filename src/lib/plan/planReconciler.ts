@@ -477,8 +477,9 @@ interface FindOpts {
    * (même convention que `options.beginnerIntensitySignal` côté catalogue)
    * — permet d'exclure les 8 fiches à prérequis de niveau confirmé (cf.
    * levelPrerequisiteCompatibility.ts) à CHAQUE étage de réparation,
-   * exactement comme `objectiveKey` pour l'axe A. Jamais introduit par
-   * défaut si absent.
+   * exactement comme `objectiveKey` pour l'axe A. Son absence conserve les
+   * règles historiques ouvertes mais ferme les protocoles de sécurité qui
+   * exigent explicitement un profil vérifié.
    */
   levelSignal?: BeginnerIntensitySignal | null;
   /**
@@ -2171,6 +2172,7 @@ export function runReconciler(
           }
           for (const cand of bucket) {
             if (cand.id.toUpperCase() === idUp) continue;
+            if (isLevelPrerequisiteIncompatible(cand.id, phaseCtx?.beginnerIntensitySignal)) continue;
             const sportingCompatibility = evaluateRepairSportingEquivalence(
               REPAIR_METADATA_BY_ID.get(original.id.toUpperCase()),
               REPAIR_METADATA_BY_ID.get(cand.id.toUpperCase()),

@@ -747,9 +747,10 @@ export function buildWorkoutCatalog(
   // (MISSION_AXE_C_VALIDATION.md §1). Appliqué ICI, au même point que
   // l'axe A (raceSimCompatibility), pour la même raison : `backfillPool`/
   // le remplissage (Pass 4) re-piochent directement dans `SourceLibrary`
-  // sans revérifier le hard-ban de score. Inactif par défaut (signal
-  // absent/non fiable/`fallback-prudent` → aucune exclusion, jamais une
-  // preuve par défaut) — cf. `isLevelPrerequisiteIncompatible`. 2 fiches
+  // sans revérifier le hard-ban de score. Les 8 règles historiques restent
+  // ouvertes quand le signal est absent/non fiable. Les politiques de
+  // sécurité ciblées se ferment au contraire tant que leurs preuves ne sont
+  // pas confirmées — cf. `isLevelPrerequisiteIncompatible`. 2 fiches
   // par ailleurs confirmées (`BILLAT_RUN_30_30_PRO`, `BILLAT_RUN_3MIN_3MIN`)
   // sont volontairement ABSENTES de cette liste : leur seul critère de
   // niveau indépendant est un seuil de VMA jamais transmis à ce pipeline —
