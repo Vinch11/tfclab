@@ -2611,20 +2611,26 @@ function validateFinalObjectiveMatchesMainGoal(
 ): { issues: ValidationIssue[]; score: number } {
   if (!objective || !raceGoals || raceGoals.length < 2) return { issues: [], score: 100 };
 
-  // `isLast` (dernier objectif DATÉ, cf. multiObjectiveClassification.ts)
-  // est EXACTEMENT le mécanisme démontré : ce jalon reçoit toujours
-  // `isFullPeak: true` INCONDITIONNELLEMENT, et c'est lui — pas n'importe
-  // quelle entrée `isFullPeak` — qui détermine le segment final (celui dont
-  // `isLastCycle: true` dans computeObjectiveCycleSegments) et donc le
-  // `catalogObjective` effectivement transmis à la génération pour la fin du
-  // plan. Un objectif indépendamment éligible à un pic (IM/703/Marathon/…)
-  // antérieur dans le plan peut, lui aussi, porter `isFullPeak: true` sans
-  // être erroné (pic intermédiaire légitime) — chercher "le premier
-  // isFullPeak" confondrait ce cas légitime avec la substitution de fin de
-  // plan ; chercher spécifiquement `isLast` ne capture que le dernier jalon
-  // daté, qui est la seule source démontrée de l'anomalie.
+  // Correction Sprint 1 (hiérarchie multiobjectifs, 2026-10-23) :
+  // `classifyMultiObjectiveGoalsClient` n'accorde plus `isFullPeak: true`
+  // au dernier objectif daté sans condition — seul le dernier objectif daté
+  // ÉLIGIBLE à un pic indépendant (`canBeIndependentPeak`) l'obtient
+  // désormais. `isLast` (littéralement "dernier objectif daté") n'est donc
+  // PLUS un proxy fiable du "pic final gouvernant" : un jalon inéligible
+  // (ex. 10K) resté chronologiquement après l'objectif principal reste
+  // `isLast: true` mais `isFullPeak: false` — le chercher via `isLast`
+  // produirait un FAUX POSITIF ici (la classification a déjà correctement
+  // neutralisé ce cas). Le "pic final gouvernant" est maintenant le DERNIER
+  // élément, par date, parmi ceux dont `isFullPeak` est vrai — exactement
+  // le même critère que `computeObjectiveCycleSegments` utilise pour
+  // désigner `isLastCycle: true` (dernier `goalWeek` parmi les pics
+  // complets). Plusieurs pics complets légitimes (PR #389, ex. Marathon A +
+  // Ironman B lointain) restent sans faux positif : le pic gouvernant est
+  // alors le plus TARDIF d'entre eux, cohérent avec l'objectif déclaré quel
+  // que soit celui qui vient chronologiquement en premier.
   const classified = classifyMultiObjectiveGoalsClient(raceGoals);
-  const fullPeak = classified.find((c) => c.isLast);
+  const fullPeaks = classified.filter((c) => c.isFullPeak && c.goal.raceDate);
+  const fullPeak = fullPeaks[fullPeaks.length - 1];
   if (!fullPeak) return { issues: [], score: 100 };
 
   const mainObjKey = normalizeObjectiveKey(objective);
@@ -2641,6 +2647,60 @@ function validateFinalObjectiveMatchesMainGoal(
     }],
     score: 0,
   };
+}
+
+/**
+ * Sprint 1/4 (audit "fiabilisation moteur", 2026-10-23) — "Détecter les
+ * incohérences calendaires" : les objectifs datés transmis à `validatePlan`
+ * (`raceGoals`/`planStartDate`, déjà câblés pour `validateMilestoneTransition`/
+ * `validateFinalObjectiveMatchesMainGoal`) peuvent contenir des dates
+ * incohérentes avec le plan généré — une date de course ANTÉRIEURE à la
+ * date de début du plan (erreur de saisie probable : année ou mois inversé),
+ * ou une date qui tombe largement AU-DELÀ de la durée réelle du plan
+ * (`plan.totalWeeks`). Avant ce correctif, ce genre d'incohérence n'était
+ * jamais signalé en tant que tel : une date antérieure au départ est
+ * silencieusement exclue du calcul de `raceNums` (AITrainingPlanPage.tsx,
+ * `if (days >= 0) raceNums.push(...)`), et une date hors plan produit un
+ * numéro de semaine qui ne correspond à aucune semaine réelle (cf. le fix
+ * ci-dessus sur `validateRaceDayPresence`, qui ne fait que réagir à la
+ * conséquence sans jamais nommer la cause calendaire elle-même). Avertissement
+ * uniquement (jamais bloquant) : une tolérance de +1 semaine est acceptée
+ * (même tolérance que `computeObjectiveCycleSegments`, décalage normal
+ * dates↔durée de plan), et un jalon légitimement positionné APRÈS le pic
+ * final du plan (ex. une course de clôture post-saison) reste possible —
+ * signalé pour confirmation du coach, jamais corrigé silencieusement.
+ */
+function validateRaceCalendarCoherence(
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+  planStartDate: string | undefined,
+  totalWeeks: number,
+): { issues: ValidationIssue[]; score: number } {
+  if (!raceGoals || raceGoals.length === 0 || !planStartDate || !(totalWeeks > 0)) {
+    return { issues: [], score: 100 };
+  }
+
+  const issues: ValidationIssue[] = [];
+  for (const goal of raceGoals) {
+    if (!goal.raceDate) continue;
+    const label = goal.raceName || goal.objective;
+    const week = computeGoalWeekFromDates(planStartDate, goal.raceDate);
+    if (week === undefined) {
+      issues.push({
+        rule: "calendar_incoherence",
+        severity: "warning",
+        message: `📅 Course "${label}" datée avant le début du plan (${goal.raceDate}) — vérifiez la date saisie (année/mois probablement inversé).`,
+        detail: "Une course dont la date tombe avant le début du plan n'est prise en compte par aucun calcul de semaine (jour de course, jalon, pic final) — elle est silencieusement ignorée tant que la date n'est pas corrigée.",
+      });
+    } else if (week > totalWeeks + 1) {
+      issues.push({
+        rule: "calendar_incoherence",
+        severity: "warning",
+        message: `📅 Course "${label}" datée S${week}, au-delà des ${totalWeeks} semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.`,
+        detail: "Cette course ne peut être prise en compte (jour de course, jalon, affûtage) car sa date calculée tombe hors des semaines réellement générées.",
+      });
+    }
+  }
+  return { issues, score: issues.length > 0 ? 70 : 100 };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3887,7 +3947,26 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
 
   for (const weekNum of targetWeeks) {
     const week = plan.weeks.find(w => w.weekNumber === weekNum);
-    if (!week) continue;
+    if (!week) {
+      // Sprint 4 (audit "fiabilisation moteur", 2026-10-23) : avant ce fix,
+      // une semaine cible calculée (date de course → numéro de semaine) qui
+      // ne correspond à AUCUNE semaine réelle du plan généré (erreur de
+      // calendrier : date de course mal positionnée, plan plus court que
+      // prévu, décalage de durée) désactivait silencieusement tout le
+      // contrôle `race_day` pour cette course — ni signal "jour de course
+      // absent" ni aucun autre avertissement, alors que l'incohérence est
+      // justement la cause qui empêche de la détecter normalement. Devient
+      // un avertissement explicite plutôt qu'une correction silencieuse.
+      issues.push({
+        rule: "race_day",
+        severity: "warning",
+        week: weekNum,
+        message: `📅 Incohérence calendaire — la semaine S${weekNum} calculée pour une course n'existe pas dans ce plan de ${plan.weeks.length} semaine(s)`,
+        detail: "La date de cette course, une fois convertie en numéro de semaine depuis la date de début du plan, tombe hors des semaines réellement générées — vérifiez la date de la course et la durée du plan avant d'utiliser ce plan.",
+      });
+      score = Math.min(score, 50);
+      continue;
+    }
 
     const allSessions = week.sessions || [];
     const realSessions = allSessions.filter(s => !s.isRest);
@@ -5318,6 +5397,7 @@ export function validatePlan(
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
   const objectiveSportConflict = validateObjectiveSportCoherence(weekMetrics, objective, constraintsText);
   const finalObjectiveMismatch = validateFinalObjectiveMatchesMainGoal(objective, raceGoals);
+  const raceCalendarCoherence = validateRaceCalendarCoherence(raceGoals, planStartDate, plan.totalWeeks);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
   // #18 lot 1 : règles INVIOLABLE/OBLIGATOIRE sans contrôle post-génération jusqu'ici
   const titleFormat = validateTitleFormat(plan);
@@ -5359,6 +5439,7 @@ export function validatePlan(
     ...sportObjective.issues,
     ...objectiveSportConflict.issues,
     ...finalObjectiveMismatch.issues,
+    ...raceCalendarCoherence.issues,
     ...injuryRiskCompliance.issues,
     ...titleFormat.issues,
     ...strategicRecapUniqueness.issues,

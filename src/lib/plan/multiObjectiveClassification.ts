@@ -178,6 +178,43 @@ export function computeObjectiveCycleSegments(
   return segments.length > 0 ? segments : null;
 }
 
+/**
+ * Correction P0 "hiérarchie multiobjectifs" (audit plan 70.3 sans natation,
+ * 2026-10-23 — cause racine confirmée) : la branche `isLast` accordait
+ * `isFullPeak: true` de façon INCONDITIONNELLE au dernier objectif daté,
+ * sans jamais passer par `canBeIndependentPeak` — le même garde-fou
+ * d'éligibilité de format que TOUT autre objectif daté doit respecter.
+ * 10K/5K/Semi/Sprint/Olympic sont déjà délibérément exclus de
+ * `INDEPENDENT_PEAK_ELIGIBLE_OBJECTIVES` (ce sont des tests de forme à
+ * faible coût de récupération, jamais un second objectif de saison) — mais
+ * être daté en dernier contournait entièrement cette exclusion. Cas réel :
+ * objectif principal A=703 (daté plus tôt) + jalon B=10K (daté plus tard,
+ * par erreur de saisie ou intentionnellement comme course de clôture) :
+ * le 10K devenait LE pic complet du plan, remplaçant silencieusement le
+ * 703 comme objectif final effectif (catalogObjective, verrou sport).
+ *
+ * Nouvelle règle : le "pic complet terminal" du plan est désormais le
+ * DERNIER objectif daté ÉLIGIBLE (`canBeIndependentPeak`), pas le dernier
+ * objectif daté tout court. Un objectif inéligible resté après lui (10K
+ * après le 703, par ex.) reste un jalon — quelle que soit sa position
+ * chronologique — et bénéficie alors normalement du rappel natation/vélo
+ * (PR #389, correction #6) et de `validateMilestoneTransition`, qui ne se
+ * déclenchent que pour un jalon correctement classé `isFullPeak: false`.
+ *
+ * Repli explicite : si AUCUN objectif daté n'est éligible à un pic
+ * indépendant (ex. un plan mono-objectif 10K, ou deux jalons non-éligibles
+ * sans aucun objectif-pic), le dernier objectif daté reste le pic complet
+ * — comportement historique inchangé, nécessaire pour qu'un plan ait
+ * toujours un affûtage terminal même quand rien n'est "indépendamment
+ * éligible" au sens de ce contrôle (ce contrôle ne s'applique qu'à la
+ * question "peut-il y avoir un SECOND pic dans la saison", pas à "ce plan
+ * a-t-il le droit de se terminer sur sa seule course").
+ *
+ * Les scénarios multi-pics légitimes (PR #389 — ex. Marathon A (proche) +
+ * Ironman B (lointain, écart suffisant)) sont inchangés : les DEUX
+ * objectifs sont éligibles, donc le dernier éligible reste bien le dernier
+ * daté, exactement comme avant ce correctif.
+ */
 export function classifyMultiObjectiveGoalsClient(raceGoals: ClassifiableRaceGoal[]): ClassifiedRaceGoalClient[] {
   const sorted = [...(raceGoals || [])].sort((a, b) => {
     if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
@@ -185,6 +222,8 @@ export function classifyMultiObjectiveGoalsClient(raceGoals: ClassifiableRaceGoa
     return (prio[a.priority || "C"] || 3) - (prio[b.priority || "C"] || 3);
   });
   const dated = sorted.filter((g) => g.raceDate);
+  const eligibleDated = dated.filter((g) => canBeIndependentPeak(g.objective));
+  const lastEligibleDated = eligibleDated.length > 0 ? eligibleDated[eligibleDated.length - 1] : null;
 
   return sorted.map((goal) => {
     const taperWeeks = taperWeeksForObjective(goal.objective);
@@ -192,16 +231,25 @@ export function classifyMultiObjectiveGoalsClient(raceGoals: ClassifiableRaceGoa
 
     const idx = dated.indexOf(goal);
     const isLast = idx === dated.length - 1;
-    if (isLast) return { goal, isFullPeak: true, isLast: true, taperWeeks };
+
+    // Repli : aucun objectif daté éligible dans tout le plan — le dernier
+    // objectif daté reste le pic complet (comportement historique).
+    if (eligibleDated.length === 0) {
+      if (isLast) return { goal, isFullPeak: true, isLast: true, taperWeeks };
+    } else if (goal === lastEligibleDated) {
+      // Le dernier objectif daté ÉLIGIBLE est le pic complet terminal,
+      // qu'il soit ou non littéralement le dernier objectif daté du plan.
+      return { goal, isFullPeak: true, isLast, taperWeeks };
+    }
 
     if (!canBeIndependentPeak(goal.objective)) {
-      return { goal, isFullPeak: false, isLast: false, taperWeeks };
+      return { goal, isFullPeak: false, isLast, taperWeeks };
     }
     const next = dated[idx + 1];
     const d1 = new Date(goal.raceDate!).getTime();
     const d2 = new Date(next.raceDate!).getTime();
     const gapWeeks = Math.round((d2 - d1) / (7 * 24 * 3600 * 1000));
     const isFullPeak = Number.isFinite(gapWeeks) && gapWeeks >= minGapWeeksForFullPeak(goal.objective);
-    return { goal, isFullPeak, isLast: false, taperWeeks };
+    return { goal, isFullPeak, isLast, taperWeeks };
   });
 }

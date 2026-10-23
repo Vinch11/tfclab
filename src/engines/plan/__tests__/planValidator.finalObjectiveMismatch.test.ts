@@ -8,16 +8,31 @@ import type { ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassificati
  * dont l'objectif principal déclaré est "703" a été généré avec une
  * compétition finale "10 km" au lieu du 70.3. Cause tracée :
  * `classifyMultiObjectiveGoalsClient` (multiObjectiveClassification.ts)
- * classe les objectifs datés PAR DATE SEULE et désigne INCONDITIONNELLEMENT
- * le dernier objectif daté comme pic final (`isFullPeak: true`) — si un
- * jalon secondaire a une date postérieure à l'objectif principal, il devient
- * le pic final, d'où la compétition finale erronée côté génération.
+ * classait les objectifs datés PAR DATE SEULE et désignait
+ * INCONDITIONNELLEMENT le dernier objectif daté comme pic final
+ * (`isFullPeak: true`) — si un jalon secondaire avait une date postérieure
+ * à l'objectif principal, il devenait le pic final, d'où la compétition
+ * finale erronée côté génération.
  *
- * Cette suite verrouille `validateFinalObjectiveMatchesMainGoal`, le nouveau
- * contrôle bloquant (severity "error", rule "final_objective_mismatch",
- * non-dérogeable — voir criticalBlockingGate.test.ts) qui détecte cette
- * substitution en réutilisant la MÊME fonction de classification sur les
- * MÊMES `raceGoals` déjà transmis à `validatePlan`.
+ * Correction Sprint 1 ("hiérarchie multiobjectifs", GRAND SPRINT P0,
+ * 2026-10-23) : cette cause racine est maintenant CORRIGÉE DANS LA
+ * CLASSIFICATION ELLE-MÊME (`classifyMultiObjectiveGoalsClient`/
+ * `classifyMultiObjectiveGoals`, cf. multiObjectiveClassification.ts) —
+ * un objectif non-éligible à un pic indépendant (10K/5K/Semi/Sprint/
+ * Olympic) ne devient plus jamais `isFullPeak: true` simplement parce
+ * qu'il est daté en dernier. Le scénario du bug réel (703 principal + 10K
+ * daté après) ne produit donc plus de divergence du tout : le 10K reste
+ * correctement un jalon, le 703 reste le pic final — AUCUNE erreur
+ * `final_objective_mismatch` n'est plus nécessaire pour ce cas précis
+ * (corrigé à la source, pas seulement détecté après coup).
+ *
+ * Cette suite verrouille `validateFinalObjectiveMatchesMainGoal`
+ * (severity "error", rule "final_objective_mismatch", non-dérogeable —
+ * voir criticalBlockingGate.test.ts) qui reste un filet de sécurité en
+ * profondeur pour les cas RÉSIDUELS où la classification (même corrigée)
+ * et l'objectif déclaré divergent malgré tout — typiquement une
+ * incohérence de données (l'objectif principal n'a aucune entrée
+ * correspondante dans `raceGoals`), pas une classification erronée.
  */
 
 function makeSession(overrides: Partial<ParsedSession> = {}): ParsedSession {
@@ -56,9 +71,24 @@ function mismatchIssues(objective: string, raceGoals: ClassifiableRaceGoal[], pl
 }
 
 describe("validateFinalObjectiveMatchesMainGoal — régression audit plan 70.3 sans natation", () => {
-  it("[TEST OBLIGATOIRE] 70.3 avec compétition finale 10 km à la place du 70.3 → erreur bloquante", () => {
+  it("[CORRIGÉ À LA SOURCE, Sprint 1] 703 principal + 10K daté après : le 10K reste un jalon, AUCUNE erreur — la classification elle-même ne promeut plus le 10K en pic final", () => {
     const raceGoals: ClassifiableRaceGoal[] = [
       { objective: "703", raceDate: "2027-06-15", raceName: "Ironman 70.3 Nice", priority: "A" },
+      { objective: "10K", raceDate: "2027-09-20", raceName: "Corrida WSL 10 km", priority: "B" },
+    ];
+    expect(mismatchIssues("703", raceGoals).length).toBe(0);
+  });
+
+  it("[TEST OBLIGATOIRE] 70.3 avec compétition finale 10 km : incohérence de données résiduelle (le 703 principal n'a aucune entrée dans raceGoals) → erreur bloquante", () => {
+    // Scénario résiduel que le fix Sprint 1 NE PEUT PAS corriger : il
+    // corrige la CLASSIFICATION (quel objectif daté devient le pic final
+    // parmi ceux présents), pas une incohérence de données où l'objectif
+    // principal déclaré n'a tout simplement aucune entrée correspondante
+    // dans `raceGoals` (ex. date/nom de course corrompue ou mal associée) —
+    // ici, seuls deux jalons non-éligibles (10K, 5K) sont présents, aucun
+    // n'étant le 703 déclaré.
+    const raceGoals: ClassifiableRaceGoal[] = [
+      { objective: "5K", raceDate: "2027-04-10", raceName: "5K de printemps", priority: "C" },
       { objective: "10K", raceDate: "2027-09-20", raceName: "Corrida WSL 10 km", priority: "B" },
     ];
     const issues = mismatchIssues("703", raceGoals);

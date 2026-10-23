@@ -1196,6 +1196,17 @@ export interface ClassifiedRaceGoal {
   taperWeeks: number;
 }
 
+/**
+ * Correction P0 "hiérarchie multiobjectifs" (audit plan 70.3 sans natation,
+ * 2026-10-23 — cause racine confirmée, MIROIR EXACT de la copie client,
+ * cf. multiObjectiveClassification.ts::classifyMultiObjectiveGoalsClient
+ * pour la docstring complète) : le dernier objectif daté ÉLIGIBLE
+ * (`canBeIndependentPeak`) est désormais le pic complet terminal, pas le
+ * dernier objectif daté tout court — un objectif inéligible (10K/5K/Semi/
+ * Sprint/Olympic) resté après lui reste un jalon quelle que soit sa
+ * position chronologique. Repli inchangé si AUCUN objectif daté n'est
+ * éligible (le dernier objectif daté reste le pic complet).
+ */
 export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoal[] {
   const sorted = [...(raceGoals || [])].sort((a: any, b: any) => {
     if (a.raceDate && b.raceDate) return a.raceDate.localeCompare(b.raceDate);
@@ -1203,6 +1214,8 @@ export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoa
     return (prio[a.priority] || 3) - (prio[b.priority] || 3);
   });
   const dated = sorted.filter((g: any) => g.raceDate);
+  const eligibleDated = dated.filter((g) => canBeIndependentPeak(g.objective));
+  const lastEligibleDated = eligibleDated.length > 0 ? eligibleDated[eligibleDated.length - 1] : null;
 
   return sorted.map((goal: any) => {
     const taperWeeks = taperWeeksForObjectiveServer(goal.objective);
@@ -1210,17 +1223,22 @@ export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoa
 
     const idx = dated.indexOf(goal);
     const isLast = idx === dated.length - 1;
-    if (isLast) return { goal, isFullPeak: true, isLast: true, taperWeeks };
+
+    if (eligibleDated.length === 0) {
+      if (isLast) return { goal, isFullPeak: true, isLast: true, taperWeeks };
+    } else if (goal === lastEligibleDated) {
+      return { goal, isFullPeak: true, isLast, taperWeeks };
+    }
 
     if (!canBeIndependentPeak(goal.objective)) {
-      return { goal, isFullPeak: false, isLast: false, taperWeeks };
+      return { goal, isFullPeak: false, isLast, taperWeeks };
     }
     const next = dated[idx + 1];
     const d1 = new Date(goal.raceDate).getTime();
     const d2 = new Date(next.raceDate).getTime();
     const gapWeeks = Math.round((d2 - d1) / (7 * 24 * 3600 * 1000));
     const isFullPeak = Number.isFinite(gapWeeks) && gapWeeks >= minGapWeeksForFullPeak(goal.objective);
-    return { goal, isFullPeak, isLast: false, taperWeeks };
+    return { goal, isFullPeak, isLast, taperWeeks };
   });
 }
 
