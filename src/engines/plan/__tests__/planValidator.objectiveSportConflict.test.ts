@@ -12,6 +12,15 @@ import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
  * contenu réel. Cette suite verrouille `validateObjectiveSportCoherence`,
  * le nouveau contrôle bloquant (severity "error", hors score pondéré —
  * CRITICAL_SCORE_CEILING s'applique via allIssues).
+ *
+ * Audit "plan 70.3 sans natation" (2026-10-23) : cas réel démontré, plan de
+ * 32 semaines objectif 70.3 généré avec 0 natation, 7 vélo, 163 course. Le
+ * contrôle ci-dessus ne couvrait QUE les objectifs mono-discipline — les
+ * objectifs multi-discipline (IM/703/Sprint/Olympic) en sortaient
+ * immédiatement, sans aucun filet de présence. Les tests marqués
+ * [CORRECTIF audit 70.3] verrouillent la nouvelle branche multi-sport :
+ * absence totale d'une discipline dont SPORT_RATIO_TARGETS déclare une
+ * borne basse > 0, sauf bannissement explicite du coach.
  */
 
 function makeSession(overrides: Partial<ParsedSession> = {}): ParsedSession {
@@ -91,12 +100,67 @@ describe("validateObjectiveSportCoherence — régression B-5K-BEGINNER", () => 
     expect(conflictIssues(plan, "5 KM").length).toBe(0);
   });
 
-  it("n'applique pas ce contrôle à un objectif multi-discipline (703) même sans course", () => {
-    expect(conflictIssues(makeAllBikePlan(), "703").length).toBe(0);
+  it("[CORRECTIF audit 70.3] signale une erreur bloquante pour un objectif multi-discipline (703) sans natation ni course (régression : retournait 0 avant le correctif)", () => {
+    const issues = conflictIssues(makeAllBikePlan(), "703");
+    expect(issues.length).toBe(2);
+    expect(issues.every((i) => i.severity === "error")).toBe(true);
+    const messages = issues.map((i) => i.message);
+    expect(messages.some((m) => m.includes("Natation"))).toBe(true);
+    expect(messages.some((m) => m.includes("Course"))).toBe(true);
+    expect(messages.every((m) => !m.includes("Vélo"))).toBe(true); // vélo présent, pas manquant
   });
 
-  it("n'applique pas ce contrôle à un objectif multi-discipline (IM) même sans course", () => {
-    expect(conflictIssues(makeAllBikePlan(), "Ironman").length).toBe(0);
+  it("[CORRECTIF audit 70.3] signale une erreur bloquante pour un objectif multi-discipline (IM) sans natation ni course", () => {
+    const issues = conflictIssues(makeAllBikePlan(), "Ironman");
+    expect(issues.length).toBe(2);
+    expect(issues.every((i) => i.severity === "error")).toBe(true);
+  });
+
+  it("[CORRECTIF audit 70.3] cas réel reproduit : plan 70.3 multi-semaines avec 0 natation, vélo minoritaire, course majoritaire → erreur bloquante sur la natation seule (vélo et course présents, même déséquilibrés)", () => {
+    const weeks: ParsedWeek[] = Array.from({ length: 4 }, (_, i) => ({
+      weekNumber: i + 1,
+      theme: "Test",
+      phase: "build",
+      sessions: [
+        makeSession({ weekNumber: i + 1, sport: "Vélo", dayName: "Lundi", dayIndex: 0 }),
+        makeSession({ weekNumber: i + 1, sport: "Course", dayName: "Mardi", dayIndex: 1 }),
+        makeSession({ weekNumber: i + 1, sport: "Course", dayName: "Mercredi", dayIndex: 2 }),
+        makeSession({ weekNumber: i + 1, sport: "Course", dayName: "Jeudi", dayIndex: 3 }),
+        makeSession({ weekNumber: i + 1, sport: "Course", dayName: "Vendredi", dayIndex: 4 }),
+        makeSession({ weekNumber: i + 1, sport: "Course", dayName: "Samedi", dayIndex: 5 }),
+      ],
+    }));
+    const plan: ParsedPlan = { title: "Plan 70.3 sans natation", phases: [], weeks, totalWeeks: 4 } as ParsedPlan;
+    const issues = conflictIssues(plan, "703");
+    expect(issues.length).toBe(1);
+    expect(issues[0].severity).toBe("error");
+    expect(issues[0].message).toContain("Natation");
+  });
+
+  it("respecte le bannissement explicite d'une discipline dans un objectif multi-discipline (natation interdite par contrainte coach, 703)", () => {
+    const issues = conflictIssues(makeAllBikePlan(), "703", "natation interdite, contre-indication médicale");
+    // Vélo présent (non manquant). Course absente et NON bannie → doit rester signalée.
+    expect(issues.length).toBe(1);
+    expect(issues[0].message).toContain("Course");
+    expect(issues.some((i) => i.message.includes("Natation"))).toBe(false);
+  });
+
+  it("ne signale rien pour un objectif multi-discipline quand les 3 disciplines sont présentes (même déséquilibrées) — couvert par validateSportRatio, pas par ce contrôle de présence", () => {
+    const week: ParsedWeek = {
+      weekNumber: 1,
+      theme: "Test",
+      phase: "build",
+      sessions: [
+        makeSession({ sport: "Natation", dayName: "Lundi", dayIndex: 0 }),
+        makeSession({ sport: "Vélo", dayName: "Mardi", dayIndex: 1 }),
+        makeSession({ sport: "Vélo", dayName: "Mercredi", dayIndex: 2 }),
+        makeSession({ sport: "Course", dayName: "Jeudi", dayIndex: 3 }),
+        makeSession({ sport: "Course", dayName: "Vendredi", dayIndex: 4 }),
+        makeSession({ sport: "Course", dayName: "Samedi", dayIndex: 5 }),
+      ],
+    };
+    const plan: ParsedPlan = { title: "Plan Test", phases: [], weeks: [week], totalWeeks: 1 } as ParsedPlan;
+    expect(conflictIssues(plan, "703").length).toBe(0);
   });
 
   it("n'applique pas ce contrôle à un plan entièrement vide (couvert par d'autres règles)", () => {

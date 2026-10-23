@@ -443,11 +443,19 @@ async function buildRegenPhaseCatalogs(
  * est une interdiction réelle du sport exigé via les contraintes : dans les
  * deux cas, aucune correction de contenu ne peut résoudre l'incohérence
  * sans que le coach revoie l'objectif ou les contraintes). Liste
- * volontairement restreinte à cette seule règle — ne bloque PAS les autres
- * erreurs critiques (densité, limiteur non ciblé, jour de course absent,
- * etc.), qui restent dérogeables via confirmation explicite.
+ * volontairement restreinte — ne bloque PAS les autres erreurs critiques
+ * (densité, limiteur non ciblé, jour de course absent, etc.), qui restent
+ * dérogeables via confirmation explicite.
+ *
+ * `final_objective_mismatch` ajoutée (audit "plan 70.3 sans natation",
+ * 2026-10-23) : même famille que `objective_sport_conflict` — une
+ * incohérence entre l'objectif principal déclaré et le pic final
+ * réellement calculé pour le plan (cf. validateFinalObjectiveMatchesMainGoal
+ * dans planValidator.ts) ne peut pas non plus se résoudre par une
+ * correction de contenu ; elle exige que le coach revoie les dates/
+ * priorités des objectifs saisis.
  */
-export const NON_DEROGABLE_RULES = new Set(["objective_sport_conflict"]);
+export const NON_DEROGABLE_RULES = new Set(["objective_sport_conflict", "final_objective_mismatch"]);
 
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();

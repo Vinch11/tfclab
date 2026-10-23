@@ -2489,6 +2489,20 @@ const SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT: Record<"swim" | "bike" | "run", Const
  *   génération. Dans les deux cas : erreur bloquante (severity "error", donc
  *   CRITICAL_SCORE_CEILING s'applique), jamais une substitution silencieuse
  *   d'une autre discipline.
+ *
+ * Audit "plan 70.3 sans natation" (2026-10-23) : un objectif MULTI-discipline
+ * (IM/703/Sprint/Olympic) sortait jusqu'ici immédiatement de ce contrôle
+ * ("hors scope") — cas réel constaté : plan 70.3 de 32 semaines généré avec
+ * 0 natation, 7 vélo, 163 course. `validateSportRatio` (seul autre contrôle
+ * de discipline pour le multi-sport) ne couvre que les ÉCARTS DE RATIO : si
+ * une discipline est absente, son % cible est par construction redistribué
+ * vers les disciplines restantes (`redistributeTargetsForBannedSports`),
+ * donc 0% peut devenir "conforme" sans qu'aucun bannissement explicite ne le
+ * justifie. Le bloc ci-dessous ajoute un filet de PRÉSENCE (jamais un quota
+ * hebdomadaire — uniquement "0 séance sur l'ensemble du plan") pour chaque
+ * discipline que SPORT_RATIO_TARGETS déclare attendue (borne basse de sa
+ * plage de ratio > 0), avec la même exception de bannissement explicite du
+ * coach que ci-dessus.
  */
 function validateObjectiveSportCoherence(
   metrics: WeekMetrics[],
@@ -2499,30 +2513,132 @@ function validateObjectiveSportCoherence(
   const target = SPORT_RATIO_TARGETS[objKey];
   if (!target) return { issues: [], score: 100 };
 
-  const sportKeys = Object.keys(target) as Array<"swim" | "bike" | "run">;
-  if (sportKeys.length !== 1) return { issues: [], score: 100 }; // multi-sport (IM/703/Sprint/Olympic) — hors scope de ce contrôle
-
-  const mandatory = sportKeys[0];
-  const label = SPORT_RATIO_KEY_TO_LABEL[mandatory];
-  const totalSessions = metrics.reduce((sum, wm) => sum + (wm.sports[label] || 0), 0);
-  if (totalSessions > 0) return { issues: [], score: 100 };
-
   const hasAnyActiveSession = metrics.some((wm) =>
     Object.entries(wm.sports).some(([sport, count]) => sport !== "Repos" && count > 0),
   );
   if (!hasAnyActiveSession) return { issues: [], score: 100 }; // plan vide — couvert par d'autres règles
 
   const rules = parseAthleteConstraints(constraintsText);
-  const constraintSport = SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT[mandatory];
-  const banned = rules.bannedSports.includes(constraintSport);
+  const sportKeys = Object.keys(target) as Array<"swim" | "bike" | "run">;
+
+  if (sportKeys.length === 1) {
+    const mandatory = sportKeys[0];
+    const label = SPORT_RATIO_KEY_TO_LABEL[mandatory];
+    const totalSessions = metrics.reduce((sum, wm) => sum + (wm.sports[label] || 0), 0);
+    if (totalSessions > 0) return { issues: [], score: 100 };
+
+    const constraintSport = SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT[mandatory];
+    const banned = rules.bannedSports.includes(constraintSport);
+    const excerpt = rules.rawText.length > 200 ? `${rules.rawText.slice(0, 200)}…` : rules.rawText;
+
+    const message = banned
+      ? `Objectif "${objective}" repose entièrement sur ${label}, et une contrainte du texte libre l'interdit explicitement (« ${excerpt} ») — incompatibilité objectif/contraintes à trancher par le coach avant d'utiliser ce plan (0 séance de ${label} sur l'ensemble du plan).`
+      : `Objectif "${objective}" repose entièrement sur ${label}, mais 0 séance de ${label} sur l'ensemble du plan, sans contrainte explicite le justifiant — anomalie de génération à corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).`;
+
+    return {
+      issues: [{ rule: "objective_sport_conflict", severity: "error", message }],
+      score: 0,
+    };
+  }
+
+  // Multi-sport : absence totale d'une discipline obligatoire (borne basse
+  // de ratio > 0), sauf bannissement explicite du coach.
+  const missingMandatory = sportKeys.filter((sportKey) => {
+    const lo = target[sportKey]![0];
+    if (lo <= 0) return false; // pas "obligatoire" pour cet objectif
+    const label = SPORT_RATIO_KEY_TO_LABEL[sportKey];
+    const totalSessions = metrics.reduce((sum, wm) => sum + (wm.sports[label] || 0), 0);
+    if (totalSessions > 0) return false;
+    const constraintSport = SPORT_RATIO_KEY_TO_CONSTRAINT_SPORT[sportKey];
+    return !rules.bannedSports.includes(constraintSport);
+  });
+
+  if (missingMandatory.length === 0) return { issues: [], score: 100 };
+
   const excerpt = rules.rawText.length > 200 ? `${rules.rawText.slice(0, 200)}…` : rules.rawText;
+  const issues: ValidationIssue[] = missingMandatory.map((sportKey) => {
+    const label = SPORT_RATIO_KEY_TO_LABEL[sportKey];
+    const [lo, hi] = target[sportKey]!;
+    return {
+      rule: "objective_sport_conflict",
+      severity: "error",
+      message: `Objectif "${objective}" (multi-discipline) attend ${label} (${lo}-${hi}% du plan), mais 0 séance de ${label} sur l'ensemble du plan, sans contrainte explicite le justifiant (contraintes renseignées : « ${excerpt || "aucune"} ») — anomalie de génération à corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).`,
+    };
+  });
 
-  const message = banned
-    ? `Objectif "${objective}" repose entièrement sur ${label}, et une contrainte du texte libre l'interdit explicitement (« ${excerpt} ») — incompatibilité objectif/contraintes à trancher par le coach avant d'utiliser ce plan (0 séance de ${label} sur l'ensemble du plan).`
-    : `Objectif "${objective}" repose entièrement sur ${label}, mais 0 séance de ${label} sur l'ensemble du plan, sans contrainte explicite le justifiant — anomalie de génération à corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).`;
+  return { issues, score: 0 };
+}
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// FINAL OBJECTIVE ↔ MAIN GOAL COHERENCE (bloquant, hors score pondéré)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Bug réel démontré (audit "plan 70.3 sans natation", 2026-10-23) : un plan
+ * dont l'objectif principal déclaré est "703" a été généré avec 0 natation,
+ * 7 vélo, 163 course, et une compétition finale "Corrida WSL 10 km" au lieu
+ * du 70.3. Cause tracée : `classifyMultiObjectiveGoalsClient` (cf.
+ * multiObjectiveClassification.ts) classe les objectifs datés PAR DATE
+ * SEULE — la priorité coach ("A"/"B"/"C") n'est utilisée que si une date
+ * manque — et désigne INCONDITIONNELLEMENT le dernier objectif daté comme
+ * pic final (`isFullPeak: true`), sans passer par les filtres d'éligibilité
+ * (`canBeIndependentPeak`/`minGapWeeksForFullPeak`) qui ne s'appliquent
+ * qu'aux objectifs non-derniers. Si un jalon secondaire (priorité B/C, ex.
+ * un 10K de préparation) a une date postérieure à celle de l'objectif
+ * principal (priorité A) — même par une simple erreur de saisie — ce jalon
+ * devient le pic final du plan : son objectif devient `catalogObjective`
+ * pour la fenêtre de génération correspondante (`planWindowRegen.ts`,
+ * `jsonPlanHandler.ts`), qui pilote à son tour le verrou de répartition
+ * disciplines du prompt système (`buildObjectiveSportLock`,
+ * `systemPrompt.ts`) — d'où l'absence de natation/vélo et la compétition
+ * finale erronée, par UN SEUL mécanisme.
+ *
+ * Ce contrôle ne corrige PAS la classification elle-même (hors scope de ce
+ * correctif — voir AGENTS.md pour la recommandation de correction à la
+ * source, non implémentée ici par décision du coach) : il détecte, en
+ * réutilisant la MÊME fonction de classification déjà utilisée par
+ * `validateMilestoneTransition` ci-dessus sur les MÊMES `raceGoals` déjà
+ * transmis à `validatePlan`, si l'objectif du pic final qu'elle calcule
+ * diverge de l'objectif principal déclaré par le coach — signal direct
+ * d'une substitution d'objectif final, qu'elle vienne de ce mécanisme
+ * précis ou d'un autre. Erreur bloquante (non-dérogeable, voir
+ * NON_DEROGABLE_RULES côté AITrainingPlanPage.tsx) : jamais une correction
+ * silencieuse, toujours une décision du coach.
+ */
+function validateFinalObjectiveMatchesMainGoal(
+  objective: string | undefined,
+  raceGoals: ClassifiableRaceGoal[] | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  if (!objective || !raceGoals || raceGoals.length < 2) return { issues: [], score: 100 };
+
+  // `isLast` (dernier objectif DATÉ, cf. multiObjectiveClassification.ts)
+  // est EXACTEMENT le mécanisme démontré : ce jalon reçoit toujours
+  // `isFullPeak: true` INCONDITIONNELLEMENT, et c'est lui — pas n'importe
+  // quelle entrée `isFullPeak` — qui détermine le segment final (celui dont
+  // `isLastCycle: true` dans computeObjectiveCycleSegments) et donc le
+  // `catalogObjective` effectivement transmis à la génération pour la fin du
+  // plan. Un objectif indépendamment éligible à un pic (IM/703/Marathon/…)
+  // antérieur dans le plan peut, lui aussi, porter `isFullPeak: true` sans
+  // être erroné (pic intermédiaire légitime) — chercher "le premier
+  // isFullPeak" confondrait ce cas légitime avec la substitution de fin de
+  // plan ; chercher spécifiquement `isLast` ne capture que le dernier jalon
+  // daté, qui est la seule source démontrée de l'anomalie.
+  const classified = classifyMultiObjectiveGoalsClient(raceGoals);
+  const fullPeak = classified.find((c) => c.isLast);
+  if (!fullPeak) return { issues: [], score: 100 };
+
+  const mainObjKey = normalizeObjectiveKey(objective);
+  const peakObjKey = normalizeObjectiveKey(fullPeak.goal.objective || "");
+  if (!mainObjKey || !peakObjKey || mainObjKey === peakObjKey) return { issues: [], score: 100 };
+
+  const label = fullPeak.goal.raceName || fullPeak.goal.objective;
   return {
-    issues: [{ rule: "objective_sport_conflict", severity: "error", message }],
+    issues: [{
+      rule: "final_objective_mismatch",
+      severity: "error",
+      message: `L'objectif principal déclaré ("${objective}") ne correspond pas au pic final calculé pour ce plan ("${label}") — un objectif secondaire semble avoir remplacé l'objectif principal en fin de plan.`,
+      detail: `Vérifiez les dates et priorités des objectifs saisis : un objectif secondaire dont la date tombe après celle de l'objectif principal peut lui prendre la place de pic final, même si sa priorité est inférieure (A > B > C). Cette incohérence doit être corrigée (date ou priorité) avant d'utiliser ce plan — aucune correction automatique ne doit la contourner silencieusement.`,
+    }],
     score: 0,
   };
 }
@@ -5201,6 +5317,7 @@ export function validatePlan(
   const lorang_ = validateLorangCategories(plan, objective, ambition);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
   const objectiveSportConflict = validateObjectiveSportCoherence(weekMetrics, objective, constraintsText);
+  const finalObjectiveMismatch = validateFinalObjectiveMatchesMainGoal(objective, raceGoals);
   const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
   // #18 lot 1 : règles INVIOLABLE/OBLIGATOIRE sans contrôle post-génération jusqu'ici
   const titleFormat = validateTitleFormat(plan);
@@ -5241,6 +5358,7 @@ export function validatePlan(
     ...dailySessionFloor.issues,
     ...sportObjective.issues,
     ...objectiveSportConflict.issues,
+    ...finalObjectiveMismatch.issues,
     ...injuryRiskCompliance.issues,
     ...titleFormat.issues,
     ...strategicRecapUniqueness.issues,
@@ -5329,8 +5447,11 @@ export function validatePlan(
   const wbalErrors = wbalFeasibility.issues.filter(i => i.severity === "error").length;
   const injuryRiskErrors = injuryRiskCompliance.issues.filter(i => i.severity === "error").length;
   const objectiveSportConflictErrors = objectiveSportConflict.issues.filter(i => i.severity === "error").length;
+  const finalObjectiveMismatchErrors = finalObjectiveMismatch.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : finalObjectiveMismatchErrors > 0
+    ? `🏁 Objectif final incohérent — la compétition de fin de plan ne correspond pas à l'objectif principal déclaré, voir détail — décision du coach requise avant utilisation`
     : objectiveSportConflictErrors > 0
     ? `🎯 Objectif/contenu incompatible — 0 séance de la discipline exigée par l'objectif, voir détail — décision du coach requise avant utilisation`
     : injuryRiskErrors > 0

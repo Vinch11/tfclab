@@ -59,6 +59,18 @@ const REPAIR_CODE_PATTERN = new RegExp(
     "offsport_unresolved",
     "demanding_accumulation_unresolved",
     "constraint_day_unresolved",
+    // Audit "plan 70.3 sans natation" (2026-10-23), garde-fou 4 : ce code
+    // était déjà tracé et transmis par le réconciliateur serveur
+    // (jsonPlanHandler.ts, action=rest_floor_breached) mais absent de cette
+    // liste — la violation du repos minimal demandé par le coach
+    // (minFullRestDays) était donc détectée côté serveur puis silencieusement
+    // ignorée ici (`if (!code ...) continue;` ci-dessous), sans jamais
+    // atteindre la bannière visible d'AIPlanViewer.tsx. Volontairement absent
+    // de CRITICAL_REPAIR_CODES : reste un avertissement visible, pas une
+    // erreur bloquante — c'est un repli délibéré du réconciliateur ("mieux
+    // vaut une semaine dense que perdre la séance"), pas une anomalie de
+    // génération à corriger avant toute utilisation.
+    "rest_floor_breached",
   ].join("|")})\\b`,
 );
 
