@@ -4363,6 +4363,54 @@ function validateSessionDensity(
   return { issues, score: Math.max(0, Math.min(100, score)) };
 }
 
+/**
+ * GRAND SPRINT P0, Sprint 6 ("décisions du coach"), 2026-10-23 — "contrôler
+ * la présence du renforcement demandé" : `strengthSessionsPerWeek` (UI
+ * "Renforcement/sem", 0-3) est transmis au prompt système comme une
+ * instruction stricte ("Inclure EXACTEMENT N séance(s) de renforcement/PPG
+ * par semaine"), mais rien ne vérifiait jusqu'ici que le plan réellement
+ * généré respecte ce nombre — ni sa présence (N>0), ni son absence stricte
+ * (N=0, "Aucun" explicitement choisi par le coach). Comparaison STRICTE
+ * (delta=0 attendu), pas la tolérance ±1 de `validateSessionDensity`
+ * ci-dessus : le prompt demande un nombre EXACT, pas approximatif. Semaines
+ * de décharge/course exclues (hors périmètre, comme partout ailleurs dans
+ * ce fichier). `strengthSessionsPerWeek` omis/`null` = contrôle inactif —
+ * aucune donnée de contrat disponible, jamais un signal fabriqué.
+ */
+function validateStrengthSessionsRequested(
+  plan: ParsedPlan,
+  metrics: WeekMetrics[],
+  strengthSessionsPerWeek: number | null | undefined,
+): { issues: ValidationIssue[]; score: number } {
+  if (strengthSessionsPerWeek == null || strengthSessionsPerWeek < 0) return { issues: [], score: 100 };
+
+  const issues: ValidationIssue[] = [];
+  let scanned = 0;
+  let compliant = 0;
+  for (let i = 0; i < plan.weeks.length; i++) {
+    const w = plan.weeks[i];
+    const wm = metrics[i];
+    if (!wm || wm.isContentOrScheduleDeload || wm.isRaceWeek) continue; // hors périmètre, comme ailleurs dans ce fichier
+    scanned++;
+    const actual = wm.sports["Renfo"] || 0;
+    const delta = actual - strengthSessionsPerWeek;
+    if (delta === 0) {
+      compliant++;
+      continue;
+    }
+    issues.push({
+      rule: "strength_sessions_requested",
+      severity: Math.abs(delta) === 1 ? "warning" : "error",
+      week: w.weekNumber,
+      message: `S${w.weekNumber}: ${actual} séance(s) de renforcement vs ${strengthSessionsPerWeek} demandée(s) par le coach (Δ${delta > 0 ? "+" : ""}${delta})`,
+      detail: `Le coach a demandé EXACTEMENT ${strengthSessionsPerWeek} séance(s) de renforcement/PPG par semaine (UI "Renforcement/sem") — cette instruction est transmise au prompt système mais son respect n'était jusqu'ici jamais vérifié sur le plan réellement généré.`,
+    });
+  }
+
+  const score = scanned > 0 ? Math.round((compliant / scanned) * 100) : 100;
+  return { issues, score };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // LOT 4 — Rule 13 : Lorang A/B/C/D categories (systemPrompt L528-536)
 // A = HIT (Z5/Z6, VO2/VMA)        cible 15-20% vol
@@ -5468,6 +5516,18 @@ export function validatePlan(
    * tout appelant qui ne le fournit pas encore).
    */
   ambitionAudit?: AmbitionAudit | null,
+  /**
+   * GRAND SPRINT P0, Sprint 6 ("décisions du coach"), 2026-10-23 : nombre
+   * de séances de renforcement/PPG EXACTEMENT demandées par semaine
+   * (PlanConfig.strengthSessionsPerWeek, UI "Renforcement/sem", 0-3) —
+   * transmis au prompt système ("Inclure EXACTEMENT N séance(s) de
+   * renforcement... par semaine") mais jusqu'ici jamais vérifié sur le plan
+   * réellement généré. Pilote exclusivement `validateStrengthSessionsRequested`.
+   * Omis/`null` = contrôle inactif (comportement inchangé pour tout
+   * appelant qui ne le fournit pas encore) — jamais un signal fabriqué en
+   * l'absence de cette donnée du contrat.
+   */
+  strengthSessionsPerWeek?: number | null,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -5540,6 +5600,7 @@ export function validatePlan(
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
+  const strengthSessionsRequested = validateStrengthSessionsRequested(plan, weekMetrics, strengthSessionsPerWeek);
   const lorang_ = validateLorangCategories(plan, objective, ambition);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
   const objectiveSportConflict = validateObjectiveSportCoherence(weekMetrics, objective, constraintsText);
@@ -5580,6 +5641,7 @@ export function validatePlan(
     ...limiterCoherence.issues,
     ...wbalFeasibility.issues,
     ...sessionDensity_.issues,
+    ...strengthSessionsRequested.issues,
     ...lorang_.issues,
     ...startToRunStrength.issues,
     ...trailBackToBack.issues,

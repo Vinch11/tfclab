@@ -2472,6 +2472,12 @@ export default function AITrainingPlanPage() {
               reason: cfg.ambitionMeta.diagnosticNote,
             }
             : undefined,
+          // GRAND SPRINT P0, Sprint 6 ("décisions du coach") : nombre de
+          // séances de renforcement EXACTEMENT demandées par semaine (UI
+          // "Renforcement/sem") — déjà transmis au prompt système comme
+          // instruction stricte, jamais vérifié sur le plan généré avant
+          // ce correctif. Pilote exclusivement validateStrengthSessionsRequested.
+          (() => { const n = parseInt(strengthSessionsPerWeek, 10); return Number.isFinite(n) && n >= 0 ? n : undefined; })(),
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;
