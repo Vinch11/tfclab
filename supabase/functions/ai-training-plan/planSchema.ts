@@ -41,6 +41,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { isRaceEventTitle } from "../_shared/raceDayIdentity.ts";
 import { z } from "npm:zod@3.23.8";
 
 // Marqueurs B3 strictement critical : D+ chiffré, trail technique / massif géographique, etc.
@@ -188,7 +189,10 @@ function buildSessionSchema(allowedIds: string[]) {
     catalogId: catalogIdSchema,
   });
 
-  return z.union([zSessionRest, zSessionRef, zSessionCustom]);
+  return z.union([zSessionRest, zSessionRef, zSessionCustom]).refine(
+    s => s.custom || !isRaceEventTitle(s),
+    { path: ["catalogId"], message: "race_catalog_conflict: une compétition réelle est un événement custom=true, catalogId=null ; jamais une fiche de simulation ou d'entraînement" },
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

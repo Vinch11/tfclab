@@ -34,6 +34,9 @@ import { NON_DEROGABLE_RULES } from "../AITrainingPlanPage";
  * fondamentales ci-dessus.
  */
 describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrainingPlanPage)", () => {
+  it("une compétition associée au catalogue entraînement bloque sans dérogation", () => {
+    expect(NON_DEROGABLE_RULES.has("race_catalog_conflict")).toBe(true);
+  });
   it("bloque réellement objective_sport_conflict (incohérence fondamentale objectif/contenu)", () => {
     expect(NON_DEROGABLE_RULES.has("objective_sport_conflict")).toBe(true);
   });
@@ -69,8 +72,8 @@ describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrain
     }
   });
 
-  it("périmètre volontairement restreint à exactement 4 règles — pas un blocage de toutes les erreurs critiques", () => {
-    expect(NON_DEROGABLE_RULES.size).toBe(4);
+  it("périmètre volontairement restreint à exactement 5 règles — pas un blocage de toutes les erreurs critiques", () => {
+    expect(NON_DEROGABLE_RULES.size).toBe(5);
   });
 
   /**
