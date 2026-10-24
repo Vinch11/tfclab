@@ -14,3 +14,10 @@ verify_jwt = false
 
 [functions.nolio-training-load-daily]
 verify_jwt = false
+
+# Phase 1: local development + mock-only gates inside the handlers. Never disable JWT.
+[functions.nolio-v2-read]
+verify_jwt = true
+
+[functions.nolio-v2-links]
+verify_jwt = true

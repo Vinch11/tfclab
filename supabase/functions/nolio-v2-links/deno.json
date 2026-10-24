@@ -1,0 +1,3 @@
+{
+  "extends": "../nolio-v2-read/deno.json"
+}

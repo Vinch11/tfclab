@@ -24,6 +24,8 @@ import { NolioLinkAthletesDialog } from "./NolioLinkAthletesDialog";
 import { NolioImportPeriodDialog, type NolioImportPeriod } from "./NolioImportPeriodDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+import { NolioV2DevelopmentPanel } from "./nolio-v2/NolioV2DevelopmentPanel";
+
 type LinkedAthlete = { id: string; name: string; nolio_id: number };
 
 export function ConfigurationPage() {
@@ -748,6 +750,8 @@ export function ConfigurationPage() {
           )}
         </CardContent>
       </Card>
+
+      {import.meta.env.DEV && <NolioV2DevelopmentPanel />}
 
       <NolioLinkAthletesDialog open={nolioLinkOpen} onOpenChange={setNolioLinkOpen} />
 
