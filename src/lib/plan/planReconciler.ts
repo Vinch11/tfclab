@@ -38,6 +38,7 @@ import {
 } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
+import { isRaceDaySession } from "@/engines/plan/planValidator";
 import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
 import { isLevelPrerequisiteIncompatible, type BeginnerIntensitySignal } from "./levelPrerequisiteCompatibility";
 import {
@@ -1521,7 +1522,15 @@ function enforceTaperWeeks(
 //    Certains plans (chemin JSON) s'arrêtent à l'activation pré-course sans
 //    jamais matérialiser l'épreuve. Filet déterministe : on insère une séance
 //    « 🏁 COURSE OBJECTIF — Jour J » le dimanche de la dernière semaine.
-const RACE_DAY_RX = /🏁|jour\s*j\b|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
+//
+//    Correction ciblée "P0 génération invalide" (2026-10-24) : ce fichier
+//    utilisait sa propre regex LARGE (sans la distinction fort/faible ni
+//    l'exclusion des rituels de préparation ajoutée côté planValidator.ts,
+//    cf. commentaire sur `isRaceDaySession`) — un simple rappel d'activation/
+//    mobilité pouvait donc être jugé "Jour J déjà présent" ici, faisant
+//    renoncer ce filet déterministe à insérer le VRAI Jour J, alors que le
+//    validateur détecte correctement son absence. Remplacé par la même
+//    primitive partagée (`isRaceDaySession`, planValidator.ts).
 
 const RACE_DAY_SPEC: Record<string, { sport: "run" | "bike" | "brick" | "swim"; durationMin: number; label: string }> = {
   IM: { sport: "brick", durationMin: 720, label: "Ironman" },
@@ -1639,7 +1648,7 @@ function ensureRaceDaySession(
       const existing = sessions.filter(
         s => String((s as { day?: string }).day ?? "").toLowerCase() === dayLower,
       );
-      const hasRace = existing.some(s => RACE_DAY_RX.test(`${s.title ?? ""} ${s.details ?? ""}`));
+      const hasRace = existing.some(s => isRaceDaySession({ title: s.title ?? "", details: s.details ?? "" }));
       if (hasRace) continue;
 
       const stageSession = makeRaceSession(
@@ -1667,7 +1676,7 @@ function ensureRaceDaySession(
   }
 
   const already = sessions.some(s =>
-    RACE_DAY_RX.test(`${s.title ?? ""} ${s.details ?? ""}`),
+    isRaceDaySession({ title: s.title ?? "", details: s.details ?? "" }),
   );
   if (already) return;
 
@@ -2261,10 +2270,33 @@ export function runReconciler(
     if (!changed) break;
   }
 
+  // Passe POSTÉRIEURE — filet final : nettoie tout ID hors-catalogue qui
+  // aurait été introduit malgré tout (ex : insertion FLOOR sans injected).
+  // Gated : ne relance que si runOnePass a effectivement muté quelque chose,
+  // sinon rien de nouveau à nettoyer et on éviterait de doubler les compteurs
+  // noSafeNeighbor sur les cas déjà rejetés en pré-passe.
+  //
+  // Correction ciblée "P0 génération invalide" (2026-10-24) : cette passe
+  // "post" tournait AVANT dedupeWithinWeek/dedupeFastedWithinWeek — un
+  // doublon de catalogId introduit PAR cette substitution elle-même (même
+  // mécanisme que les substitutions phase/durée/discipline de runOnePass,
+  // documenté au site de définition de dedupeWithinWeek) n'était alors
+  // JAMAIS détecté, puisqu'aucun filet ne tournait plus après elle. Bug réel
+  // confirmé (audit "P0 génération invalide") : catalogId dupliqué dans la
+  // même semaine "après mutations". Les deux filets de dédoublonnage
+  // tournent désormais TOUJOURS après neighborRemapPass("post"), pour rester
+  // un véritable filet FINAL plutôt qu'un filet avant-dernier.
+  if (anyOnePassChange && injected && injected.size > 0) {
+    const postStats = neighborRemapPass("post");
+    logs.push(
+      `[recon_substitute_debug_post] substituted(post)=${postStats.substituted} noSafeNeighbor(post)=${postStats.noSafe}`
+    );
+  }
+
   // Filet final dédoublonnage intra-semaine — voir commentaire au site de
   // définition de dedupeWithinWeek. Tourne inconditionnellement (indépendant
   // de anyOnePassChange) : un doublon peut déjà être présent en sortie du
-  // générateur, pas uniquement introduit par runOnePass.
+  // générateur, pas uniquement introduit par runOnePass ou neighborRemapPass.
   dedupeWithinWeek(chunks, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek);
 
   // Filet final plafond cumul "à jeun" — voir commentaire au site de
@@ -2272,18 +2304,6 @@ export function runReconciler(
   // réutilise un ledger/catalogue déjà à jour pour ne pas réintroduire un
   // doublon de catalogId en corrigeant un cumul à jeun.
   dedupeFastedWithinWeek(chunks, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek);
-
-  // Passe POSTÉRIEURE — filet final : nettoie tout ID hors-catalogue qui
-  // aurait été introduit malgré tout (ex : insertion FLOOR sans injected).
-  // Gated : ne relance que si runOnePass a effectivement muté quelque chose,
-  // sinon rien de nouveau à nettoyer et on éviterait de doubler les compteurs
-  // noSafeNeighbor sur les cas déjà rejetés en pré-passe.
-  if (anyOnePassChange && injected && injected.size > 0) {
-    const postStats = neighborRemapPass("post");
-    logs.push(
-      `[recon_substitute_debug_post] substituted(post)=${postStats.substituted} noSafeNeighbor(post)=${postStats.noSafe}`
-    );
-  }
 
   fixEarlyConsolidationSessions(chunks, counters, logs);
   if (String(opts.objectiveKey ?? "").toLowerCase().includes("start")) {

@@ -310,18 +310,33 @@ const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétiti
 const RACE_DAY_STRONG_PATTERNS = /🏁|course\s*objectif|jour\s*de\s*(course|compétition)/i;
 const PRE_RACE_ACTIVATION_PATTERNS = /activation|pr[ée]paration|mobilit[ée]|shakeout|ouverture|primers?|pre-?race|d[ée]blocage|opener|veille|flush|\bj-\d/i;
 
-/** Vrai si la semaine contient une séance de jour de course réel (pas juste
- *  un thème qui mentionne l'objectif, ni un rituel de préparation qui
+/** Vrai si CETTE séance est un jour de course réel (pas juste une séance qui
+ *  mentionne accessoirement l'objectif, ni un rituel de préparation qui
  *  mentionne accessoirement "race day"/"jour j") — cf. RACE_DAY_PATTERNS
- *  ci-dessus. Exportée pour AITrainingPlanPage.tsx (verrou Jour J
- *  post-génération, audit "plan multi-objectifs Sables d'Olonne") — même
- *  détection que validateRaceDayPresence, sans dupliquer la regex. */
+ *  ci-dessus. Extrait de `weekHasRaceDay` (correction ciblée "P0 génération
+ *  invalide", 2026-10-24) : `computePlan.ts` et `planReconciler.ts`
+ *  dupliquaient chacun leur propre copie de cette détection, restée sur
+ *  l'ancienne version LARGE (sans la distinction fort/faible ni l'exclusion
+ *  des rituels de préparation ci-dessus) après ce correctif — un plan
+ *  pouvait donc être jugé "Jour J déjà présent" par ces deux fichiers (qui
+ *  renoncent alors à fabriquer le vrai Jour J) alors que le validateur,
+ *  lui, détecte correctement son absence. Primitive AU NIVEAU SÉANCE
+ *  exportée pour que ces deux appelants (qui filtrent des séances
+ *  individuelles, pas des semaines entières) puissent réutiliser EXACTEMENT
+ *  la même règle plutôt que de la redupliquer une 3e fois. */
+export function isRaceDaySession(s: { title?: string; details?: string; sport?: string }): boolean {
+  const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
+  if (RACE_DAY_STRONG_PATTERNS.test(text)) return true;
+  return RACE_DAY_PATTERNS.test(text) && !PRE_RACE_ACTIVATION_PATTERNS.test(text);
+}
+
+/** Vrai si la semaine contient une séance de jour de course réel — cf.
+ *  `isRaceDaySession` ci-dessus. Exportée pour AITrainingPlanPage.tsx
+ *  (verrou Jour J post-génération, audit "plan multi-objectifs Sables
+ *  d'Olonne") — même détection que validateRaceDayPresence, sans dupliquer
+ *  la regex. */
 export function weekHasRaceDay(week: ParsedWeek): boolean {
-  return week.sessions.some((s) => {
-    const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
-    if (RACE_DAY_STRONG_PATTERNS.test(text)) return true;
-    return RACE_DAY_PATTERNS.test(text) && !PRE_RACE_ACTIVATION_PATTERNS.test(text);
-  });
+  return week.sessions.some(isRaceDaySession);
 }
 
 /**

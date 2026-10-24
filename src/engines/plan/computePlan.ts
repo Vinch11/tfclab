@@ -29,6 +29,7 @@ import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
 import { deriveRaceTargets, formatSecPerKm, formatSecToTime, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { postProcessSessionText } from "./sessionTextPostProcessor";
 import { normalizeAmbitionLevel } from "@/types/ambitionLevel";
+import { isRaceDaySession, weekHasRaceDay } from "./planValidator";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
@@ -38,8 +39,6 @@ import { normalizeAmbitionLevel } from "@/types/ambitionLevel";
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT
 // ═══════════════════════════════════════════════════════════════════════════════
-
-const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
 
 const DAY_INDEX_MAP: Record<number, string> = {
   0: "Dimanche", 1: "Lundi", 2: "Mardi", 3: "Mercredi",
@@ -84,16 +83,6 @@ function getRaceWeekNumber(raceDate: string, planStartDate: string, totalWeeks: 
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const weekNum = Math.floor(diffDays / 7) + 1;
   return Math.max(1, Math.min(weekNum, totalWeeks));
-}
-
-/**
- * Vérifie si une semaine contient déjà un jour de course
- */
-function weekHasRaceDay(week: ParsedWeek): boolean {
-  return week.sessions.some(s => {
-    const text = `${s.sport} ${s.title} ${s.details}`;
-    return RACE_DAY_PATTERNS.test(text);
-  });
 }
 
 /**
@@ -295,10 +284,14 @@ function anchorRaceDays(
     );
     let relocated = false;
     for (const nw of neighborWeeks) {
-      const raceSessions = nw.sessions.filter(s => {
-        const text = `${s.sport} ${s.title} ${s.details}`;
-        return RACE_DAY_PATTERNS.test(text);
-      });
+      // Correction ciblée "P0 génération invalide" (2026-10-24) : utilisait
+      // l'ancienne regex LARGE (RACE_DAY_PATTERNS seule, sans la distinction
+      // fort/faible ni l'exclusion des rituels de préparation) — un simple
+      // rappel d'activation/mobilité mentionnant accessoirement "jour j" ou
+      // "compétition" dans la semaine voisine pouvait donc être déplacé à
+      // tort vers la semaine cible, laissant la VRAIE semaine de course sans
+      // Jour J réel et la semaine voisine amputée d'un rappel légitime.
+      const raceSessions = nw.sessions.filter(isRaceDaySession);
       if (raceSessions.length > 0) {
         // Move race sessions to the correct week
         for (const rs of raceSessions) {
@@ -371,8 +364,12 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?:
   for (const week of plan.weeks) {
     const byDay = new Map<number, ParsedSession[]>();
     for (const s of week.sessions) {
-      const text = `${s.sport} ${s.title} ${s.details}`;
-      if (RACE_DAY_PATTERNS.test(text)) {
+      // Correction ciblée "P0 génération invalide" (2026-10-24) : l'ancienne
+      // regex LARGE pouvait regrouper un simple rappel d'activation/mobilité
+      // (qui mentionne accessoirement "jour j"/"compétition") avec le vrai
+      // Jour J du même jour, puis le SUPPRIMER comme "doublon" ci-dessous —
+      // perte d'une séance légitime, pas une vraie déduplication.
+      if (isRaceDaySession(s)) {
         const arr = byDay.get(s.dayIndex) ?? [];
         arr.push(s);
         byDay.set(s.dayIndex, arr);
@@ -391,8 +388,7 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?:
     // La cible correcte est réinjectée par anchorRaceDays via buildRaceStageHints.
     if (goals.length) {
       for (const s of week.sessions) {
-        const text = `${s.sport} ${s.title} ${s.details}`;
-        if (!RACE_DAY_PATTERNS.test(text)) continue;
+        if (!isRaceDaySession(s)) continue;
         const goal = goals.find(g => {
           if (!g.raceDate || !config.planStartDate) return false;
           return getRaceWeekNumber(g.raceDate, config.planStartDate, plan.weeks.length) === week.weekNumber;
