@@ -2817,7 +2817,11 @@ export default function AITrainingPlanPage() {
     // réelle (régénération d'une semaine d'un plan existant, pas un offset
     // de chunk à recalculer).
     const regenSlRampAnchors: SlFloorRampAnchors | null = fullPlanConfig.volumeRamp
-      ? { week1PctTarget: fullPlanConfig.volumeRamp.week1PctTarget, rampWeeks: fullPlanConfig.volumeRamp.rampWeeks }
+      ? {
+        week1PctTarget: fullPlanConfig.volumeRamp.week1PctTarget,
+        rampWeeks: fullPlanConfig.volumeRamp.rampWeeks,
+        weeklyIncreasePctMax: fullPlanConfig.volumeRamp.weeklyIncreasePctMax,
+      }
       : null;
     const regenInjuryRiskForSlFloor = fullPlanConfig.injuryRisk
       ? { bike: fullPlanConfig.injuryRisk.bike?.level, run: fullPlanConfig.injuryRisk.run?.level }

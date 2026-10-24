@@ -1203,7 +1203,11 @@ export function useAITrainingPlan() {
       // Absent (niveau non déclaré) → comportement inchangé (voir
       // applySlFloorIndividualization).
       const slRampAnchors: SlFloorRampAnchors | null = planConfig.volumeRamp
-        ? { week1PctTarget: planConfig.volumeRamp.week1PctTarget, rampWeeks: planConfig.volumeRamp.rampWeeks }
+        ? {
+          week1PctTarget: planConfig.volumeRamp.week1PctTarget,
+          rampWeeks: planConfig.volumeRamp.rampWeeks,
+          weeklyIncreasePctMax: planConfig.volumeRamp.weeklyIncreasePctMax,
+        }
         : null;
       const injuryRiskForSlFloor = planConfig.injuryRisk
         ? { bike: planConfig.injuryRisk.bike?.level, run: planConfig.injuryRisk.run?.level }

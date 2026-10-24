@@ -913,17 +913,36 @@ export function computeWeekQuotaEntry(
 // `_weeklyQuotas` serveur ET à `lastWeeklyQuotasRef` client).
 //
 // Cette section NE RECALCULE PAS un niveau ou une charge : elle réutilise
-// EXCLUSIVEMENT les deux ancres déjà individualisées par le mécanisme
+// EXCLUSIVEMENT les ancres déjà individualisées par le mécanisme
 // `PlanConfig.volumeRamp` existant (planConfigBuilder.ts) — niveau déclaré
 // par le coach, réconcilié avec la Charge Récente de Référence RÉELLEMENT
 // MESURÉE (Nolio/snapshot) quand disponible via `resolveVolumeRampLoadAdjustment`,
 // JAMAIS un historique fabriqué. `volumeRamp` rampait déjà le VOLUME HEBDO
 // TOTAL (prompt uniquement, best-effort) ; cette fonction étend LA MÊME rampe
-// (mêmes deux ancres, aucune nouvelle valeur inventée) à la durée de sortie
+// (mêmes ancres, aucune nouvelle valeur inventée) à la durée de sortie
 // longue, pour les semaines "load" uniquement (recovery/taper/race restent
 // modulées comme avant par `floorsFor`, jamais re-modulées ici) — et la rend
 // DÉTERMINISTE (pas seulement une instruction prompt), puisqu'elle s'applique
 // à la source unique lue par l'enforcement/la validation.
+//
+// STATUT ÉPISTÉMIQUE À NE JAMAIS SURREPRÉSENTER (revue coach 2026-10-24,
+// point 1) : `volumeRamp` individualise par PALIER DE NIVEAU DÉCLARÉ
+// (untrained/light/trained/highly_trained), pas par historique granulaire
+// réel de l'athlète — `resolveVolumeRampLoadAdjustment` ne fait QUE
+// corriger à la baisse le palier si la charge mesurée le contredit
+// (surcharge/sous-charge réelle) ; quand la charge mesurée est absente OU
+// cohérente avec le niveau déclaré, la vitesse de rampe (week1PctTarget,
+// rampWeeks) reste une valeur de MATRICE fixe, écrite une fois pour le
+// volume hebdo agrégé — jamais démontrée spécifiquement pour la durée d'UNE
+// sortie longue. Cette fonction ne doit donc JAMAIS être présentée comme
+// "la progression SL scientifiquement individualisée pour cet athlète" :
+// c'est une réutilisation cohérente d'un palier catégoriel déjà revu, pas
+// une courbe dérivée des données réelles de l'athlète. Si le coach juge
+// cette réutilisation insuffisante, l'option honnête est soit documenter le
+// manque (fait ici), soit discuter avec lui des données supplémentaires qui
+// permettraient une vraie individualisation spécifique à la SL (historique
+// de durée de sortie longue récente, par ex.) — jamais inventer un
+// coefficient pour masquer l'absence de cette donnée.
 //
 // Si `volumeRamp` est absent (niveau d'entraînement non déclaré/résolu —
 // ex. mode "auto"), comportement INCHANGÉ : plancher nominal dès S1, aucune
@@ -931,35 +950,81 @@ export function computeWeekQuotaEntry(
 export interface SlFloorRampAnchors {
   /** % (0-1) de la cible atteint en semaine 1 — déjà individualisé par volumeRamp. */
   week1PctTarget: number;
-  /** Nombre de semaines pour atteindre 100% de la cible — déjà individualisé par volumeRamp. */
+  /** Nombre de semaines pour atteindre 100% de la cible — déjà individualisé par volumeRamp. Conservé pour traçabilité ; n'est plus l'unique déterminant de la vitesse (cf. weeklyIncreasePctMax ci-dessous). */
   rampWeeks: number;
+  /**
+   * Progression hebdo MAX déjà existante dans `volumeRamp`
+   * (`weeklyIncreasePctMax`, défaut 0.10, abaissé à 0.07 par
+   * `resolveVolumeRampLoadAdjustment` si charge réelle en surcharge) —
+   * CORRECTION (revue coach 2026-10-24, point 1) : la version initiale de
+   * cette fonction interpolait linéairement de `week1PctTarget` à 100% en
+   * EXACTEMENT `rampWeeks` semaines, ce qui pour les paliers "trained"
+   * (80%, rampWeeks=2) et "competitor" produisait un saut S1→S2 de +25%
+   * en UNE semaine — strictement plus agressif que la consigne "+X%/sem
+   * MAX" que ce même objet `volumeRamp` affiche pourtant déjà au LLM pour
+   * le volume hebdo total (promptHelpers.ts, bloc "RAMPE DE VOLUME
+   * OBLIGATOIRE"). Incohérence interne démontrée, pas une hypothèse.
+   * Omis (undefined) → défaut 0.10 (même défaut que `volumeRamp`).
+   */
+  weeklyIncreasePctMax?: number;
 }
 
 /**
  * % (0-1) du plancher SL nominal applicable à `weekNumber` (position
  * GLOBALE 1-indexée depuis le vrai début du plan — jamais une position
- * locale de chunk/fenêtre). Interpolation linéaire entre les deux ancres
- * déjà individualisées ci-dessus (semaine 1 → `week1PctTarget`, semaine
- * `rampWeeks` → 100%) : pas une nouvelle courbe inventée, l'extension de la
- * même rampe déjà utilisée pour le volume hebdo total à une seconde
- * grandeur (la durée de sortie longue).
+ * locale de chunk/fenêtre).
+ *
+ * Croissance géométrique depuis `week1PctTarget`, plafonnée au taux hebdo
+ * MAX déjà existant (`weeklyIncreasePctMax`) — jamais un nouveau
+ * coefficient : on retient le taux le PLUS LENT entre (a) celui qu'impliquerait
+ * `rampWeeks` pris littéralement (atteindre 100% exactement à cette semaine)
+ * et (b) le plafond de sécurité déjà affiché pour le volume hebdo total.
+ * Pour toute la matrice `volumeRamp` actuelle, (b) est plus lent que (a) —
+ * la rampe SL met donc davantage de semaines à atteindre 100% que la
+ * valeur `rampWeeks` nominale, jamais moins : plus prudent, jamais moins
+ * sûr que l'ancien comportement (saut unique), et jamais plus agressif que
+ * la consigne de sécurité déjà existante pour le volume hebdo.
  */
 export function slFloorRampFactor(weekNumber: number, ramp: SlFloorRampAnchors | null | undefined): number {
   if (!ramp || !Number.isFinite(ramp.rampWeeks) || ramp.rampWeeks <= 1) return 1;
   const w = Math.max(1, Math.round(weekNumber || 1));
-  if (w >= ramp.rampWeeks) return 1;
   const pct1 = Math.min(1, Math.max(0, ramp.week1PctTarget));
+  if (pct1 >= 1) return 1;
   if (w <= 1) return pct1;
-  const step = (1 - pct1) / (ramp.rampWeeks - 1);
-  return Math.min(1, pct1 + (w - 1) * step);
+  const g = Number.isFinite(ramp.weeklyIncreasePctMax) && (ramp.weeklyIncreasePctMax as number) > 0
+    ? (ramp.weeklyIncreasePctMax as number)
+    : 0.10;
+  const pct1Safe = Math.max(pct1, 0.01);
+  const impliedRate = Math.pow(1 / pct1Safe, 1 / Math.max(1, ramp.rampWeeks - 1)) - 1;
+  const rate = Math.min(impliedRate, g);
+  return Math.min(1, pct1 * Math.pow(1 + rate, w - 1));
 }
 
 /**
- * Malus protecteur SL si un risque blessure ÉLEVÉ/CRITIQUE est déjà calculé
- * pour ce sport (injuryRiskUnified.ts — même donnée que le malus catalogue
+ * Ajustement SL si un risque blessure ÉLEVÉ/CRITIQUE est déjà calculé pour
+ * ce sport (injuryRiskUnified.ts — même donnée que le malus catalogue
  * existant, jamais une nouvelle estimation). Réutilise le même facteur ×0.7
- * déjà appliqué aux semaines recovery par `floorsFor` ci-dessus, plutôt
- * qu'un nouveau coefficient inventé pour ce cas précis.
+ * déjà appliqué aux semaines recovery par `floorsFor` ci-dessus.
+ *
+ * ⚠️ CE N'EST PAS UNE VALIDATION DE SÉCURITÉ (revue coach 2026-10-24, point
+ * 3) : réduire la DURÉE d'une sortie longue ne change jamais son contenu
+ * (même sport, même type d'effort), et ne modifie NI le nombre de séances
+ * à impact mécanique élevé par semaine NI leur classification texte/motif
+ * — c'est précisément ce que vérifie `validateInjuryRiskCompliance`
+ * (planValidator.ts), le SEUL contrôle bloquant pour le niveau CRITIQUE
+ * (seuil : >2 séances à impact élevé/sem, basé sur le COMPTE et le
+ * CONTENU des séances, jamais sur leur durée). Ce contrôle reste
+ * entièrement actif et indépendant, quel que soit le facteur appliqué
+ * ici — vérifié : aucun champ produit par cette fonction
+ * (`SlFloorIndividualizationResult`) n'est lu par `validateInjuryRiskCompliance`
+ * ni par aucune logique de déclassement de sévérité. Ce facteur est donc
+ * une précaution volumique SUPPLÉMENTAIRE et CONSERVATRICE, jamais une
+ * preuve que la semaine est sûre, et jamais un substitut à la validation
+ * du coach sur une semaine à risque CRITIQUE. Pour ÉLEVÉ, par conception
+ * existante (non modifiée ici), AUCUN autre contrôle automatique n'existe
+ * ("niveau de vigilance, pas d'alerte") — ce facteur est donc la SEULE
+ * mitigation automatique disponible pour ÉLEVÉ, ce qui doit rester explicite
+ * plutôt que présenté comme une garantie.
  */
 function slFloorInjuryFactor(level: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" | null | undefined): number {
   return level === "ELEVE" || level === "CRITIQUE" ? 0.7 : 1;
@@ -974,10 +1039,16 @@ export interface SlFloorIndividualizationResult {
 }
 
 /**
- * Applique la progression individualisée au plancher de sortie longue.
- * Vélo et course sont toujours traités séparément (deux appels de facteur
- * indépendants) — jamais un seul pourcentage générique appliqué en bloc aux
- * deux disciplines sans distinction.
+ * Applique au plancher de sortie longue une progression dérivée du palier
+ * de niveau déclaré (voir statut épistémique ci-dessus — jamais présentée
+ * comme une courbe scientifiquement individualisée spécifique à la SL), et
+ * un ajustement conservateur en cas de risque blessure déjà calculé (jamais
+ * une validation de sécurité — voir `slFloorInjuryFactor`). Vélo et course
+ * sont toujours traités séparément (deux appels de facteur indépendants) —
+ * jamais un seul pourcentage générique appliqué en bloc aux deux
+ * disciplines sans distinction. Ne modifie jamais `longRideWeekly`/
+ * `longRunWeekly` (présence de la séance) ni le quota de séances — ne touche
+ * QUE la durée plancher.
  */
 export function applySlFloorIndividualization(
   floors: SizingFloors,
@@ -1004,13 +1075,13 @@ export function applySlFloorIndividualization(
   const reasons: string[] = [];
   if (bikePct < 1) {
     reasons.push(injuryBikePct < rampPct
-      ? `vélo réduit à ${Math.round(bikePct * 100)}% (risque blessure vélo ${injuryRisk?.bike})`
-      : `vélo rampe progressive S${weekNumber} → ${Math.round(bikePct * 100)}% (niveau déclaré, ${ramp?.rampWeeks} sem.)`);
+      ? `vélo réduit à ${Math.round(bikePct * 100)}% (précaution volumique, risque blessure vélo ${injuryRisk?.bike} — ne remplace pas la validation coach)`
+      : `vélo rampe progressive S${weekNumber} → ${Math.round(bikePct * 100)}% (palier de niveau déclaré, progression plafonnée à +${Math.round((ramp?.weeklyIncreasePctMax ?? 0.10) * 100)}%/sem — pas une courbe individualisée spécifique à la SL)`);
   }
   if (runPct < 1) {
     reasons.push(injuryRunPct < rampPct
-      ? `course réduite à ${Math.round(runPct * 100)}% (risque blessure course ${injuryRisk?.run})`
-      : `course rampe progressive S${weekNumber} → ${Math.round(runPct * 100)}% (niveau déclaré, ${ramp?.rampWeeks} sem.)`);
+      ? `course réduite à ${Math.round(runPct * 100)}% (précaution volumique, risque blessure course ${injuryRisk?.run} — ne remplace pas la validation coach)`
+      : `course rampe progressive S${weekNumber} → ${Math.round(runPct * 100)}% (palier de niveau déclaré, progression plafonnée à +${Math.round((ramp?.weeklyIncreasePctMax ?? 0.10) * 100)}%/sem — pas une courbe individualisée spécifique à la SL)`);
   }
 
   return {
