@@ -587,10 +587,27 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
       if (flags.phaseAllowed && phase && !flags.phaseAllowed.includes(phase)) {
         pass = false;
         // Catégorisation : granularité intra-chunk vs fuite mapping
+        //
+        // Bug réel confirmé (audit "correction ciblée plan multiobjectifs
+        // réel", 2026-10-24, incident C_STR_NORDIC_HAMSTRING_PETERSEN placée
+        // en S32/taper d'un plan 70.3 33 semaines) : `hasCompatiblePlacement`
+        // downgrade une fiche en simple bruit "granularité_intra_chunk" dès
+        // qu'elle apparaît AUSSI ailleurs dans une phase compatible — ce qui
+        // est systématiquement vrai pour une fiche "Toute l'année (1-2x/sem)"
+        // comme ce protocole Nordic Hamstring, légitimement présente dans la
+        // quasi-totalité des semaines base/build/peak du plan. La seule
+        // occurrence qui compte vraiment ici est celle placée en TAPER —
+        // précisément la fenêtre que le champ structuré `avoid` de la fiche
+        // ("Tapering course A (J-7)") désigne comme contre-indiquée pour des
+        // raisons de sécurité (fatigue/charge tendineuse avant course), sans
+        // rapport avec la fréquence d'usage du reste du plan. Un mismatch en
+        // semaine TAPER reste donc TOUJOURS "fuite_mapping" (sévérité error,
+        // cf. checkB11ToValidationIssues) — jamais dégradé en avertissement
+        // au seul motif que la fiche est par ailleurs correctement utilisée.
         const placements = placementsByCatalogId.get(s.catalogId.toUpperCase());
-        const hasCompatiblePlacement = placements
+        const hasCompatiblePlacement = phase !== "taper" && (placements
           ? [...placements].some(p => flags.phaseAllowed!.includes(p))
-          : false;
+          : false);
         const cat = hasCompatiblePlacement ? "granularité_intra_chunk" : "fuite_mapping";
         if (hasCompatiblePlacement) phaseMismatchByCategory.granularite_intra_chunk++;
         else phaseMismatchByCategory.fuite_mapping++;

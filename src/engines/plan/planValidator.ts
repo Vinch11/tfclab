@@ -3843,6 +3843,28 @@ function computeLimiterHitsForWeeks(
   const hasVlamaxLimiter = limiterKeys.includes("vlamax");
   const hasFtpLimiter = limiterKeys.includes("ftp");
   const hasTteLimiter = limiterKeys.includes("tte");
+  // Correction ciblée "plan multiobjectifs réel" (2026-10-24), puis revue
+  // scientifique ciblée avant fusion (même date) : la première version de ce
+  // correctif créditait FatMax pour TOUTE séance assignée à VLamax — y
+  // compris une simple Z2/endurance fondamentale générique. Rejeté en revue :
+  // un stimulus susceptible d'influencer VLamax n'est pas nécessairement un
+  // stimulus ciblé et suffisamment dosé pour FatMax ; cette équivalence
+  // générale risquait de fabriquer une couverture plutôt que de la mesurer
+  // (le test associé, `fatmax.hits === vlamax.hits`, validait d'ailleurs ce
+  // problème au lieu de le détecter).
+  //
+  // Version corrigée, restreinte au SEUL sous-cas scientifiquement défendable
+  // déjà présent dans le pattern VLamax ci-dessus (`LIMITER_SESSION_PATTERNS
+  // .vlamax`) : l'entraînement à jeun / "train low" ("train low", "fasted",
+  // "à/a jeun"). Ce protocole n'est pas une simple séance aérobie générique —
+  // c'est, par définition, le protocole de référence pour l'adaptation
+  // FatMax (déplétion glycogénique ciblée → upregulation des enzymes
+  // d'oxydation lipidique). Une séance Z2/endurance fondamentale SANS ce
+  // marqueur explicite n'est PAS créditée : en l'absence de dose/ciblage
+  // FatMax démontrable dans le texte, la couverture reste basse/absente
+  // plutôt que fabriquée (cf. FATMAX_SPECIFIC_CO_CONTRIBUTOR_PATTERN).
+  const hasFatmaxLimiter = limiterKeys.includes("fatmax");
+  const FATMAX_SPECIFIC_CO_CONTRIBUTOR_PATTERN = /train[\s_-]*low|fasted|[àa]\s*jeun/i;
 
   for (const week of weeks) {
     for (const session of week.sessions) {
@@ -3886,6 +3908,14 @@ function computeLimiterHitsForWeeks(
           limiterHits["vlamax"] = (limiterHits["vlamax"] || 0) + 1;
           isLimiterRelevant = true;
         }
+      }
+
+      // Synergie FatMax↔VLamax restreinte au jeûne/train-low (cf. commentaire
+      // sur hasFatmaxLimiter ci-dessus) — jamais sur un simple assignedKey
+      // === "vlamax" générique.
+      if (hasFatmaxLimiter && assignedKey === "vlamax" && FATMAX_SPECIFIC_CO_CONTRIBUTOR_PATTERN.test(text)) {
+        limiterHits["fatmax"] = (limiterHits["fatmax"] || 0) + 1;
+        isLimiterRelevant = true;
       }
 
       if (hasTteLimiter && hasFtpLimiter && TTE_FTP_CROSSOVER_PATTERNS.test(text)) {
@@ -4044,8 +4074,15 @@ function validateLimiterCoherence(
         score -= 15;
       }
     } else if (i === 1) {
-      // L2
-      if (pct < 5) {
+      // L2 — Correction ciblée "plan multiobjectifs réel" (2026-10-24) : bug
+      // réel confirmé — un plan affichait L2 à 6% (`status` déjà calculé
+      // "low" ci-dessus, cible 15%) mais AUCUNE pénalité n'était appliquée
+      // car ce bloc ignorait `target`/`status` et testait un seuil fixe
+      // `pct < 5`, jamais aligné sur la cible réelle du rang. Le score global
+      // (95/100) ne reflétait donc pas la sous-couverture pourtant déjà
+      // visible dans `coverage` (affichage). Utilise désormais `status` —
+      // seule source de vérité partagée avec l'affichage — comme pour L1.
+      if (status === "absent") {
         issues.push({
           rule: "limiter_coherence",
           severity: "warning",
@@ -4053,10 +4090,20 @@ function validateLimiterCoherence(
           detail: `${hits}/${totalKeySessions} séances clés ciblent ce limiteur secondaire.`,
         });
         score -= 15;
+      } else if (status === "low") {
+        issues.push({
+          rule: "limiter_coherence",
+          severity: "warning",
+          message: `Limiteur #2 (${lKey}) sous-représenté dans les séances clés : ${pct}% (cible ≥${target}%)`,
+          detail: `${hits}/${totalKeySessions} séances clés ciblent ce limiteur secondaire.`,
+        });
+        score -= 8;
       }
     } else {
-      // L3/L4
-      if (pct < 5) {
+      // L3/L4 — même correction que L2 ci-dessus : `status` remplace le
+      // seuil fixe `pct < 5` pour rester cohérent avec sa propre cible et
+      // avec l'affichage `coverage`.
+      if (status === "absent") {
         issues.push({
           rule: "limiter_coherence",
           severity: "info",
@@ -4064,6 +4111,14 @@ function validateLimiterCoherence(
           detail: `${hits}/${totalKeySessions} séances clés. Non injecté dans le prompt — couverture attendue via synergies ou séances secondaires.`,
         });
         score -= 5;
+      } else if (status === "low") {
+        issues.push({
+          rule: "limiter_coherence",
+          severity: "info",
+          message: `Limiteur #${rank} (${lKey}) sous-représenté : ${pct}% des séances clés (recommandé ≥${target}%)`,
+          detail: `${hits}/${totalKeySessions} séances clés. Non injecté dans le prompt — couverture attendue via synergies ou séances secondaires.`,
+        });
+        score -= 2;
       }
     }
   }
@@ -4146,6 +4201,35 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
         detail: "La semaine de course doit inclure rappels race-pace, activation pré-course et Jour J",
       });
       score = Math.min(score, 50);
+    }
+  }
+
+  // Course non déclarée (audit "correction ciblée plan multiobjectifs réel",
+  // 2026-10-24) : bug réel confirmé — un plan 70.3 + UN SEUL 10K déclaré (déjà
+  // présent à sa semaine réelle) s'est vu attribuer un DEUXIÈME 10K inventé à
+  // une autre semaine. Jusqu'ici aucun contrôle ne vérifiait la direction
+  // inverse de ce fichier : `targetWeeks` (ci-dessus) ne sert qu'à vérifier
+  // qu'un Jour J est bien PRÉSENT aux semaines attendues, jamais qu'aucun
+  // Jour J n'apparaît AILLEURS. Uniquement activé quand `raceWeekNumbers` est
+  // explicitement fourni (liste complète et fiable des courses réellement
+  // déclarées par le coach, cf. AITrainingPlanPage.tsx/AIPlanBenchmark.tsx) —
+  // sans cette liste (ex. profils QA synthétiques sans raceDate), le seul
+  // repli possible serait "dernière semaine uniquement", insuffisant pour
+  // distinguer une vraie course supplémentaire légitime d'une fausse
+  // correspondance de motif, donc on s'abstient plutôt que de spéculer.
+  if (raceWeekNumbers && raceWeekNumbers.length > 0) {
+    const declaredWeeks = new Set(targetWeeks);
+    for (const week of plan.weeks) {
+      if (declaredWeeks.has(week.weekNumber)) continue;
+      if (!weekHasRaceDay(week)) continue;
+      issues.push({
+        rule: "race_day_unexpected",
+        severity: "error",
+        week: week.weekNumber,
+        message: `🏁 Course non déclarée — S${week.weekNumber} contient un Jour de Course alors qu'aucune course n'est déclarée cette semaine-là`,
+        detail: `Courses déclarées aux semaines : ${[...declaredWeeks].sort((a, b) => a - b).join(", ")}. Une compétition supplémentaire a été ajoutée au plan sans être demandée par le coach — vérifier S${week.weekNumber} avant d'utiliser ce plan.`,
+      });
+      score = Math.min(score, 40);
     }
   }
 
