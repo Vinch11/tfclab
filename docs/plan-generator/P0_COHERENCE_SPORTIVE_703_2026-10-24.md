@@ -113,7 +113,8 @@ d'ajouter une séance. Les tags manquants ne sont pas fabriqués par cette PR.
 Autre reproduction directe avec le **vrai quota/squelette S1** : 10 séances,
 2 vélos autonomes + brick, flags vélo non clés → avant, insertion d'un
 3e vélo `Sortie Z2 progressive` (11 séances) ; après, aucune insertion,
-conflit de qualité conservé. Le réparateur lisait bike.max=3 et total.max=11,
+conflit de qualité conservé. Le quota brut porte bike.max=3 et total.max=11 ; l'insertion ne contrôlait
+pas la capacité effective et le trim vélo utilisait le plafond nominal 3,
 alors que les plages effectives sont bike.max=2 et total.max=10 avec un brick.
 `effectiveSessionQuota` et `countQuotaSessions`, partagés serveur/client/
 validateur, extraient la convention **existante** du validateur ; ils ne
