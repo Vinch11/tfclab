@@ -302,9 +302,18 @@ export function mergeWindowIntoPlan(
 
   const past = currentPlan.weeks.filter((w) => w.weekNumber < fromWeek);
   const future = currentPlan.weeks.filter((w) => w.weekNumber > toWeek);
+  const weeklyQuotas = { ...currentPlan.weeklyQuotas };
+  // Les entrées du résultat de fenêtre sont locales, comme ses semaines.
+  // Retirer aussi l'ancien quota si le remplacement n'en fournit pas.
+  for (let w = fromWeek; w <= toWeek; w++) delete weeklyQuotas[w];
+  windowPlan.weeks.slice(0, windowSize).forEach((w, i) => {
+    const entry = windowPlan.weeklyQuotas?.[w.weekNumber];
+    if (entry) weeklyQuotas[fromWeek + i] = entry;
+  });
 
   return {
     ...currentPlan,
+    ...(currentPlan.weeklyQuotas || windowPlan.weeklyQuotas ? { weeklyQuotas } : {}),
     weeks: [...past, ...renumbered, ...future].sort((a, b) => a.weekNumber - b.weekNumber),
   };
 }

@@ -481,7 +481,10 @@ export function postProcessParsedPlan(
   };
   for (const w of plan.weeks) {
     for (const s of w.sessions) {
-      const st = postProcessSessionText(s, config.ambition, matrixCtx);
+      const st = postProcessSessionText(s, config.ambition, {
+        ...matrixCtx,
+        weeklyQuota: plan.weeklyQuotas?.[w.weekNumber],
+      });
       totalDupCollapsed += st.duplicatesCollapsed;
       totalDupMismatched += st.duplicatesMismatched;
       totalRangesResolved += st.durationRangesResolved;

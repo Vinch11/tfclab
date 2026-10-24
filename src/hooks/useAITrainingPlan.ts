@@ -1746,6 +1746,9 @@ export function useAITrainingPlan() {
             } catch (e) {
               console.error("[useAITrainingPlan] checkB5 failed:", e);
             }
+            // Même source que le payload et validateWeeklyQuotas ; aucun
+            // recalcul depuis le formulaire vivant lors de l'affichage.
+            parsed.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
             setMergedPlan(merged);
             lastParsedPlanRef.current = parsed;
             setParsedPlan(parsed);

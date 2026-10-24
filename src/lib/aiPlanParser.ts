@@ -60,6 +60,9 @@ export interface StrategicRecap {
 }
 
 export interface ParsedPlan {
+  /** Quotas réellement utilisés pour ce plan, indexés par semaine du plan.
+   * Conservés avec le JSON pour les post-traitements et la réouverture. */
+  weeklyQuotas?: Record<number, import("@/lib/plan/validateWeeklyQuotas").WeekQuotaEntry>;
   title: string;
   diagnostic?: string;
   strategicRecap?: StrategicRecap;

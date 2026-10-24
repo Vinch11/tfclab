@@ -2636,6 +2636,11 @@ export default function AITrainingPlanPage() {
     reset();
     setPlanOverride(null);
     setResponse(md);
+    // Les plans récents portent les quotas de leur génération. Ne pas les
+    // perdre en réinterprétant uniquement leur copie Markdown historique.
+    if (pj.weeklyQuotas && Array.isArray(pj.weeks) && Array.isArray(pj.phases)) {
+      setPlanOverride({ ...pj } as ParsedPlan);
+    }
     const startAnchored = startOfWeek(startDate, { weekStartsOn: 1 });
     setPlanStartDate(startAnchored);
     // Persiste immédiatement la version ouverte comme "plan actif" de l'athlète :
@@ -3040,8 +3045,14 @@ export default function AITrainingPlanPage() {
         weekNumber,
         sessions: newWeek.sessions.map((s) => ({ ...s, weekNumber })),
       };
+      const replacedQuotas = { ...basePlan.weeklyQuotas };
+      delete replacedQuotas[weekNumber];
       const mergedPlan: ParsedPlan = {
         ...basePlan,
+        weeklyQuotas: {
+          ...replacedQuotas,
+          ...regenQuotaTransport._weeklyQuotas,
+        },
         weeks: basePlan.weeks
           .map((w) => (w.weekNumber === weekNumber ? replaced : w))
           .sort((a, b) => a.weekNumber - b.weekNumber),
