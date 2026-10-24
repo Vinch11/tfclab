@@ -23,7 +23,7 @@ import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { inferWeekType, buildQuotaPromptBlock, computeWeekQuotaEntry } from "@/engines/plan/sessionSizingMatrix";
+import { inferWeekType, buildQuotaPromptBlock, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
@@ -1193,6 +1193,26 @@ export function useAITrainingPlan() {
         (planConfig as any)?.planStartDate,
         effTotalWeeks,
       );
+      // Correction ciblée "P0 progression individualisée des charges"
+      // (2026-10-24) : le plancher SL (slLongRideMin/slLongRunMin) exigeait
+      // jusqu'ici la même durée dès S1 que n'importe quelle semaine de
+      // build, quel que soit le niveau déclaré de l'athlète. Réutilise
+      // EXCLUSIVEMENT les deux ancres déjà individualisées par
+      // `planConfig.volumeRamp` (niveau déclaré, réconcilié avec la charge
+      // réellement mesurée quand disponible — jamais fabriquées ici).
+      // Absent (niveau non déclaré) → comportement inchangé (voir
+      // applySlFloorIndividualization).
+      const slRampAnchors: SlFloorRampAnchors | null = planConfig.volumeRamp
+        ? {
+          week1PctTarget: planConfig.volumeRamp.week1PctTarget,
+          rampWeeks: planConfig.volumeRamp.rampWeeks,
+          weeklyIncreasePctMax: planConfig.volumeRamp.weeklyIncreasePctMax,
+        }
+        : null;
+      const injuryRiskForSlFloor = planConfig.injuryRisk
+        ? { bike: planConfig.injuryRisk.bike?.level, run: planConfig.injuryRisk.run?.level }
+        : null;
+      const slFloorIndividualizationLog: string[] = [];
       for (let w = 1; w <= totalWeeks; w++) {
         // Position globale : quota/taper/recovery calculés sur la vraie place
         // de la semaine dans le plan (cf. PlanConfig.globalTotalWeeks).
@@ -1207,12 +1227,21 @@ export function useAITrainingPlan() {
           bannedSports: bannedSportsForQuota,
         });
         if (entry) {
-          const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, entry.floors, weekType, {
+          const individualized = applySlFloorIndividualization(
+            entry.floors, globalWeekNum, weekType, slRampAnchors, injuryRiskForSlFloor,
+          );
+          if (individualized.reasons.length > 0) {
+            slFloorIndividualizationLog.push(`S${w} (globale S${globalWeekNum}): ${individualized.reasons.join(" · ")}`);
+          }
+          const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
             finalStageSport: isLCWFormat ? "run" : undefined,
           });
 
-          weeklyQuotas[w] = { ...entry, layout };
+          weeklyQuotas[w] = { ...entry, floors: individualized.floors, layout };
         }
+      }
+      if (slFloorIndividualizationLog.length > 0) {
+        console.log(`[sl_floor_individualization] plancher sortie longue individualisé sur ${slFloorIndividualizationLog.length} semaine(s) :\n${slFloorIndividualizationLog.join("\n")}`);
       }
 
 

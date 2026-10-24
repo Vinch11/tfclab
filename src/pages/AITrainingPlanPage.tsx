@@ -57,7 +57,7 @@ import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { computeFinalValidationIssues } from "@/lib/plan/qa/finalValidation";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { runReconciler } from "@/lib/plan/planReconciler";
-import { inferWeekType, computeWeekQuotaEntry } from "@/engines/plan/sessionSizingMatrix";
+import { inferWeekType, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import { upgradeLegacyTaper, detectLegacyTaperGap, taperVolumeAlreadyReduced, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
@@ -2807,10 +2807,33 @@ export default function AITrainingPlanPage() {
     const regenTargetSpw = typeof fullPlanConfig.sessionsPerWeek === "number" && fullPlanConfig.sessionsPerWeek > 0
       ? fullPlanConfig.sessionsPerWeek : null;
     const regenBannedSports = parseAthleteConstraints((fullPlanConfig as any)?.constraints ?? null).bannedSports;
-    const regenQuotaEntry = computeWeekQuotaEntry(fullPlanConfig.objective || "", regenAmbition, regenHoursAvail, regenWeekType, isLCWPlan, {
+    const regenQuotaEntryRaw = computeWeekQuotaEntry(fullPlanConfig.objective || "", regenAmbition, regenHoursAvail, regenWeekType, isLCWPlan, {
       sessionsPerWeek: regenTargetSpw,
       bannedSports: regenBannedSports,
     });
+    // Correction ciblée "P0 progression individualisée des charges" : même
+    // individualisation du plancher SL que la génération complète
+    // (useAITrainingPlan.ts) — ici `weekNumber` est déjà la position globale
+    // réelle (régénération d'une semaine d'un plan existant, pas un offset
+    // de chunk à recalculer).
+    const regenSlRampAnchors: SlFloorRampAnchors | null = fullPlanConfig.volumeRamp
+      ? {
+        week1PctTarget: fullPlanConfig.volumeRamp.week1PctTarget,
+        rampWeeks: fullPlanConfig.volumeRamp.rampWeeks,
+        weeklyIncreasePctMax: fullPlanConfig.volumeRamp.weeklyIncreasePctMax,
+      }
+      : null;
+    const regenInjuryRiskForSlFloor = fullPlanConfig.injuryRisk
+      ? { bike: fullPlanConfig.injuryRisk.bike?.level, run: fullPlanConfig.injuryRisk.run?.level }
+      : null;
+    const regenQuotaEntry = regenQuotaEntryRaw
+      ? {
+        ...regenQuotaEntryRaw,
+        floors: applySlFloorIndividualization(
+          regenQuotaEntryRaw.floors, weekNumber, regenWeekType, regenSlRampAnchors, regenInjuryRiskForSlFloor,
+        ).floors,
+      }
+      : null;
     // Union des catalogId réellement présentés au modèle pour cette semaine
     // (même parseur que le chemin de génération complète, useAITrainingPlan.ts
     // ~ligne 528-541) — restreint le réconciliateur aux fiches vues par l'IA.
