@@ -3843,21 +3843,28 @@ function computeLimiterHitsForWeeks(
   const hasVlamaxLimiter = limiterKeys.includes("vlamax");
   const hasFtpLimiter = limiterKeys.includes("ftp");
   const hasTteLimiter = limiterKeys.includes("tte");
-  // Correction ciblée "plan multiobjectifs réel" (2026-10-24) : bug réel
-  // confirmé — un plan réel avec FatMax (L3) identifié affichait 0% de
-  // couverture malgré des séances Z2/endurance fondamentale/brick réellement
-  // présentes dans le PDF. Cause démontrée : contrairement à VLamax (qui
-  // bénéficie de synergies prouvées ci-dessus avec TTE/Économie/FTP),
-  // FatMax n'avait AUCUN chemin de synergie — alors que sa propre zone
-  // d'entraînement (oxydation lipidique maximale, cf. fatmaxTFCL.ts) EST
-  // exactement la zone aérobie/Z2/train-low/jeûne que le pattern VLamax
-  // détecte déjà directement (littérature : le pic FatMax se situe en
-  // zone aérobie sub-seuil, la même zone que le travail "train low"
-  // VLamax). Une séance déjà assignée à VLamax par ce chemin est donc,
-  // par construction, également une séance FatMax légitime — jamais une
-  // nouvelle séance ajoutée, ni un quota modifié : seule l'ATTRIBUTION
-  // d'une séance déjà comptée est étendue à un second limiteur partagé.
+  // Correction ciblée "plan multiobjectifs réel" (2026-10-24), puis revue
+  // scientifique ciblée avant fusion (même date) : la première version de ce
+  // correctif créditait FatMax pour TOUTE séance assignée à VLamax — y
+  // compris une simple Z2/endurance fondamentale générique. Rejeté en revue :
+  // un stimulus susceptible d'influencer VLamax n'est pas nécessairement un
+  // stimulus ciblé et suffisamment dosé pour FatMax ; cette équivalence
+  // générale risquait de fabriquer une couverture plutôt que de la mesurer
+  // (le test associé, `fatmax.hits === vlamax.hits`, validait d'ailleurs ce
+  // problème au lieu de le détecter).
+  //
+  // Version corrigée, restreinte au SEUL sous-cas scientifiquement défendable
+  // déjà présent dans le pattern VLamax ci-dessus (`LIMITER_SESSION_PATTERNS
+  // .vlamax`) : l'entraînement à jeun / "train low" ("train low", "fasted",
+  // "à/a jeun"). Ce protocole n'est pas une simple séance aérobie générique —
+  // c'est, par définition, le protocole de référence pour l'adaptation
+  // FatMax (déplétion glycogénique ciblée → upregulation des enzymes
+  // d'oxydation lipidique). Une séance Z2/endurance fondamentale SANS ce
+  // marqueur explicite n'est PAS créditée : en l'absence de dose/ciblage
+  // FatMax démontrable dans le texte, la couverture reste basse/absente
+  // plutôt que fabriquée (cf. FATMAX_SPECIFIC_CO_CONTRIBUTOR_PATTERN).
   const hasFatmaxLimiter = limiterKeys.includes("fatmax");
+  const FATMAX_SPECIFIC_CO_CONTRIBUTOR_PATTERN = /train[\s_-]*low|fasted|[àa]\s*jeun/i;
 
   for (const week of weeks) {
     for (const session of week.sessions) {
@@ -3903,8 +3910,10 @@ function computeLimiterHitsForWeeks(
         }
       }
 
-      // Synergie FatMax↔VLamax (cf. commentaire sur hasFatmaxLimiter ci-dessus).
-      if (hasFatmaxLimiter && assignedKey === "vlamax") {
+      // Synergie FatMax↔VLamax restreinte au jeûne/train-low (cf. commentaire
+      // sur hasFatmaxLimiter ci-dessus) — jamais sur un simple assignedKey
+      // === "vlamax" générique.
+      if (hasFatmaxLimiter && assignedKey === "vlamax" && FATMAX_SPECIFIC_CO_CONTRIBUTOR_PATTERN.test(text)) {
         limiterHits["fatmax"] = (limiterHits["fatmax"] || 0) + 1;
         isLimiterRelevant = true;
       }
