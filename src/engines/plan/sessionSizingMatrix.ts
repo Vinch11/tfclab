@@ -896,3 +896,130 @@ export function computeWeekQuotaEntry(
   }
   return { quota: adj.quota, floors: adj.floors, weekType, downgraded: q0.downgraded, downgradeReason: q0.downgradeReason };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INDIVIDUALISATION DU PLANCHER SL (sortie longue) — correction ciblée
+// "P0 progression individualisée des charges" (2026-10-24)
+// ═══════════════════════════════════════════════════════════════════════════════
+// Bug réel démontré (plan 70.3 33 semaines réel) : `slLongRideMin`/
+// `slLongRunMin` (SL_MIN_BY_OBJECTIVE ci-dessus) s'appliquent IDENTIQUEMENT à
+// toute semaine "load", de S1 à la dernière semaine de build — cette fonction
+// ne reçoit ni numéro de semaine ni information de charge initiale/niveau.
+// Les mécanismes de réparation qui en découlent (applySLFloorEnforcement
+// côté serveur, insertion de plancher SL côté client dans planReconciler.ts,
+// validateWeeklyQuotas) héritent tous de la même exigence non individualisée,
+// puisqu'ils ne font que LIRE le plancher calculé ici (source unique — cf.
+// useAITrainingPlan.ts::weeklyQuotas, transmis tel quel au prompt, à
+// `_weeklyQuotas` serveur ET à `lastWeeklyQuotasRef` client).
+//
+// Cette section NE RECALCULE PAS un niveau ou une charge : elle réutilise
+// EXCLUSIVEMENT les deux ancres déjà individualisées par le mécanisme
+// `PlanConfig.volumeRamp` existant (planConfigBuilder.ts) — niveau déclaré
+// par le coach, réconcilié avec la Charge Récente de Référence RÉELLEMENT
+// MESURÉE (Nolio/snapshot) quand disponible via `resolveVolumeRampLoadAdjustment`,
+// JAMAIS un historique fabriqué. `volumeRamp` rampait déjà le VOLUME HEBDO
+// TOTAL (prompt uniquement, best-effort) ; cette fonction étend LA MÊME rampe
+// (mêmes deux ancres, aucune nouvelle valeur inventée) à la durée de sortie
+// longue, pour les semaines "load" uniquement (recovery/taper/race restent
+// modulées comme avant par `floorsFor`, jamais re-modulées ici) — et la rend
+// DÉTERMINISTE (pas seulement une instruction prompt), puisqu'elle s'applique
+// à la source unique lue par l'enforcement/la validation.
+//
+// Si `volumeRamp` est absent (niveau d'entraînement non déclaré/résolu —
+// ex. mode "auto"), comportement INCHANGÉ : plancher nominal dès S1, aucune
+// estimation fabriquée sans donnée d'entrée. Limite connue, documentée.
+export interface SlFloorRampAnchors {
+  /** % (0-1) de la cible atteint en semaine 1 — déjà individualisé par volumeRamp. */
+  week1PctTarget: number;
+  /** Nombre de semaines pour atteindre 100% de la cible — déjà individualisé par volumeRamp. */
+  rampWeeks: number;
+}
+
+/**
+ * % (0-1) du plancher SL nominal applicable à `weekNumber` (position
+ * GLOBALE 1-indexée depuis le vrai début du plan — jamais une position
+ * locale de chunk/fenêtre). Interpolation linéaire entre les deux ancres
+ * déjà individualisées ci-dessus (semaine 1 → `week1PctTarget`, semaine
+ * `rampWeeks` → 100%) : pas une nouvelle courbe inventée, l'extension de la
+ * même rampe déjà utilisée pour le volume hebdo total à une seconde
+ * grandeur (la durée de sortie longue).
+ */
+export function slFloorRampFactor(weekNumber: number, ramp: SlFloorRampAnchors | null | undefined): number {
+  if (!ramp || !Number.isFinite(ramp.rampWeeks) || ramp.rampWeeks <= 1) return 1;
+  const w = Math.max(1, Math.round(weekNumber || 1));
+  if (w >= ramp.rampWeeks) return 1;
+  const pct1 = Math.min(1, Math.max(0, ramp.week1PctTarget));
+  if (w <= 1) return pct1;
+  const step = (1 - pct1) / (ramp.rampWeeks - 1);
+  return Math.min(1, pct1 + (w - 1) * step);
+}
+
+/**
+ * Malus protecteur SL si un risque blessure ÉLEVÉ/CRITIQUE est déjà calculé
+ * pour ce sport (injuryRiskUnified.ts — même donnée que le malus catalogue
+ * existant, jamais une nouvelle estimation). Réutilise le même facteur ×0.7
+ * déjà appliqué aux semaines recovery par `floorsFor` ci-dessus, plutôt
+ * qu'un nouveau coefficient inventé pour ce cas précis.
+ */
+function slFloorInjuryFactor(level: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" | null | undefined): number {
+  return level === "ELEVE" || level === "CRITIQUE" ? 0.7 : 1;
+}
+
+export interface SlFloorIndividualizationResult {
+  floors: SizingFloors;
+  /** Pourcentage effectivement appliqué (1 = plancher nominal, non modulé). */
+  appliedPct: { bike: number; run: number };
+  /** Raisons lisibles (traçabilité/instrumentation), jamais affichées comme vérité absolue. */
+  reasons: string[];
+}
+
+/**
+ * Applique la progression individualisée au plancher de sortie longue.
+ * Vélo et course sont toujours traités séparément (deux appels de facteur
+ * indépendants) — jamais un seul pourcentage générique appliqué en bloc aux
+ * deux disciplines sans distinction.
+ */
+export function applySlFloorIndividualization(
+  floors: SizingFloors,
+  weekNumber: number,
+  weekType: WeekType,
+  ramp: SlFloorRampAnchors | null | undefined,
+  injuryRisk?: { bike?: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" | null; run?: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" | null } | null,
+): SlFloorIndividualizationResult {
+  if (weekType !== "load") {
+    return { floors, appliedPct: { bike: 1, run: 1 }, reasons: [] };
+  }
+
+  const rampPct = slFloorRampFactor(weekNumber, ramp);
+  const injuryBikePct = slFloorInjuryFactor(injuryRisk?.bike);
+  const injuryRunPct = slFloorInjuryFactor(injuryRisk?.run);
+  const bikePct = Math.min(rampPct, injuryBikePct);
+  const runPct = Math.min(rampPct, injuryRunPct);
+
+  if (bikePct >= 1 && runPct >= 1) {
+    return { floors, appliedPct: { bike: 1, run: 1 }, reasons: [] };
+  }
+
+  const round5 = (v: number, pct: number) => Math.max(0, Math.round((v * pct) / 5) * 5);
+  const reasons: string[] = [];
+  if (bikePct < 1) {
+    reasons.push(injuryBikePct < rampPct
+      ? `vélo réduit à ${Math.round(bikePct * 100)}% (risque blessure vélo ${injuryRisk?.bike})`
+      : `vélo rampe progressive S${weekNumber} → ${Math.round(bikePct * 100)}% (niveau déclaré, ${ramp?.rampWeeks} sem.)`);
+  }
+  if (runPct < 1) {
+    reasons.push(injuryRunPct < rampPct
+      ? `course réduite à ${Math.round(runPct * 100)}% (risque blessure course ${injuryRisk?.run})`
+      : `course rampe progressive S${weekNumber} → ${Math.round(runPct * 100)}% (niveau déclaré, ${ramp?.rampWeeks} sem.)`);
+  }
+
+  return {
+    floors: {
+      ...floors,
+      slLongRideMin: typeof floors.slLongRideMin === "number" ? round5(floors.slLongRideMin, bikePct) : floors.slLongRideMin,
+      slLongRunMin: typeof floors.slLongRunMin === "number" ? round5(floors.slLongRunMin, runPct) : floors.slLongRunMin,
+    },
+    appliedPct: { bike: bikePct, run: runPct },
+    reasons,
+  };
+}
