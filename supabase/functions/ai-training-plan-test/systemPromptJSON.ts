@@ -107,6 +107,14 @@ Champs principaux :
    le risque de dérive de vocabulaire (trail dans route, brique dans semi, etc.)
    et sera flaggé par la QA.
 
+8bis. Une compétition réelle déclarée (principale OU intermédiaire) est un
+    ÉVÉNEMENT : titre COURSE : nom de l'épreuve, date et distance déclarées,
+    \`custom = true\`, \`catalogId = null\`. Ne lui attribue AUCUNE fiche
+    d'entraînement, notamment RACE_SIM. Le ratio catalogue de la règle 8
+    concerne les entraînements ; il ne justifie jamais de convertir une
+    compétition en simulation. Une simulation, un travail à allure course et
+    une activation précompétition restent des entraînements distincts.
+
 9. Verrou sport : la contrainte "un slot d'un sport donné = un ID du même
    sport" reste absolue (voir bloc "règle non-cross-sport" plus haut).
 10. Types JSON stricts : \`custom\` et \`isKeySession\` sont des booléens JSON

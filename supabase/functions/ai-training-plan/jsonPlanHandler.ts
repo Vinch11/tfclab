@@ -57,6 +57,9 @@ import {
   type RepairWorkoutMetadata,
 } from "../_shared/repairSportingEquivalence.ts";
 
+import { effectiveSessionQuota, countQuotaSessions } from "../_shared/sessionQuotaAccounting.ts";
+import { isRaceEventTitle } from "../_shared/raceDayIdentity.ts";
+
 const PRIMARY_MODEL = "google/gemini-3.7-flash";
 
 type NormalizedSport = "swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "rest" | "mixed" | "trail" | "unknown";
@@ -602,7 +605,7 @@ export function applySLFloorEnforcement(
           traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=${spec.sport} floor=${spec.floor}min required=${spec.required} action=skipped_reason=floor_disabled`);
           continue;
         }
-        const sameSport = (week.sessions ?? []).filter(s => s.sport === spec.sport);
+        const sameSport = (week.sessions ?? []).filter(s => s.sport === spec.sport && !isRaceEventTitle(s));
         const longest = sameSport.reduce((m, s) => Math.max(m, s.durationMin ?? 0), 0);
         // PHASE 2A.4 — un brick ≥ floor+20 satisfait le floor SL vélo.
         if (spec.sport === "bike") {
@@ -756,7 +759,7 @@ function movePriority(
   s: PlanSession,
   floors: WeeklyQuotaEntry["floors"] | undefined,
 ): number | null {
-  if ((s as any).isKeySession === true) return null;
+  if (isRaceEventTitle(s) || (s as any).isKeySession === true) return null;
   if (s.sport === "brick" || s.sport === "rest") return null;
   const dur = (s.durationMin ?? 0);
   if (s.sport === "bike" && floors?.slLongRideMin && dur >= floors.slLongRideMin) return null;
@@ -973,12 +976,23 @@ export function applyReconciler(
         const sportsToCheck: Array<"swim" | "bike" | "run" | "strength"> = ["swim", "bike", "run", "strength"];
         for (const sport of sportsToCheck) {
           const q = (entry.quota as any)[sport];
-          if (!q || q.min < 1) continue;
+          if (!q) continue;
+          const effective = effectiveSessionQuota(entry.quota, (week.sessions ?? []).filter(s => s.sport === "brick").length);
+          if ((sport === "bike" ? effective.bike.min : q.min) < 1) continue;
           const sportSessions = (week.sessions ?? []).filter(s => s.sport === sport);
           const present = KEY_FLOOR_SPORTS.has(sport)
             ? sportSessions.filter(s => isKeyClass(classifyIntensity((s as any).zones, `${s.title ?? ""} ${(s as any).details ?? ""}`))).length
             : sportSessions.length;
           if (present > 0) continue;
+          const activeCount = countQuotaSessions(week.sessions ?? []);
+          const sportMax = sport === "bike" ? effective.bike.max : q.max;
+          if (sportSessions.length >= sportMax || activeCount >= effective.totalSessions.max) {
+            traces.push(`[RECONCILER] S${week.weekNumber} floor ${sport} action=unresolved_quota_full`);
+            repairs.push({ code: "insert_unresolved", severity: "critical", chunkIndex: ci,
+              weekNumber: week.weekNumber, sport,
+              reason: "qualité non identifiée mais quota déjà rempli — aucune insertion ni suppression de séance" });
+            continue;
+          }
           const floorMin =
             sport === "bike" && entry.floors?.longRideWeekly && entry.floors.slLongRideMin ? entry.floors.slLongRideMin :
             sport === "run"  && entry.floors?.longRunWeekly  && entry.floors.slLongRunMin  ? entry.floors.slLongRunMin  :
@@ -1120,6 +1134,7 @@ export function applyReconciler(
           .replace(/[^a-z0-9]+/g, " ")
           .trim();
       const dedupeKeyForSession = (s: PlanSession): string | null => {
+        if (isRaceEventTitle(s)) return null;
         const id = (s as any).catalogId as string | null;
         const isCustom = (s as any).custom === true;
         if (id && !isCustom) return `id:${id}`;
@@ -1241,7 +1256,7 @@ export function applyReconciler(
       // détails), indépendamment de catalogId/custom, pour couvrir ce cas.
       const FASTED_SESSION_PATTERN = /\bjeun\b|fasted|sleep[\s_-]*low|train[\s_-]*low/i;
       const fastedSessionsThisWeek = (week.sessions ?? []).filter(
-        (s) => s.sport !== "rest" && FASTED_SESSION_PATTERN.test(`${(s as any).title ?? ""} ${(s as any).details ?? ""}`),
+        (s) => s.sport !== "rest" && !isRaceEventTitle(s) && FASTED_SESSION_PATTERN.test(`${(s as any).title ?? ""} ${(s as any).details ?? ""}`),
       );
       if (fastedSessionsThisWeek.length > 1) {
         for (let i = 1; i < fastedSessionsThisWeek.length; i++) {

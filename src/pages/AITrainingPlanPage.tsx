@@ -475,6 +475,7 @@ export const NON_DEROGABLE_RULES = new Set([
   // gravité que les autres incohérences fondamentales ci-dessus — jamais
   // contournable par "Sauvegarder quand même".
   "race_day_unexpected",
+  "race_catalog_conflict", // compétition officielle ≠ fiche d’entraînement
 ]);
 
 export default function AITrainingPlanPage() {

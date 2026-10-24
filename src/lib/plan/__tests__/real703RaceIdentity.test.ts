@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { isRaceDaySession, validatePlan } from "@/engines/plan/planValidator";
 import { postProcessParsedPlan } from "@/engines/plan/computePlan";
 import type { ParsedPlan, ParsedSession, PlanGenerationConfig } from "@/engines/plan/types";
+import { isRaceEventTitle } from "../../../../supabase/functions/_shared/raceDayIdentity";
 import { runReconciler } from "../planReconciler";
-import type { PlanChunk } from "../planSchema";
+import { zSession, type PlanChunk } from "../planSchema";
 
 // Transcription ciblée p.151 du PDF 703/33 semaines, sans donnée athlète.
 const title = "COURSE : IRONMAN 70.3 TOURS";
@@ -88,4 +89,51 @@ describe("identité de compétition réelle — régression PDF 703", () => {
     const issues = validatePlan(input, "703", undefined, [9, 33]).issues;
     expect(issues).toEqual(expect.arrayContaining([expect.objectContaining({ rule: "race_day_unexpected", week: 24, severity: "error" })]));
   });
+  it("refuse la course officielle associée à une fiche de simulation sans effacer la prescription", () => {
+    const race = session({ weekNumber: 9, sport: "run", dayName: "Samedi", dayIndex: 5,
+      title: "Course — 🏁 OBJECTIF B : 10 km (Wsl)",
+      details: "Course 10 km : gestion rigoureuse en negative split au seuil Z5. 10min retour au calme en Z1. [ID: V3_RUN_10K_RACE_SIM]",
+      catalogId: "V3_RUN_10K_RACE_SIM" });
+    const input = plan([race]);
+    input.weeks[0].weekNumber = 9;
+    const before = structuredClone(input);
+    const issues = validatePlan(input, "703", undefined, [9, 33]).issues;
+    expect(issues).toEqual(expect.arrayContaining([expect.objectContaining({
+      rule: "race_catalog_conflict", week: 9, severity: "error",
+    })]));
+    expect(input).toEqual(before);
+  });
+
+  it("le réconciliateur préserve la course officielle même avec une fiche incompatible en durée/phase", () => {
+    const race = { day: "samedi", sport: "run", title: "Course — 🏁 OBJECTIF B : 10 km (Wsl)",
+      details: "10 km officiel le 19 décembre 2026. [ID: V3_RUN_10K_RACE_SIM]",
+      durationMin: 60, zones: ["Z4"], custom: false, catalogId: "V3_RUN_10K_RACE_SIM", isKeySession: true };
+    const chunk = { weeks: [{ weekNumber: 9, phase: "base", theme: "Course", sessions: [race] }] } as PlanChunk;
+    const before = structuredClone(race);
+    const result = runReconciler([chunk], {}, 2, undefined, { objectiveKey: "703", globalTotalWeeks: 33 });
+    expect(race).toEqual(before);
+    expect(result.counters.phase_unresolved).toBe(0);
+    expect(result.counters.duration_unresolved).toBe(0);
+  });
+
+  it.each(["Simulation 🏁 compétition 10 km", "Activation précompétition Jour J", "Entraînement allure course 10 km"])("ne protège pas un entraînement comme un événement : %s", title => {
+    expect(isRaceEventTitle({ title })).toBe(false);
+  });
+  it("détecte aussi l'ID de simulation dans le texte après un chargement Markdown", () => {
+    const input = plan([session({ title: "COURSE : 10 km WSL", catalogId: null,
+      details: "Course officielle. [ID: V3_RUN_10K_RACE_SIM]" })]);
+    expect(validatePlan(input, "703").issues.some(i => i.rule === "race_catalog_conflict")).toBe(true);
+  });
+  it("ne bloque pas une vraie simulation d'entraînement sur le seul nom de sa fiche", () => {
+    const input = plan([session({ title: "Simulation course 10K — dress rehearsal", catalogId: "V3_RUN_10K_RACE_SIM", details: "6-8 km à allure cible" })]);
+    expect(validatePlan(input, "703").issues.some(i => i.rule === "race_catalog_conflict")).toBe(false);
+  });
+
+  it("le schéma client refuse l'association structurée mais conserve une compétition autonome", () => {
+    const race = { day: "samedi", sport: "run", title: "COURSE : 10 km WSL", details: "Course officielle 10 km",
+      durationMin: 60, custom: false, catalogId: "V3_RUN_10K_RACE_SIM", isKeySession: true, zones: ["Z4"] };
+    expect(zSession.safeParse(race).success).toBe(false);
+    expect(zSession.safeParse({ ...race, custom: true, catalogId: null }).success).toBe(true);
+  });
+
 });

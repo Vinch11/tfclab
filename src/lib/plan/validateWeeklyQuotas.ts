@@ -11,6 +11,7 @@
  * Aligné sur la mécanique des issues sport↔objectif (validateSportObjective).
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+import { effectiveSessionQuota, countQuotaSessions } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
 import type { MergedPlan } from "./mergePlanChunks";
 import type { WeeklyQuota, SizingFloors, WeekType } from "@/engines/plan/sessionSizingMatrix";
 import { diffLayoutVsWeek, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
@@ -131,11 +132,8 @@ export function validateWeeklyQuotas(
     // PHASE 2A.4 — brick compte comme sollicitation vélo. La fourchette bike
     // affichée est décalée de −brickObserved (clampée ≥0) quand un brick est
     // présent : 3 bike + 0 brick ≡ 2 bike + 1 brick.
-    const bikeShift = counts.brick > 0 ? counts.brick : 0;
-    const bikeEffective = {
-      min: Math.max(0, q.bike.min - bikeShift),
-      max: Math.max(0, q.bike.max - bikeShift),
-    };
+    const effective = effectiveSessionQuota(q, counts.brick);
+    const bikeEffective = effective.bike;
     const check = (sport: string, obs: number, r: { min: number; max: number }) => {
       if (obs < r.min || obs > r.max) {
         out.push({
@@ -151,14 +149,11 @@ export function validateWeeklyQuotas(
     check("brick", counts.brick, q.brick);
     check("strength", counts.strength, q.strength);
 
-    const total = counts.swim + counts.bike + counts.run + counts.brick + counts.strength;
+    const total = countQuotaSessions(w.sessions);
     // Cohérence brick : la fourchette bike a déjà été décalée de −bikeShift (un brick
     // satisfait un slot vélo). Le total attendu doit subir le MÊME décalage, sinon on
     // signale à tort un total trop bas alors que le brick a remplacé un vélo autonome.
-    const totalEffective = {
-      min: Math.max(0, q.totalSessions.min - bikeShift),
-      max: Math.max(0, q.totalSessions.max - bikeShift),
-    };
+    const totalEffective = effective.totalSessions;
     if (total < totalEffective.min || total > totalEffective.max) {
       out.push({
         severity: "warning", code: "quota_range_drift", weekNumber: w.weekNumber,
