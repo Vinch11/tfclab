@@ -168,15 +168,16 @@ export interface DurationResolveResult {
   logs: string[];
 }
 
-// Import matrix pour résolution par sessionSizingMatrix (déterministe).
+// Le type de semaine reste partagé ; les floors ne sont jamais recalculés ici.
 import {
-  computeWeeklySessionQuota,
   inferWeekType,
-  normalizeSizingObjective,
   type WeekType,
 } from "./sessionSizingMatrix";
+import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 
 export interface MatrixResolveContext {
+  /** Entrée déjà individualisée réellement utilisée pour générer/valider. */
+  weeklyQuota?: Pick<WeekQuotaEntry, "floors" | "weekType">;
   objective?: string;
   ambitionEffective?: string;
   weeklyHours?: number;
@@ -188,9 +189,9 @@ export interface MatrixResolveContext {
 
 /**
  * Tente une résolution matrice pour une plage bike/run :
- * - Récupère slLongRideMin / slLongRunMin de sessionSizingMatrix
+ * - Lit slLongRideMin / slLongRunMin du quota de génération déjà individualisé
  * - Clamp à [rangeMin, rangeMax] de la fiche
- * - Retourne null si sport hors scope ou matrice indisponible
+ * - Retourne null si sport hors scope ou quota historique indisponible
  */
 function tryMatrixResolve(
   rangeMin: number,
@@ -198,47 +199,36 @@ function tryMatrixResolve(
   ctx?: MatrixResolveContext,
 ): { picked: number; source: string; clamped: boolean; matrixInputs: Record<string, unknown> } | null {
   if (!ctx) return null;
-  const { objective, ambitionEffective, weeklyHours, weekNumber, totalWeeks, sport } = ctx;
-  if (!objective || !ambitionEffective || typeof weeklyHours !== "number") return null;
+  const { objective, ambitionEffective, weeklyHours, weekNumber, totalWeeks, sport, weeklyQuota } = ctx;
+  if (!weeklyQuota) return null;
   if (!sport) return null;
   const sportLc = sport.toLowerCase();
   if (sportLc !== "bike" && sportLc !== "run") return null;
-  const objKey = normalizeSizingObjective(objective);
-  if (!objKey) return null;
-  const wt: WeekType =
-    ctx.weekType ??
-    (typeof weekNumber === "number" && typeof totalWeeks === "number"
-      ? inferWeekType(weekNumber, totalWeeks, objective)
-      : "load");
-  const q = computeWeeklySessionQuota(objective, ambitionEffective, weeklyHours, wt);
-  if (!q) return null;
-  const floor = sportLc === "bike" ? q.floors.slLongRideMin : q.floors.slLongRunMin;
-  if (typeof floor !== "number") return null;
+  const floor = sportLc === "bike" ? weeklyQuota.floors.slLongRideMin : weeklyQuota.floors.slLongRunMin;
+  if (typeof floor !== "number" || !Number.isFinite(floor) || floor <= 0) return null;
   const inputs = {
     objective,
-    objKey,
     ambitionEffective,
     weeklyHours,
-    weekType: wt,
+    weekType: weeklyQuota.weekType,
     weekNumber,
     totalWeeks,
     sport: sportLc,
     matrixFloorMin: floor,
     cardRange: [rangeMin, rangeMax] as [number, number],
-    downgraded: q.downgraded,
   };
   let picked = floor;
   let clamped = false;
   if (picked < rangeMin) { picked = rangeMin; clamped = true; }
   else if (picked > rangeMax) { picked = rangeMax; clamped = true; }
   picked = Math.round(picked / 5) * 5;
-  return { picked, source: `matrix:${sportLc}${sportLc === "bike" ? "SLRide" : "SLRun"}`, clamped, matrixInputs: inputs };
+  return { picked, source: `weeklyQuota:${sportLc}${sportLc === "bike" ? "SLRide" : "SLRun"}`, clamped, matrixInputs: inputs };
 }
 
 /**
  * Résout toute plage de durée > 30 min d'amplitude en une valeur unique.
  * Priorité :
- *   1. `sessionSizingMatrix` (déterministe, sport-aware) via `MatrixResolveContext`
+ *   1. Quota de génération (sport-aware) via `MatrixResolveContext`
  *      → valeur clampée dans la plage de la fiche.
  *   2. Fallback heuristique par phase (base/build/peak/taper).
  * Log `duration_range_resolved` avec inputs matrice quand utilisée,
@@ -255,7 +245,7 @@ export function resolveWideDurationRanges(
   if (!text) return { text: text ?? "", resolved: 0, logs: [] };
   let resolved = 0;
   const logs: string[] = [];
-  const wt: WeekType | undefined = opts.weekType ??
+  const wt: WeekType | undefined = opts.weeklyQuota?.weekType ?? opts.weekType ??
     (typeof opts.weekNumber === "number" && typeof opts.totalWeeks === "number"
       ? inferWeekType(opts.weekNumber, opts.totalWeeks, opts.objective)
       : undefined);
@@ -297,13 +287,13 @@ export function resolveWideDurationRanges(
 }
 
 function describeMatrixGap(ctx: MatrixResolveContext): string {
+  if (!ctx.weeklyQuota) return "generation_weekly_quota_unavailable";
   const missing: string[] = [];
   if (!ctx.objective) missing.push("objective");
   if (!ctx.ambitionEffective) missing.push("ambitionEffective");
   if (typeof ctx.weeklyHours !== "number") missing.push("weeklyHours");
   if (!ctx.sport) missing.push("sport");
   if (ctx.sport && !["bike", "run"].includes(ctx.sport.toLowerCase())) missing.push(`sport_out_of_scope:${ctx.sport}`);
-  if (ctx.objective && !normalizeSizingObjective(ctx.objective)) missing.push(`objective_not_matrixed:${ctx.objective}`);
   return missing.length ? missing.join(",") : "no_sl_floor_for_sport";
 }
 

@@ -39,6 +39,8 @@ import {
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
 import { isRaceDaySession } from "@/engines/plan/planValidator";
+import { effectiveSessionQuota, countQuotaSessions } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
+import { isRaceEventTitle } from "../../../supabase/functions/_shared/raceDayIdentity";
 import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
 import { isLevelPrerequisiteIncompatible, type BeginnerIntensitySignal } from "./levelPrerequisiteCompatibility";
 import {
@@ -165,7 +167,7 @@ function buildUsageLedger(chunks: PlanChunk[]): UsageLedger {
   for (const chunk of chunks) {
     for (const week of chunk.weeks ?? []) {
       for (const s of (week.sessions ?? []) as PlanSession[]) {
-        if ((s as any).isRest || s.sport === "rest") continue;
+        if ((s as any).isRest || s.sport === "rest" || isRaceEventTitle(s)) continue;
         if (s.custom) continue;
         if (s.catalogId) ledgerInc(ledger, s.catalogId);
       }
@@ -660,7 +662,7 @@ function runOnePass(
 
       // ── STEP 1-3 : per-session substitutions ───────────────────────────
       for (const s of (week.sessions ?? []) as PlanSession[]) {
-        if ((s as any).isRest || s.sport === "rest") continue;
+        if ((s as any).isRest || s.sport === "rest" || isRaceEventTitle(s)) continue;
         if (s.custom) continue; // custom = pas de fiche à contrôler
         const fiche = ficheFor(s.catalogId);
         if (!fiche) continue;
@@ -797,7 +799,7 @@ function runOnePass(
       // 4a. FLOOR — insertion depuis catalogue
       ctx.family = "quota-floor"; ctx.week = week.weekNumber; ctx.day = undefined; ctx.sport = undefined; ctx.catalogId = undefined;
       if (!isTaperOrRace) {
-        const specs: Array<{ sport: SchemaSport; min: number }> = [
+        const specs: Array<{ sport: "swim" | "bike" | "run" | "strength"; min: number }> = [
           { sport: "swim", min: q.swim.min },
           { sport: "bike", min: q.bike.min },
           { sport: "run", min: q.run.min },
@@ -808,8 +810,19 @@ function runOnePass(
         // simple (sa notion de "clé" n'a pas le même sens).
         const KEY_FLOOR_SPORTS = new Set<SchemaSport>(["swim", "bike", "run"]);
         for (const sp of specs) {
-          if (sp.min < 1) continue;
+          const effective = effectiveSessionQuota(q, cnt("brick"));
+          if ((sp.sport === "bike" ? effective.bike.min : sp.min) < 1) continue;
           if (KEY_FLOOR_SPORTS.has(sp.sport) ? cntKey(sp.sport) > 0 : cnt(sp.sport) > 0) continue;
+          // Missing key metadata is not permission to exceed an already full quota.
+          // Keep the prescription; expose the unresolved quality constraint.
+          const activeCount = countQuotaSessions(week.sessions);
+          const sportMax = sp.sport === "bike" ? effective.bike.max : q[sp.sport].max;
+          if (cnt(sp.sport) >= sportMax || activeCount >= effective.totalSessions.max) {
+            counters.quota_floor_unresolved++;
+            counters.reconcile_conflict++;
+            logs.push(`[reconcile_conflict] W${week.weekNumber} floor ${sp.sport}: qualité non identifiée, quota déjà rempli — aucune insertion`);
+            continue;
+          }
           // Audit "B-5K-BEGINNER round 2" (consigne coach) : un plancher SL
           // (sortie longue run/bike) est SANS AMBIGUÏTÉ une séance facile —
           // `requireFamily: "easy"` l'impose en dur, jamais seulement un bonus
@@ -886,7 +899,7 @@ function runOnePass(
         const arr = ((week.sessions ?? []) as PlanSession[]).filter(s => s.sport === sp.sport);
         if (arr.length <= sp.max) continue;
         // Priorité de retrait : plus haut = retirer d'abord
-        const scored = arr.map(s => {
+        const scored = arr.filter(s => !isRaceEventTitle(s)).map(s => {
           let removeScore = 0;
           if ((s as any).isKeySession) removeScore -= 100;
           const fSp = normSport(sp.sport);
@@ -972,7 +985,7 @@ function dedupeWithinWeek(
       const quotaEntry = quotasByWeek?.[wk.weekNumber] ?? null;
       const seenIds = new Set<string>();
       for (const s of (wk.sessions ?? []) as PlanSession[]) {
-        if (s.sport === "rest") continue;
+        if (s.sport === "rest" || isRaceEventTitle(s)) continue;
         if (s.custom) continue;
         const id = s.catalogId;
         if (!id) continue;
@@ -1044,7 +1057,7 @@ function dedupeFastedWithinWeek(
       const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
       const quotaEntry = quotasByWeek?.[wk.weekNumber] ?? null;
       const sessions = (wk.sessions ?? []) as PlanSession[];
-      const fastedSessions = sessions.filter(s => s.sport !== "rest" && sessionIsFastedPattern(s));
+      const fastedSessions = sessions.filter(s => s.sport !== "rest" && !isRaceEventTitle(s) && sessionIsFastedPattern(s));
       if (fastedSessions.length < 2) continue;
 
       // Catalogue déjà utilisé cette semaine (hors les séances à jeun
@@ -1124,7 +1137,7 @@ function hydrateDilutedZones(
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
       for (const s of (wk.sessions ?? []) as PlanSession[]) {
-        if ((s as any).custom === true) continue;
+        if ((s as any).custom === true || isRaceEventTitle(s)) continue;
         const id = (s as any).catalogId as string | null | undefined;
         if (!id) continue;
         const fiche = ficheFor(id);
@@ -1748,6 +1761,14 @@ function enforceAthleteConstraints(
       // 1) Disciplines totalement interdites
       if (rules.bannedSports.length > 0) {
         for (let i = sessions.length - 1; i >= 0; i--) {
+          if (isRaceEventTitle(sessions[i])) {
+            const raceSport = toConstraintSport(sessions[i].sport);
+            if (raceSport !== "any" && rules.bannedSports.includes(raceSport)) {
+              counters.reconcile_conflict++;
+              logs.push(`[reconcile_conflict] S${weekNum} compétition conservée malgré discipline interdite — corriger le conflit objectif/contrainte`);
+            }
+            continue;
+          }
           const cs = toConstraintSport((sessions[i] as any)?.sport);
           if (cs !== "any" && rules.bannedSports.includes(cs)) {
             logs.push(
@@ -1770,6 +1791,11 @@ function enforceAthleteConstraints(
           (b) => b.day === day && (b.sport === "any" || b.sport === cs),
         );
         if (!hit) continue;
+        if (isRaceEventTitle(s)) {
+          counters.constraint_day_unresolved = (counters.constraint_day_unresolved ?? 0) + 1;
+          logs.push(`[constraint_day_unresolved] S${weekNum} compétition conservée le ${day} — conflit avec « ${hit.source} »`);
+          continue;
+        }
 
         const bannedForThis = new Set(
           rules.dayBans
@@ -1859,6 +1885,11 @@ function enforceMaxSessionsPerDay(
         });
         const toMove = ordered.slice(maxSessionsPerDay);
         for (const s of toMove) {
+          if (isRaceEventTitle(s)) {
+            counters.max_sessions_per_day_unresolved = (counters.max_sessions_per_day_unresolved ?? 0) + 1;
+            logs.push(`[max_sessions_per_day_unresolved] S${weekNum} compétition conservée le ${day} malgré plafond ${maxSessionsPerDay}/jour`);
+            continue;
+          }
           const load = computeLoad(sessions); // recalculé : un déplacement précédent a pu changer la charge
           const candidates = WEEK_DAYS.filter((d) => d !== day).sort(
             (a, b) => (load[a] ?? 0) - (load[b] ?? 0),
@@ -1975,6 +2006,7 @@ function enforceDemandingAccumulation(
       const weekPhase = resolveWeekPhase(wk.phase, wk.weekNumber, phaseCtx);
 
       for (const s of excess) {
+        if (isRaceEventTitle(s)) continue;
         const id = s.custom ? null : s.catalogId;
         const original = id ? ficheFor(id) : null;
         const repl = findReplacement({
@@ -2148,7 +2180,7 @@ export function runReconciler(
         const weekPhase = resolveWeekPhase(week.phase, week.weekNumber, phaseCtx);
         const quotaEntry = quotasByWeek[week.weekNumber] ?? null;
         for (const s of (week.sessions ?? []) as PlanSession[]) {
-          if ((s as any).isRest || s.sport === "rest") continue;
+          if ((s as any).isRest || s.sport === "rest" || isRaceEventTitle(s)) continue;
           if (passLabel === "pre") debugStats.sessionsScanned++;
           if (s.custom) continue;
           const cid = s.catalogId;

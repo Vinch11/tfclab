@@ -8,6 +8,7 @@
  * (server already validated it), so we accept `string | null` here.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+import { isRaceEventTitle } from "../../../supabase/functions/_shared/raceDayIdentity";
 import { z } from "zod";
 
 // PHASE 2A.2 — source UNIQUE dans `./trailMarkers`. Re-export pour rétrocompat.
@@ -80,7 +81,10 @@ const zSessionRef = z.object({
   catalogId: z.string().min(1),
 });
 
-export const zSession = z.union([zSessionRest, zSessionRef, zSessionCustom]);
+export const zSession = z.union([zSessionRest, zSessionRef, zSessionCustom]).refine(
+  s => s.custom || !isRaceEventTitle(s),
+  { path: ["catalogId"], message: "race_catalog_conflict: une compétition réelle est un événement custom=true, catalogId=null ; jamais une fiche de simulation ou d'entraînement" },
+);
 
 export const zWeek = z.object({
   weekNumber: z.number().int().positive(),

@@ -45,7 +45,8 @@ import { validatePlan, computeMissingFinalRaceDayFix, type ValidationIssue } fro
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
 import { checkB12, checkB12ToValidationIssues } from "@/lib/plan/qa/checkB12";
 import { checkB13, checkB13ToValidationIssues } from "@/lib/plan/qa/checkB13";
-import { quotaIssuesToValidationIssues } from "@/lib/plan/validateWeeklyQuotas";
+import { quotaIssuesToValidationIssues, validateWeeklyQuotas, type QuotaIssue } from "@/lib/plan/validateWeeklyQuotas";
+import { mergeWindowIntoPlan } from "@/engines/plan/planWindowRegen";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
@@ -57,6 +58,7 @@ import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { computeFinalValidationIssues } from "@/lib/plan/qa/finalValidation";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { runReconciler } from "@/lib/plan/planReconciler";
+import { buildWeekQuotaTransport } from "@/lib/plan/weekQuotaTransport";
 import { inferWeekType, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
@@ -473,6 +475,7 @@ export const NON_DEROGABLE_RULES = new Set([
   // gravité que les autres incohérences fondamentales ci-dessus — jamais
   // contournable par "Sauvegarder quand même".
   "race_day_unexpected",
+  "race_catalog_conflict", // compétition officielle ≠ fiche d’entraînement
 ]);
 
 export default function AITrainingPlanPage() {
@@ -2542,10 +2545,10 @@ export default function AITrainingPlanPage() {
           // séances/jour) restée non résolue par le réconciliateur serveur
           // n'était jusqu'ici reprise que dans le bandeau informatif de
           // génération (AIPlanViewer.tsx), jamais dans ce contrôle bloquant.
-          // `weeklyQuotaIssues` est déjà calculé par `useAITrainingPlan.ts`
-          // au moment de la génération — pas une deuxième vérité recalculée.
+          // Même liste que le bandeau : agrégée par fenêtre et actualisée
+          // après régénération. Le hook reste un repli pour les plans legacy.
           try {
-            criticalIssues = [...criticalIssues, ...quotaIssuesToValidationIssues(weeklyQuotaIssues)];
+            criticalIssues = [...criticalIssues, ...quotaIssuesToValidationIssues(parsedPlan.weeklyQuotaIssues ?? weeklyQuotaIssues)];
           } catch (quotaErr) {
             console.warn("[quota] échec de la reprise des violations de plancher hebdo, sauvegarde sans ce contrôle:", quotaErr);
           }
@@ -2635,6 +2638,11 @@ export default function AITrainingPlanPage() {
     reset();
     setPlanOverride(null);
     setResponse(md);
+    // Les plans récents portent les quotas de leur génération. Ne pas les
+    // perdre en réinterprétant uniquement leur copie Markdown historique.
+    if (pj.weeklyQuotas && Array.isArray(pj.weeks) && Array.isArray(pj.phases)) {
+      setPlanOverride({ ...pj } as ParsedPlan);
+    }
     const startAnchored = startOfWeek(startDate, { weekStartsOn: 1 });
     setPlanStartDate(startAnchored);
     // Persiste immédiatement la version ouverte comme "plan actif" de l'athlète :
@@ -2834,6 +2842,7 @@ export default function AITrainingPlanPage() {
         ).floors,
       }
       : null;
+    const regenQuotaTransport = buildWeekQuotaTransport(weekNumber, regenQuotaEntry, isLCWPlan);
     // Union des catalogId réellement présentés au modèle pour cette semaine
     // (même parseur que le chemin de génération complète, useAITrainingPlan.ts
     // ~ligne 528-541) — restreint le réconciliateur aux fiches vues par l'IA.
@@ -2850,7 +2859,7 @@ export default function AITrainingPlanPage() {
     const requestRegeneratedWeek = async (
       accessToken: string,
       constraintText: string,
-    ): Promise<{ week: ParsedPlan["weeks"][number]; repairTraces: string[] }> => {
+    ): Promise<{ week: ParsedPlan["weeks"][number]; repairTraces: string[]; quotaIssues?: QuotaIssue[] }> => {
       const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
       const resp = await fetch(PLAN_URL, {
         method: "POST",
@@ -2862,6 +2871,7 @@ export default function AITrainingPlanPage() {
           athleteData: athleteContext.data,
           planConfig: {
             ...fullPlanConfig,
+            ...regenQuotaTransport,
             constraints: [
               fullPlanConfig.constraints || "",
               constraintText,
@@ -2938,7 +2948,7 @@ export default function AITrainingPlanPage() {
         try {
           const rec = runReconciler(
             [regeneratedChunk],
-            { [weekNumber]: regenQuotaEntry },
+            regenQuotaTransport._weeklyQuotas,
             2,
             regenAllowedCatalogIds,
             {
@@ -2978,10 +2988,14 @@ export default function AITrainingPlanPage() {
           weekNumber: 1,
         })),
       };
-      const regenPlan = jsonPlanToParsedPlan(mergePlanChunks([normalizedChunk], 1));
+      const mergedWeek = mergePlanChunks([normalizedChunk], 1);
+      const quotaIssues = regenQuotaEntry
+        ? validateWeeklyQuotas(mergedWeek, { 1: regenQuotaTransport._weeklyQuotas[weekNumber] })
+        : undefined;
+      const regenPlan = jsonPlanToParsedPlan(mergedWeek);
       const newWeek = regenPlan.weeks[0];
       if (!newWeek) throw new Error("Réponse IA illisible");
-      return { week: newWeek, repairTraces };
+      return { week: newWeek, repairTraces, quotaIssues };
     };
 
     try {
@@ -3004,6 +3018,7 @@ export default function AITrainingPlanPage() {
       const MAX_ATTEMPTS = 2;
       let newWeek: ParsedPlan["weeks"][number] | null = null;
       let finalRepairTraces: string[] = [];
+      let finalQuotaIssues: QuotaIssue[] | undefined;
       let lastMismatchCount = 0;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         const correctionNote = attempt > 1
@@ -3014,6 +3029,7 @@ export default function AITrainingPlanPage() {
         if (realSessions.length === expectedRealSessions) {
           newWeek = candidate.week;
           finalRepairTraces = candidate.repairTraces;
+          finalQuotaIssues = candidate.quotaIssues;
           break;
         }
         lastMismatchCount = realSessions.length;
@@ -3032,17 +3048,11 @@ export default function AITrainingPlanPage() {
       }
 
       const basePlan = planOverride ?? rawParsedPlan ?? parsedPlan;
-      const replaced = {
-        ...newWeek,
-        weekNumber,
-        sessions: newWeek.sessions.map((s) => ({ ...s, weekNumber })),
-      };
-      const mergedPlan: ParsedPlan = {
-        ...basePlan,
-        weeks: basePlan.weeks
-          .map((w) => (w.weekNumber === weekNumber ? replaced : w))
-          .sort((a, b) => a.weekNumber - b.weekNumber),
-      };
+      const mergedPlan = mergeWindowIntoPlan(basePlan, {
+        title: basePlan.title, phases: [], totalWeeks: 1, weeks: [newWeek],
+        weeklyQuotas: regenQuotaEntry ? { 1: regenQuotaTransport._weeklyQuotas[weekNumber] } : {},
+        weeklyQuotaIssues: finalQuotaIssues,
+      }, weekNumber, weekNumber);
       // Audit scientifique P0 — F12 : la régénération ciblée d'une semaine
       // est le DEUXIÈME pipeline réel de production de plan (en plus de la
       // génération complète dans useAITrainingPlan.ts) — la validation

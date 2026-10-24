@@ -296,39 +296,8 @@ const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit
 // mention de l'objectif). Testé au niveau SÉANCE (weekHasRaceDay), pas sur
 // le thème de la semaine — un thème peut mentionner l'objectif sans que la
 // semaine soit celle de la course.
-const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
-// Bug réel (audit "plan multi-objectifs Sables d'Olonne") : un vrai plan
-// généré a omis le Jour J final et l'a remplacé par "Activation
-// Neuromusculaire & Mobilité Race Day" — RACE_DAY_PATTERNS matche "Race Day"
-// dans ce titre (simple mention descriptive d'un rituel de PRÉ-course), donc
-// `weekHasRaceDay` renvoyait `true` à tort : le validateur lui-même aurait
-// laissé passer ce plan sans avertissement. `🏁`/"course objectif"/"jour de
-// course" restent des marqueurs FORTS (jamais utilisés pour un rituel de
-// préparation), mais "jour j"/"race day"/"compétition"/"épreuve (objectif|
-// cible)" sont des marqueurs FAIBLES qu'un titre d'activation/mobilité/
-// shakeout peut légitimement contenir sans être la course elle-même.
-const RACE_DAY_STRONG_PATTERNS = /🏁|course\s*objectif|jour\s*de\s*(course|compétition)/i;
-const PRE_RACE_ACTIVATION_PATTERNS = /activation|pr[ée]paration|mobilit[ée]|shakeout|ouverture|primers?|pre-?race|d[ée]blocage|opener|veille|flush|\bj-\d/i;
-
-/** Vrai si CETTE séance est un jour de course réel (pas juste une séance qui
- *  mentionne accessoirement l'objectif, ni un rituel de préparation qui
- *  mentionne accessoirement "race day"/"jour j") — cf. RACE_DAY_PATTERNS
- *  ci-dessus. Extrait de `weekHasRaceDay` (correction ciblée "P0 génération
- *  invalide", 2026-10-24) : `computePlan.ts` et `planReconciler.ts`
- *  dupliquaient chacun leur propre copie de cette détection, restée sur
- *  l'ancienne version LARGE (sans la distinction fort/faible ni l'exclusion
- *  des rituels de préparation ci-dessus) après ce correctif — un plan
- *  pouvait donc être jugé "Jour J déjà présent" par ces deux fichiers (qui
- *  renoncent alors à fabriquer le vrai Jour J) alors que le validateur,
- *  lui, détecte correctement son absence. Primitive AU NIVEAU SÉANCE
- *  exportée pour que ces deux appelants (qui filtrent des séances
- *  individuelles, pas des semaines entières) puissent réutiliser EXACTEMENT
- *  la même règle plutôt que de la redupliquer une 3e fois. */
-export function isRaceDaySession(s: { title?: string; details?: string; sport?: string }): boolean {
-  const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
-  if (RACE_DAY_STRONG_PATTERNS.test(text)) return true;
-  return RACE_DAY_PATTERNS.test(text) && !PRE_RACE_ACTIVATION_PATTERNS.test(text);
-}
+export { isRaceDaySession, NAMED_RACE_TITLE_PATTERN } from "../../../supabase/functions/_shared/raceDayIdentity";
+import { isRaceDaySession, isRaceEventTitle, RACE_DAY_PATTERNS, PRE_RACE_ACTIVATION_PATTERNS } from "../../../supabase/functions/_shared/raceDayIdentity";
 
 /** Vrai si la semaine contient une séance de jour de course réel — cf.
  *  `isRaceDaySession` ci-dessus. Exportée pour AITrainingPlanPage.tsx
@@ -4152,6 +4121,19 @@ function validateLimiterCoherence(
 
 function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
+  // A race is an event, never a training catalog prescription. Do not strip
+  // its ID: its details may already be a simulation and need coach correction.
+  for (const week of plan.weeks) {
+    for (const session of week.sessions) {
+      if (session.isRest || !isRaceEventTitle(session)) continue;
+      const ids = extractAllCatalogIds(session.title, session.details, session.catalogId);
+      if (ids.length > 0) issues.push({
+        rule: "race_catalog_conflict", severity: "error", week: week.weekNumber,
+        message: `S${week.weekNumber} ${session.dayName}: compétition réelle associée à une fiche d'entraînement (${ids.join(", ")})`,
+        detail: "Conserver la date, la distance, le nom et les consignes de compétition ; corriger la prescription, sans la convertir en simulation ni supprimer silencieusement son identifiant.",
+      });
+    }
+  }
   if (plan.weeks.length === 0) return { issues, score: 100 };
 
   // Determine which weeks should contain a race day

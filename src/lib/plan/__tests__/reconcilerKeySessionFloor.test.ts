@@ -97,3 +97,17 @@ describe("runReconciler — plancher FLOOR par séance clé, pas par simple pré
     expect(sessions.filter(s => s.sport === "strength").length).toBe(1);
   });
 });
+
+describe("quota rempli sans tag clé — aucune séance supplémentaire", () => {
+  it("signale le conflit plutôt qu'insérer puis supprimer une séance sportive", () => {
+    const sessions = ["mardi", "jeudi"].map(day => ({ day, sport: "swim", title: "Endurance nage", details: "45min Z2",
+      durationMin: 45, zones: ["Z2"], custom: true, catalogId: null, isKeySession: false }));
+    const chunk = { weeks: [{ weekNumber: 1, phase: "base", theme: "Fondation", sessions }] } as PlanChunk;
+    const before = structuredClone(sessions);
+    const quota = makeQuota({ swim: { min: 2, max: 2 }, strength: { min: 0, max: 0 }, totalSessions: { min: 2, max: 2 } });
+    const result = runReconciler([chunk], { 1: quota }, 2, undefined, { globalTotalWeeks: 33 });
+    expect(chunk.weeks[0].sessions).toEqual(before);
+    expect(result.counters.quota_floor_inserted_from_catalog).toBe(0);
+    expect(result.counters.quota_floor_unresolved).toBeGreaterThan(0);
+  });
+});
