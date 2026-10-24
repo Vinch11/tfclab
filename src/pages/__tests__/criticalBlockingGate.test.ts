@@ -25,6 +25,13 @@ import { NON_DEROGABLE_RULES } from "../AITrainingPlanPage";
  * `banned_sport_reintroduced` (cf. planValidator.ts::validateBannedSportNotReintroduced)
  * — une discipline explicitement bannie par le coach mais réintroduite par
  * une correction automatique n'admet aucun seuil dérogeable.
+ *
+ * Correction ciblée "plan multiobjectifs réel" (2026-10-24) : extension à
+ * `race_day_unexpected` (cf. planValidator.ts::validateRaceDayPresence) —
+ * une course non déclarée par le coach mais ajoutée au plan généré (incident
+ * réel : second 10K inventé alors qu'un seul était déclaré) est une
+ * fabrication de compétition, même famille que les incohérences
+ * fondamentales ci-dessus.
  */
 describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrainingPlanPage)", () => {
   it("bloque réellement objective_sport_conflict (incohérence fondamentale objectif/contenu)", () => {
@@ -37,6 +44,10 @@ describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrain
 
   it("[Sprint 3] bloque réellement banned_sport_reintroduced (discipline bannie réintroduite par une correction automatique)", () => {
     expect(NON_DEROGABLE_RULES.has("banned_sport_reintroduced")).toBe(true);
+  });
+
+  it("[correction ciblée 2026-10-24] bloque réellement race_day_unexpected (course non déclarée ajoutée au plan)", () => {
+    expect(NON_DEROGABLE_RULES.has("race_day_unexpected")).toBe(true);
   });
 
   it("ne bloque PAS les autres règles critiques existantes — restent dérogeables via confirmation explicite", () => {
@@ -58,8 +69,8 @@ describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrain
     }
   });
 
-  it("périmètre volontairement restreint à exactement 3 règles — pas un blocage de toutes les erreurs critiques", () => {
-    expect(NON_DEROGABLE_RULES.size).toBe(3);
+  it("périmètre volontairement restreint à exactement 4 règles — pas un blocage de toutes les erreurs critiques", () => {
+    expect(NON_DEROGABLE_RULES.size).toBe(4);
   });
 
   /**

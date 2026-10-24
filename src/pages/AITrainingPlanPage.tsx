@@ -467,6 +467,12 @@ async function buildRegenPhaseCatalogs(
  */
 export const NON_DEROGABLE_RULES = new Set([
   "objective_sport_conflict", "final_objective_mismatch", "banned_sport_reintroduced",
+  // Correction ciblée "plan multiobjectifs réel" (2026-10-24) : une course
+  // non déclarée (cf. validateRaceDayPresence/race_day_unexpected,
+  // planValidator.ts) est une fabrication de compétition, au même niveau de
+  // gravité que les autres incohérences fondamentales ci-dessus — jamais
+  // contournable par "Sauvegarder quand même".
+  "race_day_unexpected",
 ]);
 
 export default function AITrainingPlanPage() {
