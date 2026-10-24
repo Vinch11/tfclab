@@ -213,7 +213,9 @@ function buildCandidatesByChunk(
 ): CatalogCandidate[][] {
   return dumps.map((dump, index) => {
     const legacy = parseCatalogCandidatesFromDump(dump);
-    const allowedIds = new Set(legacy.map(candidate => candidate.id.toUpperCase()));
+    // L'autorisation dépend des IDs réellement injectés, pas du parseur
+    // historique de durées (ses indices de colonnes précèdent Intention).
+    const allowedIds = new Set(extractCatalogIdsFromDump(dump));
     const structured = catalogCandidatesFromMetadata(metadata?.[index], allowedIds);
     if (structured.length > 0) return structured;
     return legacyTestMode === TEST_ONLY_ALLOW_LEGACY_REPAIR_CANDIDATES
