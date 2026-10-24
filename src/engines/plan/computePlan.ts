@@ -382,9 +382,8 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?:
       const keeper = sessions.find(s => NAMED_RACE_TITLE_PATTERN.test(s.title))
         ?? sessions.find(s => s.title.trim().startsWith("🏁")) ?? sessions[0];
       const dropped = sessions.filter(s => s !== keeper);
-      // Ne pas perdre les consignes présentes uniquement sur un doublon.
-      // Stable au rejeu : les séances fusionnées sont retirées ci-dessous.
-      keeper.details = [...new Set(sessions.map(s => s.details?.trim()).filter(Boolean))].join("\n\n");
+      // Conserver la prescription de l'épreuve nommée intacte. Concaténer
+      // deux prescriptions pourrait doubler les durées lues dans le texte.
       week.sessions = week.sessions.filter(s => !dropped.includes(s));
       // eslint-disable-next-line no-console
       console.log(`🏁 course unique vérifiée — S${week.weekNumber} ${keeper.dayName} : ${dropped.length} doublon(s) supprimé(s) (gardé : "${keeper.title.slice(0, 60)}")`);

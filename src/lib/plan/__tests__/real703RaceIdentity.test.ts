@@ -50,18 +50,19 @@ describe("identité de compétition réelle — régression PDF 703", () => {
 
   it("le post-traitement conserve l'épreuve nommée sans fabriquer un doublon", () => {
     const result = postProcessParsedPlan(plan([session()]), config).plan;
+    expect(result.weeks[0].sessions).toHaveLength(1);
     expect(result.weeks[0].sessions.filter(isRaceDaySession)).toHaveLength(1);
     expect(result.weeks[0].sessions[0]).toMatchObject({ title, details });
   });
 
   it("un doublon déjà produit converge vers l'épreuve nommée en conservant les consignes", () => {
-    const input = plan([session(), session({ title: "🏁 COURSE OBJECTIF — Jour J (Ironman 70.3)", details: "Jour de course. Pacing conforme à la stratégie validée." })]);
+    const input = plan([session(), session({ title: "🏁 COURSE OBJECTIF — Jour J (Ironman 70.3)", details: "Jour de course. 330min. Pacing conforme à la stratégie validée." })]);
     for (let i = 0; i < 2; i++) {
       const result = postProcessParsedPlan(input, config).plan;
+      expect(result.weeks[0].sessions).toHaveLength(1);
       expect(result.weeks[0].sessions.filter(isRaceDaySession)).toHaveLength(1);
       expect(result.weeks[0].sessions[0].title).toBe(title);
-      expect(result.weeks[0].sessions[0].details).toContain(details);
-      expect(result.weeks[0].sessions[0].details).toContain("Pacing conforme");
+      expect(result.weeks[0].sessions[0].details).toBe(details);
     }
   });
 
