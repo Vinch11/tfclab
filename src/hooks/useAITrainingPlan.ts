@@ -1711,8 +1711,8 @@ export function useAITrainingPlan() {
             let qIssues: QuotaIssue[] = [];
             try {
               qIssues = validateWeeklyQuotas(merged, lastWeeklyQuotasRef.current);
+              parsed.weeklyQuotaIssues = qIssues;
               if (qIssues.length > 0) {
-                parsed.weeklyQuotaIssues = qIssues;
                 const crit = qIssues.filter(i => i.severity === "critical").length;
                 console.warn(`[useAITrainingPlan] quota issues: ${crit} critical / ${qIssues.length - crit} warning`, qIssues.slice(0, 6));
               }
@@ -2026,12 +2026,10 @@ export function useAITrainingPlan() {
   // cette diversité, qui n'a jamais dépendu d'un état "live" partagé entre
   // blocs pendant une même exécution serveur.
   //
-  // Limite connue (acceptée pour ce fix) : `sportObjectiveIssues` et
-  // `weeklyQuotaIssues` ne reflètent que la DERNIÈRE fenêtre après une
-  // génération multi-fenêtres (chaque fenêtre les recalcule pour son propre
-  // sous-ensemble de semaines) — signaux QA informatifs uniquement, la
-  // validation qui bloque réellement (`postProcessParsedPlan` en aval) tourne
-  // elle sur le plan complet assemblé.
+  // Les quotas et leurs issues voyagent avec chaque résultat de fenêtre et
+  // sont fusionnés/renumérotés par mergeWindowIntoPlan. Le hook est synchronisé
+  // sur la liste assemblée pour la sauvegarde. Les autres familles d'issues
+  // (sportObjectiveIssues, etc.) gardent leur périmètre préexistant.
   const generatePlanWindowed = useCallback(async (
     athleteData: PlanAthleteData,
     planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" },
@@ -2142,6 +2140,9 @@ export function useAITrainingPlan() {
         };
         lastParsedPlanRef.current = assembled;
         setParsedPlan(assembled);
+        // Le bandeau lit le plan, la sauvegarde lit cet état du hook :
+        // tous deux doivent porter les mêmes issues de TOUTES les fenêtres.
+        setWeeklyQuotaIssues(assembled.weeklyQuotaIssues ?? []);
         toast.success(`Plan complet généré — ${windows.length} fenêtres assemblées.`);
       }
     } finally {

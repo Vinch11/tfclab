@@ -310,10 +310,21 @@ export function mergeWindowIntoPlan(
     const entry = windowPlan.weeklyQuotas?.[w.weekNumber];
     if (entry) weeklyQuotas[fromWeek + i] = entry;
   });
+  const globalWeekByLocal = new Map(windowPlan.weeks.slice(0, windowSize)
+    .map((w, i) => [w.weekNumber, fromWeek + i]));
+  const weeklyQuotaIssues = [
+    ...(currentPlan.weeklyQuotaIssues ?? []).filter(i =>
+      windowPlan.weeklyQuotaIssues == null || i.weekNumber < fromWeek || i.weekNumber > toWeek),
+    ...(windowPlan.weeklyQuotaIssues ?? []).flatMap(issue => {
+      const weekNumber = globalWeekByLocal.get(issue.weekNumber);
+      return weekNumber === undefined ? [] : [{ ...issue, weekNumber }];
+    }),
+  ].sort((a, b) => a.weekNumber - b.weekNumber);
 
   return {
     ...currentPlan,
     ...(currentPlan.weeklyQuotas || windowPlan.weeklyQuotas ? { weeklyQuotas } : {}),
+    ...(currentPlan.weeklyQuotaIssues || windowPlan.weeklyQuotaIssues ? { weeklyQuotaIssues } : {}),
     weeks: [...past, ...renumbered, ...future].sort((a, b) => a.weekNumber - b.weekNumber),
   };
 }

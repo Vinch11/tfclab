@@ -6,6 +6,7 @@ import { postProcessSessionText, resolveWideDurationRanges } from "../sessionTex
 import { mergeWindowIntoPlan } from "../planWindowRegen";
 import { validateWeeklyQuotas } from "@/lib/plan/validateWeeklyQuotas";
 import type { MergedPlan, MergedSession } from "@/lib/plan/mergePlanChunks";
+import { quotaIssuesToValidationIssues, type QuotaIssue } from "@/lib/plan/validateWeeklyQuotas";
 
 const config: PlanGenerationConfig = { objective: "703", ambition: "age_group", weeklyHours: 12, weeksAvailable: 33, mode: "ai" };
 function quota(week = 1) {
@@ -99,5 +100,45 @@ describe("post-traitement final — source de vérité SL individualisée #398",
     expect(result.weeklyQuotas![33]).toEqual(current.weeklyQuotas[33]);
     expect(current.weeklyQuotas[9].floors.slLongRideMin).toBe(120);
     expect(postProcessParsedPlan(result, config).plan.weeks.find(w => w.weekNumber === 9)!.sessions[0].details).toBe("Main: 1h35 Z2");
+  });
+
+  it("agrège les alertes des fenêtres sans perdre les critiques ni confondre S1 locale et globale", () => {
+    const issue = (weekNumber: number, severity: QuotaIssue["severity"] = "critical"): QuotaIssue => ({
+      weekNumber, severity, code: severity === "critical" ? "quota_floor_violation" : "layout_drift", reason: "fixture",
+    });
+    const current = plan();
+    current.weeklyQuotaIssues = [issue(1)];
+    const window = plan();
+    window.weeks = window.weeks.slice(0, 2);
+    window.weeklyQuotaIssues = [issue(1), issue(2, "warning")];
+    const merged = mergeWindowIntoPlan(current, window, 16, 17);
+    expect(merged.weeklyQuotaIssues?.map(i => [i.weekNumber, i.severity])).toEqual([
+      [1, "critical"], [16, "critical"], [17, "warning"],
+    ]);
+    const blocking = quotaIssuesToValidationIssues(merged.weeklyQuotaIssues ?? []);
+    expect(blocking).toHaveLength(2);
+    expect(blocking.every(i => i.severity === "error")).toBe(true);
+    expect(current.weeklyQuotaIssues).toEqual([issue(1)]);
+    const finalWindow = plan();
+    finalWindow.weeks = finalWindow.weeks.slice(0, 1);
+    finalWindow.weeklyQuotaIssues = [issue(1)];
+    expect(mergeWindowIntoPlan(merged, finalWindow, 31, 31).weeklyQuotaIssues?.map(i => i.weekNumber)).toEqual([1, 16, 17, 31]);
+  });
+
+  it("une fenêtre remplacée conserve les alertes hors fenêtre et retire ses anciens diagnostics", () => {
+    const current = plan();
+    current.weeklyQuotaIssues = [1, 9, 33].map(weekNumber => ({ weekNumber, severity: "critical", code: "quota_floor_violation", reason: "fixture" }));
+    const cleanWindow = plan();
+    cleanWindow.weeks = cleanWindow.weeks.slice(0, 1);
+    cleanWindow.weeklyQuotaIssues = [];
+    expect(mergeWindowIntoPlan(current, cleanWindow, 9, 9).weeklyQuotaIssues?.map(i => i.weekNumber)).toEqual([1, 33]);
+  });
+
+  it("une fenêtre sans diagnostic calculé n'efface pas une alerte critique existante", () => {
+    const current = plan();
+    current.weeklyQuotaIssues = [{ weekNumber: 9, severity: "critical", code: "quota_floor_violation", reason: "fixture" }];
+    const unknownWindow = plan();
+    unknownWindow.weeks = unknownWindow.weeks.slice(0, 1);
+    expect(mergeWindowIntoPlan(current, unknownWindow, 9, 9).weeklyQuotaIssues).toEqual(current.weeklyQuotaIssues);
   });
 });

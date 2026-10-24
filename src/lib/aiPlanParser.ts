@@ -108,7 +108,8 @@ export interface ParsedPlan {
   /**
    * Priorité 1. Écarts de quota hebdomadaire vs moteur
    * (`validateWeeklyQuotas`) — même constat que `sportObjectiveIssues` :
-   * calculés mais jamais rendus avant ce lot. Informatif uniquement.
+   * Calculés sur les durées structurées puis agrégés par semaine globale.
+   * Même liste pour le bandeau et les contrôles de sauvegarde.
    */
   weeklyQuotaIssues?: import("@/lib/plan/validateWeeklyQuotas").QuotaIssue[];
   /**

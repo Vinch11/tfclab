@@ -1,0 +1,107 @@
+{
+  "entries": [
+    {
+      "metadataVersion": 1,
+      "complete": true,
+      "id": "ORIGINAL_BIKE_EASY",
+      "sport": "bike",
+      "title": "Endurance facile",
+      "objective": "Endurance facile",
+      "intentFamily": "endurance_fondamentale",
+      "goals": [
+        "half"
+      ],
+      "objectiveSpecific": false,
+      "phases": [
+        "base"
+      ],
+      "durationMin": [
+        60,
+        80
+      ],
+      "mainZoneMax": 2,
+      "specialContext": null,
+      "prerequisiteKeys": [],
+      "necessity": "Recommandé",
+      "when": "base",
+      "avoid": "",
+      "tags": [
+        "endurance"
+      ],
+      "structure": "Endurance continue Z2",
+      "zones": [
+        "Z2"
+      ]
+    },
+    {
+      "metadataVersion": 1,
+      "complete": true,
+      "id": "LONG_BIKE_EASY",
+      "sport": "bike",
+      "title": "Sortie longue endurance",
+      "objective": "Sortie longue endurance",
+      "intentFamily": "endurance_fondamentale",
+      "goals": [
+        "half"
+      ],
+      "objectiveSpecific": false,
+      "phases": [
+        "base"
+      ],
+      "durationMin": [
+        120,
+        150
+      ],
+      "mainZoneMax": 2,
+      "specialContext": null,
+      "prerequisiteKeys": [],
+      "necessity": "Recommandé",
+      "when": "base",
+      "avoid": "",
+      "tags": [
+        "endurance"
+      ],
+      "structure": "Endurance continue Z2",
+      "zones": [
+        "Z2"
+      ]
+    },
+    {
+      "metadataVersion": 1,
+      "complete": true,
+      "id": "LONG_BIKE_BUILD",
+      "sport": "bike",
+      "title": "Sortie longue build",
+      "objective": "Sortie longue build",
+      "intentFamily": "endurance_fondamentale",
+      "goals": [
+        "half"
+      ],
+      "objectiveSpecific": false,
+      "phases": [
+        "build"
+      ],
+      "durationMin": [
+        120,
+        180
+      ],
+      "mainZoneMax": 2,
+      "specialContext": null,
+      "prerequisiteKeys": [],
+      "necessity": "Recommandé",
+      "when": "build",
+      "avoid": "",
+      "tags": [
+        "endurance"
+      ],
+      "structure": "Endurance continue Z2",
+      "zones": [
+        "Z2"
+      ]
+    }
+  ],
+  "tables": {
+    "standard": "| ID | Cat | Objectif | Intention physiologique | Phases | Durée cible (min) | Zone-cible | Structure |\n|-----|-----|----------|--------------------------|--------|-------------|------------|-----------|\n| ORIGINAL_BIKE_EASY | A | Endurance facile | not_verified | base | 60 (60-80) | — | Endurance continue Z2 |\n| LONG_BIKE_EASY | A | Sortie longue endurance | not_verified | base | 120 (120-150) | — | Endurance continue Z2 |\n| LONG_BIKE_BUILD | A | Sortie longue build | not_verified | build | 120 (120-180) | — | Endurance continue Z2 |",
+    "trailAvoid": "| ID | Cat | Objectif | Intention physiologique | Phases | Durée cible (min) | D+ cible (m) | Zone-cible | Structure | Éviter |\n|-----|-----|----------|--------------------------|--------|-------------|--------------|------------|-----------|------------|\n| ORIGINAL_BIKE_EASY | A | Endurance facile | not_verified | base | 60 (60-80) | 500 | — | Endurance continue Z2 | Fatigue accumulée |\n| LONG_BIKE_EASY | A | Sortie longue endurance | not_verified | base | 120 (120-150) | 500 | — | Endurance continue Z2 | Fatigue accumulée |\n| LONG_BIKE_BUILD | A | Sortie longue build | not_verified | build | 120 (120-180) | 500 | — | Endurance continue Z2 | Fatigue accumulée |"
+  }
+}
