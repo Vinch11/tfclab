@@ -29,7 +29,7 @@ import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
 import { deriveRaceTargets, formatSecPerKm, formatSecToTime, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { postProcessSessionText } from "./sessionTextPostProcessor";
 import { normalizeAmbitionLevel } from "@/types/ambitionLevel";
-import { isRaceDaySession, weekHasRaceDay } from "./planValidator";
+import { isRaceDaySession, weekHasRaceDay, NAMED_RACE_TITLE_PATTERN } from "./planValidator";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
@@ -377,8 +377,14 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?:
     }
     for (const [, sessions] of byDay) {
       if (sessions.length <= 1) continue;
-      const keeper = sessions.find(s => s.title.trim().startsWith("🏁")) ?? sessions[0];
+      // L'épreuve nommée porte les données réelles (nom, distances,
+      // nutrition), contrairement au filet générique « Jour J ».
+      const keeper = sessions.find(s => NAMED_RACE_TITLE_PATTERN.test(s.title))
+        ?? sessions.find(s => s.title.trim().startsWith("🏁")) ?? sessions[0];
       const dropped = sessions.filter(s => s !== keeper);
+      // Ne pas perdre les consignes présentes uniquement sur un doublon.
+      // Stable au rejeu : les séances fusionnées sont retirées ci-dessous.
+      keeper.details = [...new Set(sessions.map(s => s.details?.trim()).filter(Boolean))].join("\n\n");
       week.sessions = week.sessions.filter(s => !dropped.includes(s));
       // eslint-disable-next-line no-console
       console.log(`🏁 course unique vérifiée — S${week.weekNumber} ${keeper.dayName} : ${dropped.length} doublon(s) supprimé(s) (gardé : "${keeper.title.slice(0, 60)}")`);

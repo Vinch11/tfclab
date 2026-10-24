@@ -310,6 +310,11 @@ const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétiti
 const RACE_DAY_STRONG_PATTERNS = /🏁|course\s*objectif|jour\s*de\s*(course|compétition)/i;
 const PRE_RACE_ACTIVATION_PATTERNS = /activation|pr[ée]paration|mobilit[ée]|shakeout|ouverture|primers?|pre-?race|d[ée]blocage|opener|veille|flush|\bj-\d/i;
 
+// Format prescrit par le prompt multi-objectifs et observé dans le PDF 703.
+// Ancré au TITRE : « simulation course : … » et les mentions dans les
+// consignes d'entraînement ne constituent pas un événement de compétition.
+export const NAMED_RACE_TITLE_PATTERN = /^\s*(?:🏁\s*)?COURSE\s*:\s*\S/i;
+
 /** Vrai si CETTE séance est un jour de course réel (pas juste une séance qui
  *  mentionne accessoirement l'objectif, ni un rituel de préparation qui
  *  mentionne accessoirement "race day"/"jour j") — cf. RACE_DAY_PATTERNS
@@ -325,6 +330,7 @@ const PRE_RACE_ACTIVATION_PATTERNS = /activation|pr[ée]paration|mobilit[ée]|sh
  *  individuelles, pas des semaines entières) puissent réutiliser EXACTEMENT
  *  la même règle plutôt que de la redupliquer une 3e fois. */
 export function isRaceDaySession(s: { title?: string; details?: string; sport?: string }): boolean {
+  if (NAMED_RACE_TITLE_PATTERN.test(s.title || "")) return true;
   const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
   if (RACE_DAY_STRONG_PATTERNS.test(text)) return true;
   return RACE_DAY_PATTERNS.test(text) && !PRE_RACE_ACTIVATION_PATTERNS.test(text);

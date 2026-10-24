@@ -57,6 +57,7 @@ import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { computeFinalValidationIssues } from "@/lib/plan/qa/finalValidation";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { runReconciler } from "@/lib/plan/planReconciler";
+import { buildWeekQuotaTransport } from "@/lib/plan/weekQuotaTransport";
 import { inferWeekType, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
@@ -2834,6 +2835,7 @@ export default function AITrainingPlanPage() {
         ).floors,
       }
       : null;
+    const regenQuotaTransport = buildWeekQuotaTransport(weekNumber, regenQuotaEntry, isLCWPlan);
     // Union des catalogId réellement présentés au modèle pour cette semaine
     // (même parseur que le chemin de génération complète, useAITrainingPlan.ts
     // ~ligne 528-541) — restreint le réconciliateur aux fiches vues par l'IA.
@@ -2862,6 +2864,7 @@ export default function AITrainingPlanPage() {
           athleteData: athleteContext.data,
           planConfig: {
             ...fullPlanConfig,
+            ...regenQuotaTransport,
             constraints: [
               fullPlanConfig.constraints || "",
               constraintText,
@@ -2938,7 +2941,7 @@ export default function AITrainingPlanPage() {
         try {
           const rec = runReconciler(
             [regeneratedChunk],
-            { [weekNumber]: regenQuotaEntry },
+            regenQuotaTransport._weeklyQuotas,
             2,
             regenAllowedCatalogIds,
             {
