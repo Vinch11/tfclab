@@ -5817,7 +5817,11 @@ export function validatePlan(
   const warningCount = allIssues.filter(i => i.severity === "warning").length;
   const prohibitionViolations = prohibitionCompliance.issues.filter(i => i.severity === "error").length;
   const phaseErrors = phaseCoherence.issues.filter(i => i.severity === "error").length;
-  const raceDayMissing = raceDayPresence.issues.filter(i => i.severity === "error").length;
+  const missingRaceWeeks = raceDayPresence.issues
+    .filter(i => i.rule === "race_day" && i.severity === "error")
+    .map(i => `S${i.week}`);
+  const unexpectedRaceCount = raceDayPresence.issues.filter(i => i.rule === "race_day_unexpected" && i.severity === "error").length;
+  const raceCatalogConflictCount = raceDayPresence.issues.filter(i => i.rule === "race_catalog_conflict" && i.severity === "error").length;
   const limiterErrors = limiterCoherence.issues.filter(i => i.severity === "error").length;
   const wbalErrors = wbalFeasibility.issues.filter(i => i.severity === "error").length;
   const injuryRiskErrors = injuryRiskCompliance.issues.filter(i => i.severity === "error").length;
@@ -5838,8 +5842,12 @@ export function validatePlan(
     ? `⚡ ${wbalErrors} séance(s) infaisable(s) selon le W'bal de l'athlète — intensité, durée ou repos à revoir`
     : limiterErrors > 0
     ? `⚠️ ${limiterErrors} incohérence(s) limiteur↔séances — le plan ne cible pas les limiteurs détectés par le diagnostic`
-    : raceDayMissing > 0
-    ? `🏁 Jour de course absent de la dernière semaine — le plan doit inclure le Jour J`
+    : missingRaceWeeks.length > 0
+    ? `🏁 Jour de course absent — ${missingRaceWeeks.join(", ")} : le plan doit inclure le Jour J déclaré`
+    : unexpectedRaceCount > 0
+    ? `🏁 ${unexpectedRaceCount} course(s) non déclarée(s) détectée(s) — voir les semaines concernées`
+    : raceCatalogConflictCount > 0
+    ? `🏁 ${raceCatalogConflictCount} compétition(s) associée(s) à une fiche d'entraînement — identité et prescription à vérifier`
     : phaseErrors > 0
     ? `⚠️ ${phaseErrors} incohérence(s) de phase détectée(s) — périodisation à corriger`
     : errorCount === 0 && warningCount === 0
