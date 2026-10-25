@@ -14,28 +14,30 @@ const stopped = reason => ({ state: 'stopped', reason, eligibleForMerge: false, 
  * a network proxy or a durable ledger. No automatic refund or retry exists here. */
 export function reserveCall(ledger, request, policy) {
   if (!ledger || !request || !policy ||
-      !['calls', 'reservedUsd'].every(k => finite(ledger[k])) || !Number.isInteger(ledger.calls) ||
-      !['inputTokens', 'outputTokens', 'inputUsdPerMillion', 'outputUsdPerMillion'].every(k => finite(request[k])) ||
+      !['calls', 'reservedEur'].every(k => finite(ledger[k])) || !Number.isInteger(ledger.calls) ||
+      !['inputTokens', 'outputTokens', 'inputUsdPerMillion', 'outputUsdPerMillion', 'eurPerUsd'].every(k => finite(request[k])) ||
       !Number.isInteger(request.inputTokens) || !Number.isInteger(request.outputTokens) ||
       request.inputTokens === 0 || request.outputTokens === 0 ||
-      request.inputUsdPerMillion === 0 || request.outputUsdPerMillion === 0 ||
-      !['maxApiUsd', 'maxCalls', 'maxInputTokensPerCall', 'maxOutputTokensPerCall'].every(k => finite(policy[k]))) {
+      request.inputUsdPerMillion === 0 || request.outputUsdPerMillion === 0 || request.eurPerUsd === 0 ||
+      !['maxApiEur', 'maxCalls', 'maxInputTokensPerCall', 'maxOutputTokensPerCall'].every(k => finite(policy[k]))) {
     return stopped('invalid_budget_evidence');
   }
   if (request.inputTokens > policy.maxInputTokensPerCall || request.outputTokens > policy.maxOutputTokensPerCall)
     return stopped('token_limit');
   if (ledger.calls >= policy.maxCalls) return stopped('call_limit');
-  // Round reservations upward to a micro-dollar, with no assumed cache discount.
+  if (policy.apiEnabled !== true) return stopped('api_disabled');
+  // Round EUR reservations upward; exchange rate must be supplied explicitly.
   const cost = Math.ceil(request.inputTokens * request.inputUsdPerMillion + request.outputTokens * request.outputUsdPerMillion) / 1e6;
-  if (Math.round(ledger.reservedUsd * 1e6) + Math.round(cost * 1e6) > Math.floor(policy.maxApiUsd * 1e6)) return stopped('budget_limit');
-  return { state: 'reserved', costUsd: cost, ledger: { calls: ledger.calls + 1, reservedUsd: (Math.round(ledger.reservedUsd * 1e6) + Math.round(cost * 1e6)) / 1e6 } };
+  const costEur = Math.ceil(cost * request.eurPerUsd * 1e6) / 1e6;
+  if (Math.round(ledger.reservedEur * 1e6) + Math.round(costEur * 1e6) > Math.floor(policy.maxApiEur * 1e6)) return stopped('budget_limit');
+  return { state: 'reserved', costUsd: cost, costEur, ledger: { calls: ledger.calls + 1, reservedEur: (Math.round(ledger.reservedEur * 1e6) + Math.round(costEur * 1e6)) / 1e6 } };
 }
 
 /** Numeric demonstration cases; not a replacement for any sporting validator.
  * trustedReview is supplied out-of-band by a FUTURE authenticated controller,
  * never copied from the model's JSON. No such controller is installed here. */
 export function decide(packet, review, { iteration = 1, elapsedSeconds = 0,
-  maxIterations = 3, maxMissionSeconds = 1800, trustedReview = false } = {}) {
+  maxIterations = 5, maxMissionSeconds = 1800, trustedReview = false } = {}) {
   if (!Number.isInteger(iteration) || iteration < 1 || !Number.isInteger(maxIterations) || maxIterations < 1 ||
       !finite(elapsedSeconds) || !finite(maxMissionSeconds) || maxMissionSeconds === 0) return stopped('invalid_limits');
   if (iteration > maxIterations) return stopped('iteration_limit');

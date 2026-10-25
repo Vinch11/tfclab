@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { decide, reserveCall } from './gates.mjs';
 const packet = () => ({ baseSha: 'a'.repeat(40), candidateSha: 'b'.repeat(40), evidenceHash: 'c'.repeat(64),
   softwarePassed: true, newCritical: 0, requiredCriteria: ['load_progression'], evidenceIds: ['fixture', 'cases'],
@@ -24,23 +25,39 @@ test('software failure and new critical stop', () => {
   assert.equal(decide({ ...packet(), newCritical: 1 }, review()).reason, 'new_critical');
 });
 test('iteration cap and elapsed deadline stop', () => {
-  assert.equal(decide(packet(), review(), { iteration: 4 }).reason, 'iteration_limit');
+  assert.equal(decide(packet(), review(), { iteration: 6 }).reason, 'iteration_limit');
   assert.equal(decide(packet(), review(), { elapsedSeconds: 1800 }).reason, 'time_limit');
-  assert.equal(decide(packet(), { ...review(), decision: 'iterate' }, { iteration: 3 }).reason, 'iteration_limit');
+  assert.equal(decide(packet(), { ...review(), decision: 'iterate' }, { iteration: 5 }).reason, 'iteration_limit');
 });
 test('forged OpenAI mode does not authenticate a review', () => assert.equal(decide(packet(), { ...review(), mode: 'openai' }).reason, 'untrusted_review_provenance'));
-const policy = { maxApiUsd: 5, maxCalls: 6, maxInputTokensPerCall: 16000, maxOutputTokensPerCall: 4000 };
-const request = { inputTokens: 16000, outputTokens: 4000, inputUsdPerMillion: 10, outputUsdPerMillion: 50 };
+const policy = { apiEnabled: true, maxApiEur: 5, maxCalls: 10, maxInputTokensPerCall: 16000, maxOutputTokensPerCall: 4000 };
+const request = { inputTokens: 16000, outputTokens: 4000, inputUsdPerMillion: 10, outputUsdPerMillion: 50, eurPerUsd: 1 };
 test('worst-case reservation includes full input/output', () => {
-  const result = reserveCall({ calls: 0, reservedUsd: 0 }, request, policy); assert.equal(result.costUsd, 0.36); assert.equal(result.ledger.calls, 1);
+  const result = reserveCall({ calls: 0, reservedEur: 0 }, request, policy); assert.equal(result.costUsd, 0.36); assert.equal(result.ledger.calls, 1);
 });
-test('zero budget prohibits all paid dispatch', () => assert.equal(reserveCall({ calls: 0, reservedUsd: 0 }, request, { ...policy, maxApiUsd: 0 }).reason, 'budget_limit'));
+test('zero budget prohibits all paid dispatch', () => assert.equal(reserveCall({ calls: 0, reservedEur: 0 }, request, { ...policy, maxApiEur: 0 }).reason, 'budget_limit'));
 test('reservations survive timeout and cannot silently refund themselves', () => {
-  const held = reserveCall({ calls: 0, reservedUsd: 0 }, request, { ...policy, maxApiUsd: 0.36 });
-  assert.equal(reserveCall(held.ledger, request, { ...policy, maxApiUsd: 0.36 }).reason, 'budget_limit');
+  const held = reserveCall({ calls: 0, reservedEur: 0 }, request, { ...policy, maxApiEur: 0.36 });
+  assert.equal(reserveCall(held.ledger, request, { ...policy, maxApiEur: 0.36 }).reason, 'budget_limit');
 });
 test('missing price/count, token cap and call cap stop', () => {
-  assert.equal(reserveCall({ calls: 0, reservedUsd: 0 }, { ...request, inputUsdPerMillion: NaN }, policy).reason, 'invalid_budget_evidence');
-  assert.equal(reserveCall({ calls: 0, reservedUsd: 0 }, { ...request, outputTokens: 4001 }, policy).reason, 'token_limit');
-  assert.equal(reserveCall({ calls: 6, reservedUsd: 0 }, request, policy).reason, 'call_limit');
+  assert.equal(reserveCall({ calls: 0, reservedEur: 0 }, { ...request, inputUsdPerMillion: NaN }, policy).reason, 'invalid_budget_evidence');
+  assert.equal(reserveCall({ calls: 0, reservedEur: 0 }, { ...request, outputTokens: 4001 }, policy).reason, 'token_limit');
+  assert.equal(reserveCall({ calls: 10, reservedEur: 0 }, request, policy).reason, 'call_limit');
+});
+
+test('EUR conversion is explicit and enforced', () => {
+  assert.equal(reserveCall({ calls: 0, reservedEur: 0 }, { ...request, eurPerUsd: undefined }, policy).reason, 'invalid_budget_evidence');
+  assert.equal(reserveCall({ calls: 0, reservedEur: 0 }, { ...request, eurPerUsd: 2 }, { ...policy, maxApiEur: 0.5 }).reason, 'budget_limit');
+});
+test('configured API remains disabled', () => assert.equal(reserveCall({ calls: 0, reservedEur: 0 }, request, { ...policy, apiEnabled: false }).reason, 'api_disabled'));
+test('fifth iteration is allowed, sixth is stopped', () => {
+  assert.equal(decide(packet(), review(), { iteration: 5 }).state, 'demo_only');
+  assert.equal(decide(packet(), review(), { iteration: 6 }).reason, 'iteration_limit');
+});
+test('repository policy preserves the approved configuration and prohibitions', () => {
+  const configured = JSON.parse(readFileSync(new URL('../../docs/quality/policy.json', import.meta.url), 'utf8'));
+  assert.equal(configured.maxIterations, 5); assert.equal(configured.maxApiEur, 5);
+  for (const key of ['offlineFixturesOnly', 'humanValidationRequired', 'draftPullRequestsOnly']) assert.equal(configured[key], true);
+  for (const key of ['apiEnabled', 'recurringEnabled', 'autoMerge', 'deploy', 'paidGeminiAllowed', 'athleteDataWritesAllowed']) assert.equal(configured[key], false);
 });

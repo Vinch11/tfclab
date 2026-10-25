@@ -23,13 +23,17 @@ Une régression arrête la mission ; pas d'essai suivant automatique pour la cac
 
 ## Limites proposées par mission
 
-`policy.json` fixe les valeurs proposées : 3 itérations, 30 minutes, 0 USD par
-défaut. Après autorisation séparée : maximum proposé 5 USD, 6 appels bornés
+`policy.json` enregistre la configuration du responsable : 5 itérations maximum,
+5 EUR maximum par mission, fixtures offline uniquement, PR brouillon avec validation
+humaine. Les API restent désactivées et la durée de 30 minutes reste inchangée.
+Plafond technique : 10 appels bornés
 (Codex + revue à chaque itération), 16 000 tokens d'entrée et 4 000 de sortie
 par appel. Ces valeurs sont des limites opérationnelles, pas des critères sportifs.
 
 Réserver **avant** chaque appel son coût maximal, avec tarifs approuvés et
-compte d'entrée complet du modèle. Réconcilier l'usage réel ensuite, raisonnement
+compte d'entrée complet du modèle. Convertir les prix USD en EUR avec un taux
+conservateur explicite et daté incluant les surcharges applicables ; sans ce taux,
+arrêter. Aucun taux 1 USD = 1 EUR implicite. Réconcilier l'usage réel ensuite, raisonnement
 compris dans la sortie. Timeout, déconnexion, usage absent : garder la réserve,
 aucun retry automatique. Coûts cache ignorés pour borner prudemment. Compter les
 retries et demandes de correction de schéma dans les mêmes plafonds.

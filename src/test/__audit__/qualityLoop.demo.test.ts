@@ -52,10 +52,10 @@ describe('quality-loop demonstration without a model or an engine change', () =>
     const scientificRejection = decide(packet, { ...review, decision: 'reject' });
     const regression = structuredClone(packet); regression.measurements[2].after = 0;
     const rejectedRegression = decide(regression, review);
-    const stoppedAtLimit = decide(packet, { ...review, decision: 'iterate' }, { iteration: 4 });
-    const zeroBudgetStop = reserveCall({ calls: 0, reservedUsd: 0 },
-      { inputTokens: 16000, outputTokens: 4000, inputUsdPerMillion: 10, outputUsdPerMillion: 50 },
-      { maxApiUsd: 0, maxCalls: 6, maxInputTokensPerCall: 16000, maxOutputTokensPerCall: 4000 });
+    const stoppedAtLimit = decide(packet, { ...review, decision: 'iterate' }, { iteration: 6 });
+    const zeroBudgetStop = reserveCall({ calls: 0, reservedEur: 0 },
+      { inputTokens: 16000, outputTokens: 4000, inputUsdPerMillion: 10, outputUsdPerMillion: 50, eurPerUsd: 1 },
+      { apiEnabled: true, maxApiEur: 0, maxCalls: 10, maxInputTokensPerCall: 16000, maxOutputTokensPerCall: 4000 });
     expect(acceptedSimulation.state).toBe(baselineHasDefect ? 'demo_only' : 'stopped');
     if (!baselineHasDefect) expect(acceptedSimulation.reason).toBe('no_baseline_defect');
     expect(scientificRejection.reason).toBe(baselineHasDefect ? 'scientific_rejection' : 'no_baseline_defect');

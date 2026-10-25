@@ -61,10 +61,11 @@ pas l'authenticité d'un auteur ou la vérité d'une affirmation scientifique.
 
 ## Coûts et limites
 
-Aujourd'hui : **0 appel, 0 USD API**, budget configuré à0. Actions peut consommer
+Aujourd'hui : **0 appel API**. Budget configuré : **5 EUR maximum par mission**,
+5 itérations maximum ; appels API toujours désactivés. Actions peut consommer
 des minutes selon le compte ; aucun coût d'hébergement ou d'abonnement n'est inclus.
 
-Exemple futur, hypothétique : trois itérations, un appel Codex borné à16k tokens
+Exemple futur, hypothétique : cinq itérations, un appel Codex borné à16k tokens
 d'entrée/4k sortie et un appel scientifique de mêmes bornes par itération. Aux
 tarifs Standard courts consultés le25/10/2026, `gpt-6.1-sol` à2/10 USD par million
 entrée/sortie et `gpt-6-astra` à10/50 donnent :
@@ -72,15 +73,17 @@ entrée/sortie et `gpt-6-astra` à10/50 donnent :
 ```text
 codage     0.016 ×2  + 0.004 ×10 = 0.072 USD/appel
 revue      0.016 ×10 + 0.004 ×50 = 0.360 USD/appel
-3 itérations × (0.072 + 0.360)   = 1.296 USD
+5 itérations × (0.072 + 0.360)   = 2.160 USD
 ```
 
 Exemple comptable, **pas un devis d'une session CLI Codex** : plusieurs tours
-peuvent multiplier les requêtes. Les6 appels comprennent tous les retries ; un
-7e est refusé. Tarifs, modèle réellement accessible, classe de service, contexte,
+peuvent multiplier les requêtes. Les10 appels comprennent tous les retries ; un
+11e est refusé. Tarifs, modèle réellement accessible, classe de service, contexte,
 taxes/surcharges doivent être confirmés par le propriétaire ; modèle non approuvé
-ou comptage inconnu = arrêt. Le plafond proposé5 USD ne remplace pas l'admission
-par requête ; aucun engagement monétaire n'est garanti par un timeout seul.
+ou comptage inconnu = arrêt. Le plafond configuré de5 EUR ne remplace pas l'admission
+par requête. Le total illustratif en USD doit être converti avec un taux EUR/USD
+conservateur, daté et approuvé, surcharges incluses ; aucun taux réel n’est fixé
+par cette proposition. Sans données de conversion, arrêter. Aucun engagement monétaire n'est garanti par un timeout seul.
 
 Sources officielles : [tarifs](https://developers.openai.com/api/docs/pricing),
 [comptage des tokens](https://help.openai.com/en/articles/4936856-understanding-and-counting-tokens),

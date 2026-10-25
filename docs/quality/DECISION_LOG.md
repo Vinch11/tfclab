@@ -17,3 +17,14 @@ SHA256, modèle/version et identifiant de réponse technique lorsque disponible,
 tests/commandes, critères et preuves, verdict, motifs d'arrêt, montant réservé/réel,
 run CI/PR et arbitrage humain éventuel. Ne pas recopier le prompt brut, les
 raisonnements internes ou les données personnelles dans le journal.
+
+## Configuration Auto-QA confirmée par le responsable
+
+- Maximum : 5 itérations et 5 EUR par mission ; plafond technique de10 appels
+  bornés, retries inclus. Durée existante de30 minutes inchangée.
+- Fixtures offline uniquement ; sorties en PR brouillon et validation humaine.
+- Déploiement, fusion automatique, Gemini payant et modification des données
+  athlètes interdits. Aucun changement Nolio ni migration.
+- Cette configuration ne vaut pas activation : `apiEnabled=false`, récurrence
+  désactivée, template Actions toujours inactif. La conversion des tarifs USD
+  vers EUR doit être renseignée et approuvée avant tout éventuel appel.
