@@ -54,6 +54,7 @@ const zPhaseSummary = z.object({
 
 const zSessionBase = {
   day: zDay,
+  variantKey: z.string().optional(),
   title: z.string().min(1),
   details: z.string().default(""),
   isKeySession: z.boolean().default(false),

@@ -77,11 +77,12 @@ function fallbackDurationBySport(sport: string, title: string): number {
  */
 export function estimateSessionDurationMin(session: ParsedSession): number {
   if (session.isRest) return 0;
+  if (typeof session.durationMin === "number" && Number.isFinite(session.durationMin) && session.durationMin >= 0) return session.durationMin;
 
   // 1) Priorité : lookup direct dans la bibliothèque enrichie via l'ID catalogue
   //    (fixe le bug des séances B_LCW_*, [Custom] et toute séance dont le titre
   //    n'expose pas de durée explicite — audit Claude 07/2026).
-  const catalogId = extractCatalogId(session.title, session.details);
+  const catalogId = extractCatalogId(session.title, session.details, session.catalogId);
   const libDuration = getLibraryDurationMin(catalogId);
   if (libDuration && libDuration > 0) return libDuration;
 

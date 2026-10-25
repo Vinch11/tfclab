@@ -1,3 +1,5 @@
+import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
+import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 /**
  * AIPlanViewer — Interactive structured view of a parsed AI training plan
  */
@@ -61,7 +63,7 @@ import {
 import { Send, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
-import { SessionReplaceDialog, libSportToPlanSport } from "@/components/SessionReplaceDialog";
+import { SessionReplaceDialog } from "@/components/SessionReplaceDialog";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
@@ -379,10 +381,12 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
   );
 
   const fiche = useMemo(
-    () => session.isRest ? null : getFicheForSession({ title: session.title, details: session.details }, objectifEffectif, wbalRefs),
-    [session.isRest, session.title, session.details, objectifEffectif, wbalRefs]
+    () => session.isRest ? null : getFicheForSession(session, objectifEffectif, wbalRefs),
+    [session, objectifEffectif, wbalRefs]
   );
 
+  const catalogueIssues = useMemo(() => validateSessionCataloguePlan({ weeks: [{ weekNumber: session.weekNumber,
+    phase: session.phase, sessions: [session] }] }, objectifEffectif ?? undefined), [session, objectifEffectif]);
   // Rendu hybride : quand la fiche est résolue, on n'affiche que le delta IA.
   const contextLines = useMemo(
     () => (fiche ? extractContextLines(displayDetails, fiche) : []),
@@ -485,7 +489,8 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
         {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} sessionIndex={sessionIndex} />}
       </div>
 
-      {expanded && session.details && !fiche && (
+      {catalogueIssues.length > 0 && <p className="text-xs text-destructive mt-2">Prescription et fiche : correspondance à vérifier ({catalogueIssues.map(i => i.message.split(": ").pop()).join(", ")}).</p>}
+      {expanded && session.details && (!fiche || catalogueIssues.length > 0) && (
         <div
           className="text-xs text-muted-foreground mt-2 leading-relaxed border-t border-current/10 pt-2 fiche-body whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ __html: formatFicheText(displayDetails) }}
@@ -507,7 +512,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
         <div className="mt-2 border-t border-current/10 pt-2 space-y-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Fiche complète bibliothèque
+              Fiche de référence catalogue
             </p>
             <div className="flex items-center gap-1 flex-wrap">
               <Badge variant="outline" className="text-[9px]">Cat {fiche.cat}</Badge>
@@ -868,6 +873,7 @@ interface AIPlanViewerProps {
   startDate?: Date;
   raceGoals?: RaceGoal[];
   onSaveToPlan?: () => void;
+  onPlanChange?: (plan: ParsedPlan) => void;
   isSaving?: boolean;
   isSaved?: boolean;
   onRegenerateWeek?: (weekNumber: number, extraConstraints?: string) => void;
@@ -899,7 +905,7 @@ interface AIPlanViewerProps {
   identifiedLimiterKeys?: string[];
 }
 
-export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
   // Régénération avec contraintes ponctuelles (imprévus : piscine fermée, etc.)
   const [regenDialog, setRegenDialog] = useState<null | { scope: RegenerationScope; label: string; run: (extra: string) => void }>(null);
   // Persist selected week per athlete (restored on mount/athlete change)
@@ -931,9 +937,17 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
   }, [weekStorageKey, selectedWeek]);
 
   // --- Local plan state (allows in-UI session replacements without touching saved plan) ---
-  const [plan, setPlan] = useState<ParsedPlan>(planProp);
+  const [localPlan, setLocalPlan] = useState<ParsedPlan>(planProp);
+  // The editable viewer is controlled by the page that validates and saves it.
+  const plan = onPlanChange ? planProp : localPlan;
+  const setPlan = useCallback((next: ParsedPlan | ((previous: ParsedPlan) => ParsedPlan)) => {
+    const updated = typeof next === "function" ? next(plan) : next;
+    if (onPlanChange) onPlanChange(updated); else setLocalPlan(updated);
+  }, [plan, onPlanChange]);
+  const currentCatalogueIssues = useMemo(() => validateSessionCataloguePlan(plan), [plan]);
+  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_")), ...currentCatalogueIssues];
   const [replacementCount, setReplacementCount] = useState(0);
-  useEffect(() => { setPlan(planProp); setReplacementCount(0); }, [planProp]);
+  useEffect(() => { setLocalPlan(planProp); setReplacementCount(0); }, [planProp]);
 
   // Reborne `selectedWeek` si le plan a moins de semaines qu'avant (ex.
   // régénération partielle qui raccourcit le plan) — cf. currentWeek plus
@@ -1005,7 +1019,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
   const applyReplacement = useCallback((w: LibraryWorkout) => {
     const target = replaceTarget;
     if (!target) return;
-    const newSport = libSportToPlanSport(w.sport);
+    const newSport = normalizeRepairSport(w.sport);
     const newTitle = `${w.objectif || w.id}`;
     const structureText = (w.structure || [])
       .map((p) => `${p.part}${p.zones.length ? ` [${p.zones.join(", ")}]` : ""} — ${p.text}`)
@@ -1020,7 +1034,9 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           ...wk,
           sessions: wk.sessions.map((s) => {
             if (s.dayIndex !== target.dayIndex || s.title !== target.title) return s;
-            return { ...s, sport: newSport, title: newTitle, details: newDetails, isRest: false };
+            const { variantKey: _oldVariant, ...preserved } = s;
+            return { ...preserved, sport: newSport, title: newTitle, details: newDetails, isRest: false,
+              catalogId: w.id, custom: false, zones: [...new Set((w.structure ?? []).flatMap(part => part.zones))] };
           }),
         };
       }),
@@ -1040,7 +1056,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
     toast.success(`Séance remplacée par ${w.id}`);
     setReplaceTarget(null);
-  }, [replaceTarget, athleteId]);
+  }, [replaceTarget, athleteId, setPlan]);
 
 
 
@@ -1144,7 +1160,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         ? `Valeurs actualisées sur ${changedSessions} séance(s) — pensez à sauvegarder.`
         : "Valeurs déjà à jour (les intensités sont recalculées à l'affichage).",
     );
-  }, [plan, currentPhysioRefs]);
+  }, [plan, currentPhysioRefs, setPlan]);
 
 
   const markSent = useCallback((key: string) => {
@@ -1527,9 +1543,9 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           séparément à la sauvegarde (handleSaveToPlan), où un vrai blocage
           (dialogue de confirmation) existe déjà pour B11/B12 — ce bandeau ne
           doit pas prétendre faire ce que cette page ne fait pas elle-même. */}
-      {plan.finalValidationIssues && plan.finalValidationIssues.length > 0 && (() => {
-        const critical = plan.finalValidationIssues.filter((i) => i.severity === "error");
-        const warnings = plan.finalValidationIssues.filter((i) => i.severity === "warning");
+      {displayedFinalIssues && displayedFinalIssues.length > 0 && (() => {
+        const critical = displayedFinalIssues.filter((i) => i.severity === "error");
+        const warnings = displayedFinalIssues.filter((i) => i.severity === "warning");
         return (
           <Alert variant={critical.length > 0 ? "destructive" : "default"}>
             <AlertTriangle className="h-4 w-4" />
@@ -1544,9 +1560,9 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                   <li key={i}>{issue.message}</li>
                 ))}
               </ul>
-              {plan.finalValidationIssues.length > 6 && (
+              {displayedFinalIssues.length > 6 && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  + {plan.finalValidationIssues.length - 6} autre(s) — voir les logs de génération pour le détail complet.
+                  + {displayedFinalIssues.length - 6} autre(s) — voir les logs de génération pour le détail complet.
                 </p>
               )}
             </AlertDescription>

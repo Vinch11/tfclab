@@ -32,6 +32,7 @@ export interface MergedSession {
   isKeySession: boolean;
   catalogId: string | null;
   custom: boolean;
+  variantKey?: string;
   durationMin: number;
   zones: string[];
 }
@@ -77,6 +78,7 @@ function normalizeSession(s: PlanSession, weekNumber: number, theme: string, pha
     catalogId: s.catalogId ?? null,
     custom: !!s.custom,
     durationMin: s.durationMin ?? 0,
+    ...(s.variantKey !== undefined ? { variantKey: s.variantKey } : {}),
     zones: s.zones ?? [],
   };
 }

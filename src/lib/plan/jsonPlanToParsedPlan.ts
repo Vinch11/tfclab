@@ -40,7 +40,10 @@ function toParsedSession(s: MergedSession): ParsedSession {
     sport: s.sport,
     // Phase 1C-A : catalogId exposé en champ structuré (plus de préfixe title).
     title: s.title,
-    catalogId: s.catalogId ?? null,
+    ...(s.catalogId !== undefined ? { catalogId: s.catalogId } : {}),
+    ...(s.durationMin !== undefined ? { durationMin: s.durationMin } : {}),
+    ...(s.custom !== undefined ? { custom: s.custom } : {}),
+    ...(s.variantKey !== undefined ? { variantKey: s.variantKey } : {}),
     details: s.details,
     isRest: s.isRest,
     isKeySession: s.isKeySession,

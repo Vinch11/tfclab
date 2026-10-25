@@ -1,3 +1,4 @@
+import { checkSessionCatalogue, type CatalogueContract } from "../_shared/sessionCatalogueContract.ts";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * PHASE 1A — Schéma Zod miroir de ParsedPlan (src/lib/aiPlanParser.ts)
@@ -142,6 +143,7 @@ export type PhaseSummaryJSON = z.infer<typeof zPhaseSummary>;
 
 const zSessionBase = {
   day: zDay,
+  variantKey: z.string().optional(),
   title: z.string().min(1),
   details: z.string().default(""),
   isKeySession: z.boolean().default(false),
@@ -180,7 +182,7 @@ function buildSessionSchema(allowedIds: string[]) {
   const catalogIdSchema = hasIds
     // z.enum requires a non-empty tuple; cast to satisfy TS.
     ? z.enum(allowedIds as [string, ...string[]])
-    : z.string().min(1); // fallback si catalog vide (rare, log warning côté handler)
+    : z.never(); // Empty compatible pool permits genuine custom sessions, never invented references.
 
   const zSessionRef = z.object({
     ...zSessionBase,
@@ -202,6 +204,7 @@ function buildSessionSchema(allowedIds: string[]) {
 export interface BuildPlanChunkSchemaOptions {
   /** Nombre exact de semaines attendu dans le chunk (regenerateWeek → 1). undefined = pas de contrainte. */
   expectedWeekCount?: number;
+  catalogueContractsByWeek?: Record<number, CatalogueContract>;
   /** Chunk 1 attend `diagnostic` / `strategicRecap` / `phases`. Sinon optionnel. */
   isFirstChunk?: boolean;
 }
@@ -219,6 +222,19 @@ export function buildPlanChunkSchema(
     phaseObjective: z.string().optional(),
     weeklyNotes: z.string().optional(),
     sessions: z.array(zSession).min(1),
+  }).superRefine((week, ctx) => {
+    const contract = opts.catalogueContractsByWeek?.[week.weekNumber];
+    if (!contract) {
+      if (opts.catalogueContractsByWeek) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["weekNumber"], message: "week_not_in_catalogue_contract" });
+      return;
+    }
+    if (contract.phase && ["base", "build", "peak", "taper"].includes(contract.phase) && week.phase !== contract.phase) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["phase"], message: "week_phase_contract_mismatch" });
+    }
+    week.sessions.forEach((session, index) => {
+      for (const code of checkSessionCatalogue(session, contract).errors) ctx.addIssue({
+        code: z.ZodIssueCode.custom, path: ["sessions", index, "catalogId"], message: `catalogue_prescription_incompatible:${code}` });
+    });
   });
 
   const weeksSchema = opts.expectedWeekCount !== undefined

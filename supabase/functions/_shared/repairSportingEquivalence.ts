@@ -20,6 +20,7 @@ export type RepairIntentFamily =
   | "other";
 
 export interface RepairWorkoutMetadata {
+  variants?: Record<string, string>;
   metadataVersion: 1;
   complete: true;
   id: string;
@@ -91,7 +92,9 @@ export function isCompleteRepairWorkoutMetadata(value: unknown): value is Repair
     typeof metadata.avoid === "string" &&
     Array.isArray(metadata.tags) && metadata.tags.every(item => typeof item === "string") &&
     typeof metadata.structure === "string" &&
-    Array.isArray(metadata.zones) && metadata.zones.every(item => typeof item === "string");
+    Array.isArray(metadata.zones) && metadata.zones.every(item => typeof item === "string") &&
+    (metadata.variants === undefined || (metadata.variants !== null && typeof metadata.variants === "object" &&
+      !Array.isArray(metadata.variants) && Object.values(metadata.variants).every(item => typeof item === "string")));
 }
 
 function normalizeToken(value: unknown): string {

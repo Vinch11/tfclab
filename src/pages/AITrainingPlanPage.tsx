@@ -1,3 +1,6 @@
+import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
+import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
+import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
  * Generates personalized training plans using AI + TFCL methodology
@@ -475,6 +478,7 @@ export const NON_DEROGABLE_RULES = new Set([
   // gravité que les autres incohérences fondamentales ci-dessus — jamais
   // contournable par "Sauvegarder quand même".
   "race_day_unexpected",
+  "catalogue_prescription_incompatible",
   "race_catalog_conflict", // compétition officielle ≠ fiche d’entraînement
 ]);
 
@@ -488,7 +492,7 @@ export default function AITrainingPlanPage() {
   // chaque changement d'athlète, cf. PR #63 anti-fuite cross-athlète).
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -2375,6 +2379,8 @@ export default function AITrainingPlanPage() {
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
 
+    const currentPlanForChecks = parsedPlan as unknown as MergedPlan;
+    // Read-only legacy check view; optional historical fields remain absent.
     // F-16: compute validator score at save time and persist alongside the plan
     // so we can measure AI plan quality drift over time (per athlete/objective).
     let validatorScore: number | null = null;
@@ -2491,7 +2497,7 @@ export default function AITrainingPlanPage() {
         validatorScore = vr.score;
         validatorGrade = vr.grade;
         validatorSummary = vr.summary as unknown as Record<string, unknown>;
-        criticalIssues = vr.issues.filter(i => i.severity === "error");
+        criticalIssues = [...vr.issues.filter(i => i.severity === "error"), ...validateSessionCataloguePlan(parsedPlan, objective).filter(i => i.severity === "error")];
 
         // Audit "cohérence placement des séances" — constat n°2 : B11 (règles
         // de placement déclarées par chaque fiche catalogue, Quand/Éviter/
@@ -2499,9 +2505,9 @@ export default function AITrainingPlanPage() {
         // admin (PlanQAPage), jamais sur un plan sauvegardé par un vrai coach.
         // `mergedPlan` est déjà calculé par la génération réelle (mergePlanChunks)
         // — aucun nouveau merge nécessaire pour brancher B11 ici.
-        if (mergedPlan) {
+        if (currentPlanForChecks) {
           try {
-            const b11 = checkB11(mergedPlan, objective);
+            const b11 = checkB11(currentPlanForChecks, objective);
             criticalIssues = [...criticalIssues, ...checkB11ToValidationIssues(b11).filter(i => i.severity === "error")];
           } catch (b11Err) {
             console.warn("[B11] échec du contrôle placement catalogue, sauvegarde sans ce contrôle:", b11Err);
@@ -2517,7 +2523,7 @@ export default function AITrainingPlanPage() {
           // limiteur secondaire (L3+) absent restent des warnings visibles
           // en QA mais non bloquants.
           try {
-            const b12 = checkB12(mergedPlan, cfg?.identifiedLimitersRaw ?? cfg?.identifiedLimiters);
+            const b12 = checkB12(currentPlanForChecks, cfg?.identifiedLimitersRaw ?? cfg?.identifiedLimiters);
             criticalIssues = [...criticalIssues, ...checkB12ToValidationIssues(b12)];
           } catch (b12Err) {
             console.warn("[B12] échec du contrôle couverture limiteurs, sauvegarde sans ce contrôle:", b12Err);
@@ -2533,7 +2539,7 @@ export default function AITrainingPlanPage() {
           // par `useAITrainingPlan.ts` au moment de la génération — pas une
           // deuxième vérité recalculée séparément ici.
           try {
-            const b13 = checkB13(mergedPlan);
+            const b13 = checkB13(currentPlanForChecks);
             criticalIssues = [...criticalIssues, ...checkB13ToValidationIssues(b13)];
           } catch (b13Err) {
             console.warn("[B13] échec du contrôle final post-mutations, sauvegarde sans ce contrôle:", b13Err);
@@ -2548,7 +2554,9 @@ export default function AITrainingPlanPage() {
           // Même liste que le bandeau : agrégée par fenêtre et actualisée
           // après régénération. Le hook reste un repli pour les plans legacy.
           try {
-            criticalIssues = [...criticalIssues, ...quotaIssuesToValidationIssues(parsedPlan.weeklyQuotaIssues ?? weeklyQuotaIssues)];
+            criticalIssues = [...criticalIssues, ...quotaIssuesToValidationIssues(parsedPlan.weeklyQuotas
+              ? validateWeeklyQuotas(currentPlanForChecks, parsedPlan.weeklyQuotas)
+              : parsedPlan.weeklyQuotaIssues ?? weeklyQuotaIssues)];
           } catch (quotaErr) {
             console.warn("[quota] échec de la reprise des violations de plancher hebdo, sauvegarde sans ce contrôle:", quotaErr);
           }
@@ -2562,7 +2570,8 @@ export default function AITrainingPlanPage() {
           // jamais dans ce contrôle bloquant — alors que B5 est "critical"
           // au même titre que B11/B12/B13. `catalogIdIssues` est déjà
           // calculé par `useAITrainingPlan.ts` au moment de la génération.
-          criticalIssues = [...criticalIssues, ...catalogIdIssues];
+          criticalIssues = [...criticalIssues, ...checkB5ToValidationIssues(checkB5(currentPlanForChecks,
+            lastAllowedCatalogIdsRef.current.length ? lastAllowedCatalogIdsRef.current : undefined, objective))];
         }
       }
     } catch (vErr) {
@@ -4584,6 +4593,18 @@ export default function AITrainingPlanPage() {
                           },
                           ...raceGoals,
                         ].filter(goal => goal.raceDate)}
+                        onPlanChange={(updated) => {
+                          const current = updated as unknown as MergedPlan;
+                          setPlanOverride({ ...updated,
+                            weeklyQuotaIssues: updated.weeklyQuotas ? validateWeeklyQuotas(current, updated.weeklyQuotas) : updated.weeklyQuotaIssues,
+                            catalogIdIssues: checkB5ToValidationIssues(checkB5(current, lastAllowedCatalogIdsRef.current.length ? lastAllowedCatalogIdsRef.current : undefined, objective)),
+                            finalValidationIssues: [
+                              ...(updated.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_")),
+                              ...validateSessionCataloguePlan(updated, objective),
+                            ],
+                          });
+                          setIsSaved(false);
+                        }}
                         onSaveToPlan={handleSaveToPlan}
                         isSaving={isSaving}
                         isSaved={isSaved}

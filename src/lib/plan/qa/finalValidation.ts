@@ -1,3 +1,4 @@
+import { validateSessionCataloguePlan } from "../sessionCatalogueValidation";
 /**
  * Audit scientifique P0 — F12. Point d'entrée UNIQUE pour brancher B13/B14
  * (validation finale post-mutations) sur un pipeline de génération RÉEL
@@ -34,6 +35,7 @@ const STRUCTURALLY_REVALIDATED_REPAIR_CODES = new Set([
 ]);
 
 const CRITICAL_REPAIR_CODES = new Set([
+  "catalogue_pool_insufficient", "catalogue_prescription_unverified",
   "sl_upgrade_unresolved",
   "lcw_signature_unresolved",
   "daily_floor_unresolved",
@@ -45,6 +47,7 @@ const CRITICAL_REPAIR_CODES = new Set([
 
 const REPAIR_CODE_PATTERN = new RegExp(
   `\\b(${[
+    "catalogue_pool_insufficient", "catalogue_prescription_unverified",
     "phase_unresolved",
     "duration_unresolved",
     "sl_upgrade_unresolved",
@@ -152,6 +155,6 @@ export function computeFinalValidationIssues(
   const ambitionGapIssues = ambitionPhysiology
     ? checkB15ToValidationIssues(checkB15(ambitionPhysiology))
     : [];
-  const issues: FinalValidationIssue[] = [...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
+  const issues: FinalValidationIssue[] = [...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
   return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
 }

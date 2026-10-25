@@ -1,3 +1,4 @@
+import { executableCatalogueVariants, catalogueForWeek, checkSessionCatalogue, type CatalogueContract } from "../_shared/sessionCatalogueContract.ts";
 import { technicalGenerationConfig, technicalRuntimeContext, technicalFloorAudit, technicalFloors } from "../_shared/planDiagnosticPrivacy.ts";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -2013,6 +2014,33 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           const weeksList = Array.from(
             { length: expectedWeekCount }, (_, i) => chunk.start + i,
           );
+          const catalogueContractsByWeek: Record<number, CatalogueContract> = {};
+          const eligibilityByWeek: Record<number, string[]> = {};
+          for (const week of weeksList) {
+            const phase = regenerateWeek?.phase ?? planConfig?.windowRegenPhase
+              ?? inferPhaseFromWeek(week, totalWeeks, planConfig?.objective, planConfig);
+            const segment = computeMultiObjectiveSegments(planConfig, totalWeeks)?.find(s => week >= s.startWeek && week <= s.endWeek);
+            const contract = { phase, objective: segment?.objective ?? planConfig?.catalogObjective ?? planConfig?.objective,
+              weekType: planConfig?._weeklyQuotas?.[week]?.weekType,
+              catalog: repairCatalogsByChunk[ci].filter(m => allowedIds.includes(m.id) && isCompleteRepairWorkoutMetadata(m)) };
+            catalogueContractsByWeek[week] = contract;
+            const { eligible, missingSports } = catalogueForWeek(contract.catalog, contract,
+              planConfig?._weeklyQuotas?.[week]?.quota);
+            eligibilityByWeek[week] = eligible.map(m => m.id);
+            if (missingSports.length || (allowedIds.length > 0 && eligible.length === 0)) enqueue("warning", {
+              code: "catalogue_pool_insufficient", severity: "critical", weekNumber: week,
+              eligibleCount: eligible.length, missingSports,
+              message: `S${week}: catalogue compatible insuffisant ; aucune relaxation sportive appliquée`,
+            });
+          }
+          const admissibleIds = new Set(Object.values(eligibilityByWeek).flat());
+          const filterDump = (dump: string) => dump.split("\n").filter(line => {
+            const ids = extractCatalogIdsFromDump(line);
+            return ids.length === 0 || ids.every(id => admissibleIds.has(id));
+          }).join("\n");
+          const executableVariants = Object.fromEntries(repairCatalogsByChunk[ci].filter(m => admissibleIds.has(m.id))
+            .map(m => [m.id, executableCatalogueVariants(m)]).filter(([, variants]) => Object.keys(variants).length > 0));
+          const weeklyCatalogBlock = `ADMISSIBILITÉ STRICTE PAR SEMAINE : seuls ces IDs sont autorisés pour chaque semaine. Aucun ID d'une autre semaine du chunk. Catalogue insuffisant : ne pas inventer d'équivalence. Compétitions officielles custom=true, catalogId=null.\n${JSON.stringify(eligibilityByWeek)}\nVariantes numériques autorisées (variantKey explicite obligatoire pour une adaptation) : ${JSON.stringify(executableVariants)}`;
           const chunkHeader = regenerateWeek
             ? `Régénère UNIQUEMENT la semaine ${regenerateWeek.weekNumber} (phase ${regenerateWeek.phase ?? "?"}, thème "${regenerateWeek.theme ?? ""}") du plan de ${regenerateWeek.totalWeeks} semaines.`
             : isFirst
@@ -2103,8 +2131,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             terrainHardBan || null,
             baseUserPrompt,
             quotasBlock ? `\n${quotasBlock}\n` : null,
-            catalogDump ? `\n${catalogDump}\n` : null,
-            regenCatalogBlock,
+            catalogDump ? `\n${filterDump(catalogDump)}\n` : null,
+            weeklyCatalogBlock,
+            regenCatalogBlock ? filterDump(regenCatalogBlock) : null,
             historyBlock,
             diversityBlock,
             lcwSignatureBlock,
@@ -2119,6 +2148,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
           const schemaOptions: BuildPlanChunkSchemaOptions = {
             expectedWeekCount,
+            catalogueContractsByWeek,
             isFirstChunk: isFirst,
           };
 
@@ -2128,12 +2158,18 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               model: PRIMARY_MODEL,
               systemPrompt,
               userPrompt,
-              allowedCatalogIds: allowedIds,
+              allowedCatalogIds: [...admissibleIds],
               chunkIndex: ci,
               schemaOptions,
               weekRange: { start: chunk.start, end: chunk.end },
               maxTokens: 65536,
             });
+            for (const week of planChunk.weeks) for (const session of week.sessions) {
+              const result = checkSessionCatalogue(session, catalogueContractsByWeek[week.weekNumber]);
+              if (result.unknown.length) enqueue("warning", { code: "catalogue_prescription_unverified", severity: "critical",
+                weekNumber: week.weekNumber, catalogId: session.catalogId, reasons: result.unknown,
+                message: `S${week.weekNumber}: équivalence non vérifiée (${result.unknown.join(", ")})` });
+            }
             collectedChunks.push(planChunk);
 
             // P2 diversité — mémorise les fiches réellement consommées par ce chunk.
