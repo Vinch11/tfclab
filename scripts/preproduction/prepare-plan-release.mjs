@@ -6,6 +6,8 @@ import { tmpdir } from "node:os";
 import { resolve, join, relative } from "node:path";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
+process.env.NODE_ENV = "production";
+process.env.TZ = "UTC";
 const args = process.argv.slice(2), value = key => args[args.indexOf(key) + 1];
 const repo = process.cwd(), commit = execFileSync("git", ["rev-parse", `${args.includes("--commit") ? value("--commit") : "HEAD"}^{commit}`], { encoding: "utf8" }).trim();
 const epoch = Number(execFileSync("git", ["show", "-s", "--format=%ct", commit], { encoding: "utf8" }).trim());
@@ -43,8 +45,9 @@ process.env.SOURCE_DATE_EPOCH = String(epoch);
 process.env.TFCL_PLAN_RELEASE_INFO = JSON.stringify(info);
 process.env.TZ = "UTC";
 await build({ root: source, logLevel: "error" });
+for (const file of files(join(source,"dist")).filter(f => /\.(js|html)$/.test(f))) if (readFileSync(file,"utf8").includes(stage)) throw new Error("Path-dependent frontend output");
 writeFileSync(join(source,"dist/plan-release.json"), JSON.stringify(info));
-const tar = (name, root, paths) => { const target = join(out, `${name}.tar`); execFileSync("tar", ["--sort=name", `--mtime=@${epoch}`, "--owner=0", "--group=0", "--numeric-owner", "--format=ustar", "-cf", target, "-C", root, ...paths]); return { file: `${name}.tar`, sha256: hash(readFileSync(target)), bytes: readFileSync(target).length }; };
+const tar = (name, root, paths) => { const target = join(out, `${name}.tar`); execFileSync("tar", ["--sort=name", "--mode=u+rwX,go+rX,go-w", `--mtime=@${epoch}`, "--owner=0", "--group=0", "--numeric-owner", "--format=ustar", "-cf", target, "-C", root, ...paths]); return { file: `${name}.tar`, sha256: hash(readFileSync(target)), bytes: readFileSync(target).length }; };
 const artifacts = { frontend: tar("frontend", join(source,"dist"), ["."]) };
 const deno = process.env.TFCL_DENO_BIN ?? "deno";
 const denoVersion = execFileSync(deno, ["--version"], { encoding: "utf8" }).split("\n")[0];
@@ -65,7 +68,7 @@ for (const name of ["ai-training-plan", "ai-training-plan-test"]) {
  artifacts[name] = tar(name,edgePackage,[entry,"supabase/functions/_shared/plan-release.json"]);
 }
 const dependencies = hash(files(resolve(repo,"node_modules/vite")).filter(p => !p.includes("node_modules/.cache")).map(p => relative(repo,p)+"\0"+hash(readFileSync(p))).join("\n"));
-const manifest = { ...info, sourceArchiveSha256: hash(readFileSync(archive)), catalogueEntries: catalog.length, toolchain: { node: process.version, deno: denoVersion, vite: require("vite/package.json").version, viteInstallationSha256: dependencies }, artifacts,
+const manifest = { ...info, sourceArchiveSha256: hash(readFileSync(archive)), catalogueEntries: catalog.length, toolchain: { node: process.version, nodeEnv: process.env.NODE_ENV, deno: denoVersion, vite: require("vite/package.json").version, viteInstallationSha256: dependencies }, artifacts,
   runtimeImports, edgePackaging: "Deno bundles with shared and remote/npm libraries closed using the frozen edge dependency lock; node:/Deno builtins remain runtime-provided. Not a deployed-version attestation.",
   rollback: { frontendPublicationId: null, productionDeploymentId: null, testDeploymentId: null, status: "unattested" } };
 writeFileSync(join(out,"manifest.json"), JSON.stringify(manifest,null,2)+"\n");
