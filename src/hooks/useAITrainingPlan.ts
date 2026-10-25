@@ -1,4 +1,6 @@
-import { technicalGenerationConfig, technicalGenerationEvent } from "../../supabase/functions/_shared/planDiagnosticPrivacy";
+import { verifyPlanServerRelease } from "@/lib/plan/planReleasePreflight";
+import { sanitizeSchemaFailure, safeFailureCode } from "../../supabase/functions/_shared/planFailureDiagnostics";
+import { technicalGenerationConfig, technicalGenerationEvent, technicalRelease } from "../../supabase/functions/_shared/planDiagnosticPrivacy";
 /**
  * Hook for streaming AI training plan generation
  * ─────────────────────────────────────────────────
@@ -1341,15 +1343,23 @@ export function useAITrainingPlan() {
         : PLAN_URL;
       for (const [week, entry] of Object.entries(weeklyQuotas)) traceSLFloorConsumer("transmitted", Number(week), entry);
       console.info("[generation_contract_client]", {
+        release: typeof __PLAN_RELEASE_INFO__ === "undefined" ? null : __PLAN_RELEASE_INFO__,
         clientBuild: typeof __APP_VERSION__ === "undefined" ? null : __APP_VERSION__,
         buildTime: typeof __BUILD_TIME__ === "undefined" ? null : __BUILD_TIME__,
         functionName: planUrl.split("/functions/v1/")[1] ?? "unavailable", outputFormat: planConfig._outputFormat ?? "markdown",
         ...technicalGenerationConfig(planConfig),
       });
+      let releaseHeaders: Record<string, string> = {};
+      if (typeof __PLAN_RELEASE_INFO__ !== "undefined" && __PLAN_RELEASE_INFO__.attested) {
+        releaseHeaders = await verifyPlanServerRelease(planUrl, token, __PLAN_RELEASE_INFO__);
+      } else if (import.meta.env.PROD) {
+        throw new Error("PLAN_RELEASE_UNATTESTED");
+      }
       const resp = await fetch(planUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...releaseHeaders,
           Authorization: `Bearer ${token}`,
           ...(jsonMode ? { "X-Plan-Output-Format": "json" } : {}),
         },
@@ -1416,6 +1426,7 @@ export function useAITrainingPlan() {
         let sseBuffer = "";
         const collected: PlanChunk[] = [];
         const semanticRepairs: string[] = [];
+        let generationContext: ReturnType<typeof technicalGenerationEvent> | undefined;
         let fatalError: { code: string; message: string; details?: any; chunkIndex?: number } | null = null;
         // Préparation pilote Mode B — accumulateur local (fonction pure
         // `accumulateChunkUsage`, testable sans mock fetch/SSE), exposé via
@@ -1493,6 +1504,7 @@ export function useAITrainingPlan() {
             }
           } else if (event === "generation-context") {
             const context = technicalGenerationEvent(data);
+            generationContext = context;
             semanticRepairs.push(`[info] generation_context: ${JSON.stringify(context)}`);
             console.info("[generation_contract_server]", context);
           } else if (event === "error") {
@@ -1835,7 +1847,8 @@ export function useAITrainingPlan() {
             diversityRatio: diversity.distinctRatio,
             distinctCatalogIds: diversity.distinctCatalogIds,
             maxFicheRepeat: diversity.maxRepeat,
-            semanticRepairs,
+            semanticRepairs, generationContext,
+            clientRelease: typeof __PLAN_RELEASE_INFO__ === "undefined" ? undefined : technicalRelease(__PLAN_RELEASE_INFO__),
           });
 
           setIsLoading(false);
@@ -1875,7 +1888,7 @@ export function useAITrainingPlan() {
         const failLabel = serverTimeout
           ? `Délai maximal du serveur dépassé (~400 s) — plan trop long (${totalWeeks} sem., ${totalChunks} blocs) pour être généré en une seule fois.`
           : FAIL_CODE_LABELS[failCode] ?? `Erreur inconnue${chunkRef} (${failCode}).`;
-        console.error(`[useAITrainingPlan] JSON generation failed hard (${failCode}: ${failMsg})`);
+        console.error("[useAITrainingPlan] JSON generation failed", { code: safeFailureCode(failCode), chunkIndex: failChunk, details: sanitizeSchemaFailure(mergeError?.details) });
         toast.error(`⚠️ Génération du plan échouée — ${failLabel}${serverTimeout ? "" : " Réessaie via le bouton Générer."}`, { duration: 20000 });
         logPlanStat({
           ts: Date.now(), format: "json",
@@ -1883,6 +1896,8 @@ export function useAITrainingPlan() {
           totalWeeks, totalChunks, durationMs: jsonDurMs, ok: false,
           errorCode: failCode, errorMessage: failMsg,
           schemaFailDetails: mergeError?.details,
+          semanticRepairs, generationContext,
+          clientRelease: typeof __PLAN_RELEASE_INFO__ === "undefined" ? undefined : technicalRelease(__PLAN_RELEASE_INFO__),
         });
         setIsLoading(false);
         setChunkProgress(null);
@@ -2001,7 +2016,8 @@ export function useAITrainingPlan() {
         ok: true,
       });
     } catch (e) {
-      console.error("AI training plan error:", e);
+      const exceptionCode = safeFailureCode(e instanceof Error ? e.message : "EXCEPTION");
+      console.error("AI training plan error:", { code: exceptionCode === "UNKNOWN" ? "EXCEPTION" : exceptionCode });
       if (!(e instanceof Error && e.message === "__STREAM_ABORT__")) {
         const rawMsg = e instanceof Error ? e.message : String(e);
         const isNetwork = e instanceof TypeError
@@ -2017,8 +2033,8 @@ export function useAITrainingPlan() {
         format: jsonMode ? "json" : "markdown",
         objective: planConfig.objective ?? null,
         totalWeeks, totalChunks, durationMs: 0, ok: false,
-        errorCode: "EXCEPTION",
-        errorMessage: e instanceof Error ? e.message : String(e),
+        errorCode: exceptionCode === "UNKNOWN" ? "EXCEPTION" : exceptionCode,
+        clientRelease: typeof __PLAN_RELEASE_INFO__ === "undefined" ? undefined : technicalRelease(__PLAN_RELEASE_INFO__),
       });
     } finally {
       setIsLoading(false);

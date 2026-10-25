@@ -1,3 +1,5 @@
+import { PLAN_RELEASE_INFO } from "../_shared/planReleaseInfo.ts";
+import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
 import { executableCatalogueVariants, catalogueForWeek, checkSessionCatalogue, type CatalogueContract } from "../_shared/sessionCatalogueContract.ts";
 import { technicalGenerationConfig, technicalRuntimeContext, technicalFloorAudit, technicalFloors } from "../_shared/planDiagnosticPrivacy.ts";
 /**
@@ -1882,7 +1884,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
   const stream = new ReadableStream({
     async start(controller) {
       controller.enqueue(sseEvent("generation-context", {
-        diagnosticRevision: "p0-forensics-2026-10-25.1",
+        diagnosticRevision: "p3-private-failure.1", release: PLAN_RELEASE_INFO,
         ...technicalRuntimeContext(input.diagnosticContext),
         outputFormat: "json", ...technicalGenerationConfig(planConfig),
       }));
@@ -2195,7 +2197,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             }
 
             if (repairDiag) {
-              const msg = `chunk=${ci} attempt=${repairDiag.attempt} repairs=[${repairDiag.repairs.join(",")}] parseError="${(repairDiag.parseError ?? "").slice(0, 200)}"`;
+              const msg = `chunk=${ci} attempt=${repairDiag.attempt} repairCount=${repairDiag.repairs.length}`;
               console.warn(`[json_repair] ${msg}`);
               enqueue("warning", {
                 code: "json_repair",
@@ -2204,8 +2206,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
                 repair: {
                   chunkIndex: ci,
                   attempt: repairDiag.attempt,
-                  repairs: repairDiag.repairs,
-                  parseError: repairDiag.parseError,
+                  repairCount: repairDiag.repairs.length,
                 },
               });
             }
@@ -2223,8 +2224,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               enqueue("error", {
                 chunkIndex: ci,
                 code: e.code,
-                message: e.message,
-                details: e.details,
+                message: `Échec technique ${e.code} (bloc ${ci + 1})`,
+                details: sanitizeSchemaFailure(e.details),
               });
               controller.close();
               return;
@@ -2543,7 +2544,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           if (e instanceof MergePlanError) {
             enqueue("error", {
               code: e.code,
-              message: e.message,
+              message: `Échec technique ${e.code} (bloc ${ci + 1})`,
             });
           } else {
             throw e;
@@ -2553,11 +2554,11 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         stopHeartbeat();
         controller.close();
       } catch (e) {
-        console.error("[jsonPlanHandler] fatal:", e);
+        console.error("[jsonPlanHandler] fatal:", { code: "INTERNAL_ERROR" });
         try {
           controller.enqueue(sseEvent("error", {
             code: "FATAL",
-            message: e instanceof Error ? e.message : "Unknown error",
+            message: "Erreur interne de génération",
           }));
         } catch { /* ignore */ }
         stopHeartbeat();

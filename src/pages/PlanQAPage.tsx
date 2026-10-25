@@ -1,3 +1,4 @@
+import { exportPlanDiagnostics } from "@/lib/plan/planStatPrivacy";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * PHASE 1B — /debug/plan-qa
@@ -171,13 +172,13 @@ function buildFullReport(stats: PlanGenerationStat[], testResults: TestResult[] 
     enumLines,
     "",
     "## Dernière session QA",
-    lastSession ? buildQAReport(lastSession) : "_aucune session QA enregistrée_",
+    lastSession ? JSON.stringify({ runs: lastSession.runs.length, verdict: ["GO", "NO-GO", "WARN"].includes(lastSession.verdict) ? lastSession.verdict : "unverified" }) : "_aucune session QA enregistrée_",
     "",
     "## Stats",
-    stats.length === 0 ? "_aucune stat enregistrée_" : JSON.stringify(stats, null, 2),
+    stats.length === 0 ? "_aucune stat enregistrée_" : exportPlanDiagnostics(stats),
     "",
     "## Merge tests (dernier click Run all)",
-    testResults === null ? "_non exécutés dans cet onglet_" : JSON.stringify(testResults, null, 2),
+    testResults === null ? "_non exécutés dans cet onglet_" : JSON.stringify({ count: testResults.length, passed: testResults.filter(t => t.pass).length }),
   ].join("\n");
 }
 
@@ -314,6 +315,9 @@ export default function PlanQAPage() {
 
   const refresh = () => setStats(readPlanStats());
   const wipe = () => { clearPlanStats(); setStats([]); };
+  const copyFailureDiagnostics = async () => {
+    await exportReport(exportPlanDiagnostics(readPlanStats()), "plan_failure_diagnostics.json");
+  };
   const copyFullReport = async () => {
     const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 16);
     await exportReport(buildFullReport(stats, testResults, qa.lastSession), `qa_full_report_${stamp}.md`);
@@ -660,7 +664,8 @@ export default function PlanQAPage() {
           <CardTitle className="text-base">Stats de génération (last 50)</CardTitle>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={refresh}>Refresh</Button>
-            <Button size="sm" variant="outline" onClick={copyFullReport}>Copier le rapport complet</Button>
+            <Button variant="outline" size="sm" onClick={copyFailureDiagnostics}>Exporter diagnostics assainis (sans sauvegarde)</Button>
+                  <Button size="sm" variant="outline" onClick={copyFullReport}>Copier le rapport complet</Button>
             <Button size="sm" variant="outline" onClick={wipe}>Effacer</Button>
           </div>
         </CardHeader>

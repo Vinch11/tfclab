@@ -1,3 +1,4 @@
+import { planReleaseResponse, planContractResponse } from "../_shared/planReleaseInfo.ts";
 import { technicalGenerationConfig } from "../_shared/planDiagnosticPrivacy.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -30,9 +31,9 @@ console.info(`[boot] ${BUILD_TAG} at ${new Date().toISOString()}`);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-plan-output-format, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-plan-output-format, x-plan-source-commit, x-plan-contract-hash, x-plan-catalogue-hash, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Access-Control-Max-Age": "86400",
 };
 function parseIsoDateUtc(iso?: string): number | undefined {
@@ -43,7 +44,11 @@ function parseIsoDateUtc(iso?: string): number | undefined {
 }
 
 serve(async (req) => {
+  const release = planReleaseResponse(req, "ai-training-plan");
+  if (release) return release;
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const contractError = planContractResponse(req);
+  if (contractError) return contractError;
 
   try {
     // Auth: verify caller has a valid session
@@ -1522,12 +1527,12 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
                 // ─── Détection FUITES TRAIL dans un plan 70.3/LCW ───
                 // Cherche IDs Hedgehog/Urban/Trail ainsi que vocabulaire trail dans le corps.
                 const trailIdRx = /\b(HEDGEHOG_\w+|URBAN_\w+|TRAIL_\w+|\w+_TRAIL_\w+)\b/gi;
-                const trailIdMatches = Array.from(new Set((full.match(trailIdRx) || []).map(s => s.toUpperCase())));
+                const trailIdMatches = Array.from(new Set((fullPlanText.match(trailIdRx) || []).map(s => s.toUpperCase())));
                 if (trailIdMatches.length > 0) {
                   lcwViolations.push(`Fuite TRAIL détectée : ID(s) interdit(s) dans un plan 70.3 LCW → ${trailIdMatches.slice(0, 5).join(", ")}${trailIdMatches.length > 5 ? "…" : ""}`);
                 }
                 const trailVocabRx = /\b(d[eé]nivel[eé]|D\+\s*\d|sentier|b[aâ]tons?|sac\s*[aà]\s*dos)\b/gi;
-                const trailVocabHits = (full.match(trailVocabRx) || []).length;
+                const trailVocabHits = (fullPlanText.match(trailVocabRx) || []).length;
                 if (trailVocabHits >= 3) {
                   lcwViolations.push(`Vocabulaire TRAIL suspect (${trailVocabHits} occurrences) dans un plan 70.3 LCW — vérifier absence de séances montagne/sentier`);
                 }
@@ -1543,7 +1548,7 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
                 let m: RegExpExecArray | null;
                 // Reconstruire une timeline linéaire (jour, contenu) dans l'ordre d'apparition.
                 const timeline: Array<{ day: string; body: string }> = [];
-                while ((m = dayBlockRx.exec(full)) !== null) {
+                while ((m = dayBlockRx.exec(fullPlanText)) !== null) {
                   timeline.push({ day: m[1], body: m[2] });
                 }
                 const isLongBike = (body: string): boolean => {
@@ -1662,8 +1667,7 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("AI gateway error:", { status: response.status });
       return new Response(JSON.stringify({ error: "Erreur du service IA" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -1674,9 +1678,9 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
-    console.error("ai-training-plan error:", e);
+    console.error("ai-training-plan error:", { code: "REQUEST_FAILED" });
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      JSON.stringify({ error: "Erreur interne de génération" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
