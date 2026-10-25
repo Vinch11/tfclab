@@ -4,6 +4,9 @@ Cette PR propose la gouvernance, un workflow inactif et un prototype de portes
 déterministes. **Aucune automatisation payante ou récurrente n'est installée.**
 Le moteur sportif et ses fondations ne changent pas.
 
+Extension A1 : [adaptateur OpenAI désactivé et préparation des cas](A1_READINESS.md).
+Politique spécifique : 3itérations/30minutes/0USD par défaut, sans activation.
+
 ## Architecture
 
 ```mermaid
@@ -20,8 +23,9 @@ flowchart LR
   P --> H
 ```
 
-Le cycle ci-dessus est l'architecture cible. **Seuls replay, simulation,
-validation d'avis mockés et arrêts sont exécutables dans cette proposition.**
+Le cycle ci-dessus est l'architecture cible. Replay, simulation et arrêts
+restent offline ; A1 ajoute un client de revue configurable et désactivé,
+pas un agent de correction autonome.
 Pas de faux service permanent adossé à cette conversation ChatGPT.
 
 | Livrable | Emplacement |

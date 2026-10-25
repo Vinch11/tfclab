@@ -1,0 +1,147 @@
+{
+  "A_RUN_DURABILITY_LONG": {
+    "id": "A_RUN_DURABILITY_LONG",
+    "sport": "course",
+    "phase": [
+      "base",
+      "build",
+      "peak"
+    ],
+    "durationMin": [
+      100,
+      150
+    ],
+    "objectif": "Durabilité aérobie (long run avec monitoring drift HR/puissance)",
+    "structure": [
+      {
+        "part": "Main",
+        "text": "100–150' Z2 strict. Monitorer drift FC (objectif <5% sur dernière heure). Si drift >8%, réduire allure.",
+        "zones": [
+          "Z2"
+        ]
+      }
+    ],
+    "variants": {
+      "10k": "—",
+      "half": "utile",
+      "ironman": "Fondamental",
+      "marathon": "Fondamental",
+      "semi": "—"
+    }
+  },
+  "B_BRICK_RACE_PACE_SHORT_703": {
+    "id": "B_BRICK_RACE_PACE_SHORT_703",
+    "sport": "brick",
+    "phase": [
+      "build",
+      "peak"
+    ],
+    "durationMin": [
+      120,
+      150
+    ],
+    "objectif": "Brick race-pace 70.3 court — 90' vélo race-pace + 30-40' run race-pace (competitor sans budget 4h)",
+    "structure": [
+      {
+        "part": "Warm-up",
+        "text": "10min vélo Z1→Z2 progressif",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "BIKE 90min : 15min Z2 puis 60-75min @ puissance race 70.3 (80-88% FTP, aéro). Nutrition 70-80g CHO/h. T2 rapide. RUN 30-40min : 5min Z2 puis 25-35min @ pace 70.3 (Z3 bas). Cadence ≥180 spm.",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "5min marche + nutrition récup",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ],
+    "variants": {
+      "half": "Competitor : 90'+30' en Build, 90'+40' en Peak"
+    }
+  },
+  "BR_HALF_V1_PRO": {
+    "id": "BR_HALF_V1_PRO",
+    "sport": "brick",
+    "phase": [
+      "build",
+      "peak"
+    ],
+    "durationMin": [
+      85,
+      135
+    ],
+    "objectif": "Brick 70.3 variante #1",
+    "structure": [
+      {
+        "part": "Bike",
+        "text": "60–80' Z3–Z4a (contrôlé)",
+        "zones": [
+          "Z3",
+          "Z4a"
+        ]
+      },
+      {
+        "part": "Run",
+        "text": "18–25' Z2→Z3",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      }
+    ],
+    "variants": {
+      "half": "ok"
+    }
+  },
+  "V3_BIKE_SST_PROGRESSIF": {
+    "id": "V3_BIKE_SST_PROGRESSIF",
+    "sport": "cyclisme",
+    "phase": [
+      "build"
+    ],
+    "durationMin": [
+      75,
+      100
+    ],
+    "objectif": "Sweet Spot progressif — montée en durée bloc à bloc",
+    "structure": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1→Z2 avec 3x30'' accélérations",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "3x12' → 3x15' → 3x18' SST (88-94% FTP) / 5' Z1",
+        "zones": [
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ],
+    "variants": {
+      "half": "3x15' SST",
+      "ironman": "3x20' SST"
+    }
+  }
+}

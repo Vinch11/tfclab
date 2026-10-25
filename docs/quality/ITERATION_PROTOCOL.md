@@ -57,7 +57,8 @@ approuvées et métriques techniques sont admissibles par défaut. L'accès à I
 du réviseur n'est pas nécessaire : les références scientifiques du dépôt sont
 jointes avec leurs limites. Une question nouvelle déclenche l'escalade humaine.
 
-**Non implémentés dans cette proposition :** client API, courtier budgétaire
+**A1** ajoute un client de revue désactivé et un registre local borné, voir
+`A1_READINESS.md`. **Non implémentés pour la boucle autonome :** courtier budgétaire
 réseau, isolation conteneur de l'agent, signature/provenance de l'avis et création
 automatique de PR par CI. Ne pas présenter le workflow offline proposé comme une
 boucle autonome payante opérationnelle. Leur activation nécessite une revue dédiée.

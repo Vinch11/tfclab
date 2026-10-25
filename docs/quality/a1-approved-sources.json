@@ -1,0 +1,7 @@
+{
+  "src/lib/plan/qa/__tests__/fixtures/2026-10-15_B-5K-BEGINNER_run1.json": "206a7a98cf2ea9dd3c856a394c4044b8b28d688d5ecbd32670798b0f3f082111",
+  "src/lib/plan/__tests__/sessionCatalogueContract.test.ts": "58087e56b5fc918bfb7be5411c9b082824c0eb09d25b652090f304dd4a916ceb",
+  "docs/quality/SPORT_SCIENCE_CONTRACT.md": "63ada5ae35201967b14c1dc698baa76ddf6b1b98ea0869b21b7d32a657133082",
+  "src/lib/zones/tfclDoctrine.ts": "2a93efaf679089f74ae2065a77699b1048fa34d528ac826bd2feaa9165c24231",
+  "docs/quality/a1-catalogue-evidence.json": "f6c31434134dd6dda6ccf10bca6825c8b7cf49656826b3810f7d1accf4bc2919"
+}
