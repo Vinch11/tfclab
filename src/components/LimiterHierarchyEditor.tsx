@@ -118,6 +118,7 @@ interface LimiterHierarchyEditorProps {
   leverLabel: string;
   primaryLimiter: string;
   onOrderChange: (orderedMetrics: string[]) => void;
+  orderedMetrics?: string[];
 }
 
 export function LimiterHierarchyEditor({
@@ -129,6 +130,7 @@ export function LimiterHierarchyEditor({
   leverLabel,
   primaryLimiter,
   onOrderChange,
+  orderedMetrics,
 }: LimiterHierarchyEditorProps) {
   // Build initial sorted list from diagnostic
   const defaultOrder = [...gaps]
@@ -153,12 +155,18 @@ export function LimiterHierarchyEditor({
     .map(g => `${g.metric}:${Math.round(g.weightedImpact)}`)
     .sort()
     .join("|");
+  const orderSignature = JSON.stringify(orderedMetrics ?? []);
 
   // Reset uniquement quand la signature change réellement (nouvel athlète/objectif)
   useEffect(() => {
     const newDefault = [...gaps]
       .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
       .sort((a, b) => b.weightedImpact - a.weightedImpact);
+    const requestedOrder = orderedMetrics ?? [];
+    if (requestedOrder.length) {
+      const rank = new Map(requestedOrder.map((metric, index) => [metric, index]));
+      newDefault.sort((a, b) => (rank.get(a.metric) ?? Infinity) - (rank.get(b.metric) ?? Infinity));
+    }
     setItems(newDefault.map(g => ({
       metric: g.metric,
       value: g.value,
@@ -166,9 +174,9 @@ export function LimiterHierarchyEditor({
       weightedImpact: g.weightedImpact,
       status: g.status,
     })));
-    setIsOverridden(false);
+    setIsOverridden(requestedOrder.length > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gapsSignature]);
+  }, [gapsSignature, orderSignature]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

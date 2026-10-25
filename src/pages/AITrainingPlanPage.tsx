@@ -2,6 +2,7 @@ import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
+import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
  * Generates personalized training plans using AI + TFCL methodology
@@ -875,6 +876,7 @@ export default function AITrainingPlanPage() {
     setTrainingLevel("auto");
     setLockAmbition(false);
     setRaceGoals([]);
+    setCoachLimiterOrder([]);
     setTrailDistanceKm("");
     setTrailElevationM("");
     setTrailTargetTimeH("");
@@ -2358,6 +2360,7 @@ export default function AITrainingPlanPage() {
           // redevenait 100% mono-objectif (plus de cycle Marathon, plus de
           // catalogue restreint) sans aucun avertissement pour le coach.
           _raceGoals: raceGoals,
+          _coachLimiterOrder: [...coachLimiterOrder],
         } as any,
         objective: objective || currentAthlete.goal || null,
         weeks_count: parsedPlan.weeks?.length || null,
@@ -2377,7 +2380,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, raceGoals]);
+  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, raceGoals, coachLimiterOrder]);
 
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
@@ -2650,11 +2653,10 @@ export default function AITrainingPlanPage() {
     reset();
     setPlanOverride(null);
     setResponse(md);
-    // Les plans récents portent les quotas de leur génération. Ne pas les
-    // perdre en réinterprétant uniquement leur copie Markdown historique.
-    if (pj.weeklyQuotas && Array.isArray(pj.weeks) && Array.isArray(pj.phases)) {
-      setPlanOverride({ ...pj } as ParsedPlan);
-    }
+    // Conserver le JSON sauvegardé, même sans quotas historiques : le Markdown
+    // ne transporte pas les durées, zones, variantes et identités structurées.
+    const restoredPlan = restoreStructuredPlan(pj);
+    if (restoredPlan) setPlanOverride(restoredPlan);
     const startAnchored = startOfWeek(startDate, { weekStartsOn: 1 });
     setPlanStartDate(startAnchored);
     // Persiste immédiatement la version ouverte comme "plan actif" de l'athlète :
@@ -2684,6 +2686,7 @@ export default function AITrainingPlanPage() {
     // plan sauvegardé, mais toute RÉGÉNÉRATION suivante repartait sans les
     // objectifs secondaires (`raceGoals=[]`), silencieusement.
     if (Array.isArray(pj._raceGoals)) setRaceGoals(pj._raceGoals);
+    setCoachLimiterOrder(restoreCoachLimiterOrder(pj._coachLimiterOrder));
     setResultView("interactive");
     setIsSaved(true);
     toast.success("Version chargée");
@@ -4149,7 +4152,11 @@ export default function AITrainingPlanPage() {
                   leverEmoji={limiter.leverEmoji}
                   leverLabel={limiter.leverLabel}
                   primaryLimiter={limiter.primaryLimiter}
-                  onOrderChange={setCoachLimiterOrder}
+                  orderedMetrics={coachLimiterOrder}
+                  onOrderChange={(order) => {
+                    setCoachLimiterOrder(order);
+                    setIsSaved(false);
+                  }}
                 />
               </CollapsibleCard>
             )}
