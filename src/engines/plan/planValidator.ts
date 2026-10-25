@@ -557,8 +557,8 @@ interface SessionZoneMinutes { low: number; mid: number; high: number; unknown: 
  * Estime la répartition low/mid/high(/unknown) EN MINUTES d'une séance, en
  * pondérant chaque clause par sa propre durée plutôt que de classer la
  * séance entière dans un seul bucket. Le temps non capté par une clause
- * reconnaissable (transitions, WU/CD non zonés explicitement) À L'INTÉRIEUR
- * d'une séance par ailleurs décomposée est crédité à "low" — repli
+ * reconnaissable est inconnu lorsque le total est structuré. Dans le chemin
+ * legacy uniquement, le reliquat (transitions/WU/CD) est crédité à "low" — repli
  * conservateur et physiologiquement fondé (un WU/CD non précisé est presque
  * toujours easy), volontairement inchangé par l'audit "fiabilité du
  * validateur" (ce n'est pas le même point mort que celui ci-dessous).
@@ -601,7 +601,13 @@ function estimateSessionZoneMinutes(
     if (captured === 0) {
       acc[classifySessionIntensity(session)] += remainder;
     } else {
-      acc.low += remainder;
+      // A preserved total does not prove that an unparsed remainder is easy.
+      // Keep legacy WU/CD inference only when no structured total was supplied.
+      if (typeof session.durationMin === 'number' && Number.isFinite(session.durationMin) && session.durationMin > 0) {
+        acc.unknown += remainder;
+      } else {
+        acc.low += remainder;
+      }
     }
   }
   return acc;
@@ -656,7 +662,7 @@ function validateKeySessionSelfDeclaration(plan: ParsedPlan): { issues: Validati
 }
 
 /**
- * F-23: Extract session duration in minutes from title + details.
+ * Prefer the preserved prescribed duration. Text parsing is legacy fallback only.
  * Handles formats: "1h30", "1h", "90min", "45'", "45 min", "2h 15'".
  * Returns null if no duration found (do not invent a value).
  * If multiple durations appear (e.g. WU + main + CD), returns their SUM
@@ -664,6 +670,9 @@ function validateKeySessionSelfDeclaration(plan: ParsedPlan): { issues: Validati
  */
 export function parseSessionDurationMin(session: ParsedSession): number | null {
   if (session.isRest) return 0;
+  if (typeof session.durationMin === 'number' && Number.isFinite(session.durationMin) && session.durationMin > 0) {
+    return session.durationMin;
+  }
   const text = `${session.title} ${session.details}`.toLowerCase();
   if (!text.trim()) return null;
 

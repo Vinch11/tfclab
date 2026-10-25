@@ -131,7 +131,7 @@ serve(async (req) => {
     const jsonModeRequested = planConfig?._outputFormat === "json"
       || req.headers.get("X-Plan-Output-Format")?.toLowerCase() === "json";
     if (jsonModeRequested) {
-      console.log(`🧬 Phase 1A JSON path activé (flag=${planConfig?._outputFormat ?? "header"}).`);
+      console.info("[plan_output] json_selected");
       const { handleJSONPlanRequest } = await import("./jsonPlanHandler.ts");
       return handleJSONPlanRequest({
         diagnosticContext,
@@ -173,7 +173,7 @@ serve(async (req) => {
       ? `${planConfig._expressFinisherPromptPrefix.trim()}\n\n`
       : "";
     const systemPrompt = `${expressPrefix}${baseSystemPrompt}`;
-    console.log(`📋 F-21 systemPrompt profile: sex=${athleteData?.sex ?? planConfig?._athleteSex ?? "?"} age=${athleteData?.age ?? "?"} obj=${systemPromptObjective ?? "?"} expressPrefix=${expressPrefix ? "yes" : "no"} → ${systemPrompt.length} chars`);
+    console.info("[plan_prompt] prepared", { characters: systemPrompt.length, express: !!expressPrefix });
     let userPrompt: string;
     if (regenerateWeek) {
       userPrompt = `Régénère UNIQUEMENT la Semaine ${regenerateWeek.weekNumber} du plan.
@@ -247,9 +247,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const _terrainHardBanTop = buildTerrainHardBanBlock(planConfig);
     if (_terrainHardBanTop) {
       userPrompt = `${_terrainHardBanTop}\n\n${userPrompt}`;
-      console.log(`🏙️ TERRAIN HARD-BAN ACTIVE: terrainAvailability="${planConfig?.terrainAvailability}" → injecté en tête + queue de chaque chunk.`);
+      console.info("[terrain_guard] enabled");
     } else {
-      console.log(`🏙️ TERRAIN HARD-BAN inactif (terrainAvailability="${planConfig?.terrainAvailability ?? "undefined"}").`);
+      console.info("[terrain_guard] inactive");
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;

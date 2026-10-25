@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -32,6 +32,17 @@ GlobalWorkerOptions.workerSrc = fileURLToPath(
   new URL("../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs", import.meta.url),
 );
 
+async function waitForPlanDocument(page: Page) {
+  // SPA load/text length can be satisfied by scripts or the loading screen.
+  await expect(page.locator('body')).toContainText('TFC_SEANCE_S1J1');
+  await expect(page.locator('body')).toContainText('TFC_DERNIERE_SEANCE');
+  await expect(page.locator('body')).not.toContainText('Document introuvable');
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
+}
+
 async function extractPdfText(pdfPath: string): Promise<{ numPages: number; text: string }> {
   const data = new Uint8Array(readFileSync(pdfPath));
   const doc = await getDocument({ data, isEvalSupported: false }).promise;
@@ -59,7 +70,7 @@ test("export PDF d'un plan de 34 semaines : la vue d'impression s'ouvre réellem
   // RÉELLE, même origine, aucune blob: URL.
   await expect(popup).toHaveURL(/\/print-preview\?d=/);
   await popup.waitForLoadState("load");
-  await popup.waitForFunction(() => document.body && document.body.textContent && document.body.textContent.length > 100);
+  await waitForPlanDocument(popup);
 
   // Le document affiché est bien le plan transmis, pas une page vide ni
   // un message d'erreur "Document introuvable".
@@ -91,7 +102,7 @@ test("export PDF d'un plan court : même mécanisme, pour vérifier qu'il ne dé
 
   await expect(popup).toHaveURL(/\/print-preview\?d=/);
   await popup.waitForLoadState("load");
-  await popup.waitForFunction(() => document.body && document.body.textContent && document.body.textContent.length > 50);
+  await waitForPlanDocument(popup);
 
   const pdfPath = testInfo.outputPath("plan-court.pdf");
   await popup.pdf({ path: pdfPath, format: "A4", landscape: true, printBackground: true });

@@ -148,7 +148,7 @@ export function mapObjectiveToSport(objective: string | null | undefined): RaceS
   if (!s) return "run_route";
   const hit = OBJECTIVE_TO_SPORT[s];
   if (hit) return hit;
-  console.warn(`mapObjectiveToSport: objectif inconnu '${objective}' → fallback run_route`);
+  console.warn("[race_target_resolution] unknown_objective");
   return "run_route";
 }
 
@@ -273,7 +273,7 @@ function resolveSport(sport: RaceSport | null | undefined): RaceSport {
   const allowed: RaceSport[] = ["run_route", "trail", "tri_70_3", "ironman"];
   if (sport && allowed.includes(sport)) return sport;
   // eslint-disable-next-line no-console
-  console.warn(`⚠️ deriveRaceTargets: sport inconnu ou absent (reçu: ${JSON.stringify(sport)}) → fallback "run_route"`);
+  console.warn("[race_target_resolution] unknown_sport");
   return "run_route";
 }
 
@@ -307,9 +307,7 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
   const volumeCible = computeVolumeCible(input.weeklyHours, ambDef.multiplicateurVolume, volumeCibleMaxH);
   if (input.weeklyHours != null) {
     // eslint-disable-next-line no-console
-    console.log(
-      `📦 volumeCible : ${input.weeklyHours}h × ${ambDef.multiplicateurVolume} (amb ${amb}) = ${volumeCible ?? "n/a"}h [cap ${sportResolved}/${amb}=${volumeCibleMaxH}h]`
-    );
+    console.info("[race_volume_resolution] completed");
   }
 
   const structural = {
@@ -423,7 +421,7 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
 
   const paceTargets = buildPaceTargets(pace, vma);
   // eslint-disable-next-line no-console
-  console.log("🎯 deriveRaceTargets paceTargets", paceTargets);
+  console.info("[race_target_resolution] snapshot_ready");
 
   return {
     source: "snapshot",
