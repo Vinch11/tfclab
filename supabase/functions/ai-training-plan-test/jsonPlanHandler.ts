@@ -2544,7 +2544,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           if (e instanceof MergePlanError) {
             enqueue("error", {
               code: e.code,
-              message: `Échec technique ${e.code} (bloc ${ci + 1})`,
+              message: `Erreur technique de fusion (${e.code})`,
             });
           } else {
             throw e;

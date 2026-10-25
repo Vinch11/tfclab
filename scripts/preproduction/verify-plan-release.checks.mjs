@@ -34,3 +34,7 @@ test("reject corrupted artifacts", () => {
  const { dir, path } = fixture(); writeFileSync(join(dir,"frontend.tar"), "corrupted");
  assert.throws(() => verifyRelease(path), /checksum/);
 });
+
+test("accept a coherent three-artifact release", () => {
+ const { path } = fixture(); assert.equal(verifyRelease(path).sourceCommit, "a".repeat(40));
+});

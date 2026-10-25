@@ -2,7 +2,7 @@
 const object = (x: unknown): Record<string, unknown> => x && typeof x === "object" ? x as Record<string, unknown> : {};
 const number = (x: unknown) => typeof x === "number" && Number.isFinite(x) && x >= 0 ? x : undefined;
 const fields = new Set("weeks sessions title details day sport catalogId custom durationMin isKeySession zones phase weekNumber theme diagnostic phases strategicRecap variantKey".split(" "));
-const codes = new Set("SCHEMA_FAIL SCHEMA_CLIENT_FAIL MERGE_FAIL NO_CHUNKS RATE_LIMIT CREDITS GATEWAY_ERROR TRUNCATED PARSE_FAIL EXCEPTION INTERNAL_ERROR REQUEST_FAILED PLAN_RELEASE_UNATTESTED PLAN_RELEASE_UNAVAILABLE PLAN_RELEASE_MISMATCH UNKNOWN HTTP_429 HTTP_402 NETWORK_ERROR".split(" "));
+const codes = new Set("SCHEMA_FAIL SCHEMA_CLIENT_FAIL GAP DUP EMPTY OUT_OF_RANGE MERGE_FAIL NO_CHUNKS RATE_LIMIT CREDITS GATEWAY_ERROR TRUNCATED PARSE_FAIL EXCEPTION INTERNAL_ERROR REQUEST_FAILED PLAN_RELEASE_UNATTESTED PLAN_RELEASE_UNAVAILABLE PLAN_RELEASE_MISMATCH UNKNOWN HTTP_429 HTTP_402 NETWORK_ERROR".split(" "));
 export function safeFailureCode(x: unknown): string { return typeof x === "string" && codes.has(x) ? x : "UNKNOWN"; }
 function path(x: unknown): string {
  const parts = Array.isArray(x) ? x : typeof x === "string" ? x.split("[").join(".").split("]").join(".").split(".").filter(Boolean) : [];
@@ -21,6 +21,8 @@ function attempt(x: unknown) {
   finishReason: ["stop","length","content_filter"].includes(String(v.finishReason)) ? String(v.finishReason) : undefined,
   unwrapped: typeof v.unwrapped === "boolean" ? v.unwrapped : undefined,
   repairCount: Array.isArray(v.repairs) ? v.repairs.length : 0,
+  issueCount: Array.isArray(v.zodIssues) ? v.zodIssues.length : 0,
+  issuesTruncated: Array.isArray(v.zodIssues) && v.zodIssues.length > 100,
   zodIssues: Array.isArray(v.zodIssues) ? v.zodIssues.slice(0, 100).map(issue) : [],
   gateway: { constrained: typeof object(v.gateway).constrained === "boolean" ? object(v.gateway).constrained as boolean : undefined } };
 }
@@ -32,7 +34,7 @@ export function sanitizeSchemaFailure(value: unknown) {
 const traceCodes = new Set("catalogue_pool_insufficient catalogue_prescription_unverified catalogue_prescription_incompatible sl_upgrade_unresolved sl_upgraded reconcile_conflict phase_unresolved duration_unresolved constraint_day_unresolved daily_floor_unresolved offsport_unresolved substituted_offsport catalog_id_no_safe_neighbor json_repair value_unresolved value_relativized".split(" "));
 export function sanitizeTechnicalTraces(value: unknown): string[] {
  if (!Array.isArray(value)) return [];
- return value.slice(0, 500).flatMap(line => {
+ return value.flatMap(line => {
   if (typeof line !== "string") return [];
   if (/\bvalue_check_summary\b/.test(line)) {
    const values = ["tokens","conforme","relativized","unresolved","residualAbs"].map(key => line.match(new RegExp(`\\b${key}=(\\d+)`))?.[1]);

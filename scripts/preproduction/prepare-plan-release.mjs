@@ -25,6 +25,8 @@ function files(dir) { return readdirSync(dir, { withFileTypes: true }).sort((a,b
 function sourceHash(paths) { return hash(paths.sort().map(p => `${p}\0${hash(readFileSync(join(source,p)))}\n`).join("")); }
 const contractPaths = ["supabase/functions/_shared/sessionCatalogueContract.ts", "supabase/functions/_shared/repairSportingEquivalence.ts", "supabase/functions/_shared/raceDayIdentity.ts", "supabase/functions/_shared/intentEvidence.ts", "supabase/functions/ai-training-plan/planSchema.ts", "supabase/functions/ai-training-plan-test/planSchema.ts", "src/lib/plan/planSchema.ts", "src/lib/plan/repairCatalogMetadata.ts", "src/lib/plan/phaseNormalization.ts", "src/lib/workoutCatalogBuilder.ts", "src/engines/plan/sessionSizingMatrix.ts"];
 const { createServer, build } = await import("vite");
+const lexer = await import(createRequire(require.resolve("vite/package.json")).resolve("es-module-lexer"));
+await lexer.init;
 const previousLog = console.log;
 const ssr = await createServer({ configFile: false, root: source, resolve: { alias: { "@": join(source, "src") } }, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
 let catalog;
@@ -49,6 +51,7 @@ const denoVersion = execFileSync(deno, ["--version"], { encoding: "utf8" }).spli
 if (denoVersion !== "deno 2.9.6 (stable, release, x86_64-unknown-linux-gnu)") throw new Error("Use pinned Deno 2.9.6 on linux-x64");
 const edge = join(stage, "edge"); mkdirSync(join(edge,"supabase/functions"), { recursive: true });
 for (const name of ["ai-training-plan", "ai-training-plan-test", "_shared"]) cpSync(join(source,"supabase/functions",name),join(edge,"supabase/functions",name),{ recursive:true });
+const runtimeImports = {};
 const edgePackage = join(stage,"edge-package"); mkdirSync(join(edgePackage,"supabase/functions/_shared"),{ recursive:true });
 writeFileSync(join(edgePackage,"supabase/functions/_shared/plan-release.json"),JSON.stringify(info));
 for (const name of ["ai-training-plan", "ai-training-plan-test"]) {
@@ -56,12 +59,14 @@ for (const name of ["ai-training-plan", "ai-training-plan-test"]) {
  mkdirSync(join(edgePackage,"supabase/functions",name), { recursive:true });
  execFileSync(deno, ["bundle", "--platform=deno", "--node-modules-dir=none", `--lock=${join(source,"scripts/preproduction/edge-dependencies.lock")}`, "--frozen-lockfile", "-o", join(edgePackage,entry), entry], { cwd:edge, stdio:["ignore","pipe","pipe"] });
  const bundle = readFileSync(join(edgePackage,entry),"utf8");
- if (bundle.includes(stage) || /(?:from\s*|import\s*\()\s*["'](?:https?:|npm:|jsr:)/.test(bundle)) throw new Error("Unclosed or path-dependent edge bundle");
+ const imports = lexer.parse(bundle)[0].filter(i => i.d !== -2);
+ runtimeImports[name] = { imports: imports.map(i => i.n ?? "dynamic-runtime"), unresolvedDynamic: imports.filter(i => i.n === undefined).length };
+ if (bundle.includes(stage) || imports.some(i => /^(https?:|npm:|jsr:)/.test(i.n ?? ""))) throw new Error("Unclosed or path-dependent edge bundle");
  artifacts[name] = tar(name,edgePackage,[entry,"supabase/functions/_shared/plan-release.json"]);
 }
 const dependencies = hash(files(resolve(repo,"node_modules/vite")).filter(p => !p.includes("node_modules/.cache")).map(p => relative(repo,p)+"\0"+hash(readFileSync(p))).join("\n"));
 const manifest = { ...info, sourceArchiveSha256: hash(readFileSync(archive)), catalogueEntries: catalog.length, toolchain: { node: process.version, deno: denoVersion, vite: require("vite/package.json").version, viteInstallationSha256: dependencies }, artifacts,
-  edgePackaging: "Deno bundles with shared and remote/npm libraries closed using the frozen edge dependency lock; node:/Deno builtins remain runtime-provided. Not a deployed-version attestation.",
+  runtimeImports, edgePackaging: "Deno bundles with shared and remote/npm libraries closed using the frozen edge dependency lock; node:/Deno builtins remain runtime-provided. Not a deployed-version attestation.",
   rollback: { frontendPublicationId: null, productionDeploymentId: null, testDeploymentId: null, status: "unattested" } };
 writeFileSync(join(out,"manifest.json"), JSON.stringify(manifest,null,2)+"\n");
 console.log(JSON.stringify({ out, sourceCommit: commit, catalogueHash: info.catalogueHash, artifacts }));

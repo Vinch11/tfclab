@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process";
 export function verifyRelease(path) {
  const manifest = JSON.parse(readFileSync(path, "utf8"));
  if (!manifest.attested || !/^[a-f0-9]{40}$/.test(manifest.sourceCommit ?? "")) throw new Error("Unattested source");
+ for (const field of ["contractHash","catalogueHash","lockHash"]) if (!/^[a-f0-9]{64}$/.test(manifest[field] ?? "")) throw new Error("Invalid contract manifest");
  const keys = ["sourceCommit","contractHash","catalogueHash","lockHash","sourceEpoch"];
  for (const name of ["frontend","ai-training-plan","ai-training-plan-test"]) {
   const artifact = manifest.artifacts[name];
