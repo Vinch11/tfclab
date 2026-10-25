@@ -1,3 +1,4 @@
+import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * PHASE 1A — Génération JSON contrainte d'un chunk (contrainte N°3)
@@ -247,7 +248,7 @@ function canonicalizeStrategicRecap(
   // Safety net: validate against zStrategicRecap; if fail → drop
   const parsed = zStrategicRecap.safeParse(recap);
   if (!parsed.success) {
-    console.warn(`[normalize] strategicRecap dropped (invalid after canon): ${formatZodErrors(parsed.error, 5)}`);
+    console.warn(`[normalize] strategicRecap dropped (invalid after canon): ${JSON.stringify(sanitizeSchemaFailure({ zodIssues: parsed.error.issues }))}`);
     repairs.push("strategicRecap dropped (invalid after canon)");
     return { value: undefined, dropped: true };
   }
@@ -851,7 +852,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
       throw new ChunkGenerationError(
         "GATEWAY_ERROR",
         input.chunkIndex,
-        `Gateway AI status=${result.status} : ${result.content.slice(0, 400)}`,
+        `Gateway AI status=${result.status}`,
       );
     }
 
@@ -971,7 +972,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
   // Retry unique avec erreurs Zod injectées.
   const errList = formatZodErrors(first.parsed.error);
   console.warn(
-    `[SCHEMA_FAIL] chunk=${input.chunkIndex} tentative 1 — retry avec corrections :\n${errList}`,
+    `[SCHEMA_FAIL] chunk=${input.chunkIndex} tentative 1 — retry avec corrections :\n${JSON.stringify(sanitizeSchemaFailure(first.diagnostic))}`,
   );
   const retryPrompt = `${input.userPrompt}
 
@@ -1006,7 +1007,7 @@ Rappels non négociables :
 
   const errList2 = formatZodErrors(second.parsed.error);
   console.error(
-    `[SCHEMA_FAIL] chunk=${input.chunkIndex} tentative 2 — abandon.\n${errList2}`,
+    `[SCHEMA_FAIL] chunk=${input.chunkIndex} tentative 2 — abandon.\n${JSON.stringify(sanitizeSchemaFailure(second.diagnostic))}`,
   );
   throw new ChunkGenerationError(
     "SCHEMA_FAIL",

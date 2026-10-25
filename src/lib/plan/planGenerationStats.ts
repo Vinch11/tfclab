@@ -1,3 +1,5 @@
+import { sanitizePlanStat } from "./planStatPrivacy";
+import { technicalGenerationEvent } from "../../../supabase/functions/_shared/planDiagnosticPrivacy";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * PHASE 1B — Observability : plan generation stats
@@ -47,6 +49,9 @@ export interface PlanSchemaFailDetails {
 }
 
 export interface PlanGenerationStat {
+  warningEvidence?: Array<ReturnType<typeof import("../../../supabase/functions/_shared/planFailureDiagnostics").sanitizeWarningEvidence>>;
+  generationContext?: ReturnType<typeof technicalGenerationEvent>;
+  clientRelease?: ReturnType<typeof import("../../../supabase/functions/_shared/planDiagnosticPrivacy").technicalRelease>;
   ts: number;                                // epoch ms
   format: "json" | "markdown" | "markdown-fallback-from-json";
   objective: string | null;
@@ -85,7 +90,7 @@ export function readPlanStats(): PlanGenerationStat[] {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
     const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.slice(-MAX) : [];
+    return Array.isArray(arr) ? arr.slice(-MAX).filter(v => v && typeof v === "object").map(sanitizePlanStat) : [];
   } catch { return []; }
 }
 
@@ -95,7 +100,8 @@ export function planStatsSince(before: PlanGenerationStat[], after: PlanGenerati
   return after.filter(stat => stat.ts >= startedAt && !previous.has(JSON.stringify(stat)));
 }
 
-export function logPlanStat(stat: PlanGenerationStat): void {
+export function logPlanStat(input: PlanGenerationStat): void {
+  const stat = sanitizePlanStat(input);
   try {
     const cur = readPlanStats();
     cur.push(stat);

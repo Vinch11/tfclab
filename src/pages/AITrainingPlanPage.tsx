@@ -1,3 +1,4 @@
+import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
@@ -2211,10 +2212,12 @@ export default function AITrainingPlanPage() {
       config.objective = OBJECTIVE_OPTIONS.find(o => o.value === athleteObj)?.label || athleteObj;
 
       try {
+        const releaseHeaders = await currentPlanReleaseHeaders(PLAN_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
         const resp = await fetch(PLAN_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...releaseHeaders,
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({ athleteData: ctx.data, planConfig: config }),
@@ -2870,10 +2873,12 @@ export default function AITrainingPlanPage() {
       constraintText: string,
     ): Promise<{ week: ParsedPlan["weeks"][number]; repairTraces: string[]; quotaIssues?: QuotaIssue[] }> => {
       const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
+      const releaseHeaders = await currentPlanReleaseHeaders(PLAN_URL, accessToken);
       const resp = await fetch(PLAN_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...releaseHeaders,
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
@@ -3210,10 +3215,12 @@ export default function AITrainingPlanPage() {
         return;
       }
       const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
+      const releaseHeaders = await currentPlanReleaseHeaders(PLAN_URL, accessToken);
       const resp = await fetch(PLAN_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...releaseHeaders,
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
