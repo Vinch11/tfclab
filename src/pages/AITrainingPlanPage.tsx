@@ -2,6 +2,7 @@ import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
+import { restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
  * Generates personalized training plans using AI + TFCL methodology
@@ -2650,11 +2651,10 @@ export default function AITrainingPlanPage() {
     reset();
     setPlanOverride(null);
     setResponse(md);
-    // Les plans récents portent les quotas de leur génération. Ne pas les
-    // perdre en réinterprétant uniquement leur copie Markdown historique.
-    if (pj.weeklyQuotas && Array.isArray(pj.weeks) && Array.isArray(pj.phases)) {
-      setPlanOverride({ ...pj } as ParsedPlan);
-    }
+    // Conserver le JSON sauvegardé, même sans quotas historiques : le Markdown
+    // ne transporte pas les durées, zones, variantes et identités structurées.
+    const restoredPlan = restoreStructuredPlan(pj);
+    if (restoredPlan) setPlanOverride(restoredPlan);
     const startAnchored = startOfWeek(startDate, { weekStartsOn: 1 });
     setPlanStartDate(startAnchored);
     // Persiste immédiatement la version ouverte comme "plan actif" de l'athlète :
