@@ -8,6 +8,8 @@
  *     validated by Zod, merged via mergePlanChunks, and exposed as `parsedPlan`.
  *     `response` is left empty in this mode; consumers should prefer parsedPlan.
  */
+import { snapshotSLFloorAudit, traceSLFloorConsumer } from "@/lib/plan/slFloorAudit";
+import { formatSLRepairDiagnostic } from "@/lib/plan/slRepairDiagnostics";
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
@@ -1237,7 +1239,13 @@ export function useAITrainingPlan() {
             finalStageSport: isLCWFormat ? "run" : undefined,
           });
 
-          weeklyQuotas[w] = { ...entry, floors: individualized.floors, layout };
+          weeklyQuotas[w] = { ...entry, floors: individualized.floors, layout,
+            floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,
+              weeklyHours: hoursAvail, volumeRamp: slRampAnchors, injuryRisk: injuryRiskForSlFloor,
+              nominal: entry.floors, individualized: individualized.floors,
+              appliedPct: individualized.appliedPct, reasons: individualized.reasons }),
+          };
+          traceSLFloorConsumer("generation", w, weeklyQuotas[w]);
         }
       }
       if (slFloorIndividualizationLog.length > 0) {
@@ -1330,6 +1338,14 @@ export function useAITrainingPlan() {
       const planUrl = planConfig?._pilotFunctionName
         ? resolvePlanUrl(import.meta.env.VITE_SUPABASE_URL, planConfig._pilotFunctionName)
         : PLAN_URL;
+      for (const [week, entry] of Object.entries(weeklyQuotas)) traceSLFloorConsumer("transmitted", Number(week), entry);
+      console.info("[generation_contract_client]", {
+        clientBuild: typeof __APP_VERSION__ === "undefined" ? null : __APP_VERSION__,
+        buildTime: typeof __BUILD_TIME__ === "undefined" ? null : __BUILD_TIME__,
+        functionName: planUrl.split("/functions/v1/")[1] ?? "unavailable", outputFormat: planConfig._outputFormat ?? "markdown",
+        planStartDate: planConfig.planStartDate, weeksAvailable: planConfig.weeksAvailable,
+        globalTotalWeeks: planConfig.globalTotalWeeks, raceGoals: planConfig.raceGoals ?? [],
+      });
       const resp = await fetch(planUrl, {
         method: "POST",
         headers: {
@@ -1475,6 +1491,9 @@ export function useAITrainingPlan() {
             } else {
               console.log("[TRAIL DEBUG edge→client] (aucune ligne collectée)");
             }
+          } else if (event === "generation-context") {
+            semanticRepairs.push(`[info] generation_context: ${JSON.stringify(data)}`);
+            console.info("[generation_contract_server]", data);
           } else if (event === "error") {
             fatalError = {
               code: data.code ?? "UNKNOWN",
@@ -1523,6 +1542,10 @@ export function useAITrainingPlan() {
               semanticRepairs.push(
                 `[${severity}] ${code}${category}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} ${repair.sport ?? "?"} — ${repair.reason}${tokenStr}${beforeStr}${afterStr}`,
               );
+              return;
+            }
+            if (repair?.before && (code === "sl_upgrade_unresolved" || code === "sl_upgraded")) {
+              semanticRepairs.push(formatSLRepairDiagnostic(code, severity, repair));
               return;
             }
             if (repair?.before) {
@@ -1749,6 +1772,7 @@ export function useAITrainingPlan() {
             // Même source que le payload et validateWeeklyQuotas ; aucun
             // recalcul depuis le formulaire vivant lors de l'affichage.
             parsed.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
+            for (const [week, entry] of Object.entries(parsed.weeklyQuotas)) traceSLFloorConsumer("retained", Number(week), entry);
             setMergedPlan(merged);
             lastParsedPlanRef.current = parsed;
             setParsedPlan(parsed);

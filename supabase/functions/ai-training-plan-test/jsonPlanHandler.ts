@@ -227,18 +227,27 @@ function buildCandidatesByChunk(
   });
 }
 
-function repairCandidateCompatible(
+function repairCandidateCompatibility(
   candidate: CatalogCandidate,
   pool: CatalogCandidate[],
   originalId: string | null | undefined,
   context: RepairCompatibilityContext,
-): boolean {
-  if (candidate.legacyTestOnly && pool.every(item => item.legacyTestOnly)) return true;
-  if (!candidate.metadata || candidate.metadata.id.toUpperCase() !== candidate.id.toUpperCase()) return false;
+): { compatible: boolean; reasons: string[] } {
+  if (candidate.legacyTestOnly && pool.every(item => item.legacyTestOnly)) return { compatible: true, reasons: [] };
+  if (!candidate.metadata || candidate.metadata.id.toUpperCase() !== candidate.id.toUpperCase()) {
+    return { compatible: false, reasons: ["candidate_metadata_missing_or_id_mismatch"] };
+  }
   const original = originalId
     ? pool.find(item => item.id.toUpperCase() === originalId.toUpperCase())?.metadata
     : null;
-  return evaluateRepairSportingEquivalence(original, candidate.metadata, context).compatible;
+  return evaluateRepairSportingEquivalence(original, candidate.metadata, context);
+}
+
+function repairCandidateCompatible(
+  candidate: CatalogCandidate, pool: CatalogCandidate[], originalId: string | null | undefined,
+  context: RepairCompatibilityContext,
+): boolean {
+  return repairCandidateCompatibility(candidate, pool, originalId, context).compatible;
 }
 
 // Tolerance = max(±15min, ±20% target duration). Le +20% est indispensable
@@ -515,12 +524,27 @@ interface SLUpgradeRepair {
   weekType: string;
   sport: "bike" | "run";
   floorMin: number;
-  before: { day: string; title: string; durationMin: number; catalogId: string | null };
+  day?: string;
+  sameSportCandidatesInChunk?: number;
+  totalCandidatesInChunk?: number;
+  nearestCandidates?: OffsportNearestCandidate[];
+  diagnostics?: {
+    originalCatalogId: string | null;
+    injectedIds: string[];
+    metadataIdsUsed: string[];
+    injectedIdsWithoutCompleteMetadata: string[];
+    localRejections: Record<string, number>;
+    globalRejections: Record<string, number>;
+    candidates: Array<{ id: string; scope: string; sourceChunk: number; durationMin: [number, number];
+      phases: string[]; zones: string[]; intensity: string; family: string; excludedBy: string[] }>;
+  };
+  before: { day: string; title: string; details?: string; durationMin: number; catalogId: string | null };
   after?: { day: string; title: string; catalogId: string; durationMin: number };
   reason: string;
 }
 
 interface SLWeekFloor {
+  floorAudit?: unknown;
   weekType?: "load" | "recovery" | "taper" | "race" | string;
   longRideWeekly?: boolean;
   longRunWeekly?: boolean;
@@ -585,6 +609,7 @@ export function applySLFloorEnforcement(
     for (const week of chunk.weeks ?? []) {
       // Lookup PAR weekNumber (pas par index — chunk 2 commence à W6).
       const rawEntry = weeklyQuotas[week.weekNumber];
+      if (rawEntry?.floorAudit) traces.push(`[sl_floor_pipeline] ${JSON.stringify({ stage: "server_received", week: week.weekNumber, floorAudit: rawEntry.floorAudit, consumedFloors: rawEntry.floors ?? rawEntry })}`);
       const entry = resolveSLFloor(rawEntry);
       if (!entry) {
         traces.push(`[SL_FLOOR] S${week.weekNumber} action=skipped_reason=no_quota_entry`);
@@ -637,29 +662,57 @@ export function applySLFloorEnforcement(
           operation: "replacement",
         };
 
-        const buildEndurancePool = (pool: typeof candidates) => pool
+        // These decisions drive BOTH selection and diagnostics. Do not run a
+        // separate, more permissive explanation-only filter.
+        const auditPool = (pool: typeof candidates, scope: string) => pool
           .filter(c => c.sport === spec.sport)
-          .filter(c => repairCandidateCompatible(c, allCandidatesAllChunks, originalId, repairContext))
-          .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
-          .filter(x => x.cls === "endurance" || x.cls === "recovery")
-          .filter(x => x.c.durationMin[1] >= spec.floor || x.c.durationMedian >= spec.floor)
+          .map(c => {
+            const cls = classifyIntensity(c.zones, `${c.title} ${c.structure}`);
+            const excludedBy = [...repairCandidateCompatibility(c, allCandidatesAllChunks, originalId, repairContext).reasons];
+            if (cls !== "endurance" && cls !== "recovery") excludedBy.push(`intensity:${cls}`);
+            if (!(c.durationMin[1] >= spec.floor || c.durationMedian >= spec.floor)) excludedBy.push(`duration_max_below_floor:${spec.floor}`);
+            return { c, cls, audit: { id: c.id, scope, sourceChunk: candidatesByChunk.findIndex(items => items.includes(c)),
+              durationMin: c.durationMin, phases: c.metadata?.phases ?? [], zones: c.zones,
+              intensity: cls, family: c.metadata?.intentFamily ?? "legacy_test_only", excludedBy } };
+          });
+        const localAudit = auditPool(candidates, "chunk");
+        const viable = (items: typeof localAudit) => items.filter(x => x.audit.excludedBy.length === 0)
           .sort((a, b) => a.c.durationMedian - b.c.durationMedian);
-        // Repli catalogue global si le dump local du chunk n'a rien (cf.
-        // commentaire allCandidatesAllChunks ci-dessus).
-        const enduranceLocal = buildEndurancePool(candidates);
-        const endurance = enduranceLocal.length > 0 ? enduranceLocal : buildEndurancePool(allCandidatesAllChunks);
+        const enduranceLocal = viable(localAudit);
+        const globalAudit = enduranceLocal.length > 0 ? [] : auditPool(allCandidatesAllChunks, "global_fallback");
+        const endurance = enduranceLocal.length > 0 ? enduranceLocal : viable(globalAudit);
 
         const picked = endurance.find(x => x.c.durationMedian >= spec.floor) ?? endurance[0];
 
         if (!picked) {
+          const rejectionCounts = (items: typeof localAudit) => {
+            const counts: Record<string, number> = {};
+            for (const item of items) for (const reason of item.audit.excludedBy) counts[reason] = (counts[reason] ?? 0) + 1;
+            return counts;
+          };
+          const injectedIds = extractCatalogIdsFromDump(catalogDumpsByChunk[ci]);
+          const metadataIdsUsed = candidates.map(c => c.id);
+          const diagnostics = {
+            originalCatalogId: originalId ?? null, injectedIds, metadataIdsUsed,
+            injectedIdsWithoutCompleteMetadata: injectedIds.filter(id => !metadataIdsUsed.includes(id)),
+            localRejections: rejectionCounts(localAudit), globalRejections: rejectionCounts(globalAudit),
+            candidates: [...localAudit, ...globalAudit].map(x => x.audit),
+          };
+          const nearestCandidates = [...localAudit, ...globalAudit]
+            .map(({ c }) => ({ id: c.id, durationMedian: c.durationMedian, durationMin: c.durationMin,
+              deltaMin: Math.abs(c.durationMedian - spec.floor) }))
+            .sort((a, b) => a.deltaMin - b.deltaMin).slice(0, 5);
+          traces.push(`[SL_CANDIDATE_AUDIT] S${week.weekNumber} ${spec.sport} floor=${spec.floor} ${JSON.stringify(diagnostics)}`);
           traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=${spec.sport} floor=${spec.floor}min longest=${longest}min action=unresolved (no catalog cand)`);
           repairs.push({
             code: "sl_upgrade_unresolved",
             severity: "critical",
             chunkIndex: ci, weekNumber: week.weekNumber, weekType: entry.weekType,
-            sport: spec.sport, floorMin: spec.floor,
+            sport: spec.sport, floorMin: spec.floor, day: target.day,
+            sameSportCandidatesInChunk: localAudit.length, totalCandidatesInChunk: candidates.length,
+            nearestCandidates, diagnostics,
             before: {
-              day: target.day, title: target.title ?? "",
+              day: target.day, title: target.title ?? "", details: target.details ?? "",
               durationMin: target.durationMin ?? 0,
               catalogId: (target as any).catalogId ?? null,
             },
@@ -1637,6 +1690,7 @@ interface HandlerInput {
   chunkRegenWeeks?: number[][];
   catalogDurationStats?: any;
   corsHeaders: Record<string, string>;
+  diagnosticContext?: { functionName: string; deploymentId: string | null; executionId: string | null };
 }
 
 function sseEvent(event: string, data: unknown): Uint8Array {
@@ -1825,6 +1879,13 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
   const stream = new ReadableStream({
     async start(controller) {
+      controller.enqueue(sseEvent("generation-context", {
+        diagnosticRevision: "p0-forensics-2026-10-25.1",
+        ...input.diagnosticContext,
+        outputFormat: "json", planStartDate: planConfig?.planStartDate ?? null,
+        weeksAvailable: planConfig?.weeksAvailable ?? null, globalTotalWeeks: planConfig?.globalTotalWeeks ?? null,
+        raceGoals: planConfig?.raceGoals ?? [],
+      }));
       const enqueue = (event: string, data: unknown) => controller.enqueue(sseEvent(event, data));
 
       // Keep-alive : sans octet pendant un appel LLM long (>30-60s), Safari/iOS et

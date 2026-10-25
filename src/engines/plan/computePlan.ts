@@ -15,6 +15,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { traceSLFloorConsumer } from "@/lib/plan/slFloorAudit";
 import type {
   PlanGenerationConfig,
   ParsedPlan,
@@ -480,6 +481,7 @@ export function postProcessParsedPlan(
     totalWeeks,
   };
   for (const w of plan.weeks) {
+    traceSLFloorConsumer("post_processing", w.weekNumber, plan.weeklyQuotas?.[w.weekNumber]);
     for (const s of w.sessions) {
       const st = postProcessSessionText(s, config.ambition, {
         ...matrixCtx,
