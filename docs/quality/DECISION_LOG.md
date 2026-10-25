@@ -1,5 +1,14 @@
 # Registre des décisions de qualité
 
+## Mission A1
+
+Consigne spécifique plus récente : 3itérations/30minutes/0USD par défaut,
+aucun appel payant autorisé. Client de revue séparé, fixtures existantes,
+aucun moteur modifié. La configuration globale5EUR de #407 n'est pas activée.
+#407 possède quatre jobs déclarés, verts après relance du PDF instable ; le
+cinquième check demandé reste non identifié. Voir `A1_READINESS.md` pour les
+preuves, limites et conditions de la première revue réelle.
+
 Ce registre référence les audits existants, sans les remplacer. Les résultats
 d'exécution futurs vont dans des artefacts JSONL en écriture append-only par le
 contrôleur, puis sont reliés au commit/PR ; aucun log brut d'athlète.

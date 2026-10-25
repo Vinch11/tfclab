@@ -1,0 +1,14 @@
+{
+  "mission": "A1",
+  "enabled": false,
+  "authorized": false,
+  "budgetUsd": 0,
+  "maxIterations": 3,
+  "maxMissionSeconds": 1800,
+  "maxInputTokens": 16000,
+  "maxOutputTokens": 4000,
+  "requestTimeoutMs": 60000,
+  "model": null,
+  "inputUsdPerMillion": null,
+  "outputUsdPerMillion": null
+}
