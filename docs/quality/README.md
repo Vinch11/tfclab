@@ -51,6 +51,8 @@ calcul seulement dans un **test double**. Aucun commit moteur candidat n'existe.
 Cas attendus : baseline S8=95/S12=0, simulation165/87, legacy30 conservé, repos0.
 L'avis favorable mocké donne `demo_only`, pas un GO scientifique ; avis rejeté
 malgré tests verts, régression injectée, plafond d'itérations et budget zéro arrêtent.
+Si le défaut de minutes est déjà corrigé lors d'une mission future, la démonstration
+s'arrête avec `no_baseline_defect` au lieu d'exiger la persistance du bug.
 
 Un run avec `trackedDirty=true` est une expérience de développement, pas une
 attestation du commit. Pour le livrable final, rejouer après commit propre et

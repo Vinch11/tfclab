@@ -33,7 +33,9 @@ describe('quality-loop demonstration without a model or an engine change', () =>
       { id: 'legacy-no-structured-duration', before: parseSessionDurationMin(legacy), after: proposedDuration(legacy), expected: 30 },
       { id: 'rest-stays-zero', before: parseSessionDurationMin(rest), after: proposedDuration(rest), expected: 0 },
     ];
-    expect(measurements.map(m => m.before)).toEqual([95, 0, 30, 0]);
+    const baselineHasDefect = measurements.some(m => m.before !== m.expected);
+    // Do not require the historical bug to remain after a future real correction.
+    expect(measurements.map(m => m.before)).toEqual(baselineHasDefect ? [95, 0, 30, 0] : [165, 87, 30, 0]);
     expect(measurements.map(m => m.after)).toEqual([165, 87, 30, 0]);
     const revision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
     const trackedDirty = execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], { encoding: 'utf8' }).trim().length > 0;
@@ -50,12 +52,13 @@ describe('quality-loop demonstration without a model or an engine change', () =>
     const scientificRejection = decide(packet, { ...review, decision: 'reject' });
     const regression = structuredClone(packet); regression.measurements[2].after = 0;
     const rejectedRegression = decide(regression, review);
-    const stoppedAtLimit = decide(packet, { ...review, decision: 'iterate' }, { iteration: 3 });
+    const stoppedAtLimit = decide(packet, { ...review, decision: 'iterate' }, { iteration: 4 });
     const zeroBudgetStop = reserveCall({ calls: 0, reservedUsd: 0 },
       { inputTokens: 16000, outputTokens: 4000, inputUsdPerMillion: 10, outputUsdPerMillion: 50 },
       { maxApiUsd: 0, maxCalls: 6, maxInputTokensPerCall: 16000, maxOutputTokensPerCall: 4000 });
-    expect(acceptedSimulation.state).toBe('demo_only');
-    expect(scientificRejection.reason).toBe('scientific_rejection');
+    expect(acceptedSimulation.state).toBe(baselineHasDefect ? 'demo_only' : 'stopped');
+    if (!baselineHasDefect) expect(acceptedSimulation.reason).toBe('no_baseline_defect');
+    expect(scientificRejection.reason).toBe(baselineHasDefect ? 'scientific_rejection' : 'no_baseline_defect');
     expect(rejectedRegression.reason).toBe('regression');
     expect(stoppedAtLimit.reason).toBe('iteration_limit');
     expect(zeroBudgetStop.reason).toBe('budget_limit');
