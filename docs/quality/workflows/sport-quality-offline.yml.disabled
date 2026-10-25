@@ -1,0 +1,41 @@
+# PROPOSITION INACTIVE : ce fichier n'est pas dans .github/workflows/.
+# Avant copie autorisée : figer les actions par SHA vérifié.
+# Ce workflow ne contient AUCUN appel API et ne prétend pas coder un correctif.
+name: TFCLab quality offline demonstration
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tfcl-quality-offline-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  offline:
+    if: vars.TFCL_QUALITY_OFFLINE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.0'
+      - run: bun install --frozen-lockfile
+      - run: node scripts/quality/gates.test.mjs
+      - name: Existing incident replay with mock scientific outcomes
+        run: bun run vitest run --maxWorkers=2 src/test/__audit__/qualityLoop.demo.test.ts
+        env:
+          TFCL_QUALITY_DEMO_OUT: /tmp/tfcl-quality-demo
+      - name: Evidence, including stopped outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-offline-${{ github.sha }}
+          path: /tmp/tfcl-quality-demo/
+          retention-days: 14
+          if-no-files-found: error

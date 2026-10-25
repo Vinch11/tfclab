@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TFCLab scientific review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "baseSha",
+    "candidateSha",
+    "evidenceHash",
+    "mode",
+    "decision",
+    "criteria"
+  ],
+  "properties": {
+    "baseSha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "candidateSha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "evidenceHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "mock",
+        "openai"
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "accept",
+        "reject",
+        "iterate",
+        "escalate"
+      ]
+    },
+    "criteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "evidenceIds",
+          "reason"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "limiter_translation",
+              "session_equivalence",
+              "intensity_dose",
+              "load_progression",
+              "recovery_periodization",
+              "constraints_events",
+              "evidence_limits"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "met",
+              "violated",
+              "uncertain"
+            ]
+          },
+          "evidenceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

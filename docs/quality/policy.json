@@ -1,0 +1,12 @@
+{
+  "status": "proposal_inactive",
+  "maxIterations": 3,
+  "maxMissionSeconds": 1800,
+  "maxApiUsd": 0,
+  "maxCalls": 6,
+  "maxInputTokensPerCall": 16000,
+  "maxOutputTokensPerCall": 4000,
+  "recurringEnabled": false,
+  "autoMerge": false,
+  "deploy": false
+}
