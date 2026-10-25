@@ -115,7 +115,11 @@ export function repairTracesToValidationIssues(traces: readonly string[] | undef
       : "warning";
     const message = trace.replace(/^\[(?:reconciler|critical|warning|error|info)\]\s*/i, "").trim();
     const location = repairLocation(trace);
-    const key = `${code}|${location || message}`;
+    // W1 floor swim and W1 floor bike share location="1:floor", but are
+    // different constraints. Only an identical conflict message is a repeat.
+    const key = code === "reconcile_conflict"
+      ? `${code}|${severity}|${message}`
+      : `${code}|${location || message}`;
     if (seen.has(key)) continue;
     seen.add(key);
     issues.push({

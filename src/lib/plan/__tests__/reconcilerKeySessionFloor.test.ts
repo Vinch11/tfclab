@@ -109,5 +109,9 @@ describe("quota rempli sans tag clé — aucune séance supplémentaire", () => 
     expect(chunk.weeks[0].sessions).toEqual(before);
     expect(result.counters.quota_floor_inserted_from_catalog).toBe(0);
     expect(result.counters.quota_floor_unresolved).toBeGreaterThan(0);
+    const audit = result.logs.find(line => line.startsWith("[key_floor_audit]"));
+    expect(audit).toContain('"parsedKeyCount":0');
+    expect(audit).toContain('"isKeySession":false');
+    expect(audit).not.toContain('"title":');
   });
 });

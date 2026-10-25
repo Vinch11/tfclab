@@ -1,3 +1,4 @@
+import { technicalGenerationConfig } from "../_shared/planDiagnosticPrivacy.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { normalizeObjKey, normalizeAmbKey, extractLimiterKeywords } from "./sportRatioMatrix.ts";
@@ -84,6 +85,12 @@ serve(async (req) => {
     }
 
     const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs, phaseRepairCatalogs, chunkCatalogs, chunkRepairCatalogs, chunkRegenCatalogs, chunkRegenRepairCatalogs, chunkRegenWeeks, catalogDurationStats } = rawBody;
+    const diagnosticContext = { functionName: "ai-training-plan-test",
+      deploymentId: Deno.env.get("DENO_DEPLOYMENT_ID") ?? null,
+      executionId: Deno.env.get("SB_EXECUTION_ID") ?? null };
+    console.info("[generation_contract_server]", { ...diagnosticContext,
+      ...technicalGenerationConfig(planConfig),
+      jsonRequested: planConfig?._outputFormat === "json" || req.headers.get("X-Plan-Output-Format") === "json" });
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -122,6 +129,7 @@ serve(async (req) => {
       console.log(`🧬 Phase 1A JSON path activé (flag=${planConfig?._outputFormat ?? "header"}).`);
       const { handleJSONPlanRequest } = await import("./jsonPlanHandler.ts");
       return handleJSONPlanRequest({
+        diagnosticContext,
         apiKey: LOVABLE_API_KEY,
         athleteData,
         planConfig,

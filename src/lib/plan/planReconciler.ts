@@ -821,6 +821,11 @@ function runOnePass(
             counters.quota_floor_unresolved++;
             counters.reconcile_conflict++;
             logs.push(`[reconcile_conflict] W${week.weekNumber} floor ${sp.sport}: qualité non identifiée, quota déjà rempli — aucune insertion`);
+            logs.push(`[key_floor_audit] ${JSON.stringify({ week: week.weekNumber, sport: sp.sport,
+              parsedKeyCount: cntKey(sp.sport), observedCount: cnt(sp.sport), sportMax, activeCount,
+              totalMax: effective.totalSessions.max, weekType: quotaEntry.weekType,
+              sessions: (bySport.get(sp.sport) ?? []).map(s => ({ day: s.day, catalogId: s.catalogId,
+                durationMin: s.durationMin, isKeySession: s.isKeySession })) })}`);
             continue;
           }
           // Audit "B-5K-BEGINNER round 2" (consigne coach) : un plancher SL

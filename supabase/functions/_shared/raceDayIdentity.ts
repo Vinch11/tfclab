@@ -10,7 +10,6 @@ export const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|com
 // préparation), mais "jour j"/"race day"/"compétition"/"épreuve (objectif|
 // cible)" sont des marqueurs FAIBLES qu'un titre d'activation/mobilité/
 // shakeout peut légitimement contenir sans être la course elle-même.
-const RACE_DAY_STRONG_PATTERNS = /🏁|course\s*objectif|jour\s*de\s*(course|compétition)/i;
 export const PRE_RACE_ACTIVATION_PATTERNS = /activation|pr[ée]paration|mobilit[ée]|shakeout|ouverture|primers?|pre-?race|d[ée]blocage|opener|veille|flush|\bj-\d/i;
 
 // Format prescrit par le prompt multi-objectifs et observé dans le PDF 703.
@@ -32,19 +31,25 @@ export const NAMED_RACE_TITLE_PATTERN = /^\s*(?:🏁\s*)?COURSE\s*:\s*\S/i;
  *  exportée pour que ces deux appelants (qui filtrent des séances
  *  individuelles, pas des semaines entières) puissent réutiliser EXACTEMENT
  *  la même règle plutôt que de la redupliquer une 3e fois. */
-export function isRaceDaySession(s: { title?: string; details?: string; sport?: string }): boolean {
-  if (NAMED_RACE_TITLE_PATTERN.test(s.title || "")) return true;
-  const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
-  if (RACE_DAY_STRONG_PATTERNS.test(text)) return true;
-  return RACE_DAY_PATTERNS.test(text) && !PRE_RACE_ACTIVATION_PATTERNS.test(text);
+// Explicit training context must win over references to the target race in
+// instructions. The same title rule is used by schema/repairs and validation.
+const TRAINING_TITLE_PATTERN = /simulation|race[\s_-]*sim|dress rehearsal|allure\s+(?:de\s+)?(?:course|comp[ée]tition)/i;
+function raceTitle(title: string): boolean {
+  if (NAMED_RACE_TITLE_PATTERN.test(title)) return true;
+  if (TRAINING_TITLE_PATTERN.test(title) || PRE_RACE_ACTIVATION_PATTERNS.test(title)) return false;
+  return RACE_DAY_PATTERNS.test(title);
 }
 
+export function isRaceDaySession(s: { title?: string; details?: string; sport?: string }): boolean {
+  const title = s.title || "";
+  if (NAMED_RACE_TITLE_PATTERN.test(title)) return true;
+  if (TRAINING_TITLE_PATTERN.test(title) || PRE_RACE_ACTIVATION_PATTERNS.test(title)) return false;
+  if (raceTitle(title)) return true;
+  // Legacy generic titles may put the event label at the start of details.
+  // An incidental reference ('tenue du jour de course') is not an event.
+  return /^\s*(?:🏁|COURSE\s*:|course\s*objectif|jour\s*(?:j\b|de\s*(?:course|comp[ée]tition))|race\s*day\b|comp[ée]tition\s+officielle\b)/i.test(s.details || "");
+}
 
-/** Explicit event title, independent of training instructions referencing a race.
- * A simulation/activation stays training even if it mentions Jour J or 🏁. */
 export function isRaceEventTitle(s: { title?: string }): boolean {
-  const title = s.title ?? "";
-  if (/simulation|race[\s_-]*sim|dress rehearsal|allure\s+(?:de\s+)?(?:course|comp[ée]tition)/i.test(title)) return false;
-  if (PRE_RACE_ACTIVATION_PATTERNS.test(title)) return false;
-  return isRaceDaySession({ title });
+  return raceTitle(s.title || "");
 }

@@ -12,6 +12,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 import { effectiveSessionQuota, countQuotaSessions } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
+import { traceSLFloorConsumer, type SLFloorAudit } from "./slFloorAudit";
 import type { MergedPlan } from "./mergePlanChunks";
 import type { WeeklyQuota, SizingFloors, WeekType } from "@/engines/plan/sessionSizingMatrix";
 import { diffLayoutVsWeek, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
@@ -27,6 +28,8 @@ export interface QuotaIssue {
 }
 
 export interface WeekQuotaEntry {
+  /** Passive provenance; never used to change quota or severity. */
+  floorAudit?: SLFloorAudit;
   quota: WeeklyQuota;
   floors: SizingFloors;
   weekType: WeekType;
@@ -48,6 +51,7 @@ export function validateWeeklyQuotas(
   for (const w of merged.weeks) {
     const entry = quotasByWeek[w.weekNumber];
     if (!entry) continue;
+    traceSLFloorConsumer("validation", w.weekNumber, entry);
     const q = entry.quota;
     const floors = entry.floors;
     const slBikeMin = floors.slLongRideMin ?? LONG_RIDE_DEFAULT_MIN;
