@@ -31,7 +31,11 @@ export function technicalGenerationEvent(value: unknown) {
 export function technicalRelease(value: unknown) {
   const v = record(value);
   const hash = (x: unknown, size: number) => typeof x === "string" && new RegExp(`^[a-f0-9]{${size}}$`).test(x) ? x : null;
-  return { manifestVersion: 1 as const, attested: v.attested === true,
+  const components = record(v.components);
+  return { manifestVersion: v.manifestVersion === 2 ? 2 as const : null, attested: v.attested === true,
+    deploymentAttested: v.deploymentAttested === false ? false as const : null,
+    provenance: v.provenance === "declared-source" || v.provenance === "archived-source" ? v.provenance : null,
+    releaseId: hash(v.releaseId, 64), components: { frontend: hash(components.frontend, 64), "ai-training-plan": hash(components["ai-training-plan"], 64), "ai-training-plan-test": hash(components["ai-training-plan-test"], 64) },
     sourceCommit: hash(v.sourceCommit, 40), contractHash: hash(v.contractHash, 64), catalogueHash: hash(v.catalogueHash, 64),
     lockHash: hash(v.lockHash, 64), sourceEpoch: count(v.sourceEpoch) };
 }

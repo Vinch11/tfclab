@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { resolve, join, relative } from "node:path";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
+import { checkedPlanRelease, declarationText, manifestPath } from "./plan-release-source.mjs";
 process.env.NODE_ENV = "production";
 process.env.TZ = "UTC";
 const args = process.argv.slice(2), value = key => args[args.indexOf(key) + 1];
@@ -24,23 +25,14 @@ symlinkSync(resolve(repo, "node_modules"), join(source, "node_modules"), "dir");
 const require = createRequire(join(repo, "package.json"));
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 function files(dir) { return readdirSync(dir, { withFileTypes: true }).sort((a,b) => a.name.localeCompare(b.name, "en")).flatMap(e => e.isDirectory() ? files(join(dir,e.name)) : [join(dir,e.name)]); }
-function sourceHash(paths) { return hash(paths.sort().map(p => `${p}\0${hash(readFileSync(join(source,p)))}\n`).join("")); }
-const contractPaths = ["supabase/functions/_shared/sessionCatalogueContract.ts", "supabase/functions/_shared/repairSportingEquivalence.ts", "supabase/functions/_shared/raceDayIdentity.ts", "supabase/functions/_shared/intentEvidence.ts", "supabase/functions/ai-training-plan/planSchema.ts", "supabase/functions/ai-training-plan-test/planSchema.ts", "src/lib/plan/planSchema.ts", "src/lib/plan/repairCatalogMetadata.ts", "src/lib/plan/phaseNormalization.ts", "src/lib/workoutCatalogBuilder.ts", "src/engines/plan/sessionSizingMatrix.ts"];
-const { createServer, build } = await import("vite");
+const { build } = await import("vite");
 const lexer = await import(createRequire(require.resolve("vite/package.json")).resolve("es-module-lexer"));
 await lexer.init;
-const previousLog = console.log;
-const ssr = await createServer({ configFile: false, root: source, resolve: { alias: { "@": join(source, "src") } }, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
-let catalog;
-try { console.log = () => {}; catalog = (await ssr.ssrLoadModule("/src/lib/workoutLibrary.ts")).WorkoutLibrary; }
-finally { console.log = previousLog; await ssr.close(); }
-const canonical = x => Array.isArray(x) ? x.map(canonical) : x && typeof x === "object" ? Object.fromEntries(Object.keys(x).sort().filter(k => x[k] !== undefined).map(k => [k, canonical(x[k])])) : x;
-const catalogJSON = JSON.stringify(canonical([...catalog].sort((a,b) => a.id.localeCompare(b.id, "en"))));
+const computed = await checkedPlanRelease(source);
+const { catalogJSON } = computed;
 writeFileSync(join(out, "catalogue.json"), catalogJSON);
-const info = { manifestVersion: 1, attested: true, sourceCommit: commit, contractHash: sourceHash(contractPaths), catalogueHash: hash(catalogJSON), lockHash: sourceHash(["bun.lockb", "package.json", "scripts/preproduction/edge-dependencies.lock"]), sourceEpoch: epoch };
-// The source template remains unbuilt in Git; only this archived tree gets an attestation.
-const template = readFileSync(join(source,"supabase/functions/_shared/planReleaseInfo.ts"),"utf8");
-writeFileSync(join(source,"supabase/functions/_shared/planReleaseInfo.ts"), template.replace(/export const PLAN_RELEASE_INFO: PlanReleaseInfo = [\s\S]*?;/, `export const PLAN_RELEASE_INFO: PlanReleaseInfo = ${JSON.stringify(info)};`));
+const info = { ...computed.info, attested: true, provenance: "archived-source", sourceCommit: commit, sourceEpoch: epoch };
+writeFileSync(join(source, manifestPath), declarationText(info));
 process.env.SOURCE_DATE_EPOCH = String(epoch);
 process.env.TFCL_PLAN_RELEASE_INFO = JSON.stringify(info);
 process.env.TZ = "UTC";
@@ -68,7 +60,7 @@ for (const name of ["ai-training-plan", "ai-training-plan-test"]) {
  artifacts[name] = tar(name,edgePackage,[entry,"supabase/functions/_shared/plan-release.json"]);
 }
 const dependencies = hash(files(resolve(repo,"node_modules/vite")).filter(p => !p.includes("node_modules/.cache")).map(p => relative(repo,p)+"\0"+hash(readFileSync(p))).join("\n"));
-const manifest = { ...info, sourceArchiveSha256: hash(readFileSync(archive)), catalogueEntries: catalog.length, toolchain: { node: process.version, nodeEnv: process.env.NODE_ENV, deno: denoVersion, vite: require("vite/package.json").version, viteInstallationSha256: dependencies }, artifacts,
+const manifest = { ...info, sourceArchiveSha256: hash(readFileSync(archive)), catalogueEntries: computed.catalogueEntries, toolchain: { node: process.version, nodeEnv: process.env.NODE_ENV, deno: denoVersion, vite: require("vite/package.json").version, viteInstallationSha256: dependencies }, artifacts,
   runtimeImports, edgePackaging: "Deno bundles with shared and remote/npm libraries closed using the frozen edge dependency lock; node:/Deno builtins remain runtime-provided. Not a deployed-version attestation.",
   rollback: { frontendPublicationId: null, productionDeploymentId: null, testDeploymentId: null, status: "unattested" } };
 writeFileSync(join(out,"manifest.json"), JSON.stringify(manifest,null,2)+"\n");
