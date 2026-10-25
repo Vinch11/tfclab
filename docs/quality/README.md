@@ -113,6 +113,10 @@ formes de rétention ; aucune donnée athlète ne doit être transmise par défa
    les seuls droits branche/PR. Environnement de revue protégé pour l'activation
    initiale ou changement sensible, branche de contrôle protégée, approbation des
    changements de gouvernance et refus des PR de forks dans les jobs avec secrets.
+   Les permissions GitHub d'écriture ne distinguent pas à elles seules création
+   de PR et fusion : imposer des règles de branche/rulesets réservant les mises
+   à jour de main aux responsables autorisés, sans bypass pour l'identité de la
+   boucle. L'absence d'une commande de merge n'est pas cette protection serveur.
 6. Faire un essai API borné explicitement autorisé ; il doit s'arrêter sur usage
    inconnu, dépassement ou incertitude. Une récurrence ultérieure exige une autre
    décision ; elle n'est pas impliquée par l'autorisation de cet essai.
