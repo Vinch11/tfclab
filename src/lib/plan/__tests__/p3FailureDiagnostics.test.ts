@@ -38,7 +38,7 @@ it("le précontrôle de version ne fait aucun POST et refuse un serveur incompat
  await expect(verifyPlanServerRelease("https://fixture.invalid/ai-training-plan", "fake-token", client, transport)).rejects.toThrow("PLAN_RELEASE_MISMATCH");
  expect(transport).toHaveBeenCalledTimes(1);
  expect(transport.mock.calls[0][1]?.method).toBe("GET");
- transport.mockResolvedValue(Response.json(client));
+ transport.mockResolvedValue(Response.json({ ...client, functionName: "ai-training-plan", functionVersion: client.components["ai-training-plan"] }));
  const headers = await verifyPlanServerRelease("https://fixture.invalid/ai-training-plan", "fake-token", client, transport);
  expect(headers["X-Plan-Contract-Hash"]).toBe(client.contractHash);
 });

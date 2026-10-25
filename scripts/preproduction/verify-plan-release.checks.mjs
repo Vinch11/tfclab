@@ -7,17 +7,20 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { verifyRelease } from "./verify-plan-release.mjs";
 const hash = x => createHash("sha256").update(x).digest("hex");
-function fixture(mixed = false) {
+function fixture(mixed = false, version = 1) {
  const dir = mkdtempSync(join(tmpdir(), "tfcl-manifest-test-"));
  const catalogue = "[]";
  const info = { manifestVersion: 1, attested: true, sourceCommit: "a".repeat(40), contractHash: "b".repeat(64), catalogueHash: hash(catalogue), lockHash: "d".repeat(64), sourceEpoch: 1 };
+ if (version === 2) Object.assign(info, { manifestVersion: 2, deploymentAttested: false, releaseId: "f".repeat(64), provenance: "archived-source", components: { frontend: "a".repeat(64), "ai-training-plan": "b".repeat(64), "ai-training-plan-test": "c".repeat(64) } });
  const artifacts = {};
  for (const name of ["frontend","ai-training-plan","ai-training-plan-test"]) {
   const root = join(dir,name); mkdirSync(root);
   if (name === "frontend") writeFileSync(join(root,"plan-release.json"), JSON.stringify(info));
   else {
    mkdirSync(join(root,"supabase/functions/_shared"), { recursive: true });
-   writeFileSync(join(root,"supabase/functions/_shared/plan-release.json"), JSON.stringify(mixed && name === "ai-training-plan-test" ? { ...info, sourceCommit: "e".repeat(40) } : info));
+   const altered = mixed && name === "ai-training-plan-test" ? version === 1 ? { ...info, sourceCommit: "e".repeat(40) }
+     : mixed === "component" ? { ...info, components: { ...info.components, frontend: "e".repeat(64) } } : { ...info, releaseId: "e".repeat(64) } : info;
+   writeFileSync(join(root,"supabase/functions/_shared/plan-release.json"), JSON.stringify(altered));
   }
   execFileSync("tar", ["-cf",join(dir,`${name}.tar`),"-C",root,...(name === "frontend" ? ["."] : ["supabase/functions/_shared"])]);
   const bytes = readFileSync(join(dir,`${name}.tar`));
@@ -37,4 +40,13 @@ test("reject corrupted artifacts", () => {
 
 test("accept a coherent three-artifact release", () => {
  const { path } = fixture(); assert.equal(verifyRelease(path).sourceCommit, "a".repeat(40));
+});
+test("v2 archives reject a mixed release identity with correct checksums", () => {
+ assert.throws(() => verifyRelease(fixture(true, 2).path), /Mixed release/);
+});
+test("v2 archives reject mismatched component fingerprints", () => {
+ assert.throws(() => verifyRelease(fixture("component", 2).path), /Mixed release/);
+});
+test("v2 coherent archives retain archive source provenance", () => {
+ assert.equal(verifyRelease(fixture(false, 2).path).provenance, "archived-source");
 });

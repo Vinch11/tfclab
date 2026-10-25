@@ -33,7 +33,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-plan-output-format, x-plan-source-commit, x-plan-contract-hash, x-plan-catalogue-hash, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-plan-output-format, x-plan-source-commit, x-plan-release-id, x-plan-lock-hash, x-plan-contract-hash, x-plan-catalogue-hash, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Access-Control-Max-Age": "86400",
 };
 function parseIsoDateUtc(iso?: string): number | undefined {

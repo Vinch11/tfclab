@@ -1,16 +1,21 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import { checkedPlanRelease, readDeclaration } from "./scripts/preproduction/plan-release-source.mjs";
 
 // https://vitejs.dev/config/
 const BUILD_DATE = process.env.SOURCE_DATE_EPOCH ? new Date(Number(process.env.SOURCE_DATE_EPOCH) * 1000) : new Date();
-const PLAN_RELEASE = process.env.TFCL_PLAN_RELEASE_INFO ? JSON.parse(process.env.TFCL_PLAN_RELEASE_INFO) : { manifestVersion: 1, attested: false, sourceCommit: null, contractHash: null, catalogueHash: null, lockHash: null, sourceEpoch: null };
 const pad = (n: number) => String(n).padStart(2, "0");
 const APP_VERSION = `${BUILD_DATE.getFullYear()}.${pad(BUILD_DATE.getMonth() + 1)}.${pad(BUILD_DATE.getDate())}-${pad(BUILD_DATE.getHours())}${pad(BUILD_DATE.getMinutes())}`;
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(async ({ mode, command }) => {
+ const root = __dirname;
+ const PLAN_RELEASE = command === "build"
+   ? (await checkedPlanRelease(root, process.env.TFCL_PLAN_RELEASE_INFO ? JSON.parse(process.env.TFCL_PLAN_RELEASE_INFO) : undefined)).info
+   : readDeclaration(root);
+ return {
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
     __PLAN_RELEASE_INFO__: JSON.stringify(PLAN_RELEASE),
@@ -21,6 +26,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
+    { name: "plan-release-metadata", generateBundle() { this.emitFile({ type: "asset", fileName: "plan-release.json", source: JSON.stringify(PLAN_RELEASE) }); } } satisfies Plugin,
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
@@ -128,4 +134,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-}));
+ };
+});

@@ -31,6 +31,11 @@ jobs:
           deno-version: v2.9.6
       - name: Negative checksum and mixed-release tests
         run: node --test scripts/preproduction/verify-plan-release.checks.mjs
+      - name: Lovable ordinary build without preparation metadata
+        run: |
+          node scripts/preproduction/plan-release-source.mjs
+          env -u TFCL_PLAN_RELEASE_INFO -u SOURCE_DATE_EPOCH bun run build
+          node -e 'const m=JSON.parse(require("node:fs").readFileSync("dist/plan-release.json","utf8")); if(m.manifestVersion!==2 || m.attested!==false || m.provenance!=="declared-source" || !m.releaseId) process.exit(1)'
       - name: Build twice from the same immutable commit
         run: |
           node scripts/preproduction/prepare-plan-release.mjs --commit HEAD --out /tmp/tfcl-release-a
