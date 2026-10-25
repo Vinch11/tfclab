@@ -10,3 +10,10 @@ export async function verifyPlanServerRelease(url: string, token: string, client
  if (!samePlanContract(client, server)) throw new Error("PLAN_RELEASE_MISMATCH");
  return { "X-Plan-Source-Commit": client.sourceCommit!, "X-Plan-Contract-Hash": client.contractHash!, "X-Plan-Catalogue-Hash": client.catalogueHash! };
 }
+
+/** Every generation transport (including targeted/legacy paths) uses this gate. */
+export async function currentPlanReleaseHeaders(url: string, token: string): Promise<Record<string, string>> {
+ if (typeof __PLAN_RELEASE_INFO__ !== "undefined" && __PLAN_RELEASE_INFO__.attested) return verifyPlanServerRelease(url, token, __PLAN_RELEASE_INFO__);
+ if (import.meta.env.PROD) throw new Error("PLAN_RELEASE_UNATTESTED");
+ return {}; // explicit local development/test only; not an attested publication
+}

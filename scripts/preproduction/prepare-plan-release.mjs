@@ -60,11 +60,11 @@ writeFileSync(join(edgePackage,"supabase/functions/_shared/plan-release.json"),J
 for (const name of ["ai-training-plan", "ai-training-plan-test"]) {
  const entry = `supabase/functions/${name}/index.ts`;
  mkdirSync(join(edgePackage,"supabase/functions",name), { recursive:true });
- execFileSync(deno, ["bundle", "--platform=deno", "--node-modules-dir=none", `--lock=${join(source,"scripts/preproduction/edge-dependencies.lock")}`, "--frozen-lockfile", "-o", join(edgePackage,entry), entry], { cwd:edge, stdio:["ignore","pipe","pipe"] });
+ execFileSync(deno, ["bundle", "--minify", "--platform=deno", "--node-modules-dir=none", `--lock=${join(source,"scripts/preproduction/edge-dependencies.lock")}`, "--frozen-lockfile", "-o", join(edgePackage,entry), entry], { cwd:edge, stdio:["ignore","pipe","pipe"] });
  const bundle = readFileSync(join(edgePackage,entry),"utf8");
  const imports = lexer.parse(bundle)[0].filter(i => i.d !== -2);
  runtimeImports[name] = { imports: imports.map(i => i.n ?? "dynamic-runtime"), unresolvedDynamic: imports.filter(i => i.n === undefined).length };
- if (bundle.includes(stage) || imports.some(i => /^(https?:|npm:|jsr:)/.test(i.n ?? ""))) throw new Error("Unclosed or path-dependent edge bundle");
+ if (bundle.includes(stage) || bundle.includes(".cache/deno/") || imports.some(i => /^(https?:|npm:|jsr:)/.test(i.n ?? ""))) throw new Error("Unclosed or path-dependent edge bundle");
  artifacts[name] = tar(name,edgePackage,[entry,"supabase/functions/_shared/plan-release.json"]);
 }
 const dependencies = hash(files(resolve(repo,"node_modules/vite")).filter(p => !p.includes("node_modules/.cache")).map(p => relative(repo,p)+"\0"+hash(readFileSync(p))).join("\n"));

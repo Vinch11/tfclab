@@ -49,6 +49,7 @@ export interface PlanSchemaFailDetails {
 }
 
 export interface PlanGenerationStat {
+  warningEvidence?: Array<ReturnType<typeof import("../../../supabase/functions/_shared/planFailureDiagnostics").sanitizeWarningEvidence>>;
   generationContext?: ReturnType<typeof technicalGenerationEvent>;
   clientRelease?: ReturnType<typeof import("../../../supabase/functions/_shared/planDiagnosticPrivacy").technicalRelease>;
   ts: number;                                // epoch ms

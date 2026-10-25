@@ -1,5 +1,5 @@
 import type { PlanGenerationStat } from "./planGenerationStats";
-import { sanitizeSchemaFailure, safeFailureCode, sanitizeTechnicalTraces } from "../../../supabase/functions/_shared/planFailureDiagnostics";
+import { sanitizeSchemaFailure, safeFailureCode, sanitizeTechnicalTraces, sanitizeWarningEvidence } from "../../../supabase/functions/_shared/planFailureDiagnostics";
 import { technicalRelease, technicalGenerationEvent } from "../../../supabase/functions/_shared/planDiagnosticPrivacy";
 export function sanitizePlanStat(input: PlanGenerationStat): PlanGenerationStat {
  const numeric = (v: unknown) => typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
@@ -11,6 +11,7 @@ export function sanitizePlanStat(input: PlanGenerationStat): PlanGenerationStat 
  }
  if (input.errorCode !== undefined || !out.ok) { out.errorCode = safeFailureCode(input.errorCode); out.errorMessage = `Échec technique : ${out.errorCode}`; }
  if (input.schemaFailDetails) out.schemaFailDetails = sanitizeSchemaFailure(input.schemaFailDetails);
+ if (Array.isArray(input.warningEvidence)) out.warningEvidence = input.warningEvidence.map(sanitizeWarningEvidence);
  if (input.semanticRepairs) out.semanticRepairs = sanitizeTechnicalTraces(input.semanticRepairs);
  if (input.clientRelease) out.clientRelease = technicalRelease(input.clientRelease);
  if (input.generationContext) out.generationContext = technicalGenerationEvent(input.generationContext);

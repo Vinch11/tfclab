@@ -1,5 +1,5 @@
-import { verifyPlanServerRelease } from "@/lib/plan/planReleasePreflight";
-import { sanitizeSchemaFailure, safeFailureCode } from "../../supabase/functions/_shared/planFailureDiagnostics";
+import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
+import { sanitizeSchemaFailure, safeFailureCode, sanitizeWarningEvidence } from "../../supabase/functions/_shared/planFailureDiagnostics";
 import { technicalGenerationConfig, technicalGenerationEvent, technicalRelease } from "../../supabase/functions/_shared/planDiagnosticPrivacy";
 /**
  * Hook for streaming AI training plan generation
@@ -1349,12 +1349,7 @@ export function useAITrainingPlan() {
         functionName: planUrl.split("/functions/v1/")[1] ?? "unavailable", outputFormat: planConfig._outputFormat ?? "markdown",
         ...technicalGenerationConfig(planConfig),
       });
-      let releaseHeaders: Record<string, string> = {};
-      if (typeof __PLAN_RELEASE_INFO__ !== "undefined" && __PLAN_RELEASE_INFO__.attested) {
-        releaseHeaders = await verifyPlanServerRelease(planUrl, token, __PLAN_RELEASE_INFO__);
-      } else if (import.meta.env.PROD) {
-        throw new Error("PLAN_RELEASE_UNATTESTED");
-      }
+      const releaseHeaders = await currentPlanReleaseHeaders(planUrl, token);
       const resp = await fetch(planUrl, {
         method: "POST",
         headers: {
@@ -1426,6 +1421,7 @@ export function useAITrainingPlan() {
         let sseBuffer = "";
         const collected: PlanChunk[] = [];
         const semanticRepairs: string[] = [];
+        const warningEvidence: Array<ReturnType<typeof sanitizeWarningEvidence>> = [];
         let generationContext: ReturnType<typeof technicalGenerationEvent> | undefined;
         let fatalError: { code: string; message: string; details?: any; chunkIndex?: number } | null = null;
         // Préparation pilote Mode B — accumulateur local (fonction pure
@@ -1515,6 +1511,7 @@ export function useAITrainingPlan() {
               chunkIndex: typeof data.chunkIndex === "number" ? data.chunkIndex : undefined,
             };
           } else if (event === "warning") {
+            warningEvidence.push(sanitizeWarningEvidence(data));
             const code = data.code ?? "warning";
             const severity = data.severity ?? "warning";
             const repair = data.repair;
@@ -1847,7 +1844,7 @@ export function useAITrainingPlan() {
             diversityRatio: diversity.distinctRatio,
             distinctCatalogIds: diversity.distinctCatalogIds,
             maxFicheRepeat: diversity.maxRepeat,
-            semanticRepairs, generationContext,
+            semanticRepairs, generationContext, warningEvidence,
             clientRelease: typeof __PLAN_RELEASE_INFO__ === "undefined" ? undefined : technicalRelease(__PLAN_RELEASE_INFO__),
           });
 
@@ -1896,7 +1893,7 @@ export function useAITrainingPlan() {
           totalWeeks, totalChunks, durationMs: jsonDurMs, ok: false,
           errorCode: failCode, errorMessage: failMsg,
           schemaFailDetails: mergeError?.details,
-          semanticRepairs, generationContext,
+          semanticRepairs, generationContext, warningEvidence,
           clientRelease: typeof __PLAN_RELEASE_INFO__ === "undefined" ? undefined : technicalRelease(__PLAN_RELEASE_INFO__),
         });
         setIsLoading(false);

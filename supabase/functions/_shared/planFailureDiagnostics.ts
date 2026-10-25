@@ -20,9 +20,9 @@ function attempt(x: unknown) {
  return { attempt: number(v.attempt), rawLength: number(v.rawLength),
   finishReason: ["stop","length","content_filter"].includes(String(v.finishReason)) ? String(v.finishReason) : undefined,
   unwrapped: typeof v.unwrapped === "boolean" ? v.unwrapped : undefined,
-  repairCount: Array.isArray(v.repairs) ? v.repairs.length : 0,
-  issueCount: Array.isArray(v.zodIssues) ? v.zodIssues.length : 0,
-  issuesTruncated: Array.isArray(v.zodIssues) && v.zodIssues.length > 100,
+  repairCount: number(v.repairCount) ?? (Array.isArray(v.repairs) ? v.repairs.length : undefined),
+  issueCount: Math.max(number(v.issueCount) ?? 0, Array.isArray(v.zodIssues) ? v.zodIssues.length : 0),
+  issuesTruncated: v.issuesTruncated === true || (Array.isArray(v.zodIssues) && v.zodIssues.length > 100),
   zodIssues: Array.isArray(v.zodIssues) ? v.zodIssues.slice(0, 100).map(issue) : [],
   gateway: { constrained: typeof object(v.gateway).constrained === "boolean" ? object(v.gateway).constrained as boolean : undefined } };
 }
@@ -46,4 +46,24 @@ export function sanitizeTechnicalTraces(value: unknown): string[] {
   const level = line.match(/^\[(critical|error|warning|info)\]/)?.[1] ?? "info";
   return [`[${level}] ${code}${week ? ` W${week}` : ""}`];
  });
+}
+
+/** Numeric repair evidence only; catalogue/athlete free text is never a diagnostic field. */
+export function sanitizeWarningEvidence(value: unknown) {
+ const v = object(value), repair = object(v.repair), before = object(repair.before), diagnostics = object(repair.diagnostics);
+ const known = typeof v.code === "string" && traceCodes.has(v.code) ? v.code : "OTHER_WARNING";
+ const bucketCounts = (input: unknown) => {
+  const out: Record<string, number> = {};
+  for (const [key, count] of Object.entries(object(input))) {
+   const bucket = key.split(":")[0];
+   if (["phase","intent","sport","objective","duration","intensity","recovery_zone","recovery_intent","week_zone_cap","special_context","prerequisite","original_metadata_incomplete","candidate_metadata_incomplete"].includes(bucket) && number(count) !== undefined) out[bucket] = (out[bucket] ?? 0) + Number(count);
+  }
+  return out;
+ };
+ return { code: known, weekNumber: number(v.weekNumber) ?? number(repair.weekNumber), chunkIndex: number(v.chunkIndex) ?? number(repair.chunkIndex),
+  sport: ["swim","bike","run","brick","strength","recovery"].includes(String(repair.sport ?? v.sport)) ? String(repair.sport ?? v.sport) : undefined,
+  severity: ["critical","error","warning","info"].includes(String(v.severity)) ? String(v.severity) : "info",
+  floorMin: number(repair.floorMin) ?? number(v.floorMin), beforeDurationMin: number(before.durationMin) ?? number(v.beforeDurationMin),
+  sameSportCandidates: number(repair.sameSportCandidatesInChunk) ?? number(v.sameSportCandidates), totalCandidates: number(repair.totalCandidatesInChunk) ?? number(v.totalCandidates), eligibleCount: number(v.eligibleCount),
+  localRejections: bucketCounts(diagnostics.localRejections ?? v.localRejections), globalRejections: bucketCounts(diagnostics.globalRejections ?? v.globalRejections) };
 }

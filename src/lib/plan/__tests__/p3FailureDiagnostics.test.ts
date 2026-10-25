@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { it, expect, vi } from "vitest";
 import { readPlanStats, logPlanStat } from "../planGenerationStats";
 import { exportPlanDiagnostics } from "../planStatPrivacy";
@@ -40,4 +41,24 @@ it("le précontrôle de version ne fait aucun POST et refuse un serveur incompat
  transport.mockResolvedValue(Response.json(client));
  const headers = await verifyPlanServerRelease("https://fixture.invalid/ai-training-plan", "fake-token", client, transport);
  expect(headers["X-Plan-Contract-Hash"]).toBe(client.contractHash);
+});
+
+it("préserve les compteurs et refus techniques après plusieurs frontières de confidentialité", async () => {
+ const { sanitizeWarningEvidence } = await import("../../../../supabase/functions/_shared/planFailureDiagnostics");
+ const evidence = sanitizeWarningEvidence({ code: "sl_upgrade_unresolved", severity: "critical", repair: {
+  weekNumber: 1, sport: "bike", floorMin: 120, before: { title: canary, details: canary, durationMin: 80 },
+  sameSportCandidatesInChunk: 37, totalCandidatesInChunk: 130,
+  diagnostics: { localRejections: { "phase:base": 10, "intent:force->endurance_fondamentale": 27, [canary]: 99 }, globalRejections: {} } } });
+ const report = exportPlanDiagnostics([{ ts: 8, ok: false, format: "json", objective: "703", totalWeeks: 32, totalChunks: 7, durationMs: 1,
+  warningEvidence: [evidence], schemaFailDetails: sanitizeSchemaFailure({ repairs: [canary], zodIssues: Array.from({ length: 120 }, () => ({ path: "weeks.0", code: "custom", message: canary })) }) }]);
+ expect(report).not.toContain(canary); expect(report).toContain('"sameSportCandidates": 37'); expect(report).toContain('"floorMin": 120');
+ expect(report).toContain('"intent": 27'); expect(report).toContain('"issueCount": 120'); expect(report).toContain('"issuesTruncated": true');
+ expect(report).toContain('"repairCount": 1');
+});
+
+it("les quatre transports de génération passent par le précontrôle, sans exception de régénération", () => {
+ const hook = readFileSync("src/hooks/useAITrainingPlan.ts", "utf8"), page = readFileSync("src/pages/AITrainingPlanPage.tsx", "utf8");
+ expect(hook).toContain("await currentPlanReleaseHeaders(planUrl, token)");
+ expect(page.match(/await currentPlanReleaseHeaders\(PLAN_URL,/g)).toHaveLength(3);
+ expect(page.match(/fetch\(PLAN_URL,/g)).toHaveLength(3);
 });
