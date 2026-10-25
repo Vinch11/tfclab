@@ -5,6 +5,10 @@
  */
 
 export interface ParsedSession {
+  /** Absent on legacy sessions: never infer a catalog duration as a prescription. */
+  durationMin?: number;
+  custom?: boolean;
+  variantKey?: string;
   weekNumber: number;
   weekTheme: string;
   phase: string;

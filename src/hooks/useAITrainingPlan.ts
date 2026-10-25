@@ -983,7 +983,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           effTotalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
+          { strictPhaseFilter: true, maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         phaseRepairCatalogs[pr.phase] = catalog.map(entry => entry.repairMetadata);
@@ -1043,7 +1043,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
+            { strictPhaseFilter: true, maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           chunkRepairCatalogs.push(chunkCatalog.map(entry => entry.repairMetadata));
@@ -1695,7 +1695,7 @@ export function useAITrainingPlan() {
             // sur le plan RÉEL livré au coach — pas seulement dans le harnais QA
             // synthétique.
             try {
-              const finalValidation = computeFinalValidationIssues(merged, semanticRepairs, {
+              const finalValidation = computeFinalValidationIssues({ ...merged, weeklyQuotas: lastWeeklyQuotasRef.current }, semanticRepairs, {
                 vmaKmh: athleteData.vma ?? null,
                 thresholdPaceSecPerKm: athleteData.paceThresholdSecPerKm ?? null,
                 objective: planConfig.objective ?? "",

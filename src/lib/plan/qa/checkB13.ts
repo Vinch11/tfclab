@@ -42,6 +42,10 @@ export interface FinalValidationSessionLike {
   isRest: boolean;
   catalogId?: string | null;
   custom?: boolean;
+  durationMin?: number;
+  sport?: string;
+  zones?: string[];
+  variantKey?: string;
   dayName?: string;
 }
 export interface FinalValidationWeekLike {
@@ -50,6 +54,7 @@ export interface FinalValidationWeekLike {
   sessions: FinalValidationSessionLike[];
 }
 export interface FinalValidationPlanLike {
+  weeklyQuotas?: Record<number, { weekType?: string }>;
   weeks: FinalValidationWeekLike[];
 }
 

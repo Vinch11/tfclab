@@ -1,3 +1,4 @@
+import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 /**
  * AIPlanPDFExport — Generates a printable HTML view of the AI plan for PDF export
@@ -433,8 +434,10 @@ function buildPlanHTML(
             ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
           </div>`
         : "";
-      const fiche = (isCompact || s.isRest) ? null : getFicheForSession({ title: s.title, details: s.details }, gapContext?.objective, gapContext?.wbalRefs);
+      const fiche = (isCompact || s.isRest) ? null : getFicheForSession(s, gapContext?.objective, gapContext?.wbalRefs);
 
+      const catalogueIssues = validateSessionCataloguePlan({ weeklyQuotas: plan.weeklyQuotas, weeks: [{ weekNumber: week.weekNumber, phase: week.phase, sessions: [s] }] });
+      const catalogueWarning = catalogueIssues.length ? `<p style="color:#a22;font-weight:bold">Prescription et référence catalogue : correspondance à vérifier.</p>` : "";
       if (isPortrait) {
         // Stacked card layout — clearer in A4 portrait
         const header = `
@@ -446,7 +449,7 @@ function buildPlanHTML(
           </div>`;
         const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${formatFicheText(s.details || "")}</div>`;
         const ficheBlock = fiche
-          ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></div>`
+          ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></div>`
           : "";
         const altsBlock = altsHtml
           ? `<div style="border-top:1px dashed #DAD6CC;background:#fff;padding:6px 10px;">${altsHtml}</div>`
@@ -459,7 +462,7 @@ function buildPlanHTML(
 
       const totalCols = (hasDate ? 1 : 0) + 4;
       const ficheRow = fiche
-        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#FAF9F5;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></td></tr>`
+        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#FAF9F5;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></td></tr>`
         : "";
       const altsRow = altsHtml
         ? `<tr class="alts-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`

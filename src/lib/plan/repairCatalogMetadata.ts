@@ -54,6 +54,7 @@ export function buildRepairWorkoutMetadata(workout: LibraryWorkout): RepairWorko
     return `${part.part}: ${part.text}`;
   }).join(" | ");
   return {
+    variants: { ...(workout.variants ?? {}) },
     metadataVersion: 1,
     complete: true,
     id: workout.id,

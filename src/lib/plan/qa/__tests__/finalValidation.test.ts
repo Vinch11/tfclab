@@ -19,7 +19,7 @@ vi.mock("@/lib/workoutLibrary", () => {
 import { computeFinalValidationIssues } from "@/lib/plan/qa/finalValidation";
 
 function session(overrides: Partial<FinalValidationPlanLike["weeks"][number]["sessions"][number]>) {
-  return { title: "Séance", details: "", isRest: false, catalogId: null, custom: false, ...overrides };
+  return { title: "Séance", details: "", sport: "run", durationMin: 50, zones: ["Z4"], isRest: false, catalogId: null, custom: false, ...overrides };
 }
 
 describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (avertissement)", () => {
@@ -47,14 +47,14 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
     expect(r.issues.filter((i) => i.severity === "error").length).toBe(1);
   });
 
-  it("incohérence phase/fiche seule (B14) → hasCritical=false, une issue 'warning'", () => {
+  it("incompatibilité phase certaine → critique, B14 reste visible", () => {
     const plan: FinalValidationPlanLike = {
       weeks: [{ weekNumber: 1, phase: "taper", sessions: [session({ catalogId: "BUILD_ONLY_RUN" })] }],
     };
     const r = computeFinalValidationIssues(plan);
-    expect(r.hasCritical).toBe(false);
-    expect(r.issues.length).toBe(1);
-    expect(r.issues[0].severity).toBe("warning");
+    expect(r.hasCritical).toBe(true);
+    expect(r.issues.some(i => i.rule === "catalogue_prescription_incompatible")).toBe(true);
+    expect(r.issues.some(i => i.severity === "warning")).toBe(true);
   });
 
   it("une incohérence critique ET un avertissement en même temps → hasCritical=true, les deux remontent", () => {
@@ -81,7 +81,7 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
       "[reconciler] [phase_unresolved] W4/Mardi sport=run fiche=BUILD_ONLY_RUN weekPhase=taper allowed=build",
     ]);
     expect(r.issues.filter(issue => issue.rule === "phase_unresolved")).toHaveLength(1);
-    expect(r.hasCritical).toBe(false);
+    expect(r.hasCritical).toBe(true);
   });
 
   it("un plancher de sortie longue non satisfait remonte comme critique", () => {

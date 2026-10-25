@@ -80,8 +80,8 @@ Deno.test("les IDs du catalogue régénération sont inclus dans allowedIds (sin
 
 Deno.test("le bloc catalogue restreint régénération est bien injecté dans userPrompt, juste après le catalogue principal", () => {
   const body = sliceBetween("const userPrompt = [", "].filter(Boolean).join(\"\\n\");");
-  const catalogIdx = body.indexOf("catalogDump ? `\\n${catalogDump}\\n` : null,");
-  const regenIdx = body.indexOf("regenCatalogBlock,");
+  const catalogIdx = body.indexOf("catalogDump ? `\\n${filterDump(catalogDump)}\\n` : null,");
+  const regenIdx = body.indexOf("regenCatalogBlock ? filterDump(regenCatalogBlock)");
   assert(catalogIdx >= 0, "l'insertion du catalogue principal dans userPrompt est introuvable");
   assert(regenIdx >= 0, "regenCatalogBlock n'est plus injecté dans userPrompt — le LLM ne verrait plus jamais le catalogue restreint régénération");
   assert(regenIdx > catalogIdx, "regenCatalogBlock doit être injecté APRÈS le catalogue principal (complément, jamais substitut)");
