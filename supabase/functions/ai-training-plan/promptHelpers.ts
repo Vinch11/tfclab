@@ -1576,7 +1576,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     sport: mapObjectiveToSport(config.objective || ""),
   });
 
-  console.log(`🎯 deriveRaceTargets : VMA snapshot ${vmaForDerive ?? "n/a"} km/h · seuil ${paceThrForDerive ?? "n/a"} s/km · objectif "${config.objective}" · ambition "${config.ambition}" → source=${derived.source} · time=${derived.raceTimeSec ?? "n/a"}s · pace=${derived.racePaceSecPerKm ?? "n/a"}s/km · divLittérature=${derived.divergencePct ?? "n/a"}% · volumeCible=${derived.volumeCible ?? "n/a"}h · qualites=${derived.qualitesParSemaine}/sem · complexite=${derived.complexiteSeances}`);
+  console.info("[race_target_resolution] completed");
 
   if (derived.source === "snapshot" && derived.raceTimeSec != null && derived.paceRange && derived.timeRange) {
     lines.push(`- **🎯 CIBLE COURSE (snapshot — source unique) :** ${derived.humanSummary}`);
@@ -1929,7 +1929,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         });
         lines.push(formatTriathlonZonesForPrompt(zones));
       } catch (e) {
-        console.warn("⚠️ [triathlonZones] échec injection :", e);
+        console.warn("[triathlon_zones] injection_failed");
       }
     }
   }
@@ -2087,7 +2087,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     });
     lines.push(nutriBlock);
   } catch (e) {
-    console.warn("⚠️ [nutritionAndSafetyGuardrails] échec injection :", e);
+    console.warn("[nutrition_guardrails] injection_failed");
   }
 
   // --- Identified weaknesses (ranked by importance) ---

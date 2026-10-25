@@ -37,9 +37,10 @@ describe("replay local B-5K-BEGINNER 2026-10-15 (aucun appel IA)", () => {
   it("ne lit pas Z3 haut comme 3 heures, tout en conservant les durées en heures", () => {
     const parsed = jsonPlanToParsedPlan(structuredClone(fixture.output.mergedPlan) as MergedPlan);
     const session = parsed.weeks.find(w => w.weekNumber === 8)!.sessions.find(s => s.dayName === "Dimanche")!;
-    expect(parseSessionDurationMin(session)).toBe(55); // ancien parseur : 235 min
-    expect(parseSessionDurationMin({ ...session, title: "Endurance", details: "1h30 Z2" })).toBe(90);
-    expect(parseSessionDurationMin({ ...session, title: "Endurance", details: "2 h 15 Z2" })).toBe(135);
-    expect(replay().weekMetrics.find(w => w.weekNumber === 8)!.totalDurationMin).toBe(95);
+    expect(parseSessionDurationMin(session)).toBe(60); // durée prescrite enregistrée
+    expect(parseSessionDurationMin({ ...session, durationMin: undefined })).toBe(55); // legacy : jamais235min
+    expect(parseSessionDurationMin({ ...session, durationMin: undefined, title: "Endurance", details: "1h30 Z2" })).toBe(90);
+    expect(parseSessionDurationMin({ ...session, durationMin: undefined, title: "Endurance", details: "2 h 15 Z2" })).toBe(135);
+    expect(replay().weekMetrics.find(w => w.weekNumber === 8)!.totalDurationMin).toBe(165);
   });
 });

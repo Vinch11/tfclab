@@ -126,7 +126,7 @@ serve(async (req) => {
     const jsonModeRequested = planConfig?._outputFormat === "json"
       || req.headers.get("X-Plan-Output-Format")?.toLowerCase() === "json";
     if (jsonModeRequested) {
-      console.log(`🧬 Phase 1A JSON path activé (flag=${planConfig?._outputFormat ?? "header"}).`);
+      console.info("[plan_output] json_selected");
       const { handleJSONPlanRequest } = await import("./jsonPlanHandler.ts");
       return handleJSONPlanRequest({
         diagnosticContext,
@@ -168,7 +168,7 @@ serve(async (req) => {
       ? `${planConfig._expressFinisherPromptPrefix.trim()}\n\n`
       : "";
     const systemPrompt = `${expressPrefix}${baseSystemPrompt}`;
-    console.log(`📋 F-21 systemPrompt profile: sex=${athleteData?.sex ?? planConfig?._athleteSex ?? "?"} age=${athleteData?.age ?? "?"} obj=${systemPromptObjective ?? "?"} expressPrefix=${expressPrefix ? "yes" : "no"} → ${systemPrompt.length} chars`);
+    console.info("[plan_prompt] prepared", { characters: systemPrompt.length, express: !!expressPrefix });
     let userPrompt: string;
     if (regenerateWeek) {
       userPrompt = `Régénère UNIQUEMENT la Semaine ${regenerateWeek.weekNumber} du plan.
@@ -242,9 +242,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const _terrainHardBanTop = buildTerrainHardBanBlock(planConfig);
     if (_terrainHardBanTop) {
       userPrompt = `${_terrainHardBanTop}\n\n${userPrompt}`;
-      console.log(`🏙️ TERRAIN HARD-BAN ACTIVE: terrainAvailability="${planConfig?.terrainAvailability}" → injecté en tête + queue de chaque chunk.`);
+      console.info("[terrain_guard] enabled");
     } else {
-      console.log(`🏙️ TERRAIN HARD-BAN inactif (terrainAvailability="${planConfig?.terrainAvailability ?? "undefined"}").`);
+      console.info("[terrain_guard] inactive");
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
@@ -1522,12 +1522,12 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
                 // ─── Détection FUITES TRAIL dans un plan 70.3/LCW ───
                 // Cherche IDs Hedgehog/Urban/Trail ainsi que vocabulaire trail dans le corps.
                 const trailIdRx = /\b(HEDGEHOG_\w+|URBAN_\w+|TRAIL_\w+|\w+_TRAIL_\w+)\b/gi;
-                const trailIdMatches = Array.from(new Set((full.match(trailIdRx) || []).map(s => s.toUpperCase())));
+                const trailIdMatches = Array.from(new Set((fullPlanText.match(trailIdRx) || []).map(s => s.toUpperCase())));
                 if (trailIdMatches.length > 0) {
                   lcwViolations.push(`Fuite TRAIL détectée : ID(s) interdit(s) dans un plan 70.3 LCW → ${trailIdMatches.slice(0, 5).join(", ")}${trailIdMatches.length > 5 ? "…" : ""}`);
                 }
                 const trailVocabRx = /\b(d[eé]nivel[eé]|D\+\s*\d|sentier|b[aâ]tons?|sac\s*[aà]\s*dos)\b/gi;
-                const trailVocabHits = (full.match(trailVocabRx) || []).length;
+                const trailVocabHits = (fullPlanText.match(trailVocabRx) || []).length;
                 if (trailVocabHits >= 3) {
                   lcwViolations.push(`Vocabulaire TRAIL suspect (${trailVocabHits} occurrences) dans un plan 70.3 LCW — vérifier absence de séances montagne/sentier`);
                 }
@@ -1543,7 +1543,7 @@ Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→
                 let m: RegExpExecArray | null;
                 // Reconstruire une timeline linéaire (jour, contenu) dans l'ordre d'apparition.
                 const timeline: Array<{ day: string; body: string }> = [];
-                while ((m = dayBlockRx.exec(full)) !== null) {
+                while ((m = dayBlockRx.exec(fullPlanText)) !== null) {
                   timeline.push({ day: m[1], body: m[2] });
                 }
                 const isLongBike = (body: string): boolean => {
