@@ -1,3 +1,4 @@
+import { technicalGenerationConfig, technicalRuntimeContext, technicalFloorAudit, technicalFloors } from "../_shared/planDiagnosticPrivacy.ts";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * PHASE 1A — Handler JSON structuré (route feature-flaggée)
@@ -609,7 +610,7 @@ export function applySLFloorEnforcement(
     for (const week of chunk.weeks ?? []) {
       // Lookup PAR weekNumber (pas par index — chunk 2 commence à W6).
       const rawEntry = weeklyQuotas[week.weekNumber];
-      if (rawEntry?.floorAudit) traces.push(`[sl_floor_pipeline] ${JSON.stringify({ stage: "server_received", week: week.weekNumber, floorAudit: rawEntry.floorAudit, consumedFloors: rawEntry.floors ?? rawEntry })}`);
+      if (rawEntry?.floorAudit) traces.push(`[sl_floor_pipeline] ${JSON.stringify({ stage: "server_received", week: week.weekNumber, floorAudit: technicalFloorAudit(rawEntry.floorAudit), consumedFloors: technicalFloors(rawEntry.floors) })}`);
       const entry = resolveSLFloor(rawEntry);
       if (!entry) {
         traces.push(`[SL_FLOOR] S${week.weekNumber} action=skipped_reason=no_quota_entry`);
@@ -712,7 +713,7 @@ export function applySLFloorEnforcement(
             sameSportCandidatesInChunk: localAudit.length, totalCandidatesInChunk: candidates.length,
             nearestCandidates, diagnostics,
             before: {
-              day: target.day, title: target.title ?? "", details: target.details ?? "",
+              day: target.day, title: "séance",
               durationMin: target.durationMin ?? 0,
               catalogId: (target as any).catalogId ?? null,
             },
@@ -727,7 +728,7 @@ export function applySLFloorEnforcement(
           Math.min(cand.durationMin[1], Math.max(cand.durationMin[0], target.durationMin ?? cand.durationMedian)),
         );
         const before = {
-          day: target.day, title: target.title ?? "",
+          day: target.day, title: "séance",
           durationMin: target.durationMin ?? 0,
           catalogId: (target as any).catalogId ?? null,
         };
@@ -1881,10 +1882,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
     async start(controller) {
       controller.enqueue(sseEvent("generation-context", {
         diagnosticRevision: "p0-forensics-2026-10-25.1",
-        ...input.diagnosticContext,
-        outputFormat: "json", planStartDate: planConfig?.planStartDate ?? null,
-        weeksAvailable: planConfig?.weeksAvailable ?? null, globalTotalWeeks: planConfig?.globalTotalWeeks ?? null,
-        raceGoals: planConfig?.raceGoals ?? [],
+        ...technicalRuntimeContext(input.diagnosticContext),
+        outputFormat: "json", ...technicalGenerationConfig(planConfig),
       }));
       const enqueue = (event: string, data: unknown) => controller.enqueue(sseEvent(event, data));
 

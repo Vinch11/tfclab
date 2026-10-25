@@ -825,7 +825,7 @@ function runOnePass(
               parsedKeyCount: cntKey(sp.sport), observedCount: cnt(sp.sport), sportMax, activeCount,
               totalMax: effective.totalSessions.max, weekType: quotaEntry.weekType,
               sessions: (bySport.get(sp.sport) ?? []).map(s => ({ day: s.day, catalogId: s.catalogId,
-                title: s.title, durationMin: s.durationMin, isKeySession: s.isKeySession, zones: s.zones })) })}`);
+                durationMin: s.durationMin, isKeySession: s.isKeySession })) })}`);
             continue;
           }
           // Audit "B-5K-BEGINNER round 2" (consigne coach) : un plancher SL

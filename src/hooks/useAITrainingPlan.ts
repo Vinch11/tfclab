@@ -1,3 +1,4 @@
+import { technicalGenerationConfig, technicalGenerationEvent } from "../../supabase/functions/_shared/planDiagnosticPrivacy";
 /**
  * Hook for streaming AI training plan generation
  * ─────────────────────────────────────────────────
@@ -1233,7 +1234,7 @@ export function useAITrainingPlan() {
             entry.floors, globalWeekNum, weekType, slRampAnchors, injuryRiskForSlFloor,
           );
           if (individualized.reasons.length > 0) {
-            slFloorIndividualizationLog.push(`S${w} (globale S${globalWeekNum}): ${individualized.reasons.join(" · ")}`);
+            slFloorIndividualizationLog.push(`S${w} (globale S${globalWeekNum}): planchers individualisés`);
           }
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
             finalStageSport: isLCWFormat ? "run" : undefined,
@@ -1241,9 +1242,9 @@ export function useAITrainingPlan() {
 
           weeklyQuotas[w] = { ...entry, floors: individualized.floors, layout,
             floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,
-              weeklyHours: hoursAvail, volumeRamp: slRampAnchors, injuryRisk: injuryRiskForSlFloor,
+              rampConfigured: !!slRampAnchors,
               nominal: entry.floors, individualized: individualized.floors,
-              appliedPct: individualized.appliedPct, reasons: individualized.reasons }),
+               }),
           };
           traceSLFloorConsumer("generation", w, weeklyQuotas[w]);
         }
@@ -1343,8 +1344,7 @@ export function useAITrainingPlan() {
         clientBuild: typeof __APP_VERSION__ === "undefined" ? null : __APP_VERSION__,
         buildTime: typeof __BUILD_TIME__ === "undefined" ? null : __BUILD_TIME__,
         functionName: planUrl.split("/functions/v1/")[1] ?? "unavailable", outputFormat: planConfig._outputFormat ?? "markdown",
-        planStartDate: planConfig.planStartDate, weeksAvailable: planConfig.weeksAvailable,
-        globalTotalWeeks: planConfig.globalTotalWeeks, raceGoals: planConfig.raceGoals ?? [],
+        ...technicalGenerationConfig(planConfig),
       });
       const resp = await fetch(planUrl, {
         method: "POST",
@@ -1492,8 +1492,9 @@ export function useAITrainingPlan() {
               console.log("[TRAIL DEBUG edge→client] (aucune ligne collectée)");
             }
           } else if (event === "generation-context") {
-            semanticRepairs.push(`[info] generation_context: ${JSON.stringify(data)}`);
-            console.info("[generation_contract_server]", data);
+            const context = technicalGenerationEvent(data);
+            semanticRepairs.push(`[info] generation_context: ${JSON.stringify(context)}`);
+            console.info("[generation_contract_server]", context);
           } else if (event === "error") {
             fatalError = {
               code: data.code ?? "UNKNOWN",

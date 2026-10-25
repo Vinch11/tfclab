@@ -21,7 +21,7 @@ describe("diagnostic SL : informations réelles, pas des placeholders trompeurs"
     const message = formatSLRepairDiagnostic("sl_upgrade_unresolved", "critical", { weekNumber: 9,
       before: { day: "samedi", title: "Séance", durationMin: 60 } });
     expect(message).toContain("comptage non transmis");
-    expect(message).toContain("details non transmis");
+    expect(message).not.toContain("Séance");
     expect(message).toContain("nearest=[non transmis");
   });
 });

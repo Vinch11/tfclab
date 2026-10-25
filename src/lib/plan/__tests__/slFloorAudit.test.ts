@@ -13,7 +13,7 @@ describe("tracer les valeurs déjà calculées, y compris individualisation inac
       nominal: nominal.floors, individualized: result.floors, reasons: result.reasons, appliedPct: result.appliedPct });
     const entry = { ...nominal, floors: result.floors, floorAudit };
     const sent = JSON.parse(JSON.stringify(buildWeekQuotaTransport(1, entry)))._weeklyQuotas[1];
-    expect(sent.floorAudit.volumeRamp).toEqual(volumeRamp);
+    expect(sent.floorAudit).not.toHaveProperty("volumeRamp");
     expect(sent.floorAudit.nominal.slLongRideMin).toBe(120);
     expect(sent.floorAudit.individualized.slLongRideMin).toBe(volumeRamp ? 95 : 120);
     expect(sent.floors).toEqual(sent.floorAudit.individualized);

@@ -1,23 +1,12 @@
-import type { SizingFloors, SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
-
-export interface SLFloorAudit {
-  version: 1;
-  localWeek: number; globalWeek: number;
-  weeklyHours: number;
-  volumeRamp: SlFloorRampAnchors | null;
-  injuryRisk: { bike?: string | null; run?: string | null } | null;
-  nominal: SizingFloors;
-  individualized: SizingFloors;
-  appliedPct: { bike: number; run: number };
-  reasons: string[];
+import type { SizingFloors } from "@/engines/plan/sessionSizingMatrix";
+import { technicalFloorAudit, technicalFloors } from "../../../supabase/functions/_shared/planDiagnosticPrivacy";
+export type SLFloorAudit = ReturnType<typeof technicalFloorAudit>;
+/** Observe calculated floors only; neither medical inputs nor free-text reasons. */
+export function snapshotSLFloorAudit(value: unknown): SLFloorAudit {
+  return technicalFloorAudit(value);
 }
-
-/** Observe the existing calculation, including no-op. Never recalculate floors. */
-export function snapshotSLFloorAudit(value: Omit<SLFloorAudit, "version">): SLFloorAudit {
-  return structuredClone({ version: 1, ...value });
-}
-
 export function traceSLFloorConsumer(stage: string, week: number, entry?: { floors: SizingFloors; floorAudit?: SLFloorAudit }) {
-  if (!entry?.floorAudit) return; // no fabricated provenance for historical plans
-  console.info("[sl_floor_pipeline]", structuredClone({ stage, week, floorAudit: entry.floorAudit, consumedFloors: entry.floors }));
+  if (!entry?.floorAudit) return;
+  console.info("[sl_floor_pipeline]", { stage, week,
+    floorAudit: technicalFloorAudit(entry.floorAudit), consumedFloors: technicalFloors(entry.floors) });
 }

@@ -112,6 +112,6 @@ describe("quota rempli sans tag clé — aucune séance supplémentaire", () => 
     const audit = result.logs.find(line => line.startsWith("[key_floor_audit]"));
     expect(audit).toContain('"parsedKeyCount":0');
     expect(audit).toContain('"isKeySession":false');
-    expect(audit).toContain('"zones":["Z2"]');
+    expect(audit).not.toContain('"title":');
   });
 });

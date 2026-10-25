@@ -38,7 +38,7 @@ Deno.test("37 same-sport entries: every candidate has all its rejection reasons;
   assertEquals(audit.injectedIdsWithoutCompleteMetadata, ["DECLARED_WITHOUT_METADATA"]);
   assert(!audit.metadataIdsUsed.includes("NOT_IN_DUMP"));
   assert(repair.nearestCandidates!.length > 0); assertEquals(repair.day, "samedi");
-  assertEquals(repair.before.details, "5x5 min Z3");
+  assertEquals(repair.before.details, undefined);
   assert(r.traces.some(t => t.includes('"stage":"server_received"')));
 });
 Deno.test("17 entries cannot replace a session whose original metadata is missing; reason is explicit, not relaxed", () => {

@@ -10,13 +10,12 @@ export interface SLRepairDiagnostic {
 
 export function formatSLRepairDiagnostic(code: string, severity: string, repair: SLRepairDiagnostic): string {
   const day = repair.day ?? repair.before.day ?? "jour non transmis";
-  const details = repair.before.details === undefined ? "details non transmis" : `details=${JSON.stringify(repair.before.details.slice(0, 240))}`;
-  const before = `"${repair.before.title ?? "titre non transmis"}" [${repair.before.durationMin ?? "durée non transmise"}min ${repair.sport ?? "sport non transmis"}] ${details}`;
+  const before = `[${repair.before.catalogId ?? "sans ID"}] [${repair.before.durationMin ?? "durée non transmise"}min ${repair.sport ?? "sport non transmis"}]`;
   let after: string;
   if (repair.after) {
     const delta = typeof repair.after.durationMin === "number" && typeof repair.before.durationMin === "number"
       ? `, Δ${repair.after.durationMin - repair.before.durationMin}min` : "";
-    after = `"${repair.after.title ?? "titre non transmis"}" [${repair.after.catalogId ?? "ID non transmis"}] (${repair.after.durationMin ?? "durée non transmise"}min${delta})`;
+    after = `[${repair.after.catalogId ?? "ID non transmis"}] (${repair.after.durationMin ?? "durée non transmise"}min${delta})`;
   } else {
     const counts = typeof repair.sameSportCandidatesInChunk === "number" && typeof repair.totalCandidatesInChunk === "number"
       ? `sameSportCandidates=${repair.sameSportCandidatesInChunk}/${repair.totalCandidatesInChunk}` : "comptage non transmis par le serveur";
@@ -26,5 +25,5 @@ export function formatSLRepairDiagnostic(code: string, severity: string, repair:
     after = `UNRESOLVED — ${counts}, nearest=[${nearest}]`;
   }
   const exclusions = repair.diagnostics ? ` — exclusions locales=${JSON.stringify(repair.diagnostics.localRejections)}, globales=${JSON.stringify(repair.diagnostics.globalRejections)}` : "";
-  return `[${severity}] ${code}: W${repair.weekNumber ?? "semaine non transmise"} ${day} — ${before} → ${after}${repair.reason ? ` — motif=${repair.reason}` : ""}${exclusions}`;
+  return `[${severity}] ${code}: W${repair.weekNumber ?? "semaine non transmise"} ${day} — ${before} → ${after}${exclusions}`;
 }
