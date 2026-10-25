@@ -2,7 +2,7 @@ import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
-import { restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
+import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
  * Generates personalized training plans using AI + TFCL methodology
@@ -876,6 +876,7 @@ export default function AITrainingPlanPage() {
     setTrainingLevel("auto");
     setLockAmbition(false);
     setRaceGoals([]);
+    setCoachLimiterOrder([]);
     setTrailDistanceKm("");
     setTrailElevationM("");
     setTrailTargetTimeH("");
@@ -2359,6 +2360,7 @@ export default function AITrainingPlanPage() {
           // redevenait 100% mono-objectif (plus de cycle Marathon, plus de
           // catalogue restreint) sans aucun avertissement pour le coach.
           _raceGoals: raceGoals,
+          _coachLimiterOrder: [...coachLimiterOrder],
         } as any,
         objective: objective || currentAthlete.goal || null,
         weeks_count: parsedPlan.weeks?.length || null,
@@ -2378,7 +2380,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, raceGoals]);
+  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, raceGoals, coachLimiterOrder]);
 
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
@@ -2684,6 +2686,7 @@ export default function AITrainingPlanPage() {
     // plan sauvegardé, mais toute RÉGÉNÉRATION suivante repartait sans les
     // objectifs secondaires (`raceGoals=[]`), silencieusement.
     if (Array.isArray(pj._raceGoals)) setRaceGoals(pj._raceGoals);
+    setCoachLimiterOrder(restoreCoachLimiterOrder(pj._coachLimiterOrder));
     setResultView("interactive");
     setIsSaved(true);
     toast.success("Version chargée");
@@ -4149,7 +4152,11 @@ export default function AITrainingPlanPage() {
                   leverEmoji={limiter.leverEmoji}
                   leverLabel={limiter.leverLabel}
                   primaryLimiter={limiter.primaryLimiter}
-                  onOrderChange={setCoachLimiterOrder}
+                  orderedMetrics={coachLimiterOrder}
+                  onOrderChange={(order) => {
+                    setCoachLimiterOrder(order);
+                    setIsSaved(false);
+                  }}
                 />
               </CollapsibleCard>
             )}

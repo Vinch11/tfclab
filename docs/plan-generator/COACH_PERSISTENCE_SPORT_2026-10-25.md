@@ -41,9 +41,17 @@ la frontière JSON de l'archive et son câblage à la page. Aucune garantie abso
 d'absence de perte n'est délivrée sans recette du stockage réellement publié.
 
 Les limiteurs calculés sont dérivés du profil/diagnostic, pas une collection de
-lignes sauvegardées indépendante. Une récupération des mesures ne prouve pas à
-elle seule la restitution du classement coach historique. Sa conservation
-complète, notamment après changement de navigateur, reste à qualifier.
+lignes sauvegardées indépendante. Un second défaut démontré concernait l'ordre
+manuel coach : seul state React, absent de l'archive et sans reset au changement
+d'athlète. Cela permettait une perte au reload ou une transmission du classement
+précédent à un autre athlète. L'ordre est désormais archivé dans le JSON du plan,
+restauré au chargement explicite et affiché par l'éditeur ; il est remis à zéro
+au changement d'athlète. Une archive sans ordre utilise le diagnostic existant,
+pas une priorité inventée. Le test vérifie que l'ordre récupéré rejoint la
+configuration de génération dans la même priorité. Aucun recalcul scientifique
+n'est remplacé et aucune colonne SQL n'est ajoutée. Cette protection est liée
+au plan explicitement sauvegardé, pas une synchronisation générale de brouillons
+ou de préférences du coach entre appareils.
 
 Validation locale : suite complète 355 fichiers, 2612 tests verts, 6 TODO ;
 puis test composant complété après cette suite (2/2 verts). Les deux nouveaux
@@ -100,6 +108,10 @@ Avant le premier usage réel :
    comme une sauvegarde durable.
 5. Revue sportive manuelle du premier plan de chaque profil ; aucune génération
    payante autorisée par cette checklist, aucune transmission Nolio effectuée.
+
+Le premier commit a passé les quatre checks CI (run40230436458). Le second
+ajoute la persistance de l'ordre coach : les résultats du premier commit ne
+doivent pas être présentés comme la CI du HEAD final.
 
 La confidentialité n'a pas été étendue dans ce chantier ; protections héritées
 conservées. Risque résiduel principal : ces tests mockés n'attestent ni la version
