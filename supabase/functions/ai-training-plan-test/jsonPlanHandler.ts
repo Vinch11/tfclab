@@ -1,3 +1,4 @@
+import { catalogueTrainingMinimaForWeek } from "../_shared/catalogueTrainingMinima.ts";
 import { periodizationBounds, phaseWithinPeriodization, reducedFondationWeeksPostPeak } from "../_shared/periodizationBounds.ts";
 import { PLAN_RELEASE_INFO } from "../_shared/planReleaseInfo.ts";
 import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
@@ -2039,7 +2040,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               catalog: repairCatalogsByChunk[ci].filter(m => allowedIds.includes(m.id) && isCompleteRepairWorkoutMetadata(m)) };
             catalogueContractsByWeek[week] = contract;
             const { eligible, missingSports } = catalogueForWeek(contract.catalog, contract,
-              planConfig?._weeklyQuotas?.[week]?.quota);
+              catalogueTrainingMinimaForWeek(planConfig?._weeklyQuotas?.[week]?.quota ?? {}, planConfig ?? {}, week));
             eligibilityByWeek[week] = eligible.map(m => m.id);
             if (missingSports.length || (allowedIds.length > 0 && eligible.length === 0)) enqueue("warning", {
               code: "catalogue_pool_insufficient", severity: "critical", weekNumber: week,

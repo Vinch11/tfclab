@@ -10,6 +10,7 @@ console.log = console.warn = () => {};
 try {
   const load = path => server.ssrLoadModule(path);
   const { buildWorkoutCatalog } = await load('/src/lib/workoutCatalogBuilder.ts');
+  const { catalogueTrainingMinimaForWeek } = await load('/supabase/functions/_shared/catalogueTrainingMinima.ts');
   const { catalogueForWeek, catalogueEligibility } = await load('/supabase/functions/_shared/sessionCatalogueContract.ts');
   const { buildPeriodizationCalendar } = await load('/src/lib/plan/periodizationCalendar.ts');
   const { computeWeekQuotaEntry, inferWeekType } = await load('/src/engines/plan/sessionSizingMatrix.ts');
@@ -30,7 +31,7 @@ try {
     const week = i + 1, phase = calendar[week], weekType = inferWeekType(week, 12, '10K', syntheticAge);
     const entry = computeWeekQuotaEntry('10K', config.ambition, 4, weekType, false);
     const pool = pools[Math.floor(i / 4)], context = { phase, objective: '10K', weekType };
-    const { eligible, missingSports } = catalogueForWeek(pool, context, entry.quota);
+    const { eligible, missingSports } = catalogueForWeek(pool, context, catalogueTrainingMinimaForWeek(entry.quota, config, week));
     const availableSports = new Set(eligible.map(m => /course|run/i.test(m.sport) ? 'run' : /renforcement|strength/i.test(m.sport) ? 'strength' : m.sport));
     const layout = buildWeeklySlotLayout(entry.quota, entry.floors, weekType, { availableSports });
     return { week, phase, weekType, quota: entry.quota, layout, missingSports,

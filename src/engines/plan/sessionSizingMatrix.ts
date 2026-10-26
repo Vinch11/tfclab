@@ -503,6 +503,18 @@ export function computeWeeklySessionQuota(
       totalSessions: { min: totMinR, max: totMaxR },
       source: { tier: "elite_practice", ref: "Race week — floors + volume réduit, logique race-week existante prime" },
     };
+    // 10K : la réduction d'affûtage porte sur le VOLUME, pas une division
+    // du nombre de sorties (Mujika 2003 / Bosquet 2007, règle taper ci-dessus).
+    // La course est UNE des sorties CAP, pas une séance supplémentaire.
+    // On retire le renforcement obligatoire du total de référence puisqu'il
+    // devient facultatif ; les minima CAP restent ceux du niveau effectif.
+    if (objKey === "10K") {
+      quota.totalSessions = {
+        min: base.totalSessions.min - base.strength.min,
+        max: base.totalSessions.max - base.strength.min,
+      };
+      quota.source = { tier: "peer_reviewed", ref: "Mujika 2003, Bosquet 2007 — volume réduit, fréquence CAP maintenue (compétition incluse), renforcement facultatif" };
+    }
     localFloors.minStrengthPerWeek = 0;
     localFloors.longRideWeekly = false;
     localFloors.longRunWeekly = false;
