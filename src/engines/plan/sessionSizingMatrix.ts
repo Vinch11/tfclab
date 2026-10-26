@@ -475,11 +475,15 @@ export function computeWeeklySessionQuota(
   } else if (weekType === "taper") {
     // Fréquence quasi intacte : total -1 à -2 séances max, floors maintenus
     // sauf longRideWeekly / longRunWeekly désactivés.
+    // Comme en semaine race (#417), réduire un total ne peut contredire les
+    // fréquences que cette même règle maintient. Ne dépasse jamais le plafond
+    // load : la baisse de dose reste portée par le volume et les floors SL.
+    const maintainedMinimum = base.swim.min + base.bike.min + base.run.min + base.brick.min + base.strength.min;
     quota = {
       ...base,
       totalSessions: {
-        min: Math.max(0, base.totalSessions.min - 2),
-        max: Math.max(0, base.totalSessions.max - 1),
+        min: Math.max(maintainedMinimum, base.totalSessions.min - 2),
+        max: Math.max(maintainedMinimum, base.totalSessions.max - 1),
       },
       source: {
         tier: "peer_reviewed",
@@ -911,6 +915,7 @@ export function computeWeekQuotaEntry(
   isLCW: boolean,
   opts: {
     sessionsPerWeek?: number | null;
+    maxSessionsPerDay?: number;
     bannedSports?: Array<"swim" | "bike" | "run" | "strength" | "any">;
   } = {},
 ): {
@@ -928,6 +933,9 @@ export function computeWeekQuotaEntry(
   if (opts.bannedSports && opts.bannedSports.length > 0) {
     const red = applyBannedSportsRedistribution(adj, opts.bannedSports);
     adj = { quota: red.quota, floors: red.floors };
+  }
+  if (Number.isInteger(opts.maxSessionsPerDay) && opts.maxSessionsPerDay! > 0) {
+    adj = { ...adj, quota: { ...adj.quota, maxSessionsPerDay: Math.min(adj.quota.maxSessionsPerDay, opts.maxSessionsPerDay!) } };
   }
   return { quota: adj.quota, floors: adj.floors, weekType, downgraded: q0.downgraded, downgradeReason: q0.downgradeReason };
 }

@@ -87,6 +87,15 @@ export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
     return structured;
   }
 
+  // Non-cardio titles describe the exercise purpose; "tempo 3-1-1" in a
+  // strength protocol is repetition timing, not a metabolic threshold.
+  if (["strength", "renforcement"].includes(String(w.sport).toLowerCase())) {
+    const header = classifyIntentEvidence(w.objectif ?? "").family;
+    if (["force", "technique", "recuperation"].includes(header)) {
+      CACHE.set(w, header); return header;
+    }
+  }
+
   // Audit réel (B-5K-BEGINNER, 15/10) : `B_RUN_FARTLEK_60_PRO` — Main
   // 10×(1' Z4a / 2' Z2), un vrai travail d'intervalles — était classée
   // "technique" sur la seule foi du mot "mobilité" présent dans son
@@ -97,9 +106,15 @@ export function intentFamilyOf(w: LibraryWorkout): IntentFamily {
   // pour ces deux familles seulement — les autres familles (seuil, vo2,
   // sprint, etc.) restent inchangées, un Main dur y étant déjà attendu.
   const mainZoneMax = mainZoneMaxOf(w);
+  const headerIntent = classifyIntentEvidence(w.objectif ?? "", mainZoneMax);
+  if (mainZoneMax > 0 && mainZoneMax <= 2 && headerIntent.family === "recuperation") {
+    CACHE.set(w, "recuperation"); return "recuperation";
+  }
 
   const structureText = (w.structure || [])
-    .map(p => `${p.part} ${p.text} ${(p.zones || []).join(" ")}`)
+    .map(p => `${p.part} ${p.text} ${(p.zones || []).join(" ")}`
+      .replace(/\btest\s*:\s*capable de (?:chanter|parler)[^.!?]*/gi, "contrôle conversationnel")
+      .replace(/\btest de (?:conversation|parole)|\btalk[- ]test\b/gi, "contrôle conversationnel"))
     .join(" ");
   const tagsText = (w.tags || []).join(" ");
   const text = `${w.id} ${w.cat} ${w.objectif} ${tagsText} ${structureText} ${w.when || ""}`;

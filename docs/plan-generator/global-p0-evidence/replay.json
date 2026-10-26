@@ -1,0 +1,124 @@
+[
+  {
+    "case": "recorded-5K-20261015",
+    "origin": "archived_model_output",
+    "weeks": 12,
+    "validationErrors": 1,
+    "validationWarnings": 18,
+    "rules": [
+      "polarization",
+      "recovery_week_intensity",
+      "phase_coherence",
+      "lorang_categories",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "postprocess_for_recorded",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "StartToRun-full",
+    "origin": "existing_static_generator",
+    "weeks": 12,
+    "validationErrors": 5,
+    "validationWarnings": 47,
+    "rules": [
+      "polarization",
+      "load_pattern",
+      "progression",
+      "phase_coherence",
+      "race_day",
+      "lorang_categories",
+      "duration_not_calculable",
+      "title_format",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "postprocess_for_recorded",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "StartToRun-light",
+    "origin": "existing_static_generator",
+    "weeks": 12,
+    "validationErrors": 16,
+    "validationWarnings": 47,
+    "rules": [
+      "polarization",
+      "load_pattern",
+      "progression",
+      "phase_coherence",
+      "race_day",
+      "lorang_categories",
+      "start_to_run_strength",
+      "duration_not_calculable",
+      "title_format",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "postprocess_for_recorded",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "StartToRun-none",
+    "origin": "existing_static_generator",
+    "weeks": 12,
+    "validationErrors": 16,
+    "validationWarnings": 43,
+    "rules": [
+      "polarization",
+      "load_pattern",
+      "progression",
+      "phase_coherence",
+      "race_day",
+      "lorang_categories",
+      "start_to_run_strength",
+      "duration_not_calculable",
+      "title_format",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "postprocess_for_recorded",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  }
+]

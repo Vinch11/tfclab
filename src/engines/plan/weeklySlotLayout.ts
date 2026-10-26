@@ -61,6 +61,7 @@ function midpoint(r: { min: number; max: number }): number {
 export interface SlotLayoutOptions {
   /** Actual compatible catalogue coverage; never drops a mandatory minimum. */
   availableSports?: ReadonlySet<LayoutSport>;
+  dayBans?: ReadonlyArray<{ day: DayName; sport: "any" | "run" | "bike" | "swim" | "strength" }>;
   /**
    * Sport de l'épreuve décisive (dernière étape en LCW 3 jours).
    * En semaine de course, ce sport est servi EN PREMIER dans le round-robin.
@@ -137,14 +138,18 @@ export function buildWeeklySlotLayout(
   // Appliqué après le clamp : celui-ci travaille sur les quotas nominaux.
   const days: DayLayout[] = DAY_ORDER.map(d => ({ dayName: d, isRest: false, slots: [] }));
   const findDay = (d: DayName) => days.find(x => x.dayName === d)!;
-  const canAdd = (d: DayName): boolean => findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest;
+  const canAdd = (d: DayName, sport: LayoutSport): boolean =>
+    findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest &&
+    !(opts.dayBans ?? []).some(b => b.day === d &&
+      (b.sport === "any" || b.sport === sport || (sport === "brick" && (b.sport === "bike" || b.sport === "run"))));
   const hasSportOn = (d: DayName, s: LayoutSport) => findDay(d).slots.some(x => x.sport === s);
   const remaining: Record<LayoutSport, number> = { ...targets,
     bike: effectiveSessionQuota({ bike: { min: targets.bike, max: targets.bike } }, targets.brick).bike.min,
   };
 
   // 1) Lundi = repos si minFullRestDays ≥ 1
-  if (quota.minFullRestDays >= 1) {
+  for (const ban of opts.dayBans ?? []) if (ban.sport === "any") findDay(ban.day).isRest = true;
+  if (quota.minFullRestDays >= 1 && !days.some(d => d.isRest)) {
     findDay("lundi").isRest = true;
   }
 
@@ -155,7 +160,7 @@ export function buildWeeklySlotLayout(
   //   cette semaine-là, et la cible bike autonome est décrémentée de 1
   //   (le brick compte comme la sollicitation vélo longue).
   const brickAsSLBike =
-    remaining.brick > 0 && !!floors.longRideWeekly && canAdd("samedi");
+    remaining.brick > 0 && !!floors.longRideWeekly && canAdd("samedi", "brick");
 
   if (brickAsSLBike) {
     const slBikeMin = floors.slLongRideMin ?? 0;
@@ -167,7 +172,7 @@ export function buildWeeklySlotLayout(
     });
     remaining.brick--;
     // Le remplacement vélo/brick est déjà compté avant le placement.
-  } else if (floors.longRideWeekly && remaining.bike > 0 && canAdd("samedi")) {
+  } else if (floors.longRideWeekly && remaining.bike > 0 && canAdd("samedi", "bike")) {
     // 2) SL vélo samedi (cas sans brick requis)
     findDay("samedi").slots.push({
       sport: "bike", isLongSession: true, isKeySession: true,
@@ -176,7 +181,7 @@ export function buildWeeklySlotLayout(
     remaining.bike--;
   }
   // 3) SL CAP dimanche
-  if (floors.longRunWeekly && remaining.run > 0 && canAdd("dimanche")) {
+  if (floors.longRunWeekly && remaining.run > 0 && canAdd("dimanche", "run")) {
     findDay("dimanche").slots.push({
       sport: "run", isLongSession: true, isKeySession: true,
       minDurationMin: floors.slLongRunMin,
@@ -188,9 +193,9 @@ export function buildWeeklySlotLayout(
   if (remaining.brick > 0) {
     const brickOptions: DayName[] = ["samedi", "dimanche"];
     const brickDay = brickOptions.find(
-      d => canAdd(d) && !hasSportOn(d, "run") && !findDay(d).slots.some(s => s.sport === "bike" && s.isLongSession),
-    ) ?? brickOptions.find(d => canAdd(d) && !hasSportOn(d, "run"))
-      ?? brickOptions.find(d => canAdd(d));
+      d => canAdd(d, "brick") && !hasSportOn(d, "run") && !findDay(d).slots.some(s => s.sport === "bike" && s.isLongSession),
+    ) ?? brickOptions.find(d => canAdd(d, "brick") && !hasSportOn(d, "run"))
+      ?? brickOptions.find(d => canAdd(d, "brick"));
     if (brickDay) {
       findDay(brickDay).slots.push({ sport: "brick", isKeySession: true });
       remaining.brick--;
@@ -204,7 +209,7 @@ export function buildWeeklySlotLayout(
   // round-robin et tombait souvent à 0 créneau → jambes "éteintes" le jour J.
   // On garantit ici un minimum de créneaux course courts (activation).
   const isTaperish = weekType === "taper" || weekType === "race";
-  const runFloor = opts.taperRunFrequencyFloor ?? 2;
+  const runFloor = quota.run.max === 0 ? 0 : (opts.taperRunFrequencyFloor ?? 2);
   if (isTaperish && runFloor > 0) {
     const placedRun = days.reduce((n, d) => n + d.slots.filter(s => s.sport === "run").length, 0);
     const need = runFloor - (placedRun + remaining.run);
@@ -250,7 +255,7 @@ export function buildWeeklySlotLayout(
       : rrSwim;
     for (const d of swimDays) {
       if (remaining.swim <= 0) break;
-      if (!canAdd(d) || hasSportOn(d, "swim")) continue;
+      if (!canAdd(d, "swim") || hasSportOn(d, "swim")) continue;
       findDay(d).slots.push({ sport: "swim", isKeySession: placed === 0 });
       remaining.swim--;
       placed++;
@@ -260,7 +265,7 @@ export function buildWeeklySlotLayout(
   const fillBike = () => {
     for (const d of rrBike) {
       if (remaining.bike <= 0) break;
-      if (!canAdd(d) || hasSportOn(d, "bike") || hasSportOn(d, "brick")) continue;
+      if (!canAdd(d, "bike") || hasSportOn(d, "bike") || hasSportOn(d, "brick")) continue;
       findDay(d).slots.push({ sport: "bike", isKeySession: !hasSportOn(d, "run") });
       remaining.bike--;
     }
@@ -269,7 +274,7 @@ export function buildWeeklySlotLayout(
   const fillRun = () => {
     for (const d of rrRun) {
       if (remaining.run <= 0) break;
-      if (!canAdd(d) || hasSportOn(d, "run") || hasSportOn(d, "brick")) continue;
+      if (!canAdd(d, "run") || hasSportOn(d, "run") || hasSportOn(d, "brick")) continue;
       findDay(d).slots.push(
         isTaperish
           ? { sport: "run", isActivation: true, minDurationMin: 20, maxDurationMin: 30 }
@@ -298,7 +303,7 @@ export function buildWeeklySlotLayout(
   for (const d of rrStrength) {
     if (remaining.strength <= 0) break;
     if (d === "vendredi") continue;
-    if (!canAdd(d) || hasSportOn(d, "strength") || hasSportOn(d, "brick")) continue;
+    if (!canAdd(d, "strength") || hasSportOn(d, "strength") || hasSportOn(d, "brick")) continue;
     if (findDay(d).slots.length > 1) continue;
     findDay(d).slots.push({ sport: "strength" });
     remaining.strength--;

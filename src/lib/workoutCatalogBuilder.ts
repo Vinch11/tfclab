@@ -647,6 +647,8 @@ export function buildWorkoutCatalog(
      * `strictPhaseFilter: true` conserve le hard-exclude même sous le floor.
      */
     strictPhaseFilter?: boolean;
+    /** Prior offers are a diversity preference, never a sporting exclusion. */
+    rotationIds?: ReadonlySet<string>;
     /**
      * Bug réel (audit "génération de plan IA", plan Emanuela S22-23, 3ᵉ
      * régénération post-PR #274) : `phaseOverride:["base"] + strictPhaseFilter`
@@ -1103,6 +1105,8 @@ export function buildWorkoutCatalog(
     // `rotationSeed` dans les options de buildWorkoutCatalog).
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
+      const rotation = Number(!!options?.rotationIds?.has(a.workout.id)) - Number(!!options?.rotationIds?.has(b.workout.id));
+      if (rotation) return rotation;
       return tieBreakHash(b.workout.id, rotationSeed) - tieBreakHash(a.workout.id, rotationSeed);
     });
 
@@ -1580,8 +1584,8 @@ export function buildWorkoutCatalog(
       if (phase === "any") continue;
       if (n > 0 && n < COURSE_POOL_MIN) {
         console.warn(
-          `[buildWorkoutCatalog] ⚠️ Pool COURSE trop restreint en phase="${phase}" : ${n} < ${COURSE_POOL_MIN}. ` +
-          `Risque de répétition de séances. Chunk=${options?.chunkIndex ?? 0}.`
+          `[catalog_diversity] selected_course_tag=${phase} count=${n} diversity_target=${COURSE_POOL_MIN} ` +
+          `chunk=${options?.chunkIndex ?? 0}; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.`
         );
       }
     }
@@ -1742,11 +1746,9 @@ export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string
       // Durée CIBLE canonique (déterministe) plutôt qu'une plage large que
       // l'IA devrait deviner. La plage d'origine reste indiquée si étroite.
       const dur = e.canonicalDurationMin
-        ? (e.durationMin[1] - e.durationMin[0] > 60
-            ? `${e.canonicalDurationMin}`
-            : `${e.canonicalDurationMin} (${e.durationMin[0]}-${e.durationMin[1]})`)
+        ? `${e.canonicalDurationMin} (${e.durationMin[0]}-${e.durationMin[1]})`
         : `${e.durationMin[0]}-${e.durationMin[1]}`;
-      const struct = e.structure.length > 120 ? e.structure.slice(0, 117) + "..." : e.structure;
+      const struct = e.structure.replace(/\s*\|\s*/g, " / ").replace(/\s+/g, " ").trim();
       const zoneCible = ficheZoneCibleLabel(e.id);
       const dPlus = e.dPlusTargetM
         ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
@@ -1754,9 +1756,9 @@ export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string
       const avoidCell = hasAvoid ? ` ${e.avoid || "—"} |` : "";
       const physiologicalIntent = e.physiology?.primary ?? "not_verified";
       if (hasTrailDPlus) {
-        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${physiologicalIntent} | ${phases} | ${dur} | ${dPlus} | ${zoneCible} | ${struct} |${avoidCell}`);
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.replace(/\|/g, "/").replace(/\s+/g, " ").trim()} | ${physiologicalIntent} | ${phases} | ${dur} | ${dPlus} | ${zoneCible} | ${struct} |${avoidCell}`);
       } else {
-        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${physiologicalIntent} | ${phases} | ${dur} | ${zoneCible} | ${struct} |${avoidCell}`);
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.replace(/\|/g, "/").replace(/\s+/g, " ").trim()} | ${physiologicalIntent} | ${phases} | ${dur} | ${zoneCible} | ${struct} |${avoidCell}`);
       }
     }
   }
@@ -1776,7 +1778,7 @@ export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string
   lines.push("2. Format Détails OBLIGATOIRE : `<protocole complet en 1-3 phrases avec chiffres précis>. [ID: <CATALOG_ID>]` — l'ID en fin entre crochets, JAMAIS seul.");
   lines.push("   ❌ INTERDIT : `| Mardi | CAP | TTE Intro Seuil | ID: B_RUN_TEMPO_PROGRESSIVE |`");
   lines.push("   ✅ CORRECT : `| Mardi | CAP | 🔑 TTE Intro Seuil | 15min éch Z2. 4×6min @seuil (88% VMA) r=2min trot. 15min RC. 1h05 total. [ID: B_RUN_TEMPO_PROGRESSIVE] |`");
-  lines.push("3. ⏱️ **Durée cible = valeur unique déjà résolue pour la phase en cours.** Prescris cette durée (tolérance ±15% pour la progression hebdomadaire). N'écris JAMAIS une plage large du type `2h-3h50` dans une séance : une séance = une durée précise.");
+  lines.push("3. ⏱️ **Durée cible = valeur unique déjà résolue pour la phase en cours.** Prescris cette durée. Toute adaptation doit rester DANS les bornes min-max affichées et la variante numérique autorisée ; une tolérance de progression ne permet jamais de sortir de ces bornes. N'écris JAMAIS une plage large du type `2h-3h50` dans une séance : une séance = une durée précise.");
   lines.push("4. Si aucune séance du catalogue ne correspond, tu PEUX créer une séance custom (décris le protocole complet, mentionne 'CUSTOM' au lieu de l'ID).");
   lines.push("5. Les séances de récupération et repos ne nécessitent pas d'ID catalogue (mais gardent une description : durée, zone, type).");
   lines.push("6. 🚫 **NON-CROSS-SPORT** : chaque ID vit dans UN SEUL groupe sport ci-dessus. Un slot vélo ne peut recevoir qu'un ID du groupe 🚴 VÉLO ; un slot course qu'un ID 🏃 COURSE (⛰️ TRAIL uniquement si l'objectif du plan est un trail) ; un slot natation qu'un ID 🏊 NATATION ; un slot renfo qu'un ID 💪 RENFO. Les IDs 🔁 BRICK sont réservés aux enchaînements planifiés comme tels. Toute violation = séance rejetée.");

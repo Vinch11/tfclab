@@ -45,9 +45,11 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
  else if (expected >= 3 && observed < expected) errors.push("catalogue_intensity_diluted");
  else if (expected > 0 && observed > expected) errors.push("catalogue_intensity_exceeded");
  const intent = classifyIntentEvidence(session.title ?? "", observed);
+ const sourceTitleIntent = classifyIntentEvidence(metadata.title, expected);
  const expectedIntent = variantZones.length ? classifyIntentEvidence(variants?.[session.variantKey!] ?? "", expected).family : metadata.intentFamily;
  if (session.title !== metadata.title && intent.source === "pattern" && !["brick", "other"].includes(intent.family) &&
-   !["brick", "other"].includes(expectedIntent) && intent.family !== expectedIntent) errors.push("catalogue_physiological_intent");
+   !["brick", "other"].includes(expectedIntent) && intent.family !== expectedIntent &&
+   (sourceTitleIntent.source !== "pattern" || intent.family !== sourceTitleIntent.family)) errors.push("catalogue_physiological_intent");
  // Reuse the same repetition-pattern notion as B10: compare explicit patterns only.
  const pattern = (text: string) => {
   const m = text.match(/(\d+)\s*[x×]\s*(\d+)\s*(min|'|’|sec|s)/i);

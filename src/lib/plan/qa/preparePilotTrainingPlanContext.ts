@@ -1,3 +1,4 @@
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import type { DiagnosticInput } from "@/engines/diagnostic";
 import { prepareTrainingPlanContext, type PreparedTrainingPlanContext, type PlanFormConfig } from "@/engines/plan";
 import { normalizeAmbitionLevel } from "@/types/ambitionLevel";
@@ -5,6 +6,7 @@ import type { PlanConfig } from "@/hooks/useAITrainingPlan";
 import type { QAProfile } from "./syntheticProfiles";
 
 function sportFocusForObjective(objective: string): "bike" | "run" | "tri" {
+  if (["703", "IM", "Sprint", "Olympic"].includes(normalizeObjectiveKey(objective))) return "tri";
   const normalized = objective.toLowerCase();
   if (/ironman|70\.3|triathlon|olympic|sprint/.test(normalized)) return "tri";
   if (/cycl|granfondo|bike|vélo/.test(normalized)) return "bike";

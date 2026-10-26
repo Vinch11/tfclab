@@ -386,10 +386,10 @@ export function normalizeModelJsonForSchema(
         s.custom = true;
         s.catalogId = null;
         (s as Record<string, unknown>).__offsportTrail = true;
-      } else if (invalidId) {
-        // Non-trail : comportement inchangé (dette assumée, hors périmètre P0).
-        if (s.custom !== true) repairs.push(`${path}.custom forced true for custom/invalid catalogId`);
-        if (s.catalogId !== null) repairs.push(`${path}.catalogId invalid→null`);
+      } else if (invalidId && (s.catalogId === null || s.catalogId === undefined)) {
+        // A genuine custom session has no reference. An unknown non-empty ID
+        // must reach the closed enum and fail, never lose its sporting contract.
+        if (s.custom !== true) repairs.push(`${path}.custom forced true for missing catalogId`);
         s.custom = true;
         s.catalogId = null;
       }

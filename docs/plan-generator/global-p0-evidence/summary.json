@@ -1,0 +1,659 @@
+{
+  "coverage": {
+    "objectives": [
+      "703",
+      "IM",
+      "Sprint",
+      "Olympic",
+      "Marathon",
+      "Semi",
+      "5K",
+      "10K",
+      "StartToRun",
+      "Trail",
+      "TrailShort",
+      "TrailMountain",
+      "TrailUltra"
+    ],
+    "levels": [
+      "untrained",
+      "light",
+      "trained",
+      "highly_trained"
+    ],
+    "ambitions": [
+      "finisher",
+      "age_group",
+      "competitor",
+      "elite",
+      "world_class"
+    ],
+    "coreCases": 520,
+    "missingPairs": [],
+    "supplementalCases": 80,
+    "formats": [
+      "continuous",
+      "lcw_3day"
+    ]
+  },
+  "families": {
+    "703": {
+      "cases": 80,
+      "weeks": 952,
+      "mechanicalBlockedCases": 48,
+      "catalogueShortfallCases": 10,
+      "minimumDoseWarningCases": 18,
+      "casesWithAnySignal": 60,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 20,
+          "weeks": 232,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 11,
+          "casesWithAnySignal": 11,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 20,
+          "weeks": 240,
+          "mechanicalBlockedCases": 16,
+          "catalogueShortfallCases": 3,
+          "minimumDoseWarningCases": 7,
+          "casesWithAnySignal": 17,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 20,
+          "weeks": 248,
+          "mechanicalBlockedCases": 16,
+          "catalogueShortfallCases": 2,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 16,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 20,
+          "weeks": 232,
+          "mechanicalBlockedCases": 16,
+          "catalogueShortfallCases": 5,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 16,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "IM": {
+      "cases": 80,
+      "weeks": 1280,
+      "mechanicalBlockedCases": 48,
+      "catalogueShortfallCases": 18,
+      "minimumDoseWarningCases": 16,
+      "casesWithAnySignal": 60,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 20,
+          "weeks": 320,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 10,
+          "casesWithAnySignal": 10,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 20,
+          "weeks": 328,
+          "mechanicalBlockedCases": 16,
+          "catalogueShortfallCases": 4,
+          "minimumDoseWarningCases": 6,
+          "casesWithAnySignal": 18,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 20,
+          "weeks": 312,
+          "mechanicalBlockedCases": 16,
+          "catalogueShortfallCases": 6,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 16,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 20,
+          "weeks": 320,
+          "mechanicalBlockedCases": 16,
+          "catalogueShortfallCases": 8,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 16,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "Sprint": {
+      "cases": 40,
+      "weeks": 270,
+      "mechanicalBlockedCases": 8,
+      "catalogueShortfallCases": 1,
+      "minimumDoseWarningCases": 2,
+      "casesWithAnySignal": 11,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 70,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 1,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 64,
+          "mechanicalBlockedCases": 1,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 66,
+          "mechanicalBlockedCases": 3,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 3,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 70,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 5,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "Olympic": {
+      "cases": 40,
+      "weeks": 396,
+      "mechanicalBlockedCases": 10,
+      "catalogueShortfallCases": 2,
+      "minimumDoseWarningCases": 9,
+      "casesWithAnySignal": 19,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 96,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 6,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 100,
+          "mechanicalBlockedCases": 2,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 3,
+          "casesWithAnySignal": 5,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 104,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 96,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "Marathon": {
+      "cases": 40,
+      "weeks": 640,
+      "mechanicalBlockedCases": 12,
+      "catalogueShortfallCases": 15,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 19,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 160,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 2,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 164,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 2,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 156,
+          "mechanicalBlockedCases": 6,
+          "catalogueShortfallCases": 5,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 7,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 160,
+          "mechanicalBlockedCases": 6,
+          "catalogueShortfallCases": 6,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 8,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "Semi": {
+      "cases": 40,
+      "weeks": 324,
+      "mechanicalBlockedCases": 12,
+      "catalogueShortfallCases": 6,
+      "minimumDoseWarningCases": 2,
+      "casesWithAnySignal": 16,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 84,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 2,
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 76,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 80,
+          "mechanicalBlockedCases": 6,
+          "catalogueShortfallCases": 3,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 7,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 84,
+          "mechanicalBlockedCases": 6,
+          "catalogueShortfallCases": 3,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 7,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "5K": {
+      "cases": 40,
+      "weeks": 264,
+      "mechanicalBlockedCases": 12,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 12,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 64,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 66,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 70,
+          "mechanicalBlockedCases": 6,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 64,
+          "mechanicalBlockedCases": 6,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "10K": {
+      "cases": 40,
+      "weeks": 400,
+      "mechanicalBlockedCases": 12,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 1,
+      "casesWithAnySignal": 13,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 100,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 1,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 104,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 96,
+          "mechanicalBlockedCases": 6,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 100,
+          "mechanicalBlockedCases": 6,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "StartToRun": {
+      "cases": 40,
+      "weeks": 0,
+      "mechanicalBlockedCases": 0,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 0,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "Trail": {
+      "cases": 40,
+      "weeks": 316,
+      "mechanicalBlockedCases": 0,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 0,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 76,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 80,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 84,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 76,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "TrailShort": {
+      "cases": 40,
+      "weeks": 320,
+      "mechanicalBlockedCases": 0,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 0,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 80,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 84,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 76,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 80,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "TrailMountain": {
+      "cases": 40,
+      "weeks": 564,
+      "mechanicalBlockedCases": 0,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 0,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 144,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 136,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 140,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 144,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    },
+    "TrailUltra": {
+      "cases": 40,
+      "weeks": 796,
+      "mechanicalBlockedCases": 0,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 0,
+      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "levels": {
+        "untrained": {
+          "cases": 10,
+          "weeks": 196,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "light": {
+          "cases": 10,
+          "weeks": 200,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "trained": {
+          "cases": 10,
+          "weeks": 204,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        },
+        "highly_trained": {
+          "cases": 10,
+          "weeks": 196,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO global generation / safety / scientific attestation"
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Mechanical blockers count cases, not summed duplicate rule messages.",
+    "Catalogue shortfall counts distinct eligible cards; repetition/custom feasibility needs separate review.",
+    "Zero signals on dedicated trail/static routes is not a complete safety check.",
+    "No model called; no complete model output invented.",
+    "Native PDF and real database not exercised."
+  ]
+}

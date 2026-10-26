@@ -1,3 +1,5 @@
+import { planningFeasibility } from "@/lib/plan/planningFeasibility";
+import { extractCatalogIdsFromDump } from "../../supabase/functions/_shared/catalogueIds";
 import { buildPeriodizationCalendar } from "@/lib/plan/periodizationCalendar";
 import { catalogueForWeek } from "../../supabase/functions/_shared/sessionCatalogueContract";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
@@ -253,7 +255,7 @@ export function computeObjectiveAwareWindows(
 
 export const getCatalogSportFilter = (objective: string): TrainingSport[] | undefined => {
   const lower = objective.trim().toLowerCase();
-  const isTriathlon = lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
+  const isTriathlon = ["703", "IM", "Sprint", "Olympic"].includes(normalizeObjectiveKey(objective)) || lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
   // Triathlon: restreindre AUX sports triathlon (jamais de trail dans un plan 70.3/IM).
   if (isTriathlon) return ["swim", "bike", "run", "brick", "strength", "cyclisme", "course", "natation", "renforcement", "mixed"];
   const isTrail = lower.includes("trail") || lower.includes("utmb") || lower.includes("ccc") || lower.includes("occ") || lower.includes("ultra");
@@ -310,7 +312,7 @@ export const getCatalogExclusions = (
   raceGoals?: RaceGoal[]
 ): { excludeIdPatterns: RegExp[]; excludeTags: string[] } => {
   const lower = objective.trim().toLowerCase();
-  const isTriathlon = lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
+  const isTriathlon = ["703", "IM", "Sprint", "Olympic"].includes(normalizeObjectiveKey(objective)) || lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
   const isHalf = lower.includes("70.3") || lower === "703";
   const isLCW = Array.isArray(raceGoals) && raceGoals.some(g => g?.raceFormat === "lcw_3day");
   const isTrailGoal = lower.includes("trail") || lower.includes("utmb") || lower.includes("ccc") || lower.includes("occ") || (lower.includes("ultra") && !lower.includes("ironman"));
@@ -996,7 +998,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           effTotalWeeks,
-          { ...phaseOptions(pr.start, pr.end), strictPhaseFilter: true, maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
+          { ...phaseOptions(pr.start, pr.end), strictPhaseFilter: true, maxItems: 80, chunkIndex: i, rotationIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         phaseRepairCatalogs[pr.phase] = catalog.map(entry => entry.repairMetadata);
@@ -1056,7 +1058,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { ...phaseOptions(cStart + weekOffset, cEnd + weekOffset), strictPhaseFilter: true, maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
+            { ...phaseOptions(cStart + weekOffset, cEnd + weekOffset), strictPhaseFilter: true, maxItems: 130, chunkIndex: ci, rotationIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           chunkRepairCatalogs.push(chunkCatalog.map(entry => entry.repairMetadata));
@@ -1078,7 +1080,7 @@ export function useAITrainingPlan() {
               cStart,
               cEnd,
               totalWeeks,
-              { maxItems: 60, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, phaseOverride: ["base"], strictPhaseFilter: true }
+              { maxItems: 60, chunkIndex: ci, rotationIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, phaseOverride: ["base"], strictPhaseFilter: true }
             );
             chunkRegenCatalogs.push(serializeCatalogForPrompt(regenCatalog));
             chunkRegenRepairCatalogs.push(regenCatalog.map(entry => entry.repairMetadata));
@@ -1116,12 +1118,7 @@ export function useAITrainingPlan() {
       // le chunk d'origine, donc NE compte PAS comme "hors catalogue".
       {
         const union = new Set<string>();
-        const parseDumpIds = (dump: string) => {
-          for (const line of dump.split("\n")) {
-            const m = line.match(/^\|\s*([A-Za-z0-9_-]{4,})\s*\|/);
-            if (m && m[1] !== "ID") union.add(m[1]);
-          }
-        };
+        const parseDumpIds = (dump: string) => extractCatalogIdsFromDump(dump).forEach(id => union.add(id));
         for (const dump of Object.values(phaseCatalogs)) parseDumpIds(dump);
         for (const dump of chunkCatalogs) parseDumpIds(dump);
         // Filet de sécurité : inclure aussi les IDs de allCatalogEntries au cas où
@@ -1179,9 +1176,10 @@ export function useAITrainingPlan() {
         ? planConfig.sessionsPerWeek : null;
       // Disciplines interdites (champ libre "Contraintes") : le quota de la
       // discipline bannie est libéré et RÉAFFECTÉ aux sports autorisés.
-      const bannedSportsForQuota = parseAthleteConstraints(
+      const rulesForQuota = parseAthleteConstraints(
         (planConfig as any)?.constraints ?? null,
-      ).bannedSports;
+      );
+      const bannedSportsForQuota = rulesForQuota.bannedSports;
       // Format LCW 3 jours : brick banni du quota (cf. computeWeeklySessionQuota)
       // et étape décisive (run) servie en premier dans le layout de la semaine
       // de course. Calculé une fois hors boucle, identique pour tout le plan.
@@ -1240,6 +1238,7 @@ export function useAITrainingPlan() {
           : inferWeekType(globalWeekNum, effTotalWeeks, objectiveForQuota, athleteData.age, planConfig.deloadCadenceWeeks);
         const entry = computeWeekQuotaEntry(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat, {
           sessionsPerWeek: targetSpw,
+          maxSessionsPerDay: planConfig.maxSessionsPerDay,
           bannedSports: bannedSportsForQuota,
         });
         if (entry) {
@@ -1255,6 +1254,7 @@ export function useAITrainingPlan() {
             .map(m => normalizeRepairSport(m.sport) as LayoutSport));
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
             availableSports,
+            dayBans: rulesForQuota.dayBans,
             finalStageSport: isLCWFormat ? "run" : undefined,
           });
 
@@ -1273,6 +1273,11 @@ export function useAITrainingPlan() {
       }
 
 
+      const planningConflicts = Object.entries(weeklyQuotas).flatMap(([week, entry]) =>
+        entry.layout ? planningFeasibility(entry.quota, entry.layout).map(code => `S${week}:${code}`) : []);
+      if (planningConflicts.length) {
+        throw new Error(`PLANNING_CONSTRAINTS_INFEASIBLE — aucune génération lancée : ${planningConflicts.join("; ")}`);
+      }
       lastWeeklyQuotasRef.current = weeklyQuotas;
 
       // Bloc texte par chunk (uniquement les semaines du chunk concerné).

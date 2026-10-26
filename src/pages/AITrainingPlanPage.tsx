@@ -1,3 +1,4 @@
+import { planningFeasibility } from "@/lib/plan/planningFeasibility";
 import type { PhaseTag } from "@/types/workoutLibrary";
 import { buildPeriodizationCalendar } from "@/lib/plan/periodizationCalendar";
 import { catalogueForWeek } from "../../supabase/functions/_shared/sessionCatalogueContract";
@@ -2847,9 +2848,11 @@ export default function AITrainingPlanPage() {
     const regenAmbition = typeof fullPlanConfig.ambition === "string" ? fullPlanConfig.ambition : "age_group";
     const regenTargetSpw = typeof fullPlanConfig.sessionsPerWeek === "number" && fullPlanConfig.sessionsPerWeek > 0
       ? fullPlanConfig.sessionsPerWeek : null;
-    const regenBannedSports = parseAthleteConstraints((fullPlanConfig as any)?.constraints ?? null).bannedSports;
+    const regenConstraintRules = parseAthleteConstraints(fullPlanConfig.constraints ?? null);
+    const regenBannedSports = regenConstraintRules.bannedSports;
     const regenQuotaEntryRaw = computeWeekQuotaEntry(fullPlanConfig.objective || "", regenAmbition, regenHoursAvail, regenWeekType, isLCWPlan, {
       sessionsPerWeek: regenTargetSpw,
+      maxSessionsPerDay: fullPlanConfig.maxSessionsPerDay,
       bannedSports: regenBannedSports,
     });
     // Correction ciblée "P0 progression individualisée des charges" : même
@@ -2879,7 +2882,14 @@ export default function AITrainingPlanPage() {
       : null;
     const regenQuotaTransport = buildWeekQuotaTransport(weekNumber, regenQuotaEntry, isLCWPlan,
       new Set(catalogueForWeek(catalogResult.repairCatalog, { phase: regenQuotaEntry?.phase, objective: fullPlanConfig.objective, weekType: regenWeekType }).eligible
-        .map(m => normalizeRepairSport(m.sport) as import("@/engines/plan/weeklySlotLayout").LayoutSport)));
+        .map(m => normalizeRepairSport(m.sport) as import("@/engines/plan/weeklySlotLayout").LayoutSport)), regenConstraintRules.dayBans);
+    const regenLayout = regenQuotaTransport._weeklyQuotas[weekNumber]?.layout;
+    const regenConflicts = regenQuotaEntry && regenLayout ? planningFeasibility(regenQuotaEntry.quota, regenLayout) : [];
+    if (regenConflicts.length) {
+      toast.error(`PLANNING_CONSTRAINTS_INFEASIBLE — S${weekNumber}: ${regenConflicts.join("; ")}`);
+      setIsRegenerating(false);
+      return;
+    }
     // Union des catalogId réellement présentés au modèle pour cette semaine
     // (même parseur que le chemin de génération complète, useAITrainingPlan.ts
     // ~ligne 528-541) — restreint le réconciliateur aux fiches vues par l'IA.
