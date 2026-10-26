@@ -51,12 +51,6 @@ it("préserve les règles S1–11 et les activations courtes d'affûtage",()=>{
   }
  }
 });
-it.each(["Semi-Marathon","Marathon","703","IM","Sprint","Olympic","Start to Run"])("ne change pas la règle de semaine de course de %s",objective=>{
- const load=computeWeekQuotaEntry(objective,"age_group",30,"load",false)!;
- const race=computeWeekQuotaEntry(objective,"age_group",30,"race",false)!;
- expect(race.quota.totalSessions.min).toBe(Math.max(3,Math.round(load.quota.totalSessions.min*.5)));
- expect(race.quota.totalSessions.max).toBe(Math.max(race.quota.totalSessions.min,Math.round(load.quota.totalSessions.max*.5)));
-});
 it("ne demande pas une quatrième fiche d'entraînement pour la compétition custom déclarée",()=>{
  const q=computeWeekQuotaEntry("10K","age_group",4,"race",false)!.quota;
  const metadata=buildRepairWorkoutMetadata(WorkoutLibrary.find(w=>w.id==="D_RUN_RECOVERY_30_PRO")!);

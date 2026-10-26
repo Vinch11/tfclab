@@ -1,56 +1,96 @@
-# P0 10 km — semaine de course S12
+# P0 S12 — correction des mécanismes partagés, portée par discipline
 
-Base : `b70e94c56579b02a1e9876e293f16a0bad1480d4` (squash #416).
-Aucun appel modèle, changement de données, migration, changement Nolio ou déploiement.
+Base : `b70e94c56579b02a1e9876e293f16a0bad1480d4` (squash #416). PR brouillon #417.
+Aucun appel modèle, accès/modification de données athlètes, migration, changement Nolio ou déploiement.
 
-## Cause et règle retenue
+## Causes communes démontrées
 
-`sessionSizingMatrix.ts` hérite du quota CAP 10K age_group : quatre sorties, renforcement obligatoire une fois, total cinq à six séances en charge. La branche `race` divisait le total par deux, arrondi/plancher trois, mais gardait le minimum CAP de quatre. Le layout protégeait légitimement ce minimum : quatre ou cinq créneaux ne pouvaient respecter un plafond total de trois.
+1. La branche `race` de `sessionSizingMatrix.ts` divisait le **nombre de séances** par deux, tout en conservant les minima par discipline. Le défaut n'était pas propre au 10 km : les nouvelles reproductions échouaient aussi sur 5 km, semi-marathon, marathon, Half-Ironman et Ironman.
+2. `weeklySlotLayout.ts` ne remplaçait un vélo autonome par le brick que si celui-ci était une sortie longue. En taper/race, les SL étant désactivées, cette substitution disparaissait, contrairement à `effectiveSessionQuota` utilisé par la réconciliation et la validation.
+3. En taper/race, le placement des nages après la CAP saturait les mêmes jours de semaine, laissant un vélo obligatoire non placé malgré des créneaux possibles. La vérification du layout jusqu’au validateur final reproduisait le défaut en Half-Ironman et Ironman.
+4. Le contrôle de couverture demandait toutes les fiches au catalogue d'entraînement, alors qu'un événement officiel déclaré est une séance custom sans fiche catalogue. Cette distinction concerne aussi les autres objectifs et les triathlons officiels.
 
-La règle d'affûtage déjà citée dans la branche `taper` et dans `weeklySlotLayout.ts` (Mujika & Padilla 2003 ; Bosquet 2007) distingue réduction du **volume** et maintien de la **fréquence**. La division du nombre de séances ne représentait donc pas cette règle. La correction ne déduit aucun nouveau pourcentage scientifique. Les facteurs de volume existants (`taperVolumeOverride.ts` : affûtage 0,60 ; semaine de course 0,35), activations courtes 20–30 min, suppression des SL obligatoires, repos et validations restent inchangés. Un facteur de cible affichée n'est pas une preuve du volume réellement produit : celui-ci reste à contrôler.
+Sept assertions sur huit échouaient dans la première reproduction interdisciplinaire avant correction (le 10 km avait déjà son correctif local). Un test 10 km vert masquait donc encore des contrats incohérents ailleurs.
 
-## Avant / après
+## Corrections communes
 
-| Contrat | Avant | Après |
+### Total de semaine de course
+
+La correction locale `if (objKey === "10K")` est remplacée par le calcul commun, à partir de **la ligne propre à l'objectif et à son ambition effective** :
+
+```
+minimumCardio = swim.min + bike.min + run.min + brick.min
+race.total.min = max(minimumCardio, base.total.min − base.strength.min)
+race.total.max = max(race.total.min, base.total.max − base.strength.min)
+```
+
+Les fourchettes de swim/bike/run/brick ne changent pas ; renforcement minimum et plancher deviennent zéro comme auparavant. Le plancher cardio évite notamment d'abaisser Start to Run sous sa fréquence propre. Ce calcul aligne le total sur les contraintes déjà prescrites, sans nouvel objectif de volume ou seuil de progression.
+
+La règle d'affûtage déjà citée par TFCL (Mujika & Padilla 2003 ; Bosquet 2007) distingue volume réduit et fréquence maintenue. Les facteurs existants de cible de volume (`taperVolumeOverride.ts` : 0,60 en affûtage ; 0,35 en semaine de course), activations, jours de repos et protections restent inchangés. Une cible affichée ne prouve pas le volume effectivement produit : les durées restent à contrôler.
+
+### Comptage des bricks
+
+Le layout réutilise `effectiveSessionQuota`, **après le clamp nominal**, pour compter chaque brick comme remplacement d'un vélo autonome. La substitution n'est plus attachée au statut « sortie longue ». Les cibles nominales exposées par le layout sont conservées ; les créneaux réellement placés et le contrôle final appliquent la même convention. Aucun brick n'est transformé en plusieurs séances, aucune règle physiologique n'est remplacée.
+
+En taper/race, le remplissage natation privilégie les jours de semaine les moins occupés après la CAP. Le dimanche reste le dernier recours ; jours de repos, capacité quotidienne, interdiction vélo/brick le même jour et fréquence demandée sont conservés. Cela évite de perdre une séance par saturation locale sans augmenter les quotas.
+
+### Compétitions et couverture catalogue
+
+Le helper partagé de couverture réserve le sport de l'événement explicitement déclaré à sa date : `run` pour course à pied/trail ; `brick` pour un triathlon continu. Ce sont les objectifs normalisés et sports d'événement existants, pas une nouvelle taxonomie.
+
+Il ne change **jamais** le quota final, ne crée aucune séance et ne prouve pas la présence du Jour J. Les validations finales de présence, date, identité, durée, intensité et équivalence restent actives. Un triathlon réservé comme brick ne déduit pas simultanément une natation, un vélo et une CAP. Aucun événement n'est inféré d'un titre. Date absente/invalide, objectif inconnu ou format multi-étapes LCW : aucune déduction automatique. Une déclaration dupliquée ne déduit pas deux fois le même sport.
+
+## Avant / après représentatif — age_group
+
+| Objectif | Total nominal race avant correction commune | Après | CAP / autres spécificités |
+|---|---:|---:|---|
+| 5 km | 3–3 | 4–5 | Quota CAP propre conservé |
+| 10 km | 3–3 dans main, 4–5 dans la première version de #417 | 4–5 | Quatre CAP, **course incluse**, renforcement facultatif |
+| Semi-marathon | 3–3 | 4–5 | Affûtage propre conservé, pas celui du marathon |
+| Marathon | 3–3 | 4–5 | Affûtage deux semaines conservé |
+| Half-Ironman | 6–6, incompatible avec ses minima | 10–10 nominal ; 9–9 avec un brick | Quotas swim/bike/run/brick conservés ; vélo autonome remplacé une fois |
+| Ironman | 6–6, incompatible avec ses minima | 10–10 nominal ; 9–9 avec un brick | Affûtage trois semaines conservé |
+| Trail | Pas dimensionné par cette matrice : quota `null` | Inchangé | Voie terrain/D+/descente et affûtage dédié préservés |
+
+Ces nombres sont des **contrats de comptage**, pas une recommandation universelle de fréquence ou une capacité individuelle démontrée. Les références de volume et les priorités physiologiques restent celles de chaque plan.
+
+## Corrections et comportements spécifiques
+
+- **Cas S12 10 km** : test synthétique de trois activations de 20 min plus une course de 45 min : quatre CAP, aucun cinquième entraînement requis. Ce n'est pas une prescription pour un athlète réel.
+- **Triathlons** : tests spécifiques de substitution vélo/brick, minima natation, comptage final ; l'identité d'événement officiel est un brick custom, pas une simulation catalogue.
+- **LCW** : quota brick nul et dernier sport de l'étape préservés ; aucune déduction de couverture « un événement brick » pour cette compétition multi-jours. Son organisation sportive complète n'est pas validée ici. Les placements complets des paliers très élevés et des variantes multi-bricks restent aussi à examiner sur des plans réels ; les tests de minima ne les certifient pas.
+- **Trail** : aucun quota route ne lui est appliqué. Tests montagne et ultra de durée d'affûtage ; profil terrain/descente et décharge D+ −40–50 % toutes les 3–4 semaines conservés. La correction de couverture est testée séparément du dimensionnement du plan.
+- **Niveau coach** : statut de charge inconnue, provenance manuelle, avertissement `coach_initial_load_unverified`, ordre des limiteurs et protections de progression conservés. Quatre CAP ne démontrent pas une tolérance réelle chez un athlète light ; validation coach toujours nécessaire.
+
+## Disciplines effectivement testées
+
+| Discipline | Vérifications offline représentatives | Ce qui reste à vérifier |
 |---|---|---|
-| CAP en S12 | 4–4 | 4–4, **course incluse** |
-| Total S12 | 3–3, impossible | 4–5 |
-| Calcul du total | moitié du total de charge | total de référence moins le minimum de renforcement devenu facultatif : `[5−1, 6−1]` |
-| Renforcement | minimum 0, plancher 0 | inchangé, facultatif, aucun ajout pour remplir le total |
-| Sortie longue | non exigée | inchangé |
-| Repos complet | minimum 1 | inchangé |
-| Pool de fiches | minimum 4 CAP demandé aux seules fiches d'entraînement | minimum 3 fiches si une course 10K est explicitement déclarée dans cette semaine ; le total final exige toujours quatre CAP dont la course |
+| 5 km | Minima/total, ambitions, comptage des créneaux, événement, calendrier/affûtage/récupération | Qualité d'un plan complet réellement généré |
+| 10 km | Même socle + S1–12, S12 avec course incluse, garde-fous existants | Réponse future du modèle, tolérance individuelle, revue coach |
+| Semi-marathon | Minima/total, ambitions, comptage, événement, affûtage une semaine | Plan complet et progressions réellement produites |
+| Marathon | Même socle, affûtage deux semaines | Plan complet, tolérance musculo-tendineuse réelle |
+| Trail | Absence de quota route imposé, événement, montagne/ultra, D+, descente, récupération et affûtage dédiés | Fréquence/volume d'un plan trail complet ; pas de matrice déterministe de quotas équivalente |
+| Half-Ironman | Minima propres, ambitions, natation, bricks/vélo, comptage final, événement, affûtage deux semaines, exception LCW | Répartition/intensités d'un plan complet et organisation de la semaine de course |
+| Ironman | Même socle, affûtage trois semaines, exception LCW | Plan complet, récupération et spécificité individuelles |
 
-Cette correction de fréquence est limitée au 10K ; aucune règle de quota des autres disciplines n'est modifiée. Le décompte de couverture catalogue utilise seulement les objectifs déclarés et leurs dates ISO valides. Il ne déduit aucune compétition d'un titre ou de `weekType=race`, ne crée aucune séance et ne prouve pas sa présence dans le résultat. Absence de date, autre semaine, autre sport : aucune déduction. Une déclaration dupliquée ne soustrait pas deux événements. Le validateur final de présence/identité des compétitions est inchangé.
+Les tests ne réduisent pas ces disciplines à un nombre fixe de sorties CAP. Ils utilisent leurs propres paramètres et comparent les deux côtés du contrat. Le même calendrier est testé avec cadences de récupération trois/quatre semaines. Des tests de sprint, olympique et Start to Run existants complètent le périmètre ; ils ne constituent pas une certification sportive générale.
 
-## Niveau coach et sécurité
-
-Le niveau light plafonne déjà l'ambition demandée competitor vers age_group. Les quatre CAP proviennent de la matrice existante de cette ambition effective, pas d'un nouveau calcul de capacité. La première semaine et S1–11 ne sont pas augmentées. La fréquence en S12 est maintenue par rapport à S11 et au bloc de charge ; les entraînements deviennent courts, pas quatre séances de charge complète plus la course.
-
-Heures et charge récente restent inconnues : quatre sorties ne constituent **pas** une tolérance démontrée chez cet athlète. L'avertissement `coach_initial_load_unverified`, la provenance manuelle et les contrôles de progression existants sont conservés. La faisabilité individuelle, les jours choisis et l'intérêt du renforcement facultatif doivent être relus par le coach. Aucun formulaire ou import n'est ajouté.
-
-## Preuves reproductibles
-
-- Avant : `tenKRaceWeek.test.ts` rouge, `expected 3 to be greater than or equal to 4`.
-- Après : minimum CAP compatible avec le total ; un exemple synthétique de trois activations de 20 min et une course de 45 min passe le décompte final sans cinquième sortie. Ces durées sont une fixture, pas une prescription pour un athlète réel.
-- Les douze semaines respectent l'inégalité minima obligatoires ≤ maximum total dans le cas 10K age_group rejoué. Les cinq ambitions 10K conservent leur fréquence CAP ; renforcement non obligatoire en course.
-- Tests de non-régression des quotas existants semi, marathon, 70.3, Ironman, sprint, olympique et Start to Run ; couverture trail via les suites existantes. Ces autres règles ne sont pas déclarées sportivement parfaites par ce test.
-- La couverture catalogue exclut uniquement l'événement officiel daté, jamais une simulation ou un événement supposé ; les refus d'équivalence, durée et intensité restent actifs.
+## Reproduction et résultats
 
 ```sh
-node scripts/quality/replay-10k-catalogue-contracts.mjs /tmp/tenk-s12.json
+npx vitest run src/engines/plan/__tests__/raceWeek.crossDiscipline.test.ts
 npx vitest run src/engines/plan/__tests__/tenKRaceWeek.test.ts
+node scripts/quality/replay-10k-catalogue-contracts.mjs /tmp/tenk-s12.json
 npx vitest run
 npx tsc --noEmit -p tsconfig.app.json
 deno test --allow-read --allow-env supabase/functions/ai-training-plan supabase/functions/ai-training-plan-test
 ```
 
-Dans le replay anonymisé, pour les deux âges fictifs 32 et 50, S12 donne total 4–5, quatre CAP minimum, layout cinq séances si le renforcement compatible est disponible, seize candidats compatibles dont trois CAP, et aucun sport manquant après prise en compte du Jour J déclaré. L'exemple sans renforcement reste valide à quatre séances. Les contre-exemples sans objectif daté conservent le diagnostic de pool insuffisant.
+Le replay 10 km reste explicitement un cas 10 km, pas une validation générale. Les suites interdisciplines et leurs limites ci-dessus apportent les preuves supplémentaires. Résultats CI/reproductibilité au HEAD exact consignés dans la PR ; les anciens résultats du premier HEAD ne valent pas pour une révision ultérieure.
 
-## Limites et décision
+## Décision et limites
 
-Les réponses rejetées de la tentative historique restent indisponibles ; aucune attribution de leurs refus à une fiche précise. Les tests offline ne garantissent pas qu'une future réponse de modèle respectera les contrats. Les mêmes contrôles bloquants continuent de refuser une prescription réellement incompatible.
+GO pour revue de la correction commune sous CI et reproductibilité vertes. Aucun GO sportif général ni autorisation d'utilisation automatique de futurs plans. Avant une nouvelle génération contrôlée : autorisations distinctes de fusion/publication/appel payant, versions compatibles attestées, validation coach sur la charge inconnue et la fréquence, puis revue du résultat réel. Les refus de la tentative historique sans identifiants précis restent non attribuables. Aucun appel payant ou publication exécuté ici.
 
-GO pour revue de cette correction, sous CI/reproductibilité vertes. GO **technique** pour envisager une génération contrôlée après autorisations séparées de fusion, publication coordonnée et appel payant ; validation du coach sur charge inconnue et fréquence indispensable. Pas de GO pour utiliser un plan futur sans revue sportive ni validation de sa sauvegarde. Aucun appel payant ou publication exécuté dans cette mission.
-
-Résultats CI au HEAD exact et preuves de reproductibilité : voir la PR brouillon associée.
+La règle de compte rendu interdisciplinaire est inscrite dans `AGENTS.md` pour les corrections futures, en réutilisant les validations disponibles.

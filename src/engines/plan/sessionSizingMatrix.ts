@@ -491,30 +491,20 @@ export function computeWeeklySessionQuota(
     localFloors.slLongRideMin = undefined;
     localFloors.slLongRunMin = undefined;
   } else if (weekType === "race") {
-    // Floors allégés (strength 0 autorisé, SL désactivées) ET totalSessions réduit — une
-    // semaine de course n'a pas vocation à hériter du volume plein de base (bug corrigé :
-    // avant ce fix, une semaine de course affichait le même totalSessions qu'une semaine
-    // de charge classique, faute de réduction explicite ici — contrairement à "taper").
-    const totMinR = Math.max(3, Math.round(base.totalSessions.min * 0.5));
-    const totMaxR = Math.max(totMinR, Math.round(base.totalSessions.max * 0.5));
+    // Affûtage : conserver les fréquences propres à la ligne de l'objectif.
+    // La diminution du VOLUME est gérée ailleurs ; diviser le nombre de séances
+    // rendait les minima inchangés incompatibles avec le total (pas seulement 10K).
+    // Le renforcement devient facultatif : retirer son minimum du total de
+    // référence, sans descendre sous les minima cardio (notamment Start to Run).
+    const cardioMinimum = base.swim.min + base.bike.min + base.run.min + base.brick.min;
+    const totalMin = Math.max(cardioMinimum, base.totalSessions.min - base.strength.min);
+    const totalMax = Math.max(totalMin, base.totalSessions.max - base.strength.min);
     quota = {
       ...base,
       strength: { min: 0, max: base.strength.max },
-      totalSessions: { min: totMinR, max: totMaxR },
-      source: { tier: "elite_practice", ref: "Race week — floors + volume réduit, logique race-week existante prime" },
+      totalSessions: { min: totalMin, max: totalMax },
+      source: { tier: "peer_reviewed", ref: "Mujika 2003, Bosquet 2007 — volume réduit, fréquences propres à l'objectif maintenues, renforcement facultatif" },
     };
-    // 10K : la réduction d'affûtage porte sur le VOLUME, pas une division
-    // du nombre de sorties (Mujika 2003 / Bosquet 2007, règle taper ci-dessus).
-    // La course est UNE des sorties CAP, pas une séance supplémentaire.
-    // On retire le renforcement obligatoire du total de référence puisqu'il
-    // devient facultatif ; les minima CAP restent ceux du niveau effectif.
-    if (objKey === "10K") {
-      quota.totalSessions = {
-        min: base.totalSessions.min - base.strength.min,
-        max: base.totalSessions.max - base.strength.min,
-      };
-      quota.source = { tier: "peer_reviewed", ref: "Mujika 2003, Bosquet 2007 — volume réduit, fréquence CAP maintenue (compétition incluse), renforcement facultatif" };
-    }
     localFloors.minStrengthPerWeek = 0;
     localFloors.longRideWeekly = false;
     localFloors.longRunWeekly = false;
@@ -531,8 +521,8 @@ export function computeWeeklySessionQuota(
   // de 12 semaines). Assoupli ici SEULEMENT pour load/taper : la branche
   // recovery ci-dessus dérive déjà de base.run.min=3 (→2 après son propre
   // -1) et reste inchangée (cf. test "recovery STARTTORUN finisher →
-  // run.min===2") ; race n'est pas touchée (déjà réduite via le facteur
-  // ×0.5 sur totalSessions).
+  // run.min===2") ; race conserve son minimum propre de 3 (la baisse de volume
+  // ne devient pas une baisse arbitraire de fréquence).
   if (objKey === "STARTTORUN" && (weekType === "load" || weekType === "taper")) {
     quota = { ...quota, run: { min: 2, max: quota.run.max } };
   }
