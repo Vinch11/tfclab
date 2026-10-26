@@ -212,6 +212,10 @@ export function buildWeeklySlotLayout(
   const rrRun: DayName[] = isTaperish
     ? ["mardi", "jeudi", "mercredi", "vendredi", "samedi"]
     : ["mercredi", "vendredi", "mardi", "jeudi", "samedi"];
+  // Le palier world_class peut exiger 7 CAP avec 0 repos imposé.
+  // Ne pas rendre ce quota impossible en excluant systématiquement le lundi.
+  // canAdd conserve les jours de repos et le plafond quotidien existants.
+  if (quota.minFullRestDays === 0 && quota.run.min > 6) rrRun.push("lundi");
 
   // Bug réel corrigé (audit "génération de plan IA", volet composition
   // hebdomadaire) : contrairement à fillBike/fillRun ci-dessous, cette

@@ -34,6 +34,9 @@ import { NON_DEROGABLE_RULES } from "../AITrainingPlanPage";
  * fondamentales ci-dessus.
  */
 describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrainingPlanPage)", () => {
+  it("un dépassement du plafond de progression du niveau coach bloque sans dérogation", () => {
+    expect(NON_DEROGABLE_RULES.has("coach_load_violation")).toBe(true);
+  });
   it("une prescription incompatible avec sa fiche bloque sans dérogation", () => {
     expect(NON_DEROGABLE_RULES.has("catalogue_prescription_incompatible")).toBe(true);
   });
@@ -75,8 +78,8 @@ describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrain
     }
   });
 
-  it("périmètre volontairement restreint à exactement 6 règles — pas un blocage de toutes les erreurs critiques", () => {
-    expect(NON_DEROGABLE_RULES.size).toBe(6);
+  it("périmètre volontairement restreint à exactement 7 règles — pas un blocage de toutes les erreurs critiques", () => {
+    expect(NON_DEROGABLE_RULES.size).toBe(7);
   });
 
   /**

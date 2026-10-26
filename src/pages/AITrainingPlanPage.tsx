@@ -2,6 +2,7 @@ import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
+import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
@@ -64,7 +65,7 @@ import { computeFinalValidationIssues } from "@/lib/plan/qa/finalValidation";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { runReconciler } from "@/lib/plan/planReconciler";
 import { buildWeekQuotaTransport } from "@/lib/plan/weekQuotaTransport";
-import { inferWeekType, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
+import { inferWeekType, buildCoachVolumeBudget, resolveCoachHoursReference, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import { upgradeLegacyTaper, detectLegacyTaperGap, taperVolumeAlreadyReduced, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
@@ -481,6 +482,7 @@ export const NON_DEROGABLE_RULES = new Set([
   // contournable par "Sauvegarder quand même".
   "race_day_unexpected",
   "catalogue_prescription_incompatible",
+  "coach_load_violation", // plafonds issus du niveau coach, jamais dérogeables
   "race_catalog_conflict", // compétition officielle ≠ fiche d’entraînement
 ]);
 
@@ -494,7 +496,7 @@ export default function AITrainingPlanPage() {
   // chaque changement d'athlète, cf. PR #63 anti-fuite cross-athlète).
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef, lastWeeklyQuotasRef, lastResponseRef } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -1376,6 +1378,9 @@ export default function AITrainingPlanPage() {
     if (!response || isLoading) return null;
     try {
       const rawPlan = parseAIPlan(response);
+      // Only bind quotas from this exact completed generation, never a historical load.
+      if (response === lastResponseRef.current && Object.keys(lastWeeklyQuotasRef.current).length)
+        rawPlan.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
       // 🚫 Filet de sécurité anti-trail pour plans triathlon (IM / 70.3 / LCW)
       const { plan, removed: removedTrail } = sanitizeTrailFromTriathlonPlan(rawPlan, objective);
       if (removedTrail.length > 0) {
@@ -1408,11 +1413,9 @@ export default function AITrainingPlanPage() {
           // (2) weeklyHours — user prime, sinon fallback sur l'ambition EFFECTIVE
           const userWH = parseFloat(weeklyHours);
           const userWHValid = Number.isFinite(userWH) && userWH > 0;
-          const effectiveWH = resolveEffectiveWeeklyHours(
-            weeklyHours,
-            objective,
-            ambRes.ambitionEffective,
-          );
+          const effectiveWH = trainingLevel !== "auto"
+            ? resolveCoachHoursReference(objective, ambRes.ambitionEffective, userWHValid ? userWH : undefined)?.hours ?? null
+            : resolveEffectiveWeeklyHours(weeklyHours, objective, ambRes.ambitionEffective);
           const usedFallback = !userWHValid && effectiveWH != null;
 
           const d = deriveRaceTargets({
@@ -1686,6 +1689,11 @@ export default function AITrainingPlanPage() {
       },
       athleteContext.data
     );
+
+    plan.finalValidationIssues = [
+      ...(plan.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
+      ...validateCoachLoadIssues(plan, plan.weeklyQuotas),
+    ];
 
     // Mise à niveau des plans ANCIENS : affûtage minimal déterministe.
     // Idempotent — no-op si le plan respecte déjà la règle (cas normal après
@@ -2852,6 +2860,7 @@ export default function AITrainingPlanPage() {
     const regenQuotaEntry = regenQuotaEntryRaw
       ? {
         ...regenQuotaEntryRaw,
+        volumeBudget: buildCoachVolumeBudget(fullPlanConfig.volumeRamp, weekNumber, regenWeekType, fullPlanConfig.weeklyHoursSource),
         floors: applySlFloorIndividualization(
           regenQuotaEntryRaw.floors, weekNumber, regenWeekType, regenSlRampAnchors, regenInjuryRiskForSlFloor,
         ).floors,

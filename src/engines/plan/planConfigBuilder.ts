@@ -18,6 +18,7 @@ import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecen
 import { resolveVolumeRampLoadAdjustment } from "@/lib/volumeRampLoadAdjustment";
 import { computeTrailProfile, isTrailObjective } from "@/lib/trailProfile";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
+import { resolveCoachHoursReference } from "./sessionSizingMatrix";
 import { AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getVlamaxTarget as getVlamaxTargetCanonical } from "@/lib/v2/vlamaxTargets";
 
@@ -165,8 +166,8 @@ export function buildPlanConfigFromDiagnostic(
   });
 
   const effectiveAmbitionLabel = AMBITION_DEFINITIONS[ambitionResolution.ambitionEffective].label;
-  // Mutation locale : formConfig.ambition remplacé par le label effectif pour tout le reste du builder.
-  const effectiveFormConfig: PlanFormConfig = { ...formConfig, ambition: effectiveAmbitionLabel };
+  // Transporter la clé, jamais le libellé UI « Elite » (ambigu avec la clé elite).
+  const effectiveFormConfig: PlanFormConfig = { ...formConfig, ambition: ambitionResolution.ambitionEffective };
 
   // ── Limiteurs enrichis ────────────────────────────────────────────────────
   const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
@@ -271,9 +272,11 @@ export function buildPlanConfigFromDiagnostic(
   const recentLoad = {
     tss7d: crr.value,
     source: crr.source,
-    status: chargeScore.status,
-    label: crr.label,
-    recommendation: chargeScore.recommendation,
+    status: crr.source === "MANUAL" ? "unknown" as const : chargeScore.status,
+    label: crr.source === "MANUAL" ? "Charge récente inconnue — estimation qualitative du niveau coach" : crr.label,
+    recommendation: crr.source === "MANUAL"
+      ? "Estimation de planification, pas une charge mesurée ni une preuve de tolérance. Première semaine : validation du coach nécessaire à partir de la pratique actuelle."
+      : chargeScore.recommendation,
     target: {
       min: crrTargets.chargeMinimale,
       opt: crrTargets.chargeOptimale,
@@ -317,9 +320,13 @@ export function buildPlanConfigFromDiagnostic(
   // Dérivée de `trainingLevel`. Contrainte dure injectée chunk 1 pour
   // éviter de balancer un volume cible (ex: 12h) dès la Sem 1 à un athlète
   // peu/non entraîné. Règle des 10% + ACWR ≤ 1.3 (Gabbett).
+  const hoursReference = formConfig.trainingLevel
+    ? resolveCoachHoursReference(formConfig.objective, ambitionResolution.ambitionEffective, formConfig.weeklyHours)
+    : undefined;
+  const planningHours = hoursReference?.hours ?? formConfig.weeklyHours;
   let volumeRamp: PlanConfig["volumeRamp"];
-  if (formConfig.trainingLevel && formConfig.weeklyHours && formConfig.weeklyHours > 0) {
-    const target = formConfig.weeklyHours;
+  if (formConfig.trainingLevel && planningHours && planningHours > 0) {
+    const target = planningHours;
     const matrix = {
       untrained:      { pct: 0.40, ramp: 6, cap: 5 as number | null },
       light:          { pct: 0.60, ramp: 4, cap: 8 as number | null },
@@ -359,7 +366,8 @@ export function buildPlanConfigFromDiagnostic(
     raceGoals: formConfig.raceGoals,
     planStartDate: formConfig.planStartDate,
     weeksAvailable: formConfig.weeksAvailable,
-    weeklyHours: formConfig.weeklyHours,
+    weeklyHours: planningHours,
+    weeklyHoursSource: hoursReference?.source,
     sessionsPerWeek: formConfig.sessionsPerWeek,
     maxSessionsPerDay: formConfig.maxSessionsPerDay,
     strengthSessionsPerWeek: formConfig.strengthSessionsPerWeek,

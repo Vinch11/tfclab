@@ -11,6 +11,8 @@
  * Aligné sur la mécanique des issues sport↔objectif (validateSportObjective).
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+import { validateCoachVolumeBudgets } from "./coachVolumeValidation";
+import type { CoachVolumeBudget } from "@/engines/plan/sessionSizingMatrix";
 import { effectiveSessionQuota, countQuotaSessions } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
 import { traceSLFloorConsumer, type SLFloorAudit } from "./slFloorAudit";
 import type { MergedPlan } from "./mergePlanChunks";
@@ -20,7 +22,7 @@ import type { ValidationIssue } from "@/engines/plan/planValidator";
 
 export interface QuotaIssue {
   severity: "critical" | "warning";
-  code: "quota_floor_violation" | "quota_range_drift" | "layout_drift";
+  code: "quota_floor_violation" | "quota_range_drift" | "layout_drift" | "coach_load_violation";
   weekNumber: number;
   reason: string;
   expected?: string;
@@ -28,6 +30,7 @@ export interface QuotaIssue {
 }
 
 export interface WeekQuotaEntry {
+  volumeBudget?: CoachVolumeBudget;
   /** Passive provenance; never used to change quota or severity. */
   floorAudit?: SLFloorAudit;
   quota: WeeklyQuota;
@@ -47,7 +50,9 @@ export function validateWeeklyQuotas(
   merged: MergedPlan,
   quotasByWeek: Record<number, WeekQuotaEntry>,
 ): QuotaIssue[] {
-  const out: QuotaIssue[] = [];
+  const out: QuotaIssue[] = validateCoachVolumeBudgets(merged, quotasByWeek).map(i => ({
+    severity: "critical", code: "coach_load_violation", weekNumber: i.week!, reason: i.message,
+  }));
   for (const w of merged.weeks) {
     const entry = quotasByWeek[w.weekNumber];
     if (!entry) continue;
