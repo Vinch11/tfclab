@@ -47,6 +47,8 @@ Les nouvelles assertions ont été exécutées rouges avant les corrections cata
 
 `global-p0-evidence/matrix.csv` : une ligne par configuration. `summary.json` : agrégation par objectif et niveau. `matrix.jsonl` : compteurs et détail hebdomadaire, phases, types, tailles de pools et motifs d'exclusion. `replay.json` : plans complets disponibles, origine et limites des étapes traversées.
 
+Le CSV est échappé selon RFC 4180 : 600 lignes × 18 colonnes relues avec le parseur CSV standard Python, avec restitution exacte de tous les diagnostics JSON (`csv-validation.json`).
+
 Les compteurs de précontrôle et de quota peuvent décrire la même contradiction. **Ne pas les additionner comme un nombre d'incidents distincts ou de violations de sécurité.** Le résumé compte les configurations touchées. `minimum_catalogue_dose_exceeds_budget` est un signal de faisabilité selon les bornes canoniques, pas une preuve d'impossibilité avec toutes les variantes/custom. Les pénuries portent sur les fiches distinctes ; répétition autorisée et custom ne sont pas assimilés à des fiches supplémentaires.
 
 Les zéros en trail ne sont pas un GO : cette voie n'a pas la matrice déterministe de quotas/rampe de la route. Ses prescriptions complètes, progression, dénivelé, récupération et incertitudes restent à vérifier sur sorties enregistrées. Aucune règle 10 km ne lui est appliquée.
@@ -73,7 +75,7 @@ Les zéros en trail ne sont pas un GO : cette voie n'a pas la matrice détermini
 
 Les lignes 703/IM incluent 40 cas continuous et 40 LCW chacune. Le détail par niveau et les configurations exactes sont dans `summary.json` et `matrix.csv`. Un cas sans blocage mécanique n'est pas un plan généré conforme.
 
-Parcours offline ciblé : **9 fichiers / 110 tests verts**. Affûtage + matrice historique + non-régression race : **106 tests verts**. Disponibilités, layout et affûtage après correction du sport banni : **79 tests verts**. TypeScript app : vert. Deno production : **340/340** ; fonction test : **338/338**. Les quatre jobs CI et la reproductibilité du HEAD sont suivis dans la PR ; ne pas assimiler un résultat local à un résultat GitHub.
+Parcours offline ciblé : **9 fichiers / 111 tests verts**. Affûtage + matrice historique + non-régression race : **106 tests verts**. Disponibilités, layout et affûtage après correction du sport banni : **79 tests verts**. TypeScript app : vert. Deno production : **340/340** ; fonction test : **338/338**. Les quatre jobs CI et la reproductibilité du HEAD sont suivis dans la PR ; ne pas assimiler un résultat local à un résultat GitHub.
 
 Plans complets disponibles : 5 km archivé, 12 semaines, **1 erreur / 18 avertissements** au validateur courant ; Start-to-Run full **5/47**, light **16/47**, none **16/43** au validateur générique. Ces comptes conservent les anomalies au lieu de fabriquer une conformité et ne sont pas une expertise sportive du protocole statique. Le rapport de replay indique les règles précises.
 

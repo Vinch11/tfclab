@@ -1,0 +1,6 @@
+{
+  "parser": "Python standard library csv.DictReader",
+  "rows": 600,
+  "columns": 18,
+  "allDiagnosticJsonCellsRoundTrip": true
+}

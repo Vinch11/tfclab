@@ -1,3 +1,4 @@
+import { matrixCsv } from "../matrixCsv";
 import { describe,it,expect } from "vitest";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { buildRepairWorkoutMetadata } from "@/lib/plan/repairCatalogMetadata";
@@ -48,4 +49,9 @@ it("keeps exact fixed-duration prescriptions instead of rounding them outside th
   return duration<w.durationMin[0]||duration>w.durationMin[1]?[`${w.id}:${phase}`]:[];
  }));
  expect(violations).toEqual([]);
+});
+
+it("keeps JSON rule counters in one standard CSV cell",()=>{
+ expect(matrixCsv([["case","diagnostics"],["10K",JSON.stringify({duration:1,intent:2})]]))
+  .toBe('"case","diagnostics"\n"10K","{""duration"":1,""intent"":2}"\n');
 });

@@ -1,3 +1,4 @@
+import { matrixCsv } from "../matrixCsv";
 import { describe,it,expect,vi } from "vitest";
 import { writeFileSync,mkdirSync } from "node:fs";
 import { planningCases,evaluatePlanningCase,matrixCoverage,OBJECTIVE_PROFILE,supplementaryPlanningCases } from "../planningMatrix";
@@ -27,8 +28,8 @@ describe("offline scope inventory and combinatorial planning contracts",()=>{
    mkdirSync(output,{recursive:true});
    writeFileSync(`${output}/matrix.json`,JSON.stringify({coverage:{...coverage,supplementalCases:supplemental.length,formats:["continuous","lcw_3day"]},rows},null,2));
    const header=["case","objective","level","requested_ambition","effective_ambition","load","physiology","data_quality","format","constraints","duration","intermediate","weeks","configuration","contract_issues","whole_plan","safety","science"];
-   const csv=[header,...rows.map(r=>[r.id,r.objective,r.level,r.ambition,r.effectiveAmbition,r.load,r.physiology,r.dataQuality,r.format??"continuous",r.constraints,r.duration,r.intermediate,r.weeks,r.configuration,JSON.stringify(r.preparationIssues),r.completePlanConstruction,r.sportingSafety,r.scientificValidation])].map(row=>row.map(v=>JSON.stringify(String(v??""))).join(",")).join("\n");
-   writeFileSync(`${output}/matrix.csv`,csv+"\n");
+   const csv=matrixCsv([header,...rows.map(r=>[r.id,r.objective,r.level,r.ambition,r.effectiveAmbition,r.load,r.physiology,r.dataQuality,r.format??"continuous",r.constraints,r.duration,r.intermediate,r.weeks,r.configuration,JSON.stringify(r.preparationIssues),r.completePlanConstruction,r.sportingSafety,r.scientificValidation])]);
+   writeFileSync(`${output}/matrix.csv`,csv);
   }
   expect(rows.every(r=>r.scientificValidation==="requires_human_review")).toBe(true);
   expect(rows.every(r=>r.completePlanConstruction!==undefined)).toBe(true);
