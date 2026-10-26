@@ -36,6 +36,14 @@ jobs:
           node scripts/preproduction/plan-release-source.mjs
           env -u TFCL_PLAN_RELEASE_INFO -u SOURCE_DATE_EPOCH bun run build
           node -e 'const m=JSON.parse(require("node:fs").readFileSync("dist/plan-release.json","utf8")); if(m.manifestVersion!==2 || m.attested!==false || m.provenance!=="declared-source" || !m.releaseId) process.exit(1)'
+      - name: Lovable build with injected environment metadata
+        run: |
+          test ! -e src/tailwind.config.lov.json
+          cp dist/plan-release.json /tmp/tfcl-release-without-lovable.json
+          trap 'rm -f src/tailwind.config.lov.json' EXIT
+          printf '%s\n' '{"theme":{"extend":{}}}' > src/tailwind.config.lov.json
+          env -u TFCL_PLAN_RELEASE_INFO -u SOURCE_DATE_EPOCH bun run build
+          cmp /tmp/tfcl-release-without-lovable.json dist/plan-release.json
       - name: Build twice from the same immutable commit
         run: |
           node scripts/preproduction/prepare-plan-release.mjs --commit HEAD --out /tmp/tfcl-release-a

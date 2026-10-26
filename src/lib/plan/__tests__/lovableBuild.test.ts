@@ -23,6 +23,39 @@ describe("Lovable build fingerprints its actual checkout, without Git or prepara
     expect(computed.info.sourceCommit).toBeNull();
   }, 20000);
 
+  it("ignores only Lovable's injected Tailwind metadata, without changing any fingerprint", async () => {
+    const injected = join(temp, "src/tailwind.config.lov.json");
+    try {
+      for (const content of ['{}', '{"theme":{"extend":{"colors":{"synthetic":"#123456"}}}}']) {
+        writeFileSync(injected, content);
+        expect((await checkedPlanRelease(temp)).info).toEqual(readDeclaration(root));
+      }
+    } finally { rmSync(injected, { force: true }); }
+  }, 20000);
+
+  it("still fingerprints other JSON, frontend sources and both server components", async () => {
+    const declared = readDeclaration(root);
+    const addedJSON = join(temp, "src/synthetic-critical-config.json");
+    try {
+      writeFileSync(addedJSON, '{}');
+      await expect(checkedPlanRelease(temp)).rejects.toThrow("PLAN_RELEASE_DECLARATION_STALE");
+    } finally { rmSync(addedJSON, { force: true }); }
+    for (const [file, component] of [
+      ["src/App.tsx", "frontend"],
+      ["supabase/functions/ai-training-plan/index.ts", "ai-training-plan"],
+      ["supabase/functions/ai-training-plan-test/index.ts", "ai-training-plan-test"],
+    ] as const) {
+      const path = join(temp, file);
+      const original = readFileSync(path, "utf8");
+      try {
+        writeFileSync(path, `${original}\n// synthetic drift\n`);
+        const changed = await calculatePlanRelease(temp);
+        expect(changed.info.components[component]).not.toBe(declared.components[component]);
+        expect(() => assertSameDeclaration(declared, changed.info)).toThrow("PLAN_RELEASE_DECLARATION_STALE");
+      } finally { writeFileSync(path, original); }
+    }
+  }, 20000);
+
   it("rejects stale contract sources and modified effective catalogue instead of widening compatibility", async () => {
     const contract = join(temp, "supabase/functions/_shared/repairSportingEquivalence.ts");
     const original = readFileSync(contract, "utf8");
