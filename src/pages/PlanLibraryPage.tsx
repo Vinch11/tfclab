@@ -1,6 +1,6 @@
 /**
  * PlanLibraryPage — Bibliothèque de tous les plans IA sauvegardés
- * Permet de consulter, filtrer par athlète, et restaurer d'anciens plans
+ * Permet de consulter et filtrer les versions archivées ; restauration calendrier suspendue
  */
 
 import { useState, useEffect, useMemo } from "react";
@@ -20,21 +20,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
   Archive, Search, RotateCcw, Trash2, Loader2,
   Calendar, ArrowLeft, FileText, User, Clock,
 } from "lucide-react";
-import { format, parseISO, startOfWeek, addDays } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { extractCatalogId } from "@/lib/catalogIdExtractor";
+import { archivedSessionDayLabel } from "@/lib/plan/archivedSessionDayLabel";
 
 interface PlanVersion {
   id: string;
@@ -63,10 +56,6 @@ export default function PlanLibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterAthleteId, setFilterAthleteId] = useState<string>("all");
 
-  // Restore state
-  const [confirmRestore, setConfirmRestore] = useState<PlanVersion | null>(null);
-  const [restoreStartDate, setRestoreStartDate] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const [restoring, setRestoring] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   // Expanded plan detail
@@ -130,62 +119,6 @@ export default function PlanLibraryPage() {
     setDeleting(null);
   };
 
-  const handleRestore = async (version: PlanVersion) => {
-    setRestoring(version.id);
-    setConfirmRestore(null);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Non authentifié");
-      const plan = version.plan_json;
-      if (!plan?.weeks?.length) throw new Error("Plan invalide");
-
-      const phaseMap: Record<string, string> = {
-        base: "BASE", build: "PHASE2", peak: "PHASE3",
-        taper: "PHASE4", race: "RACE", off: "OFF",
-      };
-
-      const planStart = startOfWeek(restoreStartDate, { weekStartsOn: 1 });
-      const rows: any[] = [];
-
-      for (const week of plan.weeks) {
-        const weekStart = addDays(planStart, ((week.weekNumber || 1) - 1) * 7);
-        for (const session of week.sessions || []) {
-          if (session.isRest) continue;
-          const dayOffset = session.day != null ? session.day - 1 : 0;
-          const sessionDate = addDays(weekStart, dayOffset);
-          rows.push({
-            athlete_id: version.athlete_id,
-            coach_id: user.id,
-            date: format(sessionDate, "yyyy-MM-dd"),
-            phase: session.phase ? (phaseMap[session.phase.toLowerCase()] || "BASE") : null,
-            custom_workout_title: `${session.sport || "Autre"} — ${session.title || "Séance"}`,
-            custom_workout_description: session.details || null,
-            status: "PLANNED",
-            notes: week.theme ? `Semaine ${week.weekNumber}: ${week.theme}` : null,
-            workout_id: extractCatalogId(session.title, session.details),
-          });
-        }
-      }
-
-      if (rows.length === 0) throw new Error("Aucune séance dans ce plan");
-
-      await supabase
-        .from("training_plan")
-        .delete()
-        .eq("athlete_id", version.athlete_id);
-
-      const { error } = await supabase.from("training_plan").insert(rows);
-      if (error) throw error;
-
-      toast.success(`Plan restauré : ${rows.length} séances pour ${athleteMap[version.athlete_id] || "l'athlète"}`);
-    } catch (err: any) {
-      console.error("Restore error:", err);
-      toast.error("Erreur restauration : " + (err.message || "Inconnu"));
-    } finally {
-      setRestoring(null);
-    }
-  };
-
   const getPlanSummary = (plan: any) => {
     if (!plan?.weeks) return null;
     const sports = new Set<string>();
@@ -209,6 +142,7 @@ export default function PlanLibraryPage() {
       onStaffModeChange={setStaffMode}
     >
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
+        <p className="text-sm text-muted-foreground">Restauration calendrier suspendue pour éviter une perte de séances. Le chargement d’une version dans la page Plan reste disponible.</p>
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3">
@@ -320,13 +254,10 @@ export default function PlanLibraryPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => setConfirmRestore(v)}
-                          disabled={restoring === v.id}
-                          title="Restaurer ce plan"
+                          disabled
+                          title="Restauration calendrier suspendue : remplacement atomique indisponible"
                         >
-                          {restoring === v.id
-                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            : <RotateCcw className="h-3.5 w-3.5 text-primary" />}
+                          <RotateCcw className="h-3.5 w-3.5 text-primary" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -371,7 +302,7 @@ export default function PlanLibraryPage() {
                                   if (s.isRest) {
                                     return (
                                       <div key={si} className="px-3 py-1.5 bg-muted/30 text-muted-foreground italic">
-                                        J{s.day || si + 1} — Repos
+                                        {archivedSessionDayLabel(s)} — Repos
                                       </div>
                                     );
                                   }
@@ -393,7 +324,7 @@ export default function PlanLibraryPage() {
                                   return (
                                     <div key={si} className="px-3 py-2 space-y-1">
                                       <div className="flex items-center gap-2">
-                                        <span className="text-muted-foreground font-mono w-5 shrink-0">J{s.day || si + 1}</span>
+                                        <span className="text-muted-foreground font-mono w-5 shrink-0">{archivedSessionDayLabel(s)}</span>
                                         <Badge className={cn("text-[9px] font-medium", sportClass)}>
                                           {s.sport || "Autre"}
                                         </Badge>
@@ -432,59 +363,6 @@ export default function PlanLibraryPage() {
         )}
       </div>
 
-      {/* Restore Dialog */}
-      <AlertDialog open={!!confirmRestore} onOpenChange={(o) => { if (!o) setConfirmRestore(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <RotateCcw className="h-5 w-5 text-primary" />
-              Restaurer ce plan ?
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>
-                  Le planning actuel de{" "}
-                  <span className="font-medium text-foreground">
-                    {confirmRestore && (athleteMap[confirmRestore.athlete_id] || "l'athlète")}
-                  </span>{" "}
-                  sera remplacé par cette version
-                  {confirmRestore && (
-                    <span className="font-medium">
-                      {" "}du {format(parseISO(confirmRestore.created_at), "d MMM yyyy", { locale: fr })}
-                    </span>
-                  )}.
-                </p>
-                <div>
-                  <p className="text-sm font-medium text-foreground mb-1.5">Date de début du plan :</p>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        {format(restoreStartDate, "d MMMM yyyy", { locale: fr })}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarPicker
-                        mode="single"
-                        selected={restoreStartDate}
-                        onSelect={(d) => d && setRestoreStartDate(d)}
-                        locale={fr}
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmRestore && handleRestore(confirmRestore)}>
-              Restaurer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </SidebarLayout>
   );
 }
