@@ -77,3 +77,15 @@ describe("jsonPlanToParsedPlan — ordre chronologique des séances (bug réel c
     expect(result.weeks[0].sessions.map((s) => s.dayIndex)).toEqual([0, 1, 2]);
   });
 });
+
+import { computeWeekQuotaEntry } from "@/engines/plan/sessionSizingMatrix";
+it("conserve le calendrier moteur avec les quotas sans alias mutable",()=>{
+ const plan=mkPlan([mkSession({phase:"base"})]);
+ plan.weeklyQuotas={1:{...computeWeekQuotaEntry("10K","age_group",4,"load",false)!,phase:"base"}};
+ const parsed=jsonPlanToParsedPlan(plan);
+ expect(parsed.weeklyQuotas).toEqual(plan.weeklyQuotas);
+ expect(parsed.weeklyQuotas).not.toBe(plan.weeklyQuotas);
+ expect(JSON.parse(JSON.stringify(parsed)).weeklyQuotas[1].phase).toBe("base");
+ const legacy=jsonPlanToParsedPlan(mkPlan([]));
+ expect(legacy.weeklyQuotas).toBeUndefined();
+});

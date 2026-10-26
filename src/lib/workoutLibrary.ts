@@ -72,6 +72,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
   },
   {
     id: "A_RUN_Z2_EASY",
+    physiology: { primary: "moderate_lt1", rationale: "Bloc principal continu 20–70 min Z2 : endurance sous LT1 ; consignes techniques et éducatifs complémentaires, sans changer le stimulus." },
     cat: "A",
     sport: "course",
     objectif: "Endurance fondamentale, économie, récupération active",
@@ -5937,6 +5938,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
 
   {
     id: "SEILER_RUN_Z1_EASY_LONG",
+    physiology: { primary: "moderate_lt1", rationale: "Bloc principal continu Z1–Z2 sous LT1 ; le test conversationnel vérifie une intensité facile, ce n’est pas une séance de test maximal." },
     cat: "A",
     sport: "course",
     objectif: "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",

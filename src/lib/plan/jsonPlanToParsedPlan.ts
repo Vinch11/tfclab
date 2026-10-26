@@ -84,6 +84,7 @@ function toParsedWeek(w: MergedWeek): ParsedWeek {
 export function jsonPlanToParsedPlan(merged: MergedPlan): ParsedPlan {
   return {
     title: merged.title,
+    ...(merged.weeklyQuotas ? { weeklyQuotas: structuredClone(merged.weeklyQuotas) } : {}),
     diagnostic: merged.diagnostic,
     strategicRecap: merged.strategicRecap as ParsedPlan["strategicRecap"],
     phases: merged.phases.map(p => ({

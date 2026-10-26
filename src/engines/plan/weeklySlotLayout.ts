@@ -58,6 +58,8 @@ function midpoint(r: { min: number; max: number }): number {
 }
 
 export interface SlotLayoutOptions {
+  /** Actual compatible catalogue coverage; never drops a mandatory minimum. */
+  availableSports?: ReadonlySet<LayoutSport>;
   /**
    * Sport de l'épreuve décisive (dernière étape en LCW 3 jours).
    * En semaine de course, ce sport est servi EN PREMIER dans le round-robin.
@@ -106,6 +108,11 @@ export function buildWeeklySlotLayout(
   // min propre de chaque sport ni sous les planchers coach (natation/renfo).
   // Priorité de retrait CAP > vélo > natation > renfo > brick — brick (SL
   // vélo/course) et renfo sont les stimuli les plus structurants/rares.
+  if (opts.availableSports) {
+    for (const sport of Object.keys(targets) as LayoutSport[]) {
+      if (quota[sport].min === 0 && !opts.availableSports.has(sport)) targets[sport] = 0;
+    }
+  }
   const sportFloor: Record<LayoutSport, number> = {
     swim: Math.max(floors.minSwimPerWeek ?? 0, quota.swim.min),
     bike: quota.bike.min,

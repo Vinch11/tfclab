@@ -525,7 +525,7 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
   //    des semaines où il apparaît. Sert à catégoriser les phase mismatch.
   const placementsByCatalogId = new Map<string, Set<"base"|"build"|"peak"|"taper">>();
   for (const wk of plan.weeks) {
-    const ph = normalizedPhase(wk, plan.totalWeeks, objective);
+    const ph = plan.weeklyQuotas?.[wk.weekNumber]?.phase ?? normalizedPhase(wk, plan.totalWeeks, objective);
     for (const s of wk.sessions) {
       if (!s.catalogId || s.custom) continue;
       const key = s.catalogId.toUpperCase();
@@ -551,7 +551,7 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
   for (const w of plan.weeks) {
     const capZone = extractCapZone(w.coachNotes);
     const inRecovery = isRecoveryWeek(w);
-    const phase = normalizedPhase(w, plan.totalWeeks, objective);
+    const phase = plan.weeklyQuotas?.[w.weekNumber]?.phase ?? normalizedPhase(w, plan.totalWeeks, objective);
     const isTaperWeek = w.weekNumber === plan.totalWeeks;
 
     for (const s of w.sessions) {

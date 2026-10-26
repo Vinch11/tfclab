@@ -5,11 +5,12 @@ import type { WeekQuotaEntry } from "./validateWeeklyQuotas";
 /** Une régénération conserve le numéro global et les floors déjà individualisés.
  * Le serveur et le réconciliateur client reçoivent exactement la même entrée.
  */
-export function buildWeekQuotaTransport(weekNumber: number, entry: WeekQuotaEntry | null, isLcw = false) {
+export function buildWeekQuotaTransport(weekNumber: number, entry: WeekQuotaEntry | null, isLcw = false, availableSports?: ReadonlySet<import("@/engines/plan/weeklySlotLayout").LayoutSport>) {
   const quotas: Record<number, WeekQuotaEntry> = entry ? {
     [weekNumber]: {
       ...entry,
       layout: buildWeeklySlotLayout(entry.quota, entry.floors, entry.weekType, {
+        availableSports,
         finalStageSport: isLcw ? "run" : undefined,
       }),
     },

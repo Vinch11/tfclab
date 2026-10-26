@@ -30,6 +30,8 @@ export interface QuotaIssue {
 }
 
 export interface WeekQuotaEntry {
+  /** Phase calculated by the engine, never inferred from the model title. */
+  phase?: import("../../../supabase/functions/_shared/periodizationBounds").PeriodizationPhase;
   volumeBudget?: CoachVolumeBudget;
   /** Passive provenance; never used to change quota or severity. */
   floorAudit?: SLFloorAudit;

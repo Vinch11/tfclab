@@ -1,3 +1,4 @@
+import { periodizationBounds, phaseWithinPeriodization, reducedFondationWeeksPostPeak } from "../_shared/periodizationBounds.ts";
 import { PLAN_RELEASE_INFO } from "../_shared/planReleaseInfo.ts";
 import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
 import { executableCatalogueVariants, catalogueForWeek, checkSessionCatalogue, type CatalogueContract } from "../_shared/sessionCatalogueContract.ts";
@@ -33,7 +34,7 @@ import {
   computePilotChunksToRun,
 } from "./promptHelpers.ts";
 import { getSystemPromptJSON } from "./systemPromptJSON.ts";
-import { extractLimiterKeywords, normalizeObjKey, taperWeeksForObjectiveServer } from "./sportRatioMatrix.ts";
+import { extractLimiterKeywords, normalizeAmbKey, normalizeObjKey, taperWeeksForObjectiveServer } from "./sportRatioMatrix.ts";
 import { buildAthleteConstraintsBlock } from "./constraintsBlock.ts";
 import {
   generateChunkJSON,
@@ -1780,6 +1781,17 @@ export function inferPhaseFromWeek(
   multiObjectiveConfig?: any,
 ): string {
   const segments = multiObjectiveConfig ? computeMultiObjectiveSegments(multiObjectiveConfig, totalWeeks) : null;
+  if (typeof multiObjectiveConfig?.fondationDurationWeeks === "number" && multiObjectiveConfig.fondationDurationWeeks > 0) {
+    const index = segments?.findIndex(s => weekStart >= s.startWeek && weekStart <= s.endWeek) ?? 0;
+    if (index < 0) return "base";
+    const seg = segments?.[index] ?? { startWeek: 1, endWeek: totalWeeks, objective: objective ?? "" };
+    const length = seg.endWeek - seg.startWeek + 1;
+    const bounds = periodizationBounds(length, taperWeeksForObjectiveServer(seg.objective),
+      normalizeAmbKey(multiObjectiveConfig?.ambitionMeta?.effective ?? multiObjectiveConfig?.ambition ?? "") === "finisher",
+      multiObjectiveConfig?.identifiedLimitersRaw?.[0] ?? multiObjectiveConfig?.identifiedLimiters?.[0] ?? "",
+      index === 0 ? multiObjectiveConfig.fondationDurationWeeks : reducedFondationWeeksPostPeak(length));
+    return phaseWithinPeriodization(weekStart - seg.startWeek + 1, bounds);
+  }
   if (segments) {
     const seg = segments.find((s) => weekStart >= s.startWeek && weekStart <= s.endWeek);
     if (seg) {
@@ -2042,7 +2054,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           }).join("\n");
           const executableVariants = Object.fromEntries(repairCatalogsByChunk[ci].filter(m => admissibleIds.has(m.id))
             .map(m => [m.id, executableCatalogueVariants(m)]).filter(([, variants]) => Object.keys(variants).length > 0));
-          const weeklyCatalogBlock = `ADMISSIBILITÉ STRICTE PAR SEMAINE : seuls ces IDs sont autorisés pour chaque semaine. Aucun ID d'une autre semaine du chunk. Catalogue insuffisant : ne pas inventer d'équivalence. Compétitions officielles custom=true, catalogId=null.\n${JSON.stringify(eligibilityByWeek)}\nVariantes numériques autorisées (variantKey explicite obligatoire pour une adaptation) : ${JSON.stringify(executableVariants)}`;
+          const weeklyCatalogBlock = `Phases obligatoires calculées par semaine : ${JSON.stringify(Object.fromEntries(Object.entries(catalogueContractsByWeek).map(([w,c]) => [w,c.phase])))}\nADMISSIBILITÉ STRICTE PAR SEMAINE : seuls ces IDs sont autorisés pour chaque semaine. Aucun ID d'une autre semaine du chunk. Catalogue insuffisant : ne pas inventer d'équivalence. Compétitions officielles custom=true, catalogId=null.\n${JSON.stringify(eligibilityByWeek)}\nVariantes numériques autorisées (variantKey explicite obligatoire pour une adaptation) : ${JSON.stringify(executableVariants)}`;
           const chunkHeader = regenerateWeek
             ? `Régénère UNIQUEMENT la semaine ${regenerateWeek.weekNumber} (phase ${regenerateWeek.phase ?? "?"}, thème "${regenerateWeek.theme ?? ""}") du plan de ${regenerateWeek.totalWeeks} semaines.`
             : isFirst
@@ -2143,7 +2155,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             `\n📋 DIAGNOSTIC STRUCTURÉ (référence cohérence) :\n${structuredDiagnostic}`,
             `\n🎯 CIBLE CHUNK : ${chunkHeader}`,
             `\n📅 weekNumber attendus (obligatoire, sans trou ni doublon) : [${weeksList.join(", ")}]`,
-            `\n🚨 PHASE ACTIVE ESTIMÉE : "${activePhase}"`,
+            `\n🚨 PHASE AU DÉBUT DU BLOC : "${activePhase}" — les phases calculées par semaine ci-dessus priment`,
             athleteConstraintsBlock ? `\n${athleteConstraintsBlock}` : null,
           ].filter(Boolean).join("\n");
 

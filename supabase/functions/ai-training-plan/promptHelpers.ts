@@ -1,3 +1,4 @@
+import { periodizationBounds, reducedFondationWeeksPostPeak } from "../_shared/periodizationBounds.ts";
 // ═══════════════════════════════════════════════════════════════
 // PROMPT HELPERS — User prompt builder, CP/W' model, diagnostics
 // ═══════════════════════════════════════════════════════════════
@@ -215,9 +216,7 @@ export function computeMultiObjectiveSegments(config: any, totalWeeks: number): 
  * réadaptation technique/neuromusculaire, pas une reconstruction de base.
  */
 function computeReducedFondationWeeksPostPeak(segmentWeeks: number): number {
-  const base = 3; // = computeFondationDurationWeeks("highly_trained", …)
-  const capFromTotal = Math.max(2, Math.round(segmentWeeks * 0.35));
-  return Math.max(2, Math.min(base, capFromTotal, 6));
+  return reducedFondationWeeksPostPeak(segmentWeeks);
 }
 
 /**
@@ -251,29 +250,9 @@ function buildPhaseBoundsSegmentLines(
   const tw = segEnd - segStart + 1;
   const off = segStart - 1; // décalage pour convertir une semaine locale (1..tw) en semaine globale du plan
 
-  const taperWeeks = Math.max(1, taperWeeksForObjectiveServer(objKey));
-  const targetRaceSpecific = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
-  const raceSpecificWeeks = Math.max(0, Math.min(targetRaceSpecific, tw - taperWeeks - 2));
-  const remainingWeeks = Math.max(2, tw - taperWeeks - raceSpecificWeeks);
-
-  const isVlamaxLimiter = /vlamax|glycoly|anaerob/i.test(L1);
-  const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
-  const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
-  const isVo2maxLimiter = /vo2max/i.test(L1);
-
-  let fondationPct = 0.35;
-  if (isEconomyLimiter) fondationPct = 0.42;
-  else if (isVlamaxLimiter) fondationPct = 0.30;
-  else if (isDurabilityLimiter) fondationPct = 0.30;
-
-  let fondationWeeks = (typeof fondationWeeksOverride === "number" && fondationWeeksOverride > 0)
-    ? Math.max(1, Math.min(fondationWeeksOverride, remainingWeeks - 1))
-    : Math.max(1, Math.floor(remainingWeeks * fondationPct));
-  let buildWeeks = remainingWeeks - fondationWeeks;
-  if (buildWeeks < 1) {
-    buildWeeks = 1;
-    fondationWeeks = Math.max(1, remainingWeeks - 1);
-  }
+  const { taperWeeks, raceSpecificWeeks, fondationWeeks, buildWeeks,
+    isVlamaxLimiter, isDurabilityLimiter, isEconomyLimiter, isVo2maxLimiter } =
+    periodizationBounds(tw, taperWeeksForObjectiveServer(objKey), isFinisher, L1, fondationWeeksOverride);
 
   const L1Short = L1 ? L1.split(/[\s(,]/)[0] : "Limiteur #1";
   const L2Short = L2 ? L2.split(/[\s(,]/)[0] : "Limiteur #2";

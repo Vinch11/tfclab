@@ -1,3 +1,4 @@
+import { parseWhenPhases } from "@/lib/plan/phaseNormalization";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL PLAN ENGINE™ — Normalisation déterministe weekNumber + phase
@@ -22,6 +23,7 @@ import { computeObjectiveCycleSegments, type ClassifiableRaceGoal } from "@/lib/
 
 /** Forme minimale commune à ParsedPlan et MergedPlan pour la normalisation de phase. */
 export interface PhaseNormalizable {
+  weeklyQuotas?: Record<number, { phase?: string }>;
   weeks: Array<{
     weekNumber: number;
     phase: string;
@@ -129,6 +131,34 @@ function buildPhaseRanges(
   raceGoals: ClassifiableRaceGoal[] | undefined,
   planStartDate: string | undefined,
 ): PhaseRange[] {
+  const engineWeeks = plan.weeks.filter(w => ["base", "build", "peak", "taper"].includes(plan.weeklyQuotas?.[w.weekNumber]?.phase ?? ""));
+  if (engineWeeks.length && engineWeeks.length === plan.weeks.length) {
+    const labels: Record<string, string> = { base: "Fondation", build: "Développement", peak: "Spécifique", taper: "Affûtage" };
+    const ranges: PhaseRange[] = [];
+    for (const w of [...engineWeeks].sort((a,b) => a.weekNumber-b.weekNumber)) {
+      const name = plan.weeklyQuotas![w.weekNumber].phase!;
+      const last = ranges.at(-1);
+      if (last && last.name === name && last.end + 1 === w.weekNumber) last.end = w.weekNumber;
+      else ranges.push({ name, start: w.weekNumber, end: w.weekNumber });
+    }
+    // Keep valid limiter-specific Chantier/Consolidation recap blocks intact.
+    // Only rebuild an inconsistent recap on a complete plan; a partial window
+    // must never overwrite a recap covering the full season.
+    if (engineWeeks.length === totalWeeks) {
+      const declared = (plan.phases ?? []).map(p => ({ ...p, range: parseWeekRange(p.weeks ?? "") }));
+      let cursor = 1;
+      const coherent = declared.length > 0 && declared.every(p => {
+        if (!p.range || p.range.start !== cursor || p.range.end > totalWeeks) return false;
+        cursor = p.range.end + 1;
+        const phases = new Set(Array.from({ length: p.range.end - p.range.start + 1 }, (_, i) => plan.weeklyQuotas?.[p.range!.start + i]?.phase));
+        const labelPhases = parseWhenPhases(p.name);
+        return phases.size === 1 && !phases.has(undefined) && (!labelPhases.size || labelPhases.has([...phases][0] as "base" | "build" | "peak" | "taper"));
+      }) && cursor === totalWeeks + 1;
+      if (!coherent) plan.phases = ranges.map(r => ({ name: labels[r.name], weeks: `S${r.start}-S${r.end}`,
+        objective: plan.phases?.find(p => p.name?.toLowerCase().includes(labels[r.name].toLowerCase()))?.objective }));
+    }
+    return ranges;
+  }
   const parsed: PhaseRange[] = [];
   for (const p of plan.phases ?? []) {
     const r = parseWeekRange(p.weeks ?? "");
@@ -266,6 +296,10 @@ export function normalizeWeeksAndPhases(
   // phases affichée (AIPlanViewer.tsx) retombait alors sur son propre
   // fallback de reconstruction par regroupement de semaines identiques,
   // perdant l'info de cycle multi-objectifs portée par `ranges`.
+  // Engine phases already checked/rebuilt the recap above. Preserve its fine
+  // limiter-specific blocks (and a full-season recap in a partial window).
+  if (plan.weeks.length && plan.weeks.every(w =>
+    ["base", "build", "peak", "taper"].includes(plan.weeklyQuotas?.[w.weekNumber]?.phase ?? ""))) return stats;
   const existingPhases = plan.phases ?? [];
   plan.phases = ranges.map(r => {
     const existing = existingPhases.find(p => p.name === r.name);

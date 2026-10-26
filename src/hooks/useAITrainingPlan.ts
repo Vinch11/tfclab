@@ -1,3 +1,6 @@
+import { buildPeriodizationCalendar } from "@/lib/plan/periodizationCalendar";
+import { catalogueForWeek } from "../../supabase/functions/_shared/sessionCatalogueContract";
+import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { sanitizeSchemaFailure, safeFailureCode, sanitizeWarningEvidence } from "../../supabase/functions/_shared/planFailureDiagnostics";
 import { technicalGenerationConfig, technicalGenerationEvent, technicalRelease } from "../../supabase/functions/_shared/planDiagnosticPrivacy";
@@ -31,7 +34,7 @@ import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/pla
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { inferWeekType, buildCoachVolumeBudget, buildQuotaPromptBlock, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
-import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
+import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout, type LayoutSport } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { computeFinalValidationIssues, type FinalValidationIssue } from "@/lib/plan/qa/finalValidation";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
@@ -824,6 +827,11 @@ export function useAITrainingPlan() {
     setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
 
     try {
+      const phaseCalendar = buildPeriodizationCalendar(planConfig);
+      const phaseOptions = (start: number, end: number) => {
+        const phases = [...new Set(Array.from({ length: end - start + 1 }, (_, i) => phaseCalendar?.[start + i - weekOffset]).filter(Boolean))] as PhaseTag[];
+        return phases.length ? { phaseOverride: phases } : {};
+      };
       // Build phase-specific workout catalogs for AI injection (fallback for non-chunked plans)
       const phaseCatalogs: Record<string, string> = {};
       const phaseRepairCatalogs: Record<string, Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>> = {};
@@ -988,7 +996,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           effTotalWeeks,
-          { strictPhaseFilter: true, maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
+          { ...phaseOptions(pr.start, pr.end), strictPhaseFilter: true, maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         phaseRepairCatalogs[pr.phase] = catalog.map(entry => entry.repairMetadata);
@@ -1048,7 +1056,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { strictPhaseFilter: true, maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
+            { ...phaseOptions(cStart + weekOffset, cEnd + weekOffset), strictPhaseFilter: true, maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           chunkRepairCatalogs.push(chunkCatalog.map(entry => entry.repairMetadata));
@@ -1241,11 +1249,16 @@ export function useAITrainingPlan() {
           if (individualized.reasons.length > 0) {
             slFloorIndividualizationLog.push(`S${w} (globale S${globalWeekNum}): planchers individualisés`);
           }
+          const phase = phaseCalendar?.[w];
+          const weekCatalog = chunkRepairCatalogs[Math.floor((w - 1) / CHUNK_SIZE)] ?? phaseRepairCatalogs[phase ?? "base"] ?? [];
+          const availableSports = new Set(catalogueForWeek(weekCatalog, { phase, objective: objectiveForQuota, weekType }).eligible
+            .map(m => normalizeRepairSport(m.sport) as LayoutSport));
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
+            availableSports,
             finalStageSport: isLCWFormat ? "run" : undefined,
           });
 
-          weeklyQuotas[w] = { ...entry, floors: individualized.floors, layout,
+          weeklyQuotas[w] = { ...entry, phase, floors: individualized.floors, layout,
             volumeBudget: buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource),
             floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,
               rampConfigured: !!slRampAnchors,
@@ -1675,6 +1688,7 @@ export function useAITrainingPlan() {
               collected.flatMap((c) => c.weeks.map((w) => w.weekNumber)),
             );
             const merged = mergePlanChunks(collected, mergedTotal);
+            merged.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
             mergedLocal = merged;
             // P3 — normalisation déterministe de phase (source unique) sur chemin JSON.
             let incompletePhaseWeeks: number[] = [];
