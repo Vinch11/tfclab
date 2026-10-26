@@ -6,8 +6,7 @@ import { StaffSessionLibrary } from "@/components/StaffSessionLibrary";
 import { WahooPrintableList } from "@/components/WahooPrintableList";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Library, Dumbbell, Printer, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
-import { syncWorkoutsToCloud, SyncResult } from "@/lib/syncWorkoutsToCloud";
-import { toast } from "sonner";
+import { WORKOUT_SYNC_SUSPENDED } from "@/lib/syncWorkoutsToCloud";
 
 // Legacy types preserved for backwards compatibility
 export interface Seance {
@@ -22,25 +21,6 @@ export interface Seance {
 // Main component with tabs for personalized recommendations and full library
 export function IndexSeancesView() {
   const [activeTab, setActiveTab] = useState<"recommendations" | "wahoo" | "staff" | "print">("recommendations");
-  const [syncing, setSyncing] = useState(false);
-
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      const result = await syncWorkoutsToCloud();
-      if (result.success) {
-        toast.success(`✅ ${result.inserted} séances synchronisées (${result.deduplicated} doublons supprimés)`, {
-          duration: 5000,
-        });
-      } else {
-        toast.error(`Erreur sync: ${result.errors.join(", ")}`, { duration: 8000 });
-      }
-    } catch (err: any) {
-      toast.error(`Erreur: ${err.message}`);
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -48,12 +28,12 @@ export function IndexSeancesView() {
         <Button
           variant="outline"
           size="sm"
-          onClick={handleSync}
-          disabled={syncing}
+          title={WORKOUT_SYNC_SUSPENDED}
+          disabled
           className="gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-          {syncing ? "Synchronisation..." : "Sync DB"}
+          <RefreshCw className="h-4 w-4" />
+          Sync DB suspendue
         </Button>
       </div>
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>

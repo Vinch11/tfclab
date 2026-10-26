@@ -17,8 +17,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { syncWorkoutsToCloud } from "@/lib/syncWorkoutsToCloud";
-import { toast } from "sonner";
+import { WORKOUT_SYNC_SUSPENDED } from "@/lib/syncWorkoutsToCloud";
 
 const sections = [
   {
@@ -63,23 +62,6 @@ export default function PlanningPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
-  const [syncing, setSyncing] = useState(false);
-
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      const result = await syncWorkoutsToCloud();
-      if (result.success) {
-        toast.success(`✅ ${result.inserted} séances synchronisées (${result.deduplicated} doublons supprimés)`);
-      } else {
-        toast.error(`Erreur sync: ${result.errors.join(", ")}`);
-      }
-    } catch (err: any) {
-      toast.error(`Erreur: ${err.message}`);
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
@@ -107,12 +89,12 @@ export default function PlanningPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleSync}
-            disabled={syncing}
+            title={WORKOUT_SYNC_SUSPENDED}
+            disabled
             className="gap-1.5 h-8 text-xs sm:text-sm"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
-            <span className="hidden xs:inline">{syncing ? "Sync..." : "Sync DB"}</span>
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span className="hidden xs:inline">Sync DB suspendue</span>
           </Button>
         </div>
 

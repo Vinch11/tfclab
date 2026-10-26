@@ -1,5 +1,5 @@
 /**
- * PlanHistory — Shows archived plan versions with restore & delete
+ * PlanHistory — Shows archived versions; calendar replacement is suspended
  */
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,23 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { History, Trash2, Loader2, Calendar, RotateCcw } from "lucide-react";
-import { format, parseISO, startOfWeek, addDays } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
-import {
-  Popover, PopoverContent, PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface PlanVersion {
   id: string;
@@ -39,15 +28,12 @@ interface PlanHistoryProps {
   onRestored?: () => void;
 }
 
-export function PlanHistory({ onRestored }: PlanHistoryProps) {
+export function PlanHistory(_props: PlanHistoryProps) {
   const { currentAthlete } = useAthletes();
   const [versions, setVersions] = useState<PlanVersion[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [restoring, setRestoring] = useState<string | null>(null);
-  const [confirmRestore, setConfirmRestore] = useState<PlanVersion | null>(null);
-  const [restoreStartDate, setRestoreStartDate] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
   useEffect(() => {
     if (!currentAthlete || !open) return;
@@ -76,68 +62,6 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
     setDeleting(null);
   };
 
-  const handleRestore = async (version: PlanVersion) => {
-    if (!currentAthlete) return;
-    setRestoring(version.id);
-    setConfirmRestore(null);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Non authentifié");
-
-      const plan = version.plan_json;
-      if (!plan?.weeks?.length) throw new Error("Plan invalide");
-
-      const phaseMap: Record<string, string> = {
-        base: "BASE", build: "PHASE2", peak: "PHASE3",
-        taper: "PHASE4", race: "RACE", off: "OFF",
-      };
-
-      // Rebuild rows from archived plan_json
-      const planStart = startOfWeek(restoreStartDate, { weekStartsOn: 1 });
-      const rows: any[] = [];
-
-      for (const week of plan.weeks) {
-        const weekStart = addDays(planStart, ((week.weekNumber || 1) - 1) * 7);
-        for (const session of week.sessions || []) {
-          if (session.isRest) continue;
-          const dayOffset = session.day != null ? session.day - 1 : 0;
-          const sessionDate = addDays(weekStart, dayOffset);
-          rows.push({
-            athlete_id: currentAthlete.id,
-            coach_id: user.id,
-            date: format(sessionDate, "yyyy-MM-dd"),
-            phase: session.phase ? (phaseMap[session.phase.toLowerCase()] || "BASE") : null,
-            custom_workout_title: `${session.sport || "Autre"} — ${session.title || "Séance"}`,
-            custom_workout_description: session.details || null,
-            status: "PLANNED",
-            notes: week.theme ? `Semaine ${week.weekNumber}: ${week.theme}` : null,
-            workout_id: extractCatalogId(session.title, session.details),
-          });
-        }
-      }
-
-      if (rows.length === 0) throw new Error("Aucune séance dans ce plan");
-
-      // Delete all current sessions for this athlete
-      await supabase
-        .from("training_plan")
-        .delete()
-        .eq("athlete_id", currentAthlete.id);
-
-      const { error } = await supabase.from("training_plan").insert(rows);
-      if (error) throw error;
-
-      toast.success(`Plan restauré : ${rows.length} séances à partir de cette semaine`);
-      onRestored?.();
-    } catch (err: any) {
-      console.error("Restore error:", err);
-      toast.error("Erreur restauration : " + (err.message || "Inconnu"));
-    } finally {
-      setRestoring(null);
-    }
-  };
-
   if (!currentAthlete) return null;
 
   return (
@@ -150,6 +74,7 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-2 space-y-2">
+          <p className="text-xs text-muted-foreground">Restauration calendrier suspendue pour éviter une perte de séances. Le chargement d’une version dans la page Plan reste disponible.</p>
           {loading ? (
             <div className="space-y-2">
               <Skeleton className="h-10 w-full" />
@@ -180,11 +105,10 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
-                    onClick={() => setConfirmRestore(v)}
-                    disabled={restoring === v.id}
-                    title="Restaurer ce plan"
+                    disabled
+                    title="Restauration calendrier suspendue : remplacement atomique indisponible"
                   >
-                    {restoring === v.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3 text-primary" />}
+                    <RotateCcw className="h-3 w-3 text-primary" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -203,55 +127,6 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
         </CollapsibleContent>
       </Collapsible>
 
-      <AlertDialog open={!!confirmRestore} onOpenChange={(o) => { if (!o) setConfirmRestore(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <RotateCcw className="h-5 w-5 text-primary" />
-              Restaurer ce plan ?
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>
-                  Le planning actuel sera remplacé par cette version
-                  {confirmRestore && (
-                    <span className="font-medium">
-                      {" "}du {format(parseISO(confirmRestore.created_at), "d MMM yyyy", { locale: fr })}
-                    </span>
-                  )}
-                  .
-                </p>
-                <div>
-                  <p className="text-sm font-medium text-foreground mb-1.5">Date de début du plan :</p>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full justify-start text-left font-normal">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        {format(restoreStartDate, "d MMMM yyyy", { locale: fr })}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarPicker
-                        mode="single"
-                        selected={restoreStartDate}
-                        onSelect={(d) => d && setRestoreStartDate(d)}
-                        locale={fr}
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmRestore && handleRestore(confirmRestore)}>
-              Restaurer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
