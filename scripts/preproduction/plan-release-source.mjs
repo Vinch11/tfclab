@@ -10,11 +10,15 @@ const hash = value => createHash("sha256").update(value).digest("hex");
 const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === "object"
   ? Object.fromEntries(Object.keys(value).sort().filter(key => value[key] !== undefined).map(key => [key, canonical(value[key])])) : value;
 const contractPaths = ["supabase/functions/_shared/sessionCatalogueContract.ts", "supabase/functions/_shared/repairSportingEquivalence.ts", "supabase/functions/_shared/raceDayIdentity.ts", "supabase/functions/_shared/intentEvidence.ts", "supabase/functions/ai-training-plan/planSchema.ts", "supabase/functions/ai-training-plan-test/planSchema.ts", "src/lib/plan/planSchema.ts", "src/lib/plan/repairCatalogMetadata.ts", "src/lib/plan/phaseNormalization.ts", "src/lib/workoutCatalogBuilder.ts", "src/engines/plan/sessionSizingMatrix.ts"];
+// Exact, versioned inventory of environment-only metadata. No glob exclusions:
+// this Lovable Tailwind editor file is not imported by the runtime or contracts.
+// Changes to actual source/configuration remain hashed, including this inventory.
+const environmentOnlyFiles = new Set(["src/tailwind.config.lov.json"]);
 function runtimeFiles(root, folder) {
   return readdirSync(join(root, folder), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name, "en"))
     .filter(entry => !["__tests__", "__e2e", "test"].includes(entry.name))
     .flatMap(entry => entry.isDirectory() ? runtimeFiles(root, join(folder, entry.name)) : [join(folder, entry.name)])
-    .filter(file => /\.(ts|tsx|js|json|css)$/.test(file) && !/\.(test|spec)\./.test(file) && file !== manifestPath);
+    .filter(file => /\.(ts|tsx|js|json|css)$/.test(file) && !/\.(test|spec)\./.test(file) && file !== manifestPath && !environmentOnlyFiles.has(file));
 }
 const sourceHash = (root, paths) => hash([...paths].sort().map(file => `${file}\0${hash(readFileSync(join(root, file)))}\n`).join(""));
 export function declarationText(info) {
