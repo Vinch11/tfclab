@@ -15,6 +15,7 @@ import type { PlanConfig, PlanAthleteData, RaceGoal, AdaptationProjection } from
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 import { computeAdaptationPrediction, type AdaptationPredictorInput } from "@/lib/v2/adaptationPredictor";
 import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecenteReference";
+import { resolvePlanningSnapshotLoad } from "@/lib/planningSnapshotLoad";
 import { resolveVolumeRampLoadAdjustment } from "@/lib/volumeRampLoadAdjustment";
 import { computeTrailProfile, isTrailObjective } from "@/lib/trailProfile";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
@@ -152,6 +153,7 @@ export function buildPlanConfigFromDiagnostic(
   coachLimiterOrder?: string[]  // Coach-overridden limiter order (metric names)
 ): PlanConfig {
   const limiterResult = diagnostic.limiter;
+  const planningLoad = resolvePlanningSnapshotLoad(diagnostic._rawInput.tss7d, diagnostic._rawInput.snapshotDate);
 
   // ── Ambition Effective (déclassement en amont) ────────────────────────────
   // UNE seule mutation : ambitionEffective = min(saisie, max(niveau d'entraînement)).
@@ -161,7 +163,7 @@ export function buildPlanConfigFromDiagnostic(
   const ambitionResolution = computeAmbitionEffective({
     ambitionSaisie: formConfig.ambition ?? diagnostic.ambition,
     trainingLevel: formConfig.trainingLevel,
-    tss7d: diagnostic._rawInput.tss7d ?? null,
+    tss7d: planningLoad.tss7d,
     lockAmbition: formConfig.lockAmbition,
   });
 
@@ -265,7 +267,8 @@ export function buildPlanConfigFromDiagnostic(
     }
   }
   const crr = computeCRR({
-    tss7d: diagnostic._rawInput.tss7d ?? null,
+    tss7d: planningLoad.tss7d,
+    snapshotDate: diagnostic._rawInput.snapshotDate,
     manualOverride: manualEstimate,
   });
   const chargeScore = computeChargeScore(crr, diagnostic.objectif);
@@ -273,10 +276,13 @@ export function buildPlanConfigFromDiagnostic(
     tss7d: crr.value,
     source: crr.source,
     status: crr.source === "MANUAL" ? "unknown" as const : chargeScore.status,
-    label: crr.source === "MANUAL" ? "Charge récente inconnue — estimation qualitative du niveau coach" : crr.label,
+    label: crr.source === "MANUAL" ? "Charge récente inconnue — estimation qualitative du niveau coach"
+      : crr.source === "UNKNOWN" ? "Charge actuelle inconnue — aucune mesure TSS datée suffisamment récente" : crr.label,
     recommendation: crr.source === "MANUAL"
       ? "Estimation de planification, pas une charge mesurée ni une preuve de tolérance. Première semaine : validation du coach nécessaire à partir de la pratique actuelle."
-      : chargeScore.recommendation,
+      : crr.source === "UNKNOWN"
+        ? "TSS absent ou bilan non exploitable comme charge actuelle (date absente, invalide, future ou au-delà de la fenêtre opérationnelle). Niveau coach conservé ; validation de la charge initiale nécessaire."
+        : chargeScore.recommendation,
     target: {
       min: crrTargets.chargeMinimale,
       opt: crrTargets.chargeOptimale,

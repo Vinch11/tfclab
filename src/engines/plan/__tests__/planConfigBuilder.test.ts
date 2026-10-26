@@ -187,7 +187,7 @@ describe("buildPlanConfigFromDiagnostic", () => {
     };
 
     it("tss7d réel bas (SNAPSHOT) pour un objectif Marathon → rampe abaissée au palier 'light', raison tracée", () => {
-      const diagnostic = computeDiagnostic({ ...COMPLETE_INPUT, objectif: "Marathon", tss7d: 150 });
+      const diagnostic = computeDiagnostic({ ...COMPLETE_INPUT, objectif: "Marathon", snapshotDate: new Date().toISOString().slice(0, 10), tss7d: 150 });
       const config = buildPlanConfigFromDiagnostic(diagnostic, MARATHON_FORM);
 
       expect(config.volumeRamp).toBeDefined();
@@ -208,7 +208,7 @@ describe("buildPlanConfigFromDiagnostic", () => {
     });
 
     it("tss7d réel en surcharge (NOLIO) pour Marathon avec niveau déclaré 'highly_trained' → plafonné à 'light', progression 7%", () => {
-      const diagnostic = computeDiagnostic({ ...COMPLETE_INPUT, objectif: "Marathon", tss7d: 650 });
+      const diagnostic = computeDiagnostic({ ...COMPLETE_INPUT, objectif: "Marathon", snapshotDate: new Date().toISOString().slice(0, 10), tss7d: 650 });
       const config = buildPlanConfigFromDiagnostic(diagnostic, { ...MARATHON_FORM, trainingLevel: "highly_trained" });
 
       expect(config.volumeRamp!.recentLoadAdjustment!.effectiveLevel).toBe("light");

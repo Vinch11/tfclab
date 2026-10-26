@@ -138,7 +138,7 @@ describe("physiology and recovery protections", () => {
     expect(c.identifiedLimitersRaw).toEqual(config("highly_trained").identifiedLimitersRaw);
   });
   it("keeps the existing recovery adjustment and its reason without replacing the manual level", () => {
-    const diagnostic = computeDiagnostic({ ...buildPilotDiagnosticInput(profile), objectif: "Marathon", tss7d: 650 });
+    const diagnostic = computeDiagnostic({ ...buildPilotDiagnosticInput(profile), objectif: "Marathon", snapshotDate: new Date().toISOString().slice(0, 10), tss7d: 650 });
     const c = buildPlanConfigFromDiagnostic(diagnostic, { objective: "Marathon", ambition: "world_class", trainingLevel: "highly_trained", weeksAvailable: 12 });
     expect(c.ambitionMeta!.trainingLevel).toBe("highly_trained");
     expect(c.volumeRamp!.trainingLevel).toBe("highly_trained");
