@@ -16,6 +16,7 @@
  *  - Deux séances "qualité" du même sport pas à moins de 48h.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+import { effectiveSessionQuota } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
 import type { SizingFloors, WeekType, WeeklyQuota } from "./sessionSizingMatrix";
 
 export type LayoutSport = "swim" | "bike" | "run" | "brick" | "strength";
@@ -131,11 +132,16 @@ export function buildWeeklySlotLayout(
     totalTarget--;
   }
 
+  // Même comptage que réconciliation/validation : chaque brick remplace un
+  // vélo autonome, même en taper/race où il n'est plus une sortie longue.
+  // Appliqué après le clamp : celui-ci travaille sur les quotas nominaux.
   const days: DayLayout[] = DAY_ORDER.map(d => ({ dayName: d, isRest: false, slots: [] }));
   const findDay = (d: DayName) => days.find(x => x.dayName === d)!;
   const canAdd = (d: DayName): boolean => findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest;
   const hasSportOn = (d: DayName, s: LayoutSport) => findDay(d).slots.some(x => x.sport === s);
-  const remaining: Record<LayoutSport, number> = { ...targets };
+  const remaining: Record<LayoutSport, number> = { ...targets,
+    bike: effectiveSessionQuota({ bike: { min: targets.bike, max: targets.bike } }, targets.brick).bike.min,
+  };
 
   // 1) Lundi = repos si minFullRestDays ≥ 1
   if (quota.minFullRestDays >= 1) {
@@ -160,8 +166,7 @@ export function buildWeeklySlotLayout(
       minDurationMin: slBikeMin > 0 ? slBikeMin + 20 : undefined,
     });
     remaining.brick--;
-    // La 3e sollicitation vélo est le brick — retire 1 bike autonome.
-    remaining.bike = Math.max(0, remaining.bike - 1);
+    // Le remplacement vélo/brick est déjà compté avant le placement.
   } else if (floors.longRideWeekly && remaining.bike > 0 && canAdd("samedi")) {
     // 2) SL vélo samedi (cas sans brick requis)
     findDay("samedi").slots.push({
@@ -235,7 +240,15 @@ export function buildWeeklySlotLayout(
   // non partagé avec l'autre discipline.
   const fillSwim = () => {
     let placed = 0;
-    for (const d of rrSwim) {
+    // En taper/race la CAP est placée d'abord. Répartir les nages entre les
+    // jours de semaine les moins occupés évite de saturer les mêmes trois
+    // jours et de perdre un vélo obligatoire, alors qu'une place existe.
+    // Le dimanche reste le dernier recours ; canAdd/repos ne changent pas.
+    const swimDays = isTaperish
+      ? [...rrSwim.filter(d => midweek.includes(d)).sort((a,b) => findDay(a).slots.length - findDay(b).slots.length),
+         ...rrSwim.filter(d => !midweek.includes(d))]
+      : rrSwim;
+    for (const d of swimDays) {
       if (remaining.swim <= 0) break;
       if (!canAdd(d) || hasSportOn(d, "swim")) continue;
       findDay(d).slots.push({ sport: "swim", isKeySession: placed === 0 });

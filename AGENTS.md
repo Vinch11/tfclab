@@ -69,3 +69,10 @@ dev-only `src/pages/__e2e/` (gardés par `import.meta.env.DEV`).
 - Une fonction `nolio-*` utilisant la clé service-role DOIT vérifier
   l'appelant (`getClaims`, cf. `nolio-list-athletes`) — `verify_jwt` ne
   suffit pas, la clé anon est elle-même un JWT valide.
+
+## Corrections du générateur — portée sportive
+
+- Quand une cause est partagée, corriger le mécanisme commun plutôt qu'ajouter une exception par objectif. Ne pas généraliser une prescription propre au 10 km.
+- Vérifier les impacts sur 5 km, 10 km, semi-marathon, marathon, trail, Half-Ironman et Ironman, avec les fixtures et tests existants, complétés par des non-régressions représentatives.
+- Préserver les spécificités physiologiques, quotas, périodisation et récupération de chaque discipline. Une voie dédiée (ex. trail ou LCW) ne doit pas hériter silencieusement des règles d'une autre.
+- Le rapport distingue corrections communes, corrections spécifiques, disciplines effectivement testées et comportements restant à vérifier. Un test 10 km vert ne valide jamais le moteur entier ni la qualité sportive d'un plan réel.
