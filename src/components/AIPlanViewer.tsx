@@ -946,7 +946,11 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     if (onPlanChange) onPlanChange(updated); else setLocalPlan(updated);
   }, [plan, onPlanChange]);
   const currentCatalogueIssues = useMemo(() => validateSessionCataloguePlan(plan), [plan]);
-  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_") && i.rule !== "coach_load_violation"), ...currentCatalogueIssues, ...validateCoachVolumeBudgets(plan, plan.weeklyQuotas)];
+  const hasCoachBudget = Object.values(plan.weeklyQuotas ?? {}).some(entry => !!entry.volumeBudget);
+  // The same dose incident is shown once, freshly checked above, not as a stale quota snapshot.
+  const displayedQuotaIssues = (plan.weeklyQuotaIssues ?? []).filter(issue =>
+    issue.code !== "coach_load_violation" || !plan.weeklyQuotas?.[issue.weekNumber]?.volumeBudget);
+  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_") && !(hasCoachBudget && i.rule === "coach_load_violation")), ...currentCatalogueIssues, ...validateCoachVolumeBudgets(plan, plan.weeklyQuotas)];
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setLocalPlan(planProp); setReplacementCount(0); }, [planProp]);
 
@@ -1595,17 +1599,17 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
       {/* Priorité 1 (coach) : weeklyQuotaIssues était calculé
           (validateWeeklyQuotas) mais jamais rendu. Informatif uniquement. */}
-      {plan.weeklyQuotaIssues && plan.weeklyQuotaIssues.length > 0 && (() => {
-        const critical = plan.weeklyQuotaIssues.filter((i) => i.severity === "critical");
+      {displayedQuotaIssues.length > 0 && (() => {
+        const critical = displayedQuotaIssues.filter((i) => i.severity === "critical");
         return (
           <Alert variant={critical.length > 0 ? "destructive" : "default"}>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               <p className="font-medium">
-                {plan.weeklyQuotaIssues!.length} écart{plan.weeklyQuotaIssues!.length > 1 ? "s" : ""} de quota hebdomadaire détecté{plan.weeklyQuotaIssues!.length > 1 ? "s" : ""}.
+                {displayedQuotaIssues.length} écart{displayedQuotaIssues.length > 1 ? "s" : ""} de quota hebdomadaire détecté{displayedQuotaIssues.length > 1 ? "s" : ""}.
               </p>
               <ul className="mt-1.5 space-y-0.5 text-sm">
-                {plan.weeklyQuotaIssues.slice(0, 6).map((issue, i) => (
+                {displayedQuotaIssues.slice(0, 6).map((issue, i) => (
                   <li key={i}>S{issue.weekNumber} — {issue.reason}{issue.expected ? ` (attendu ${issue.expected}, observé ${issue.observed ?? "?"})` : ""}</li>
                 ))}
               </ul>

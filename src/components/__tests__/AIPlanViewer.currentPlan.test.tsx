@@ -25,6 +25,7 @@ describe("état courant contrôlé : affichage / export / diagnostic / sauvegard
   const original = fixture();
   original.weeklyQuotas = { 1: { ...computeWeekQuotaEntry("10K", "age_group", 4, "load", false)!,
     volumeBudget: { globalWeek: 1, maxMinutes: 50, weeklyIncreasePctMax: 0.1, referenceSource: "internal-matrix" } } };
+  original.weeklyQuotaIssues = [{ code: "coach_load_violation", severity: "critical", weekNumber: 1, reason: "ancien quota de charge" }];
   original.finalValidationIssues = [{ rule: "coach_load_violation", severity: "error", message: "ancien diagnostic coach" }];
   function Harness() {
    const [plan, setPlan] = useState(original);
@@ -34,6 +35,7 @@ describe("état courant contrôlé : affichage / export / diagnostic / sauvegard
   render(<Harness />);
   expect(screen.getByText(/60 min prescrites > 50 min/)).toBeInTheDocument();
   expect(screen.queryByText("ancien diagnostic coach")).not.toBeInTheDocument();
+  expect(screen.queryByText(/ancien quota de charge/)).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Corriger dose synthétique" }));
   expect(screen.queryByText(/min prescrites > 50 min/)).not.toBeInTheDocument();
  });
