@@ -38,6 +38,8 @@ describe("état courant contrôlé : affichage / export / diagnostic / sauvegard
   expect(screen.queryByText(/ancien quota de charge/)).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Corriger dose synthétique" }));
   expect(screen.queryByText(/min prescrites > 50 min/)).not.toBeInTheDocument();
+  // A corrected dose remains unverified against the athlete's unknown history.
+  expect(screen.getByText(/charge initiale non attestée/)).toBeInTheDocument();
  });
 
  it("une édition sauvegardée sans quotas est conservée après fermeture et export de la version rouverte", () => {

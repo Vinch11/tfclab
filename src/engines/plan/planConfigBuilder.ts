@@ -166,8 +166,8 @@ export function buildPlanConfigFromDiagnostic(
   });
 
   const effectiveAmbitionLabel = AMBITION_DEFINITIONS[ambitionResolution.ambitionEffective].label;
-  // Mutation locale : formConfig.ambition remplacé par le label effectif pour tout le reste du builder.
-  const effectiveFormConfig: PlanFormConfig = { ...formConfig, ambition: effectiveAmbitionLabel };
+  // Transporter la clé, jamais le libellé UI « Elite » (ambigu avec la clé elite).
+  const effectiveFormConfig: PlanFormConfig = { ...formConfig, ambition: ambitionResolution.ambitionEffective };
 
   // ── Limiteurs enrichis ────────────────────────────────────────────────────
   const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
@@ -272,9 +272,11 @@ export function buildPlanConfigFromDiagnostic(
   const recentLoad = {
     tss7d: crr.value,
     source: crr.source,
-    status: chargeScore.status,
-    label: crr.label,
-    recommendation: chargeScore.recommendation,
+    status: crr.source === "MANUAL" ? "unknown" as const : chargeScore.status,
+    label: crr.source === "MANUAL" ? "Charge récente inconnue — estimation qualitative du niveau coach" : crr.label,
+    recommendation: crr.source === "MANUAL"
+      ? "Estimation de planification, pas une charge mesurée ni une preuve de tolérance. Première semaine : validation du coach nécessaire à partir de la pratique actuelle."
+      : chargeScore.recommendation,
     target: {
       min: crrTargets.chargeMinimale,
       opt: crrTargets.chargeOptimale,

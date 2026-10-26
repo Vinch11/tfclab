@@ -2,7 +2,7 @@ import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
-import { validateCoachVolumeBudgets } from "@/lib/plan/coachVolumeValidation";
+import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
@@ -1691,8 +1691,8 @@ export default function AITrainingPlanPage() {
     );
 
     plan.finalValidationIssues = [
-      ...(plan.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation"),
-      ...validateCoachVolumeBudgets(plan, plan.weeklyQuotas),
+      ...(plan.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
+      ...validateCoachLoadIssues(plan, plan.weeklyQuotas),
     ];
 
     // Mise à niveau des plans ANCIENS : affûtage minimal déterministe.

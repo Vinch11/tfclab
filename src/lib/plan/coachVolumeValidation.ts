@@ -38,3 +38,18 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
   }
   return issues;
 }
+
+/** Below a ceiling is not proof that the athlete can tolerate the first dose. */
+export function validateCoachInitialLoad(plan: Pick<FinalValidationPlanLike, "weeks">,
+  quotas: Record<number, { volumeBudget?: CoachVolumeBudget }> = {}): Array<ValidationIssue & { severity: "warning" }> {
+  const first = plan.weeks.find(w => quotas[w.weekNumber]?.volumeBudget?.globalWeek === 1);
+  if (!first || quotas[first.weekNumber]?.volumeBudget?.referenceSource !== "internal-matrix") return [];
+  return [{ rule: "coach_initial_load_unverified", severity: "warning", week: first.weekNumber,
+    message: `S${first.weekNumber}: charge initiale non attestée — validation du coach nécessaire avant utilisation.`,
+    detail: "Heures hebdomadaires non renseignées : référence interne de planification uniquement. Être sous le plafond ne démontre pas la tolérance. Vérifier les durées réellement prescrites, la fréquence et la récupération par rapport à la pratique actuelle ; les limiteurs physiologiques ne prouvent pas la capacité de charge." }];
+}
+
+export function validateCoachLoadIssues(plan: Pick<FinalValidationPlanLike, "weeks">,
+  quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}) {
+  return [...validateCoachVolumeBudgets(plan, quotas), ...validateCoachInitialLoad(plan, quotas)];
+}

@@ -25,7 +25,7 @@ import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPlan, type SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
-import { validateCoachVolumeBudgets } from "@/lib/plan/coachVolumeValidation";
+import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
@@ -2178,8 +2178,8 @@ export function useAITrainingPlan() {
           strategicRecap: undefined,
         };
         assembled.finalValidationIssues = [
-          ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation"),
-          ...validateCoachVolumeBudgets(assembled, assembled.weeklyQuotas),
+          ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
+          ...validateCoachLoadIssues(assembled, assembled.weeklyQuotas),
         ];
         setFinalValidationIssues(assembled.finalValidationIssues);
         lastParsedPlanRef.current = assembled;

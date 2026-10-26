@@ -1,4 +1,4 @@
-import { validateCoachVolumeBudgets } from "../coachVolumeValidation";
+import { validateCoachLoadIssues } from "../coachVolumeValidation";
 import { validateSessionCataloguePlan } from "../sessionCatalogueValidation";
 /**
  * Audit scientifique P0 — F12. Point d'entrée UNIQUE pour brancher B13/B14
@@ -156,6 +156,6 @@ export function computeFinalValidationIssues(
   const ambitionGapIssues = ambitionPhysiology
     ? checkB15ToValidationIssues(checkB15(ambitionPhysiology))
     : [];
-  const issues: FinalValidationIssue[] = [...validateCoachVolumeBudgets(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
+  const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
   return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
 }

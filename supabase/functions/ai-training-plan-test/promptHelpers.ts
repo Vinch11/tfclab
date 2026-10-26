@@ -582,21 +582,25 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   // Charge récente — contexte d'absorption (CTL/ATL proxy via TSS 7j)
   if (config?.recentLoad) {
     const rl = config.recentLoad;
-    if (rl.source === "MANUAL") lines.push("Charge estimée à partir du niveau coach : NON mesurée, aucune charge Nolio importée ne doit être supposée.");
-    const statusEmoji =
-      rl.status === "overload" ? "🔴" :
-      rl.status === "high" ? "🟠" :
-      rl.status === "optimal" ? "🟢" :
-      rl.status === "low" ? "🔵" : "⚪";
-    lines.push(`\n${statusEmoji} CHARGE RÉCENTE (TSS 7j) : ${rl.tss7d ?? "N/R"} — statut "${rl.status}" — cible objectif : min ${rl.target.min} / opt ${rl.target.opt} / max ${rl.target.max}`);
-    if (rl.status === "overload" || rl.status === "high") {
-      lines.push(`  ⚠️ Athlète déjà chargé : NE PAS dépasser +5-7 TSS/sem en S1-S2. Prévoir 1 semaine d'allègement avant montée en charge.`);
-    } else if (rl.status === "low") {
-      lines.push(`  ⚠️ Athlète peu chargé : progression +5-7 TSS/sem MAX. Pas de saut brutal de volume sur S1-S2 pour éviter blessure.`);
-    } else if (rl.status === "unknown") {
-      lines.push(`  ⚠️ Charge inconnue : démarrer prudemment au volume cible MIN, monter de +5-7 TSS/sem.`);
+    if (rl.source === "MANUAL") {
+      lines.push(`Charge récente INCONNUE. Provenance MANUAL : estimation qualitative ${rl.tss7d ?? "N/R"} TSS, NON mesurée, aucune charge Nolio importée ne doit être supposée.`);
+      lines.push("Niveau déclaré ≠ charge mesurée ≠ capacité démontrée. Cette estimation ne permet ni un statut optimal de charge supportée, ni une progression normale présumée. Première semaine : validation du coach nécessaire selon la pratique actuelle, même sous les plafonds internes.");
     } else {
-      lines.push(`  ✅ Charge cohérente avec l'objectif. Progression normale +5-7 TSS/sem possible.`);
+      const statusEmoji =
+        rl.status === "overload" ? "🔴" :
+        rl.status === "high" ? "🟠" :
+        rl.status === "optimal" ? "🟢" :
+        rl.status === "low" ? "🔵" : "⚪";
+      lines.push(`\n${statusEmoji} CHARGE RÉCENTE (TSS 7j) : ${rl.tss7d ?? "N/R"} — statut "${rl.status}" — cible objectif : min ${rl.target.min} / opt ${rl.target.opt} / max ${rl.target.max}`);
+      if (rl.status === "overload" || rl.status === "high") {
+        lines.push(`  ⚠️ Athlète déjà chargé : NE PAS dépasser +5-7 TSS/sem en S1-S2. Prévoir 1 semaine d'allègement avant montée en charge.`);
+      } else if (rl.status === "low") {
+        lines.push(`  ⚠️ Athlète peu chargé : progression +5-7 TSS/sem MAX. Pas de saut brutal de volume sur S1-S2 pour éviter blessure.`);
+      } else if (rl.status === "unknown") {
+        lines.push(`  ⚠️ Charge inconnue : aucune tolérance initiale démontrée. Validation du coach nécessaire avant utilisation ; ne pas remplir un volume théorique ni présumer une progression tolérée.`);
+      } else {
+        lines.push(`  ✅ Charge cohérente avec l'objectif. Progression normale +5-7 TSS/sem possible.`);
+      }
     }
   }
 
@@ -619,9 +623,13 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(config.weeklyHoursSource === "internal-matrix"
       ? `  • Référence interne non mesurée : plafond ${vr.weeklyHoursTarget}h/sem, jamais un volume obligatoire ; respecter les plafonds de chaque semaine.`
       : `  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
-    lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la cible)${capStr}`);
-    lines.push(`  • Rampe : atteindre ${vr.weeklyHoursTarget}h en ~${vr.rampWeeks} semaine(s), progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem (règle des 10%, marge ACWR ≤ 1.3 — Gabbett ; population sport co/contact d'origine, extrapolée en marge de sécurité prudente pour l'endurance, pas comme preuve causale directe)`);
-    lines.push(`  ⚠️ NE PAS appliquer le volume cible "weeklyHours" dès Sem 1 : c'est la cible APRÈS la rampe, pas le point de départ.`);
+    lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la référence)${capStr}`);
+    lines.push(config.weeklyHoursSource === "internal-matrix"
+      ? `  • Repères internes : plafond évolutif jusqu’à ${vr.weeklyHoursTarget}h ; aucune obligation de l’atteindre. Progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem : garde-fou existant, pas preuve de tolérance individuelle ni règle scientifique universelle.`
+      : `  • Rampe : atteindre ${vr.weeklyHoursTarget}h en ~${vr.rampWeeks} semaine(s), progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem (garde-fou existant, pas preuve de tolérance individuelle)`);
+    lines.push(config.weeklyHoursSource === "internal-matrix"
+      ? "  ⚠️ Charge initiale inconnue : le plafond S1 n’est PAS une cible ni une autorisation de charge. Ne pas déduire du niveau ou du profil physiologique une capacité à supporter ce plafond. Validation du coach nécessaire sur les durées, la fréquence et la récupération réellement prescrites."
+      : `  ⚠️ NE PAS appliquer le volume cible "weeklyHours" dès Sem 1 : c'est la cible APRÈS la rampe, pas le point de départ.`);
     lines.push(`  ⚠️ Une semaine de décharge (deload) DOIT intervenir tous les 3 microcycles de charge même pendant la rampe.`);
   }
 
@@ -1794,7 +1802,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // (`catalogObjective`, déjà calculé côté client) quand présent — même
   // logique que `resolveSystemPromptObjective` (jsonPlanHandler.ts).
   const sportRatioObjective = (config.catalogObjective || config.objective || "").toUpperCase();
-  const sportRatios = getSportDistributionConstraint(sportRatioObjective, (config.ambition || "").toLowerCase(), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);
+  const sportRatios = getSportDistributionConstraint(sportRatioObjective, (config.ambition || ""), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);
   if (sportRatios) {
     lines.push(sportRatios);
   }

@@ -1,4 +1,4 @@
-import { validateCoachVolumeBudgets } from "@/lib/plan/coachVolumeValidation";
+import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 /**
@@ -950,7 +950,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   // The same dose incident is shown once, freshly checked above, not as a stale quota snapshot.
   const displayedQuotaIssues = (plan.weeklyQuotaIssues ?? []).filter(issue =>
     issue.code !== "coach_load_violation" || !plan.weeklyQuotas?.[issue.weekNumber]?.volumeBudget);
-  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_") && !(hasCoachBudget && i.rule === "coach_load_violation")), ...currentCatalogueIssues, ...validateCoachVolumeBudgets(plan, plan.weeklyQuotas)];
+  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_") && !(hasCoachBudget && (i.rule === "coach_load_violation" || i.rule === "coach_initial_load_unverified"))), ...currentCatalogueIssues, ...validateCoachLoadIssues(plan, plan.weeklyQuotas)];
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setLocalPlan(planProp); setReplacementCount(0); }, [planProp]);
 

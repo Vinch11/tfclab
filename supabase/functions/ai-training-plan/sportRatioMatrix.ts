@@ -462,12 +462,10 @@ export const getTimeTargetHint = getReferenceStandard;
 export function normalizeAmbKey(amb: string): string {
   const lower = amb.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z_]/g, "");
   if (lower.includes("world") || lower.includes("monde") || lower.includes("mondial") || lower === "wc") return "world_class";
-  // "Elite" (mot nu) est le libelle UI ACTUEL de world_class depuis le relabeling
-  // (voir src/types/ambitionLevel.ts) - l'ancien palier interne "elite" se libelle
-  // desormais "Qualifiable" (detecte via "qualif" seul, ci-dessous). Sans ce cas
-  // explicite, "elite" matchait la branche "qualif/pro" et retrogradait
-  // silencieusement tout athlete "Elite" (top 3%) vers les cibles "Qualifiable"
-  // (top 10%) - doubles/semaine, duree d'affutage, quotas IM/70.3.
+  // Les nouvelles configurations transportent la clé canonique exacte « elite ».
+  // Les anciens clients transportaient le libellé UI « Elite » (= world_class).
+  // Ne pas détruire cette distinction avant le test de clé canonique.
+  if (amb.trim() === "elite") return "elite";
   if (lower === "elite") return "world_class";
   if (lower.includes("pro") || lower.includes("qualif")) return "elite";
   if (lower.includes("compet") || lower.includes("comp")) return "competitor";

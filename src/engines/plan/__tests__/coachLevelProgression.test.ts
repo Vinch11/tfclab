@@ -31,8 +31,8 @@ import { postProcessParsedPlan } from "../computePlan";
 import { restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 
-function prescribed(level: CoachTrainingLevel) {
-  const c = config(level);
+function prescribed(level: CoachTrainingLevel, weeklyHours?: number) {
+  const c = config(level, weeklyHours);
   const quotas: Record<number, WeekQuotaEntry> = {};
   let lastLoad = 0;
   const weeks = Array.from({ length: 12 }, (_, i) => {
@@ -148,5 +148,71 @@ describe("physiology and recovery protections", () => {
     const b = buildCoachVolumeBudget(c.volumeRamp, 1, "load", c.weeklyHoursSource)!;
     expect(b.maxMinutes).toBeLessThanOrEqual(8 * 60);
     expect(b.weeklyIncreasePctMax).toBe(0.07);
+  });
+});
+
+// Révision sportive : un plafond interne ne prouve jamais la tolérance initiale.
+describe("unknown initial tolerance and canonical ambition", () => {
+  it.each(levels)("%s keeps a manual estimate distinct from observed recent load", level => {
+    for (const hours of [undefined, 6]) {
+      const c = config(level, hours);
+      expect(c.ambition).toBe(c.ambitionMeta!.effective);
+      expect(c.recentLoad!.source).toBe("MANUAL");
+      expect(c.recentLoad!.status).toBe("unknown");
+      expect(c.recentLoad!.recommendation).toContain("validation du coach");
+    }
+  });
+  it.each(levels)("%s requires coach review even when S1 is below its theoretical ceiling", level => {
+    const { plan } = prescribed(level);
+    const issues = computeFinalValidationIssues(plan).issues;
+    expect(issues).toContainEqual(expect.objectContaining({ rule: "coach_initial_load_unverified", severity: "warning" }));
+    expect(issues.filter(i => i.rule === "coach_load_violation")).toEqual([]);
+  });
+  it("world_class uses the same matrix row for reference hours, run frequency and transport", () => {
+    const c = config("highly_trained");
+    const q = computeWeekQuotaEntry("10K", c.ambition!, c.weeklyHours!, "load", false)!;
+    expect(c.ambition).toBe("world_class");
+    expect(q.quota.run).toEqual({ min: 7, max: 9 });
+    const layout = buildWeeklySlotLayout(q.quota, q.floors, "load");
+    expect(layout.days.flatMap(d => d.slots).filter(s => s.sport === "run")).toHaveLength(7);
+    expect(layout.days.every(d => d.slots.length <= q.quota.maxSessionsPerDay)).toBe(true);
+    const trained = prescribed("trained").plan;
+    expect(trained.weeks[0].sessions.filter(s => s.sport === "run")).toHaveLength(6);
+    expect(c.weeklyHours).toBe(9.5);
+    expect(buildWeekQuotaTransport(1, q)._weeklyQuotas[1].quota.run).toEqual(q.quota.run);
+  });
+});
+
+
+describe("coach review across eight deterministic prescriptions", () => {
+  for (const level of levels) for (const hours of [undefined, 6]) {
+    it(`${level} / ${hours ?? "unknown"} hours: dose, frequency, recovery and persistent review`, () => {
+      const { c, plan } = prescribed(level, hours);
+      const totals = plan.weeks.map(w => w.sessions.reduce((n, s) => n + s.durationMin!, 0));
+      const firstRunCount = plan.weeks[0].sessions.filter(s => s.sport === "run").length;
+      expect(firstRunCount).toBeGreaterThanOrEqual(plan.weeklyQuotas![1].quota.run.min);
+      expect(firstRunCount).toBeLessThanOrEqual(plan.weeklyQuotas![1].quota.run.max);
+      expect(totals[0]).toBeLessThanOrEqual(c.volumeRamp!.week1HoursMax * 60);
+      expect(totals[3]).toBeLessThanOrEqual(totals[2] * 0.7);
+      expect(totals[4]).toBeLessThanOrEqual(totals[2] * (1 + c.volumeRamp!.weeklyIncreasePctMax));
+      const reopened = restoreStructuredPlan(JSON.parse(JSON.stringify(plan)))!;
+      const issues = computeFinalValidationIssues(reopened).issues;
+      expect(issues.filter(i => i.rule === "coach_load_violation")).toEqual([]);
+      expect(issues.some(i => i.rule === "coach_initial_load_unverified")).toBe(hours === undefined);
+      expect(c.identifiedLimitersRaw).toEqual(config("light").identifiedLimitersRaw);
+      reopened.weeks[0].sessions[0].durationMin = 1000;
+      expect(computeFinalValidationIssues(reopened).issues.some(i => i.rule === "coach_load_violation" && i.severity === "error")).toBe(true);
+    });
+  }
+  it("20–30 km/week contextual example never becomes an inferred duration or extra form input", () => {
+    // Illustrative pace ONLY: at 6 min/km, 20–30 km is 120–180 run minutes.
+    // It is deliberately not fed to the builder or converted to an athlete measurement.
+    const { c, plan } = prescribed("light");
+    expect(c.volumeRamp!.week1HoursMax * 60).toBe(144);
+    const issues = computeFinalValidationIssues(plan).issues;
+    expect(issues).toContainEqual(expect.objectContaining({ rule: "coach_initial_load_unverified", severity: "warning" }));
+    expect(c.recentLoad!.status).toBe("unknown");
+    expect(c.recentLoad!.source).toBe("MANUAL");
+    expect(c.loadHistory).toBeUndefined();
   });
 });

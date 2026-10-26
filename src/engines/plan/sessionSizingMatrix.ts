@@ -669,6 +669,7 @@ export function buildQuotaPromptBlock(
     if (entry.volumeBudget) {
       const b = entry.volumeBudget;
       lines.push(`  Volume total MAX ${b.maxMinutes} min (renforcement et bricks inclus). Référence ${b.referenceSource === "internal-matrix" ? "interne de planification, NON mesurée" : "déclarée par le coach"} ; progression entre semaines de charge MAX +${Math.round(b.weeklyIncreasePctMax * 100)}%. Reprise après décharge comparée à la dernière semaine de charge, pas à la semaine allégée. En récupération : au plus 70% de la dernière semaine de charge. Ne pas augmenter le nombre de séances pour remplir ce plafond.`);
+      if (b.referenceSource === "internal-matrix" && b.globalWeek === 1) lines.push("  Charge initiale inconnue : ce plafond n’est PAS un volume cible ni une preuve de tolérance. Validation du coach nécessaire sur la première semaine réellement prescrite (durées, fréquence, récupération), selon la pratique actuelle.");
     }
     if (entry.downgraded && entry.downgradeReason) {
       lines.push(`  ↳ ambition ajustée : ${entry.downgradeReason}`);

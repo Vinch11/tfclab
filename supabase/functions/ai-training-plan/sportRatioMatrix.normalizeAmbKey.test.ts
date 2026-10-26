@@ -5,7 +5,7 @@ import { normalizeAmbKey } from "./sportRatioMatrix.ts";
  * Bug reel signale par le coach : carte Benchmark affichant "Ambition visee :
  * Confirme" pour un athlete configure en "Elite" (world_class) + "Verrouiller
  * l'ambition". Racine : `config.ambition` transmis au prompt (buildUserPrompt)
- * est toujours l'un des 5 libelles UI actuels (Decouverte/Confirme/Competiteur/
+ * était historiquement l’un des 5 libelles UI actuels (Decouverte/Confirme/Competiteur/
  * Qualifiable/Elite - voir src/types/ambitionLevel.ts AMBITION_DEFINITIONS).
  * "Elite" (mot nu) est desormais le libelle de `world_class`, mais
  * normalizeAmbKey matchait la branche "elite/pro/qualif" avant le fix et
@@ -15,7 +15,7 @@ import { normalizeAmbKey } from "./sportRatioMatrix.ts";
  */
 Deno.test("normalizeAmbKey('Elite') -> world_class (libelle UI actuel du palier top 3%)", () => {
   assertEquals(normalizeAmbKey("Elite"), "world_class");
-  assertEquals(normalizeAmbKey("elite"), "world_class");
+  assertEquals(normalizeAmbKey("elite"), "elite");
   assertEquals(normalizeAmbKey(" Elite "), "world_class");
 });
 
@@ -35,4 +35,12 @@ Deno.test("normalizeAmbKey — les 5 libelles UI actuels resolvent vers les bonn
 Deno.test("normalizeAmbKey — alias 'world class' / 'mondial' toujours world_class", () => {
   assertEquals(normalizeAmbKey("World Class"), "world_class");
   assertEquals(normalizeAmbKey("mondial"), "world_class");
+});
+
+
+Deno.test("canonical ambitions are idempotent, including elite distinct from world_class", () => {
+  for (const key of ["finisher", "age_group", "competitor", "elite", "world_class"]) {
+    assertEquals(normalizeAmbKey(key), key);
+    assertEquals(normalizeAmbKey(normalizeAmbKey(key)), key);
+  }
 });

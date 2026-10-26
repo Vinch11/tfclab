@@ -61,4 +61,42 @@ Une régénération isolée peut vérifier son plafond global mais ne dispose pa
 
 Le verrou d’ambition est un override coach explicite préexistant, pas un défaut silencieux. Les sauvegardes de données réelles et le déploiement ne sont pas testés ici. Les empreintes de contrat et de release sont régénérées, sans exclusion supplémentaire ; une future publication doit rester coordonnée. #407 inactive.
 
-GO pour revue du correctif et de ses limites après CI verte. Aucune fusion, publication, migration, modification Nolio/données athlètes/taxonomie ni appel Gemini autorisé ou effectué.
+La revue du HEAD initial `7bdf2578cda4f2cdc7afa301c9cc7f25ffd2f620` a conclu à un NO-GO ; la révision ci-dessous traite les trois réserves démontrées. La décision de fusion reste humaine. Aucune fusion, publication, migration, modification Nolio/données athlètes/taxonomie ni appel Gemini autorisé ou effectué.
+
+
+## Révision après revue sportive (26 octobre 2026)
+
+### Trois causes corrigées
+
+1. **Sous plafond ≠ tolérance initiale attestée.** Sans heures, la référence reste `internal-matrix`. Un avertissement `coach_initial_load_unverified` est calculé sur la première semaine globale réellement prescrite, puis conservé/recalculé après assemblage, post-traitement, édition et réouverture. Il demande explicitement la validation du coach avant utilisation, en comparant durées, fréquence et récupération à la pratique actuelle. Il reste présent même si toutes les durées sont sous plafond. Aucun volume initial « sûr » universel n’est inventé, aucun plafond n’est abaissé arbitrairement, aucune séance n’est supprimée. C’est un avertissement de revue humaine, pas une attestation de tolérance ni un nouveau formulaire d’acquittement.
+2. **Ambition canonique cohérente.** Le builder transporte désormais la clé effective (`elite` ou `world_class`), et conserve les libellés dans `ambitionMeta`. Référence horaire, sizing, quotas et post-traitement utilisent ainsi le même palier. Les deux fonctions distinguent la clé exacte `elite` du libellé historique `Elite` (= `world_class`) ; `Qualifiable` reste `elite`. Ne pas mettre le libellé en minuscules avant cette distinction. Le déclassement existant lié aux heures explicites reste autorisé et tracé ; ce n’est pas une réinterprétation du nom d’ambition.
+3. **Estimation distincte d’une charge supportée.** La provenance `MANUAL` et l’estimation numérique existante sont conservées ; leur statut de charge récente devient `unknown`, avec label et recommandation explicites. Les prompts ne qualifient plus ces estimations d’optimales, faibles ou élevées en tant que charges réellement absorbées, et ne recommandent plus une progression « normale » sur cette base. Les charges non MANUAL gardent leur traitement existant. La physiologie et la hiérarchie des limiteurs ne sont pas modifiées.
+
+Le rétablissement de `world_class` a exposé un défaut de squelette : un quota minimal de sept CAP, sans jour de repos imposé, ne pouvait fournir que six CAP car le lundi était systématiquement exclu du remplissage. Le lundi n’est rendu disponible que lorsque le quota exige plus de six CAP et n’impose aucun repos complet ; `canAdd` conserve les limites quotidiennes. Les autres paliers, dont « Entraîné », ne reçoivent pas une séance supplémentaire. Il ne s’agit pas d’imposer sept CAP à toute personne très entraînée : cela concerne la ligne world_class existante et reste soumis à la validation initiale du coach.
+
+### Comparaison déterministe sur B-10K — 12 semaines
+
+Les séances custom synthétiques ci-dessous sont construites pour tester les plafonds et les doses prescrites, **pas pour proposer ces doses comme programmes sportifs**. Elles utilisent le même contrôle final, les mêmes quotas et le même post-traitement que le pipeline. Toutes les durées sont en minutes, renforcement compris. Les lignes avec 6 h réutilisent une saisie explicite, qui n’est pas pour autant une mesure d’historique.
+
+| Niveau | Heures saisies | S1 réellement prescrite dans la fixture | CAP S1 | S3 / assimilation S4 / reprise S5 | Avertissement initial interne |
+|---|---:|---:|---:|---|---|
+| Pas entraîné | absentes | 72 | 3 | 86 / 60 / 94 | Oui |
+| Pas entraîné | 6 | 144 | 3 | 173 / 121 / 190 | Non, référence explicite |
+| Peu entraîné | absentes | 144 | 4 | 173 / 121 / 190 | Oui |
+| Peu entraîné | 6 | 216 | 4 | 260 / 182 / 286 | Non, référence explicite |
+| Entraîné | absentes | 384 | 6 | 464 / 324 / 480 | Oui |
+| Entraîné | 6 | 288 | 6 | 347 / 242 / 360 | Non, référence explicite |
+| Très entraîné | absentes | 540 | 7 | 568 / 397 / 568 | Oui |
+| Très entraîné | 6 | 342 | 6 | 360 / 251 / 360 | Non, référence explicite |
+
+Avant révision : neuf tests rouges reproduisent l’absence d’avertissement, le statut estimé interprété comme charge connue et le transport `Elite` au lieu de `world_class`. Après : vérification des huit prescriptions, durées structurées, fréquence min/max, baisse d’assimilation, reprise depuis la dernière charge, dépassements toujours bloquants, limiteurs inchangés et alerte initiale persistante après édition et réouverture. Les prompts des deux fonctions sont testés, y compris un ancien payload MANUAL avec statut `optimal` : aucun certificat de tolérance ne doit être produit.
+
+### Exemple 20–30 km/semaine, « Peu entraîné »
+
+Cette information reste un contexte de revue coach, sans nouvelle saisie obligatoire ni conversion automatique. À une allure **purement illustrative** de 6 min/km, cela représente 120–180 min de CAP ; le plafond S1 interne est 144 min **toutes séances comprises**, donc ne permet pas d’attester la continuité du volume CAP. Une fréquence de quatre CAP peut aussi dépasser une pratique habituelle de deux ou trois sorties. L’avertissement exige cette comparaison avant utilisation, même si le plafond est respecté. Le correctif ne prétend ni connaître l’allure réelle ni garantir une augmentation ou un maintien des kilomètres.
+
+### Limites et décision
+
+Les plafonds 72/144/384/540 restent des bornes de planification issues des règles existantes, pas des prescriptions cibles ni une capacité prouvée. Sans historique, **la sécurité S1 n’est pas établie automatiquement** : la revue du coach reste nécessaire. Des heures explicites ne constituent pas non plus une mesure de tolérance ; en l’absence de TSS réel, leur statut de charge récente reste `unknown` et les prompts demandent la validation du coach. L’avertissement persistant spécifique aux références internes n’est pas ajouté rétroactivement aux archives sans ces budgets.
+
+Les seuils de progression et de récupération restent des garde-fous existants, pas des règles scientifiques universelles. Les tests synthétiques ne prouvent ni la faisabilité de toutes les fiches catalogue ni la qualité générale d’un prochain résultat modèle. Aucune génération payante n’a été effectuée. Les protections de sauvegarde bloquantes restent actives. Les déclarations de release sont régénérées ; une éventuelle publication future devra coordonner frontend et fonctions, sans déploiement ici.
