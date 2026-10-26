@@ -18,6 +18,7 @@ import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecen
 import { resolveVolumeRampLoadAdjustment } from "@/lib/volumeRampLoadAdjustment";
 import { computeTrailProfile, isTrailObjective } from "@/lib/trailProfile";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
+import { resolveCoachHoursReference } from "./sessionSizingMatrix";
 import { AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getVlamaxTarget as getVlamaxTargetCanonical } from "@/lib/v2/vlamaxTargets";
 
@@ -317,9 +318,13 @@ export function buildPlanConfigFromDiagnostic(
   // Dérivée de `trainingLevel`. Contrainte dure injectée chunk 1 pour
   // éviter de balancer un volume cible (ex: 12h) dès la Sem 1 à un athlète
   // peu/non entraîné. Règle des 10% + ACWR ≤ 1.3 (Gabbett).
+  const hoursReference = formConfig.trainingLevel
+    ? resolveCoachHoursReference(formConfig.objective, ambitionResolution.ambitionEffective, formConfig.weeklyHours)
+    : undefined;
+  const planningHours = hoursReference?.hours ?? formConfig.weeklyHours;
   let volumeRamp: PlanConfig["volumeRamp"];
-  if (formConfig.trainingLevel && formConfig.weeklyHours && formConfig.weeklyHours > 0) {
-    const target = formConfig.weeklyHours;
+  if (formConfig.trainingLevel && planningHours && planningHours > 0) {
+    const target = planningHours;
     const matrix = {
       untrained:      { pct: 0.40, ramp: 6, cap: 5 as number | null },
       light:          { pct: 0.60, ramp: 4, cap: 8 as number | null },
@@ -359,7 +364,8 @@ export function buildPlanConfigFromDiagnostic(
     raceGoals: formConfig.raceGoals,
     planStartDate: formConfig.planStartDate,
     weeksAvailable: formConfig.weeksAvailable,
-    weeklyHours: formConfig.weeklyHours,
+    weeklyHours: planningHours,
+    weeklyHoursSource: hoursReference?.source,
     sessionsPerWeek: formConfig.sessionsPerWeek,
     maxSessionsPerDay: formConfig.maxSessionsPerDay,
     strengthSessionsPerWeek: formConfig.strengthSessionsPerWeek,

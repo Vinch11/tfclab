@@ -25,10 +25,11 @@ import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPlan, type SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
+import { validateCoachVolumeBudgets } from "@/lib/plan/coachVolumeValidation";
 import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { inferWeekType, buildQuotaPromptBlock, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
+import { inferWeekType, buildCoachVolumeBudget, buildQuotaPromptBlock, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
@@ -460,6 +461,8 @@ export interface PlanConfig {
   planStartDate?: string;
   weeksAvailable?: number;
   weeklyHours?: number;
+  /** Source of a planning target; internal references are never measured load. */
+  weeklyHoursSource?: "coach" | "internal-matrix";
   sessionsPerWeek?: number;
   maxSessionsPerDay?: number;
   strengthSessionsPerWeek?: number;
@@ -1243,6 +1246,7 @@ export function useAITrainingPlan() {
           });
 
           weeklyQuotas[w] = { ...entry, floors: individualized.floors, layout,
+            volumeBudget: buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource),
             floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,
               rampConfigured: !!slRampAnchors,
               nominal: entry.floors, individualized: individualized.floors,
@@ -2128,12 +2132,9 @@ export function useAITrainingPlan() {
         const windowConfig: PlanConfig & { _outputFormat?: "json" | "markdown" } = {
           ...windowConfigBase,
           _outputFormat: planConfig._outputFormat,
-          // buildWindowRegenConfig désactive systématiquement la rampe de
-          // volume initiale (conçu pour régénérer une fenêtre EN PLEIN
-          // MILIEU d'un plan déjà existant, jamais son tout début) — la
-          // première fenêtre d'une génération initiale démarre elle bien en
-          // semaine 1 réelle du plan : la rampe d'origine doit s'appliquer.
-          volumeRamp: wi === 0 ? planConfig.volumeRamp : windowConfigBase.volumeRamp,
+          // Initial construction retains the same global ramp across windows.
+          // globalWeekOffset prevents restarting S1 at each window.
+          volumeRamp: planConfig.volumeRamp,
         };
 
         await generatePlan(athleteData, windowConfig);
@@ -2176,6 +2177,11 @@ export function useAITrainingPlan() {
           diagnostic: undefined,
           strategicRecap: undefined,
         };
+        assembled.finalValidationIssues = [
+          ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation"),
+          ...validateCoachVolumeBudgets(assembled, assembled.weeklyQuotas),
+        ];
+        setFinalValidationIssues(assembled.finalValidationIssues);
         lastParsedPlanRef.current = assembled;
         setParsedPlan(assembled);
         // Le bandeau lit le plan, la sauvegarde lit cet état du hook :
@@ -2196,6 +2202,7 @@ export function useAITrainingPlan() {
     setMergedPlan(null);
     setSportObjectiveIssues([]);
     setWeeklyQuotaIssues([]);
+    lastWeeklyQuotasRef.current = {};
     setCatalogIdIssues([]);
     setIsLoading(false);
     setChunkProgress(null);

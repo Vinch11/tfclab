@@ -547,7 +547,9 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   }
 
   // Volume constraints
-  if (config?.weeklyHours) {
+  if (config?.weeklyHoursSource === "internal-matrix") {
+    lines.push(`\n📊 Référence interne de planification : ${config.weeklyHours}h/sem, NON mesurée, ni disponibilité déclarée. Appliquer les plafonds hebdomadaires du niveau coach ; moins est autorisé. Ne pas inventer de charge récente.`);
+  } else if (config?.weeklyHours) {
     // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : affichait
     // auparavant TOUJOURS `config.weeklyHours` brut (ex: 17h), alors que le
     // bloc utilisateur plus bas affiche `effectiveVolumeCible` (ex: 18h pour
@@ -580,6 +582,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   // Charge récente — contexte d'absorption (CTL/ATL proxy via TSS 7j)
   if (config?.recentLoad) {
     const rl = config.recentLoad;
+    if (rl.source === "MANUAL") lines.push("Charge estimée à partir du niveau coach : NON mesurée, aucune charge Nolio importée ne doit être supposée.");
     const statusEmoji =
       rl.status === "overload" ? "🔴" :
       rl.status === "high" ? "🟠" :
@@ -613,7 +616,9 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     if (vr.recentLoadAdjustment) {
       lines.push(`  ⚠️ AJUSTÉ PAR LA CHARGE RÉCENTE RÉELLE : ${vr.recentLoadAdjustment.reason}`);
     }
-    lines.push(`  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
+    lines.push(config.weeklyHoursSource === "internal-matrix"
+      ? `  • Référence interne non mesurée : plafond ${vr.weeklyHoursTarget}h/sem, jamais un volume obligatoire ; respecter les plafonds de chaque semaine.`
+      : `  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
     lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la cible)${capStr}`);
     lines.push(`  • Rampe : atteindre ${vr.weeklyHoursTarget}h en ~${vr.rampWeeks} semaine(s), progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem (règle des 10%, marge ACWR ≤ 1.3 — Gabbett ; population sport co/contact d'origine, extrapolée en marge de sécurité prudente pour l'endurance, pas comme preuve causale directe)`);
     lines.push(`  ⚠️ NE PAS appliquer le volume cible "weeklyHours" dès Sem 1 : c'est la cible APRÈS la rampe, pas le point de départ.`);
@@ -1629,7 +1634,9 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
-  if (config.weeklyHours) {
+  if (config.weeklyHoursSource === "internal-matrix") {
+    lines.push(`- Référence interne (non mesurée) : ${config.weeklyHours}h/sem. Les plafonds du quota hebdomadaire et la rampe du niveau coach priment sur les multiplicateurs d'ambition. Ce sont des maxima, pas des volumes obligatoires. Les en-têtes doivent refléter les minutes réellement prescrites.`);
+  } else if (config.weeklyHours) {
     lines.push(`- **Heures dispo/semaine (saisie athlète) :** ${config.weeklyHours}h`);
     // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : affichait
     // auparavant TOUJOURS `derived.volumeCible` brut (ambition × weeklyHours)

@@ -1,3 +1,4 @@
+import { validateCoachVolumeBudgets } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 /**
@@ -945,7 +946,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     if (onPlanChange) onPlanChange(updated); else setLocalPlan(updated);
   }, [plan, onPlanChange]);
   const currentCatalogueIssues = useMemo(() => validateSessionCataloguePlan(plan), [plan]);
-  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_")), ...currentCatalogueIssues];
+  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_") && i.rule !== "coach_load_violation"), ...currentCatalogueIssues, ...validateCoachVolumeBudgets(plan, plan.weeklyQuotas)];
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setLocalPlan(planProp); setReplacementCount(0); }, [planProp]);
 

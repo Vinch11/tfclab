@@ -194,6 +194,34 @@ const MATRIX: Matrix = {
   },
 };
 
+/** Existing matrix midpoint; a planning reference, never measured training load. */
+export function resolveCoachHoursReference(objective: string, ambition: string, explicitHours?: number) {
+  if (typeof explicitHours === "number" && Number.isFinite(explicitHours) && explicitHours > 0)
+    return { hours: explicitHours, source: "coach" as const };
+  const objectiveKey = normalizeSizingObjective(objective);
+  const row = objectiveKey ? MATRIX[objectiveKey]?.[normalizeSizingAmbition(ambition)] : undefined;
+  if (!row || typeof row.hoursMin !== "number" || typeof row.hoursMax !== "number") return undefined;
+  return { hours: (row.hoursMin + row.hoursMax) / 2, source: "internal-matrix" as const };
+}
+
+export interface CoachVolumeBudget {
+  globalWeek: number;
+  maxMinutes: number;
+  weeklyIncreasePctMax: number;
+  referenceSource: "coach" | "internal-matrix";
+}
+
+/** Same geometric ramp as the SL floors, with the existing recovery reduction. */
+export function buildCoachVolumeBudget(ramp: (SlFloorRampAnchors & { week1HoursMax: number; weeklyHoursTarget: number }) | undefined,
+  globalWeek: number, weekType: WeekType, referenceSource: CoachVolumeBudget["referenceSource"] = "coach"): CoachVolumeBudget | undefined {
+  if (!ramp || ![ramp.week1HoursMax, ramp.weeklyHoursTarget, ramp.week1PctTarget].every(n => Number.isFinite(n) && n > 0)
+    || weekType === "race" || weekType === "taper") return undefined;
+  const growth = slFloorRampFactor(globalWeek, { ...ramp, rampWeeks: Math.max(2, ramp.rampWeeks) }) / ramp.week1PctTarget;
+  const hours = Math.min(ramp.weeklyHoursTarget, ramp.week1HoursMax * growth);
+  return { globalWeek, maxMinutes: Math.floor(hours * 60 * (weekType === "recovery" ? 0.7 : 1) + 1e-8),
+    weeklyIncreasePctMax: ramp.weeklyIncreasePctMax ?? 0.10, referenceSource };
+}
+
 /** Durées planchers SL par format (min). Consommées par validateWeeklyQuotas. */
 const SL_MIN_BY_OBJECTIVE: Record<SizingObjectiveKey, { bike?: number; run?: number }> = {
   IM:            { bike: 150, run: 100 },
@@ -620,7 +648,7 @@ function fmtRange(r: QuotaRange): string {
  */
 export function buildQuotaPromptBlock(
   weeksScope: number[],
-  quotasByWeek: Record<number, { quota: WeeklyQuota; floors: SizingFloors; weekType: WeekType; downgraded: boolean; downgradeReason?: string }>,
+  quotasByWeek: Record<number, { quota: WeeklyQuota; floors: SizingFloors; weekType: WeekType; downgraded: boolean; downgradeReason?: string; volumeBudget?: CoachVolumeBudget }>,
 ): string {
   const lines: string[] = [];
   lines.push("🧮 CONTRAINTES DE DIMENSIONNEMENT (NON NÉGOCIABLES, calculées par le moteur) :");
@@ -638,6 +666,10 @@ export function buildQuotaPromptBlock(
       q.minFullRestDays > 0 ? `≥${q.minFullRestDays} jour${q.minFullRestDays > 1 ? "s" : ""} repos complet` : "repos ajustable",
     ];
     lines.push(`Semaine ${w} (${entry.weekType}) : ${parts.join(" · ")}`);
+    if (entry.volumeBudget) {
+      const b = entry.volumeBudget;
+      lines.push(`  Volume total MAX ${b.maxMinutes} min (renforcement et bricks inclus). Référence ${b.referenceSource === "internal-matrix" ? "interne de planification, NON mesurée" : "déclarée par le coach"} ; progression entre semaines de charge MAX +${Math.round(b.weeklyIncreasePctMax * 100)}%. Reprise après décharge comparée à la dernière semaine de charge, pas à la semaine allégée. En récupération : au plus 70% de la dernière semaine de charge. Ne pas augmenter le nombre de séances pour remplir ce plafond.`);
+    }
     if (entry.downgraded && entry.downgradeReason) {
       lines.push(`  ↳ ambition ajustée : ${entry.downgradeReason}`);
     }

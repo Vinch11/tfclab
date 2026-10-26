@@ -1,3 +1,4 @@
+import { computeWeekQuotaEntry } from "@/engines/plan/sessionSizingMatrix";
 import { normalizeRepairSport } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { useState } from "react";
 import { describe, it, expect, vi } from "vitest";
@@ -20,6 +21,23 @@ const fixture = (): ParsedPlan => ({ title: "Fixture", totalWeeks: 1, phases: []
  durationMin: 60, zones: ["Z2"], custom: false, catalogId: "A_RUN_DURABILITY_LONG", isRest: false,
 }] }] });
 describe("état courant contrôlé : affichage / export / diagnostic / sauvegarde", () => {
+ it("revalidates actual coach-volume limits after a local edit rather than displaying stale generation alerts", () => {
+  const original = fixture();
+  original.weeklyQuotas = { 1: { ...computeWeekQuotaEntry("10K", "age_group", 4, "load", false)!,
+    volumeBudget: { globalWeek: 1, maxMinutes: 50, weeklyIncreasePctMax: 0.1, referenceSource: "internal-matrix" } } };
+  original.finalValidationIssues = [{ rule: "coach_load_violation", severity: "error", message: "ancien diagnostic coach" }];
+  function Harness() {
+   const [plan, setPlan] = useState(original);
+   return <><button onClick={() => setPlan({ ...plan, weeks: [{ ...plan.weeks[0], sessions: [{ ...plan.weeks[0].sessions[0], durationMin: 45 }] }] })}>Corriger dose synthétique</button>
+    <AIPlanViewer plan={plan} onPlanChange={setPlan} /></>;
+  }
+  render(<Harness />);
+  expect(screen.getByText(/60 min prescrites > 50 min/)).toBeInTheDocument();
+  expect(screen.queryByText("ancien diagnostic coach")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Corriger dose synthétique" }));
+  expect(screen.queryByText(/min prescrites > 50 min/)).not.toBeInTheDocument();
+ });
+
  it("une édition sauvegardée sans quotas est conservée après fermeture et export de la version rouverte", () => {
   let archive = "";
   function Harness() {
