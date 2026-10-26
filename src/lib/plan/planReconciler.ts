@@ -597,6 +597,7 @@ function assignFiche(session: PlanSession, fiche: LibraryWorkout, keepDuration?:
  * globalWeekOffset), pas seulement les semaines couvertes par `chunks`.
  */
 interface PhaseCtx {
+  phases?: Record<number, PlanPhase | undefined>;
   totalWeeks: number;
   weekOffset: number;
   objectiveKey: string | null | undefined;
@@ -636,6 +637,7 @@ function resolveWeekPhase(_rawPhase: string, weekNumber: number, ctx?: PhaseCtx)
   // passes ci-dessous (ordre des paramètres TS) sans jamais retomber sur
   // `_rawPhase` — repli numérique degénéré (semaine = totalWeeks) plutôt
   // qu'une confiance aveugle dans l'auto-déclaration du LLM.
+  if (ctx?.phases?.[weekNumber]) return ctx.phases[weekNumber]!;
   if (!ctx) return canonicalWeekPhase(weekNumber, weekNumber, undefined);
   return canonicalWeekPhase(weekNumber + ctx.weekOffset, ctx.totalWeeks, ctx.objectiveKey);
 }
@@ -2133,6 +2135,7 @@ export function runReconciler(
   // ci-dessous — Math.max 1 pour éviter une division par zéro).
   const legacyTotalWeeks = Math.max(1, ...chunks.flatMap(ch => (ch.weeks ?? []).map(w => w.weekNumber ?? 0)));
   const phaseCtx: PhaseCtx = {
+    phases: Object.fromEntries(Object.entries(quotasByWeek).map(([week, entry]) => [Number(week), entry.phase])),
     totalWeeks: opts.globalTotalWeeks ?? legacyTotalWeeks,
     weekOffset: opts.globalWeekOffset ?? 0,
     objectiveKey: opts.objectiveKey,

@@ -44,6 +44,7 @@ export interface MergedWeek {
 }
 
 export interface MergedPlan {
+  weeklyQuotas?: Record<number, import("./validateWeeklyQuotas").WeekQuotaEntry>;
   title: string;
   diagnostic?: string;
   strategicRecap?: StrategicRecapJSON;

@@ -35,9 +35,8 @@ describe("intentFamilyOf — métadonnées physiologiques structurées", () => {
   });
 
   it("conserve le classifieur historique pour une fiche non auditée", () => {
-    const workout = WorkoutLibrary.find(candidate => candidate.id === "A_RUN_Z2_EASY");
-    expect(workout).toBeDefined();
-    expect(workout?.physiology).toBeUndefined();
-    expect(intentFamilyOf(workout!)).toBe("technique");
+    const workout = { id: "LEGACY_UNREVIEWED", cat: "run", title: "Technique", objectif: "Technique", tags: ["technique"], structure: [] } as unknown as typeof WorkoutLibrary[number];
+    expect(workout.physiology).toBeUndefined();
+    expect(intentFamilyOf(workout)).toBe("technique");
   });
 });

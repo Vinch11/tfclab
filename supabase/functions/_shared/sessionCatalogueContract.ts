@@ -59,9 +59,10 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
  if (a && !b) unknown.push("structure_not_verified");
  return { errors: [...new Set(errors)], unknown };
 }
-export function catalogueForWeek(catalog: RepairWorkoutMetadata[], context: RepairCompatibilityContext, minima: Record<string, { min?: number }> = {}) {
+export function catalogueForWeek(catalog: RepairWorkoutMetadata[], context: RepairCompatibilityContext, minima: Partial<Record<"swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "totalSessions", { min?: number }>> = {}) {
  const eligible = catalog.filter(m => catalogueEligibility(m, context).length === 0);
- const missingSports = Object.entries(minima).filter(([sport, range]) =>
+ const sports = new Set(["swim", "bike", "run", "brick", "strength", "recovery"]);
+ const missingSports = Object.entries(minima).filter(([sport, range]) => sports.has(sport) &&
   (range.min ?? 0) > eligible.filter(m => normalizeRepairSport(m.sport) === sport).length).map(([sport]) => sport);
  return { eligible, missingSports };
 }

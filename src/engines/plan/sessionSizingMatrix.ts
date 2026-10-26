@@ -648,7 +648,7 @@ function fmtRange(r: QuotaRange): string {
  */
 export function buildQuotaPromptBlock(
   weeksScope: number[],
-  quotasByWeek: Record<number, { quota: WeeklyQuota; floors: SizingFloors; weekType: WeekType; downgraded: boolean; downgradeReason?: string; volumeBudget?: CoachVolumeBudget }>,
+  quotasByWeek: Record<number, { quota: WeeklyQuota; floors: SizingFloors; weekType: WeekType; downgraded: boolean; downgradeReason?: string; volumeBudget?: CoachVolumeBudget; phase?: string }>,
 ): string {
   const lines: string[] = [];
   lines.push("🧮 CONTRAINTES DE DIMENSIONNEMENT (NON NÉGOCIABLES, calculées par le moteur) :");
@@ -665,7 +665,7 @@ export function buildQuotaPromptBlock(
       `max ${q.maxSessionsPerDay} séances/jour`,
       q.minFullRestDays > 0 ? `≥${q.minFullRestDays} jour${q.minFullRestDays > 1 ? "s" : ""} repos complet` : "repos ajustable",
     ];
-    lines.push(`Semaine ${w} (${entry.weekType}) : ${parts.join(" · ")}`);
+    lines.push(`Semaine ${w} (${entry.weekType})${entry.phase ? ` — phase moteur ${entry.phase}` : ""} : ${parts.join(" · ")}`);
     if (entry.volumeBudget) {
       const b = entry.volumeBudget;
       lines.push(`  Volume total MAX ${b.maxMinutes} min (renforcement et bricks inclus). Référence ${b.referenceSource === "internal-matrix" ? "interne de planification, NON mesurée" : "déclarée par le coach"} ; progression entre semaines de charge MAX +${Math.round(b.weeklyIncreasePctMax * 100)}%. Reprise après décharge comparée à la dernière semaine de charge, pas à la semaine allégée. En récupération : au plus 70% de la dernière semaine de charge. Ne pas augmenter le nombre de séances pour remplir ce plafond.`);

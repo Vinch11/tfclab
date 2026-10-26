@@ -1,3 +1,7 @@
+import type { PhaseTag } from "@/types/workoutLibrary";
+import { buildPeriodizationCalendar } from "@/lib/plan/periodizationCalendar";
+import { catalogueForWeek } from "../../supabase/functions/_shared/sessionCatalogueContract";
+import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { resolvePlanningSnapshotLoad } from "@/lib/planningSnapshotLoad";
 import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
@@ -352,6 +356,10 @@ async function buildRegenCatalog(
     endWeek,
     totalWeeksForPhase,
     {
+      strictPhaseFilter: true,
+      ...(() => { const calendar = buildPeriodizationCalendar(cfg);
+        const phases = [...new Set(Array.from({ length: endWeek - startWeek + 1 }, (_, i) => calendar?.[startWeek + i]).filter(Boolean))] as PhaseTag[];
+        return phases.length ? { phaseOverride: phases } : {}; })(),
       maxItems: 80,
       chunkIndex: 0,
       excludeIds: new Set(currentWeekCatalogIds),
@@ -2862,13 +2870,16 @@ export default function AITrainingPlanPage() {
     const regenQuotaEntry = regenQuotaEntryRaw
       ? {
         ...regenQuotaEntryRaw,
+        phase: buildPeriodizationCalendar(fullPlanConfig)?.[weekNumber],
         volumeBudget: buildCoachVolumeBudget(fullPlanConfig.volumeRamp, weekNumber, regenWeekType, fullPlanConfig.weeklyHoursSource),
         floors: applySlFloorIndividualization(
           regenQuotaEntryRaw.floors, weekNumber, regenWeekType, regenSlRampAnchors, regenInjuryRiskForSlFloor,
         ).floors,
       }
       : null;
-    const regenQuotaTransport = buildWeekQuotaTransport(weekNumber, regenQuotaEntry, isLCWPlan);
+    const regenQuotaTransport = buildWeekQuotaTransport(weekNumber, regenQuotaEntry, isLCWPlan,
+      new Set(catalogueForWeek(catalogResult.repairCatalog, { phase: regenQuotaEntry?.phase, objective: fullPlanConfig.objective, weekType: regenWeekType }).eligible
+        .map(m => normalizeRepairSport(m.sport) as import("@/engines/plan/weeklySlotLayout").LayoutSport)));
     // Union des catalogId réellement présentés au modèle pour cette semaine
     // (même parseur que le chemin de génération complète, useAITrainingPlan.ts
     // ~ligne 528-541) — restreint le réconciliateur aux fiches vues par l'IA.
@@ -2908,7 +2919,7 @@ export default function AITrainingPlanPage() {
           },
           regenerateWeek: {
             weekNumber,
-            phase: week.phase,
+            phase: regenQuotaEntry?.phase ?? week.phase,
             theme: week.theme,
             totalWeeks: parsedPlan.totalWeeks,
             lcwSignatureCountsElsewhere,
