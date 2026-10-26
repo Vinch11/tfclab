@@ -1,3 +1,4 @@
+import { resolvePlanningSnapshotLoad } from "@/lib/planningSnapshotLoad";
 import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
@@ -1212,6 +1213,7 @@ export default function AITrainingPlanPage() {
       tteObservedMinRun: (activeSnap as any).tte_observed_min_run ?? null,
       tteMode: activeSnap.tte_mode,
       tss7d: activeSnap.tss_7d,
+      snapshotDate: activeSnap.date ?? null,
       fatigueState: activeSnap.fatigue_state,
       runEconomyScore: activeSnap.run_economy_score,
       runHrDriftPct: activeSnap.run_hr_drift_pct,
@@ -1405,7 +1407,7 @@ export default function AITrainingPlanPage() {
           const ambRes = computeAmbitionEffective({
             ambitionSaisie: ambition,
             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
-            tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+            tss7d: resolvePlanningSnapshotLoad(athleteContext?.diagnostic?._rawInput?.tss7d, athleteContext?.diagnostic?._rawInput?.snapshotDate).tss7d,
             lockAmbition,
           });
 
@@ -4655,7 +4657,7 @@ export default function AITrainingPlanPage() {
                           const ambRes = computeAmbitionEffective({
                             ambitionSaisie: ambition,
                             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
-                            tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+                            tss7d: resolvePlanningSnapshotLoad(athleteContext?.diagnostic?._rawInput?.tss7d, athleteContext?.diagnostic?._rawInput?.snapshotDate).tss7d,
                             lockAmbition,
                           });
 

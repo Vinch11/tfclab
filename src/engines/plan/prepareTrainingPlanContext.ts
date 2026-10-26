@@ -1,3 +1,4 @@
+import { resolvePlanningSnapshotLoad } from "@/lib/planningSnapshotLoad";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { computeDecision, type DecisionInput, type TrainingPrescription } from "@/engines/decision";
 import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
@@ -101,7 +102,7 @@ function buildDecisionInput(
       currentPhase: override?.currentPhase ?? "base",
     },
     load: {
-      tss7d: diagnostic._rawInput.tss7d ?? null,
+      tss7d: resolvePlanningSnapshotLoad(diagnostic._rawInput.tss7d, diagnostic._rawInput.snapshotDate).tss7d,
       tss28d: null,
     },
   };

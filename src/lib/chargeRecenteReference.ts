@@ -26,6 +26,9 @@
 // TYPES
 // =============================================
 
+/** Existing operational snapshot-confidence window; NOT a scientific tolerance threshold. */
+export const SNAPSHOT_LOAD_FRESHNESS_DAYS = 14;
+
 export type CRRSource = "NOLIO" | "SNAPSHOT" | "MANUAL" | "UNKNOWN";
 
 export interface ChargeRecenteReference {
@@ -117,7 +120,7 @@ export function computeCRR(params: ComputeCRRParams): ChargeRecenteReference {
     // Utiliser updated_at si disponible, sinon date de création
     const referenceDate = snapshotUpdatedAt || snapshotDate;
     const age = referenceDate ? getDaysAgo(referenceDate) : null;
-    const isRecent = age !== null && age <= 14;
+    const isRecent = age !== null && age <= SNAPSHOT_LOAD_FRESHNESS_DAYS;
     
     return {
       value: tss7d,

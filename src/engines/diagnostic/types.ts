@@ -74,6 +74,8 @@ export interface DiagnosticInput {
   tteProxyLabel?: string | null;
   tteMode: string | null;
   tss7d: number | null;
+  /** Date du bilan source : provenance pour la planification, sans recalcul physiologique. */
+  snapshotDate?: string | null;
   /** Optionnel — TTE effectif déjà calculé en amont (mirroir de vlamaxEffectifPrecomputed). Si fourni, devient la source unique pour garantir cohérence d'affichage. */
   tteEffectifPrecomputed?: TTEEffectif;
   
