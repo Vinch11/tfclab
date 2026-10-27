@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "source": "a0a807035bc56b7eb884592f670c778928e0fc369a501f417ef960f7080e7b09",
+  "commands": [
+    {
+      "name": "reference-matrix",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-reference.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 168451
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-reference/diagnostics.json": "967daca04b0c4b87b7a12fd71751cc6982014cd04589be02f0651b049b3e9ce7",
+    "/tmp/det-v4-reference/global-replay.json.gz": "5a49a72a6a9885059be53f869ee28ce9941cfa252e0084d06e32c6159ec76a50",
+    "/tmp/det-v4-reference/global.json.gz": "5a49a72a6a9885059be53f869ee28ce9941cfa252e0084d06e32c6159ec76a50",
+    "/tmp/det-v4-reference/reference-matrix.txt": "e86ca09283954e342e679edcfc5eca74b83001c6744664ee43f2113cf52bd617",
+    "/tmp/det-v4-reference/summary.json": "a6a83903ebbbd7f68fc024bba29c8c37fdd9bdbca46fb309e11c969e00007cbd"
+  },
+  "reservation": {
+    "id": "reference-matrix",
+    "startedAt": 1793138104335
+  }
+}

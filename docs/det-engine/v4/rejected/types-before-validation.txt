@@ -1,0 +1,2 @@
+experimental/det-engine/v4-reference.test.ts(14,125): error TS2345: Argument of type '{ id: string; sport: string; durationMin: [number, number]; phases: string[]; intentFamily: string; mainZoneMax: number; }' is not assignable to parameter of type 'RepairWorkoutMetadata'.
+  Type '{ id: string; sport: string; durationMin: [number, number]; phases: string[]; intentFamily: string; mainZoneMax: number; }' is missing the following properties from type 'RepairWorkoutMetadata': metadataVersion, complete, title, objective, and 10 more.

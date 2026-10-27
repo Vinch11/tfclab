@@ -1,0 +1,31 @@
+{
+  "ok": false,
+  "source": "be928d1262a098faddf057bfe7cf5419983bafdbf4b0bcd9a2316cfafe7f6b45",
+  "commands": [
+    {
+      "name": "trail-matrix",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-trail-matrix.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": false,
+      "status": "failed",
+      "exitCode": 1,
+      "elapsedMs": 11674
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-trail-matrix/candidate.json.gz": "698eb94cd1c05bef051aa88761ab9636ec077cc64e8dcf6980fbe980e814fd17",
+    "/tmp/det-v4-trail-matrix/replay.json.gz": "698eb94cd1c05bef051aa88761ab9636ec077cc64e8dcf6980fbe980e814fd17",
+    "/tmp/det-v4-trail-matrix/summary.json": "b3e6216687890596c0a76df05fa488ae9839b934d41de2238b4583768a389a39",
+    "/tmp/det-v4-trail-matrix/trail-matrix.txt": "50ef3514f59424c0445b64271d395a4fa085d3a38f31a59123199e9c8832287c"
+  },
+  "reservation": {
+    "id": "trail-matrix",
+    "startedAt": 1793136762420
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "version": "det-v4-trail-matrix-1",
+  "cohort": "new_explicit_synthetic_only",
+  "cases": 24,
+  "built": 0,
+  "technicalValid": 0,
+  "sportConformant": 0,
+  "byModel": [
+    {
+      "model": "separated_exposure",
+      "cases": 12,
+      "built": 0
+    },
+    {
+      "model": "specific_back_to_back",
+      "cases": 12,
+      "built": 0
+    }
+  ],
+  "byObjective": [
+    {
+      "objective": "TrailShort",
+      "cases": 8,
+      "built": 0
+    },
+    {
+      "objective": "TrailMountain",
+      "cases": 8,
+      "built": 0
+    },
+    {
+      "objective": "TrailUltra",
+      "cases": 8,
+      "built": 0
+    }
+  ],
+  "reasons": {
+    "trail_role_has_no_catalogue_dose_within_candidate_contract": 16,
+    "synthetic_coach_has_not_authorized_back_to_back": 8
+  },
+  "exactReplay": 24,
+  "paidApiCalls": 0
+}

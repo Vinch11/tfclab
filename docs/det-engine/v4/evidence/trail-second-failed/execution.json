@@ -1,0 +1,28 @@
+{
+  "ok": false,
+  "source": "41fccb02f9eec0f0c51e2831e57bc939a122bfb2d8eebd83b10fabe5e50552ac",
+  "commands": [
+    {
+      "name": "trail-matrix",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-trail-matrix.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": false,
+      "status": "failed",
+      "exitCode": 1,
+      "elapsedMs": 5715
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-trail-matrix-r2/trail-matrix.txt": "053e6fb335266932b0a2effc591a28e09359bab5cc52c5340fb2bb7135456e11"
+  },
+  "reservation": {
+    "id": "trail-matrix",
+    "startedAt": 1793136907973
+  }
+}

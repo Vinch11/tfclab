@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "source": "e3b9c064dfd2751aaad51449779aad494d87bd023bfe8d794b1a67b547e8a4e5",
+  "commands": [
+    {
+      "name": "trail-generator",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-trail.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 3107
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-trail-generator/trail-generator.txt": "39c581e86da3d7b51316b8c5f2210e1077079af21ac4ae296cb8d11ce66ea71a"
+  },
+  "reservation": {
+    "id": "trail-generator",
+    "startedAt": 1793136737932
+  }
+}

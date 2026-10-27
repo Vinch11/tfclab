@@ -1,0 +1,724 @@
+{
+  "version": "det-v4",
+  "baselineCommit": "2568523469cbe26150c258ab77b27e4279c3af14",
+  "parent": "docs/det-engine/v3/state.json",
+  "baselineGzipSha256": "bf250168cc05779e5b1d0e2814c1372101c4dad89165b664ab5bd87cc901370a",
+  "startedAt": 1793135803.204735,
+  "deadline": 1793139403.2047365,
+  "maxUnits": 10,
+  "units": [
+    {
+      "id": "audit",
+      "startedAt": 1793135977637,
+      "attempts": 1,
+      "status": "passed",
+      "completedAt": 1793136176112,
+      "proof": {
+        "ok": true,
+        "source": "5efea40478251711791867e5bf35b43ace1748977b0d7be2c230c2cc5d396e7b",
+        "commands": [
+          {
+            "name": "audit",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-audit.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 146341
+          }
+        ],
+        "artifacts": {
+          "/tmp/det-v4-audit/audit.json": "e68acac5c83bad230f4cb65d87278d7c0c78c875e40607fca37eec6d79753b87",
+          "/tmp/det-v4-audit/audit.txt": "322a1575599e785231f47a0d7269e1b5914eee021a659e911062c2df6cdea58d"
+        },
+        "reservation": {
+          "id": "audit",
+          "startedAt": 1793135977637
+        }
+      }
+    },
+    {
+      "id": "progression",
+      "startedAt": 1793136265080,
+      "attempts": 1,
+      "status": "passed",
+      "completedAt": 1793136266444,
+      "proof": {
+        "ok": true,
+        "source": "e65030336b16fbdace809d8c6c7627c7d2e56a26e34967245cdbcf1f88ebe8dc",
+        "commands": [
+          {
+            "name": "progression",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-progression.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 1360
+          }
+        ],
+        "artifacts": {
+          "/tmp/det-v4-progression/progression.txt": "e38f342be8a5493bb45c228fce2b0ef2fd993b7bd42c6fb254655248d245b816"
+        },
+        "reservation": {
+          "id": "progression",
+          "startedAt": 1793136266444
+        }
+      }
+    },
+    {
+      "id": "ironman-contracts",
+      "startedAt": 1793136316964,
+      "attempts": 1,
+      "status": "passed",
+      "completedAt": 1793136319133,
+      "proof": {
+        "ok": true,
+        "source": "e65030336b16fbdace809d8c6c7627c7d2e56a26e34967245cdbcf1f88ebe8dc",
+        "commands": [
+          {
+            "name": "ironman-contracts",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-ironman.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 2157
+          }
+        ],
+        "artifacts": {
+          "/tmp/det-v4-ironman-contracts/ironman-contracts.txt": "971b62fb0d4470eda946cf54f3456bf9e6c7e338b02e5c5ec952a763b14e9bbc"
+        },
+        "reservation": {
+          "id": "ironman-contracts",
+          "startedAt": 1793136319133
+        }
+      }
+    },
+    {
+      "id": "ironman-matrix",
+      "startedAt": 1793136426878,
+      "attempts": 2,
+      "status": "passed",
+      "completedAt": 1793137764410,
+      "proof": {
+        "ok": true,
+        "source": "aa65ffc73915dd72c32736e498d094addfa8ecb882160e7fc1ea75a0e869c6de",
+        "commands": [
+          {
+            "name": "ironman-matrix",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-ironman-matrix.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 245416
+          }
+        ],
+        "artifacts": {
+          "/tmp/det-v4-ironman-matrix-r2/candidate.json.gz": "6e9938adcbf4968ee6245d07a4290d6aeb871f6bdfa4f81a25d08e37a79a36b7",
+          "/tmp/det-v4-ironman-matrix-r2/ironman-matrix.txt": "43e06a006adf4b2ec3cc43f118c407bafe5ce94f1242e226fe82df0297707991",
+          "/tmp/det-v4-ironman-matrix-r2/replay.json.gz": "6e9938adcbf4968ee6245d07a4290d6aeb871f6bdfa4f81a25d08e37a79a36b7",
+          "/tmp/det-v4-ironman-matrix-r2/summary.json": "09655f462d11bd18a8fcbe4a31c3ae329812f877fd82d138684a4b82ed321884"
+        },
+        "reservation": {
+          "id": "ironman-matrix",
+          "startedAt": 1793137764410
+        }
+      },
+      "revisionReason": "Hypothèse nouvelle : conserver le comptage physique en retirant le brick nominal d'affûtage et utiliser les dates réelles des compétitions intermédiaires.",
+      "history": [
+        {
+          "attempt": 1,
+          "proof": {
+            "ok": true,
+            "source": "2fb78e450863167505ca0f2306b794804eec04c787c2a6f5462306961f748fc6",
+            "commands": [
+              {
+                "name": "ironman-matrix",
+                "args": [
+                  "node_modules/vitest/vitest.mjs",
+                  "run",
+                  "--config",
+                  "experimental/det-engine/vitest.v3.config.ts",
+                  "experimental/det-engine/v4-ironman-matrix.test.ts",
+                  "--maxWorkers=1"
+                ],
+                "ok": true,
+                "status": "passed",
+                "exitCode": 0,
+                "elapsedMs": 267892
+              }
+            ],
+            "artifacts": {
+              "/tmp/det-v4-ironman-matrix/candidate.json.gz": "80c59fa6444057ba0739eded512086b34130aa952210ac3f163daf2584135c1b",
+              "/tmp/det-v4-ironman-matrix/ironman-matrix.txt": "e36bd1615ce1060c57f3d9a12f0ca566dd695416ff0357a9ad334f3401badf37",
+              "/tmp/det-v4-ironman-matrix/replay.json.gz": "80c59fa6444057ba0739eded512086b34130aa952210ac3f163daf2584135c1b",
+              "/tmp/det-v4-ironman-matrix/summary.json": "733f1869c34d3696292d923d6d369383b70a1149e97fac5d283951e99dbb62e0"
+            },
+            "reservation": {
+              "id": "ironman-matrix",
+              "startedAt": 1793136694780
+            }
+          },
+          "completedAt": 1793136694781
+        }
+      ]
+    },
+    {
+      "id": "trail-generator",
+      "startedAt": 1793136734822,
+      "attempts": 3,
+      "status": "passed",
+      "completedAt": 1793138971714,
+      "proof": {
+        "ok": true,
+        "source": "a31b4801c8013a37395d0d900de97b949c0dbc2026ce5d8fc8a6c3a3b708a083",
+        "commands": [
+          {
+            "name": "types-followup",
+            "args": [
+              "node_modules/typescript/bin/tsc",
+              "--noEmit",
+              "-p",
+              "experimental/det-engine/tsconfig.json"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 39665
+          },
+          {
+            "name": "trail-generator",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-trail.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 3238
+          },
+          {
+            "name": "trail-current",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-trail-matrix.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 18794
+          }
+        ],
+        "artifacts": {
+          "/tmp/det-v4-trail-generator-r3/trail-current.txt": "c028b780c680db8ba4ae684f7e0359aed9aa25e6c7e2e6f4d016add9ac1709cf",
+          "/tmp/det-v4-trail-generator-r3/trail-generator.txt": "e9151490cef71310ae623a7bffa516ed456893d2fc335d779b38d22fc8e15287",
+          "/tmp/det-v4-trail-generator-r3/types-followup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reservation": {
+          "id": "trail-generator",
+          "startedAt": 1793138864374
+        }
+      },
+      "revisionReason": "Dernière hypothèse logicielle : borne minimale d'affectation distincte des fiches par rôle ; la borne précédente réutilisait fictivement une même fiche peu coûteuse. Validation ciblée après la suite globale, sans changement de production.",
+      "history": [
+        {
+          "attempt": 1,
+          "proof": {
+            "ok": true,
+            "source": "e3b9c064dfd2751aaad51449779aad494d87bd023bfe8d794b1a67b547e8a4e5",
+            "commands": [
+              {
+                "name": "trail-generator",
+                "args": [
+                  "node_modules/vitest/vitest.mjs",
+                  "run",
+                  "--config",
+                  "experimental/det-engine/vitest.v3.config.ts",
+                  "experimental/det-engine/v4-trail.test.ts",
+                  "--maxWorkers=1"
+                ],
+                "ok": true,
+                "status": "passed",
+                "exitCode": 0,
+                "elapsedMs": 3107
+              }
+            ],
+            "artifacts": {
+              "/tmp/det-v4-trail-generator/trail-generator.txt": "39c581e86da3d7b51316b8c5f2210e1077079af21ac4ae296cb8d11ce66ea71a"
+            },
+            "reservation": {
+              "id": "trail-generator",
+              "startedAt": 1793136737932
+            }
+          },
+          "completedAt": 1793136737933
+        },
+        {
+          "attempt": 2,
+          "proof": {
+            "ok": true,
+            "source": "a0a807035bc56b7eb884592f670c778928e0fc369a501f417ef960f7080e7b09",
+            "commands": [
+              {
+                "name": "trail-generator",
+                "args": [
+                  "node_modules/vitest/vitest.mjs",
+                  "run",
+                  "--config",
+                  "experimental/det-engine/vitest.v3.config.ts",
+                  "experimental/det-engine/v4-trail.test.ts",
+                  "--maxWorkers=1"
+                ],
+                "ok": true,
+                "status": "passed",
+                "exitCode": 0,
+                "elapsedMs": 3325
+              }
+            ],
+            "artifacts": {
+              "/tmp/det-v4-trail-generator-r2/trail-generator.txt": "62c894a5f23445a7e517257d11fc9932ef321e55db4b02478c90aa7f8fc30659"
+            },
+            "reservation": {
+              "id": "trail-generator",
+              "startedAt": 1793137900264
+            }
+          },
+          "completedAt": 1793137900264
+        }
+      ]
+    },
+    {
+      "id": "trail-matrix",
+      "startedAt": 1793136750742,
+      "attempts": 3,
+      "status": "passed",
+      "completedAt": 1793137374818,
+      "proof": {
+        "ok": true,
+        "source": "034d00d3810efd6baab368d08cc6ebf9490d059b7935e9112d4a0b18ec725e47",
+        "commands": [
+          {
+            "name": "trail-matrix",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-trail-matrix.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 19810
+          }
+        ],
+        "artifacts": {
+          "/tmp/det-v4-trail-matrix-r3/candidate.json.gz": "7817f4199a8d27dd16f927c251b744943af6194ce69cf2d68803e6ef5e2afdc7",
+          "/tmp/det-v4-trail-matrix-r3/replay.json.gz": "7817f4199a8d27dd16f927c251b744943af6194ce69cf2d68803e6ef5e2afdc7",
+          "/tmp/det-v4-trail-matrix-r3/summary.json": "fdc2b217c5c5f17d2e3d8751c28bd580f7125b1e2a2479fb37fd217b5062b874",
+          "/tmp/det-v4-trail-matrix-r3/trail-matrix.txt": "2dcd601ee21f243e57254083b565236f8f0124c8d5dc90535809372b5bf0df9e"
+        },
+        "reservation": {
+          "id": "trail-matrix",
+          "startedAt": 1793137374818
+        }
+      },
+      "history": [
+        {
+          "attempt": 1,
+          "proof": {
+            "ok": false,
+            "source": "be928d1262a098faddf057bfe7cf5419983bafdbf4b0bcd9a2316cfafe7f6b45",
+            "commands": [
+              {
+                "name": "trail-matrix",
+                "args": [
+                  "node_modules/vitest/vitest.mjs",
+                  "run",
+                  "--config",
+                  "experimental/det-engine/vitest.v3.config.ts",
+                  "experimental/det-engine/v4-trail-matrix.test.ts",
+                  "--maxWorkers=1"
+                ],
+                "ok": false,
+                "status": "failed",
+                "exitCode": 1,
+                "elapsedMs": 11674
+              }
+            ],
+            "artifacts": {
+              "/tmp/det-v4-trail-matrix/candidate.json.gz": "698eb94cd1c05bef051aa88761ab9636ec077cc64e8dcf6980fbe980e814fd17",
+              "/tmp/det-v4-trail-matrix/replay.json.gz": "698eb94cd1c05bef051aa88761ab9636ec077cc64e8dcf6980fbe980e814fd17",
+              "/tmp/det-v4-trail-matrix/summary.json": "b3e6216687890596c0a76df05fa488ae9839b934d41de2238b4583768a389a39",
+              "/tmp/det-v4-trail-matrix/trail-matrix.txt": "50ef3514f59424c0445b64271d395a4fa085d3a38f31a59123199e9c8832287c"
+            },
+            "reservation": {
+              "id": "trail-matrix",
+              "startedAt": 1793136762420
+            }
+          },
+          "completedAt": 1793136762421
+        },
+        {
+          "attempt": 2,
+          "proof": {
+            "ok": false,
+            "source": "41fccb02f9eec0f0c51e2831e57bc939a122bfb2d8eebd83b10fabe5e50552ac",
+            "commands": [
+              {
+                "name": "trail-matrix",
+                "args": [
+                  "node_modules/vitest/vitest.mjs",
+                  "run",
+                  "--config",
+                  "experimental/det-engine/vitest.v3.config.ts",
+                  "experimental/det-engine/v4-trail-matrix.test.ts",
+                  "--maxWorkers=1"
+                ],
+                "ok": false,
+                "status": "failed",
+                "exitCode": 1,
+                "elapsedMs": 5715
+              }
+            ],
+            "artifacts": {
+              "/tmp/det-v4-trail-matrix-r2/trail-matrix.txt": "053e6fb335266932b0a2effc591a28e09359bab5cc52c5340fb2bb7135456e11"
+            },
+            "reservation": {
+              "id": "trail-matrix",
+              "startedAt": 1793136907973
+            }
+          },
+          "completedAt": 1793136907973
+        }
+      ]
+    },
+    {
+      "id": "reference-matrix",
+      "startedAt": 1793137935875,
+      "attempts": 2,
+      "status": "passed",
+      "completedAt": 1793138376921,
+      "proof": {
+        "ok": true,
+        "source": "c5b393f98d281186487cae21fb808ccc8abba2b8817375722e17cc5e4d9d4e28",
+        "commands": [
+          {
+            "name": "reference-matrix",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-reference.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 167859
+          }
+        ],
+        "artifacts": {
+          "/tmp/det-v4-reference-r2/diagnostics.json": "f220972534ea6a8f480ee1f8e60bea89f9e8460a4b83f73f2160c1c914098e4d",
+          "/tmp/det-v4-reference-r2/global-replay.json.gz": "5a49a72a6a9885059be53f869ee28ce9941cfa252e0084d06e32c6159ec76a50",
+          "/tmp/det-v4-reference-r2/global.json.gz": "5a49a72a6a9885059be53f869ee28ce9941cfa252e0084d06e32c6159ec76a50",
+          "/tmp/det-v4-reference-r2/reference-matrix.txt": "11131909ee7af1e06bf7a1dfa02b85e8f2a3dcf6d5a1030e89b194a627f2a88f",
+          "/tmp/det-v4-reference-r2/summary.json": "0fb1b0b9d635b7ff73fb5262ea225c98a36fa5aa97eff2bd2e18734d2f11a495"
+        },
+        "reservation": {
+          "id": "reference-matrix",
+          "startedAt": 1793138376921
+        }
+      },
+      "revisionReason": "Correction logicielle du diagnostic : utiliser les métadonnées complètes du catalogue pour les témoins de domaine, et non la projection résumée du prévalidateur. La première classification est conservée mais remplacée.",
+      "history": [
+        {
+          "attempt": 1,
+          "proof": {
+            "ok": true,
+            "source": "a0a807035bc56b7eb884592f670c778928e0fc369a501f417ef960f7080e7b09",
+            "commands": [
+              {
+                "name": "reference-matrix",
+                "args": [
+                  "node_modules/vitest/vitest.mjs",
+                  "run",
+                  "--config",
+                  "experimental/det-engine/vitest.v3.config.ts",
+                  "experimental/det-engine/v4-reference.test.ts",
+                  "--maxWorkers=1"
+                ],
+                "ok": true,
+                "status": "passed",
+                "exitCode": 0,
+                "elapsedMs": 168451
+              }
+            ],
+            "artifacts": {
+              "/tmp/det-v4-reference/diagnostics.json": "967daca04b0c4b87b7a12fd71751cc6982014cd04589be02f0651b049b3e9ce7",
+              "/tmp/det-v4-reference/global-replay.json.gz": "5a49a72a6a9885059be53f869ee28ce9941cfa252e0084d06e32c6159ec76a50",
+              "/tmp/det-v4-reference/global.json.gz": "5a49a72a6a9885059be53f869ee28ce9941cfa252e0084d06e32c6159ec76a50",
+              "/tmp/det-v4-reference/reference-matrix.txt": "e86ca09283954e342e679edcfc5eca74b83001c6744664ee43f2113cf52bd617",
+              "/tmp/det-v4-reference/summary.json": "a6a83903ebbbd7f68fc024bba29c8c37fdd9bdbca46fb309e11c969e00007cbd"
+            },
+            "reservation": {
+              "id": "reference-matrix",
+              "startedAt": 1793138104335
+            }
+          },
+          "completedAt": 1793138104335
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "startedAt": 1793138414563,
+      "attempts": 1,
+      "status": "passed",
+      "completedAt": 1793138797391,
+      "proof": {
+        "ok": true,
+        "source": "c5b393f98d281186487cae21fb808ccc8abba2b8817375722e17cc5e4d9d4e28",
+        "commands": [
+          {
+            "name": "types",
+            "args": [
+              "node_modules/typescript/bin/tsc",
+              "--noEmit",
+              "-p",
+              "experimental/det-engine/tsconfig.json"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 40195
+          },
+          {
+            "name": "node-tests",
+            "args": [
+              "--test",
+              "scripts/det-engine/gates.test.mjs",
+              "scripts/det-engine/v2-diagnostic.test.mjs",
+              "scripts/det-engine/v2-supervisor.test.mjs",
+              "scripts/det-engine/v3-supervisor.test.mjs",
+              "scripts/det-engine/v4-supervisor.test.mjs"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 2195
+          },
+          {
+            "name": "current-trail-matrix",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "experimental/det-engine/v4-trail-matrix.test.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 17983
+          },
+          {
+            "name": "experimental-tests",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--config",
+              "experimental/det-engine/vitest.v3.config.ts",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 21684
+          },
+          {
+            "name": "historical-tests",
+            "args": [
+              "node_modules/vitest/vitest.mjs",
+              "run",
+              "--maxWorkers=1"
+            ],
+            "ok": true,
+            "status": "passed",
+            "exitCode": 0,
+            "elapsedMs": 300766
+          }
+        ],
+        "artifacts": {
+          "/tmp/det-v4-validation/current-trail-matrix.txt": "b3bfd19f206994cc4663750df136e57672e45d8ed8e217d96a0ab8e8140e7edd",
+          "/tmp/det-v4-validation/experimental-tests.txt": "012411ffff010ed78aa74354be2e4088c267004418f73c493f556ef4c7cb1487",
+          "/tmp/det-v4-validation/historical-tests.txt": "fca79b268a6c238f79de457197ec3367c6b829bf826cd46a602847b0a56f993e",
+          "/tmp/det-v4-validation/node-tests.txt": "98e22643a5b7878282e3651fe6d7e1e71aa814ce797244cdb1d51d2db3ae3f13",
+          "/tmp/det-v4-validation/types.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reservation": {
+          "id": "validation",
+          "startedAt": 1793138797390
+        }
+      }
+    },
+    {
+      "id": "reporting",
+      "startedAt": 1793139038587,
+      "attempts": 1,
+      "status": "passed",
+      "completedAt": 1793139116079,
+      "proof": {
+        "ok": true,
+        "reference": {
+          "version": "det-v4-reference-1",
+          "cases": 600,
+          "built": 167,
+          "withoutBlocking": 11,
+          "technicalValid": 167,
+          "existingCriticalRegressions": 0,
+          "existingWarningRegressions": 0,
+          "unchangedReferencePayload": true,
+          "replay": 600,
+          "classifications": {
+            "remaining_fixed_layout_or_solver_conflict": 42,
+            "candidate_contract_constraint_conflict": 60,
+            "assembled_with_executed_controls": 160,
+            "current_catalogue_domain_conflict": 72,
+            "existing_prevalidation_conflict": 50,
+            "inconclusive_search": 16,
+            "unsupported_static_adaptation": 40,
+            "insufficient_data": 160
+          },
+          "globalAuditContractFailures": 0,
+          "newInstrumentation": "V4 global observations do not rewrite reference issue severity or acceptance",
+          "promotedCandidateContracts": 0
+        },
+        "trail": {
+          "version": "det-v4-trail-matrix-3",
+          "cohort": "new_explicit_synthetic_only",
+          "cases": 36,
+          "built": 12,
+          "technicalValid": 12,
+          "sportConformant": 0,
+          "byModel": [
+            {
+              "model": "separated_exposure",
+              "cases": 12,
+              "built": 4
+            },
+            {
+              "model": "specific_back_to_back",
+              "cases": 12,
+              "built": 0
+            },
+            {
+              "model": "conservative_taper",
+              "cases": 12,
+              "built": 8
+            }
+          ],
+          "byObjective": [
+            {
+              "objective": "TrailShort",
+              "cases": 12,
+              "built": 6
+            },
+            {
+              "objective": "TrailMountain",
+              "cases": 12,
+              "built": 6
+            },
+            {
+              "objective": "TrailUltra",
+              "cases": 12,
+              "built": 0
+            }
+          ],
+          "reasons": {
+            "synthetic_coach_has_not_authorized_back_to_back": 8,
+            "trail_role_has_no_catalogue_dose_within_candidate_contract": 16
+          },
+          "exactReplay": 36,
+          "paidApiCalls": 0
+        },
+        "checks": "separate cohort totals, actual command results, and archived failures verified",
+        "sourceCommit": "cb7aa7afbdf83ee61efbab4db52c9ba42ece094c"
+      }
+    },
+    {
+      "id": "publication",
+      "startedAt": 1793139116115,
+      "attempts": 1,
+      "status": "running"
+    }
+  ],
+  "activeUnit": {
+    "id": "publication",
+    "startedAt": 1793139116115
+  },
+  "status": "running",
+  "paidApiCalls": 0,
+  "elapsedSeconds": 3312.8742649555206,
+  "archivedOutputs": {
+    "/tmp/det-v4-audit": "docs/det-engine/v4/evidence/audit",
+    "/tmp/det-v4-progression": "docs/det-engine/v4/evidence/progression",
+    "/tmp/det-v4-ironman-contracts": "docs/det-engine/v4/evidence/ironman-contracts",
+    "/tmp/det-v4-ironman-matrix": "docs/det-engine/v4/evidence/ironman-first",
+    "/tmp/det-v4-ironman-matrix-r2": "docs/det-engine/v4/evidence/ironman-final",
+    "/tmp/det-v4-trail-generator": "docs/det-engine/v4/evidence/trail-generator-first",
+    "/tmp/det-v4-trail-generator-r2": "docs/det-engine/v4/evidence/trail-generator-second",
+    "/tmp/det-v4-trail-generator-r3": "docs/det-engine/v4/evidence/trail-generator-final",
+    "/tmp/det-v4-trail-matrix": "docs/det-engine/v4/evidence/trail-first",
+    "/tmp/det-v4-trail-matrix-r2": "docs/det-engine/v4/evidence/trail-second-failed",
+    "/tmp/det-v4-trail-matrix-r3": "docs/det-engine/v4/evidence/trail-third",
+    "/tmp/det-v4-reference": "docs/det-engine/v4/evidence/reference-superseded",
+    "/tmp/det-v4-reference-r2": "docs/det-engine/v4/evidence/reference-final",
+    "/tmp/det-v4-validation": "docs/det-engine/v4/evidence/validation"
+  },
+  "referenceCandidate": "docs/det-engine/v3/final/candidate.json.gz",
+  "trailResearchCandidate": "docs/det-engine/v4/final/trail-retained.json.gz",
+  "scientificStatus": "NO-GO",
+  "incidents": [
+    "Fractional session durations rejected by unchanged schema; integer doses fixed within original ranges",
+    "First reference domain witnesses used summarized metadata; superseded by full-metadata replay",
+    "Process timeout rejected before spawn when remaining milliseconds became fractional; reservation resumed without resetting attempts or deadline"
+  ]
+}

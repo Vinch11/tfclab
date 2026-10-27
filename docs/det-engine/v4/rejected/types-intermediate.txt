@@ -1,0 +1,6 @@
+experimental/det-engine/v4-trail.ts(61,43): error TS2339: Property 'min' does not exist on type 'DPlusTarget'.
+  Property 'min' does not exist on type 'number'.
+experimental/det-engine/v4-trail.ts(61,67): error TS2339: Property 'max' does not exist on type 'DPlusTarget'.
+  Property 'max' does not exist on type 'number'.
+experimental/det-engine/v4-trail.ts(69,123): error TS2339: Property 'min' does not exist on type 'DPlusTarget'.
+  Property 'min' does not exist on type 'number'.

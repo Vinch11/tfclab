@@ -1,0 +1,86 @@
+{
+  "ok": true,
+  "source": "c5b393f98d281186487cae21fb808ccc8abba2b8817375722e17cc5e4d9d4e28",
+  "commands": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 40195
+    },
+    {
+      "name": "node-tests",
+      "args": [
+        "--test",
+        "scripts/det-engine/gates.test.mjs",
+        "scripts/det-engine/v2-diagnostic.test.mjs",
+        "scripts/det-engine/v2-supervisor.test.mjs",
+        "scripts/det-engine/v3-supervisor.test.mjs",
+        "scripts/det-engine/v4-supervisor.test.mjs"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 2195
+    },
+    {
+      "name": "current-trail-matrix",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-trail-matrix.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 17983
+    },
+    {
+      "name": "experimental-tests",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 21684
+    },
+    {
+      "name": "historical-tests",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 300766
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-validation/current-trail-matrix.txt": "b3bfd19f206994cc4663750df136e57672e45d8ed8e217d96a0ab8e8140e7edd",
+    "/tmp/det-v4-validation/experimental-tests.txt": "012411ffff010ed78aa74354be2e4088c267004418f73c493f556ef4c7cb1487",
+    "/tmp/det-v4-validation/historical-tests.txt": "fca79b268a6c238f79de457197ec3367c6b829bf826cd46a602847b0a56f993e",
+    "/tmp/det-v4-validation/node-tests.txt": "98e22643a5b7878282e3651fe6d7e1e71aa814ce797244cdb1d51d2db3ae3f13",
+    "/tmp/det-v4-validation/types.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "reservation": {
+    "id": "validation",
+    "startedAt": 1793138797390
+  }
+}

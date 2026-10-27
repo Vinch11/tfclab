@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "source": "e65030336b16fbdace809d8c6c7627c7d2e56a26e34967245cdbcf1f88ebe8dc",
+  "commands": [
+    {
+      "name": "ironman-contracts",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-ironman.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 2157
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-ironman-contracts/ironman-contracts.txt": "971b62fb0d4470eda946cf54f3456bf9e6c7e338b02e5c5ec952a763b14e9bbc"
+  },
+  "reservation": {
+    "id": "ironman-contracts",
+    "startedAt": 1793136319133
+  }
+}

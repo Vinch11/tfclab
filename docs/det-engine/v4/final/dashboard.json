@@ -1,0 +1,298 @@
+{
+  "version": "det-v4-dashboard-1",
+  "reference": {
+    "version": "det-v4-reference-1",
+    "cases": 600,
+    "built": 167,
+    "withoutBlocking": 11,
+    "technicalValid": 167,
+    "existingCriticalRegressions": 0,
+    "existingWarningRegressions": 0,
+    "unchangedReferencePayload": true,
+    "replay": 600,
+    "classifications": {
+      "remaining_fixed_layout_or_solver_conflict": 42,
+      "candidate_contract_constraint_conflict": 60,
+      "assembled_with_executed_controls": 160,
+      "current_catalogue_domain_conflict": 72,
+      "existing_prevalidation_conflict": 50,
+      "inconclusive_search": 16,
+      "unsupported_static_adaptation": 40,
+      "insufficient_data": 160
+    },
+    "globalAuditContractFailures": 0,
+    "newInstrumentation": "V4 global observations do not rewrite reference issue severity or acceptance",
+    "promotedCandidateContracts": 0
+  },
+  "ironman": {
+    "version": "det-v4-im-contracts-1",
+    "historicalSubset": true,
+    "models": [
+      {
+        "model": "reference",
+        "cases": 40,
+        "built": 0,
+        "candidateSportConformant": 0,
+        "referenceSportConformant": 0,
+        "reasons": {
+          "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+          "empty_catalogue_domain_week_3": 8,
+          "empty_catalogue_domain_week_4": 1,
+          "empty_catalogue_domain_week_1": 22,
+          "no_catalogue_assignment_week_3": 1,
+          "existing_prevalidation_blocked": 3
+        },
+        "byLevel": [
+          {
+            "level": "untrained",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "light",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "trained",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "highly_trained",
+            "cases": 10,
+            "built": 0
+          }
+        ],
+        "exactReplay": 40
+      },
+      {
+        "model": "v3_phase_recovery",
+        "cases": 40,
+        "built": 26,
+        "candidateSportConformant": 0,
+        "referenceSportConformant": 0,
+        "reasons": {
+          "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+          "candidate": 26,
+          "no_catalogue_assignment_week_3": 1,
+          "no_catalogue_assignment_week_4": 1,
+          "search_budget_exhausted": 2,
+          "existing_prevalidation_blocked": 3,
+          "no_catalogue_assignment_week_11": 2
+        },
+        "byLevel": [
+          {
+            "level": "untrained",
+            "cases": 10,
+            "built": 5
+          },
+          {
+            "level": "light",
+            "cases": 10,
+            "built": 7
+          },
+          {
+            "level": "trained",
+            "cases": 10,
+            "built": 7
+          },
+          {
+            "level": "highly_trained",
+            "cases": 10,
+            "built": 7
+          }
+        ],
+        "exactReplay": 40
+      },
+      {
+        "model": "components_keep_long_endurance",
+        "cases": 40,
+        "built": 0,
+        "candidateSportConformant": 0,
+        "referenceSportConformant": 0,
+        "reasons": {
+          "candidate_continuity_contract_conflicts_with_training_ban": 10,
+          "empty_catalogue_domain_week_7": 3,
+          "minimum_catalogue_dose_exceeds_budget_week_1": 3,
+          "empty_catalogue_domain_week_8": 2,
+          "Error: NO_STANDALONE_BIKE_FOR_EXISTING_LONG_FLOOR:4": 7,
+          "Error: NO_STANDALONE_BIKE_FOR_EXISTING_LONG_FLOOR:3": 5,
+          "empty_catalogue_domain_week_6": 2,
+          "search_budget_exhausted": 1,
+          "empty_catalogue_domain_week_5": 1,
+          "empty_catalogue_domain_week_4": 6
+        },
+        "byLevel": [
+          {
+            "level": "untrained",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "light",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "trained",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "highly_trained",
+            "cases": 10,
+            "built": 0
+          }
+        ],
+        "exactReplay": 40
+      },
+      {
+        "model": "components_recovery_relief",
+        "cases": 40,
+        "built": 0,
+        "candidateSportConformant": 0,
+        "referenceSportConformant": 0,
+        "reasons": {
+          "candidate_continuity_contract_conflicts_with_training_ban": 10,
+          "empty_catalogue_domain_week_7": 3,
+          "minimum_catalogue_dose_exceeds_budget_week_1": 4,
+          "empty_catalogue_domain_week_8": 4,
+          "search_budget_exhausted": 2,
+          "empty_catalogue_domain_week_6": 3,
+          "empty_catalogue_domain_week_5": 6,
+          "empty_catalogue_domain_week_4": 8
+        },
+        "byLevel": [
+          {
+            "level": "untrained",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "light",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "trained",
+            "cases": 10,
+            "built": 0
+          },
+          {
+            "level": "highly_trained",
+            "cases": 10,
+            "built": 0
+          }
+        ],
+        "exactReplay": 40
+      }
+    ],
+    "paidApiCalls": 0
+  },
+  "trailRaw": {
+    "cases": 36,
+    "built": 12,
+    "technicalValid": 12,
+    "withoutExecutedSportsErrors": 0,
+    "warnings": 122
+  },
+  "trailRetained": {
+    "cases": 36,
+    "built": 12,
+    "technicalValid": 12,
+    "withoutExecutedSportsErrors": 0,
+    "warnings": 122
+  },
+  "trailGroups": {
+    "objective": [
+      {
+        "group": "TrailMountain",
+        "cases": 12,
+        "built": 6,
+        "technicalValid": 6,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 56
+      },
+      {
+        "group": "TrailShort",
+        "cases": 12,
+        "built": 6,
+        "technicalValid": 6,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 66
+      },
+      {
+        "group": "TrailUltra",
+        "cases": 12,
+        "built": 0,
+        "technicalValid": 0,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 0
+      }
+    ],
+    "level": [
+      {
+        "group": "highly_trained",
+        "cases": 9,
+        "built": 2,
+        "technicalValid": 2,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 20
+      },
+      {
+        "group": "light",
+        "cases": 9,
+        "built": 4,
+        "technicalValid": 4,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 44
+      },
+      {
+        "group": "trained",
+        "cases": 9,
+        "built": 2,
+        "technicalValid": 2,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 18
+      },
+      {
+        "group": "untrained",
+        "cases": 9,
+        "built": 4,
+        "technicalValid": 4,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 40
+      }
+    ],
+    "model": [
+      {
+        "group": "conservative_taper",
+        "cases": 12,
+        "built": 8,
+        "technicalValid": 8,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 80
+      },
+      {
+        "group": "separated_exposure",
+        "cases": 12,
+        "built": 4,
+        "technicalValid": 4,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 42
+      },
+      {
+        "group": "specific_back_to_back",
+        "cases": 12,
+        "built": 0,
+        "technicalValid": 0,
+        "withoutExecutedSportsErrors": 0,
+        "warnings": 0
+      }
+    ]
+  },
+  "cohortsNeverAggregated": true,
+  "scientificValidity": "not_attested",
+  "humanReviewRequired": true
+}
