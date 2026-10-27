@@ -30,6 +30,8 @@ export interface QuotaIssue {
 }
 
 export interface WeekQuotaEntry {
+  /** Actual per-week prompt phase, not a new periodization rule. */
+  expectedPhase?: import("../../../supabase/functions/_shared/periodizationBounds").PeriodizationPhase;
   /** Phase calculated by the engine, never inferred from the model title. */
   phase?: import("../../../supabase/functions/_shared/periodizationBounds").PeriodizationPhase;
   volumeBudget?: CoachVolumeBudget;

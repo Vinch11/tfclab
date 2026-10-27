@@ -1,3 +1,5 @@
+import { prevalidateTransport } from "../_shared/prevalidateTransport.ts";
+import { prevalidatePlanWeeks, type PrevalidationInputWeek } from "../_shared/planPrevalidation.ts";
 import { catalogueTrainingMinimaForWeek } from "../_shared/catalogueTrainingMinima.ts";
 import { periodizationBounds, phaseWithinPeriodization, reducedFondationWeeksPostPeak } from "../_shared/periodizationBounds.ts";
 import { PLAN_RELEASE_INFO } from "../_shared/planReleaseInfo.ts";
@@ -1916,6 +1918,32 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
       try {
 
+        const transportCheck = prevalidateTransport(planConfig ?? {});
+        if (transportCheck.status === "blocked") {
+          enqueue("error", {code:"PLAN_PREVALIDATION_BLOCKED",message:"Contradiction mécanique avant tout appel modèle.",issues:transportCheck.issues.filter(i=>i.severity==="blocking")});
+          stopHeartbeat(); controller.close(); return;
+        }
+        // Inspect every requested chunk, including later chunks, before the first paid call.
+        const preflightWeeks: PrevalidationInputWeek[] = chunks.flatMap((chunk,ci)=>{
+          const activePhase=regenerateWeek?.phase??planConfig?.windowRegenPhase??inferPhaseFromWeek(chunk.start,totalWeeks,planConfig?.objective,planConfig);
+          const primary=chunkRepairCatalogs?.[ci]?.length?chunkRepairCatalogs[ci]:resolvePhaseRepairCatalog(activePhase,phaseRepairCatalogs);
+          const extra=chunkRegenRepairCatalogs?.[ci]??[];
+          const dump=chunkCatalogs?.[ci]||resolvePhaseCatalog(activePhase,phaseCatalogs,workoutCatalog);
+          const ids=new Set(extractCatalogIdsFromDump(dump??"").concat(extractCatalogIdsFromDump(chunkRegenCatalogs?.[ci]??"")));
+          const catalog=[...new Map([...primary,...extra].filter(m=>ids.has(m.id)&&isCompleteRepairWorkoutMetadata(m)).map(m=>[m.id,m])).values()];
+          return Array.from({length:chunk.end-chunk.start+1},(_,i)=>{
+            const week=chunk.start+i,entry=planConfig?._weeklyQuotas?.[week];
+            return {...entry,week,expectedPhase:planConfig?.windowWeekPhases?.[week],globalWeek:week+(planConfig?.globalWeekOffset??0),
+              phase:regenerateWeek?.phase??planConfig?.windowRegenPhase??inferPhaseFromWeek(week,totalWeeks,planConfig?.objective,planConfig),
+              objective:computeMultiObjectiveSegments(planConfig,totalWeeks)?.find(s=>week>=s.startWeek&&week<=s.endWeek)?.objective??planConfig?.catalogObjective??planConfig?.objective,catalog};
+          });
+        });
+        const preflight=prevalidatePlanWeeks(preflightWeeks,planConfig??{});
+        enqueue("prevalidation",{status:preflight.status,issues:preflight.issues});
+        if(preflight.status==="blocked") {
+          enqueue("error",{code:"PLAN_PREVALIDATION_BLOCKED",message:"Contradiction mécanique avant tout appel modèle.",issues:preflight.issues.filter(i=>i.severity==="blocking")});
+          stopHeartbeat();controller.close();return;
+        }
         const collectedChunks: PlanChunk[] = [];
         const catalogDumpsByChunk: string[] = [];
         const repairCatalogsByChunk: RepairWorkoutMetadata[][] = [];

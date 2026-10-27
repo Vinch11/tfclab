@@ -138,6 +138,7 @@ interface Props {
   /** Enregistre le profil coach sans lancer la génération. */
   onSubmit?: (payload: CoachProfileFormPayload) => void;
   /** Enregistre + lance la génération IA. */
+  onPrevalidate?: (payload: CoachProfileFormPayload) => void | Promise<void>;
   onGenerate: (payload: CoachProfileFormPayload) => void;
 }
 
@@ -152,6 +153,7 @@ export function CoachProfileForm({
   prefill,
   onSubmit,
   onGenerate,
+  onPrevalidate,
 }: Props) {
   const prefillPrimary = prefill?.primaryLimiterMetric
     ? METRIC_TO_LORANG[prefill.primaryLimiterMetric]
@@ -730,6 +732,7 @@ export function CoachProfileForm({
             <Save className="h-4 w-4 mr-1" />
             Enregistrer sans générer
           </Button>
+          {onPrevalidate&&<Button variant="outline" disabled={!canSubmit} onClick={async()=>{const p=build();if(p){await onPrevalidate(p);onOpenChange(false);}}}>Prévalider sans IA</Button>}
           <Button onClick={handleGenerate} disabled={!canSubmit} className="gap-2">
             <Sparkles className="h-4 w-4" />
             Générer le plan

@@ -52,10 +52,15 @@ import { join } from "node:path";
  */
 describe("useAITrainingPlan — garde-fou anti-régression : une fenêtre de régénération pure (toutes ses semaines locales) reçoit un catalogue phase='base' strict", () => {
   const source = readFileSync(
-    join(__dirname, "../useAITrainingPlan.ts"),
+    join(__dirname, "../../lib/plan/prepareGenerationContracts.ts"),
     "utf-8",
   );
 
+  it("generation consumes the shared preparation rather than a divergent copy",()=>{
+    const hook=readFileSync(join(__dirname,"../useAITrainingPlan.ts"),"utf-8");
+    expect(hook).toContain("prepareGenerationContracts(athleteData, planConfig");
+    expect(hook).toContain("assessPreparedGeneration(planConfig, preparation)");
+  });
   it("détecte isPureRegenGapWindow AVANT la boucle phaseRanges (phaseCatalogs)", () => {
     const detectIdx = source.indexOf("const isPureRegenGapWindow = totalWeeks > 0");
     expect(

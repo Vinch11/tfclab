@@ -23,10 +23,15 @@ import { join } from "node:path";
  */
 describe("useAITrainingPlan — garde-fou anti-régression : catalogue RESTREINT dédié aux semaines de régénération inter-cycles", () => {
   const source = readFileSync(
-    join(__dirname, "../useAITrainingPlan.ts"),
+    join(__dirname, "../../lib/plan/prepareGenerationContracts.ts"),
     "utf-8",
   );
 
+  it("generation consumes the shared preparation rather than a divergent copy",()=>{
+    const hook=readFileSync(join(__dirname,"../useAITrainingPlan.ts"),"utf-8");
+    expect(hook).toContain("prepareGenerationContracts(athleteData, planConfig");
+    expect(hook).toContain("assessPreparedGeneration(planConfig, preparation)");
+  });
   it("calcule isRegenGapWeek (segments multi-objectifs) AVANT la construction de chunkCatalogs", () => {
     const segIdx = source.indexOf("const cycleSegmentsForCatalog = computeObjectiveCycleSegments(");
     expect(segIdx, "cycleSegmentsForCatalog est introuvable — a-t-il été renommé/déplacé ?").toBeGreaterThan(-1);
@@ -46,10 +51,11 @@ describe("useAITrainingPlan — garde-fou anti-régression : catalogue RESTREINT
   });
 
   it("transmet chunkRegenCatalogs et chunkRegenWeeks à l'edge function", () => {
-    const bodyIdx = source.indexOf("body: JSON.stringify({");
+    const transportSource=readFileSync(join(__dirname,"../useAITrainingPlan.ts"),"utf-8");
+    const bodyIdx = transportSource.indexOf("body: JSON.stringify({");
     expect(bodyIdx).toBeGreaterThan(-1);
-    const catalogsFieldIdx = source.indexOf("chunkRegenCatalogs:", bodyIdx);
-    const weeksFieldIdx = source.indexOf("chunkRegenWeeks:", bodyIdx);
+    const catalogsFieldIdx = transportSource.indexOf("chunkRegenCatalogs:", bodyIdx);
+    const weeksFieldIdx = transportSource.indexOf("chunkRegenWeeks:", bodyIdx);
     expect(catalogsFieldIdx, "chunkRegenCatalogs n'est plus transmis dans le payload — le fix devient inopérant côté serveur").toBeGreaterThan(bodyIdx);
     expect(weeksFieldIdx, "chunkRegenWeeks n'est plus transmis dans le payload — le serveur ne pourrait plus savoir à quelles semaines le catalogue restreint s'applique").toBeGreaterThan(bodyIdx);
   });

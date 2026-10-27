@@ -57,27 +57,32 @@ export interface MatrixRow {
  sportingSafety:"not_attested"; scientificValidation:"requires_human_review";
 }
 function add(out:Record<string,number>,code:string,n=1){ if(n) out[code]=(out[code]??0)+n; }
-export function evaluatePlanningCase(spec:PlanningCase): MatrixRow {
- const row:MatrixRow={...spec,weeks:0,configuration:"failed",quotaPath:"not_reached",preparationIssues:{},weekly:[],limiterOrder:[],catalogueSignature:[],promptMaxChars:0,examples:[],completePlanConstruction:spec.objective==="StartToRun"?"static_route_available":"not_attested_without_matching_recorded_model_output",sportingSafety:"not_attested",scientificValidation:"requires_human_review"};
+export function preparePlanningCaseContext(spec:PlanningCase) {
  const base=QA_PROFILES.find(p=>p.id===OBJECTIVE_PROFILE[spec.objective])!;
  const physiology=QA_PROFILES.find(p=>p.physiologyArchetype===spec.physiology)!;
- row.dataQuality=physiology.dataQuality;
+
  const constrained=QA_PROFILES.find(p=>p.constraintsProfile===spec.constraints)!;
  const profile={...structuredClone(base),athleteData:{...structuredClone(physiology.athleteData),nom:"QA offline"}};
  const weeks=spec.objective==="StartToRun"?12:Math.max(4,(base.planConfig.weeksAvailable??12)+(spec.duration==="shorter"?-4:spec.duration==="longer"?4:0));
- row.weeks=weeks;
+
  const date=(days:number)=>new Date(Date.UTC(2026,9,26+days)).toISOString().slice(0,10);
  const raceGoals=spec.objective==="StartToRun"?[]:[{objective:spec.objective,raceDate:date(weeks*7-1),priority:"A" as const,...(spec.format?{raceFormat:spec.format}:{})},...(spec.intermediate?[{objective:["IM","703","Sprint","Olympic"].includes(spec.objective)?"10K":spec.objective,raceDate:date(Math.floor(weeks/2)*7-2),priority:"B" as const}]:[])];
  const input=buildPilotDiagnosticInput(profile);
  input.objectif=spec.objective; input.ambition=spec.ambition;
  input.tss7d=spec.load==="known_synthetic"?120:null;
  input.snapshotDate=spec.load==="known_synthetic"?"2026-10-26":null;
- try {
-  const prepared=prepareTrainingPlanContext({diagnosticInput:input,athleteData:profile.athleteData,
+ const prepared=prepareTrainingPlanContext({diagnosticInput:input,athleteData:profile.athleteData,
    formConfig:{...buildPilotFormConfig(base.planConfig),objective:spec.objective,ambition:spec.ambition,trainingLevel:spec.level,
     weeklyHours:spec.load==="known_synthetic"?base.planConfig.weeklyHours:undefined,sessionsPerWeek:undefined,weeksAvailable:weeks,
     planStartDate:"2026-10-26",raceGoals,constraints:constrained.planConfig.constraints,terrainAvailability:constrained.planConfig.terrainAvailability},
   });
+ return {profile,prepared,weeks,dataQuality:physiology.dataQuality};
+}
+export function evaluatePlanningCase(spec:PlanningCase): MatrixRow {
+ const row:MatrixRow={...spec,weeks:0,configuration:"failed",quotaPath:"not_reached",preparationIssues:{},weekly:[],limiterOrder:[],catalogueSignature:[],promptMaxChars:0,examples:[],completePlanConstruction:spec.objective==="StartToRun"?"static_route_available":"not_attested_without_matching_recorded_model_output",sportingSafety:"not_attested",scientificValidation:"requires_human_review"};
+ try {
+  const {profile,prepared,weeks,dataQuality}=preparePlanningCaseContext(spec);
+  row.weeks=weeks;row.dataQuality=dataQuality;
   const config=prepared.planConfig;
   row.configuration="passed";row.effectiveAmbition=config.ambition;row.limiterOrder=[...(config.identifiedLimitersRaw??[])];
   if(config.ambitionMeta?.trainingLevel!==spec.level || config.ambitionMeta?.trainingLevelSource!=="manual") add(row.preparationIssues,"coach_level_transport");

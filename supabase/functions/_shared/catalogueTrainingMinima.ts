@@ -55,3 +55,9 @@ export function declaredRaceSlotsForWeek(config: DeclaredCalendar, localWeek: nu
  }
  return result;
 }
+
+/** Same date/week arithmetic as the existing declared-event reservations. */
+export function declaredDateWeek(planStartDate?:string,raceDate?:string):number|null {
+ const start=isoDay(planStartDate),day=isoDay(raceDate);
+ return start===null||day===null?null:Math.floor((day-start)/(7*86400000))+1;
+}

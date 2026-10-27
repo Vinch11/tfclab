@@ -259,6 +259,7 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     globalTotalWeeks,
     globalWeekOffset,
     windowRegenPhase: dominantPhase,
+    windowWeekPhases: Object.fromEntries(perWeekPhase.map((phase,i)=>[i+1,phase as "base"|"build"|"peak"|"taper"])),
     // Audit "bibliothèque de séances" : le catalogue de séances de cette
     // fenêtre doit être scoré/filtré sur l'objectif du CYCLE (ex. "Marathon"),
     // pas sur l'objectif final du plan (ex. "Ironman") — sans quoi le taper

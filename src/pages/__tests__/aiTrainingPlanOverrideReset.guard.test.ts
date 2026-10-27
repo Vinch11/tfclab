@@ -52,24 +52,32 @@ describe("AITrainingPlanPage — garde-fou anti-régression : l'affichage ne res
 
   it("handleGenerate (bouton \"Générer\") efface planOverride avant de lancer generatePlanWindowed", () => {
     const body = sliceBetween(
-      "const handleGenerate = async (extraConstraints?: string) => {",
+      "const handleGenerate = async (extraConstraints?: string, prevalidateOnly=false) => {",
       "generatePlanWindowed(athleteContext.data, config);",
     );
     expect(
       body,
       "handleGenerate ne remet plus planOverride à null avant de générer — une régénération ciblée antérieure masquerait ce nouveau plan.",
     ).toContain("setPlanOverride(null);");
+    if(body.includes("const preview=await prevalidateTrainingPlan")) {
+      expect(body.indexOf("const preview=await prevalidateTrainingPlan")).toBeLessThan(body.indexOf("setPlanOverride(null);"));
+      expect(body.slice(body.indexOf('if(prevalidateOnly||preview.status==='),body.indexOf('setPlanOverride(null);'))).toContain('return;');
+    }
   });
 
   it("handleCoachFormGenerate (formulaire coach, objectifs multi-limiteurs) efface planOverride avant de lancer generatePlanWindowed", () => {
     const body = sliceBetween(
-      "const handleCoachFormGenerate = useCallback((",
+      "const handleCoachFormGenerate = useCallback(async (",
       "generatePlanWindowed(athleteContext.data, config);",
     );
     expect(
       body,
       "handleCoachFormGenerate ne remet plus planOverride à null avant de générer — c'est exactement le bug réel observé (plan régénéré plusieurs fois via ce formulaire, affichage figé sur un plan périmé).",
     ).toContain("setPlanOverride(null);");
+    if(body.includes("const preview=await prevalidateTrainingPlan")) {
+      expect(body.indexOf("const preview=await prevalidateTrainingPlan")).toBeLessThan(body.indexOf("setPlanOverride(null);"));
+      expect(body.slice(body.indexOf('if(prevalidateOnly||preview.status==='),body.indexOf('setPlanOverride(null);'))).toContain('return;');
+    }
   });
 
   it("applyLoadedVersion (chargement d'une version sauvegardée) efface l'état JSON du hook ET planOverride avant setResponse", () => {
@@ -85,5 +93,9 @@ describe("AITrainingPlanPage — garde-fou anti-régression : l'affichage ne res
       body,
       "applyLoadedVersion ne remet plus planOverride à null — une régénération ciblée antérieure resterait prioritaire sur la version qu'on vient explicitement de charger.",
     ).toContain("setPlanOverride(null);");
+    if(body.includes("const preview=await prevalidateTrainingPlan")) {
+      expect(body.indexOf("const preview=await prevalidateTrainingPlan")).toBeLessThan(body.indexOf("setPlanOverride(null);"));
+      expect(body.slice(body.indexOf('if(prevalidateOnly||preview.status==='),body.indexOf('setPlanOverride(null);'))).toContain('return;');
+    }
   });
 });
