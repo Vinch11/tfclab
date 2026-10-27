@@ -65,18 +65,31 @@ export function validateComparison(baseline,candidate,replay){
   improvement:noCriticalRegression&&reproduced&&!unattributed.length&&(improvedConformance>0||improvedConstruction>0||improvedDefects>0),
   scientificGoAttested:false,baselineHash:digest(baseline),candidateHash:digest(candidate)};
 }
+/** Derive legacy stall state from immutable completed cycles; successful progress does not exhaust a cause. */
+export function causeProgress(state){
+ const stalls={},totals={};
+ for(const cycle of state.cycles){
+  if(!cycle.cause)continue;totals[cycle.cause]=(totals[cycle.cause]??0)+1;
+  if(cycle.status==='running')continue;
+  const progressed=cycle.status==='accepted'&&cycle.comparison?.improvement===true;
+  stalls[cycle.cause]=progressed?0:(stalls[cycle.cause]??0)+1;
+ }
+ return {consecutiveNoProgressByCause:stalls,totalAttemptsPerCause:totals};
+}
+function syncCauseProgress(state){const progress=causeProgress(state);state.consecutiveNoProgressByCause=progress.consecutiveNoProgressByCause;state.totalAttemptsPerCause=progress.totalAttemptsPerCause;}
 /** Diagnostic role ranks measured causes separately from hypotheses. Unknown is never a justified refusal. */
 export function prioritizeDiagnostic(diagnostic,state){
  const causes=(diagnostic.causes??Object.entries(diagnostic.rootCauseCounts??{}).map(([id,count])=>({id,count})))
   .map(c=>({...c,id:c.id??c.cause??c.category,count:c.count??c.cases??0}));
- return causes.filter(c=>(state.attempts[c.id]??0)<POLICY.maxAttemptsPerCause)
+ const progress=causeProgress(state);
+ return causes.map(c=>({...c,totalAttempts:progress.totalAttemptsPerCause[c.id]??0,consecutiveNoProgress:progress.consecutiveNoProgressByCause[c.id]??0})).filter(c=>c.consecutiveNoProgress<POLICY.maxAttemptsPerCause)
   .sort((a,b)=>(b.strictSafety===true)-(a.strictSafety===true)||b.count-a.count||String(a.id).localeCompare(String(b.id)));
 }
 export function assertExperimentalBranch(branch){if(!/^experiment\/det-engine(?:$|[-/][A-Za-z0-9_/-]+$)/.test(branch))throw Error('EXPERIMENTAL_BRANCH_REQUIRED');}
 export function createSupervisor({branch,baseline,now=Date.now()}){
  assertExperimentalBranch(branch);indexRows(baseline.rows);
  return {schemaVersion:2,branch,baselineHash:digest(baseline),currentBaselineHash:digest(baseline),baselineVersion:baseline.version,createdAt:now,elapsedMs:0,
-  policy:POLICY,cycles:[],attempts:{},globalWithoutImprovement:0,activeCycle:null,events:[{sequence:1,type:'initialized',baselineHash:digest(baseline)}]};
+  policy:POLICY,cycles:[],attempts:{},totalAttemptsPerCause:{},consecutiveNoProgressByCause:{},globalWithoutImprovement:0,activeCycle:null,events:[{sequence:1,type:'initialized',baselineHash:digest(baseline)}]};
 }
 function event(state,type,detail={}){state.events.push({sequence:state.events.length+1,type,...detail});}
 function checkState(state,branch){
@@ -88,13 +101,15 @@ export function beginCycle(state,{id,cause,sourceHash,recipeId,scope='targeted',
  const prior=state.cycles.find(c=>c.id===id);
  if(prior){if(prior.cause!==cause||prior.sourceHash!==sourceHash||prior.recipeId!==recipeId)throw Error('IDEMPOTENCY_KEY_COLLISION');return prior;}
  if(state.activeCycle)throw Error('CYCLE_ALREADY_ACTIVE');
+ if(state.activeValidation)throw Error('VALIDATION_ALREADY_RUNNING_OR_INTERRUPTED');
  if(state.cycles.length>=POLICY.maxCycles)throw Error('CYCLE_LIMIT');
  if(state.elapsedMs>=POLICY.maxDurationMs)throw Error('DURATION_LIMIT');
- if((state.attempts[cause]??0)>=POLICY.maxAttemptsPerCause)throw Error('CAUSE_REASSESSMENT_REQUIRED');
+ syncCauseProgress(state);
+ if((state.consecutiveNoProgressByCause[cause]??0)>=POLICY.maxAttemptsPerCause)throw Error('CAUSE_REASSESSMENT_REQUIRED');
  if(state.globalWithoutImprovement>=POLICY.maxGlobalWithoutImprovement)throw Error('STRATEGIC_REASSESSMENT_REQUIRED');
  if(!/^[A-Za-z0-9_-]+$/.test(id??'')||!cause||!sourceHash||!recipeId)throw Error('CYCLE_PROVENANCE_REQUIRED');
  const cycle={id,cause,sourceHash,recipeId,scope,status:'running',startedAt:now};
- state.attempts[cause]=(state.attempts[cause]??0)+1;state.cycles.push(cycle);state.activeCycle=id;event(state,'cycle_started',{id,cause,sourceHash,recipeId});return cycle;
+ state.attempts[cause]=(state.attempts[cause]??0)+1;state.cycles.push(cycle);syncCauseProgress(state);state.activeCycle=id;event(state,'cycle_started',{id,cause,sourceHash,recipeId});return cycle;
 }
 export function finishCycle(state,{id,comparison,tests,artifactHashes={},retain=true,now=Date.now()}){
  const cycle=state.cycles.find(c=>c.id===id);if(!cycle)throw Error('UNKNOWN_CYCLE');
@@ -110,6 +125,7 @@ export function finishCycle(state,{id,comparison,tests,artifactHashes={},retain=
  state.elapsedMs+=Math.max(0,now-cycle.startedAt-(cycle.validationAccountedMs??0));state.activeCycle=null;
  if(accepted)state.currentBaselineHash=comparison.candidateHash;
  if(cycle.scope==='global')state.globalWithoutImprovement=accepted&&comparison.improvement?0:state.globalWithoutImprovement+1;
+ syncCauseProgress(state);
  event(state,'cycle_finished',{id,status:cycle.status,decision:cycle.decision,comparisonHash:digest(comparison)});return cycle;
 }
 /** Development role: approved manifest, exact content hashes, experimental source only. No arbitrary executable repair code. */
@@ -178,10 +194,39 @@ export function rejectRegisteredRepair(root,statePath,id,reason='experimental_ch
   cycle.status='rejected';cycle.finishedAt=now;cycle.decision=reason;state.elapsedMs+=Math.max(0,now-cycle.startedAt-(cycle.validationAccountedMs??0));state.activeCycle=null;
   if(cycle.scope==='global')state.globalWithoutImprovement++;
  }
+ syncCauseProgress(state);
  event(state,'repair_rejected',{id,reason,restoration});saveState(statePath,state);return cycle;
 }
 export function saveState(path,state){atomic(path,state);}
 export function loadState(path){const state=load(path);if(state.schemaVersion!==2)throw Error('STATE_SCHEMA_VERSION');return state;}
+/** A durable lease reserves all remaining budget before any child process starts. */
+export function reserveValidation(statePath,{out,cycleId,allowedMs,now=Date.now()}={}){
+ const state=loadState(statePath);if(state.activeValidation)throw Error('VALIDATION_ALREADY_RUNNING_OR_INTERRUPTED');
+ const reservedMs=Math.max(0,POLICY.maxDurationMs-state.elapsedMs);if(!reservedMs||allowedMs<=0)throw Error('DURATION_LIMIT');
+ if(cycleId&&state.activeCycle!==cycleId)throw Error('ACTIVE_CYCLE_MISMATCH');
+ const reservation={id:digest({cycleId,out,now,events:state.events.length}),cycleId,startedAt:now,reservedMs,allowedMs:Math.min(reservedMs,allowedMs??reservedMs),out:resolve(out)};
+ state.activeValidation=reservation;event(state,'validation_reserved',{reservation});saveState(statePath,state);return reservation;
+}
+export function completeValidation(statePath,reservationId,runs,{now=Date.now()}={}){
+ const state=loadState(statePath),reservation=state.activeValidation;
+ if(!reservation||reservation.id!==reservationId)throw Error('VALIDATION_RESERVATION_MISMATCH');
+ const consumed=Math.max(0,now-reservation.startedAt);state.elapsedMs+=consumed;
+ if(reservation.cycleId){const cycle=state.cycles.find(c=>c.id===reservation.cycleId);cycle.validationAccountedMs=(cycle.validationAccountedMs??0)+consumed;}
+ state.activeValidation=null;event(state,'validation_finished',{reservationId,consumedMs:consumed,runs});saveState(statePath,state);return state;
+}
+export function recoverValidation(statePath){
+ const state=loadState(statePath),reservation=state.activeValidation;
+ if(reservation){
+  state.elapsedMs+=reservation.reservedMs;
+  if(reservation.cycleId){const cycle=state.cycles.find(c=>c.id===reservation.cycleId);cycle.validationAccountedMs=(cycle.validationAccountedMs??0)+reservation.reservedMs;}
+  event(state,'interrupted_validation_charged',{reservation});state.activeValidation=null;saveState(statePath,state);
+ }
+ return state;
+}
+function remainingBudget(state,now=Date.now()){
+ const active=state.cycles.find(c=>c.id===state.activeCycle),unaccounted=active?Math.max(0,now-active.startedAt-(active.validationAccountedMs??0)):0;
+ return Math.max(0,POLICY.maxDurationMs-state.elapsedMs-unaccounted);
+}
 /** Fixed plan is inspectable/testable without running a sporting simulation twice. */
 export function validationCommandPlan(out,{global=true,baselinePath,version='det-v2-supervisor-candidate'}={}){
  if(global&&!baselinePath)throw Error('BASELINE_PATH_REQUIRED_FOR_GLOBAL_VALIDATION');
@@ -209,27 +254,67 @@ export function runValidation(root,out,{remainingMs=POLICY.maxDurationMs,global=
  }
  atomic(resolve(out,'execution.json'),{runs,elapsedMs:Date.now()-started,policy:POLICY});return runs;
 }
-/** End-to-end local registered cycle: durable application → fixed validation → comparison → retain or owned-byte rollback. */
+function executeValidatedCycle(root,statePath,cycle,out,baselinePath,{validationRunner=runValidation,retainIfNoProgress=true,rollback}={}){
+ const state=loadState(statePath);if(state.activeValidation)throw Error('VALIDATION_ALREADY_RUNNING_OR_INTERRUPTED');
+ const remaining=remainingBudget(state);
+ if(remaining<=0)return rejectCycle('duration_limit');
+ const reservation=reserveValidation(statePath,{out:resolve(out,'validation'),cycleId:cycle.id,allowedMs:remaining});
+ let runs;
+ try{runs=validationRunner(root,resolve(out,'validation'),{remainingMs:reservation.allowedMs,global:true,baselinePath:resolve(root,baselinePath),version:`det-v2-${cycle.id}-${cycle.sourceHash.slice(0,12)}`});}
+ catch(error){runs=[{name:'validation_runner',ok:false,status:'unavailable',executionVerified:false,error:error.message}];}
+ completeValidation(statePath,reservation.id,runs);
+ if(!runs.length||!runs.every(r=>r.ok))return rejectCycle('validation_failure');
+ try{
+  const folder=resolve(out,'validation/matrix'),baseline=load(resolve(root,baselinePath)),candidate=load(resolve(folder,'candidate.json')),replay=load(resolve(folder,'replay.json'));
+  const comparison=validateComparison(baseline,candidate,replay),latest=loadState(statePath);
+  const result=finishCycle(latest,{id:cycle.id,comparison,tests:{unit:true,nonRegression:comparison.noCriticalRegression,sporting:true,replay:comparison.reproduced},retain:retainIfNoProgress||comparison.improvement,
+   artifactHashes:{baseline:digest(baseline),candidate:digest(candidate),replay:digest(replay)}});
+  if(result.status==='accepted')latest.currentBaselinePath=resolve(folder,'candidate.json');
+  saveState(statePath,latest);atomic(resolve(out,'decision.json'),result);
+  if(result.status==='rejected'&&rollback)return rollback(result.decision);
+  return result;
+ }catch(error){return rejectCycle(`controller_failure:${error.message}`);}
+ function rejectCycle(reason){
+  if(rollback)return rollback(reason);
+  const latest=loadState(statePath),current=latest.cycles.find(c=>c.id===cycle.id);
+  if(current.status==='running'){
+   current.status='rejected';current.decision=reason;current.finishedAt=Date.now();latest.elapsedMs+=Math.max(0,current.finishedAt-current.startedAt-(current.validationAccountedMs??0));latest.activeCycle=null;
+   if(current.scope==='global')latest.globalWithoutImprovement++;syncCauseProgress(latest);event(latest,'cycle_rejected',{id:cycle.id,reason});saveState(statePath,latest);
+  }
+  atomic(resolve(out,'decision.json'),current);return current;
+ }
+}
+/** End-to-end registered source recipe: durable application, reserved validation, retain or owned-byte rollback. */
 export function executeRegisteredCycle(root,statePath,recipe,out,baselinePath,{branch,validationRunner=runValidation}={}){
  const initialState=loadState(statePath),baseline=load(resolve(root,baselinePath));
+ if(initialState.activeValidation)throw Error('VALIDATION_ALREADY_RUNNING_OR_INTERRUPTED');
  if(digest(baseline)!==initialState.currentBaselineHash)throw Error('BASELINE_NOT_LAST_ACCEPTED');
- const cycle=applyRegisteredRecipe(root,statePath,recipe,resolve(out,'repairs'),{branch});
- if(cycle.status!=='running')return cycle;
- const state=loadState(statePath),remaining=POLICY.maxDurationMs-state.elapsedMs-Math.max(0,Date.now()-cycle.startedAt);
- if(remaining<=0)return rejectRegisteredRepair(root,statePath,cycle.id,'duration_limit');
- let runs;
- try{runs=validationRunner(root,resolve(out,'validation'),{remainingMs:remaining,global:true,baselinePath:resolve(root,baselinePath),version:`det-v2-${cycle.id}-${cycle.sourceHash.slice(0,12)}`});}
- catch(error){return rejectRegisteredRepair(root,statePath,cycle.id,`controller_failure:${error.message}`);}
- if(!runs.every(r=>r.ok))return rejectRegisteredRepair(root,statePath,cycle.id,'validation_failure');
- const folder=resolve(out,'validation/matrix');
- try{
-  const candidate=load(resolve(folder,'candidate.json')),replay=load(resolve(folder,'replay.json'));
-  const comparison=validateComparison(baseline,candidate,replay);
-  const latest=loadState(statePath),result=finishCycle(latest,{id:cycle.id,comparison,tests:{unit:true,nonRegression:comparison.noCriticalRegression,sporting:true,replay:comparison.reproduced},artifactHashes:{baseline:digest(baseline),candidate:digest(candidate),replay:digest(replay)}});
-  saveState(statePath,latest);atomic(resolve(out,'decision.json'),result);
-  if(result.status==='rejected')return rejectRegisteredRepair(root,statePath,cycle.id,result.decision);
-  return result;
- }catch(error){return rejectRegisteredRepair(root,statePath,cycle.id,`controller_failure:${error.message}`);}
+ const cycle=applyRegisteredRecipe(root,statePath,recipe,resolve(out,'repairs'),{branch});if(cycle.status!=='running')return cycle;
+ return executeValidatedCycle(root,statePath,cycle,out,baselinePath,{validationRunner,retainIfNoProgress:recipe.retainIfNoProgress!==false,
+  rollback:reason=>rejectRegisteredRepair(root,statePath,cycle.id,reason)});
+}
+/** Fixed development recipe: rerun ONLY the already implemented bounded catalogue repair, never write source. */
+export function executePlanRepairCycle(root,statePath,out,baselinePath,{branch,id,cause='bounded_catalogue_repair',validationRunner=runValidation}={}){
+ const state=loadState(statePath),baseline=load(resolve(root,baselinePath));checkState(state,branch??state.branch);
+ if(state.activeValidation)throw Error('VALIDATION_ALREADY_RUNNING_OR_INTERRUPTED');
+ if(digest(baseline)!==state.currentBaselineHash)throw Error('BASELINE_NOT_LAST_ACCEPTED');
+ const sourceHash=digest(['experimental/det-engine/v2-engine.ts','experimental/det-engine/v2-validation.ts','experimental/det-engine/v2-matrix.test.ts'].map(path=>({path,hash:digest(readFileSync(resolve(root,path),'utf8'))})));
+ const cycle=beginCycle(state,{id:id??`plan-repair-${String(state.cycles.length+1).padStart(2,'0')}`,cause,sourceHash,recipeId:'existing_bounded_catalogue_repair_v2',scope:'global',branch:branch??state.branch});
+ saveState(statePath,state);if(cycle.status!=='running')return cycle;
+ return executeValidatedCycle(root,statePath,cycle,out,baselinePath,{validationRunner,retainIfNoProgress:false});
+}
+export function continuePlanRepairs(root,statePath,out,baselinePath,options={}){
+ let input=resolve(root,baselinePath),stop='cycle_limit';const decisions=[];
+ while(true){
+  const state=loadState(statePath);
+  try{
+   const next=executePlanRepairCycle(root,statePath,resolve(out,`cycle-${String(state.cycles.length+1).padStart(2,'0')}`),input,options);decisions.push({id:next.id,status:next.status,decision:next.decision});
+   if(next.status!=='accepted'){stop=next.decision==='development_rejected_no_progress'?'deterministic_fixed_point':next.decision;break;}
+   input=loadState(statePath).currentBaselinePath;
+  }catch(error){stop=error.message;break;}
+ }
+ const state=loadState(statePath);event(state,'continuation_stopped',{stop,decisions,lastAcceptedHash:state.currentBaselineHash});saveState(statePath,state);
+ const result={stop,decisions,lastAcceptedPath:input,lastAcceptedHash:state.currentBaselineHash,permanentProcess:false,apiCostUsd:0};atomic(resolve(out,'continuation.json'),result);return result;
 }
 export function orchestrationPlan(diagnostic,state){
  return {diagnosticVersion:diagnostic.version,priorities:prioritizeDiagnostic(diagnostic,state),
@@ -246,6 +331,8 @@ export function main(args=process.argv.slice(2)){
  }
  const state=loadState(statePath);checkState(state,branch);
  if(command==='status')return state;
+ if(command==='continue-plans')return continuePlanRepairs(root,statePath,rest[0],rest[1],{branch,cause:rest[2]??'bounded_catalogue_repair'});
+ if(command==='plan-cycle')return executePlanRepairCycle(root,statePath,rest[0],rest[1],{branch,cause:rest[2]??'bounded_catalogue_repair'});
  if(command==='execute-recipe')return executeRegisteredCycle(root,statePath,load(rest[0]),rest[1],rest[2],{branch});
  if(command==='apply-recipe')return applyRegisteredRecipe(root,statePath,load(rest[0]),rest[1],{branch});
  if(command==='reject-recipe')return rejectRegisteredRepair(root,statePath,rest[0],rest[1]);
@@ -257,15 +344,13 @@ export function main(args=process.argv.slice(2)){
  if(command==='validate'){
   if(!rest[1]||!existsSync(resolve(root,rest[1])))throw Error('BASELINE_FILE_UNAVAILABLE');
   if(digest(load(resolve(root,rest[1])))!==state.currentBaselineHash)throw Error('BASELINE_NOT_LAST_ACCEPTED');
-  if(state.activeValidation)throw Error('VALIDATION_ALREADY_RUNNING_OR_INTERRUPTED');
-  const reservation=Math.max(0,POLICY.maxDurationMs-state.elapsedMs);if(!reservation)throw Error('DURATION_LIMIT');
-  state.activeValidation={startedAt:Date.now(),reservedMs:reservation,out:resolve(rest[0])};event(state,'validation_reserved',{reservedMs:reservation});saveState(statePath,state);
-  const start=Date.now(),runs=runValidation(root,rest[0],{remainingMs:reservation,baselinePath:rest[1],version:rest[2]??'det-v2-supervisor-candidate'});
-  const consumed=Date.now()-start;state.elapsedMs+=consumed;if(state.activeCycle){const cycle=state.cycles.find(c=>c.id===state.activeCycle);cycle.validationAccountedMs=(cycle.validationAccountedMs??0)+consumed;}state.activeValidation=null;event(state,'validation_finished',{runs});saveState(statePath,state);return runs;
+  const reservation=reserveValidation(statePath,{out:rest[0],cycleId:state.activeCycle,allowedMs:remainingBudget(state)});
+  let runs;
+  try{runs=runValidation(root,rest[0],{remainingMs:reservation.allowedMs,baselinePath:rest[1],version:rest[2]??'det-v2-supervisor-candidate'});}
+  catch(error){runs=[{name:'validation_runner',ok:false,status:'unavailable',executionVerified:false,error:error.message}];}
+  completeValidation(statePath,reservation.id,runs);return runs;
  }
- if(command==='recover-validation'){
-  if(state.activeValidation){state.elapsedMs+=state.activeValidation.reservedMs;event(state,'interrupted_validation_charged',{reservation:state.activeValidation});state.activeValidation=null;saveState(statePath,state);}return state;
- }
+ if(command==='recover-validation')return recoverValidation(statePath);
  throw Error('UNKNOWN_COMMAND');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

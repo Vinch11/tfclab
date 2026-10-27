@@ -1,9 +1,11 @@
 import {test} from 'node:test';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {POLICY,digest,createSupervisor,beginCycle,finishCycle,saveState,loadState,validateComparison,prepareRepair,applyRepair,rollbackRepair,resumeRepair,prioritizeDiagnostic,assertExperimentalBranch,applyRegisteredRecipe,rejectRegisteredRepair,executeRegisteredCycle,validationCommandPlan,commandExecutionEvidence} from './v2-supervisor.mjs';
+import {POLICY,digest,createSupervisor,beginCycle,finishCycle,saveState,loadState,validateComparison,prepareRepair,applyRepair,rollbackRepair,resumeRepair,prioritizeDiagnostic,assertExperimentalBranch,applyRegisteredRecipe,rejectRegisteredRepair,executeRegisteredCycle,validationCommandPlan,commandExecutionEvidence,causeProgress,reserveValidation,completeValidation,recoverValidation,continuePlanRepairs} from './v2-supervisor.mjs';
 const branch='experiment/det-engine';
 const rows=()=>[{id:'a',technicallyConstructed:true,constraintsSatisfied:true,executedControls:['safety'],issues:[]},{id:'b',technicallyConstructed:false,constraintsSatisfied:false,executedControls:[],issues:[]}];
 const evidence=()=>({version:'fixture',controls:[{id:'safety',version:'v1'}],rows:rows()});
@@ -48,7 +50,7 @@ test('state persists atomically and rejected evidence cannot be silently replace
 });
 test('12-cycle, per-cause, duration and two-global-no-progress budgets stop without a repeat loop',()=>{
  let state=createSupervisor({branch,baseline:evidence(),now:0});state.cycles=Array.from({length:12},(_,i)=>({id:String(i)}));assert.throws(()=>begin(state),/CYCLE_LIMIT/);
- state=createSupervisor({branch,baseline:evidence(),now:0});state.attempts.cause=3;assert.throws(()=>begin(state),/CAUSE_REASSESSMENT/);
+ state=createSupervisor({branch,baseline:evidence(),now:0});state.cycles=Array.from({length:3},(_,i)=>({id:`failed${i}`,cause:'cause',status:'rejected'}));assert.throws(()=>begin(state),/CAUSE_REASSESSMENT/);
  state=createSupervisor({branch,baseline:evidence(),now:0});state.elapsedMs=POLICY.maxDurationMs;assert.throws(()=>begin(state),/DURATION_LIMIT/);
  state=createSupervisor({branch,baseline:evidence(),now:0});begin(state,'a');finish(state,'a',comparison());begin(state,'b','other');finish(state,'b',comparison());assert.throws(()=>begin(state,'c','third'),/STRATEGIC_REASSESSMENT/);
  assert.equal(POLICY.apiBudgetUsd,0);
@@ -69,7 +71,7 @@ test('repair restores only owned experimental bytes and preserves independent ch
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 test('prioritization skips exhausted causes instead of repeating them',()=>{
- const state=createSupervisor({branch,baseline:evidence()});state.attempts.high=3;
+ const state=createSupervisor({branch,baseline:evidence()});state.cycles=Array.from({length:3},(_,i)=>({id:`failed${i}`,cause:'high',status:'rejected'}));
  assert.equal(prioritizeDiagnostic({rootCauseCounts:{high:100,remaining:2}},state)[0].id,'remaining');
 });
 
@@ -185,4 +187,62 @@ test('launch unavailable, interrupted, failed and genuinely passed commands rema
  const unavailable=commandExecutionEvidence('test',{status:0,error:{code:'EPERM',message:'operation unavailable'}});assert.equal(unavailable.ok,false);assert.equal(unavailable.status,'unavailable');assert.equal(unavailable.executionVerified,false);
  assert.equal(commandExecutionEvidence('test',{status:null,error:{code:'ETIMEDOUT',message:'timeout'}}).status,'interrupted');
  assert.equal(commandExecutionEvidence('test',{status:1}).status,'failed');
+});
+
+test('validation reservation is durable before runner launch and elapsed time is accounted once',()=>{
+ const root=mkdtempSync(join(tmpdir(),'det-reservation-'));try{
+  const statePath=join(root,'state.json'),state=createSupervisor({branch,baseline:evidence(),now:0});begin(state,'one','cause',100);saveState(statePath,state);
+  const reservation=reserveValidation(statePath,{out:join(root,'out'),cycleId:'one',allowedMs:700,now:200});
+  assert.equal(loadState(statePath).activeValidation.id,reservation.id);assert.equal(reservation.allowedMs,700);
+  completeValidation(statePath,reservation.id,[{ok:true}],{now:500});const completed=loadState(statePath);assert.equal(completed.elapsedMs,300);
+  finishCycle(completed,{id:'one',comparison:comparison(),tests:checks,now:600});assert.equal(completed.elapsedMs,500);assert.equal(completed.activeValidation,null);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+test('interrupted validation lease cannot be reused and recovery conservatively consumes its reservation once',()=>{
+ const root=mkdtempSync(join(tmpdir(),'det-interrupted-'));try{
+  const path=join(root,'state.json'),state=createSupervisor({branch,baseline:evidence(),now:0});saveState(path,state);
+  reserveValidation(path,{out:join(root,'out'),allowedMs:100,now:1});assert.throws(()=>reserveValidation(path,{out:join(root,'out'),now:2}),/ALREADY_RUNNING/);
+  const recovered=recoverValidation(path);assert.equal(recovered.elapsedMs,POLICY.maxDurationMs);assert.equal(recovered.activeValidation,null);
+  assert.equal(recoverValidation(path).elapsedMs,POLICY.maxDurationMs);assert.throws(()=>begin(loadState(path)),/DURATION_LIMIT/);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+test('per-cause stall budget resets only on accepted measurable progress, retaining total attempts',()=>{
+ const state=createSupervisor({branch,baseline:evidence(),now:0});
+ for(let i=0;i<2;i++){beginCycle(state,{id:`failure${i}`,cause:'same',sourceHash:'s',recipeId:'r',scope:'targeted',now:i*2});finishCycle(state,{id:`failure${i}`,comparison:comparison(),tests:{...checks,unit:false},now:i*2+1});}
+ assert.equal(causeProgress(state).consecutiveNoProgressByCause.same,2);
+ const improved=evidence();improved.rows[1].technicallyConstructed=true;
+ beginCycle(state,{id:'success',cause:'same',sourceHash:'s',recipeId:'r',scope:'targeted',now:5});finishCycle(state,{id:'success',comparison:validateComparison(evidence(),improved,improved),tests:checks,now:6});
+ assert.equal(state.consecutiveNoProgressByCause.same,0);assert.equal(state.attempts.same,3);
+ beginCycle(state,{id:'fourth_total',cause:'same',sourceHash:'s',recipeId:'r',scope:'targeted',now:7});assert.equal(state.attempts.same,4);
+ delete state.consecutiveNoProgressByCause;assert.equal(causeProgress(state).consecutiveNoProgressByCause.same,0);
+});
+test('actual CLI subprocess applies a registered snapshot and restores it, proving lifecycle only (no sporting engine)',t=>{
+ const root=mkdtempSync(join(tmpdir(),'det-cli-'));try{
+  const git=spawnSync('git',['init','-b',branch],{cwd:root,encoding:'utf8'});if(git.error){t.skip(`CLI subprocess unavailable: ${git.error.code}`);return;}assert.equal(git.status,0,git.stderr);
+  mkdirSync(join(root,'experimental/det-engine'),{recursive:true});const source=join(root,'experimental/det-engine/engine.ts');writeFileSync(source,'before');
+  const baseline=join(root,'baseline.json'),statePath=join(root,'state.json'),manifest=join(root,'recipe.json');writeFileSync(baseline,JSON.stringify(evidence()));
+  writeFileSync(manifest,JSON.stringify({id:'lifecycle_only',cycleId:'cli_cycle',cause:'fixture',hypothesis:'registered owned-byte lifecycle only',modifications:[{path:'experimental/det-engine/engine.ts',beforeSha256:digest('before'),afterContent:'after'}]}));
+  const script=fileURLToPath(new URL('./v2-supervisor.mjs',import.meta.url));
+  const cli=(...args)=>spawnSync(process.execPath,[script,...args],{cwd:root,encoding:'utf8'});
+  const initialized=cli('init',statePath,baseline);if(initialized.error){t.skip(`CLI subprocess unavailable: ${initialized.error.code}`);return;}assert.equal(initialized.status,0,initialized.stderr);
+  const applied=cli('apply-recipe',statePath,manifest,join(root,'proofs'));assert.equal(applied.status,0,applied.stderr);assert.equal(readFileSync(source,'utf8'),'after');
+  const rejected=cli('reject-recipe',statePath,'cli_cycle','lifecycle_fixture_rejection');assert.equal(rejected.status,1,rejected.stderr);assert.equal(readFileSync(source,'utf8'),'before');
+  assert.equal(loadState(statePath).cycles[0].decision,'lifecycle_fixture_rejection');assert.equal(loadState(statePath).cycles[0].restoration.conflicts.length,0);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+test('fixed-plan continuation passes each accepted candidate forward then stops a deterministic no-progress fixed point (orchestration double)',()=>{
+ const root=mkdtempSync(join(tmpdir(),'det-continue-'));try{
+  mkdirSync(join(root,'experimental/det-engine'),{recursive:true});for(const name of ['v2-engine.ts','v2-validation.ts','v2-matrix.test.ts'])writeFileSync(join(root,'experimental/det-engine',name),'source fixture only');
+  const baseline=evidence(),statePath=join(root,'state.json'),input=join(root,'baseline.json');writeFileSync(input,JSON.stringify(baseline));saveState(statePath,createSupervisor({branch,baseline}));
+  const seen=[];let invocation=0;
+  const runner=(_root,out,options)=>{
+   const previous=JSON.parse(readFileSync(options.baselinePath,'utf8'));seen.push(options.baselinePath);const next=structuredClone(previous);
+   if(invocation++===0){next.rows[1].technicallyConstructed=true;next.rows[1].constraintsSatisfied=true;}
+   mkdirSync(join(out,'matrix'),{recursive:true});for(const name of ['candidate','replay'])writeFileSync(join(out,'matrix',`${name}.json`),JSON.stringify(next));return [{name:'orchestration_test_double',ok:true}];
+  };
+  const result=continuePlanRepairs(root,statePath,join(root,'proofs'),input,{branch,cause:'fixture_repair',validationRunner:runner});
+  assert.equal(result.stop,'deterministic_fixed_point');assert.deepEqual(result.decisions.map(c=>c.status),['accepted','rejected']);assert.equal(seen[0],input);assert.notEqual(seen[1],input);
+  const final=loadState(statePath);assert.equal(final.cycles[1].decision,'development_rejected_no_progress');assert.equal(final.cycles[1].tests.unit,true);assert.equal(final.activeValidation,null);assert.equal(final.cycles.length,2);
+  assert.equal(result.lastAcceptedPath,seen[1]);
+ }finally{rmSync(root,{recursive:true,force:true});}
 });

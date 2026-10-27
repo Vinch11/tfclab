@@ -62,11 +62,14 @@ cycle à une ancienne baseline pour effacer une régression est refusé.
 
 ## Budgets et reprise
 
-Politique immuable : 12 cycles, 3 tentatives par cause, réévaluation stratégique
+Politique immuable : 12 cycles, 3 tentatives consécutives sans progrès par cause, réévaluation stratégique
 après 2 cycles globaux consécutifs sans amélioration, 30 minutes d'exécution
 cumulée, 2 workers, heap Node 2048 Mo par processus, 15 minutes par commande,
-0 USD API. Le heap n'est pas une limite RSS OS. Les causes ayant épuisé leurs
-3 tentatives sont écartées de la priorisation ; les causes indépendantes restent
+0 USD API. Le heap n'est pas une limite RSS OS. Les tentatives totales restent auditées dans `attempts`/`totalAttemptsPerCause`.
+`consecutiveNoProgressByCause` est dérivé des cycles terminés (y compris lors
+d’une reprise d’un ancien état) et remis à zéro uniquement après une correction
+acceptée avec progrès mesuré. Les causes ayant épuisé leurs
+3 tentatives sans progrès sont écartées de la priorisation ; les causes indépendantes restent
 éligibles. Deux cycles globaux sans progrès imposent une réévaluation documentée.
 Les refus sportifs ne comptent pas automatiquement comme des erreurs réparables.
 
@@ -86,7 +89,11 @@ acceptés ne font pas partie du snapshot rejeté.
 
 Un seul superviseur écrit dans un fichier d'état donné ; il n'y a pas de verrou
 multi-processus distribué. Des expérimentations parallèles doivent employer des
-états et branches séparés. Une validation interrompue conserve une réservation
+états et branches séparés. Chaque entrée de validation, y compris `execute-recipe` et la continuation de
+plans, écrit sa réservation durable avant tout lancement de processus enfant.
+À la fin, le temps réellement consommé est ajouté une fois et déduit du temps
+restant à imputer au cycle : `finishCycle` ne le compte pas deux fois.
+Une validation interrompue conserve une réservation
 persistante ; `recover-validation` consomme cette réservation plutôt que rendre
 le budget artificiellement disponible. Il ne tue pas des processus orphelins :
 l'opérateur doit vérifier leur fin avant une reprise.
@@ -140,10 +147,46 @@ superviseur après lecture de l'état.
 
 ## Validation du superviseur
 
-`node scripts/det-engine/v2-supervisor.test.mjs` : 25 tests d'orchestration.
+`node scripts/det-engine/v2-supervisor.test.mjs` : 30 tests d'orchestration.
 Ils couvrent contrôles incomparables, nouveaux défauts exposés, vraie régression
 critique sous contrôle identique, multiplicité, couverture, non-déterminisme,
 limites, idempotence, preuve périmée, reprise et retour arrière préservant les
 travaux indépendants. Le test du cycle complet utilise un double explicitement
 nommé ; il prouve l'orchestration, pas les qualités du moteur sportif. Les
 résultats sportifs exigent les simulations réelles publiées séparément.
+
+
+## Continuation autonome du réparateur de plans existant
+
+```sh
+node scripts/det-engine/v2-supervisor.mjs continue-plans /tmp/det-v2/state.json /tmp/continuation /tmp/last-accepted.json catalogue_selection_invalid_weekly_distribution
+```
+
+Cette commande ne développe ni n'applique de code source. Elle utilise uniquement
+le réparateur déterministe borné déjà implémenté et testé par la matrice V2.
+Elle ouvre un cycle global, réserve son budget, exécute les commandes fixes et le
+rejeu, compare à la dernière référence acceptée, puis conserve les seuls progrès
+sans régression. Le candidat accepté devient l'entrée du cycle suivant, sans
+repartir de V1 ni perdre les réparations précédentes. Chaque cycle possède son
+répertoire d'artefacts et sa décision persistée.
+
+Un résultat sans progrès est rejeté avec tous les tests réellement réussis
+conservés ; un point fixe déterministe entraîne une réévaluation immédiate plutôt
+qu'un rejeu identique improductif. Les maxima de 12 cycles, 3 échecs consécutifs
+par cause, 2 cycles globaux sans progrès et la durée cumulée restent en vigueur.
+Une régression conserve la dernière référence acceptée et ses preuves, sans
+appliquer de restauration destructive. Une autre approche nécessite une nouvelle
+unité de développement dans le mandat ; la commande ne s'invente pas de règles.
+
+`execute-recipe` peut de même demander `retainIfNoProgress: false` dans son
+manifeste pour rejeter et restaurer ses seuls octets si ses tests passent mais
+qu'aucun progrès n'est mesuré. Les preuves du correctif rejeté restent présentes.
+
+Le test réel de sous-processus CLI vérifie initialisation, application d'un
+snapshot enregistré puis restauration dans un dépôt temporaire expérimental.
+Il n'exécute pas de moteur sportif fictif : sa portée est seulement le cycle de
+vie du contrôleur. Si les processus enfants sont indisponibles (ex. EPERM), ce
+test est explicitement marqué indisponible/ignoré ; un rejeu dans un environnement
+autorisant ces processus est nécessaire et ses résultats sont publiés séparément.
+Les tests de continuation à validation simulée restent nommés doubles
+d'orchestration et ne servent jamais de preuves scientifiques.
