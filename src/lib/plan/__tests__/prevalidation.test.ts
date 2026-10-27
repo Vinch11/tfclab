@@ -25,7 +25,7 @@ describe('deterministic prevalidation without a model',()=>{
   expect(report.issues.some(i=>i.code==='catalogue_diversity_limited'&&i.severity==='warning')).toBe(true);
   expect(()=>assertPlanPrevalidation(report)).not.toThrow();
  });
- it('computes the actual B-10K fixture with weekly quotas, phases, pools and no request',()=>{
+ it('computes the selected existing fixture with phases, available quota contracts, pools and no request',()=>{
   vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-27T12:00:00Z'));
   const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('OFFLINE_NETWORK_FORBIDDEN');});
   try{
@@ -33,7 +33,11 @@ describe('deterministic prevalidation without a model',()=>{
    const fixture=preparePrevalidationFixture(process.env.TFCL_PREFLIGHT_FIXTURE??'B-10K',overrides);
    const report=prevalidateGenerationScope(fixture.athleteData,{...fixture.planConfig,_outputFormat:"json"});
    expect(report.weeks).toHaveLength(fixture.planConfig.weeksAvailable!);
-   expect(report.weeks.every(w=>w.phase&&w.quota&&w.layout&&Array.isArray(w.eligible))).toBe(true);
+   expect(report.weeks.every(w=>w.phase&&Array.isArray(w.eligible))).toBe(true);
+   for(const week of report.weeks) {
+    if(week.quota)expect(week.layout).toBeDefined();
+    else expect(report.issues).toContainEqual({week:week.week,code:'deterministic_quota_not_available',severity:'warning'});
+   }
    expect(fetch).not.toHaveBeenCalled();
    const out=process.env.TFCL_PREFLIGHT_OUTPUT;
    if(out){mkdirSync(out,{recursive:true});writeFileSync(`${out}/prevalidation.json`,JSON.stringify({fixture:process.env.TFCL_PREFLIGHT_FIXTURE??'B-10K',objective:fixture.planConfig.objective,ambition:fixture.planConfig.ambition,level:fixture.planConfig.ambitionMeta?.trainingLevel,weeks:fixture.planConfig.weeksAvailable,report},null,2));}
