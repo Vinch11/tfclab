@@ -150,7 +150,7 @@
           "startedAt": 1793137764410
         }
       },
-      "revisionReason": "Hypothèse nouvelle : conserver le comptage physique en retirant le brick nominal d'affûtage et utiliser les dates réelles des compétitions intermédiaires.",
+      "revisionReason": "Hypoth\u00e8se nouvelle : conserver le comptage physique en retirant le brick nominal d'aff\u00fbtage et utiliser les dates r\u00e9elles des comp\u00e9titions interm\u00e9diaires.",
       "history": [
         {
           "attempt": 1,
@@ -253,7 +253,7 @@
           "startedAt": 1793138864374
         }
       },
-      "revisionReason": "Dernière hypothèse logicielle : borne minimale d'affectation distincte des fiches par rôle ; la borne précédente réutilisait fictivement une même fiche peu coûteuse. Validation ciblée après la suite globale, sans changement de production.",
+      "revisionReason": "Derni\u00e8re hypoth\u00e8se logicielle : borne minimale d'affectation distincte des fiches par r\u00f4le ; la borne pr\u00e9c\u00e9dente r\u00e9utilisait fictivement une m\u00eame fiche peu co\u00fbteuse. Validation cibl\u00e9e apr\u00e8s la suite globale, sans changement de production.",
       "history": [
         {
           "attempt": 1,
@@ -466,7 +466,7 @@
           "startedAt": 1793138376921
         }
       },
-      "revisionReason": "Correction logicielle du diagnostic : utiliser les métadonnées complètes du catalogue pour les témoins de domaine, et non la projection résumée du prévalidateur. La première classification est conservée mais remplacée.",
+      "revisionReason": "Correction logicielle du diagnostic : utiliser les m\u00e9tadonn\u00e9es compl\u00e8tes du catalogue pour les t\u00e9moins de domaine, et non la projection r\u00e9sum\u00e9e du pr\u00e9validateur. La premi\u00e8re classification est conserv\u00e9e mais remplac\u00e9e.",
       "history": [
         {
           "attempt": 1,
@@ -687,16 +687,22 @@
       "id": "publication",
       "startedAt": 1793139116115,
       "attempts": 1,
-      "status": "running"
+      "status": "passed",
+      "completedAt": 1793139222164,
+      "proof": {
+        "ok": true,
+        "draft": true,
+        "merged": false,
+        "head": "7c4249266e669aa41b4c13082e899b554a136f55",
+        "url": "https://github.com/Vinch11/tfclab/pull/420",
+        "scope": "Verified draft publication checkpoint; final closure commit contains only state and evidence manifests"
+      }
     }
   ],
-  "activeUnit": {
-    "id": "publication",
-    "startedAt": 1793139116115
-  },
-  "status": "running",
+  "activeUnit": null,
+  "status": "completed_no_go",
   "paidApiCalls": 0,
-  "elapsedSeconds": 3312.8742649555206,
+  "elapsedSeconds": 3418.9592649936676,
   "archivedOutputs": {
     "/tmp/det-v4-audit": "docs/det-engine/v4/evidence/audit",
     "/tmp/det-v4-progression": "docs/det-engine/v4/evidence/progression",
@@ -720,5 +726,8 @@
     "Fractional session durations rejected by unchanged schema; integer doses fixed within original ranges",
     "First reference domain witnesses used summarized metadata; superseded by full-metadata replay",
     "Process timeout rejected before spawn when remaining milliseconds became fractional; reservation resumed without resetting attempts or deadline"
-  ]
+  ],
+  "stopReason": "ten_named_work_units_completed",
+  "closedAt": 1793139222.1964543,
+  "elapsedMinutesAtClosure": 56.98319532076518
 }
