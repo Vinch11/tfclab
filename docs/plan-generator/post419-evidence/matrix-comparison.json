@@ -1,0 +1,729 @@
+{
+  "referenceCommit": "3a2ba77a71b8177dc1ed841c488cd79b55f3eeb6",
+  "cases": 600,
+  "beforeStatus": {
+    "coach_review": 441,
+    "admissible": 101,
+    "blocked": 58
+  },
+  "afterStatus": {
+    "coach_review": 465,
+    "admissible": 77,
+    "blocked": 58
+  },
+  "historicalRefusals": 58,
+  "allHistoricalRefusalsRetained": true,
+  "newBlockingConfigurations": [],
+  "removedBlockingConfigurations": [],
+  "changedContracts": {
+    "quota": 0,
+    "phase": 0,
+    "weekType": 0,
+    "volumeBudget": 0,
+    "limiterPriorities": 0,
+    "eligible": 0
+  },
+  "additionalIssueCounts": {
+    "decision_matrix_not_supported": 120
+  },
+  "statusChanges": [
+    {
+      "id": "5K:untrained:finisher:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:untrained:age_group:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:untrained:competitor:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:untrained:elite:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:untrained:world_class:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:light:finisher:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:light:age_group:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:light:competitor:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:light:elite:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:light:world_class:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:trained:finisher:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:trained:age_group:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:highly_trained:finisher:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "5K:highly_trained:age_group:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:trained:finisher:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:trained:age_group:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:trained:competitor:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:trained:elite:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:trained:world_class:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:highly_trained:finisher:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:highly_trained:age_group:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:highly_trained:competitor:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:highly_trained:elite:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    },
+    {
+      "id": "StartToRun:highly_trained:world_class:known_synthetic",
+      "before": "admissible",
+      "after": "coach_review"
+    }
+  ],
+  "unknownLoadWarningsBefore": 310,
+  "unknownLoadWarningsAfter": 310,
+  "diversityWarningsBefore": 14,
+  "diversityWarningsAfter": 14,
+  "familyAmbition": [
+    {
+      "objective": "703",
+      "requestedAmbition": "finisher",
+      "coach_review": 15,
+      "admissible": 1,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "703",
+      "requestedAmbition": "age_group",
+      "coach_review": 14,
+      "admissible": 2,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "703",
+      "requestedAmbition": "competitor",
+      "coach_review": 14,
+      "admissible": 1,
+      "blocked": 1,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "703",
+      "requestedAmbition": "elite",
+      "coach_review": 16,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "703",
+      "requestedAmbition": "world_class",
+      "coach_review": 13,
+      "admissible": 1,
+      "blocked": 2,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "IM",
+      "requestedAmbition": "finisher",
+      "coach_review": 16,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "IM",
+      "requestedAmbition": "age_group",
+      "coach_review": 16,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "IM",
+      "requestedAmbition": "competitor",
+      "coach_review": 15,
+      "blocked": 1,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "IM",
+      "requestedAmbition": "elite",
+      "coach_review": 14,
+      "blocked": 2,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "IM",
+      "requestedAmbition": "world_class",
+      "coach_review": 14,
+      "blocked": 2,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Sprint",
+      "requestedAmbition": "finisher",
+      "coach_review": 4,
+      "admissible": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Sprint",
+      "requestedAmbition": "age_group",
+      "coach_review": 5,
+      "admissible": 3,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Sprint",
+      "requestedAmbition": "competitor",
+      "coach_review": 4,
+      "admissible": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Sprint",
+      "requestedAmbition": "elite",
+      "coach_review": 5,
+      "admissible": 3,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Sprint",
+      "requestedAmbition": "world_class",
+      "coach_review": 5,
+      "admissible": 3,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Olympic",
+      "requestedAmbition": "finisher",
+      "coach_review": 5,
+      "admissible": 3,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Olympic",
+      "requestedAmbition": "age_group",
+      "coach_review": 6,
+      "admissible": 2,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Olympic",
+      "requestedAmbition": "competitor",
+      "coach_review": 6,
+      "admissible": 2,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Olympic",
+      "requestedAmbition": "elite",
+      "coach_review": 4,
+      "admissible": 3,
+      "blocked": 1,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Olympic",
+      "requestedAmbition": "world_class",
+      "coach_review": 4,
+      "admissible": 3,
+      "blocked": 1,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Marathon",
+      "requestedAmbition": "finisher",
+      "coach_review": 4,
+      "admissible": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Marathon",
+      "requestedAmbition": "age_group",
+      "coach_review": 4,
+      "admissible": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Marathon",
+      "requestedAmbition": "competitor",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Marathon",
+      "requestedAmbition": "elite",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Marathon",
+      "requestedAmbition": "world_class",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Semi",
+      "requestedAmbition": "finisher",
+      "coach_review": 4,
+      "admissible": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Semi",
+      "requestedAmbition": "age_group",
+      "coach_review": 4,
+      "admissible": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Semi",
+      "requestedAmbition": "competitor",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Semi",
+      "requestedAmbition": "elite",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Semi",
+      "requestedAmbition": "world_class",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "5K",
+      "requestedAmbition": "finisher",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "5K",
+      "requestedAmbition": "age_group",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "5K",
+      "requestedAmbition": "competitor",
+      "coach_review": 4,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "5K",
+      "requestedAmbition": "elite",
+      "coach_review": 4,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "5K",
+      "requestedAmbition": "world_class",
+      "coach_review": 4,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "10K",
+      "requestedAmbition": "finisher",
+      "coach_review": 4,
+      "admissible": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "10K",
+      "requestedAmbition": "age_group",
+      "coach_review": 4,
+      "admissible": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "10K",
+      "requestedAmbition": "competitor",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "10K",
+      "requestedAmbition": "elite",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "10K",
+      "requestedAmbition": "world_class",
+      "coach_review": 2,
+      "admissible": 2,
+      "blocked": 4,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "StartToRun",
+      "requestedAmbition": "finisher",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "StartToRun",
+      "requestedAmbition": "age_group",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "StartToRun",
+      "requestedAmbition": "competitor",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "StartToRun",
+      "requestedAmbition": "elite",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "StartToRun",
+      "requestedAmbition": "world_class",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Trail",
+      "requestedAmbition": "finisher",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Trail",
+      "requestedAmbition": "age_group",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Trail",
+      "requestedAmbition": "competitor",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Trail",
+      "requestedAmbition": "elite",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "Trail",
+      "requestedAmbition": "world_class",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailShort",
+      "requestedAmbition": "finisher",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailShort",
+      "requestedAmbition": "age_group",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailShort",
+      "requestedAmbition": "competitor",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailShort",
+      "requestedAmbition": "elite",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailShort",
+      "requestedAmbition": "world_class",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailMountain",
+      "requestedAmbition": "finisher",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailMountain",
+      "requestedAmbition": "age_group",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailMountain",
+      "requestedAmbition": "competitor",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailMountain",
+      "requestedAmbition": "elite",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailMountain",
+      "requestedAmbition": "world_class",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailUltra",
+      "requestedAmbition": "finisher",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailUltra",
+      "requestedAmbition": "age_group",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailUltra",
+      "requestedAmbition": "competitor",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailUltra",
+      "requestedAmbition": "elite",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    },
+    {
+      "objective": "TrailUltra",
+      "requestedAmbition": "world_class",
+      "coach_review": 8,
+      "scope": "offline_preparation_only",
+      "completeModelPlan": "not_attested",
+      "scientificValidation": "not_attested"
+    }
+  ],
+  "evidenceHashes": {
+    "before": "c30bb4c18f4edb6744fae2803293324c2e97ea06371a7e9c316f43dc2dd99c15",
+    "after": "ef003a3adea48c2d3bd462518be5d93f2173ef3edb4ef46698b7c1e62def96a6"
+  }
+}

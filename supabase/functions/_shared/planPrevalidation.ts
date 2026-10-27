@@ -4,6 +4,27 @@ import { catalogueForWeek, catalogueEligibility, executableCatalogueDurationRang
 import { catalogueTrainingMinimaForWeek, declaredDateWeek } from './catalogueTrainingMinima.ts';
 import { normalizeRepairSport, type RepairWorkoutMetadata } from './repairSportingEquivalence.ts';
 export interface PrevalidationIssue {week:number;code:string;severity:'blocking'|'warning';}
+
+/** Optional legacy context. Do not export exception messages or invent missing physiology. */
+export interface PrevalidationPhysiology {
+ physiologicalTrace?: {
+  diagnostic?: {executed?: boolean};
+  decision?: {executed?: boolean;source?: string;calculationIssues?: string[]};
+ };
+}
+export function prevalidatePhysiologicalContext(config: PrevalidationPhysiology): PrevalidationIssue[] {
+ const trace=config.physiologicalTrace;
+ if(!trace)return []; // Legacy callers: mechanical checks only, no claim of scientific validation.
+ const issues:PrevalidationIssue[]=[];
+ if(trace.diagnostic?.executed!==true)issues.push({week:0,code:'limiter_calculation_unavailable',severity:'blocking'});
+ if(trace.decision?.executed!==true || !['lorang','matrix','diagnostic_fallback'].includes(trace.decision?.source??''))issues.push({week:0,code:'physiological_strategy_unavailable',severity:'blocking'});
+ for(const code of trace.decision?.calculationIssues??[]) {
+  if(code==='decision_matrix_not_supported')issues.push({week:0,code,severity:'warning'});
+  else issues.push({week:0,code:code==='lorang_strategy_failed'||code==='decision_matrix_failed'?code:'physiological_strategy_failed',severity:'blocking'});
+ }
+ return issues;
+}
+
 export interface PrevalidationInputWeek {
  week:number;globalWeek:number;phase?:string;expectedPhase?:string;weekType?:string;objective?:string;
  quota?:MechanicalQuota;layout?:MechanicalLayout;catalog:RepairWorkoutMetadata[];

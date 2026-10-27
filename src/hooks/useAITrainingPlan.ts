@@ -634,7 +634,7 @@ export function prevalidateGenerationScope(athlete:PlanAthleteData,config:PlanCo
     const {config:local}=buildWindowRegenConfig({fromWeek:from,toWeek:to,currentPlan,athleteData:athlete,baseConfig:config,cycle});
     return {from,report:prevalidateTrainingPlan(athlete,{...local,volumeRamp:config.volumeRamp},options).report};
   });
-  const issues=reports.flatMap(({from,report})=>report.issues.map(issue=>({...issue,week:from+issue.week-1})));
+  const issues=reports.flatMap(({from,report})=>report.issues.map(issue=>({...issue,week:issue.week===0?0:from+issue.week-1})));
   return withPrevalidationIssues({status:issues.some(i=>i.severity==="blocking")?"blocked":issues.length?"coach_review":"admissible",issues,
     weeks:reports.flatMap(({from,report})=>report.weeks.map(w=>({...w,cycleWeek:w.globalWeek,globalWeek:from+w.week-1,week:from+w.week-1}))),limiterPriorities:[...(config.identifiedLimitersRaw??[])]} as PlanPrevalidation,prevalidateDeclaredCalendar(config,totalWeeks));
 }
@@ -696,7 +696,7 @@ export function useAITrainingPlan() {
   const previewPlan = useCallback(async(athlete:PlanAthleteData,config:PlanConfig)=>{
     let report:PlanPrevalidation;
     try { report=prevalidateGenerationScope(athlete,config,await resolvePlanningOptions(athlete,config)); }
-    catch { report={status:"blocked",issues:[{week:0,code:"prevalidation_input_invalid",severity:"blocking"}],weeks:[]}; }
+    catch (error) { report={status:"blocked",issues:[{week:0,code:error instanceof Error&&error.message==="PREVALIDATION_INVALID_DURATION"?"prevalidation_duration_invalid":"prevalidation_input_invalid",severity:"blocking"}],weeks:[]}; }
     if(planningSnapshotRef.current?.key===JSON.stringify({athlete,config}))setPrevalidation(report);
     return report;
   },[resolvePlanningOptions]);
@@ -1513,7 +1513,9 @@ export function useAITrainingPlan() {
           || /load failed|failed to fetch|network|networkerror/i.test(rawMsg);
         const msg = isNetwork
           ? "connexion interrompue avec le service IA (réseau ou délai dépassé). Réessayez — si le Wi-Fi est instable, restez sur la page pendant la génération."
-          : rawMsg;
+          : rawMsg.startsWith("PLAN_PREVALIDATION_BLOCKED:")
+            ? "prévalidation bloquante : vérifiez les paramètres et les contrôles affichés avant de réessayer."
+            : rawMsg;
         toast.error(`Impossible de générer le plan : ${msg}`);
       }
 

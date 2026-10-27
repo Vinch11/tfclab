@@ -18,6 +18,7 @@
 
 import { getTargetsForAmbition, getVLamaxRange, normalizeObjective as normalizePhysiologicalObjective, type ObjectiveTargets } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import { METHOD_VERSION_DISPLAY } from "./scientificGovernance";
 import { detectUnifiedLimiter, type UnifiedLimiterResult, LIMITER_INFO, type AerobicWeaknessDetail, getVo2maxTarget } from "./unifiedLimiterDetection";
 
@@ -291,25 +292,17 @@ const DECISION_CASE_INFO: Record<DecisionCase, { label: string; condition: strin
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-function normalizeObjective(obj: string): TFCLObjective {
-  const aliases: Record<string, TFCLObjective> = {
-    "Ironman": "IM",
-    "ironman": "IM",
-    "im": "IM",
-    "70.3": "703",
-    "Half": "703",
-    "half": "703",
-    "marathon": "Marathon",
-    "semi": "Semi",
-    "Semi-Marathon": "Semi",
-    "10km": "10km",
-    "trail": "Trail",
-    "ultra": "Ultra",
-    "sprint": "Sprint",
-    "olympic": "Olympic",
-    "olympique": "Olympic",
-  };
-  return (aliases[obj] || obj) as TFCLObjective;
+/** Resolve aliases only when a matrix already exists. Never borrow another sport's targets. */
+export function resolveTFCLMatrixObjective(obj: string): TFCLObjective | null {
+  // These objectives have their own physiological targets but no dedicated matrix.
+  if (["5K", "StartToRun", "TrailMountain", "TrailLong"].includes(normalizePhysiologicalObjective(obj.trim()))) return null;
+  const key = normalizeObjectiveKey(obj.trim());
+  const canonical = key === "10K" ? "10km"
+    : key === "TrailShort" ? "Trail"
+    : key === "TrailUltra" ? "Ultra"
+    : /^(half)$/i.test(key) ? "703" : key;
+  return Object.prototype.hasOwnProperty.call(FATMAX_TARGETS, canonical) && Object.prototype.hasOwnProperty.call(DOMAIN_WEIGHTS, canonical)
+    ? canonical as TFCLObjective : null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -692,7 +685,8 @@ const METRIC_INFO: Record<LimitingFactorDomain, { name: string; unit: string }> 
 };
 
 export function computeTFCLDecisionMatrix(input: TFCLDecisionInput): TFCLDecisionResult {
-  const objective = normalizeObjective(input.objective);
+  const objective = resolveTFCLMatrixObjective(input.objective);
+  if (!objective) throw new Error("TFCL_MATRIX_OBJECTIVE_UNSUPPORTED");
   const weights = DOMAIN_WEIGHTS[objective] || DOMAIN_WEIGHTS["703"];
   const confidence = input.confidenceScore;
   

@@ -37,6 +37,7 @@ export interface TrainingPlanPhysiologicalTrace {
   decision: {
     executed: boolean;
     source: "lorang" | "matrix" | "diagnostic_fallback" | "unavailable";
+    calculationIssues?: TrainingPrescription["strategy"]["calculationIssues"];
     confidence: "high" | "moderate" | "low" | "unknown";
     primaryAction: string | null;
     levers: Array<{
@@ -156,6 +157,7 @@ function buildTrace(
     decision: {
       executed: true,
       source: strategySource,
+      calculationIssues: [...(decision.strategy.calculationIssues ?? [])],
       confidence: decision.strategy.confidence ?? "unknown",
       primaryAction: decision.strategy.primaryAction || null,
       levers: [...decision.strategy.levers]

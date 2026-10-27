@@ -56,3 +56,26 @@ Deno.test('the sliced calendar retains the existing VO2max foundation restrictio
  assert(prompt.includes('SANS VO2max — réservé au Bloc Chantier dédié'));
  assert(prompt.includes('Bloc Chantier [VO2max↓] puis Consolidation [FatMax]'));
 });
+
+Deno.test('physiological failures transported to the server block before any gateway call, even without quota payload',async()=>{
+ const previous=globalThis.fetch;let calls=0;
+ globalThis.fetch=(()=>{calls++;throw Error('OFFLINE_GATEWAY_FORBIDDEN');}) as typeof fetch;
+ try{
+  for(const calculationIssues of [['decision_matrix_failed'],['lorang_strategy_failed']]) {
+   const planConfig={objective:'10K',weeksAvailable:12,physiologicalTrace:{diagnostic:{executed:true},decision:{executed:true,source:'lorang',calculationIssues}}};
+   const report=prevalidateTransport(planConfig);
+   assertEquals(report.status,'blocked');assert(report.issues.some(i=>i.code===calculationIssues[0]&&i.severity==='blocking'));
+   const response=handleJSONPlanRequest({apiKey:'mock-key',athleteData:{},planConfig,corsHeaders:{}});
+   assert((await response.text()).includes('PLAN_PREVALIDATION_BLOCKED'));
+  }
+  assertEquals(calls,0);
+ }finally{globalThis.fetch=previous;}
+});
+Deno.test('lack of a complementary matrix remains a review; an explicit primary limiter failure remains blocking',()=>{
+ const trace={diagnostic:{executed:true},decision:{executed:true,source:'lorang',calculationIssues:['decision_matrix_not_supported']}};
+ const config={objective:'5K',weeksAvailable:12,physiologicalTrace:trace};
+ const review=prevalidateTransport(config);
+ assert(review.status!=='blocked');assert(review.issues.some(i=>i.code==='decision_matrix_not_supported'&&i.severity==='warning'));
+ const blocked=prevalidateTransport({...config,physiologicalTrace:{...trace,diagnostic:{executed:false}}});
+ assertEquals(blocked.status,'blocked');assert(blocked.issues.some(i=>i.code==='limiter_calculation_unavailable'));
+});

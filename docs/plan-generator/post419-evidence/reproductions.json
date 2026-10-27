@@ -1,0 +1,59 @@
+{
+  "referenceCommit": "3a2ba77a71b8177dc1ed841c488cd79b55f3eeb6",
+  "runtimeAttribution": "unconfirmed_without_real_stack_or_payload",
+  "before": {
+    "suites": [
+      "tfclDecisionMatrix.objectiveAliases.test.ts",
+      "prevalidation.physiologicalFailure.test.ts"
+    ],
+    "failed": 13,
+    "passed": 2,
+    "reproducedException": "TypeError: Cannot read properties of undefined (reading 'optimal')",
+    "firstFrame": "normalizeFatMax, src/lib/v2/tfclDecisionMatrix.ts:430",
+    "secondFrame": "computeTFCLDecisionMatrix, src/lib/v2/tfclDecisionMatrix.ts:725",
+    "uiBefore": {
+      "failed": 1,
+      "passed": 2
+    }
+  },
+  "after": {
+    "targetedSuites": 6,
+    "targetedTestsPassed": 32,
+    "denoMainPassed": 355,
+    "denoTestPassed": 351,
+    "typescript": "passed",
+    "lintHeadErrors": 8,
+    "lintBaselineErrors": 8,
+    "lovableBuildTestsPassed": 5
+  },
+  "syntheticTriathlon": {
+    "fixtureId": "703:light:competitor:unknown",
+    "weeks": 16,
+    "level": "light",
+    "requestedAmbition": "competitor",
+    "effectiveAmbition": "age_group",
+    "swimExplicitlyBanned": true,
+    "firstWeekRawMinima": {
+      "swim": 0,
+      "bike": 4,
+      "run": 4,
+      "brick": 2,
+      "strength": 1
+    },
+    "quotaChangesMade": false
+  },
+  "intermediateEventContract": {
+    "objective": "10K",
+    "startDate": "2026-10-26",
+    "eventB": "2026-12-19",
+    "priority": "B",
+    "week": 8,
+    "day": "samedi",
+    "finalEvent": "2027-01-17",
+    "fullPreparation": "passed",
+    "windowAndTransport": "passed",
+    "actualLovablePayload": "not_available"
+  },
+  "paidModelCalls": 0,
+  "productionChanges": 0
+}
