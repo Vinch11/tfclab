@@ -16,6 +16,7 @@ export interface RepairRecord {attempt:number;defect:string[];rule:string;action
  before:{id:string|null|undefined;duration:number|undefined};after:{id:string;duration:number};
  changedFields:string[];proposalKey?:string;beforeCritical:Record<string,number>;afterCritical:Record<string,number>;accepted:boolean;reason:string;controls:string[];}
 export interface RepairBudget {maxAttempts:number;maxAccepted:number;}
+export type RepairGuard=(beforeIssues:EngineResult['issues'],afterIssues:EngineResult['issues'],beforePlan:ParsedPlan,afterPlan:ParsedPlan)=>{accepted:boolean;reason:string};
 export type V2Result=EngineResult & {version:'det-v2';repairs:RepairRecord[];effectiveAmbition:string|undefined;
  physiologicalContext:PlanConfig['physiologicalTrace'];coverage:ReturnType<typeof validationCoverage>};
 const BY_ID=new Map(WorkoutLibrary.map(w=>[w.id,w]));
@@ -31,7 +32,7 @@ export function contextualizeResult(raw:EngineResult,athlete:PlanAthleteData,con
  version:'det-v2',repairs:[],effectiveAmbition:config.ambition,physiologicalContext:config.physiologicalTrace,coverage:validationCoverage(candidate,config)};
 }
 export function repairDeterministicCandidate(initial:V2Result,athlete:PlanAthleteData,config:PlanConfig,
- budget:RepairBudget={maxAttempts:48,maxAccepted:6}):V2Result{
+ budget:RepairBudget={maxAttempts:48,maxAccepted:6},guard?:RepairGuard):V2Result{
  if(!initial.candidate)return initial;
  if(!Number.isInteger(budget.maxAttempts)||budget.maxAttempts<=0||budget.maxAttempts>256||!Number.isInteger(budget.maxAccepted)||budget.maxAccepted<=0||budget.maxAccepted>12)return {...structuredClone(initial),issues:[...initial.issues,{code:'invalid_repair_budget',severity:'warning'}]};
  const result=structuredClone(initial),plan=result.candidate!;
@@ -76,13 +77,15 @@ export function repairDeterministicCandidate(initial:V2Result,athlete:PlanAthlet
     const contract=checkSessionCatalogue(proposal,{...context,catalog:metadata});if(contract.errors.length||contract.unknown.length)continue;
     const key=proposalKey(week.weekNumber,index,old,m.id,duration,criticalCounts(result.issues));
     if(rejected.has(key))continue; // The same plan/error state has already falsified this exact proposal.
+    const beforePlan=guard?structuredClone(plan):undefined;
     week.sessions[index]=proposal;
     const nextIssues=[...result.issues.filter(i=>i.message===undefined),...validateExperimentalCandidate(plan,athlete,config)];
-    const improves=countCritical(nextIssues)<countCritical(result.issues)&&noNewCritical(result.issues,nextIssues);
+    const quality=guard?.(result.issues,nextIssues,beforePlan!,plan);
+    const improves=countCritical(nextIssues)<countCritical(result.issues)&&noNewCritical(result.issues,nextIssues)&&quality?.accepted!==false;
     result.repairs.push({attempt:result.repairs.length+1,defect:[...new Set(defects.map(i=>i.code))],rule:'existing_compatibility_and_full_validation',
      action:reduce?'catalogue_replacement_with_explicit_load_reduction':'sporting_equivalent_catalogue_replacement',week:week.weekNumber,session:index,
      before:{id:old.catalogId,duration:old.durationMin},after:{id:m.id,duration},changedFields:['catalogId','title','details','durationMin','zones','variantKey'].filter(key=>JSON.stringify(old[key as keyof ParsedSession])!==JSON.stringify(proposal[key as keyof ParsedSession])),beforeCritical:criticalCounts(result.issues),afterCritical:criticalCounts(nextIssues),
-     proposalKey:key,accepted:improves,reason:improves?'fewer_errors_no_new_critical_per_rule_and_week':'rejected_no_strict_improvement_or_new_critical',controls:initial.coverage.executedControls});
+     proposalKey:key,accepted:improves,reason:improves?'fewer_errors_no_new_critical_per_rule_and_week':quality?.accepted===false?quality.reason:'rejected_no_strict_improvement_or_new_critical',controls:initial.coverage.executedControls});
     if(improves){result.issues=nextIssues;accepted++;break;}
     rejected.add(key);week.sessions[index]=old;
    }

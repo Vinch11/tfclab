@@ -13,6 +13,10 @@ import { normalizeRepairSport, evaluateRepairSportingEquivalence } from '../../s
 import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
+export interface ExperimentalAssemblyContract {
+  id:string;
+  adapt:(preparation:ReturnType<typeof prepareGenerationContracts>,config:PlanConfig)=>void;
+}
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
   status:'refused'|'candidate'; reason?:string; technicallyConstructed:boolean;
@@ -23,7 +27,7 @@ export interface EngineResult {
 }
 const DEFAULT_LIMITS:SearchLimits={maxNodes:20000,maxMilliseconds:5000};
 /** All limits are hard caps; an exhausted search is not a proof of infeasibility. */
-export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanConfig,limits:SearchLimits=DEFAULT_LIMITS):EngineResult {
+export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanConfig,limits:SearchLimits=DEFAULT_LIMITS,experimentalContract?:ExperimentalAssemblyContract):EngineResult {
   const result:EngineResult={status:'refused',technicallyConstructed:false,constraintsSatisfied:false,
     sportingRelevance:'not_attested',humanReviewRequired:true,trace:[],nodes:0,issues:[],
     limiterPriorities:[...(config.identifiedLimitersRaw??[])]};
@@ -37,8 +41,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     result.issues.push({code:'static_template_individualization_not_attested',severity:'warning'});
   } else {
     const preparation=prepareGenerationContracts(athlete,config,{rotationSeed:0});
+    experimentalContract?.adapt(preparation,config);
     const report=assessPreparedGeneration(config,preparation);
     result.issues=report.issues.map(i=>({...i}));
+    if(experimentalContract)result.issues.push({code:'experimental_contract_requires_review',severity:'warning'});
     if(report.status==='blocked')return refuse('existing_prevalidation_blocked');
     if(report.weeks.some(w=>!preparation.weeklyQuotas[w.week]?.layout))return refuse('dedicated_route_without_deterministic_quota');
     const plan:ParsedPlan={title:`Plan TFCL™ — ${config.objective} ${athlete.nom??"Profil synthétique"} — ${config.weeksAvailable} semaines`,phases:[],weeks:[],totalWeeks:config.weeksAvailable,weeklyQuotas:preparation.weeklyQuotas};
