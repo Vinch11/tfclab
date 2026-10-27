@@ -1,0 +1,5 @@
+experimental/det-engine/v5-taper.test.ts(2,101): error TS2352: Conversion of type '{ 1: { weekType: "load"; }; 2: { weekType: string; }; }' to type 'Record<number, WeekQuotaEntry>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property '1' is incompatible with index signature.
+    Type '{ weekType: "load"; }' is missing the following properties from type 'WeekQuotaEntry': quota, floors, downgraded
+experimental/det-engine/v5-taper.test.ts(2,229): error TS2739: Type '{ dayName: string; dayIndex: number; sport: string; title: string; details: string; durationMin: number; isRest: false; zones: string[]; }' is missing the following properties from type 'ParsedSession': weekNumber, weekTheme, phase
+experimental/det-engine/v5-taper.test.ts(2,389): error TS2739: Type '{ dayName: string; dayIndex: number; sport: string; title: string; details: string; durationMin: number; isRest: false; zones: string[]; }' is missing the following properties from type 'ParsedSession': weekNumber, weekTheme, phase

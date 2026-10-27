@@ -1,0 +1,1991 @@
+{
+  "retention": {
+    "retainedBuilt": 15,
+    "acceptedStructuralCorrections": 2
+  },
+  "cohort": "unchanged_12_explicit_V4_synthetic_fixtures",
+  "cases": 36,
+  "built": 8,
+  "technicalValid": 8,
+  "withoutBlockingExecutedSportControls": 0,
+  "expertReviewed": 0,
+  "exactReplay": 36,
+  "issues": [
+    [
+      "key_sessions:warning",
+      18
+    ],
+    [
+      "sport_ratio:error",
+      8
+    ],
+    [
+      "phase_coherence:warning",
+      24
+    ],
+    [
+      "phase_coherence:info",
+      8
+    ],
+    [
+      "lorang_categories:error",
+      38
+    ],
+    [
+      "trail_dplus_presence:warning",
+      8
+    ],
+    [
+      "anti_repetition:warning",
+      10
+    ],
+    [
+      "key_session_self_declaration_mismatch:warning",
+      17
+    ],
+    [
+      "key_sessions:error",
+      10
+    ],
+    [
+      "key_sessions_per_sport:error",
+      10
+    ],
+    [
+      "trail_back_to_back:warning",
+      2
+    ]
+  ],
+  "byObjective": [
+    {
+      "objective": "TrailShort",
+      "built": 2,
+      "withoutBlocking": 0
+    },
+    {
+      "objective": "TrailMountain",
+      "built": 6,
+      "withoutBlocking": 0
+    },
+    {
+      "objective": "TrailUltra",
+      "built": 0,
+      "withoutBlocking": 0
+    }
+  ],
+  "refusals": [
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "separated_exposure",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 5,
+          "role": "long",
+          "sport": "run"
+        },
+        "remainingMinutes": 80,
+        "maxMinutes": 168,
+        "partialWeeks": 0,
+        "remainingDomainSizes": []
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "specific_back_to_back",
+      "reason": "synthetic_coach_has_not_authorized_back_to_back",
+      "evidence": {
+        "weeklyMinutes": 240,
+        "longStart": 60,
+        "longPeak": 90,
+        "runDays": [
+          1,
+          3,
+          5
+        ],
+        "strengthDay": 2,
+        "maxMainZone": 2,
+        "backToBack": false
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "conservative_taper",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 5,
+          "role": "long",
+          "sport": "run"
+        },
+        "remainingMinutes": 80,
+        "maxMinutes": 168,
+        "partialWeeks": 0,
+        "remainingDomainSizes": []
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "separated_exposure",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 5,
+          "role": "long",
+          "sport": "run"
+        },
+        "remainingMinutes": 80,
+        "maxMinutes": 168,
+        "partialWeeks": 0,
+        "remainingDomainSizes": []
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "specific_back_to_back",
+      "reason": "synthetic_coach_has_not_authorized_back_to_back",
+      "evidence": {
+        "weeklyMinutes": 360,
+        "longStart": 80,
+        "longPeak": 150,
+        "runDays": [
+          1,
+          3,
+          5
+        ],
+        "strengthDay": 2,
+        "maxMainZone": 2,
+        "backToBack": false
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "conservative_taper",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 5,
+          "role": "long",
+          "sport": "run"
+        },
+        "remainingMinutes": 80,
+        "maxMinutes": 168,
+        "partialWeeks": 0,
+        "remainingDomainSizes": []
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:trained",
+      "model": "separated_exposure",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 5,
+          "role": "long",
+          "sport": "run"
+        },
+        "remainingMinutes": 105,
+        "maxMinutes": 252,
+        "partialWeeks": 0,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 6,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "D_TR_RECOVERY_SOFT_30",
+              "C_TR_DESC_TECH_PRO",
+              "C_TR50_TECH_APPUIS",
+              "A_TR_SL_MONTAGNE_BASE",
+              "D_TR_WALK_REGEN",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:trained",
+      "model": "specific_back_to_back",
+      "reason": "synthetic_coach_has_not_authorized_back_to_back",
+      "evidence": {
+        "weeklyMinutes": 600,
+        "longStart": 120,
+        "longPeak": 240,
+        "runDays": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "strengthDay": 2,
+        "maxMainZone": 4,
+        "backToBack": false
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:trained",
+      "model": "conservative_taper",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 5,
+          "role": "long",
+          "sport": "run"
+        },
+        "remainingMinutes": 105,
+        "maxMinutes": 252,
+        "partialWeeks": 0,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 6,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "D_TR_RECOVERY_SOFT_30",
+              "C_TR_DESC_TECH_PRO",
+              "C_TR50_TECH_APPUIS",
+              "A_TR_SL_MONTAGNE_BASE",
+              "D_TR_WALK_REGEN",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+      "model": "specific_back_to_back",
+      "reason": "synthetic_coach_has_not_authorized_back_to_back",
+      "evidence": {
+        "weeklyMinutes": 840,
+        "longStart": 150,
+        "longPeak": 330,
+        "runDays": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "strengthDay": 2,
+        "maxMainZone": 4,
+        "backToBack": false
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "separated_exposure",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 7,
+        "phase": "build",
+        "type": "load",
+        "role": {
+          "day": 5,
+          "role": "long",
+          "sport": "run"
+        },
+        "remainingMinutes": 85,
+        "maxMinutes": 240,
+        "partialWeeks": 6,
+        "remainingDomainSizes": []
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "specific_back_to_back",
+      "reason": "synthetic_coach_has_not_authorized_back_to_back",
+      "evidence": {
+        "weeklyMinutes": 240,
+        "longStart": 60,
+        "longPeak": 90,
+        "runDays": [
+          1,
+          3,
+          5
+        ],
+        "strengthDay": 2,
+        "maxMainZone": 2,
+        "backToBack": false
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "conservative_taper",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 7,
+        "phase": "build",
+        "type": "load",
+        "role": {
+          "day": 5,
+          "role": "long",
+          "sport": "run"
+        },
+        "remainingMinutes": 85,
+        "maxMinutes": 240,
+        "partialWeeks": 6,
+        "remainingDomainSizes": []
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:light",
+      "model": "specific_back_to_back",
+      "reason": "synthetic_coach_has_not_authorized_back_to_back",
+      "evidence": {
+        "weeklyMinutes": 360,
+        "longStart": 80,
+        "longPeak": 150,
+        "runDays": [
+          1,
+          3,
+          5
+        ],
+        "strengthDay": 2,
+        "maxMainZone": 2,
+        "backToBack": false
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:trained",
+      "model": "specific_back_to_back",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "easy",
+          "sport": "run"
+        },
+        "remainingMinutes": 360,
+        "maxMinutes": 360,
+        "partialWeeks": 0,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_ECC_QUAD_PRO",
+              "A_STR_AERO_STRENGTH",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_STR_CIRCUIT_CARDIO_RUN",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE",
+              "A_STR_ENDURANCE_CIRCUIT"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "D_TR_RECOVERY_SOFT_30",
+              "A_TR_EF_SENTIER",
+              "C_TR_DESC_TECH_PRO",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "C_TR50_TECH_APPUIS",
+              "A_TR_EF_VALLON",
+              "A_TR_SL_MONTAGNE_BASE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "D_TR_WALK_REGEN",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "A_TR_SL_MONTAGNE_BASE",
+              "EXPE_HORS_VILLE_FORET_PERIURBAINE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE"
+            ]
+          },
+          {
+            "role": {
+              "day": 6,
+              "role": "b2b_second",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+      "model": "specific_back_to_back",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "easy",
+          "sport": "run"
+        },
+        "remainingMinutes": 480,
+        "maxMinutes": 480,
+        "partialWeeks": 0,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_ECC_QUAD_PRO",
+              "A_STR_AERO_STRENGTH",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_STR_CIRCUIT_CARDIO_RUN",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE",
+              "A_STR_ENDURANCE_CIRCUIT"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "D_TR_RECOVERY_SOFT_30",
+              "A_TR_EF_SENTIER",
+              "C_TR_DESC_TECH_PRO",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "C_TR50_TECH_APPUIS",
+              "A_TR_EF_VALLON",
+              "A_TR_SL_MONTAGNE_BASE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "D_TR_WALK_REGEN",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "A_TR_SL_MONTAGNE_BASE",
+              "EXPE_HORS_VILLE_FORET_PERIURBAINE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE"
+            ]
+          },
+          {
+            "role": {
+              "day": 6,
+              "role": "b2b_second",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:untrained",
+      "model": "separated_exposure",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "easy",
+          "sport": "run"
+        },
+        "remainingMinutes": 240,
+        "maxMinutes": 240,
+        "partialWeeks": 0,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "A_STR_AERO_STRENGTH",
+              "C_TR_STRENGTH_HILLS_V29",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "A_TR_SL_MONTAGNE_BASE",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "A_TR_EF_SENTIER",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:untrained",
+      "model": "specific_back_to_back",
+      "reason": "synthetic_coach_has_not_authorized_back_to_back",
+      "evidence": {
+        "weeklyMinutes": 240,
+        "longStart": 60,
+        "longPeak": 90,
+        "runDays": [
+          1,
+          3,
+          5
+        ],
+        "strengthDay": 2,
+        "maxMainZone": 2,
+        "backToBack": false
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:untrained",
+      "model": "conservative_taper",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "easy",
+          "sport": "run"
+        },
+        "remainingMinutes": 240,
+        "maxMinutes": 240,
+        "partialWeeks": 0,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "A_STR_AERO_STRENGTH",
+              "C_TR_STRENGTH_HILLS_V29",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "A_TR_SL_MONTAGNE_BASE",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "A_TR_EF_SENTIER",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:light",
+      "model": "separated_exposure",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 6,
+        "phase": "build",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "easy",
+          "sport": "run"
+        },
+        "remainingMinutes": 297,
+        "maxMinutes": 297,
+        "partialWeeks": 5,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "C_TR_STRENGTH_HILLS",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "C_TR50_TECH_APPUIS",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:light",
+      "model": "specific_back_to_back",
+      "reason": "synthetic_coach_has_not_authorized_back_to_back",
+      "evidence": {
+        "weeklyMinutes": 360,
+        "longStart": 80,
+        "longPeak": 150,
+        "runDays": [
+          1,
+          3,
+          5
+        ],
+        "strengthDay": 2,
+        "maxMainZone": 2,
+        "backToBack": false
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:light",
+      "model": "conservative_taper",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 6,
+        "phase": "build",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "easy",
+          "sport": "run"
+        },
+        "remainingMinutes": 297,
+        "maxMinutes": 297,
+        "partialWeeks": 5,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "C_TR_STRENGTH_HILLS",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "C_TR50_TECH_APPUIS",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:trained",
+      "model": "separated_exposure",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 5,
+        "phase": "build",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "ascent",
+          "sport": "run"
+        },
+        "remainingMinutes": 380,
+        "maxMinutes": 380,
+        "partialWeeks": 4,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_CIRCUIT_CARDIO_RUN",
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "C_TR_STRENGTH_HILLS",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE",
+              "B_STR_POWER_ENDURANCE",
+              "A_STR_ENDURANCE_CIRCUIT"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_SL_ULTRA_BUILD",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          },
+          {
+            "role": {
+              "day": 6,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_SL_ULTRA_BUILD",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:trained",
+      "model": "specific_back_to_back",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "easy",
+          "sport": "run"
+        },
+        "remainingMinutes": 468,
+        "maxMinutes": 468,
+        "partialWeeks": 0,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_CIRCUIT_CARDIO_RUN",
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "A_STR_AERO_STRENGTH",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE",
+              "A_STR_ENDURANCE_CIRCUIT"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "A_TR_SL_MONTAGNE_BASE",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "A_TR_SL_MONTAGNE_BASE"
+            ]
+          },
+          {
+            "role": {
+              "day": 6,
+              "role": "b2b_second",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:trained",
+      "model": "conservative_taper",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 5,
+        "phase": "build",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "ascent",
+          "sport": "run"
+        },
+        "remainingMinutes": 380,
+        "maxMinutes": 380,
+        "partialWeeks": 4,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_CIRCUIT_CARDIO_RUN",
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "C_TR_STRENGTH_HILLS",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE",
+              "B_STR_POWER_ENDURANCE",
+              "A_STR_ENDURANCE_CIRCUIT"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_SL_ULTRA_BUILD",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          },
+          {
+            "role": {
+              "day": 6,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_SL_ULTRA_BUILD",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+      "model": "separated_exposure",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 5,
+        "phase": "build",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "ascent",
+          "sport": "run"
+        },
+        "remainingMinutes": 422,
+        "maxMinutes": 422,
+        "partialWeeks": 4,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_CIRCUIT_CARDIO_RUN",
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "C_TR_STRENGTH_HILLS",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE",
+              "B_STR_POWER_ENDURANCE",
+              "A_STR_ENDURANCE_CIRCUIT"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_SL_ULTRA_BUILD",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          },
+          {
+            "role": {
+              "day": 6,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_SL_ULTRA_BUILD",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+      "model": "specific_back_to_back",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "easy",
+          "sport": "run"
+        },
+        "remainingMinutes": 624,
+        "maxMinutes": 624,
+        "partialWeeks": 0,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_CIRCUIT_CARDIO_RUN",
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "A_STR_AERO_STRENGTH",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE",
+              "A_STR_ENDURANCE_CIRCUIT"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "A_TR_SL_MONTAGNE_BASE",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "A_TR_SL_MONTAGNE_BASE"
+            ]
+          },
+          {
+            "role": {
+              "day": 6,
+              "role": "b2b_second",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          }
+        ]
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+      "model": "conservative_taper",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "evidence": {
+        "week": 5,
+        "phase": "build",
+        "type": "load",
+        "role": {
+          "day": 1,
+          "role": "ascent",
+          "sport": "run"
+        },
+        "remainingMinutes": 422,
+        "maxMinutes": 422,
+        "partialWeeks": 4,
+        "remainingDomainSizes": [
+          {
+            "role": {
+              "day": 2,
+              "role": "muscle",
+              "sport": "strength"
+            },
+            "availableDistinctIds": [
+              "C_STR_CIRCUIT_CARDIO_RUN",
+              "C_STR_ECC_QUAD_PRO",
+              "C_STR_ISOMETRIC_LOWER",
+              "C_TR_STRENGTH_GENERAL",
+              "C_TR_PROPRIO_ANKLE_FOOT",
+              "C_TR_STRENGTH_HILLS",
+              "C_TR_STRENGTH_PRO",
+              "C_TR50_STRENGTH_EXPLOSIVE",
+              "B_STR_POWER_ENDURANCE",
+              "A_STR_ENDURANCE_CIRCUIT"
+            ]
+          },
+          {
+            "role": {
+              "day": 3,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_SL_ULTRA_BUILD",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          },
+          {
+            "role": {
+              "day": 5,
+              "role": "long",
+              "sport": "run"
+            },
+            "availableDistinctIds": []
+          },
+          {
+            "role": {
+              "day": 6,
+              "role": "easy",
+              "sport": "run"
+            },
+            "availableDistinctIds": [
+              "V3_TRAIL_ULTRA_RACE_SIM",
+              "A_TR_SL_ULTRA_BUILD",
+              "A_TR_LONG_DPLUS_PRO",
+              "A_TR_EF_VALLON",
+              "D_TR50_RECOVERY_WALK_RUN",
+              "D_TR_RECOVERY_SOFT",
+              "A_TR_EF_SENTIER",
+              "URBAN_PARC_BOUCLES_VALLONNEES",
+              "V2_TRAIL_PROPRIOCEPTION",
+              "V3_TRAIL_ULTRA_MARCHE_COURSE",
+              "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+              "C_TR_DESC_TECH_PRO",
+              "D_TR_RECOVERY_SOFT_30",
+              "D_TR_WALK_REGEN",
+              "A_TR_LONG_HIKE_RUN_DPLUS",
+              "RS_TR_GUT_TRAINING",
+              "D_TR_RECUP_ACTIVE"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "separated_exposure",
+      "beforeBuilt": true,
+      "afterBuilt": false,
+      "before": {
+        "coach_load_violation:3": 2,
+        "quota_floor_violation:1": 1,
+        "quota_floor_violation:2": 1,
+        "quota_floor_violation:3": 1,
+        "quota_floor_violation:5": 1,
+        "quota_floor_violation:6": 1,
+        "quota_floor_violation:7": 1,
+        "quota_floor_violation:9": 1,
+        "load_pattern:0": 2,
+        "progression:0": 1,
+        "sport_ratio:0": 1
+      },
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "conservative_taper",
+      "beforeBuilt": true,
+      "afterBuilt": false,
+      "before": {
+        "coach_load_violation:3": 2,
+        "quota_floor_violation:1": 1,
+        "quota_floor_violation:2": 1,
+        "quota_floor_violation:3": 1,
+        "quota_floor_violation:5": 1,
+        "quota_floor_violation:6": 1,
+        "quota_floor_violation:7": 1,
+        "quota_floor_violation:9": 1,
+        "load_pattern:0": 2,
+        "progression:0": 1,
+        "sport_ratio:0": 1
+      },
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "separated_exposure",
+      "beforeBuilt": true,
+      "afterBuilt": false,
+      "before": {
+        "coach_load_violation:3": 2,
+        "coach_load_violation:5": 2,
+        "coach_load_violation:6": 2,
+        "quota_floor_violation:1": 1,
+        "quota_floor_violation:2": 1,
+        "quota_floor_violation:3": 1,
+        "load_pattern:0": 2,
+        "key_sessions:1": 1,
+        "key_sessions_per_sport:1": 1,
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "key_sessions:3": 1,
+        "key_sessions_per_sport:3": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:4": 1,
+        "lorang_categories:5": 1,
+        "lorang_categories:6": 1,
+        "lorang_categories:7": 1,
+        "lorang_categories:8": 1,
+        "lorang_categories:9": 1,
+        "lorang_categories:10": 1,
+        "lorang_categories:11": 1
+      },
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "conservative_taper",
+      "beforeBuilt": true,
+      "afterBuilt": false,
+      "before": {
+        "coach_load_violation:3": 2,
+        "coach_load_violation:5": 2,
+        "coach_load_violation:6": 2,
+        "quota_floor_violation:1": 1,
+        "quota_floor_violation:2": 1,
+        "quota_floor_violation:3": 1,
+        "load_pattern:0": 2,
+        "key_sessions:1": 1,
+        "key_sessions_per_sport:1": 1,
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "key_sessions:3": 1,
+        "key_sessions_per_sport:3": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:4": 1,
+        "lorang_categories:5": 1,
+        "lorang_categories:6": 1,
+        "lorang_categories:7": 1,
+        "lorang_categories:8": 1,
+        "lorang_categories:9": 1,
+        "lorang_categories:10": 1,
+        "lorang_categories:11": 1
+      },
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:trained",
+      "model": "separated_exposure",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:trained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:trained",
+      "model": "conservative_taper",
+      "beforeBuilt": true,
+      "afterBuilt": false,
+      "before": {
+        "coach_load_violation:5": 2,
+        "quota_floor_violation:1": 1,
+        "load_pattern:0": 2,
+        "key_sessions:1": 1,
+        "key_sessions_per_sport:1": 1,
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:4": 1,
+        "lorang_categories:8": 1,
+        "lorang_categories:11": 1
+      },
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+      "model": "separated_exposure",
+      "beforeBuilt": false,
+      "afterBuilt": true,
+      "before": null,
+      "after": {
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1
+      },
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+      "model": "conservative_taper",
+      "beforeBuilt": true,
+      "afterBuilt": true,
+      "before": {
+        "coach_load_violation:3": 2,
+        "load_pattern:0": 2,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:4": 1,
+        "lorang_categories:8": 1,
+        "lorang_categories:11": 1
+      },
+      "after": {
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1
+      },
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "separated_exposure",
+      "beforeBuilt": true,
+      "afterBuilt": false,
+      "before": {
+        "quota_floor_violation:1": 1,
+        "quota_floor_violation:2": 1,
+        "quota_floor_violation:3": 1,
+        "quota_floor_violation:5": 1,
+        "quota_floor_violation:6": 1,
+        "quota_floor_violation:7": 1,
+        "quota_floor_violation:9": 1,
+        "quota_floor_violation:11": 1,
+        "load_pattern:0": 2,
+        "sport_ratio:0": 1
+      },
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "conservative_taper",
+      "beforeBuilt": true,
+      "afterBuilt": false,
+      "before": {
+        "quota_floor_violation:1": 1,
+        "quota_floor_violation:2": 1,
+        "quota_floor_violation:3": 1,
+        "quota_floor_violation:5": 1,
+        "quota_floor_violation:6": 1,
+        "quota_floor_violation:7": 1,
+        "quota_floor_violation:9": 1,
+        "quota_floor_violation:11": 1,
+        "load_pattern:0": 2,
+        "sport_ratio:0": 1
+      },
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:light",
+      "model": "separated_exposure",
+      "beforeBuilt": true,
+      "afterBuilt": true,
+      "before": {
+        "quota_floor_violation:1": 1,
+        "quota_floor_violation:2": 1,
+        "load_pattern:0": 2,
+        "key_sessions:1": 1,
+        "key_sessions_per_sport:1": 1,
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "key_sessions:3": 1,
+        "key_sessions_per_sport:3": 1,
+        "key_sessions:5": 1,
+        "key_sessions_per_sport:5": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:4": 1,
+        "lorang_categories:5": 1,
+        "lorang_categories:6": 1,
+        "lorang_categories:7": 1,
+        "lorang_categories:8": 1,
+        "lorang_categories:9": 1,
+        "lorang_categories:10": 1,
+        "lorang_categories:11": 1,
+        "lorang_categories:12": 1,
+        "lorang_categories:13": 1,
+        "lorang_categories:14": 1
+      },
+      "after": {
+        "key_sessions:1": 1,
+        "key_sessions_per_sport:1": 1,
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "key_sessions:3": 1,
+        "key_sessions_per_sport:3": 1,
+        "key_sessions:5": 1,
+        "key_sessions_per_sport:5": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:5": 1,
+        "lorang_categories:6": 1,
+        "lorang_categories:7": 1,
+        "lorang_categories:9": 1,
+        "lorang_categories:10": 1,
+        "lorang_categories:11": 1,
+        "lorang_categories:13": 1
+      },
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:light",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:light",
+      "model": "conservative_taper",
+      "beforeBuilt": true,
+      "afterBuilt": true,
+      "before": {
+        "quota_floor_violation:1": 1,
+        "quota_floor_violation:2": 1,
+        "load_pattern:0": 2,
+        "key_sessions:1": 1,
+        "key_sessions_per_sport:1": 1,
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "key_sessions:3": 1,
+        "key_sessions_per_sport:3": 1,
+        "key_sessions:5": 1,
+        "key_sessions_per_sport:5": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:4": 1,
+        "lorang_categories:5": 1,
+        "lorang_categories:6": 1,
+        "lorang_categories:7": 1,
+        "lorang_categories:8": 1,
+        "lorang_categories:9": 1,
+        "lorang_categories:10": 1,
+        "lorang_categories:11": 1,
+        "lorang_categories:12": 1,
+        "lorang_categories:13": 1,
+        "lorang_categories:14": 1
+      },
+      "after": {
+        "key_sessions:1": 1,
+        "key_sessions_per_sport:1": 1,
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "key_sessions:3": 1,
+        "key_sessions_per_sport:3": 1,
+        "key_sessions:5": 1,
+        "key_sessions_per_sport:5": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:5": 1,
+        "lorang_categories:6": 1,
+        "lorang_categories:7": 1,
+        "lorang_categories:9": 1,
+        "lorang_categories:10": 1,
+        "lorang_categories:11": 1,
+        "lorang_categories:13": 1
+      },
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:trained",
+      "model": "separated_exposure",
+      "beforeBuilt": false,
+      "afterBuilt": true,
+      "before": null,
+      "after": {
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1
+      },
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:trained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:trained",
+      "model": "conservative_taper",
+      "beforeBuilt": true,
+      "afterBuilt": true,
+      "before": {
+        "load_pattern:0": 2,
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:4": 1,
+        "lorang_categories:8": 1,
+        "lorang_categories:12": 1,
+        "lorang_categories:14": 1
+      },
+      "after": {
+        "key_sessions:2": 1,
+        "key_sessions_per_sport:2": 1,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1
+      },
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+      "model": "separated_exposure",
+      "beforeBuilt": false,
+      "afterBuilt": true,
+      "before": null,
+      "after": {
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1
+      },
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+      "model": "conservative_taper",
+      "beforeBuilt": true,
+      "afterBuilt": true,
+      "before": {
+        "load_pattern:0": 2,
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1,
+        "lorang_categories:4": 1,
+        "lorang_categories:8": 1,
+        "lorang_categories:12": 1,
+        "lorang_categories:14": 1
+      },
+      "after": {
+        "sport_ratio:0": 1,
+        "lorang_categories:1": 1,
+        "lorang_categories:2": 1,
+        "lorang_categories:3": 1
+      },
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:untrained",
+      "model": "separated_exposure",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:untrained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:untrained",
+      "model": "conservative_taper",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:light",
+      "model": "separated_exposure",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:light",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:light",
+      "model": "conservative_taper",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:trained",
+      "model": "separated_exposure",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:trained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:trained",
+      "model": "conservative_taper",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+      "model": "separated_exposure",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+      "model": "specific_back_to_back",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+      "model": "conservative_taper",
+      "beforeBuilt": false,
+      "afterBuilt": false,
+      "before": null,
+      "after": null,
+      "decision": "experimental_variant_not_automatically_promoted"
+    }
+  ]
+}

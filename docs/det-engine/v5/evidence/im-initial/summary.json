@@ -1,0 +1,308 @@
+{
+  "cohort": "40_historical_continuous_IM_inputs_candidate_contracts_not_promoted",
+  "models": [
+    {
+      "model": "standalone_preserve",
+      "cases": 40,
+      "built": 19,
+      "technicalValid": 19,
+      "withoutBlockingExecutedCandidateControls": 0,
+      "withoutBlockingReferenceControls": 0,
+      "refusals": [
+        {
+          "id": "IM:untrained:finisher:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:age_group:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:untrained:competitor:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:untrained:competitor:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:elite:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:world_class:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:light:finisher:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:light:age_group:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:light:competitor:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:light:elite:known_synthetic",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:light:world_class:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:light:world_class:known_synthetic",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:trained:finisher:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:competitor:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:elite:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:world_class:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:trained:world_class:known_synthetic",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:highly_trained:age_group:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:highly_trained:competitor:known_synthetic",
+          "reason": "no_catalogue_assignment_week_11"
+        },
+        {
+          "id": "IM:highly_trained:elite:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:highly_trained:world_class:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        }
+      ],
+      "exactReplay": 40
+    },
+    {
+      "model": "standalone_recovery_relief",
+      "cases": 40,
+      "built": 18,
+      "technicalValid": 18,
+      "withoutBlockingExecutedCandidateControls": 0,
+      "withoutBlockingReferenceControls": 0,
+      "refusals": [
+        {
+          "id": "IM:untrained:finisher:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:age_group:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:untrained:competitor:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:untrained:competitor:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:elite:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:world_class:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:light:finisher:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:light:age_group:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:light:competitor:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:light:elite:known_synthetic",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:light:world_class:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:light:world_class:known_synthetic",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:trained:finisher:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:competitor:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:trained:competitor:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:elite:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:world_class:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:trained:world_class:known_synthetic",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:highly_trained:age_group:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:highly_trained:competitor:known_synthetic",
+          "reason": "no_catalogue_assignment_week_11"
+        },
+        {
+          "id": "IM:highly_trained:elite:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:highly_trained:world_class:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        }
+      ],
+      "exactReplay": 40
+    },
+    {
+      "model": "peak_brick_recovery_relief",
+      "cases": 40,
+      "built": 16,
+      "technicalValid": 16,
+      "withoutBlockingExecutedCandidateControls": 0,
+      "withoutBlockingReferenceControls": 0,
+      "refusals": [
+        {
+          "id": "IM:untrained:finisher:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:age_group:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:untrained:competitor:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:untrained:competitor:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:elite:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:untrained:world_class:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:light:finisher:unknown",
+          "reason": "minimum_catalogue_dose_exceeds_budget_week_1"
+        },
+        {
+          "id": "IM:light:age_group:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:light:competitor:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:light:elite:known_synthetic",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:light:world_class:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:light:world_class:known_synthetic",
+          "reason": "Error: COMPONENT_CANNOT_MEET_LONG_FLOOR:15"
+        },
+        {
+          "id": "IM:trained:finisher:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:competitor:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:trained:competitor:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:elite:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:trained:world_class:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:trained:world_class:known_synthetic",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:highly_trained:age_group:known_synthetic",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        },
+        {
+          "id": "IM:highly_trained:competitor:unknown",
+          "reason": "Error: COMPONENT_CANNOT_MEET_LONG_FLOOR:15"
+        },
+        {
+          "id": "IM:highly_trained:competitor:known_synthetic",
+          "reason": "no_catalogue_assignment_week_11"
+        },
+        {
+          "id": "IM:highly_trained:elite:unknown",
+          "reason": "search_budget_exhausted"
+        },
+        {
+          "id": "IM:highly_trained:elite:known_synthetic",
+          "reason": "Error: COMPONENT_CANNOT_MEET_LONG_FLOOR:15"
+        },
+        {
+          "id": "IM:highly_trained:world_class:unknown",
+          "reason": "explicit_discipline_ban_conflicts_with_candidate_continuity"
+        }
+      ],
+      "exactReplay": 40
+    }
+  ],
+  "expertReviewed": 0,
+  "paidApiCalls": 0
+}

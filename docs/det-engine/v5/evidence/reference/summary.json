@@ -1,0 +1,24 @@
+{
+  "version": "det-v4-reference-1",
+  "cases": 600,
+  "built": 167,
+  "withoutBlocking": 11,
+  "technicalValid": 167,
+  "existingCriticalRegressions": 0,
+  "existingWarningRegressions": 0,
+  "unchangedReferencePayload": true,
+  "replay": 600,
+  "classifications": {
+    "remaining_fixed_layout_or_solver_conflict": 42,
+    "candidate_contract_constraint_conflict": 60,
+    "assembled_with_executed_controls": 160,
+    "current_catalogue_domain_conflict": 72,
+    "existing_prevalidation_conflict": 50,
+    "inconclusive_search": 16,
+    "unsupported_static_adaptation": 40,
+    "insufficient_data": 160
+  },
+  "globalAuditContractFailures": 0,
+  "newInstrumentation": "V4 global observations do not rewrite reference issue severity or acceptance",
+  "promotedCandidateContracts": 0
+}

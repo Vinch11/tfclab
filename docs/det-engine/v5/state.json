@@ -1,0 +1,423 @@
+{
+  "version": "det-v5-supervisor-1",
+  "parent": "docs/det-engine/v4/state.json",
+  "baselineCommit": "8a709eb2e5ebd92ac941533acd0ad91dd60214b7",
+  "startedAt": 1793140900,
+  "deadline": 1793144500,
+  "maxUnits": 10,
+  "maxAttemptsPerUnit": 3,
+  "status": "running",
+  "units": [
+    {
+      "id": "audit",
+      "attempts": [
+        {
+          "startedAt": 1793141267429,
+          "command": [
+            "-e",
+            "const fs=require('fs'),crypto=require('crypto');for(const[p,h]of Object.entries(JSON.parse(fs.readFileSync('docs/det-engine/v4/checksums.json'))))if(crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex')!==h)throw Error(p);console.log('V4 immutable manifest verified; diagnostic saved');"
+          ],
+          "status": "failed",
+          "completedAt": 1793141267493,
+          "exitCode": 0,
+          "error": "EPERM",
+          "output": "docs/det-engine/v5/evidence/audit-1.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "startedAt": 1793141276901,
+          "command": [
+            "-e",
+            "const fs=require('fs'),crypto=require('crypto');for(const[p,h]of Object.entries(JSON.parse(fs.readFileSync('docs/det-engine/v4/checksums.json'))))if(crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex')!==h)throw Error(p);console.log('V4 immutable manifest verified; diagnostic saved');"
+          ],
+          "status": "passed",
+          "completedAt": 1793141276987,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/audit-2.txt",
+          "sha256": "081cb2b81ba3429614259302feb5c40feea152d0b8f2a051cf293fd61418c592"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "taper",
+      "attempts": [
+        {
+          "startedAt": 1793141338980,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-taper.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793141339897,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/taper-1.txt",
+          "sha256": "2c30ea6d4a8fd8cf96b0d4a6fc5a83c4bf4383a62a9d56fa4b930f5e25a143b1"
+        },
+        {
+          "startedAt": 1793142007197,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-taper.test.ts",
+            "experimental/det-engine/v5-catalogue-audit.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "74693b60daafe587276a79fe38f09d3a8612ec9646c9935aff44e896478aaf3d",
+          "outputRoot": "docs/det-engine/v5/evidence/taper-source",
+          "revisionReason": "verify_actual_catalogue_recovery_distinction",
+          "completedAt": 1793142013875,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/taper-2.txt",
+          "sha256": "5845e15c0b468f1e3d0a69c921450a2bd887d1f6d6397a5dc229d227c831dc63"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "trail-contract",
+      "attempts": [
+        {
+          "startedAt": 1793141366662,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-trail.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "failed",
+          "completedAt": 1793141374694,
+          "exitCode": 1,
+          "output": "docs/det-engine/v5/evidence/trail-contract-1.txt",
+          "sha256": "fc11483208a0169a3aed7274cd23e395a27cd13cdf8265b1df09ed949a8bbbf9"
+        },
+        {
+          "startedAt": 1793141393438,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-trail.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793141412919,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/trail-contract-2.txt",
+          "sha256": "b36f216e00bd555469b5b4221e3a57ab750b721031dde197730f4b368220b88a"
+        },
+        {
+          "startedAt": 1793142073919,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-trail.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "a72d21b6b7185fb6337e0b30244c04a445df296e245b556d0abc638dbb6ca6c5",
+          "outputRoot": "docs/det-engine/v5/evidence/trail-activation",
+          "revisionReason": "activation_role_fell_through_easy_only_predicate",
+          "completedAt": 1793142093351,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/trail-contract-3.txt",
+          "sha256": "668cc2734860c220d9a6ece5f4e01de82421dc99e837fbd299cef8cd3adcfa25"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "im-contract",
+      "attempts": [
+        {
+          "startedAt": 1793141535780,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-ironman.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793141540232,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/im-contract-1.txt",
+          "sha256": "4b9a67907d3a91d2b17e16bbfbfac29cbf68d625edd603f746624b76c7bffb24"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "im-matrix",
+      "attempts": [
+        {
+          "startedAt": 1793141549163,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-ironman.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793141693476,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/im-matrix-1.txt",
+          "sha256": "11ab891275feb0ca90f9f675ab09d7f1fe1a76569501e3fe65cf631e5b3d88ac"
+        },
+        {
+          "startedAt": 1793141815048,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-ironman.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793141973056,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/im-matrix-2.txt",
+          "sha256": "a9508eca39827781786b23a24df30395cb2060608dfa0adddd4ef27ece7c249a"
+        },
+        {
+          "startedAt": 1793142207373,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-ironman.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "590fbdd6a00365eb0e677745f952bb0e650714dc18ef5cfa1f01369a06a03bb5",
+          "outputRoot": "docs/det-engine/v5/evidence/im-final",
+          "revisionReason": "explicit_policy_comparison_with_whole_plan_retention",
+          "completedAt": 1793142491808,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/im-matrix-3.txt",
+          "sha256": "7f16c053176d25028d9d1042d8426fe16c17f8d81c4c95962fce683e9e733200"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "trail-matrix",
+      "attempts": [
+        {
+          "startedAt": 1793141721297,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-repair.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793141738186,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/trail-matrix-1.txt",
+          "sha256": "e53af987b8b6bf2080dcb110ba79600a70ba41ebdde01e7a9193f539a8a2db23"
+        },
+        {
+          "startedAt": 1793142573997,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-trail.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "4725541ecb6717729129ef3251eb56539f7cd82067f429185bc67c0705b7ca3e",
+          "outputRoot": "docs/det-engine/v5/evidence/trail-final",
+          "revisionReason": "whole_plan_acceptance_after_activation_fix",
+          "completedAt": 1793142592744,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/trail-matrix-2.txt",
+          "sha256": "e09362ee9e4a4834545058ae828f340bc99108cdf7c5588ddcc0b86dcbec1699"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "global",
+      "attempts": [
+        {
+          "startedAt": 1793142121639,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-global.test.ts",
+            "experimental/det-engine/v5-trail.test.ts",
+            "experimental/det-engine/v5-taper.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "590fbdd6a00365eb0e677745f952bb0e650714dc18ef5cfa1f01369a06a03bb5",
+          "outputRoot": null,
+          "revisionReason": null,
+          "completedAt": 1793142126712,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/global-1.txt",
+          "sha256": "db498207a0e3fadca3fe52adb1e7ab8b28734fdb86ffcdb8f4ca8e135125724c"
+        },
+        {
+          "startedAt": 1793142621172,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-global.test.ts",
+            "experimental/det-engine/v5-cohort-global.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "c673db9ff14f4ae7252c10bbadc1466bf7dde873f15a8d579e872178da7b98b6",
+          "outputRoot": "docs/det-engine/v5/evidence/global-cohorts",
+          "revisionReason": "audit_retained_complete_cohorts_after_whole_plan_guards",
+          "completedAt": 1793142623696,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/global-2.txt",
+          "sha256": "9d70e084d92fc52116c907dce5441ac2ee054a17ea1abc7978976624a1008d99"
+        },
+        {
+          "startedAt": 1793142692609,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v5-global.test.ts",
+            "experimental/det-engine/v5-cohort-global.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "e04c39cb71afc473c59cb73a37fe9acbf6a3e7c877fb1de98dee8844d98695ef",
+          "outputRoot": "docs/det-engine/v5/evidence/global-final",
+          "revisionReason": "explicit_sport_applicability_without_suppressing_trail_unknowns",
+          "completedAt": 1793142695277,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/global-3.txt",
+          "sha256": "150cc596bd0c39f27f2b6d4442b7935cedc2ab5c1492bdc2943e0f05d24aa700"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "reference",
+      "attempts": [
+        {
+          "startedAt": 1793142719977,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v4-reference.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "e04c39cb71afc473c59cb73a37fe9acbf6a3e7c877fb1de98dee8844d98695ef",
+          "outputRoot": "docs/det-engine/v5/evidence/reference",
+          "revisionReason": null,
+          "completedAt": 1793142883448,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/reference-1.txt",
+          "sha256": "b567417ac3c4880175f70bc1b26ffeb3c110f9113e511428dfba163cfd63876d"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "validation",
+      "attempts": [
+        {
+          "startedAt": 1793142950297,
+          "command": [
+            "scripts/det-engine/v5-validate.mjs"
+          ],
+          "status": "passed",
+          "source": "e04c39cb71afc473c59cb73a37fe9acbf6a3e7c877fb1de98dee8844d98695ef",
+          "outputRoot": null,
+          "revisionReason": null,
+          "completedAt": 1793143328346,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/validation-1.txt",
+          "sha256": "fda2bf4cb8f4d05be6d2b745ab104ff0f39b69c3966adedc928ba2ffb7f314d5"
+        },
+        {
+          "startedAt": 1793143351008,
+          "command": [
+            "--test",
+            "scripts/det-engine/v5-budget.test.mjs",
+            "scripts/det-engine/v5-evidence.test.mjs"
+          ],
+          "status": "passed",
+          "source": "0d8b5e25dfb0acf0f50c6920e1d6bf5120c5c00b4c6c3b94a372c0b91006d9c1",
+          "outputRoot": null,
+          "revisionReason": "verify_structured_evidence_integrity_and_closed_budget_guard",
+          "completedAt": 1793143351107,
+          "exitCode": 0,
+          "output": "docs/det-engine/v5/evidence/validation-2.txt",
+          "sha256": "e5863ee2c70c131457ea3151252bb4311c8e02be4ba12bc02e9b293c256d233f",
+          "artifacts": null
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "publication",
+      "status": "running",
+      "attempts": [
+        {
+          "startedAt": 1793143392994,
+          "command": [
+            "manual: authorized GitHub draft PR publication and verification"
+          ],
+          "status": "running"
+        }
+      ]
+    }
+  ],
+  "activeUnit": {
+    "id": "publication",
+    "startedAt": 1793143392994,
+    "mode": "external_manual_receipt"
+  },
+  "immutableV4ManifestSha256": "01b80c01bf4b5ce1704a087c61a59960ef086b18532f429b8a6f9c1872989903",
+  "note": "Start conservatively includes initial audit minutes; no V4 registry reset",
+  "incidents": [
+    {
+      "kind": "automatic_approval_rejection",
+      "evidence": "evidence/approval-incident.json",
+      "resolution": "abandoned_flag_reassignment_selection_only_preserves_warnings"
+    },
+    {
+      "kind": "transient_execution_transport_disconnect",
+      "resolution": "reconnected_and_verified_all_recorded_exit_codes_before_continuing",
+      "historicalExitCode": 0
+    }
+  ]
+}

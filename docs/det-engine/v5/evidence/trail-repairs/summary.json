@@ -1,0 +1,737 @@
+{
+  "cohort": "same_V4_trail_prescriptions_conservative_repairs",
+  "baselineBuilt": 12,
+  "retainedBuilt": 12,
+  "acceptedProposals": 15,
+  "acceptedLabels": 12,
+  "acceptedDoseRepairs": 3,
+  "beforeBlocking": 209,
+  "afterBlocking": 159,
+  "withoutBlocking": 0,
+  "expertReviewed": 0,
+  "decisions": [
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "separated_exposure",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 203,
+          "minutes": 120,
+          "ceiling": 142.1
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 236,
+          "minutes": 115,
+          "ceiling": 165.2
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "separated_exposure",
+      "reduceDose": true,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 3,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 59,
+          "id": "A_TR_EF_VALLON",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "conservative_taper",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 203,
+          "minutes": 120,
+          "ceiling": 142.1
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 236,
+          "minutes": 115,
+          "ceiling": 165.2
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:untrained",
+      "model": "conservative_taper",
+      "reduceDose": true,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 3,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 59,
+          "id": "A_TR_EF_VALLON",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "separated_exposure",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 203,
+          "minutes": 120,
+          "ceiling": 142.1
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 285,
+          "minutes": 115,
+          "ceiling": 199.5
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "separated_exposure",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": [
+        {
+          "week": 3,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 59,
+          "id": "A_TR_EF_VALLON",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 95,
+          "after": 90,
+          "id": "URBAN_PARC_BOUCLES_VALLONNEES",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 50,
+          "id": "A_TR_EF_SENTIER",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 3,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 55,
+          "id": "A_TR_EF_VALLON",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 2,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 30,
+          "after": 27,
+          "id": "C_STR_ISOMETRIC_LOWER",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 6,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 40,
+          "id": "C_TR_DESC_TECH_PRO",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 6,
+          "day": 3,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 54,
+          "id": "D_TR_WALK_REGEN",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 7,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 130,
+          "after": 120,
+          "id": "A_TR_LONG_HIKE_RUN_DPLUS",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 7,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 53,
+          "id": "A_TR_EF_SENTIER",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 9,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 140,
+          "after": 139,
+          "id": "A_TR50_LONG_RUN_2H30",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "conservative_taper",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 203,
+          "minutes": 120,
+          "ceiling": 142.1
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 285,
+          "minutes": 115,
+          "ceiling": 199.5
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:light",
+      "model": "conservative_taper",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": [
+        {
+          "week": 3,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 59,
+          "id": "A_TR_EF_VALLON",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 95,
+          "after": 90,
+          "id": "URBAN_PARC_BOUCLES_VALLONNEES",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 50,
+          "id": "A_TR_EF_SENTIER",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 3,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 55,
+          "id": "A_TR_EF_VALLON",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 2,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 30,
+          "after": 27,
+          "id": "C_STR_ISOMETRIC_LOWER",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 6,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 40,
+          "id": "C_TR_DESC_TECH_PRO",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 6,
+          "day": 3,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 54,
+          "id": "D_TR_WALK_REGEN",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 7,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 130,
+          "after": 120,
+          "id": "A_TR_LONG_HIKE_RUN_DPLUS",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 7,
+          "day": 1,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 53,
+          "id": "A_TR_EF_SENTIER",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 9,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 140,
+          "after": 139,
+          "id": "A_TR50_LONG_RUN_2H30",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:trained",
+      "model": "conservative_taper",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 304,
+          "minutes": 120,
+          "ceiling": 212.79999999999998
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 420,
+          "minutes": 115,
+          "ceiling": 294
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:trained",
+      "model": "conservative_taper",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": [
+        {
+          "week": 5,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 171,
+          "after": 150,
+          "id": "A_TR_LONG_DPLUS_3H",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 5,
+          "day": 3,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 60,
+          "after": 47,
+          "id": "C_TR_DESC_TECH_PRO",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 6,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 189,
+          "after": 157,
+          "id": "A_TR_LONG_DPLUS_PRO",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        },
+        {
+          "week": 7,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 206,
+          "after": 189,
+          "id": "A_TR_LONG_HIKE_RUN_DPLUS",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+      "model": "conservative_taper",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 406,
+          "minutes": 120,
+          "ceiling": 284.2
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 420,
+          "minutes": 115,
+          "ceiling": 294
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+      "model": "conservative_taper",
+      "reduceDose": true,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 3,
+          "day": 5,
+          "rule": "existing_load_to_load_ceiling",
+          "before": 201,
+          "after": 200,
+          "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+          "evidence": "unchanged_card_structure_and_zones_within_original_catalogue_range"
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "separated_exposure",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "base",
+          "after": "base — récupération",
+          "previousLoad": 230,
+          "minutes": 120,
+          "ceiling": 161
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 235,
+          "minutes": 115,
+          "ceiling": 164.5
+        },
+        {
+          "week": 12,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 237,
+          "minutes": 115,
+          "ceiling": 165.89999999999998
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "separated_exposure",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": []
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "conservative_taper",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "base",
+          "after": "base — récupération",
+          "previousLoad": 230,
+          "minutes": 120,
+          "ceiling": 161
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 235,
+          "minutes": 115,
+          "ceiling": 164.5
+        },
+        {
+          "week": 12,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 237,
+          "minutes": 115,
+          "ceiling": 165.89999999999998
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:untrained",
+      "model": "conservative_taper",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": []
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:light",
+      "model": "separated_exposure",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "base",
+          "after": "base — récupération",
+          "previousLoad": 243,
+          "minutes": 120,
+          "ceiling": 170.1
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 267,
+          "minutes": 115,
+          "ceiling": 186.89999999999998
+        },
+        {
+          "week": 12,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 281,
+          "minutes": 115,
+          "ceiling": 196.7
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:light",
+      "model": "separated_exposure",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": []
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:light",
+      "model": "conservative_taper",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "base",
+          "after": "base — récupération",
+          "previousLoad": 243,
+          "minutes": 120,
+          "ceiling": 170.1
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 267,
+          "minutes": 115,
+          "ceiling": 186.89999999999998
+        },
+        {
+          "week": 12,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 281,
+          "minutes": 115,
+          "ceiling": 196.7
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:light",
+      "model": "conservative_taper",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": []
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:trained",
+      "model": "conservative_taper",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "base",
+          "after": "base — récupération",
+          "previousLoad": 352,
+          "minutes": 120,
+          "ceiling": 246.39999999999998
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 390,
+          "minutes": 115,
+          "ceiling": 273
+        },
+        {
+          "week": 12,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 422,
+          "minutes": 115,
+          "ceiling": 295.4
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:trained",
+      "model": "conservative_taper",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": []
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+      "model": "conservative_taper",
+      "reduceDose": false,
+      "accepted": true,
+      "reason": "whole_plan_improvement_accepted",
+      "actions": [
+        {
+          "week": 4,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 393,
+          "minutes": 120,
+          "ceiling": 275.09999999999997
+        },
+        {
+          "week": 8,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 447,
+          "minutes": 115,
+          "ceiling": 312.9
+        },
+        {
+          "week": 12,
+          "rule": "observe_actual_scheduled_and_reduced_recovery",
+          "before": "build",
+          "after": "build — récupération",
+          "previousLoad": 496,
+          "minutes": 115,
+          "ceiling": 347.2
+        }
+      ]
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+      "model": "conservative_taper",
+      "reduceDose": true,
+      "accepted": false,
+      "reason": "no_safe_demonstrated_whole_plan_improvement",
+      "actions": []
+    }
+  ]
+}

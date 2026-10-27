@@ -1,0 +1,101 @@
+{
+  "historicalUnchanged": true,
+  "trail": {
+    "built": 12,
+    "issues": [
+      {
+        "code": "coach_load_violation",
+        "severity": "critical",
+        "occurrences": 10
+      },
+      {
+        "code": "quota_floor_violation",
+        "severity": "critical",
+        "occurrences": 41
+      },
+      {
+        "code": "load_pattern",
+        "severity": "error",
+        "occurrences": 24
+      },
+      {
+        "code": "progression",
+        "severity": "error",
+        "occurrences": 2
+      },
+      {
+        "code": "progression",
+        "severity": "warning",
+        "occurrences": 14
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "occurrences": 12
+      },
+      {
+        "code": "phase_coherence",
+        "severity": "warning",
+        "occurrences": 29
+      },
+      {
+        "code": "phase_coherence",
+        "severity": "info",
+        "occurrences": 12
+      },
+      {
+        "code": "trail_dplus_presence",
+        "severity": "warning",
+        "occurrences": 12
+      },
+      {
+        "code": "anti_repetition",
+        "severity": "warning",
+        "occurrences": 37
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "severity": "warning",
+        "occurrences": 16
+      },
+      {
+        "code": "coach_load_violation",
+        "severity": "error",
+        "occurrences": 10
+      },
+      {
+        "code": "key_sessions",
+        "severity": "error",
+        "occurrences": 17
+      },
+      {
+        "code": "key_sessions_per_sport",
+        "severity": "error",
+        "occurrences": 17
+      },
+      {
+        "code": "lorang_categories",
+        "severity": "error",
+        "occurrences": 76
+      },
+      {
+        "code": "key_sessions",
+        "severity": "warning",
+        "occurrences": 10
+      },
+      {
+        "code": "trail_back_to_back",
+        "severity": "warning",
+        "occurrences": 4
+      }
+    ]
+  },
+  "structuralCauses": [
+    "Recovery week theme loses real calendar type: validator cannot observe deload",
+    "Trail long dose is scored toward a target below retained >=90 min default floor",
+    "Actual load-to-load ramp ceiling not reserved before catalogue choice",
+    "Run-only synthetic calendars conflict with existing trail 70-80% run sport ratio",
+    "Low-level Z2-only fixture conflicts with blanket first-half intensity progression",
+    "Shared recovery eligibility conflates taper and recovery; examine explicit candidate only"
+  ]
+}

@@ -1,0 +1,12 @@
+✔ absolute deadline and non-renewable budget reject further execution (1.043546ms)
+✔ exactly ten named units and interrupted reservations stay explicit (0.370309ms)
+✔ cached success verifies nested plan evidence, not just a green stdout (2.134123ms)
+✔ missing or added artefacts invalidate replay without regenerating old proof (0.516751ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 62.889362
