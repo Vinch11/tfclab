@@ -5,7 +5,7 @@ export function proposeV5Repair(input:ParsedPlan,athlete:PlanAthleteData,config:
   if(reduceDose&&!w.sessions.some(isRaceDaySession)&&total()>ceiling){const excess=()=>Math.max(0,total()-Math.floor(ceiling));const ordered=[...train].sort((a,b)=>(b.durationMin??0)-(a.durationMin??0)||a.dayIndex-b.dayIndex);
    for(const s of ordered){if(!excess())break;const m=metadata.find(m=>m.id===s.catalogId);if(!m||s.custom)continue;let minimum=Math.ceil(m.durationMin[0]);
     // Preserve an already satisfied standalone long floor; never pad another week to erase a ramp violation.
-    const floor=s.sport==='run'&&entry.floors.longRunWeekly?entry.floors.slLongRunMin??90:s.sport==='bike'&&entry.floors.longRideWeekly?entry.floors.slLongRideMin??150:0;
+    const floor=s.sport==='run'&&entry.floors.longRunWeekly?entry.floors.slLongRunMin??90:s.sport==='bike'&&entry.floors.longRideWeekly?entry.floors.slLongRideMin??120:0;
     const fulfillsFloor=floor>0&&(s.durationMin??0)>=floor&&!train.some(other=>other!==s&&other.sport===s.sport&&(other.durationMin??0)>=floor);if(fulfillsFloor)minimum=Math.max(minimum,floor);
     if(s.sport==='brick')continue; // Component-aware reduction is a separate contract, never a proportional split.
     const duration=Math.max(minimum,(s.durationMin??0)-excess());if(duration>=(s.durationMin??0))continue;
