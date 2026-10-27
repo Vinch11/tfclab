@@ -1,3 +1,5 @@
+import { coachProfileStorageKey } from "@/lib/plan/coachLimiterPolicyStorage";
+import { resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 /**
  * CoachProfileForm — Saisie manuelle des limiteurs Lorang par le coach.
  *
@@ -64,6 +66,7 @@ const PROHIBITION_OPTIONS: Array<{ value: LorangProhibition; label: string }> = 
 const METRIC_TO_LORANG: Record<string, LorangLimiter> = {
   "VO2max": "motor",
   "FTP/kg": "motor",
+  "VMA": "motor",
   "VLamax": "glycolytic",
   "TTE": "durability",
   "FatMax": "metabolic",
@@ -91,8 +94,11 @@ export type MetabolicProfile = "sprinter" | "balanced" | "diesel";
 export type DurationMode = "date" | "free";
 
 export interface CoachProfileFormPayload {
+  /** Full order is authoritative; only this explicit exclusion list removes automatic metrics. */
+  limiterOrder?: string[];
+  excludedLimiterMetrics?: string[];
   metabolicProfile: MetabolicProfile;
-  primaryLimiter: LorangLimiter;
+  primaryLimiter: LorangLimiter | null;
   primaryLimiterMetric: string;
   secondaryLimiter: LorangLimiter | null;   // null = "Je ne sais pas"
   secondaryLimiterMetric: string | null;
@@ -116,6 +122,7 @@ export interface CoachProfileFormPayload {
 
 /** Optionnel — pré-remplissage depuis un diagnostic auto. */
 export interface CoachProfilePrefill {
+  limiterMetrics?: string[];
   metabolicProfile?: MetabolicProfile;
   primaryLimiterMetric?: string;  // ex "VLamax"
   secondaryLimiterMetric?: string;
@@ -182,10 +189,13 @@ export function CoachProfileForm({
 
   // Track whether the coach touched a pre-filled value (coach PRIME sur diagnostic).
   const [touchedPrimary, setTouchedPrimary] = useState(false);
+  const [limiterOrder, setLimiterOrder] = useState<string[]>([]);
+  const [excludedLimiterMetrics, setExcludedLimiterMetrics] = useState<string[]>([]);
+  const limiterObjective = objectiveValue ?? objectifLabel ?? "";
   const [touchedSecondary, setTouchedSecondary] = useState(false);
 
   // Persistance locale par athlète (survit à la fermeture du dialogue).
-  const storageKey = `tfcl:coachProfileForm:${athleteName ?? "default"}`;
+  const storageKey = coachProfileStorageKey(athleteName);
 
   // Restore when opening: saved draft prime sur prefill.
   useEffect(() => {
@@ -203,7 +213,10 @@ export function CoachProfileForm({
         setDurationMode(s.durationMode ?? "free");
         setRaceDate(s.raceDate ?? "");
         setFreeWeeks(s.freeWeeks ?? "");
-        setTouchedPrimary(!!s.touchedPrimary);
+        setTouchedPrimary(!!s.touchedPrimary || (s.touchedPrimary === undefined && !!s.primary && s.primary !== prefillPrimary));
+        const sameContext = s.limiterObjective === limiterObjective;
+        setLimiterOrder(sameContext && Array.isArray(s.limiterOrder) ? s.limiterOrder.filter((m:unknown):m is string=>typeof m === "string") : []);
+        setExcludedLimiterMetrics(sameContext && Array.isArray(s.excludedLimiterMetrics) ? s.excludedLimiterMetrics.filter((m:unknown):m is string=>typeof m === "string") : []);
         setTouchedSecondary(!!s.touchedSecondary);
         setOptionalOpen(!!s.optionalOpen);
         restored = true;
@@ -219,11 +232,13 @@ export function CoachProfileForm({
       setRaceDate("");
       setFreeWeeks("");
       setTouchedPrimary(false);
+      setLimiterOrder([]);
+      setExcludedLimiterMetrics([]);
       setTouchedSecondary(false);
       setOptionalOpen(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, limiterObjective, athleteName]);
 
   // Persist on every change while open.
   useEffect(() => {
@@ -232,13 +247,15 @@ export function CoachProfileForm({
       window.localStorage.setItem(
         storageKey,
         JSON.stringify({
+          committedLimiterSelections: JSON.parse(window.localStorage.getItem(storageKey)??"{}").committedLimiterSelections,
           metabolic, primary, secondary, prohibitions,
           sessionsPerWeek, durationMode, raceDate, freeWeeks,
           touchedPrimary, touchedSecondary, optionalOpen,
+          limiterOrder, excludedLimiterMetrics, limiterObjective,
         }),
       );
     } catch {/* ignore */}
-  }, [open, storageKey, metabolic, primary, secondary, prohibitions, sessionsPerWeek, durationMode, raceDate, freeWeeks, touchedPrimary, touchedSecondary, optionalOpen]);
+  }, [open, storageKey, metabolic, primary, secondary, prohibitions, sessionsPerWeek, durationMode, raceDate, freeWeeks, touchedPrimary, touchedSecondary, optionalOpen, limiterOrder, excludedLimiterMetrics, limiterObjective]);
 
   // ─── Calcul de la durée effective ───────────────────────────────────────
   const computedWeeks = useMemo<number | null>(() => {
@@ -257,11 +274,24 @@ export function CoachProfileForm({
     return Number.isFinite(n) && n > 0 ? n : null;
   }, [durationMode, raceDate, freeWeeks]);
 
-  const canSubmit = metabolic !== null && primary !== null && computedWeeks !== null && computedWeeks > 0;
+  const automaticMetrics = prefill?.limiterMetrics ?? [prefill?.primaryLimiterMetric, prefill?.secondaryLimiterMetric].filter((m):m is string=>!!m);
+  const primaryMetric = (touchedPrimary ? LIMITER_OPTIONS.find(o=>o.value===primary)?.metric : prefill?.primaryLimiterMetric) ?? LIMITER_OPTIONS.find(o=>o.value===primary)?.metric;
+  const secondaryMetric = (touchedSecondary ? LIMITER_OPTIONS.find(o=>o.value===secondary)?.metric : prefill?.secondaryLimiterMetric) ?? null;
+  const selection = {order:limiterOrder, primary:primaryMetric, secondary:secondaryMetric,
+    overridePrimary:touchedPrimary || (!automaticMetrics.length && !!primary), overrideSecondary:touchedSecondary};
+  const displayedOrder = resolveCoachLimiterOrder(automaticMetrics,selection);
+  const effectiveOrder = resolveCoachLimiterOrder(automaticMetrics,{...selection,excluded:excludedLimiterMetrics});
+  const canSubmit = metabolic !== null && effectiveOrder.length > 0 && computedWeeks !== null && computedWeeks > 0;
+  const moveLimiter = (metric:string,delta:number) => {
+    const next=[...displayedOrder],index=next.indexOf(metric),target=index+delta;
+    if(index<0 || target<0 || target>=next.length)return;
+    [next[index],next[target]]=[next[target],next[index]];
+    setLimiterOrder(next);setTouchedPrimary(false);setTouchedSecondary(false);
+  };
 
   const build = (): CoachProfileFormPayload | null => {
-    if (!metabolic || !primary || !computedWeeks) return null;
-    const primaryDef = LIMITER_OPTIONS.find((o) => o.value === primary)!;
+    if (!metabolic || !computedWeeks || !effectiveOrder.length) return null;
+    const primaryDef = LIMITER_OPTIONS.find((o) => o.value === primary);
     const secondaryDef =
       secondary !== "unknown" ? LIMITER_OPTIONS.find((o) => o.value === secondary) ?? null : null;
 
@@ -274,19 +304,21 @@ export function CoachProfileForm({
 
     const rawSpw = parseInt(sessionsPerWeek, 10);
     return {
+      limiterOrder: effectiveOrder,
+      excludedLimiterMetrics: [...excludedLimiterMetrics],
       metabolicProfile: metabolic,
-      primaryLimiter: primary,
-      primaryLimiterMetric: primaryDef.metric,
-      secondaryLimiter: secondaryDef ? secondaryDef.value : null,
-      secondaryLimiterMetric: secondaryDef ? secondaryDef.metric : null,
+      primaryLimiter: METRIC_TO_LORANG[effectiveOrder[0]] ?? primaryDef?.value ?? null,
+      primaryLimiterMetric: effectiveOrder[0],
+      secondaryLimiter: touchedSecondary ? secondaryDef?.value ?? null : METRIC_TO_LORANG[effectiveOrder[1]] ?? null,
+      secondaryLimiterMetric: touchedSecondary ? secondaryDef?.metric ?? null : effectiveOrder[1] ?? null,
       prohibitions: Array.from(finalProhibitions),
       sessionsPerWeek: Number.isFinite(rawSpw) && rawSpw > 0 ? rawSpw : null,
       durationMode,
       raceDate: durationMode === "date" && raceDate ? raceDate : null,
       weeksAvailable: computedWeeks,
       overriddenByCoach: {
-        primary: touchedPrimary || !prefillPrimary,
-        secondary: touchedSecondary || !prefillSecondary,
+        primary: selection.overridePrimary,
+        secondary: touchedSecondary,
       },
     };
   };
@@ -516,10 +548,22 @@ export function CoachProfileForm({
             </div>
           </section>
 
+          {displayedOrder.length>0 && <section className="space-y-2" aria-label="Limiteurs transmis au générateur">
+            <Label>Classement complet pour ce plan</Label>
+            <p className="text-xs text-muted-foreground">Tous les limiteurs pertinents sont conservés par défaut. Réordonnez les priorités ou décochez explicitement un limiteur pour ce plan. « Je ne sais pas » ne supprime pas le diagnostic automatique.</p>
+            <ol className="space-y-2">{displayedOrder.map((metric,index)=><li key={metric} className="flex items-center gap-2">
+              <Checkbox aria-label={`Inclure ${metric}`} checked={!excludedLimiterMetrics.includes(metric)} onCheckedChange={checked=>setExcludedLimiterMetrics(previous=>checked?previous.filter(m=>m!==metric):[...new Set([...previous,metric])])}/>
+              <span className="flex-1 text-sm">{metric}{excludedLimiterMetrics.includes(metric)?' — exclu explicitement':''}</span>
+              <Button type="button" variant="outline" size="sm" aria-label={`Monter ${metric}`} disabled={index===0} onClick={()=>moveLimiter(metric,-1)}>↑</Button>
+              <Button type="button" variant="outline" size="sm" aria-label={`Descendre ${metric}`} disabled={index===displayedOrder.length-1} onClick={()=>moveLimiter(metric,1)}>↓</Button>
+            </li>)}</ol>
+            {!effectiveOrder.length&&<p role="alert" className="text-sm text-destructive">Conservez au moins un limiteur pour poursuivre, ou revoyez les choix avec le diagnostic.</p>}
+          </section>}
+
           {/* b) Primary limiter */}
           <section>
             <Label className="text-sm font-semibold mb-2 block">
-              b) Limiteur principal <span className="text-destructive">*</span>
+              {automaticMetrics.length ? "b) Promouvoir un limiteur en priorité (optionnel)" : <>b) Limiteur principal <span className="text-destructive">*</span></>}
             </Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {LIMITER_OPTIONS.map((opt) => {
@@ -593,7 +637,7 @@ export function CoachProfileForm({
               {/* d) Secondary limiter */}
               <section>
                 <Label className="text-sm font-semibold mb-2 block">
-                  d) Limiteur secondaire
+                  {automaticMetrics.length ? "d) Promouvoir un second limiteur (optionnel)" : "d) Limiteur secondaire"}
                 </Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div

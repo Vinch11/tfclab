@@ -1,3 +1,4 @@
+import { canGuidePrescription, isRunningOnlyPrescription } from "@/lib/limiterPrescription";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * UNIFIED LIMITER DETECTION — TFCL METHOD™
@@ -89,6 +90,10 @@ export interface UnifiedLimiterInput {
 }
 
 export interface UnifiedGapAnalysis {
+  /** Original CP contract is cycling. Keep the assessment even when it cannot prescribe this sport. */
+  measurementDiscipline?: "bike";
+  prescriptionApplicable?: boolean;
+  prescriptionNote?: string;
   metric: string;
   value: number | null;
   target: number;
@@ -173,7 +178,7 @@ export function buildCategoryRanking(gapAnalysis: UnifiedGapAnalysis[]): Categor
 
   for (const gap of gapAnalysis) {
     // On ne retient que les métriques limitantes (ou clairement en dessous de la cible)
-    if (gap.status === "unknown" || gap.value === null) continue;
+    if (!canGuidePrescription(gap) || gap.status === "unknown" || gap.value === null) continue;
     if (gap.status !== "limiting" && gap.gap >= -3) continue;
 
     const category = METRIC_TO_CATEGORY[gap.metric] ?? "unknown";
@@ -583,10 +588,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   // (Note: on n'exige PLUS que ftpKg soit null — un coureur peut avoir des
   // données vélo résiduelles dans son snapshot, on doit quand même utiliser
   // VMA comme métrique d'expression aérobie pour un objectif course.)
-  const RUNNING_OBJECTIVES = ["Marathon", "Semi", "10km", "10K", "5K", "Trail", "TrailShort", "TrailLong", "TrailMountain", "TrailUltra", "Ultra", "StartToRun"];
-  const isRunningMode = input.sportFocus === "run" ||
-    (RUNNING_OBJECTIVES.includes(normalized) && input.vma !== null) ||
-    (RUNNING_OBJECTIVES.includes(input.objectif) && input.vma !== null);
+  // Sport does not change merely because its measurement is absent.
+  const isRunningMode = input.sportFocus === "run" || isRunningOnlyPrescription(input.objectif);
   const hasVmaTarget = targets.vma_min !== undefined && targets.vma_min !== null;
   const useVma = isRunningMode && hasVmaTarget;
   
@@ -710,6 +713,9 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     : 0;
   gapAnalysis.push({
     metric: "W' (kJ)",
+    measurementDiscipline: "bike",
+    prescriptionApplicable: !isRunningOnlyPrescription(input.objectif),
+    ...(isRunningOnlyPrescription(input.objectif) ? {prescriptionNote: "Indicateur cycliste conservé au bilan ; ne guide pas la prescription CAP."} : {}),
     value: effectiveWprime,
     target: wprimeTargets.optimal,
     gap: effectiveWprime !== null ? effectiveWprime - wprimeTargets.optimal : 0,
@@ -923,7 +929,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
 
   // ── Sélection du limiteur primaire (exclut "Disponibilité") ───────────
   // On filtre les gaps physiologiques uniquement pour le classement
-  const physiologicalGaps = sortedGaps.filter(g => g.metric !== "Disponibilité");
+  const physiologicalGaps = sortedGaps.filter(g => g.metric !== "Disponibilité" && canGuidePrescription(g));
   const topPhysioGap = physiologicalGaps[0];
   const secondPhysioGap = physiologicalGaps[1];
 

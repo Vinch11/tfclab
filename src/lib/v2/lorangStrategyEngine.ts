@@ -1,3 +1,4 @@
+import { canGuidePrescription } from "@/lib/limiterPrescription";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * LORANG STRATEGY ENGINE – TFCL METHOD™
@@ -271,6 +272,7 @@ export interface LorangStrategyInput {
   unifiedLimiterResult?: {
     primaryLimiter: string;
     gapAnalysis: Array<{
+      prescriptionApplicable?: boolean;
       metric: string;
       value: number | null;
       target: number;
@@ -600,7 +602,7 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     
     // Construire les raisons depuis le gap analysis (inclure aussi les gaps "attention" s'il n'y a pas de "limiting")
     const limitingGapsForReasons = unified.gapAnalysis
-      .filter(g => g.status === "limiting")
+      .filter(g => g.status === "limiting" && canGuidePrescription(g))
       .sort((a, b) => b.weightedImpact - a.weightedImpact);
     
     // ✅ FIX BUG TTE 59% sous/au-dessus : ne retenir comme "raison limitante" que les gaps
@@ -616,7 +618,7 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     const reasonGaps = limitingGapsForReasons.length > 0 
       ? limitingGapsForReasons 
       : unified.gapAnalysis
-          .filter(isAttentionLimiting)
+          .filter(g => canGuidePrescription(g) && isAttentionLimiting(g))
           .sort((a, b) => b.weightedImpact - a.weightedImpact);
     
     // ✅ FIX : phraser selon le SIGNE du gap et la sémantique de la métrique
@@ -760,7 +762,7 @@ function activateLevers(
   // ✅ Utiliser le gap analysis du moteur unifié pour déterminer TOUS les gaps limitants
   const gaps = input.unifiedLimiterResult?.gapAnalysis ?? [];
   const limitingGaps = gaps
-    .filter(g => g.status === "limiting")
+    .filter(g => g.status === "limiting" && canGuidePrescription(g))
     .sort((a, b) => b.weightedImpact - a.weightedImpact);
   
   // Helper: vérifier si une métrique est en gap limiting

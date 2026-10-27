@@ -1,3 +1,4 @@
+import { canGuidePrescription } from "@/lib/limiterPrescription";
 /**
  * LimiterHierarchyEditor — Permet au coach de réordonner la hiérarchie des limiteurs
  * avant la génération du plan IA.
@@ -134,7 +135,7 @@ export function LimiterHierarchyEditor({
 }: LimiterHierarchyEditorProps) {
   // Build initial sorted list from diagnostic
   const defaultOrder = [...gaps]
-    .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
+    .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité" && canGuidePrescription(g))
     .sort((a, b) => b.weightedImpact - a.weightedImpact);
 
   const [items, setItems] = useState<LimiterItem[]>(() =>
@@ -151,7 +152,7 @@ export function LimiterHierarchyEditor({
 
   // Signature stable des gaps (métrique + impact arrondi) — évite reset au moindre re-render
   const gapsSignature = [...gaps]
-    .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
+    .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité" && canGuidePrescription(g))
     .map(g => `${g.metric}:${Math.round(g.weightedImpact)}`)
     .sort()
     .join("|");
@@ -160,7 +161,7 @@ export function LimiterHierarchyEditor({
   // Reset uniquement quand la signature change réellement (nouvel athlète/objectif)
   useEffect(() => {
     const newDefault = [...gaps]
-      .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
+      .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité" && canGuidePrescription(g))
       .sort((a, b) => b.weightedImpact - a.weightedImpact);
     const requestedOrder = orderedMetrics ?? [];
     if (requestedOrder.length) {
@@ -199,7 +200,7 @@ export function LimiterHierarchyEditor({
 
   const handleReset = () => {
     const newDefault = [...gaps]
-      .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
+      .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité" && canGuidePrescription(g))
       .sort((a, b) => b.weightedImpact - a.weightedImpact);
     const resetItems = newDefault.map(g => ({
       metric: g.metric,
@@ -213,12 +214,14 @@ export function LimiterHierarchyEditor({
     onOrderChange([]);  // empty = use default
   };
 
-  if (items.length === 0) return null;
+  const contextual = gaps.filter(g=>!canGuidePrescription(g) && g.value!==null);
+  if (items.length === 0 && contextual.length===0) return null;
 
   const maxImpact = Math.max(...items.map(i => i.weightedImpact), 1);
 
   return (
     <div className="space-y-3">
+      {contextual.map(g=><p key={g.metric} className="text-xs text-muted-foreground">{g.metric} : {g.value} — indicateur cycliste conservé au bilan, hors priorités de prescription CAP.</p>)}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isOverridden && (

@@ -10,7 +10,7 @@ import { buildAthleteConstraintsBlock } from "./constraintsBlock.ts";
 import {
   buildUserPrompt,
   buildCPWprimeSection,
-  computeCPWprime,
+  computePrescriptionCPWprime,
   buildStructuredDiagnosticBlock,
   buildTerrainHardBanBlock,
   extractStrategicRecap,
@@ -300,7 +300,7 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     console.log(`🔎 Chunk decision: totalWeeks=${totalWeeks} threshold=${chunkThreshold} regenerateWeek=${!!regenerateWeek} isTriVerbose=${isTriVerbose} isTrailVerbose=${isTrailVerbose} → needsChunking=${needsChunking}`);
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
-    const cpwResult = computeCPWprime(athleteData);
+    const cpwResult = computePrescriptionCPWprime(athleteData, config);
     const cpRound = cpwResult?.cpRound ?? null;
     const effectiveCPVal = cpwResult?.effectiveCP ?? null;
     const wprimeKJ = cpwResult?.wprimeKJ ?? null;

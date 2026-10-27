@@ -1,3 +1,4 @@
+import { isRunningOnlyPrescriptionGoal } from "../_shared/prescriptionDiscipline.ts";
 import { periodizationBounds, reducedFondationWeeksPostPeak } from "../_shared/periodizationBounds.ts";
 // ═══════════════════════════════════════════════════════════════
 // PROMPT HELPERS — User prompt builder, CP/W' model, diagnostics
@@ -1050,9 +1051,15 @@ export function calcRecoveryEdge(
   return { rest: optRest, maxReps: Math.max(1, maxReps) };
 }
 
-export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrategy = "passive"): string | null {
+/** Same applicability for first prompt and every subsequent chunk/retry. Raw assessment is untouched. */
+export function computePrescriptionCPWprime(data: any, config?: { catalogObjective?: string; objective?: string }) {
+  return isRunningOnlyPrescriptionGoal(config?.catalogObjective || config?.objective)
+    ? null : computeCPWprime(data);
+}
+
+export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrategy = "passive", config?: { catalogObjective?: string; objective?: string }): string | null {
   // Reuse shared computation
-  const result = computeCPWprime(data);
+  const result = computePrescriptionCPWprime(data, config);
   if (!result) return null;
 
   const { cpRound, effectiveCP, wprimeKJ, wprimeJ: wprime, wprimeEffJ, cpBounded, wprimeCapped } = result;
@@ -1972,8 +1979,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   const recoveryStrategy: RecoveryStrategy = (config?.recoveryStrategy === "active-light" || config?.recoveryStrategy === "active-tempo")
     ? config.recoveryStrategy
     : "passive";
-  const cpwSection = buildCPWprimeSection(data, recoveryStrategy);
+  const cpwSection = buildCPWprimeSection(data, recoveryStrategy, config);
   if (cpwSection) lines.push(cpwSection);
+  else if (isRunningOnlyPrescriptionGoal(config?.catalogObjective || config?.objective) && (data.p30s || data.p60s || data.map5min)) {
+    lines.push("- Provenance : ces puissances sont cyclistes. CP/W′ restent des indicateurs secondaires du bilan ; ne pas les utiliser pour classer les priorités CAP ni calibrer ses intensités ou récupérations.");
+  }
 
   lines.push("\n#### Autres Métriques");
   if (data.vma) lines.push(`- VMA : ${data.vma} km/h`);

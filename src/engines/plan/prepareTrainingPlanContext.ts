@@ -1,3 +1,4 @@
+import { canGuidePrescription } from "@/lib/limiterPrescription";
 import { resolvePlanningSnapshotLoad } from "@/lib/planningSnapshotLoad";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { computeDecision, type DecisionInput, type TrainingPrescription } from "@/engines/decision";
@@ -122,7 +123,7 @@ function buildTrace(
   planConfig: PlanConfig,
 ): TrainingPlanPhysiologicalTrace {
   const rankedGaps = [...diagnostic.limiter.gapAnalysis]
-    .filter(gap => gap.weightedImpact > 0)
+    .filter(gap => gap.weightedImpact > 0 && canGuidePrescription(gap))
     .sort((a, b) => b.weightedImpact - a.weightedImpact);
   const uncertainty: string[] = [];
   if (diagnostic.meta.dataCompleteness < 0.75) {
