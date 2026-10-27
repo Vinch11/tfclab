@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {POLICY,digest,createSupervisor,beginCycle,finishCycle,saveState,loadState,validateComparison,prepareRepair,applyRepair,rollbackRepair,resumeRepair,prioritizeDiagnostic,assertExperimentalBranch,applyRegisteredRecipe,rejectRegisteredRepair,executeRegisteredCycle,validationCommandPlan} from './v2-supervisor.mjs';
+import {POLICY,digest,createSupervisor,beginCycle,finishCycle,saveState,loadState,validateComparison,prepareRepair,applyRepair,rollbackRepair,resumeRepair,prioritizeDiagnostic,assertExperimentalBranch,applyRegisteredRecipe,rejectRegisteredRepair,executeRegisteredCycle,validationCommandPlan,commandExecutionEvidence} from './v2-supervisor.mjs';
 const branch='experiment/det-engine';
 const rows=()=>[{id:'a',technicallyConstructed:true,constraintsSatisfied:true,executedControls:['safety'],issues:[]},{id:'b',technicallyConstructed:false,constraintsSatisfied:false,executedControls:[],issues:[]}];
 const evidence=()=>({version:'fixture',controls:[{id:'safety',version:'v1'}],rows:rows()});
@@ -102,6 +102,7 @@ test('end-to-end supervisor retains a validated recipe and rolls back a rejected
   const mockValidation=(_root,out)=>{mkdirSync(join(out,'matrix'),{recursive:true});for(const name of ['candidate','replay'])writeFileSync(join(out,'matrix',`${name}.json`),JSON.stringify(improved));return [{name:'orchestration_test_double',ok:true}];};
   const recipe={id:'r1',cycleId:'c1',cause:'fixture',hypothesis:'test lifecycle only',modifications:[{path:'experimental/det-engine/engine.ts',beforeSha256:digest('initial'),afterContent:'accepted'}]};
   const accepted=executeRegisteredCycle(root,statePath,recipe,join(root,'out1'),baselinePath,{branch,validationRunner:mockValidation});assert.equal(accepted.status,'accepted');assert.equal(readFileSync(source,'utf8'),'accepted');
+  writeFileSync(baselinePath,JSON.stringify(improved));
   const failed={...recipe,id:'r2',cycleId:'c2',modifications:[{...recipe.modifications[0],beforeSha256:digest('accepted'),afterContent:'bad candidate'}]};
   const rejected=executeRegisteredCycle(root,statePath,failed,join(root,'out2'),baselinePath,{branch,validationRunner:()=>[{name:'orchestration_test_double',ok:false}]});assert.equal(rejected.status,'rejected');assert.equal(readFileSync(source,'utf8'),'accepted');
   assert.equal(loadState(statePath).cycles.length,2);
@@ -147,8 +148,8 @@ test('missing plan, missing applicability, or changed control cannot be counted 
 });
 
 test('fixed validation runner selects V2 bundle output and disables legacy matrix without invoking production suite',()=>{
- const plan=validationCommandPlan('/tmp/evidence');assert.deepEqual(plan.map(([name])=>name),['types','supervisor-tests','diagnostic-tests','engine-tests']);
- const engine=plan.find(([name])=>name==='engine-tests');assert.equal(engine[2].TFCL_DET_V2_OUT,'/tmp/evidence/matrix');assert.equal(engine[2].TFCL_DET_MATRIX_OUT,'');
+ const plan=validationCommandPlan('/tmp/evidence',{baselinePath:'/tmp/accepted.json',version:'cycle-test'});assert.deepEqual(plan.map(([name])=>name),['types','supervisor-tests','diagnostic-tests','engine-tests']);
+ const engine=plan.find(([name])=>name==='engine-tests');assert.equal(engine[2].TFCL_DET_V2_OUT,'/tmp/evidence/matrix');assert.equal(engine[2].TFCL_DET_MATRIX_OUT,'');assert.equal(engine[2].TFCL_DET_V2_INPUT,'/tmp/accepted.json');assert.equal(engine[2].TFCL_DET_V2_VERSION,'cycle-test');
  assert.equal(engine[1].includes('experimental/det-engine/vitest.config.ts'),true);
  assert.equal(validationCommandPlan('/tmp/evidence',{global:false}).at(-1)[2].TFCL_DET_V2_OUT,'');assert.equal(POLICY.apiBudgetUsd,0);
 });
@@ -166,4 +167,22 @@ test('no-progress rejection cannot mislabel a measured improvement',()=>{
  const initial=evidence(),next=evidence();next.rows[1].technicallyConstructed=true;
  const state=createSupervisor({branch,baseline:initial});begin(state,'improved');
  assert.throws(()=>finishCycle(state,{id:'improved',comparison:validateComparison(initial,next,next),tests:checks,retain:false}),/NO_PROGRESS_REJECTION_REQUIRES_NO_IMPROVEMENT/);
+});
+
+test('successive registered cycle passes last accepted baseline and explicit version to its fixed validation runner',()=>{
+ const root=mkdtempSync(join(tmpdir(),'det-input-'));try{
+  mkdirSync(join(root,'experimental/det-engine'),{recursive:true});writeFileSync(join(root,'experimental/det-engine/engine.ts'),'before');
+  const baseline=evidence(),statePath=join(root,'state.json'),baselinePath=join(root,'accepted.json');writeFileSync(baselinePath,JSON.stringify(baseline));saveState(statePath,createSupervisor({branch,baseline}));
+  const recipe={id:'recipe',cycleId:'input_cycle',cause:'fixture',hypothesis:'preserve previous repairs',modifications:[{path:'experimental/det-engine/engine.ts',beforeSha256:digest('before'),afterContent:'after'}]};
+  let options;
+  executeRegisteredCycle(root,statePath,recipe,join(root,'out'),baselinePath,{branch,validationRunner:(_root,_out,provided)=>{options=provided;return [{ok:false,status:'unavailable'}];}});
+  assert.equal(options.baselinePath,baselinePath);assert.match(options.version,/^det-v2-input_cycle-/);assert.equal(readFileSync(join(root,'experimental/det-engine/engine.ts'),'utf8'),'before');
+  assert.throws(()=>validationCommandPlan('/tmp/out'),/BASELINE_PATH_REQUIRED/);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+test('launch unavailable, interrupted, failed and genuinely passed commands remain distinct',()=>{
+ assert.deepEqual(commandExecutionEvidence('test',{status:0}).status,'passed');
+ const unavailable=commandExecutionEvidence('test',{status:0,error:{code:'EPERM',message:'operation unavailable'}});assert.equal(unavailable.ok,false);assert.equal(unavailable.status,'unavailable');assert.equal(unavailable.executionVerified,false);
+ assert.equal(commandExecutionEvidence('test',{status:null,error:{code:'ETIMEDOUT',message:'timeout'}}).status,'interrupted');
+ assert.equal(commandExecutionEvidence('test',{status:1}).status,'failed');
 });

@@ -183,35 +183,47 @@ export function rejectRegisteredRepair(root,statePath,id,reason='experimental_ch
 export function saveState(path,state){atomic(path,state);}
 export function loadState(path){const state=load(path);if(state.schemaVersion!==2)throw Error('STATE_SCHEMA_VERSION');return state;}
 /** Fixed plan is inspectable/testable without running a sporting simulation twice. */
-export function validationCommandPlan(out,{global=true}={}){
+export function validationCommandPlan(out,{global=true,baselinePath,version='det-v2-supervisor-candidate'}={}){
+ if(global&&!baselinePath)throw Error('BASELINE_PATH_REQUIRED_FOR_GLOBAL_VALIDATION');
  return [['types',['node_modules/typescript/bin/tsc','--noEmit','-p','experimental/det-engine/tsconfig.json'],{}],
   ['supervisor-tests',['scripts/det-engine/v2-supervisor.test.mjs'],{}],
   ['diagnostic-tests',['scripts/det-engine/v2-diagnostic.test.mjs'],{}],
-  ['engine-tests',['node_modules/vitest/vitest.mjs','run','--config','experimental/det-engine/vitest.config.ts',`--maxWorkers=${POLICY.maxWorkers}`],{TFCL_DET_V2_OUT:global?resolve(out,'matrix'):'',TFCL_DET_MATRIX_OUT:''}]];
+  ['engine-tests',['node_modules/vitest/vitest.mjs','run','--config','experimental/det-engine/vitest.config.ts',`--maxWorkers=${POLICY.maxWorkers}`],{TFCL_DET_V2_OUT:global?resolve(out,'matrix'):'',TFCL_DET_V2_INPUT:global?resolve(baselinePath):'',TFCL_DET_V2_VERSION:version,TFCL_DET_MATRIX_OUT:''}]];
+}
+/** A launch error is never a passed/executed test, even if a numeric status is zero. */
+export function commandExecutionEvidence(name,result){
+ const unavailable=result.error&&['ENOENT','EACCES','EPERM'].includes(result.error.code);
+ return {name,ok:result.status===0&&!result.error,status:unavailable?'unavailable':result.error?'interrupted':result.status===0?'passed':'failed',
+  attempted:true,executionVerified:!result.error&&result.status!==null,exitCode:result.status,error:result.error?.message};
 }
 /** Validator role uses a fixed command plan. It cannot run a shell/paid API or production workflow. */
-export function runValidation(root,out,{remainingMs=POLICY.maxDurationMs,global=true}={}){
+export function runValidation(root,out,{remainingMs=POLICY.maxDurationMs,global=true,baselinePath,version='det-v2-supervisor-candidate'}={}){
+ if(global&&(!baselinePath||!existsSync(resolve(root,baselinePath))))throw Error('BASELINE_FILE_UNAVAILABLE');
  mkdirSync(out,{recursive:true});const started=Date.now(),runs=[];
- const commands=validationCommandPlan(out,{global});
+ const commands=validationCommandPlan(out,{global,baselinePath:baselinePath?resolve(root,baselinePath):undefined,version});
  for(const [name,args,env] of commands){
   const remaining=remainingMs-(Date.now()-started);if(remaining<=0){runs.push({name,ok:false,error:'DURATION_LIMIT'});break;}
   const result=spawnSync(process.execPath,args,{cwd:root,env:{...process.env,...env,NODE_OPTIONS:`--max-old-space-size=${POLICY.maxHeapMb}`},encoding:'utf8',timeout:Math.min(remaining,POLICY.commandTimeoutMs),maxBuffer:32*1024*1024});
   writeFileSync(resolve(out,`${name}.txt`),(result.stdout??'')+(result.stderr??''));
-  const evidence={name,ok:result.status===0&&!result.error,exitCode:result.status,error:result.error?.message};runs.push(evidence);if(!evidence.ok)break;
+  const evidence=commandExecutionEvidence(name,result);runs.push(evidence);if(!evidence.ok){for(const [skipped] of commands.slice(runs.length))runs.push({name:skipped,ok:false,status:'not_executed',executionVerified:false,reason:'prior_command_unavailable_or_failed'});break;}
  }
  atomic(resolve(out,'execution.json'),{runs,elapsedMs:Date.now()-started,policy:POLICY});return runs;
 }
 /** End-to-end local registered cycle: durable application → fixed validation → comparison → retain or owned-byte rollback. */
 export function executeRegisteredCycle(root,statePath,recipe,out,baselinePath,{branch,validationRunner=runValidation}={}){
+ const initialState=loadState(statePath),baseline=load(resolve(root,baselinePath));
+ if(digest(baseline)!==initialState.currentBaselineHash)throw Error('BASELINE_NOT_LAST_ACCEPTED');
  const cycle=applyRegisteredRecipe(root,statePath,recipe,resolve(out,'repairs'),{branch});
  if(cycle.status!=='running')return cycle;
  const state=loadState(statePath),remaining=POLICY.maxDurationMs-state.elapsedMs-Math.max(0,Date.now()-cycle.startedAt);
  if(remaining<=0)return rejectRegisteredRepair(root,statePath,cycle.id,'duration_limit');
- const runs=validationRunner(root,resolve(out,'validation'),{remainingMs:remaining,global:true});
+ let runs;
+ try{runs=validationRunner(root,resolve(out,'validation'),{remainingMs:remaining,global:true,baselinePath:resolve(root,baselinePath),version:`det-v2-${cycle.id}-${cycle.sourceHash.slice(0,12)}`});}
+ catch(error){return rejectRegisteredRepair(root,statePath,cycle.id,`controller_failure:${error.message}`);}
  if(!runs.every(r=>r.ok))return rejectRegisteredRepair(root,statePath,cycle.id,'validation_failure');
  const folder=resolve(out,'validation/matrix');
  try{
-  const baseline=load(baselinePath),candidate=load(resolve(folder,'candidate.json')),replay=load(resolve(folder,'replay.json'));
+  const candidate=load(resolve(folder,'candidate.json')),replay=load(resolve(folder,'replay.json'));
   const comparison=validateComparison(baseline,candidate,replay);
   const latest=loadState(statePath),result=finishCycle(latest,{id:cycle.id,comparison,tests:{unit:true,nonRegression:comparison.noCriticalRegression,sporting:true,replay:comparison.reproduced},artifactHashes:{baseline:digest(baseline),candidate:digest(candidate),replay:digest(replay)}});
   saveState(statePath,latest);atomic(resolve(out,'decision.json'),result);
@@ -243,10 +255,12 @@ export function main(args=process.argv.slice(2)){
   const cycle=finishCycle(state,{id:input.id,comparison:validateComparison(baseline,candidate,replay),tests:input.tests,retain:input.retain??true,artifactHashes:{baseline:digest(baseline),candidate:digest(candidate),replay:digest(replay)}});saveState(statePath,state);return cycle;
  }
  if(command==='validate'){
+  if(!rest[1]||!existsSync(resolve(root,rest[1])))throw Error('BASELINE_FILE_UNAVAILABLE');
+  if(digest(load(resolve(root,rest[1])))!==state.currentBaselineHash)throw Error('BASELINE_NOT_LAST_ACCEPTED');
   if(state.activeValidation)throw Error('VALIDATION_ALREADY_RUNNING_OR_INTERRUPTED');
   const reservation=Math.max(0,POLICY.maxDurationMs-state.elapsedMs);if(!reservation)throw Error('DURATION_LIMIT');
   state.activeValidation={startedAt:Date.now(),reservedMs:reservation,out:resolve(rest[0])};event(state,'validation_reserved',{reservedMs:reservation});saveState(statePath,state);
-  const start=Date.now(),runs=runValidation(root,rest[0],{remainingMs:reservation});
+  const start=Date.now(),runs=runValidation(root,rest[0],{remainingMs:reservation,baselinePath:rest[1],version:rest[2]??'det-v2-supervisor-candidate'});
   const consumed=Date.now()-start;state.elapsedMs+=consumed;if(state.activeCycle){const cycle=state.cycles.find(c=>c.id===state.activeCycle);cycle.validationAccountedMs=(cycle.validationAccountedMs??0)+consumed;}state.activeValidation=null;event(state,'validation_finished',{runs});saveState(statePath,state);return runs;
  }
  if(command==='recover-validation'){

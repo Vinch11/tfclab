@@ -118,6 +118,10 @@ exécutées. L'API d'enregistrement ne remplace pas leur exécution ; la command
 `recipe.json` : `id`, `cycleId`, `cause`, `hypothesis`, `scope`, et
 `modifications: [{path, beforeSha256, afterContent}]`. Les manifestes contenant
 une modification de production, de tests ou une base périmée sont refusés.
+Chaque commande distingue `passed`, `failed`, `unavailable`, `interrupted` et
+`not_executed`. Une erreur de lancement, même avec un statut numérique zéro, ne
+compte jamais comme test exécuté avec succès. Les commandes suivantes sont
+explicitement marquées non exécutées lorsque le plan s’arrête.
 Les refus et erreurs du contrôleur sont persistés et le manifeste est rejeté,
 sans supprimer son diagnostic.
 
@@ -125,14 +129,18 @@ Le plan fixe exécute TypeScript, les tests du superviseur et du diagnostic, pui
 la suite Vitest expérimentale (pas la suite de production entière). Il neutralise
 explicitement l’ancienne variable `TFCL_DET_MATRIX_OUT`.
 
-La matrice V2 réelle reçoit `TFCL_DET_V2_OUT`, puis écrit
+La matrice V2 réelle reçoit `TFCL_DET_V2_OUT`, `TFCL_DET_V2_INPUT` (chemin
+explicite du dernier bundle accepté) et `TFCL_DET_V2_VERSION` (identifiant du cycle
+et hash source). La validation globale sans référence explicite est refusée :
+un cycle suivant ne reconstruit pas depuis V1 en perdant les réparations déjà
+acceptées. Les preuves initiales restent immuables. La matrice écrit
 `baseline.json`, `candidate.json`, `replay.json`. La reprise n'active aucune
 récurrence automatique. Toute nouvelle session doit relancer explicitement le
 superviseur après lecture de l'état.
 
 ## Validation du superviseur
 
-`node scripts/det-engine/v2-supervisor.test.mjs` : 23 tests d'orchestration.
+`node scripts/det-engine/v2-supervisor.test.mjs` : 25 tests d'orchestration.
 Ils couvrent contrôles incomparables, nouveaux défauts exposés, vraie régression
 critique sous contrôle identique, multiplicité, couverture, non-déterminisme,
 limites, idempotence, preuve périmée, reprise et retour arrière préservant les
