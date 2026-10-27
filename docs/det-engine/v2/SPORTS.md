@@ -62,3 +62,41 @@ les contrats absents, la distinction brick/course autonome, l'ajustement d'une
 compétition déclarée, la provenance d'une vraie fiche trail et les exclusions
 de périmètre. Les petites structures de test de l'audit ne sont pas des séances
 générées par le moteur et ne servent pas à améliorer son taux d'assemblage.
+
+## Sonde causale des domaines Ironman continus
+
+`TFCL_DET_IRONMAN_PROBE_OUT=docs/det-engine/v2/ironman-probe.json npx vitest run
+--config experimental/det-engine/vitest.config.ts --maxWorkers=1
+experimental/det-engine/v2-ironman-probe.test.ts` rejoue les 31 refus historiques
+Ironman continu portant `empty_catalogue_domain_week_N`. L'horloge, le seed, le
+hash de la baseline et les sources sont enregistrés ; tout appel réseau échoue.
+
+Les 31 cas ont exactement un créneau bloquant : le brick long. Les deux fiches
+éligibles à la semaine sont `BRICK_STAGE1_INTRO` (60–90 min) et
+`BRICK_ACTIVATION_PRE_RACE` (30–50 min). Aucune n'est rejetée en insertion pour
+contexte ou prérequis ; aucune n'atteint le plancher du slot, compris selon le
+cas entre 95 et 170 minutes. Les variantes strictement exécutables ne réparent
+aucun des 31 domaines.
+
+La sonde reconstruit ensuite les options exactes du premier chunk (les 31
+échecs concernés sont en S1–S4). Elle vérifie par égalité des identifiants que
+`maxItems:130` reproduit le pool d'origine, puis modifie **uniquement**
+`maxItems` à 10000. Sport, phases, contexte de semaine, risque, niveau coach,
+limiteurs, interdictions, exclusions, historique vide, rotation et seed sont
+conservés. Le pool non plafonné contient 3 à 28 bricks selon la configuration,
+mais toujours seulement les deux fiches précédentes admissibles à la semaine.
+**0/31 domaines sont réparés par suppression du plafond de catalogue.**
+
+Le symptôme «domaine vide» est donc ici attribué à l'intersection des contrats
+actuels de phase et de durée, et non au plafond de tokens du LLM ni au contexte
+post-vélo. Cette preuve ne signifie pas que les 31 athlètes synthétiques ne
+peuvent pas préparer un Ironman : elle montre qu'aucune affectation autorisée
+n'existe dans ce créneau précis sous ces contrats.
+
+Décision : préserver le refus et les preuves. Pour débloquer cette partie, une
+revue méthodologique/éditoriale doit décider s'il faut une fiche de brick long
+compatible avec cette phase, revoir le contrat de progression des bricks ou
+revoir le placement. La sonde ne baisse aucun plancher, ne déplace pas les
+phases, ne rebaptise pas une fiche et ne fabrique pas de nouvelle séance.
+Les autres causes des 9 refus Ironman restants et la conformité des plans
+nouvellement assemblés demeurent des sujets distincts.
