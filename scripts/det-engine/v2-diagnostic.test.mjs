@@ -54,3 +54,49 @@ test('the committed 600-case baseline is verified rather than inferred from pros
  assert.match(renderDashboard(report),/167 plans assemblés/);
  assert.deepEqual(analyzeRows(rows),analyzeRows(rows));
 });
+test('V2 repairs and recorded applicability are counted without conflating context and rule execution',()=>{
+ const rows=[row({id:'constructed',technicallyConstructed:true,constraintsSatisfied:true,effectiveAmbition:'age_group',physiologicalContext:{version:1},
+  executedControls:['full_validator'],repairs:[
+   {accepted:true,rule:'replacement',defect:['polarization'],beforeCritical:{'polarization:1':3},afterCritical:{'polarization:1':1}},
+   {accepted:false,rule:'replacement',defect:['polarization'],beforeCritical:{'polarization:1':1},afterCritical:{'polarization:1':2}},
+  ],coverage:{conditional:{limiterKeys:'executed',physiologicalResponse:'not_implemented',loadHistory:'not_applicable'},sportsAudit:{controls:[
+   {id:'calendar',execution:'executed',result:'pass',classification:'contract'},
+   {id:'progression',execution:'executed',result:'unknown',classification:'expert_review'},
+  ]}}}),row({id:'refused',reason:'search_budget_exhausted',executedControls:[],repairs:[],coverage:{conditional:{limiterKeys:'executed'},sportsAudit:{controls:[
+   {id:'calendar',execution:'not_implemented',result:'unknown',classification:'contract'},
+   {id:'trail',execution:'not_applicable',result:'not_applicable',classification:'expert_review'},
+  ]}}})];
+ const report=analyzeRows(rows,{version:'det-v2',controls:[{id:'full_validator',version:'2'}]});
+ assert.deepEqual({attempts:report.counts.repairs.attempts,accepted:report.counts.repairs.accepted,rejected:report.counts.repairs.rejected,corrected:report.counts.repairs.corrected},{attempts:2,accepted:1,rejected:1,corrected:2});
+ const frequencies=report.counts.controls.controlFrequencies;
+ assert.deepEqual(frequencies.find(c=>c.id==='full_validator').statuses,{executed:1,not_executed:1});
+ assert.deepEqual(frequencies.find(c=>c.id==='limiterKeys').statuses,{executed:2});
+ assert.equal(frequencies.find(c=>c.id==='limiterKeys').namespace,'conditional_context');
+ assert.deepEqual(frequencies.find(c=>c.id==='calendar').statuses,{executed:1,not_implemented:1});
+ assert.deepEqual(report.counts.controls.physicalContractAudit.results,{pass:1});
+ assert.equal(report.counts.controls.technicalSchema.execution,'not_implemented');
+ assert.equal(report.counts.controls.generalSportingRelevance.result,'expert_review_required');
+ assert.equal(report.caseDiagnostics[0].effectiveAmbition,'age_group');
+ assert.equal(report.caseDiagnostics[0].physiologicalContextRecorded,true);
+ assert.match(renderDashboard(report),/2 tentatives ; 1 acceptées ; 1 rejetées/);
+ assert.match(renderDashboard(report),/conditional_context décrivent le contexte fourni/);
+});
+test('legacy evidence never fabricates zero repairs or recorded applicability',()=>{
+ const report=analyzeRows([row({reason:'search_budget_exhausted'})]);
+ assert.equal(report.counts.repairs.attempts,null);assert.equal(report.counts.repairs.accepted,null);
+ assert.equal(report.counts.controls.unrecordedCases,1);assert.equal(report.caseDiagnostics[0].controlEvidence,null);
+ assert.equal(report.caseDiagnostics[0].effectiveAmbition,null);assert.equal(report.caseDiagnostics[0].physiologicalContextRecorded,false);
+ assert.equal(report.counts.controls.controlFrequencies.length,0);
+});
+test('the committed V2 cycle records measurable repair transitions',()=>{
+ const evidence=JSON.parse(gunzipSync(readFileSync('docs/det-engine/v2/cycles/02/candidate.json.gz')).toString('utf8'));
+ const report=analyzeRows(evidence.rows,{version:evidence.version,controls:evidence.controls});
+ assert.equal(report.counts.configurations,600);assert.equal(report.counts.assembled,167);
+ assert.equal(report.counts.withoutRecordedBlockingError,11);
+ assert.equal(report.counts.repairs.attempts,2417);assert.equal(report.counts.repairs.accepted,81);
+ assert.equal(report.counts.repairs.rejected,2336);assert.equal(report.counts.repairs.corrected,85);
+ assert.equal(report.counts.controls.recordedCases,600);
+ assert.equal(report.controls.length,evidence.controls.length);
+ assert.equal(report.counts.controls.controlFrequencies.find(c=>c.namespace==='aggregate_validator'&&c.id==='weekly_quotas').statuses.executed,167);
+ assert.deepEqual(analyzeRows(evidence.rows,{controls:evidence.controls}),analyzeRows(evidence.rows,{controls:evidence.controls}));
+});
