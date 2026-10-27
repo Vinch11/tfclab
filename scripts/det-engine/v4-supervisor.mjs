@@ -19,6 +19,10 @@ export function finish(path,id,proof){const s=JSON.parse(readFileSync(path));con
 export function plan(id,out){
  const env={NODE_OPTIONS:'--max-old-space-size=2048',TFCL_DET_MATRIX_OUT:'',TFCL_DET_V2_OUT:'',TFCL_DET_V3_QUALITY_OUT:'',TFCL_DET_V3_IM_OUT:'',TFCL_DET_V3_TRAIL_OUT:'',TFCL_DET_V3_CONTINUE_OUT:'',TFCL_DET_V3_PROGRESSION_OUT:'',TFCL_DET_V3_PLACEMENT_OUT:'',TFCL_DET_V3_IM_REVIEW_OUT:'',TFCL_DET_V4_OUT:out};
  const files={audit:'v4-audit',progression:'v4-progression','ironman-contracts':'v4-ironman','ironman-matrix':'v4-ironman-matrix','trail-generator':'v4-trail','trail-matrix':'v4-trail-matrix','reference-matrix':'v4-reference'};
+ if(id==='trail-generator')return [
+  {name:'types-followup',args:['node_modules/typescript/bin/tsc','--noEmit','-p','experimental/det-engine/tsconfig.json'],env},
+  {name:id,args:['node_modules/vitest/vitest.mjs','run','--config','experimental/det-engine/vitest.v3.config.ts','experimental/det-engine/v4-trail.test.ts','--maxWorkers=1'],env},
+  {name:'trail-current',args:['node_modules/vitest/vitest.mjs','run','--config','experimental/det-engine/vitest.v3.config.ts','experimental/det-engine/v4-trail-matrix.test.ts','--maxWorkers=1'],env:{...env,TFCL_DET_V4_OUT:join(out,'trail-current'),TFCL_DET_V4_TRAIL_COMPARE:'docs/det-engine/v4/checkpoints/trail-r3/candidate.json.gz'}}];
  if(files[id])return [{name:id,args:['node_modules/vitest/vitest.mjs','run','--config','experimental/det-engine/vitest.v3.config.ts',`experimental/det-engine/${files[id]}.test.ts`,'--maxWorkers=1'],env}];
  if(id==='validation')return [
   {name:'types',args:['node_modules/typescript/bin/tsc','--noEmit','-p','experimental/det-engine/tsconfig.json'],env},
@@ -35,9 +39,11 @@ export function run(root,path,id,out){const branch=spawnSync('git',['branch','--
   for(const [p,h] of Object.entries(existing.proof.artifacts??{}))if(!existsSync(p)||digest(readFileSync(p).toString('base64'))!==h)throw Error('COMPLETED_EVIDENCE_CHANGED');return {...existing,idempotent:true};}
  const reservation=JSON.parse(readFileSync(path)).activeUnit;
  if(!reservation)begin(path,id);else if(reservation.id!==id)throw Error('OTHER_UNIT_ACTIVE');
+ else if(reservation.launchStarted)throw Error('ACTIVE_OR_INTERRUPTED_PROCESS_REQUIRES_CHECK');
  const s=JSON.parse(readFileSync(path)),source=sourceFingerprint(root);mkdirSync(out,{recursive:true});const commands=[];
+ s.activeUnit.launchStarted=true;save(path,s);
  for(const c of plan(id,out)){
-  const remaining=Math.min(720000,s.deadline*1000-Date.now());if(remaining<=0){commands.push({name:c.name,ok:false,status:'budget_exhausted'});break;}
+  const remaining=Math.max(0,Math.floor(Math.min(720000,s.deadline*1000-Date.now())));if(remaining<=0){commands.push({name:c.name,ok:false,status:'budget_exhausted'});break;}
   const start=Date.now(),r=spawnSync(process.execPath,c.args,{cwd:root,env:{...process.env,...c.env},encoding:'utf8',timeout:remaining,maxBuffer:64*1024*1024});
   writeFileSync(join(out,c.name+'.txt'),(r.stdout??'')+(r.stderr??''));commands.push({name:c.name,args:c.args,ok:r.status===0&&!r.error,status:r.error?.code==='ETIMEDOUT'?'interrupted':r.error?'unavailable':r.status===0?'passed':'failed',exitCode:r.status,error:r.error?.code,elapsedMs:Date.now()-start});if(!commands.at(-1).ok)break;
  }

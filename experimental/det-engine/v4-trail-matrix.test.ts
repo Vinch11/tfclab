@@ -18,7 +18,7 @@ it.skipIf(!process.env.TFCL_DET_V4_OUT)('builds complete synthetic trail calenda
  const decisions=rows.map(row=>{const previous=prior.find(p=>p.fixtureId===row.fixtureId&&p.model===row.model);return{fixtureId:row.fixtureId,model:row.model,...selectWholePlanProposal(previous,row)};});
  const retained=decisions.map(d=>d.selected),built=rows.filter(r=>r.status==='candidate');
  for(const old of prior.filter(r=>r.status==='candidate'))expect(retained.find(r=>r.fixtureId===old.fixtureId&&r.model===old.model)?.status).toBe('candidate');
- const summary={version:'det-v4-trail-matrix-2',cohort:'new_explicit_synthetic_only',cases:rows.length,built:built.length,technicalValid:built.filter(r=>r.technical.valid).length,sportConformant:built.filter(r=>r.candidateSportConformant).length,
+ const summary={version:'det-v4-trail-matrix-3',cohort:'new_explicit_synthetic_only',cases:rows.length,built:built.length,technicalValid:built.filter(r=>r.technical.valid).length,sportConformant:built.filter(r=>r.candidateSportConformant).length,
   byModel:TRAIL_CALENDAR_MODELS.map(model=>({model,cases:rows.filter(r=>r.model===model).length,built:built.filter(r=>r.model===model).length})),
   byObjective:TRAIL_FIXTURES.map(f=>f.objective).filter((v,i,a)=>a.indexOf(v)===i).map(objective=>({objective,cases:rows.filter(r=>r.objective===objective).length,built:built.filter(r=>r.objective===objective).length})),
   reasons:Object.fromEntries([...new Set(rows.filter(r=>r.status==='refused').map(r=>r.reason))].map(reason=>[reason,rows.filter(r=>r.status==='refused'&&r.reason===reason).length])),exactReplay:rows.length,paidApiCalls:0,

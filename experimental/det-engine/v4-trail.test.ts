@@ -1,7 +1,13 @@
 import{it,expect,vi,afterEach}from'vitest';import{TRAIL_FIXTURES,prepareTrailFixture}from'./v4-trail-fixtures';import{generateTrailPlan}from'./v4-trail';
 import{writeFileSync}from'node:fs';import{gzipSync}from'node:zlib';
 import{WorkoutLibrary}from'@/lib/workoutLibrary';import{buildRepairWorkoutMetadata}from'@/lib/plan/repairCatalogMetadata';import{generationEligibility}from'./v4-generation-eligibility';
+import{minimumDistinctDose}from'./v4-distinct-dose';
 afterEach(()=>{vi.restoreAllMocks();vi.useRealTimers();});
+it('reserves a feasible distinct-ID assignment instead of counting the same cheap card twice',()=>{
+ expect(minimumDistinctDose([[{id:'a',min:25},{id:'b',min:60}],[{id:'a',min:25},{id:'b',min:60}]])).toBe(85);
+ expect(minimumDistinctDose([[{id:'a',min:25}],[{id:'a',min:25}]])).toBe(Infinity);
+ expect(minimumDistinctDose([])).toBe(0);
+});
 it('rejects absent geometry and does not infer permission for back-to-back from an objective',()=>{
  const f=structuredClone(TRAIL_FIXTURES[0]),{athlete,config}=prepareTrailFixture(f);
  expect(generateTrailPlan(athlete,config,{...f,event:{...f.event,distanceKm:NaN}},'separated_exposure').status).toBe('refused');

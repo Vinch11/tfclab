@@ -6,10 +6,11 @@ import{WorkoutLibrary}from'@/lib/workoutLibrary';import{LIMITER_SESSION_PATTERNS
 import{checkSessionCatalogue}from'../../supabase/functions/_shared/sessionCatalogueContract';import{evaluateRepairSportingEquivalence,normalizeRepairSport}from'../../supabase/functions/_shared/repairSportingEquivalence';
 import{validateExperimentalCandidate}from'./v2-validation';import{auditTechnicalPlan}from'./v2-technical-validation';import{auditGlobalProgression,type ExposureDose}from'./v4-progression';import type{TrailFixture}from'./v4-trail-fixtures';
 import{generationEligibility}from'./v4-generation-eligibility';
+import{minimumDistinctDose}from'./v4-distinct-dose';
 export type TrailCalendarModel='separated_exposure'|'specific_back_to_back'|'conservative_taper';export const TRAIL_CALENDAR_MODELS:TrailCalendarModel[]=['separated_exposure','specific_back_to_back','conservative_taper'];
 const DAYS=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
 export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:TrailFixture,model:TrailCalendarModel){
- const common={version:'det-v4-trail-calendar-2',fixtureId:f.id,model,synthetic:true,humanReviewRequired:true,sportingRelevance:'not_attested'};
+ const common={version:'det-v4-trail-calendar-3',fixtureId:f.id,model,synthetic:true,humanReviewRequired:true,sportingRelevance:'not_attested'};
  const refuse=(reason:string,evidence:unknown)=>({...common,status:'refused' as const,technicallyConstructed:false,reason,evidence});
  if(!Number.isFinite(f.event.distanceKm)||f.event.distanceKm<=0||!Number.isFinite(f.event.elevationGainM)||f.event.elevationGainM<0||f.event.elevationLossM!=null&&(!Number.isFinite(f.event.elevationLossM)||f.event.elevationLossM<0))return refuse('explicit_event_geometry_invalid',f.event);
  if(model==='specific_back_to_back'&&!f.coach.backToBack)return refuse('synthetic_coach_has_not_authorized_back_to_back',f.coach);
@@ -58,10 +59,15 @@ export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:Tr
     })
 ;
    const remainingRoles=roles.slice(roles.indexOf(role)+1).filter(r=>r.role!=='race');
-   const remainingMinimum=remainingRoles.reduce((sum,next)=>{const options=domainFor(next);return sum+(options.length?Math.min(...options.map(m=>Math.ceil(m.durationMin[0]))):Infinity);},0);
-   const maximumCurrent=Math.floor(maxMinutes-total-remainingMinimum);
+   const remainingDomains=remainingRoles.map(next=>domainFor(next).flatMap(m=>{
+    const min=Math.ceil(m.durationMin[0]);if(next.role==='long'&&min>f.coach.longPeak)return[];
+    const check=checkSessionCatalogue({catalogId:m.id,title:m.title,details:m.structure,sport:next.sport,durationMin:min,zones:m.zones},{...context,catalog:metadata});
+    return check.errors.length||check.unknown.length?[]:[{id:m.id,min}];
+   }));
    const pool=domainFor(role)
     .flatMap(m=>{
+     const remainingMinimum=minimumDistinctDose(remainingDomains.map(domain=>domain.filter(c=>c.id!==m.id)));
+     const maximumCurrent=Math.floor(maxMinutes-total-remainingMinimum);
      const dose=Math.max(Math.ceil(m.durationMin[0]),Math.min(Math.floor(m.durationMin[1]),Math.round(target),maximumCurrent));
      if(dose>maximumCurrent||role.role==='long'&&dose>f.coach.longPeak||total+dose>maxMinutes)return[];
      const route=f.routeEvidence[m.id],vertical=byId.get(m.id)?.dPlusTargetM,dplus=typeof vertical==='number'?{min:vertical,max:vertical}:vertical;
