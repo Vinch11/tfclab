@@ -1,0 +1,830 @@
+{
+  "version": "det-v3-trail-1",
+  "originalCases": 160,
+  "original": [
+    {
+      "id": "Trail:untrained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:untrained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:light:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:trained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "Trail:highly_trained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:untrained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:light:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:trained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailShort:highly_trained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:untrained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:light:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:trained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailMountain:highly_trained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:untrained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:light:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:trained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:finisher:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:finisher:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:age_group:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:age_group:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:competitor:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:competitor:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:elite:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:elite:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:world_class:unknown",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    },
+    {
+      "id": "TrailUltra:highly_trained:world_class:known_synthetic",
+      "status": "refused",
+      "reason": "missing_explicit_distance_or_dplus"
+    }
+  ],
+  "syntheticEnvelopes": 36,
+  "completePlans": 0,
+  "exactReplay": 36,
+  "models": [
+    {
+      "model": "catalogue_evidence_only",
+      "envelopes": 12,
+      "weeks": 168,
+      "excludedFastDescentCards": 0
+    },
+    {
+      "model": "existing_dplus_envelope",
+      "envelopes": 12,
+      "weeks": 168,
+      "excludedFastDescentCards": 0
+    },
+    {
+      "model": "exposure_gated",
+      "envelopes": 12,
+      "weeks": 168,
+      "excludedFastDescentCards": 215
+    }
+  ],
+  "paidApiCalls": 0
+}

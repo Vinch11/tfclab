@@ -1,0 +1,94 @@
+{
+  "version": "det-v3-im-1",
+  "models": [
+    {
+      "model": "reference",
+      "cases": 40,
+      "built": 0,
+      "candidateContractConformant": 0,
+      "referenceContractConformant": 0,
+      "reasons": {
+        "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+        "empty_catalogue_domain_week_3": 8,
+        "empty_catalogue_domain_week_4": 1,
+        "empty_catalogue_domain_week_1": 22,
+        "no_catalogue_assignment_week_3": 1,
+        "existing_prevalidation_blocked": 3
+      },
+      "exactReplay": 40
+    },
+    {
+      "model": "phase_catalogue_dose",
+      "cases": 40,
+      "built": 13,
+      "candidateContractConformant": 0,
+      "referenceContractConformant": 0,
+      "reasons": {
+        "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+        "candidate": 13,
+        "empty_catalogue_domain_week_4": 10,
+        "no_catalogue_assignment_week_3": 1,
+        "empty_catalogue_domain_week_3": 5,
+        "search_budget_exhausted": 2,
+        "existing_prevalidation_blocked": 3,
+        "no_catalogue_assignment_week_11": 1
+      },
+      "exactReplay": 40
+    },
+    {
+      "model": "phase_component_consistent",
+      "cases": 40,
+      "built": 13,
+      "candidateContractConformant": 0,
+      "referenceContractConformant": 0,
+      "reasons": {
+        "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+        "candidate": 13,
+        "empty_catalogue_domain_week_4": 10,
+        "no_catalogue_assignment_week_3": 1,
+        "empty_catalogue_domain_week_3": 5,
+        "search_budget_exhausted": 2,
+        "existing_prevalidation_blocked": 3,
+        "no_catalogue_assignment_week_11": 1
+      },
+      "exactReplay": 40
+    },
+    {
+      "model": "phase_with_standalone_endurance",
+      "cases": 40,
+      "built": 13,
+      "candidateContractConformant": 0,
+      "referenceContractConformant": 0,
+      "reasons": {
+        "existing_prevalidation_blocked": 8,
+        "candidate": 13,
+        "minimum_catalogue_dose_exceeds_budget_week_1": 2,
+        "empty_catalogue_domain_week_4": 8,
+        "no_catalogue_assignment_week_3": 1,
+        "search_budget_exhausted": 3,
+        "empty_catalogue_domain_week_3": 4,
+        "no_catalogue_assignment_week_11": 1
+      },
+      "exactReplay": 40
+    },
+    {
+      "model": "phase_recovery_catalogue",
+      "cases": 40,
+      "built": 26,
+      "candidateContractConformant": 0,
+      "referenceContractConformant": 0,
+      "reasons": {
+        "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+        "candidate": 26,
+        "no_catalogue_assignment_week_3": 1,
+        "no_catalogue_assignment_week_4": 1,
+        "search_budget_exhausted": 2,
+        "existing_prevalidation_blocked": 3,
+        "no_catalogue_assignment_week_11": 2
+      },
+      "exactReplay": 40
+    }
+  ],
+  "paidApiCalls": 0,
+  "scientificValidity": "not_attested"
+}

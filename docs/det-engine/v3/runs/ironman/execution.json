@@ -1,0 +1,33 @@
+{
+  "id": "v3-3-ironman",
+  "key": "c01b724705923c2de8b85006f49fde436842f576fdde99e26085651a5cca2083",
+  "kind": "ironman",
+  "source": "d8467d73b2e9b62c764a6f7683d223b360ae59d0864d34817446e9d330467ff1",
+  "out": "/tmp/det-v3-im-verified",
+  "input": null,
+  "status": "passed",
+  "startedAt": 1793133292745,
+  "completedAt": 1793133533262,
+  "commands": [
+    {
+      "name": "ironman",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v3-ironman.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 240515,
+      "timeoutMs": 900000
+    }
+  ],
+  "comparison": null,
+  "accepted": false,
+  "decision": "experimental_evaluation_only"
+}
