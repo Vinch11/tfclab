@@ -1,0 +1,34 @@
+{
+  "stop": "validation_failure",
+  "decisions": [
+    {
+      "id": "plan-repair-05",
+      "status": "accepted",
+      "decision": "retain_experimental_change"
+    },
+    {
+      "id": "plan-repair-06",
+      "status": "accepted",
+      "decision": "retain_experimental_change"
+    },
+    {
+      "id": "plan-repair-07",
+      "status": "accepted",
+      "decision": "retain_experimental_change"
+    },
+    {
+      "id": "plan-repair-08",
+      "status": "accepted",
+      "decision": "retain_experimental_change"
+    },
+    {
+      "id": "plan-repair-09",
+      "status": "rejected",
+      "decision": "validation_failure"
+    }
+  ],
+  "lastAcceptedPath": "/tmp/det-v2-continuation/cycle-08/validation/matrix/candidate.json",
+  "lastAcceptedHash": "fa3dd0394bf82154b969719bf93eb059e7dbe27a3457fa4b8732b82fd26943ff",
+  "permanentProcess": false,
+  "apiCostUsd": 0
+}

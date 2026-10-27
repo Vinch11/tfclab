@@ -1,0 +1,12 @@
+{
+  "id": "plan-repair-09",
+  "cause": "catalogue_selection_invalid_weekly_distribution",
+  "sourceHash": "9680f75bb5ea5ce9a71f22db4e614cfcde930ce5b866251cfd5d139481bd2a27",
+  "recipeId": "existing_bounded_catalogue_repair_v2",
+  "scope": "global",
+  "status": "rejected",
+  "startedAt": 1793123710020,
+  "validationAccountedMs": 107022,
+  "decision": "validation_failure",
+  "finishedAt": 1793123817044
+}
