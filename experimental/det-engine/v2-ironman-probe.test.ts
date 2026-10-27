@@ -102,6 +102,8 @@ it.skipIf(!process.env.TFCL_DET_IRONMAN_PROBE_OUT)('diagnoses every actual Ironm
   rescuedByUncappingOnly:emptySlots.filter(s=>s.uncapped.acceptedPrimaryCount>0).length,
   rescuedByExistingExecutableVariants:emptySlots.filter(s=>s.acceptedExecutableVariantsCount>0).length,
   noRuleChanged:true,paidApiCalls:0,rows};
- const out=process.env.TFCL_DET_IRONMAN_PROBE_OUT!;mkdirSync(dirname(out),{recursive:true});writeFileSync(out,JSON.stringify(evidence,null,2)+'\n');
+ const out=process.env.TFCL_DET_IRONMAN_PROBE_OUT!;mkdirSync(dirname(out),{recursive:true});
+ const {rows:evidenceRows,...header}=evidence;
+ writeFileSync(out,JSON.stringify(header,null,2).slice(0,-2)+',\n  "rows": [\n'+evidenceRows.map(row=>JSON.stringify(row)).join(',\n')+'\n  ]\n}\n');
  expect(network).not.toHaveBeenCalled();
 },180000);
