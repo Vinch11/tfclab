@@ -1,0 +1,5 @@
+{
+  "extends":"../../tsconfig.app.json",
+  "include":["../../src", "./*.ts"],
+  "compilerOptions":{"tsBuildInfoFile":"../../node_modules/.tmp/det-engine.tsbuildinfo"}
+}

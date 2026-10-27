@@ -1,0 +1,23 @@
+{
+  "docs/det-engine/RESULTATS.md": "4c2709119d589d9ba19cb8941def36a1157416dea4b5b590081a7b61fe725b6a",
+  "docs/det-engine/provenance.json": "5713dd550c39936e4807ad14381ced1458ccf4f22a4189d171009883fd76707b",
+  "docs/det-engine/ARCHITECTURE.md": "92a7bc7030c8a23169c98e9617157cd16629daceffe2e067cd3c614018e870a1",
+  "docs/det-engine/README.md": "2e8a1cb858935d471a25a7ac0a3fafd1c6556f66621c61b56b51022a79fec75d",
+  "docs/det-engine/evidence/summary.json": "4bf39734ee4bb1acff4e8dfa2385b32f98f84ce0c2bd85bbb1fc1683c35f65b1",
+  "docs/det-engine/evidence/matrix.json.gz": "8f93f0ad10033ecdcbea36f91a3979018965c9be29303b87903380057fc8bec2",
+  "docs/det-engine/validation/historical-suite.log": "01e3b827ec1a509c688ebbc4599d9e2f18d21a0f89587ca679189a0b4e7c97d9",
+  "docs/det-engine/validation/gates.tap": "1b9f3c1bada6dbc69d1f3803cc7e60a21e29ead7d34f5238f1c8dd15c28dd453",
+  "docs/det-engine/validation/fingerprint-after-isolation.log": "ccfad08408f8d63c386a59a311bc6d60af9aadbb07590d587362d8725c8ad8d5",
+  "docs/det-engine/validation/matrix-final.log": "ee140177781e630a5d3c72620cdafe6675d5774c95577b8ebbbdd469c71e1ef2",
+  "docs/det-engine/validation/unit-expanded.log": "7a32aa05888b692b6b5a45225d7ee7c4355aca22548dd30bc7413568886c47ae",
+  "docs/det-engine/validation/matrix-iteration-1.log": "7f0137328dc52d1fdb71e833a37c499b94d47b54fa0ae34a8f0612b071bd16d9",
+  "docs/det-engine/evidence-final/summary.json": "e5036dc31cd28d1e8adec237f043940f22cdb67777e2bf2469853cb74f1b30ac",
+  "docs/det-engine/evidence-final/matrix.json.gz": "86b2b2cb4d1ad73ccee3dfc009c6d186f88e0d4fa229bed58b9ed16fc4c06be9",
+  "docs/det-engine/evidence-final/comparison.json": "10bc97c98ba9eddf9061e004ed387b36a0ca46a3514ecdc0f3fac96de56fee82",
+  "docs/det-engine/controller/journal.jsonl": "517ad8836ac6231a1ad1ee1462f3247faa6add069ff802159fd8e2ef4472a64e",
+  "docs/det-engine/controller/tests-1.log": "766126a90cbe480fff169d333ab2f139dc41ab98b1be65ae8be0076897b2e237",
+  "docs/det-engine/controller/types-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "docs/det-engine/controller/replay.json": "e7c25737ee48515a8efb3e4500062bd5a0e1544af28d8aa97dee7bc0b495d495",
+  "docs/det-engine/controller/comparison.json": "836ecd05ffa8ab19a44ff44a48647bfe726157bbc2489eccf372738dbaafe72e",
+  "docs/det-engine/controller/policy.json": "2de6b141c651093b24fbd3253e0b78fcd48f0daf957b7a6e6e7bdcd7b2713889"
+}

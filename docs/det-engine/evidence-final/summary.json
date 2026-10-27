@@ -1,0 +1,1037 @@
+{
+  "cases": 600,
+  "groups": [
+    {
+      "key": "703:finisher:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_12",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "703:age_group:continuous",
+      "cases": 8,
+      "constructed": 1,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_2",
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "703:competitor:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_6",
+        "empty_catalogue_domain_week_2",
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2",
+        "existing_prevalidation_blocked",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "703:elite:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "empty_catalogue_domain_week_2",
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "703:world_class:continuous",
+      "cases": 8,
+      "constructed": 1,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_2",
+        "no_catalogue_assignment_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2",
+        "existing_prevalidation_blocked",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "IM:finisher:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_3",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_3",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "IM:age_group:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_3",
+        "empty_catalogue_domain_week_1",
+        "no_catalogue_assignment_week_3",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "IM:competitor:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_4",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_3",
+        "empty_catalogue_domain_week_1",
+        "existing_prevalidation_blocked",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "IM:elite:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_3",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_3",
+        "existing_prevalidation_blocked",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "IM:world_class:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_3",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_3",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_1",
+        "existing_prevalidation_blocked",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "Sprint:finisher:continuous",
+      "cases": 8,
+      "constructed": 5,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "no_catalogue_assignment_week_1",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "Sprint:age_group:continuous",
+      "cases": 8,
+      "constructed": 5,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_3"
+      ]
+    },
+    {
+      "key": "Sprint:competitor:continuous",
+      "cases": 8,
+      "constructed": 5,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_3",
+        "empty_catalogue_domain_week_1"
+      ]
+    },
+    {
+      "key": "Sprint:elite:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "no_catalogue_assignment_week_1",
+        "empty_catalogue_domain_week_4",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_4"
+      ]
+    },
+    {
+      "key": "Sprint:world_class:continuous",
+      "cases": 8,
+      "constructed": 2,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "no_catalogue_assignment_week_1",
+        "empty_catalogue_domain_week_4",
+        "empty_catalogue_domain_week_6",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_3"
+      ]
+    },
+    {
+      "key": "Olympic:finisher:continuous",
+      "cases": 8,
+      "constructed": 4,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_2",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2"
+      ]
+    },
+    {
+      "key": "Olympic:age_group:continuous",
+      "cases": 8,
+      "constructed": 1,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_6",
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_2",
+        "empty_catalogue_domain_week_12",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2"
+      ]
+    },
+    {
+      "key": "Olympic:competitor:continuous",
+      "cases": 8,
+      "constructed": 2,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_5",
+        "empty_catalogue_domain_week_4",
+        "empty_catalogue_domain_week_2",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2"
+      ]
+    },
+    {
+      "key": "Olympic:elite:continuous",
+      "cases": 8,
+      "constructed": 2,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_8",
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "empty_catalogue_domain_week_2",
+        "existing_prevalidation_blocked",
+        "empty_catalogue_domain_week_2"
+      ]
+    },
+    {
+      "key": "Olympic:world_class:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "existing_prevalidation_blocked",
+        "empty_catalogue_domain_week_1",
+        "empty_catalogue_domain_week_2"
+      ]
+    },
+    {
+      "key": "Marathon:finisher:continuous",
+      "cases": 8,
+      "constructed": 6,
+      "conformant": 0,
+      "refusals": [
+        "empty_catalogue_domain_week_9",
+        "empty_catalogue_domain_week_7"
+      ]
+    },
+    {
+      "key": "Marathon:age_group:continuous",
+      "cases": 8,
+      "constructed": 7,
+      "conformant": 0,
+      "refusals": [
+        "empty_catalogue_domain_week_8"
+      ]
+    },
+    {
+      "key": "Marathon:competitor:continuous",
+      "cases": 8,
+      "constructed": 4,
+      "conformant": 0,
+      "refusals": [
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "Marathon:elite:continuous",
+      "cases": 8,
+      "constructed": 2,
+      "conformant": 0,
+      "refusals": [
+        "empty_catalogue_domain_week_7",
+        "empty_catalogue_domain_week_9",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "Marathon:world_class:continuous",
+      "cases": 8,
+      "constructed": 2,
+      "conformant": 0,
+      "refusals": [
+        "empty_catalogue_domain_week_7",
+        "empty_catalogue_domain_week_9",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "Semi:finisher:continuous",
+      "cases": 8,
+      "constructed": 7,
+      "conformant": 3,
+      "refusals": [
+        "search_budget_exhausted"
+      ]
+    },
+    {
+      "key": "Semi:age_group:continuous",
+      "cases": 8,
+      "constructed": 8,
+      "conformant": 1,
+      "refusals": []
+    },
+    {
+      "key": "Semi:competitor:continuous",
+      "cases": 8,
+      "constructed": 4,
+      "conformant": 0,
+      "refusals": [
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "Semi:elite:continuous",
+      "cases": 8,
+      "constructed": 4,
+      "conformant": 1,
+      "refusals": [
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "Semi:world_class:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "search_budget_exhausted",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "5K:finisher:continuous",
+      "cases": 8,
+      "constructed": 7,
+      "conformant": 1,
+      "refusals": [
+        "no_catalogue_assignment_week_1"
+      ]
+    },
+    {
+      "key": "5K:age_group:continuous",
+      "cases": 8,
+      "constructed": 7,
+      "conformant": 0,
+      "refusals": [
+        "no_catalogue_assignment_week_1"
+      ]
+    },
+    {
+      "key": "5K:competitor:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "no_catalogue_assignment_week_1",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "5K:elite:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "no_catalogue_assignment_week_1",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "5K:world_class:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "no_catalogue_assignment_week_1",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "10K:finisher:continuous",
+      "cases": 8,
+      "constructed": 7,
+      "conformant": 1,
+      "refusals": [
+        "no_catalogue_assignment_week_1"
+      ]
+    },
+    {
+      "key": "10K:age_group:continuous",
+      "cases": 8,
+      "constructed": 7,
+      "conformant": 0,
+      "refusals": [
+        "no_catalogue_assignment_week_1"
+      ]
+    },
+    {
+      "key": "10K:competitor:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "no_catalogue_assignment_week_1",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "10K:elite:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "no_catalogue_assignment_week_1",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "10K:world_class:continuous",
+      "cases": 8,
+      "constructed": 3,
+      "conformant": 0,
+      "refusals": [
+        "no_catalogue_assignment_week_1",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "StartToRun:finisher:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review"
+      ]
+    },
+    {
+      "key": "StartToRun:age_group:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review"
+      ]
+    },
+    {
+      "key": "StartToRun:competitor:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review"
+      ]
+    },
+    {
+      "key": "StartToRun:elite:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review"
+      ]
+    },
+    {
+      "key": "StartToRun:world_class:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review",
+        "static_template_configuration_requires_review"
+      ]
+    },
+    {
+      "key": "Trail:finisher:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "Trail:age_group:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "Trail:competitor:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "Trail:elite:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "Trail:world_class:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailShort:finisher:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailShort:age_group:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailShort:competitor:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailShort:elite:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailShort:world_class:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailMountain:finisher:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailMountain:age_group:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailMountain:competitor:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailMountain:elite:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailMountain:world_class:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailUltra:finisher:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailUltra:age_group:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailUltra:competitor:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailUltra:elite:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "TrailUltra:world_class:continuous",
+      "cases": 8,
+      "constructed": 0,
+      "conformant": 0,
+      "refusals": [
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota",
+        "dedicated_route_without_deterministic_quota"
+      ]
+    },
+    {
+      "key": "703:finisher:lcw_3day",
+      "cases": 8,
+      "constructed": 5,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "search_budget_exhausted"
+      ]
+    },
+    {
+      "key": "703:age_group:lcw_3day",
+      "cases": 8,
+      "constructed": 6,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted"
+      ]
+    },
+    {
+      "key": "703:competitor:lcw_3day",
+      "cases": 8,
+      "constructed": 4,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "search_budget_exhausted"
+      ]
+    },
+    {
+      "key": "703:elite:lcw_3day",
+      "cases": 8,
+      "constructed": 1,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "search_budget_exhausted"
+      ]
+    },
+    {
+      "key": "703:world_class:lcw_3day",
+      "cases": 8,
+      "constructed": 4,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "existing_prevalidation_blocked"
+      ]
+    },
+    {
+      "key": "IM:finisher:lcw_3day",
+      "cases": 8,
+      "constructed": 5,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted"
+      ]
+    },
+    {
+      "key": "IM:age_group:lcw_3day",
+      "cases": 8,
+      "constructed": 5,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "search_budget_exhausted"
+      ]
+    },
+    {
+      "key": "IM:competitor:lcw_3day",
+      "cases": 8,
+      "constructed": 4,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "no_catalogue_assignment_week_11"
+      ]
+    },
+    {
+      "key": "IM:elite:lcw_3day",
+      "cases": 8,
+      "constructed": 4,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "existing_prevalidation_blocked",
+        "search_budget_exhausted"
+      ]
+    },
+    {
+      "key": "IM:world_class:lcw_3day",
+      "cases": 8,
+      "constructed": 2,
+      "conformant": 0,
+      "refusals": [
+        "minimum_catalogue_dose_exceeds_budget_week_1",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "search_budget_exhausted",
+        "existing_prevalidation_blocked"
+      ]
+    }
+  ]
+}
