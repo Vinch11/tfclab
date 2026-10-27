@@ -1,0 +1,11 @@
+{
+  "cycle": "03-targeted",
+  "cause": "executable_variant_domain_coverage",
+  "attempt": 1,
+  "status": "rejected_before_global_validation",
+  "observed": "Two original engine unit tests failed immediately after the optional variant change; V2 repair tests remained green.",
+  "rootCause": "The new assembly options parameter was named options, shadowed by the existing const options domain list inside its initializer.",
+  "isolatedCorrection": "Rename only the new parameter to assemblyOptions; keep default V1 behavior and all sporting rules unchanged.",
+  "proofLimit": "The initial temporary log was overwritten during the targeted retry; failure counts were observed, but the original full stderr was not retained. This record preserves the incident and does not claim a complete original trace.",
+  "productionAffected": false
+}

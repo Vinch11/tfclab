@@ -14,7 +14,7 @@ import { constructDeterministicPlan, type EngineResult, type SearchLimits } from
 import { criticalCounts,noNewCritical,validateExperimentalCandidate,validationCoverage } from './v2-validation';
 export interface RepairRecord {attempt:number;defect:string[];rule:string;action:string;week:number;session:number;
  before:{id:string|null|undefined;duration:number|undefined};after:{id:string;duration:number};
- changedFields:string[];beforeCritical:Record<string,number>;afterCritical:Record<string,number>;accepted:boolean;reason:string;controls:string[];}
+ changedFields:string[];proposalKey?:string;beforeCritical:Record<string,number>;afterCritical:Record<string,number>;accepted:boolean;reason:string;controls:string[];}
 export interface RepairBudget {maxAttempts:number;maxAccepted:number;}
 export type V2Result=EngineResult & {version:'det-v2';repairs:RepairRecord[];effectiveAmbition:string|undefined;
  physiologicalContext:PlanConfig['physiologicalTrace'];coverage:ReturnType<typeof validationCoverage>};
@@ -39,6 +39,9 @@ export function repairDeterministicCandidate(initial:V2Result,athlete:PlanAthlet
  const metadata=[...new Map([...Object.values(prep.phaseRepairCatalogs).flat(),...prep.chunkRepairCatalogs.flat(),...prep.chunkRegenRepairCatalogs.flat()].map(m=>[m.id,m])).values()];
  const byId=new Map(metadata.map(m=>[m.id,m]));
  const keys=(config.identifiedLimitersRaw??[]).map(resolveLimiterKey).filter((k):k is string=>!!k);
+ const proposalKey=(week:number,session:number,old:ParsedSession,id:string,duration:number,counts:Record<string,number>)=>JSON.stringify([week,session,old.catalogId,old.durationMin,id,duration,Object.entries(counts).sort(([a],[b])=>a.localeCompare(b))]);
+ const rejected=new Set(result.repairs.filter(r=>!r.accepted).map(r=>r.proposalKey??proposalKey(r.week,r.session,{catalogId:r.before.id,durationMin:r.before.duration} as ParsedSession,r.after.id,r.after.duration,r.beforeCritical)));
+ const startingAttempts=result.repairs.length;
  let accepted=0;
  for(const week of plan.weeks){
   const w=report.weeks.find(w=>w.week===week.weekNumber);if(!w)continue;
@@ -46,7 +49,7 @@ export function repairDeterministicCandidate(initial:V2Result,athlete:PlanAthlet
   const score=(s:ParsedSession)=>weekErrors.reduce((n,i)=>n+(i.message?.includes(s.catalogId??'__none__')||i.message?.includes(s.title)?100:0),0)+(byId.get(s.catalogId??'')?.mainZoneMax??0);
   const indices=week.sessions.map((s,index)=>({index,score:score(s)})).sort((a,b)=>b.score-a.score||a.index-b.index);
   for(const {index} of indices){
-   if(result.repairs.length>=budget.maxAttempts||accepted>=budget.maxAccepted)break;
+   if(result.repairs.length-startingAttempts>=budget.maxAttempts||accepted>=budget.maxAccepted)break;
    const old=week.sessions[index];if(old.isRest||!old.catalogId||isRaceDaySession(old))continue;
    const defects=result.issues.filter(i=>['error','critical'].includes(i.severity)&&(i.week===week.weekNumber||(!i.week&&i.message?.startsWith(`S${week.weekNumber}:`))));
    if(!defects.length)continue;
@@ -63,7 +66,7 @@ export function repairDeterministicCandidate(initial:V2Result,athlete:PlanAthlet
      const ar=rank(a),br=rank(b);return (ar<0?999:ar)-(br<0?999:br)||a.id.localeCompare(b.id);
     }).slice(0,8);
    for(const m of alternatives){
-    if(result.repairs.length>=budget.maxAttempts||accepted>=budget.maxAccepted)break;
+    if(result.repairs.length-startingAttempts>=budget.maxAttempts||accepted>=budget.maxAccepted)break;
     const slot=prep.weeklyQuotas[week.weekNumber]?.layout?.days[old.dayIndex]?.slots.find(s=>s.sport===old.sport);
     const lo=Math.max(m.durationMin[0],slot?.minDurationMin??0),hi=Math.min(m.durationMin[1],slot?.maxDurationMin??Infinity);
     if(lo>hi)continue;
@@ -71,15 +74,17 @@ export function repairDeterministicCandidate(initial:V2Result,athlete:PlanAthlet
     const proposal:ParsedSession={...old,catalogId:m.id,title:m.title,details:m.structure,durationMin:duration,variantKey:undefined,
      zones:m.zones.length?m.zones:m.mainZoneMax?[`Z${m.mainZoneMax}`]:[]};
     const contract=checkSessionCatalogue(proposal,{...context,catalog:metadata});if(contract.errors.length||contract.unknown.length)continue;
+    const key=proposalKey(week.weekNumber,index,old,m.id,duration,criticalCounts(result.issues));
+    if(rejected.has(key))continue; // The same plan/error state has already falsified this exact proposal.
     week.sessions[index]=proposal;
     const nextIssues=[...result.issues.filter(i=>i.message===undefined),...validateExperimentalCandidate(plan,athlete,config)];
     const improves=countCritical(nextIssues)<countCritical(result.issues)&&noNewCritical(result.issues,nextIssues);
     result.repairs.push({attempt:result.repairs.length+1,defect:[...new Set(defects.map(i=>i.code))],rule:'existing_compatibility_and_full_validation',
      action:reduce?'catalogue_replacement_with_explicit_load_reduction':'sporting_equivalent_catalogue_replacement',week:week.weekNumber,session:index,
      before:{id:old.catalogId,duration:old.durationMin},after:{id:m.id,duration},changedFields:['catalogId','title','details','durationMin','zones','variantKey'].filter(key=>JSON.stringify(old[key as keyof ParsedSession])!==JSON.stringify(proposal[key as keyof ParsedSession])),beforeCritical:criticalCounts(result.issues),afterCritical:criticalCounts(nextIssues),
-     accepted:improves,reason:improves?'fewer_errors_no_new_critical_per_rule_and_week':'rejected_no_strict_improvement_or_new_critical',controls:initial.coverage.executedControls});
+     proposalKey:key,accepted:improves,reason:improves?'fewer_errors_no_new_critical_per_rule_and_week':'rejected_no_strict_improvement_or_new_critical',controls:initial.coverage.executedControls});
     if(improves){result.issues=nextIssues;accepted++;break;}
-    week.sessions[index]=old;
+    rejected.add(key);week.sessions[index]=old;
    }
   }
  }

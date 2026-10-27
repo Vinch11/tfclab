@@ -21,6 +21,12 @@ it.each(['10K:light:finisher:unknown','Semi:light:finisher:unknown','Sprint:untr
  const base=contextualizeResult(raw,prepared.athleteData,prepared.planConfig),saved=structuredClone(base);
  const repaired=repairDeterministicCandidate(base,prepared.athleteData,prepared.planConfig,{maxAttempts:16,maxAccepted:4});
  const replay=repairDeterministicCandidate(base,prepared.athleteData,prepared.planConfig,{maxAttempts:16,maxAccepted:4});
+ const continued=repairDeterministicCandidate(repaired,prepared.athleteData,prepared.planConfig,{maxAttempts:16,maxAccepted:4});
+ const oldRejected=new Set(repaired.repairs.filter(r=>!r.accepted).map(r=>r.proposalKey).filter(Boolean));
+ expect(continued.repairs.slice(repaired.repairs.length).filter(r=>r.proposalKey&&oldRejected.has(r.proposalKey))).toEqual([]);
+ expect(continued.repairs.slice(0,repaired.repairs.length)).toEqual(repaired.repairs);
+ expect(continued.repairs.length).toBeLessThanOrEqual(repaired.repairs.length+16);
+ expect(noNewCritical(repaired.issues,continued.issues)).toBe(true);
  expect(base).toEqual(saved);expect(repaired).toEqual(replay);expect(repaired.repairs.length).toBeLessThanOrEqual(16);
  expect(noNewCritical(base.issues,repaired.issues)).toBe(true);
  expect(Object.values(criticalCounts(repaired.issues)).reduce((n,c)=>n+c,0)).toBeLessThanOrEqual(Object.values(criticalCounts(base.issues)).reduce((n,c)=>n+c,0));

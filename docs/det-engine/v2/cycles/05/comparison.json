@@ -1,0 +1,482 @@
+{
+  "coverageLost": [],
+  "coverageAdded": [],
+  "regressions": [],
+  "newlyExposed": [],
+  "unattributed": [],
+  "reproduced": true,
+  "noCriticalRegression": true,
+  "improvedConformance": 0,
+  "improvedConstruction": 0,
+  "improvedDefects": 58,
+  "defectReductions": [
+    {
+      "id": "Olympic:trained:world_class:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "lorang_categories",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:untrained:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:untrained:age_group:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:untrained:age_group:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:untrained:competitor:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:untrained:competitor:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:untrained:competitor:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "race_day_only_fiche_misplaced",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:untrained:world_class:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "demanding_session_accumulation",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:light:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:light:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 10,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:light:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 13,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:light:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "demanding_session_accumulation",
+      "week": 13,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:light:competitor:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 3,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:light:competitor:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "lorang_categories",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:light:competitor:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 3,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:light:elite:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:trained:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 3,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 6,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:highly_trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 10,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:highly_trained:age_group:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 3,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:light:elite:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:light:world_class:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "lorang_categories",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:trained:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:trained:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 6,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 10,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:trained:age_group:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 4,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:highly_trained:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Semi:highly_trained:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 6,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "5K:untrained:competitor:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "5K:untrained:competitor:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 8,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "5K:untrained:competitor:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "race_day_only_fiche_misplaced",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "5K:trained:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 3,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:untrained:elite:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:untrained:elite:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 10,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:untrained:elite:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "demanding_session_accumulation",
+      "week": 10,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:light:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:light:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "race_day_only_fiche_misplaced",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:light:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "race_day_only_fiche_misplaced",
+      "week": 10,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:light:competitor:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "lorang_categories",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:light:world_class:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "lorang_categories",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:trained:age_group:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 3,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:trained:age_group:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "lorang_categories",
+      "week": 3,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:highly_trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 11,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:highly_trained:age_group:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 3,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "703:untrained:competitor:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:untrained:age_group:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:untrained:world_class:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 10,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:untrained:world_class:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 11,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:highly_trained:finisher:unknown:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:highly_trained:finisher:unknown:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 8,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:highly_trained:finisher:unknown:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 11,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:highly_trained:finisher:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:highly_trained:elite:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    }
+  ],
+  "improvement": true,
+  "scientificGoAttested": false,
+  "baselineHash": "8c5c5347535036d209aa19d046e2c38e852511f9bd351fcd5ac805c2be1b74cb",
+  "candidateHash": "0f99c23a9f16346b5fcd8c893ab399a2f862ecaab1ad3448174aa9ad1d090489"
+}
