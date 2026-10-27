@@ -48,7 +48,11 @@ les réussites d'une autre.
 
 Une correction n'est retenue que si les contrôles unitaires/non-régression/sportifs
 et le rejeu sont attestés, sans régression critique comparable ni attribution
-inconnue. Le bundle accepté devient la référence suivante : comparer un nouveau
+inconnue. Les réductions du multiensemble de défauts critiques sous contrôles comparables
+sont comptées séparément (`improvedDefects` et `defectReductions`), même si un plan
+reste non conforme. Elles ne compensent jamais une nouvelle erreur critique ; une
+perte de plan ou l’arrêt d’un contrôle ne compte pas comme défaut corrigé.
+Le bundle accepté devient la référence suivante : comparer un nouveau
 cycle à une ancienne baseline pour effacer une régression est refusé.
 
 ## Budgets et reprise
@@ -112,6 +116,10 @@ une modification de production, de tests ou une base périmée sont refusés.
 Les refus et erreurs du contrôleur sont persistés et le manifeste est rejeté,
 sans supprimer son diagnostic.
 
+Le plan fixe exécute TypeScript, les tests du superviseur et du diagnostic, puis
+la suite Vitest expérimentale (pas la suite de production entière). Il neutralise
+explicitement l’ancienne variable `TFCL_DET_MATRIX_OUT`.
+
 La matrice V2 réelle reçoit `TFCL_DET_V2_OUT`, puis écrit
 `baseline.json`, `candidate.json`, `replay.json`. La reprise n'active aucune
 récurrence automatique. Toute nouvelle session doit relancer explicitement le
@@ -119,7 +127,7 @@ superviseur après lecture de l'état.
 
 ## Validation du superviseur
 
-`node scripts/det-engine/v2-supervisor.test.mjs` : 17 tests d'orchestration.
+`node scripts/det-engine/v2-supervisor.test.mjs` : 21 tests d'orchestration.
 Ils couvrent contrôles incomparables, nouveaux défauts exposés, vraie régression
 critique sous contrôle identique, multiplicité, couverture, non-déterminisme,
 limites, idempotence, preuve périmée, reprise et retour arrière préservant les

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {POLICY,digest,createSupervisor,beginCycle,finishCycle,saveState,loadState,validateComparison,prepareRepair,applyRepair,rollbackRepair,resumeRepair,prioritizeDiagnostic,assertExperimentalBranch,applyRegisteredRecipe,rejectRegisteredRepair,executeRegisteredCycle} from './v2-supervisor.mjs';
+import {POLICY,digest,createSupervisor,beginCycle,finishCycle,saveState,loadState,validateComparison,prepareRepair,applyRepair,rollbackRepair,resumeRepair,prioritizeDiagnostic,assertExperimentalBranch,applyRegisteredRecipe,rejectRegisteredRepair,executeRegisteredCycle,validationCommandPlan} from './v2-supervisor.mjs';
 const branch='experiment/det-engine';
 const rows=()=>[{id:'a',technicallyConstructed:true,constraintsSatisfied:true,executedControls:['safety'],issues:[]},{id:'b',technicallyConstructed:false,constraintsSatisfied:false,executedControls:[],issues:[]}];
 const evidence=()=>({version:'fixture',controls:[{id:'safety',version:'v1'}],rows:rows()});
@@ -125,4 +125,30 @@ test('message-only legacy week is normalized without treating different titles a
  next.rows[0].issues=[{control:'safety',code:'B13',severity:'error',message:'S2 : séance B'}];
  assert.equal(validateComparison(old,next,next).regressions.length,0);
  next.rows[0].issues[0].message='S3 : séance B';assert.equal(validateComparison(old,next,next).regressions.length,1);
+});
+
+test('comparable critical multiset reductions count as progress without requiring a new conformant plan',()=>{
+ const old=evidence(),next=evidence();old.rows[0].constraintsSatisfied=false;next.rows[0].constraintsSatisfied=false;
+ old.rows[0].issues=[{control:'safety',code:'dose',severity:'error',week:1},{control:'safety',code:'dose',severity:'error',week:1},{control:'safety',code:'recovery',severity:'error',week:2}];
+ next.rows[0].issues=[{control:'safety',code:'dose',severity:'error',week:1},{control:'safety',code:'recovery',severity:'error',week:2}];
+ const c=validateComparison(old,next,next);assert.equal(c.improvedDefects,1);assert.equal(c.improvedConformance,0);assert.equal(c.improvedConstruction,0);assert.equal(c.improvement,true);assert.equal(c.defectReductions[0].count,1);
+});
+test('gross defect reduction never cancels a different newly introduced critical failure',()=>{
+ const old=evidence(),next=evidence();old.rows[0].constraintsSatisfied=false;next.rows[0].constraintsSatisfied=false;
+ old.rows[0].issues=[{control:'safety',code:'dose',severity:'error',week:1},{control:'safety',code:'dose',severity:'error',week:2}];
+ next.rows[0].issues=[{control:'safety',code:'specificity',severity:'error',week:1}];
+ const c=validateComparison(old,next,next);assert.equal(c.improvedDefects,2);assert.equal(c.regressions.length,1);assert.equal(c.noCriticalRegression,false);assert.equal(c.improvement,false);
+});
+test('missing plan, missing applicability, or changed control cannot be counted as repaired defects',()=>{
+ const old=evidence();old.rows[0].constraintsSatisfied=false;old.rows[0].issues=[{control:'safety',code:'dose',severity:'error',week:1}];
+ const lostPlan=structuredClone(old);lostPlan.rows[0].technicallyConstructed=false;lostPlan.rows[0].issues=[];assert.equal(validateComparison(old,lostPlan,lostPlan).improvedDefects,0);
+ const missing=structuredClone(old);missing.rows[0].issues=[];missing.rows[0].executedControls=[];assert.equal(validateComparison(old,missing,missing).improvedDefects,0);
+ const newControl=structuredClone(old);newControl.rows[0].issues=[];newControl.controls[0].version='changed';assert.equal(validateComparison(old,newControl,newControl).improvedDefects,0);
+});
+
+test('fixed validation runner selects V2 bundle output and disables legacy matrix without invoking production suite',()=>{
+ const plan=validationCommandPlan('/tmp/evidence');assert.deepEqual(plan.map(([name])=>name),['types','supervisor-tests','diagnostic-tests','engine-tests']);
+ const engine=plan.find(([name])=>name==='engine-tests');assert.equal(engine[2].TFCL_DET_V2_OUT,'/tmp/evidence/matrix');assert.equal(engine[2].TFCL_DET_MATRIX_OUT,'');
+ assert.equal(engine[1].includes('experimental/det-engine/vitest.config.ts'),true);
+ assert.equal(validationCommandPlan('/tmp/evidence',{global:false}).at(-1)[2].TFCL_DET_V2_OUT,'');assert.equal(POLICY.apiBudgetUsd,0);
 });

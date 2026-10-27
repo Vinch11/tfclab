@@ -29,8 +29,8 @@ export function validateComparison(baseline,candidate,replay){
  const coverageLost=[...previous.keys()].filter(id=>!current.has(id));
  const coverageAdded=[...current.keys()].filter(id=>!previous.has(id));
  const oldControls=controlsById(baseline),newControls=controlsById(candidate);
- const regressions=[],newlyExposed=[],unattributed=[];
- let improvedConformance=0,improvedConstruction=0;
+ const regressions=[],newlyExposed=[],unattributed=[],defectReductions=[];
+ let improvedConformance=0,improvedConstruction=0,improvedDefects=0;
  for(const [id,old] of previous){
   const next=current.get(id);if(!next)continue;
   if(old.technicallyConstructed&&!next.technicallyConstructed)regressions.push({id,kind:'lost_construction'});
@@ -40,7 +40,7 @@ export function validateComparison(baseline,candidate,replay){
   }
   if(!old.constraintsSatisfied&&next.constraintsSatisfied)improvedConformance++;
   if(!old.technicallyConstructed&&next.technicallyConstructed)improvedConstruction++;
-  const oldFailures=new Map();for(const issue of (old.issues??[]).filter(critical)){const key=issueKey(issue);oldFailures.set(key,(oldFailures.get(key)??0)+1);}
+  const oldFailures=new Map(),oldIssueByKey=new Map();for(const issue of (old.issues??[]).filter(critical)){const key=issueKey(issue);oldFailures.set(key,(oldFailures.get(key)??0)+1);oldIssueByKey.set(key,issue);}
   for(const issue of (next.issues??[]).filter(critical)){
    const key=issueKey(issue);if((oldFailures.get(key)??0)>0){oldFailures.set(key,oldFailures.get(key)-1);continue;}
    const item={id,kind:'critical_issue',issue};
@@ -48,12 +48,21 @@ export function validateComparison(baseline,candidate,replay){
    if(comparableIssue(issue,old,next,oldControls,newControls))regressions.push(item);
    else unattributed.push({...item,kind:'control_not_comparable'});
   }
+  // Gross reductions are explicit, never netted against a newly introduced failure.
+  // Losing the plan or no longer executing a control is not a corrected defect.
+  if(!old.technicallyConstructed||next.technicallyConstructed)for(const [key,count] of oldFailures){
+   const issue=oldIssueByKey.get(key);
+   if(count>0&&comparableIssue(issue,old,next,oldControls,newControls)){
+    improvedDefects+=count;defectReductions.push({id,control:issue.control??issue.code,code:issue.code,week:issue.week??Number(issue.message?.match(/^S(\d+)\s*:/)?.[1]??0),severity:issue.severity,count});
+   }
+  }
  }
  const reproduced=!!replay&&digest(candidate.rows)===digest(replay.rows)&&digest(candidate.controls??[])===digest(replay.controls??[]);
  // Unknown applicability is visible and prevents a GO claim, without calling it a measured regression.
  const noCriticalRegression=!coverageLost.length&&!regressions.length;
  return {coverageLost,coverageAdded,regressions,newlyExposed,unattributed,reproduced,noCriticalRegression,
-  improvedConformance,improvedConstruction,improvement:improvedConformance>0||improvedConstruction>0,
+  improvedConformance,improvedConstruction,improvedDefects,defectReductions,
+  improvement:noCriticalRegression&&reproduced&&!unattributed.length&&(improvedConformance>0||improvedConstruction>0||improvedDefects>0),
   scientificGoAttested:false,baselineHash:digest(baseline),candidateHash:digest(candidate)};
 }
 /** Diagnostic role ranks measured causes separately from hypotheses. Unknown is never a justified refusal. */
@@ -172,11 +181,17 @@ export function rejectRegisteredRepair(root,statePath,id,reason='experimental_ch
 }
 export function saveState(path,state){atomic(path,state);}
 export function loadState(path){const state=load(path);if(state.schemaVersion!==2)throw Error('STATE_SCHEMA_VERSION');return state;}
+/** Fixed plan is inspectable/testable without running a sporting simulation twice. */
+export function validationCommandPlan(out,{global=true}={}){
+ return [['types',['node_modules/typescript/bin/tsc','--noEmit','-p','experimental/det-engine/tsconfig.json'],{}],
+  ['supervisor-tests',['scripts/det-engine/v2-supervisor.test.mjs'],{}],
+  ['diagnostic-tests',['scripts/det-engine/v2-diagnostic.test.mjs'],{}],
+  ['engine-tests',['node_modules/vitest/vitest.mjs','run','--config','experimental/det-engine/vitest.config.ts',`--maxWorkers=${POLICY.maxWorkers}`],{TFCL_DET_V2_OUT:global?resolve(out,'matrix'):'',TFCL_DET_MATRIX_OUT:''}]];
+}
 /** Validator role uses a fixed command plan. It cannot run a shell/paid API or production workflow. */
 export function runValidation(root,out,{remainingMs=POLICY.maxDurationMs,global=true}={}){
  mkdirSync(out,{recursive:true});const started=Date.now(),runs=[];
- const commands=[['types',['node_modules/typescript/bin/tsc','--noEmit','-p','experimental/det-engine/tsconfig.json'],{}],
-  ['engine-tests',['node_modules/vitest/vitest.mjs','run','--config','experimental/det-engine/vitest.config.ts',`--maxWorkers=${POLICY.maxWorkers}`],global?{TFCL_DET_V2_OUT:resolve(out,'matrix')}:{ }]];
+ const commands=validationCommandPlan(out,{global});
  for(const [name,args,env] of commands){
   const remaining=remainingMs-(Date.now()-started);if(remaining<=0){runs.push({name,ok:false,error:'DURATION_LIMIT'});break;}
   const result=spawnSync(process.execPath,args,{cwd:root,env:{...process.env,...env,NODE_OPTIONS:`--max-old-space-size=${POLICY.maxHeapMb}`},encoding:'utf8',timeout:Math.min(remaining,POLICY.commandTimeoutMs),maxBuffer:32*1024*1024});

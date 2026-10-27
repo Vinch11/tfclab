@@ -1,25 +1,29 @@
-✔ same controls and exact replay prove reproducibility without a scientific GO (3.493746ms)
-✔ new controls are exposed, never called measured sporting regressions (0.510992ms)
-✔ same-control new critical regression rejects despite more constructed plans (1.077007ms)
-✔ newly assembled invalid plan is newly exposed, not a previously valid plan regression (0.329578ms)
-✔ missing/duplicate cases and nondeterministic replay cannot pass (1.260934ms)
-✔ begin/resume/finish is idempotent and does not double-count attempts (0.707538ms)
-✔ state persists atomically and rejected evidence cannot be silently replaced (1.229808ms)
-✔ 12-cycle, per-cause, duration and two-global-no-progress budgets stop without a repeat loop (0.970636ms)
-✔ production branch and policy mutation are refused (0.532574ms)
-✔ repair restores only owned experimental bytes and preserves independent changes (3.09946ms)
-✔ prioritization skips exhausted causes instead of repeating them (0.478323ms)
-✔ registered recipe survives interruption, resumes once and restores only its own file (2.373033ms)
-✔ new critical multiplicity is detected and accepted improvements cannot be regressed via stale baselines (0.937706ms)
-✔ end-to-end supervisor retains a validated recipe and rolls back a rejected alternative (orchestration test double only) (3.918217ms)
-✔ different rule codes under the same broad control and week cannot mask a regression (0.239181ms)
-✔ newly executed extra control cannot falsely attribute aggregate conformance loss (0.334174ms)
-✔ message-only legacy week is normalized without treating different titles as new rules (0.399613ms)
-ℹ tests 17
+✔ same controls and exact replay prove reproducibility without a scientific GO (2.321656ms)
+✔ new controls are exposed, never called measured sporting regressions (0.842032ms)
+✔ same-control new critical regression rejects despite more constructed plans (1.48363ms)
+✔ newly assembled invalid plan is newly exposed, not a previously valid plan regression (0.346694ms)
+✔ missing/duplicate cases and nondeterministic replay cannot pass (0.851025ms)
+✔ begin/resume/finish is idempotent and does not double-count attempts (0.639936ms)
+✔ state persists atomically and rejected evidence cannot be silently replaced (1.005318ms)
+✔ 12-cycle, per-cause, duration and two-global-no-progress budgets stop without a repeat loop (0.716011ms)
+✔ production branch and policy mutation are refused (0.318971ms)
+✔ repair restores only owned experimental bytes and preserves independent changes (2.344179ms)
+✔ prioritization skips exhausted causes instead of repeating them (0.428217ms)
+✔ registered recipe survives interruption, resumes once and restores only its own file (2.130638ms)
+✔ new critical multiplicity is detected and accepted improvements cannot be regressed via stale baselines (0.815661ms)
+✔ end-to-end supervisor retains a validated recipe and rolls back a rejected alternative (orchestration test double only) (2.939308ms)
+✔ different rule codes under the same broad control and week cannot mask a regression (0.212662ms)
+✔ newly executed extra control cannot falsely attribute aggregate conformance loss (0.218901ms)
+✔ message-only legacy week is normalized without treating different titles as new rules (0.341435ms)
+✔ comparable critical multiset reductions count as progress without requiring a new conformant plan (0.157087ms)
+✔ gross defect reduction never cancels a different newly introduced critical failure (0.163367ms)
+✔ missing plan, missing applicability, or changed control cannot be counted as repaired defects (0.286693ms)
+✔ fixed validation runner selects V2 bundle output and disables legacy matrix without invoking production suite (0.23154ms)
+ℹ tests 21
 ℹ suites 0
-ℹ pass 17
+ℹ pass 21
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 31.1831
+ℹ duration_ms 27.864676
