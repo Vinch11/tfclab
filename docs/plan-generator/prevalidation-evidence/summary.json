@@ -2,9 +2,9 @@
   "referenceCommit": "a8bd971c98c4af0eb6af80202336e27c146a1ac0",
   "cases": 600,
   "status": {
-    "admissible": 82,
-    "blocked": 202,
-    "coach_review": 316
+    "admissible": 101,
+    "blocked": 58,
+    "coach_review": 441
   },
   "knownHistoricalRefusals": 58,
   "blockingCasesByCode": {
@@ -14,22 +14,19 @@
     "layout_below_strength_minimum": 48,
     "layout_below_swim_minimum": 2,
     "layout_below_total_min": 58,
-    "minimum_sessions_exceed_available_capacity": 58,
-    "window_phase_contract_conflict": 159
+    "minimum_sessions_exceed_available_capacity": 58
   },
   "warningCasesByCode": {
-    "catalogue_diversity_limited": 4,
+    "catalogue_diversity_limited": 9,
     "catalogue_slot_duration_unavailable": 99,
     "coach_initial_load_unverified": 300,
     "deterministic_quota_not_available": 160,
-    "minimum_catalogue_dose_exceeds_budget": 46,
+    "minimum_catalogue_dose_exceeds_budget": 41,
     "multiday_event_requires_stage_review": 80
   },
   "known58Retained": 58,
-  "additionalBlocked": 144,
-  "additionalBlockingCodes": {
-    "window_phase_contract_conflict": 144
-  },
+  "additionalBlocked": 0,
+  "additionalBlockingCodes": {},
   "historicalDiversityReplay": {
     "contracts": 11,
     "result": "warning only, independently replayed under the exact historical phases and minima by the tests; not forced into different actual window contexts"
@@ -39,39 +36,37 @@
       "cases": 80,
       "status": {
         "admissible": 5,
-        "blocked": 27,
-        "coach_review": 48
+        "blocked": 3,
+        "coach_review": 72
       },
       "knownHistoricalRefusals": 3,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 1,
         "layout_below_swim_minimum": 2,
         "layout_below_total_min": 3,
-        "minimum_sessions_exceed_available_capacity": 3,
-        "window_phase_contract_conflict": 26
+        "minimum_sessions_exceed_available_capacity": 3
       },
       "warningCasesByCode": {
-        "catalogue_diversity_limited": 2,
-        "catalogue_slot_duration_unavailable": 29,
+        "catalogue_diversity_limited": 3,
+        "catalogue_slot_duration_unavailable": 30,
         "coach_initial_load_unverified": 40,
-        "minimum_catalogue_dose_exceeds_budget": 10,
+        "minimum_catalogue_dose_exceeds_budget": 9,
         "multiday_event_requires_stage_review": 40
       }
     },
     "10K": {
       "cases": 40,
       "status": {
-        "admissible": 9,
-        "blocked": 21,
-        "coach_review": 10
+        "admissible": 14,
+        "blocked": 12,
+        "coach_review": 14
       },
       "knownHistoricalRefusals": 12,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 9,
         "layout_below_strength_minimum": 12,
         "layout_below_total_min": 12,
-        "minimum_sessions_exceed_available_capacity": 12,
-        "window_phase_contract_conflict": 13
+        "minimum_sessions_exceed_available_capacity": 12
       },
       "warningCasesByCode": {
         "coach_initial_load_unverified": 20
@@ -98,8 +93,8 @@
     "IM": {
       "cases": 80,
       "status": {
-        "blocked": 58,
-        "coach_review": 22
+        "blocked": 5,
+        "coach_review": 75
       },
       "knownHistoricalRefusals": 5,
       "blockingCasesByCode": {
@@ -107,54 +102,50 @@
         "layout_below_brick_minimum": 1,
         "layout_below_run_minimum": 4,
         "layout_below_total_min": 5,
-        "minimum_sessions_exceed_available_capacity": 5,
-        "window_phase_contract_conflict": 54
+        "minimum_sessions_exceed_available_capacity": 5
       },
       "warningCasesByCode": {
-        "catalogue_diversity_limited": 2,
-        "catalogue_slot_duration_unavailable": 37,
+        "catalogue_diversity_limited": 6,
+        "catalogue_slot_duration_unavailable": 40,
         "coach_initial_load_unverified": 40,
-        "minimum_catalogue_dose_exceeds_budget": 12,
+        "minimum_catalogue_dose_exceeds_budget": 8,
         "multiday_event_requires_stage_review": 40
       }
     },
     "Marathon": {
       "cases": 40,
       "status": {
-        "admissible": 4,
-        "blocked": 31,
-        "coach_review": 5
+        "admissible": 14,
+        "blocked": 12,
+        "coach_review": 14
       },
       "knownHistoricalRefusals": 12,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 9,
         "layout_below_strength_minimum": 12,
         "layout_below_total_min": 12,
-        "minimum_sessions_exceed_available_capacity": 12,
-        "window_phase_contract_conflict": 27
+        "minimum_sessions_exceed_available_capacity": 12
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 11,
         "coach_initial_load_unverified": 20
       }
     },
     "Olympic": {
       "cases": 40,
       "status": {
-        "admissible": 9,
-        "blocked": 15,
-        "coach_review": 16
+        "admissible": 13,
+        "blocked": 2,
+        "coach_review": 25
       },
       "knownHistoricalRefusals": 2,
       "blockingCasesByCode": {
         "layout_below_bike_minimum": 2,
         "layout_below_run_minimum": 2,
         "layout_below_total_min": 2,
-        "minimum_sessions_exceed_available_capacity": 2,
-        "window_phase_contract_conflict": 13
+        "minimum_sessions_exceed_available_capacity": 2
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 12,
+        "catalogue_slot_duration_unavailable": 19,
         "coach_initial_load_unverified": 20,
         "minimum_catalogue_dose_exceeds_budget": 4
       }
@@ -242,13 +233,10 @@
     "TrailUltra": {
       "cases": 40,
       "status": {
-        "blocked": 26,
-        "coach_review": 14
+        "coach_review": 40
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 26
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 20,
         "deterministic_quota_not_available": 40
@@ -259,14 +247,11 @@
     "10K/continuous/age_group": {
       "cases": 8,
       "status": {
-        "admissible": 3,
-        "blocked": 2,
-        "coach_review": 3
+        "admissible": 4,
+        "coach_review": 4
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 2
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4
       }
@@ -275,16 +260,15 @@
       "cases": 8,
       "status": {
         "admissible": 2,
-        "blocked": 5,
-        "coach_review": 1
+        "blocked": 4,
+        "coach_review": 2
       },
       "knownHistoricalRefusals": 4,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 1,
         "layout_below_strength_minimum": 4,
         "layout_below_total_min": 4,
-        "minimum_sessions_exceed_available_capacity": 4,
-        "window_phase_contract_conflict": 3
+        "minimum_sessions_exceed_available_capacity": 4
       },
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4
@@ -293,17 +277,16 @@
     "10K/continuous/elite": {
       "cases": 8,
       "status": {
-        "admissible": 1,
-        "blocked": 6,
-        "coach_review": 1
+        "admissible": 2,
+        "blocked": 4,
+        "coach_review": 2
       },
       "knownHistoricalRefusals": 4,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 4,
         "layout_below_strength_minimum": 4,
         "layout_below_total_min": 4,
-        "minimum_sessions_exceed_available_capacity": 4,
-        "window_phase_contract_conflict": 3
+        "minimum_sessions_exceed_available_capacity": 4
       },
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4
@@ -312,14 +295,11 @@
     "10K/continuous/finisher": {
       "cases": 8,
       "status": {
-        "admissible": 2,
-        "blocked": 3,
-        "coach_review": 3
+        "admissible": 4,
+        "coach_review": 4
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 3
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4
       }
@@ -327,8 +307,8 @@
     "10K/continuous/world_class": {
       "cases": 8,
       "status": {
-        "admissible": 1,
-        "blocked": 5,
+        "admissible": 2,
+        "blocked": 4,
         "coach_review": 2
       },
       "knownHistoricalRefusals": 4,
@@ -336,8 +316,7 @@
         "layout_below_run_minimum": 4,
         "layout_below_strength_minimum": 4,
         "layout_below_total_min": 4,
-        "minimum_sessions_exceed_available_capacity": 4,
-        "window_phase_contract_conflict": 2
+        "minimum_sessions_exceed_available_capacity": 4
       },
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4
@@ -425,13 +404,10 @@
       "cases": 8,
       "status": {
         "admissible": 2,
-        "blocked": 3,
-        "coach_review": 3
+        "coach_review": 6
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 3
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "catalogue_diversity_limited": 1,
         "catalogue_slot_duration_unavailable": 6,
@@ -443,17 +419,17 @@
       "cases": 8,
       "status": {
         "admissible": 1,
-        "blocked": 4,
-        "coach_review": 3
+        "blocked": 1,
+        "coach_review": 6
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 3
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
+        "catalogue_diversity_limited": 1,
         "catalogue_slot_duration_unavailable": 6,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
@@ -462,13 +438,10 @@
     "703/continuous/elite": {
       "cases": 8,
       "status": {
-        "blocked": 2,
-        "coach_review": 6
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 2
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "catalogue_slot_duration_unavailable": 7,
         "coach_initial_load_unverified": 4,
@@ -479,15 +452,12 @@
       "cases": 8,
       "status": {
         "admissible": 1,
-        "blocked": 2,
-        "coach_review": 5
+        "coach_review": 7
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 2
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 5,
+        "catalogue_slot_duration_unavailable": 6,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -496,15 +466,14 @@
       "cases": 8,
       "status": {
         "admissible": 1,
-        "blocked": 3,
-        "coach_review": 4
+        "blocked": 1,
+        "coach_review": 6
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_swim_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 3
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
         "catalogue_diversity_limited": 1,
@@ -516,29 +485,22 @@
     "703/lcw_3day/age_group": {
       "cases": 8,
       "status": {
-        "blocked": 3,
-        "coach_review": 5
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 3
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
-        "minimum_catalogue_dose_exceeds_budget": 1,
         "multiday_event_requires_stage_review": 8
       }
     },
     "703/lcw_3day/competitor": {
       "cases": 8,
       "status": {
-        "blocked": 3,
-        "coach_review": 5
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 3
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1,
@@ -548,13 +510,10 @@
     "703/lcw_3day/elite": {
       "cases": 8,
       "status": {
-        "blocked": 2,
-        "coach_review": 6
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 2
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1,
@@ -564,13 +523,10 @@
     "703/lcw_3day/finisher": {
       "cases": 8,
       "status": {
-        "blocked": 2,
-        "coach_review": 6
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 2
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1,
@@ -580,15 +536,14 @@
     "703/lcw_3day/world_class": {
       "cases": 8,
       "status": {
-        "blocked": 3,
-        "coach_review": 5
+        "blocked": 1,
+        "coach_review": 7
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_swim_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 3
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
@@ -599,15 +554,13 @@
     "IM/continuous/age_group": {
       "cases": 8,
       "status": {
-        "blocked": 5,
-        "coach_review": 3
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 5
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 5,
+        "catalogue_diversity_limited": 1,
+        "catalogue_slot_duration_unavailable": 8,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -615,18 +568,18 @@
     "IM/continuous/competitor": {
       "cases": 8,
       "status": {
-        "blocked": 5,
-        "coach_review": 3
+        "blocked": 1,
+        "coach_review": 7
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 5
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 6,
+        "catalogue_diversity_limited": 1,
+        "catalogue_slot_duration_unavailable": 8,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -634,20 +587,19 @@
     "IM/continuous/elite": {
       "cases": 8,
       "status": {
-        "blocked": 7,
-        "coach_review": 1
+        "blocked": 1,
+        "coach_review": 7
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_bike_minimum": 1,
         "layout_below_run_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 6
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
         "catalogue_diversity_limited": 1,
-        "catalogue_slot_duration_unavailable": 5,
+        "catalogue_slot_duration_unavailable": 8,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -655,24 +607,21 @@
     "IM/continuous/finisher": {
       "cases": 8,
       "status": {
-        "blocked": 6,
-        "coach_review": 2
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 6
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 5,
+        "catalogue_slot_duration_unavailable": 8,
         "coach_initial_load_unverified": 4,
-        "minimum_catalogue_dose_exceeds_budget": 2
+        "minimum_catalogue_dose_exceeds_budget": 1
       }
     },
     "IM/continuous/world_class": {
       "cases": 8,
       "status": {
-        "blocked": 6,
-        "coach_review": 2
+        "blocked": 1,
+        "coach_review": 7
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
@@ -680,12 +629,11 @@
         "layout_below_brick_minimum": 1,
         "layout_below_run_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 5
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
-        "catalogue_diversity_limited": 1,
-        "catalogue_slot_duration_unavailable": 5,
+        "catalogue_diversity_limited": 2,
+        "catalogue_slot_duration_unavailable": 8,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -693,15 +641,11 @@
     "IM/lcw_3day/age_group": {
       "cases": 8,
       "status": {
-        "blocked": 5,
-        "coach_review": 3
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 5
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 2,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1,
         "multiday_event_requires_stage_review": 8
@@ -710,15 +654,12 @@
     "IM/lcw_3day/competitor": {
       "cases": 8,
       "status": {
-        "blocked": 5,
-        "coach_review": 3
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 5
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 1,
+        "catalogue_diversity_limited": 1,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1,
         "multiday_event_requires_stage_review": 8
@@ -727,56 +668,46 @@
     "IM/lcw_3day/elite": {
       "cases": 8,
       "status": {
-        "blocked": 7,
-        "coach_review": 1
+        "blocked": 1,
+        "coach_review": 7
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_bike_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 6
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 3,
         "coach_initial_load_unverified": 4,
-        "minimum_catalogue_dose_exceeds_budget": 1,
         "multiday_event_requires_stage_review": 8
       }
     },
     "IM/lcw_3day/finisher": {
       "cases": 8,
       "status": {
-        "blocked": 6,
-        "coach_review": 2
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 6
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 3,
         "coach_initial_load_unverified": 4,
-        "minimum_catalogue_dose_exceeds_budget": 2,
         "multiday_event_requires_stage_review": 8
       }
     },
     "IM/lcw_3day/world_class": {
       "cases": 8,
       "status": {
-        "blocked": 6,
-        "coach_review": 2
+        "blocked": 1,
+        "coach_review": 7
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_bike_minimum": 1,
         "layout_below_run_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 5
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 2,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1,
         "multiday_event_requires_stage_review": 8
@@ -785,90 +716,78 @@
     "Marathon/continuous/age_group": {
       "cases": 8,
       "status": {
-        "admissible": 1,
-        "blocked": 5,
-        "coach_review": 2
+        "admissible": 4,
+        "coach_review": 4
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 5
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 3,
         "coach_initial_load_unverified": 4
       }
     },
     "Marathon/continuous/competitor": {
       "cases": 8,
       "status": {
-        "admissible": 1,
-        "blocked": 6,
-        "coach_review": 1
+        "admissible": 2,
+        "blocked": 4,
+        "coach_review": 2
       },
       "knownHistoricalRefusals": 4,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 1,
         "layout_below_strength_minimum": 4,
         "layout_below_total_min": 4,
-        "minimum_sessions_exceed_available_capacity": 4,
-        "window_phase_contract_conflict": 5
+        "minimum_sessions_exceed_available_capacity": 4
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 1,
         "coach_initial_load_unverified": 4
       }
     },
     "Marathon/continuous/elite": {
       "cases": 8,
       "status": {
-        "admissible": 1,
-        "blocked": 7
+        "admissible": 2,
+        "blocked": 4,
+        "coach_review": 2
       },
       "knownHistoricalRefusals": 4,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 4,
         "layout_below_strength_minimum": 4,
         "layout_below_total_min": 4,
-        "minimum_sessions_exceed_available_capacity": 4,
-        "window_phase_contract_conflict": 6
+        "minimum_sessions_exceed_available_capacity": 4
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 2,
         "coach_initial_load_unverified": 4
       }
     },
     "Marathon/continuous/finisher": {
       "cases": 8,
       "status": {
-        "admissible": 1,
-        "blocked": 6,
-        "coach_review": 1
+        "admissible": 4,
+        "coach_review": 4
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 6
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 3,
         "coach_initial_load_unverified": 4
       }
     },
     "Marathon/continuous/world_class": {
       "cases": 8,
       "status": {
-        "blocked": 7,
-        "coach_review": 1
+        "admissible": 2,
+        "blocked": 4,
+        "coach_review": 2
       },
       "knownHistoricalRefusals": 4,
       "blockingCasesByCode": {
         "layout_below_run_minimum": 4,
         "layout_below_strength_minimum": 4,
         "layout_below_total_min": 4,
-        "minimum_sessions_exceed_available_capacity": 4,
-        "window_phase_contract_conflict": 5
+        "minimum_sessions_exceed_available_capacity": 4
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 2,
         "coach_initial_load_unverified": 4
       }
     },
@@ -876,15 +795,12 @@
       "cases": 8,
       "status": {
         "admissible": 2,
-        "blocked": 3,
-        "coach_review": 3
+        "coach_review": 6
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 3
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 2,
+        "catalogue_slot_duration_unavailable": 4,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -892,16 +808,13 @@
     "Olympic/continuous/competitor": {
       "cases": 8,
       "status": {
-        "admissible": 1,
-        "blocked": 3,
-        "coach_review": 4
+        "admissible": 2,
+        "coach_review": 6
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 3
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 3,
+        "catalogue_slot_duration_unavailable": 5,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -909,20 +822,19 @@
     "Olympic/continuous/elite": {
       "cases": 8,
       "status": {
-        "admissible": 2,
-        "blocked": 3,
-        "coach_review": 3
+        "admissible": 3,
+        "blocked": 1,
+        "coach_review": 4
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_bike_minimum": 1,
         "layout_below_run_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 2
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 3,
+        "catalogue_slot_duration_unavailable": 4,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -930,16 +842,13 @@
     "Olympic/continuous/finisher": {
       "cases": 8,
       "status": {
-        "admissible": 2,
-        "blocked": 2,
-        "coach_review": 4
+        "admissible": 3,
+        "coach_review": 5
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 2
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 2,
+        "catalogue_slot_duration_unavailable": 3,
         "coach_initial_load_unverified": 4,
         "minimum_catalogue_dose_exceeds_budget": 1
       }
@@ -947,20 +856,19 @@
     "Olympic/continuous/world_class": {
       "cases": 8,
       "status": {
-        "admissible": 2,
-        "blocked": 4,
-        "coach_review": 2
+        "admissible": 3,
+        "blocked": 1,
+        "coach_review": 4
       },
       "knownHistoricalRefusals": 1,
       "blockingCasesByCode": {
         "layout_below_bike_minimum": 1,
         "layout_below_run_minimum": 1,
         "layout_below_total_min": 1,
-        "minimum_sessions_exceed_available_capacity": 1,
-        "window_phase_contract_conflict": 3
+        "minimum_sessions_exceed_available_capacity": 1
       },
       "warningCasesByCode": {
-        "catalogue_slot_duration_unavailable": 2,
+        "catalogue_slot_duration_unavailable": 3,
         "coach_initial_load_unverified": 4
       }
     },
@@ -1355,13 +1263,10 @@
     "TrailUltra/continuous/age_group": {
       "cases": 8,
       "status": {
-        "blocked": 5,
-        "coach_review": 3
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 5
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
         "deterministic_quota_not_available": 8
@@ -1370,13 +1275,10 @@
     "TrailUltra/continuous/competitor": {
       "cases": 8,
       "status": {
-        "blocked": 6,
-        "coach_review": 2
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 6
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
         "deterministic_quota_not_available": 8
@@ -1385,13 +1287,10 @@
     "TrailUltra/continuous/elite": {
       "cases": 8,
       "status": {
-        "blocked": 5,
-        "coach_review": 3
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 5
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
         "deterministic_quota_not_available": 8
@@ -1400,13 +1299,10 @@
     "TrailUltra/continuous/finisher": {
       "cases": 8,
       "status": {
-        "blocked": 5,
-        "coach_review": 3
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 5
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
         "deterministic_quota_not_available": 8
@@ -1415,13 +1311,10 @@
     "TrailUltra/continuous/world_class": {
       "cases": 8,
       "status": {
-        "blocked": 5,
-        "coach_review": 3
+        "coach_review": 8
       },
       "knownHistoricalRefusals": 0,
-      "blockingCasesByCode": {
-        "window_phase_contract_conflict": 5
-      },
+      "blockingCasesByCode": {},
       "warningCasesByCode": {
         "coach_initial_load_unverified": 4,
         "deterministic_quota_not_available": 8

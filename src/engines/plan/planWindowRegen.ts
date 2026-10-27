@@ -18,6 +18,7 @@ import type { ParsedPlan, ParsedWeek } from "@/lib/aiPlanParser";
 import { summarizePastWeeks } from "./planPatcher";
 import type { PlanConfig, PlanAthleteData } from "@/hooks/useAITrainingPlan";
 import { inferWeekType } from "./sessionSizingMatrix";
+import { buildPeriodizationCalendar } from "@/lib/plan/periodizationCalendar";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 
 /** IDs signature du bloc LCW (Long Course Weekend) — cf. promptHelpers.ts
@@ -154,12 +155,18 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
   const globalTotalWeeks = cycle ? (cycle.endWeek - cycle.startWeek + 1) : req.currentPlan.totalWeeks;
   const globalWeekOffset = cycle ? (req.fromWeek - cycle.startWeek) : (req.fromWeek - 1);
   const periodizationObjective = cycle ? cycle.objective : req.baseConfig.objective;
+  // A window is a slice of the existing full calendar, not a new cycle.
+  // Clear previous window coordinates when a partial regeneration is nested.
+  const fullCalendar = buildPeriodizationCalendar({ ...req.baseConfig,
+    weeksAvailable: req.currentPlan.totalWeeks, globalTotalWeeks: undefined,
+    globalWeekOffset: undefined, windowRegenPhase: undefined, windowWeekPhases: undefined });
   const perWeekPhase: string[] = [];
   const phaseCounts: Record<string, number> = {};
   const periodizationLines: string[] = [];
   for (let i = 1; i <= windowSize; i++) {
     const globalWeek = i + globalWeekOffset;
-    const phase = catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks, periodizationObjective, req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
+    const phase = fullCalendar?.[req.fromWeek + i - 1]
+      ?? catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks, periodizationObjective, req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
     const weekType = inferWeekType(globalWeek, globalTotalWeeks, periodizationObjective || "", req.athleteData.age, req.baseConfig.deloadCadenceWeeks);
     perWeekPhase.push(phase);
     phaseCounts[phase] = (phaseCounts[phase] ?? 0) + 1;
@@ -172,7 +179,8 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     );
   }
   // Phase dominante de la fenêtre (majorité ; égalité → dernière semaine),
-  // utilisée pour forcer le bon catalogue de séances côté edge.
+  // indicateur de fallback pour les anciens consommateurs seulement.
+  // Elle ne remplace jamais les phases hebdomadaires d'une fenêtre mixte.
   let dominantPhase = perWeekPhase[perWeekPhase.length - 1];
   let dominantCount = 0;
   for (const [phase, count] of Object.entries(phaseCounts)) {

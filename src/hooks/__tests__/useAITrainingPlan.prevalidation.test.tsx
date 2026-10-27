@@ -30,14 +30,14 @@ it('read-only preview preserves the current plan state and does not use authenti
  }finally{fetch.mockRestore();}
 });
 import {planningCases,preparePlanningCaseContext} from '@/qa/sports-plan-lab/planningMatrix';
-it('checks a later window before the first request when weekly phases conflict with a dominant window phase',async()=>{
+it('checks the complete mixed-window scope without flattening weekly phases',async()=>{
  vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
  const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('UNEXPECTED_NETWORK');});
  try{
   const spec=planningCases().find(c=>c.id==='703:light:competitor:unknown')!;
   const {prepared}=preparePlanningCaseContext(spec);const {result}=renderHook(()=>useAITrainingPlan());
-  await act(async()=>{await result.current.generatePlanWindowed(prepared.athleteData,{...prepared.planConfig,_outputFormat:'json'});});
-  expect(result.current.prevalidation?.issues.some(i=>i.code==='window_phase_contract_conflict')).toBe(true);
-  expect(result.current.prevalidation?.status).toBe('blocked');expect(fetch).not.toHaveBeenCalled();
+  await act(async()=>{await result.current.prevalidateTrainingPlan(prepared.athleteData,{...prepared.planConfig,_outputFormat:'json'});});
+  expect(result.current.prevalidation?.issues.some(i=>i.code==='window_phase_contract_conflict')).toBe(false);
+  expect(result.current.prevalidation?.weeks.every(w=>w.phase===w.expectedPhase)).toBe(true);expect(fetch).not.toHaveBeenCalled();
  }finally{fetch.mockRestore();vi.useRealTimers();}
 });

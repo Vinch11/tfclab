@@ -1783,6 +1783,10 @@ export function inferPhaseFromWeek(
   objective?: string | null,
   multiObjectiveConfig?: any,
 ): string {
+  // A window carries the exact slice of the existing full engine calendar.
+  const windowPhase = multiObjectiveConfig?.windowWeekPhases?.[weekStart];
+  if (windowPhase) return windowPhase;
+  if (multiObjectiveConfig?.windowRegenPhase) return multiObjectiveConfig.windowRegenPhase;
   const segments = multiObjectiveConfig ? computeMultiObjectiveSegments(multiObjectiveConfig, totalWeeks) : null;
   if (typeof multiObjectiveConfig?.fondationDurationWeeks === "number" && multiObjectiveConfig.fondationDurationWeeks > 0) {
     const index = segments?.findIndex(s => weekStart >= s.startWeek && weekStart <= s.endWeek) ?? 0;
@@ -1925,7 +1929,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         }
         // Inspect every requested chunk, including later chunks, before the first paid call.
         const preflightWeeks: PrevalidationInputWeek[] = chunks.flatMap((chunk,ci)=>{
-          const activePhase=regenerateWeek?.phase??planConfig?.windowRegenPhase??inferPhaseFromWeek(chunk.start,totalWeeks,planConfig?.objective,planConfig);
+          const activePhase=regenerateWeek?.phase??inferPhaseFromWeek(chunk.start,totalWeeks,planConfig?.objective,planConfig);
           const primary=chunkRepairCatalogs?.[ci]?.length?chunkRepairCatalogs[ci]:resolvePhaseRepairCatalog(activePhase,phaseRepairCatalogs);
           const extra=chunkRegenRepairCatalogs?.[ci]??[];
           const dump=chunkCatalogs?.[ci]||resolvePhaseCatalog(activePhase,phaseCatalogs,workoutCatalog);
@@ -1934,7 +1938,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           return Array.from({length:chunk.end-chunk.start+1},(_,i)=>{
             const week=chunk.start+i,entry=planConfig?._weeklyQuotas?.[week];
             return {...entry,week,expectedPhase:planConfig?.windowWeekPhases?.[week],globalWeek:week+(planConfig?.globalWeekOffset??0),
-              phase:regenerateWeek?.phase??planConfig?.windowRegenPhase??inferPhaseFromWeek(week,totalWeeks,planConfig?.objective,planConfig),
+              phase:regenerateWeek?.phase??inferPhaseFromWeek(week,totalWeeks,planConfig?.objective,planConfig),
               objective:computeMultiObjectiveSegments(planConfig,totalWeeks)?.find(s=>week>=s.startWeek&&week<=s.endWeek)?.objective??planConfig?.catalogObjective??planConfig?.objective,catalog};
           });
         });
@@ -1987,15 +1991,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             && chunkCatalogs[ci].length > 0
               ? chunkCatalogs[ci]
               : null;
-          // Régénération de fenêtre : `windowRegenPhase` porte la vraie phase
-          // globale pré-calculée côté client (planWindowRegen.ts), car en
-          // génération non-chunkée `chunk.start` vaut toujours 1 → sans cet
-          // override, inferPhaseFromWeek(1, totalWeeks) retombe TOUJOURS sur
-          // "base", quelle que soit la position réelle de la fenêtre dans le plan.
+          // The fallback follows the chunk's first week, not the window majority.
+          // Each week retains its own eligibility and schema phase below.
           const activePhase = regenerateWeek?.phase
-            ?? (typeof planConfig?.windowRegenPhase === "string" && planConfig.windowRegenPhase
-              ? planConfig.windowRegenPhase
-              : null)
             ?? inferPhaseFromWeek(chunk.start, totalWeeks, planConfig?.objective, planConfig);
           const catalogDump = chunkSpecificCatalog
             ?? resolvePhaseCatalog(activePhase, phaseCatalogs, workoutCatalog);
@@ -2060,8 +2058,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           const catalogueContractsByWeek: Record<number, CatalogueContract> = {};
           const eligibilityByWeek: Record<number, string[]> = {};
           for (const week of weeksList) {
-            const phase = regenerateWeek?.phase ?? planConfig?.windowRegenPhase
-              ?? inferPhaseFromWeek(week, totalWeeks, planConfig?.objective, planConfig);
+            const phase = regenerateWeek?.phase ?? inferPhaseFromWeek(week, totalWeeks, planConfig?.objective, planConfig);
             const segment = computeMultiObjectiveSegments(planConfig, totalWeeks)?.find(s => week >= s.startWeek && week <= s.endWeek);
             const contract = { phase, objective: segment?.objective ?? planConfig?.catalogObjective ?? planConfig?.objective,
               weekType: planConfig?._weeklyQuotas?.[week]?.weekType,

@@ -11,7 +11,7 @@ export function assessPreparedGeneration(config:PlanConfig,prepared:ReturnType<t
   const chunk=Math.floor((week-1)/effectiveSize);
   const chunkStart=chunk*effectiveSize+1;
   const primary=prepared.chunkRepairCatalogs[chunk]?.length?prepared.chunkRepairCatalogs[chunk]
-   : prepared.phaseRepairCatalogs[config.windowRegenPhase??prepared.phaseCalendar?.[chunkStart]??'base']??[];
+   : prepared.phaseRepairCatalogs[prepared.phaseCalendar?.[chunkStart]??config.windowRegenPhase??'base']??[];
   const regen=prepared.chunkRegenRepairCatalogs[chunk]??[];
   return {week,globalWeek:week+(config.globalWeekOffset??0),phase:entry?.phase??prepared.phaseCalendar?.[week],expectedPhase:config.windowWeekPhases?.[week],weekType:entry?.weekType,
    objective:prepared.catalogObjective,quota:entry?.quota,layout:entry?.layout,volumeBudget:entry?.volumeBudget,

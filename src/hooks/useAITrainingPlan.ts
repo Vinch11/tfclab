@@ -580,7 +580,7 @@ export interface PlanConfig {
    * `chunk.start` vaut 1 donc `inferPhaseFromWeek(1, N)` retombe sur "base").
    */
   windowRegenPhase?: string;
-  /** Exact phases already written into each window prompt; used only to detect conflicts. */
+  /** Slice of the full engine calendar, shared by prompt, quotas and server contracts. */
   windowWeekPhases?: Record<number, PhaseTag>;
   /**
    * Objectif à utiliser pour le SCORING/FILTRAGE du catalogue de séances

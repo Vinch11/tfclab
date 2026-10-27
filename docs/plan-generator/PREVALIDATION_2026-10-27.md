@@ -1,5 +1,7 @@
 # Prévalidation déterministe avant génération — 27 octobre 2026
 
+Mise à jour : les conflits de phases initiaux sont corrigés ; voir [la comparaison avant/après](PHASES_FENETRES_2026-10-27.md). Les chiffres ci-dessous décrivent la prévalidation initiale ; les CSV et le résumé du dossier de preuves contiennent désormais le résultat final (101 admissibles, 441 revues, 58 bloquées).
+
 Référence : `main` au commit `a8bd971c98c4af0eb6af80202336e27c146a1ac0` (#418).
 Cette correction ajoute un précontrôle, sans modifier les prescriptions, les limiteurs, les seuils sportifs ou les règles de répétition. Aucun modèle ni environnement de production n’a été appelé.
 
@@ -21,12 +23,12 @@ Le hook vérifie tous les chunks/fenêtres connus avant le premier appel, puis c
 
 ## Preuves et résultats
 
-La [matrice synthétique](prevalidation-evidence/summary.json), ses [600 cas](prevalidation-evidence/cases.csv), les [contrats hebdomadaires](prevalidation-evidence/weeks.csv), les [identifiants des pools](prevalidation-evidence/pools.jsonl) et les [75 lignes objectif/format/ambition](prevalidation-evidence/BY_OBJECTIVE_AMBITION.md) permettent de retrouver les données effectivement examinées. L’empreinte de chaque pool porte sur la liste triée de ses identifiants, pas sur un artefact compilé.
+La [matrice synthétique initiale](prevalidation-evidence/before-phases-summary.json), ses [600 cas](prevalidation-evidence/cases.csv), les [contrats hebdomadaires](prevalidation-evidence/weeks.csv), les [identifiants des pools](prevalidation-evidence/pools.jsonl) et les [75 lignes objectif/format/ambition](prevalidation-evidence/BY_OBJECTIVE_AMBITION.md) permettent de retrouver les données effectivement examinées. L’empreinte de chaque pool porte sur la liste triée de ses identifiants, pas sur un artefact compilé.
 
 * **600 configurations : 82 admissibles, 316 en revue coach, 202 bloquées.**
 * Les **58 refus historiques** restent tous bloqués.
 * Les **11 contrats historiques de diversité** sont rejoués avec leurs phases/minima d’origine : avertissements, jamais contradictions. Les contextes des fenêtres réelles peuvent différer ; on ne force pas artificiellement ces 11 cas dans les mêmes résultats de la nouvelle matrice.
-* Les **144 blocages supplémentaires** ont tous `window_phase_contract_conflict` : les instructions existantes annoncent des phases par semaine tandis que le contrat de fenêtre impose sa phase dominante. La prévalidation révèle ce conflit avant paiement, **sans choisir arbitrairement une nouvelle périodisation**. La résolution de ce mécanisme reste nécessaire pour ces configurations.
+* Les **144 blocages supplémentaires** ont tous `window_phase_contract_conflict` : les instructions existantes annoncent des phases par semaine tandis que le contrat de fenêtre impose sa phase dominante. La prévalidation révèle ce conflit avant paiement, **sans choisir arbitrairement une nouvelle périodisation**. Ce mécanisme a ensuite été corrigé dans la même PR ; la comparaison liée en tête de rapport en donne les preuves.
 * Les 300 cas à charge inconnue conservent un avertissement. Aucun volume ni fréquence n’est augmenté par le précontrôle.
 
 Avant correction, le handler de référence soumis à une contradiction de capacité en S12 tentait **6 requêtes de passerelle simulées**. Avec le garde, les tests exécutant les deux handlers comptent **0**, y compris pour un conflit de phase et une date hors plan. `fetch` est intégralement remplacé et les tests Deno n’ont pas la permission réseau : **aucun appel Gemini réel**. Le [relevé avant](prevalidation-evidence/before-gate-proof.json) identifie la source de référence ; le payload reproductible est celui de `supabase/functions/ai-training-plan/prevalidation.test.ts` (test « later week »).

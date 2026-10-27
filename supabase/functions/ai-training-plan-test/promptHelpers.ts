@@ -638,13 +638,24 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   // "3-4 sem" donnée plus haut dans les instructions méthodologiques. Un
   // athlète moins entraîné a besoin de plus de temps pour reconstruire une
   // base aérobie avant le travail spécifique.
-  if (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0) {
+  if (!config?.windowWeekPhases && typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0) {
     lines.push(`\n📅 Durée du bloc Fondation pour CET athlète : ${config.fondationDurationWeeks} semaines (calculée selon le niveau d'entraînement + la durée totale du plan — utilise CETTE valeur, pas le "3-4 sem" générique indiqué plus haut).`);
   }
 
   // FIX C5 + audit V8: Limiter-aware phase heuristics — works for ANY plan ≥4 semaines.
   // Avant: gating à tw>10 laissait l'IA improviser sur 4-10 sem (cas typique trail 6 sem).
-  if (totalWeeks && totalWeeks >= 4) {
+  if (config?.windowWeekPhases) {
+    lines.push(`\n📅 PÉRIODISATION DE LA FENÊTRE — tranche du calendrier global calculé, semaines locales : ${JSON.stringify(config.windowWeekPhases)}. Respecter ces phases, sans reconstruire un mini-cycle ni étendre la phase dominante à toute la fenêtre. Les priorités des limiteurs restent celles du diagnostic.`);
+    // Preserve the existing limiter guidance, without inventing local phase dates.
+    const raw = config.identifiedLimitersRaw?.length ? config.identifiedLimitersRaw : config.identifiedLimiters ?? [];
+    if (ambKey !== "finisher") {
+      const {isVo2maxLimiter} = periodizationBounds(config.globalTotalWeeks ?? totalWeeks ?? 4,
+        taperWeeksForObjectiveServer(objKey), false, String(raw[0] ?? ""));
+      lines.push(`  Bloc Fondation${isVo2maxLimiter ? " (SANS VO2max — réservé au Bloc Chantier dédié)" : " + Intensité"} : semaines base du calendrier.`);
+      lines.push(`  Bloc Chantier [${raw[0] ?? "Limiteur #1"}↓] puis Consolidation [${raw[1] ?? "Limiteur #2"}] : dans les semaines build du calendrier, sans déplacer les phases peak/taper.`);
+    }
+  }
+  if (!config?.windowWeekPhases && totalWeeks && totalWeeks >= 4) {
     const tw = totalWeeks;
     const isFinisher = ambKey === "finisher";
     // Utilise la liste RAW (noms métriques) ; fallback sur identifiedLimiters si absent

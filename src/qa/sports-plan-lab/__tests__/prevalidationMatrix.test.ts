@@ -20,6 +20,7 @@ it.skipIf(!process.env.TFCL_PREVALIDATION_MATRIX)('runs actual prevalidation pre
   mkdirSync(out,{recursive:true});writeFileSync(`${out}/matrix.json`,JSON.stringify({referenceCommit:baseline.referenceCommit,rows:rows.map(r=>({...r,report:{...r.report,weeks:r.report.weeks.map(w=>({...w,eligible:w.eligible.map(c=>({id:c.id,sport:c.sport,intentFamily:c.intentFamily})),excludedCount:w.excluded.length,excluded:undefined}))}}))}));
   expect(rows).toHaveLength(600);
   for(const id of baseline.blockedIds)expect(rows.find(r=>r.id===id)?.report.status,id).toBe('blocked');
+  for(const row of rows)expect(row.report.issues.some(i=>i.code==='window_phase_contract_conflict'),row.id).toBe(false);
   expect(fetch).not.toHaveBeenCalled();
 
  }finally{fetch.mockRestore();vi.useRealTimers();}
