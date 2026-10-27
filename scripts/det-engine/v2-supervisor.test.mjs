@@ -152,3 +152,18 @@ test('fixed validation runner selects V2 bundle output and disables legacy matri
  assert.equal(engine[1].includes('experimental/det-engine/vitest.config.ts'),true);
  assert.equal(validationCommandPlan('/tmp/evidence',{global:false}).at(-1)[2].TFCL_DET_V2_OUT,'');assert.equal(POLICY.apiBudgetUsd,0);
 });
+
+test('development can reject a genuinely passing no-progress proposal without falsifying test results',()=>{
+ const initial=evidence(),state=createSupervisor({branch,baseline:initial,now:0});begin(state,'no_progress');
+ const c=validateComparison(initial,initial,initial);assert.equal(c.improvement,false);
+ const result=finishCycle(state,{id:'no_progress',comparison:c,tests:checks,retain:false,now:2});
+ assert.equal(result.status,'rejected');assert.equal(result.decision,'development_rejected_no_progress');assert.deepEqual(result.tests,checks);assert.equal(result.retainRequested,false);
+ assert.equal(state.currentBaselineHash,digest(initial));assert.equal(state.globalWithoutImprovement,1);
+ finishCycle(state,{id:'no_progress',comparison:c,tests:checks,retain:false,now:3});assert.equal(state.events.filter(e=>e.type==='cycle_finished').length,1);
+ assert.throws(()=>finishCycle(state,{id:'no_progress',comparison:c,tests:checks,now:3}),/EVIDENCE_CHANGED/);
+});
+test('no-progress rejection cannot mislabel a measured improvement',()=>{
+ const initial=evidence(),next=evidence();next.rows[1].technicallyConstructed=true;
+ const state=createSupervisor({branch,baseline:initial});begin(state,'improved');
+ assert.throws(()=>finishCycle(state,{id:'improved',comparison:validateComparison(initial,next,next),tests:checks,retain:false}),/NO_PROGRESS_REJECTION_REQUIRES_NO_IMPROVEMENT/);
+});

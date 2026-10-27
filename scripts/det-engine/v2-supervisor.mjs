@@ -96,16 +96,17 @@ export function beginCycle(state,{id,cause,sourceHash,recipeId,scope='targeted',
  const cycle={id,cause,sourceHash,recipeId,scope,status:'running',startedAt:now};
  state.attempts[cause]=(state.attempts[cause]??0)+1;state.cycles.push(cycle);state.activeCycle=id;event(state,'cycle_started',{id,cause,sourceHash,recipeId});return cycle;
 }
-export function finishCycle(state,{id,comparison,tests,artifactHashes={},now=Date.now()}){
+export function finishCycle(state,{id,comparison,tests,artifactHashes={},retain=true,now=Date.now()}){
  const cycle=state.cycles.find(c=>c.id===id);if(!cycle)throw Error('UNKNOWN_CYCLE');
- const evidenceHash=digest({comparison,tests,artifactHashes});
+ if(!retain&&comparison.improvement)throw Error('NO_PROGRESS_REJECTION_REQUIRES_NO_IMPROVEMENT');
+ const evidenceHash=digest({comparison,tests,artifactHashes,...(retain?{}:{retain:false})});
  if(cycle.status!=='running'){if(cycle.evidenceHash!==evidenceHash)throw Error('COMPLETED_CYCLE_EVIDENCE_CHANGED');return cycle;}
  if(state.activeCycle!==id)throw Error('ACTIVE_CYCLE_MISMATCH');
  if(comparison.baselineHash!==state.currentBaselineHash)throw Error('BASELINE_NOT_LAST_ACCEPTED');
  const allChecks=['unit','nonRegression','sporting','replay'].every(key=>tests[key]===true);
- const accepted=allChecks&&comparison.noCriticalRegression&&comparison.reproduced&&!comparison.unattributed.length;
+ const accepted=retain&&allChecks&&comparison.noCriticalRegression&&comparison.reproduced&&!comparison.unattributed.length;
  Object.assign(cycle,{status:accepted?'accepted':'rejected',finishedAt:now,evidenceHash,comparison,tests,artifactHashes,
-  decision:accepted?'retain_experimental_change':!allChecks?'validation_failure':!comparison.reproduced?'non_deterministic':comparison.unattributed.length?'controls_not_comparable':'critical_regression'});
+  decision:accepted?'retain_experimental_change':!allChecks?'validation_failure':!comparison.reproduced?'non_deterministic':comparison.unattributed.length?'controls_not_comparable':!comparison.noCriticalRegression?'critical_regression':'development_rejected_no_progress',retainRequested:retain});
  state.elapsedMs+=Math.max(0,now-cycle.startedAt-(cycle.validationAccountedMs??0));state.activeCycle=null;
  if(accepted)state.currentBaselineHash=comparison.candidateHash;
  if(cycle.scope==='global')state.globalWithoutImprovement=accepted&&comparison.improvement?0:state.globalWithoutImprovement+1;
@@ -239,7 +240,7 @@ export function main(args=process.argv.slice(2)){
  if(command==='begin'){const specification=load(rest[0]);const cycle=beginCycle(state,{...specification,branch});saveState(statePath,state);return cycle;}
  if(command==='finish'){
   const input=load(rest[0]),baseline=load(input.baseline),candidate=load(input.candidate),replay=load(input.replay);
-  const cycle=finishCycle(state,{id:input.id,comparison:validateComparison(baseline,candidate,replay),tests:input.tests,artifactHashes:{baseline:digest(baseline),candidate:digest(candidate),replay:digest(replay)}});saveState(statePath,state);return cycle;
+  const cycle=finishCycle(state,{id:input.id,comparison:validateComparison(baseline,candidate,replay),tests:input.tests,retain:input.retain??true,artifactHashes:{baseline:digest(baseline),candidate:digest(candidate),replay:digest(replay)}});saveState(statePath,state);return cycle;
  }
  if(command==='validate'){
   if(state.activeValidation)throw Error('VALIDATION_ALREADY_RUNNING_OR_INTERRUPTED');

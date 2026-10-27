@@ -1,29 +1,31 @@
-✔ same controls and exact replay prove reproducibility without a scientific GO (2.321656ms)
-✔ new controls are exposed, never called measured sporting regressions (0.842032ms)
-✔ same-control new critical regression rejects despite more constructed plans (1.48363ms)
-✔ newly assembled invalid plan is newly exposed, not a previously valid plan regression (0.346694ms)
-✔ missing/duplicate cases and nondeterministic replay cannot pass (0.851025ms)
-✔ begin/resume/finish is idempotent and does not double-count attempts (0.639936ms)
-✔ state persists atomically and rejected evidence cannot be silently replaced (1.005318ms)
-✔ 12-cycle, per-cause, duration and two-global-no-progress budgets stop without a repeat loop (0.716011ms)
-✔ production branch and policy mutation are refused (0.318971ms)
-✔ repair restores only owned experimental bytes and preserves independent changes (2.344179ms)
-✔ prioritization skips exhausted causes instead of repeating them (0.428217ms)
-✔ registered recipe survives interruption, resumes once and restores only its own file (2.130638ms)
-✔ new critical multiplicity is detected and accepted improvements cannot be regressed via stale baselines (0.815661ms)
-✔ end-to-end supervisor retains a validated recipe and rolls back a rejected alternative (orchestration test double only) (2.939308ms)
-✔ different rule codes under the same broad control and week cannot mask a regression (0.212662ms)
-✔ newly executed extra control cannot falsely attribute aggregate conformance loss (0.218901ms)
-✔ message-only legacy week is normalized without treating different titles as new rules (0.341435ms)
-✔ comparable critical multiset reductions count as progress without requiring a new conformant plan (0.157087ms)
-✔ gross defect reduction never cancels a different newly introduced critical failure (0.163367ms)
-✔ missing plan, missing applicability, or changed control cannot be counted as repaired defects (0.286693ms)
-✔ fixed validation runner selects V2 bundle output and disables legacy matrix without invoking production suite (0.23154ms)
-ℹ tests 21
+✔ same controls and exact replay prove reproducibility without a scientific GO (2.244489ms)
+✔ new controls are exposed, never called measured sporting regressions (0.366634ms)
+✔ same-control new critical regression rejects despite more constructed plans (1.272802ms)
+✔ newly assembled invalid plan is newly exposed, not a previously valid plan regression (0.360153ms)
+✔ missing/duplicate cases and nondeterministic replay cannot pass (0.750463ms)
+✔ begin/resume/finish is idempotent and does not double-count attempts (0.621539ms)
+✔ state persists atomically and rejected evidence cannot be silently replaced (1.330509ms)
+✔ 12-cycle, per-cause, duration and two-global-no-progress budgets stop without a repeat loop (1.103927ms)
+✔ production branch and policy mutation are refused (0.325311ms)
+✔ repair restores only owned experimental bytes and preserves independent changes (2.246903ms)
+✔ prioritization skips exhausted causes instead of repeating them (0.385592ms)
+✔ registered recipe survives interruption, resumes once and restores only its own file (2.04007ms)
+✔ new critical multiplicity is detected and accepted improvements cannot be regressed via stale baselines (1.05974ms)
+✔ end-to-end supervisor retains a validated recipe and rolls back a rejected alternative (orchestration test double only) (3.281926ms)
+✔ different rule codes under the same broad control and week cannot mask a regression (0.249087ms)
+✔ newly executed extra control cannot falsely attribute aggregate conformance loss (0.201955ms)
+✔ message-only legacy week is normalized without treating different titles as new rules (0.663132ms)
+✔ comparable critical multiset reductions count as progress without requiring a new conformant plan (0.290339ms)
+✔ gross defect reduction never cancels a different newly introduced critical failure (0.207123ms)
+✔ missing plan, missing applicability, or changed control cannot be counted as repaired defects (0.360865ms)
+✔ fixed validation runner selects V2 bundle output and disables legacy matrix without invoking production suite (0.268436ms)
+✔ development can reject a genuinely passing no-progress proposal without falsifying test results (0.450911ms)
+✔ no-progress rejection cannot mislabel a measured improvement (0.719827ms)
+ℹ tests 23
 ℹ suites 0
-ℹ pass 21
+ℹ pass 23
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 27.864676
+ℹ duration_ms 31.644857

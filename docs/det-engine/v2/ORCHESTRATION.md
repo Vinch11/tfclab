@@ -52,6 +52,11 @@ inconnue. Les réductions du multiensemble de défauts critiques sous contrôles
 sont comptées séparément (`improvedDefects` et `defectReductions`), même si un plan
 reste non conforme. Elles ne compensent jamais une nouvelle erreur critique ; une
 perte de plan ou l’arrêt d’un contrôle ne compte pas comme défaut corrigé.
+La session peut rejeter explicitement une proposition sans progrès avec
+`retain: false` dans l’évaluation : la décision est alors
+`development_rejected_no_progress`, sans transformer des tests réussis en échecs.
+Cette option exige l’absence de progrès mesuré, conserve les preuves et laisse
+la dernière référence acceptée inchangée.
 Le bundle accepté devient la référence suivante : comparer un nouveau
 cycle à une ancienne baseline pour effacer une régression est refusé.
 
@@ -127,7 +132,7 @@ superviseur après lecture de l'état.
 
 ## Validation du superviseur
 
-`node scripts/det-engine/v2-supervisor.test.mjs` : 21 tests d'orchestration.
+`node scripts/det-engine/v2-supervisor.test.mjs` : 23 tests d'orchestration.
 Ils couvrent contrôles incomparables, nouveaux défauts exposés, vraie régression
 critique sous contrôle identique, multiplicité, couverture, non-déterminisme,
 limites, idempotence, preuve périmée, reprise et retour arrière préservant les
