@@ -268,17 +268,7 @@ export type PlanSession = PlanWeek["sessions"][number];
  * On extrait le 1er champ (ID) de chaque ligne qui commence par `|` et
  * dont le 1er token est un identifiant en MAJUSCULES/CHIFFRES/_.
  */
-export function extractCatalogIdsFromDump(dump: string | null | undefined): string[] {
-  if (!dump) return [];
-  const ids = new Set<string>();
-  const lines = dump.split("\n");
-  const idRx = /^\|\s*([A-Z][A-Z0-9_]+)\s*\|/;
-  for (const line of lines) {
-    const m = line.match(idRx);
-    if (m && m[1] !== "ID") ids.add(m[1]);
-  }
-  return Array.from(ids);
-}
+export { extractCatalogIdsFromDump } from "../_shared/catalogueIds.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Formatage compact des erreurs Zod pour le retry

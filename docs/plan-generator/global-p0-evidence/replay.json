@@ -1,0 +1,305 @@
+[
+  {
+    "case": "recorded-5K-20261015",
+    "origin": "archived_model_output",
+    "weeks": 12,
+    "validationErrors": 1,
+    "validationWarnings": 18,
+    "rules": [
+      "polarization",
+      "recovery_week_intensity",
+      "phase_coherence",
+      "lorang_categories",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "postprocess",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "StartToRun-full",
+    "origin": "existing_static_generator",
+    "weeks": 12,
+    "validationErrors": 5,
+    "validationWarnings": 47,
+    "rules": [
+      "polarization",
+      "load_pattern",
+      "progression",
+      "phase_coherence",
+      "race_day",
+      "lorang_categories",
+      "duration_not_calculable",
+      "title_format",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "StartToRun-light",
+    "origin": "existing_static_generator",
+    "weeks": 12,
+    "validationErrors": 16,
+    "validationWarnings": 47,
+    "rules": [
+      "polarization",
+      "load_pattern",
+      "progression",
+      "phase_coherence",
+      "race_day",
+      "lorang_categories",
+      "start_to_run_strength",
+      "duration_not_calculable",
+      "title_format",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "StartToRun-none",
+    "origin": "existing_static_generator",
+    "weeks": 12,
+    "validationErrors": 16,
+    "validationWarnings": 43,
+    "rules": [
+      "polarization",
+      "load_pattern",
+      "progression",
+      "phase_coherence",
+      "race_day",
+      "lorang_categories",
+      "start_to_run_strength",
+      "duration_not_calculable",
+      "title_format",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "authored-703",
+    "origin": "existing_authored_control",
+    "weeks": 4,
+    "validationErrors": 3,
+    "validationWarnings": 20,
+    "rules": [
+      "key_sessions_per_sport",
+      "catalog_ratio",
+      "overall_catalog_ratio",
+      "lorang_categories",
+      "title_format",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "authored-IM",
+    "origin": "existing_authored_control",
+    "weeks": 4,
+    "validationErrors": 1,
+    "validationWarnings": 20,
+    "rules": [
+      "catalog_ratio",
+      "overall_catalog_ratio",
+      "lorang_categories",
+      "title_format",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "authored-marathon-half",
+    "origin": "existing_authored_control",
+    "weeks": 12,
+    "validationErrors": 3,
+    "validationWarnings": 41,
+    "rules": [
+      "load_pattern",
+      "catalog_ratio",
+      "overall_catalog_ratio",
+      "phase_coherence",
+      "lorang_categories",
+      "title_format",
+      "rest_day_coherence",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "authored-10K",
+    "origin": "existing_authored_control",
+    "weeks": 3,
+    "validationErrors": 1,
+    "validationWarnings": 10,
+    "rules": [
+      "overall_catalog_ratio",
+      "lorang_categories",
+      "title_format",
+      "rest_day_coherence",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "authored-5K",
+    "origin": "existing_authored_control",
+    "weeks": 3,
+    "validationErrors": 1,
+    "validationWarnings": 10,
+    "rules": [
+      "overall_catalog_ratio",
+      "lorang_categories",
+      "title_format",
+      "rest_day_coherence",
+      "anti_repetition",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "negative-recovery",
+    "origin": "existing_authored_control",
+    "weeks": 2,
+    "validationErrors": 2,
+    "validationWarnings": 4,
+    "rules": [
+      "overall_catalog_ratio",
+      "phase_coherence",
+      "title_format",
+      "rest_day_coherence",
+      "key_session_self_declaration_mismatch"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  },
+  {
+    "case": "negative-swim",
+    "origin": "existing_authored_control",
+    "weeks": 2,
+    "validationErrors": 3,
+    "validationWarnings": 2,
+    "rules": [
+      "phase_coherence",
+      "race_day",
+      "lorang_categories",
+      "objective_sport_conflict",
+      "title_format"
+    ],
+    "stages": [
+      "adapter_or_static_generator",
+      "validation",
+      "local_edit",
+      "simulated_json_persistence",
+      "reload",
+      "markdown",
+      "pdf_html"
+    ],
+    "scientificValidation": "not_attested",
+    "nativePDF": "not_exercised"
+  }
+]

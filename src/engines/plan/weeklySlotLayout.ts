@@ -16,7 +16,7 @@
  *  - Deux séances "qualité" du même sport pas à moins de 48h.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-import { effectiveSessionQuota } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
+import { effectiveSessionQuota, hasWeeklyCalendarCapacity } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
 import type { SizingFloors, WeekType, WeeklyQuota } from "./sessionSizingMatrix";
 
 export type LayoutSport = "swim" | "bike" | "run" | "brick" | "strength";
@@ -24,6 +24,7 @@ export type DayName = "lundi" | "mardi" | "mercredi" | "jeudi" | "vendredi" | "s
 
 export interface DaySlot {
   sport: LayoutSport;
+  isRaceEvent?: boolean;
   isLongSession?: boolean;
   isKeySession?: boolean;
   /**
@@ -47,6 +48,7 @@ export interface DayLayout {
 
 export interface WeeklySlotLayout {
   weekType: WeekType;
+  requiredEvents?: Array<{dayName:DayName;sport:"run"|"brick"}>;
   days: DayLayout[]; // 7 entrées, ordre lundi → dimanche
   /** Compte cible par sport pour cette semaine (used for prompt & drift). */
   targetsBySport: Record<LayoutSport, number>;
@@ -61,6 +63,8 @@ function midpoint(r: { min: number; max: number }): number {
 export interface SlotLayoutOptions {
   /** Actual compatible catalogue coverage; never drops a mandatory minimum. */
   availableSports?: ReadonlySet<LayoutSport>;
+  raceEvents?: Array<{dayName:DayName;sport:"run"|"brick"}>;
+  dayBans?: ReadonlyArray<{ day: DayName; sport: "any" | "run" | "bike" | "swim" | "strength" }>;
   /**
    * Sport de l'épreuve décisive (dernière étape en LCW 3 jours).
    * En semaine de course, ce sport est servi EN PREMIER dans le round-robin.
@@ -74,11 +78,12 @@ export interface SlotLayoutOptions {
 }
 
 /** Construit un layout hebdo déterministe à partir du quota et floors. */
-export function buildWeeklySlotLayout(
+function buildLayout(
   quota: WeeklyQuota,
   floors: SizingFloors,
   weekType: WeekType,
   opts: SlotLayoutOptions = {},
+  useAvailableDays = false,
 ): WeeklySlotLayout {
 
   // Cibles par sport (midpoint clampé) — respecte floors nat / strength.
@@ -114,6 +119,7 @@ export function buildWeeklySlotLayout(
       if (quota[sport].min === 0 && !opts.availableSports.has(sport)) targets[sport] = 0;
     }
   }
+  for(const event of opts.raceEvents??[]) targets[event.sport]=Math.min(quota[event.sport].max, Math.max(targets[event.sport],(opts.raceEvents??[]).filter(e=>e.sport===event.sport).length));
   const sportFloor: Record<LayoutSport, number> = {
     swim: Math.max(floors.minSwimPerWeek ?? 0, quota.swim.min),
     bike: quota.bike.min,
@@ -121,6 +127,7 @@ export function buildWeeklySlotLayout(
     brick: quota.brick.min,
     strength: Math.max(floors.minStrengthPerWeek, quota.strength.min),
   };
+  for(const event of opts.raceEvents??[]) sportFloor[event.sport]=Math.max(sportFloor[event.sport],(opts.raceEvents??[]).filter(e=>e.sport===event.sport).length);
   const TRIM_ORDER: LayoutSport[] = ["run", "bike", "swim", "strength", "brick"];
   let totalTarget = targets.swim + targets.bike + targets.run + targets.brick + targets.strength;
   let trimGuard = 0;
@@ -137,15 +144,28 @@ export function buildWeeklySlotLayout(
   // Appliqué après le clamp : celui-ci travaille sur les quotas nominaux.
   const days: DayLayout[] = DAY_ORDER.map(d => ({ dayName: d, isRest: false, slots: [] }));
   const findDay = (d: DayName) => days.find(x => x.dayName === d)!;
-  const canAdd = (d: DayName): boolean => findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest;
+  const canAdd = (d: DayName, sport: LayoutSport): boolean =>
+    findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest &&
+    !(findDay(d).slots.some(s=>s.sport==="strength") && findDay(d).slots.length>=2) &&
+    !(opts.dayBans ?? []).some(b => b.day === d &&
+      (b.sport === "any" || b.sport === sport || (sport === "brick" && (b.sport === "bike" || b.sport === "run"))));
   const hasSportOn = (d: DayName, s: LayoutSport) => findDay(d).slots.some(x => x.sport === s);
   const remaining: Record<LayoutSport, number> = { ...targets,
     bike: effectiveSessionQuota({ bike: { min: targets.bike, max: targets.bike } }, targets.brick).bike.min,
   };
 
   // 1) Lundi = repos si minFullRestDays ≥ 1
-  if (quota.minFullRestDays >= 1) {
-    findDay("lundi").isRest = true;
+  for (const ban of opts.dayBans ?? []) if (ban.sport === "any") findDay(ban.day).isRest = true;
+  if (quota.minFullRestDays >= 1 && !days.some(d => d.isRest)) {
+    const restDay=DAY_ORDER.find(d=>!(opts.raceEvents??[]).some(e=>e.dayName===d));
+    if(restDay)findDay(restDay).isRest = true;
+  }
+
+  for(const event of opts.raceEvents??[]) {
+    if(remaining[event.sport]>0 && canAdd(event.dayName,event.sport) && !findDay(event.dayName).slots.some(s=>s.sport===event.sport || (event.sport==="brick"&&(s.sport==="run"||s.sport==="bike")) || (event.sport==="run"&&s.sport==="brick"))) {
+      findDay(event.dayName).slots.push({sport:event.sport,isRaceEvent:true,isKeySession:true});
+      remaining[event.sport]--;
+    }
   }
 
   // PHASE 2A.4 — RÈGLE D'ALTERNANCE BRICK/SL VÉLO :
@@ -154,12 +174,14 @@ export function buildWeeklySlotLayout(
   //   contient la sortie longue vélo). On NE programme PAS de SL vélo dédiée
   //   cette semaine-là, et la cible bike autonome est décrémentée de 1
   //   (le brick compte comme la sollicitation vélo longue).
+  const longBikeDay = (["samedi", ...(useAvailableDays ? ["dimanche", "vendredi", "jeudi", "mercredi", "mardi", "lundi"] : [])] as DayName[])
+    .find(d => canAdd(d, remaining.brick > 0 ? "brick" : "bike"));
   const brickAsSLBike =
-    remaining.brick > 0 && !!floors.longRideWeekly && canAdd("samedi");
+    remaining.brick > 0 && !!floors.longRideWeekly && !!longBikeDay;
 
   if (brickAsSLBike) {
     const slBikeMin = floors.slLongRideMin ?? 0;
-    findDay("samedi").slots.push({
+    findDay(longBikeDay!).slots.push({
       sport: "brick",
       isLongSession: true,
       isKeySession: true,
@@ -167,17 +189,19 @@ export function buildWeeklySlotLayout(
     });
     remaining.brick--;
     // Le remplacement vélo/brick est déjà compté avant le placement.
-  } else if (floors.longRideWeekly && remaining.bike > 0 && canAdd("samedi")) {
+  } else if (floors.longRideWeekly && remaining.bike > 0 && longBikeDay) {
     // 2) SL vélo samedi (cas sans brick requis)
-    findDay("samedi").slots.push({
+    findDay(longBikeDay!).slots.push({
       sport: "bike", isLongSession: true, isKeySession: true,
       minDurationMin: floors.slLongRideMin,
     });
     remaining.bike--;
   }
   // 3) SL CAP dimanche
-  if (floors.longRunWeekly && remaining.run > 0 && canAdd("dimanche")) {
-    findDay("dimanche").slots.push({
+  const longRunDay = (["dimanche", ...(useAvailableDays ? ["samedi", "vendredi", "jeudi", "mercredi", "mardi", "lundi"] : [])] as DayName[])
+    .find(d => canAdd(d, "run") && !hasSportOn(d, "brick") && !findDay(d).slots.some(s => s.isLongSession));
+  if (floors.longRunWeekly && remaining.run > 0 && longRunDay) {
+    findDay(longRunDay).slots.push({
       sport: "run", isLongSession: true, isKeySession: true,
       minDurationMin: floors.slLongRunMin,
     });
@@ -185,17 +209,17 @@ export function buildWeeklySlotLayout(
   }
   // 4) Brick(s) restant(s) — placer weekend, jamais même jour qu'un run,
   //    et JAMAIS même jour qu'un SL vélo dédié (règle 2A.4).
-  if (remaining.brick > 0) {
-    const brickOptions: DayName[] = ["samedi", "dimanche"];
-    const brickDay = brickOptions.find(
-      d => canAdd(d) && !hasSportOn(d, "run") && !findDay(d).slots.some(s => s.sport === "bike" && s.isLongSession),
-    ) ?? brickOptions.find(d => canAdd(d) && !hasSportOn(d, "run"))
-      ?? brickOptions.find(d => canAdd(d));
-    if (brickDay) {
-      findDay(brickDay).slots.push({ sport: "brick", isKeySession: true });
-      remaining.brick--;
-    }
+  while (remaining.brick > 0) {
+    const brickOptions: DayName[] = ["samedi", "dimanche", ...(useAvailableDays ? ["vendredi", "jeudi", "mercredi", "mardi", "lundi"] as DayName[] : [])];
+    const brickDay = brickOptions.find(d => canAdd(d, "brick") && !hasSportOn(d, "run") && !hasSportOn(d, "bike") && !hasSportOn(d, "brick"));
+    if (!brickDay) break;
+    findDay(brickDay).slots.push({ sport: "brick", isKeySession: true });
+    remaining.brick--;
   }
+  // A replacement is earned by a brick actually placed, not a desired count.
+  const actualBricks = days.flatMap(d => d.slots).filter(s => s.sport === "brick").length;
+  remaining.bike = Math.max(0, effectiveSessionQuota({ bike: { min: targets.bike, max: targets.bike } }, actualBricks).bike.min
+    - days.flatMap(d => d.slots).filter(s => s.sport === "bike").length);
 
   // ─── 4bis) PLANCHER FRÉQUENCE COURSE en semaine taper / course ─────────────
   // Mujika & Padilla 2003 / Bosquet 2007 : lors de l'affûtage on réduit le
@@ -204,7 +228,7 @@ export function buildWeeklySlotLayout(
   // round-robin et tombait souvent à 0 créneau → jambes "éteintes" le jour J.
   // On garantit ici un minimum de créneaux course courts (activation).
   const isTaperish = weekType === "taper" || weekType === "race";
-  const runFloor = opts.taperRunFrequencyFloor ?? 2;
+  const runFloor = quota.run.max === 0 ? 0 : (opts.taperRunFrequencyFloor ?? 2);
   if (isTaperish && runFloor > 0) {
     const placedRun = days.reduce((n, d) => n + d.slots.filter(s => s.sport === "run").length, 0);
     const need = runFloor - (placedRun + remaining.run);
@@ -229,6 +253,14 @@ export function buildWeeklySlotLayout(
   // canAdd conserve les jours de repos et le plafond quotidien existants.
   if (quota.minFullRestDays === 0 && quota.run.min > 6) rrRun.push("lundi");
 
+  if (useAvailableDays) {
+    for (const d of DAY_ORDER) {
+      if (!rrSwim.includes(d)) rrSwim.push(d);
+      if (!rrBike.includes(d)) rrBike.push(d);
+      if (!rrRun.includes(d)) rrRun.push(d);
+    }
+  }
+
   // Bug réel corrigé (audit "génération de plan IA", volet composition
   // hebdomadaire) : contrairement à fillBike/fillRun ci-dessous, cette
   // fonction ne posait jamais `isKeySession` sur aucun créneau — la natation
@@ -250,7 +282,7 @@ export function buildWeeklySlotLayout(
       : rrSwim;
     for (const d of swimDays) {
       if (remaining.swim <= 0) break;
-      if (!canAdd(d) || hasSportOn(d, "swim")) continue;
+      if (!canAdd(d, "swim") || hasSportOn(d, "swim")) continue;
       findDay(d).slots.push({ sport: "swim", isKeySession: placed === 0 });
       remaining.swim--;
       placed++;
@@ -260,7 +292,7 @@ export function buildWeeklySlotLayout(
   const fillBike = () => {
     for (const d of rrBike) {
       if (remaining.bike <= 0) break;
-      if (!canAdd(d) || hasSportOn(d, "bike") || hasSportOn(d, "brick")) continue;
+      if (!canAdd(d, "bike") || hasSportOn(d, "bike") || hasSportOn(d, "brick")) continue;
       findDay(d).slots.push({ sport: "bike", isKeySession: !hasSportOn(d, "run") });
       remaining.bike--;
     }
@@ -269,7 +301,7 @@ export function buildWeeklySlotLayout(
   const fillRun = () => {
     for (const d of rrRun) {
       if (remaining.run <= 0) break;
-      if (!canAdd(d) || hasSportOn(d, "run") || hasSportOn(d, "brick")) continue;
+      if (!canAdd(d, "run") || hasSportOn(d, "run") || hasSportOn(d, "brick")) continue;
       findDay(d).slots.push(
         isTaperish
           ? { sport: "run", isActivation: true, minDurationMin: 20, maxDurationMin: 30 }
@@ -289,22 +321,102 @@ export function buildWeeklySlotLayout(
   if (weekType === "race" && stage && (stage === "swim" || stage === "bike" || stage === "run")) {
     order = [stage, ...order.filter(s => s !== stage)];
   }
-  for (const s of order) fillers[s]();
-
-
   // 8) Renfo — jour à ≤1 séance existante, JAMAIS vendredi (veille SL vélo),
   //    jamais sur un jour de brick (redondance charge).
+  const fillStrength = () => {
   const rrStrength: DayName[] = ["mercredi", "mardi", "jeudi", "samedi", "dimanche", "lundi"];
   for (const d of rrStrength) {
     if (remaining.strength <= 0) break;
     if (d === "vendredi") continue;
-    if (!canAdd(d) || hasSportOn(d, "strength") || hasSportOn(d, "brick")) continue;
+    const nextDay = days[(DAY_ORDER.indexOf(d) + 1) % 7];
+    if (nextDay.slots.some(s => s.isLongSession && (s.sport === "bike" || s.sport === "brick"))) continue;
+    if (!canAdd(d, "strength") || hasSportOn(d, "strength") || hasSportOn(d, "brick")) continue;
     if (findDay(d).slots.length > 1) continue;
     findDay(d).slots.push({ sport: "strength" });
     remaining.strength--;
   }
 
-  return { weekType, days, targetsBySport: targets };
+  };
+
+  if (useAvailableDays) fillStrength();
+  for (const s of (useAvailableDays ? ["run", "bike", "swim"] as const : order)) fillers[s]();
+  if (!useAvailableDays) fillStrength();
+
+
+
+  return { weekType, days, targetsBySport: targets, ...((opts.raceEvents?.length)?{requiredEvents:opts.raceEvents}:{}) };
+}
+
+/** Preserve the preferred schedule when feasible. Otherwise use the same
+ * targets/floors on available days, reserving the scarce strength positions.
+ * No session, athlete capacity or sporting ceiling is added by this fallback. */
+export function buildWeeklySlotLayout(quota: WeeklyQuota, floors: SizingFloors, weekType: WeekType, opts: SlotLayoutOptions = {}): WeeklySlotLayout {
+  const deficit = (layout: WeeklySlotLayout) => {
+    const slots = layout.days.flatMap(d => d.slots);
+    const effective = effectiveSessionQuota(quota, slots.filter(s => s.sport === "brick").length);
+    return Math.max(0, effective.totalSessions.min - slots.length)
+      + (["swim", "bike", "run", "brick", "strength"] as const).reduce((n, sport) =>
+        n + Math.max(0, (sport === "bike" ? effective.bike.min : quota[sport].min)
+          - slots.filter(s => s.sport === sport).length), 0);
+  };
+  const preferred = buildLayout(quota, floors, weekType, opts);
+  if (deficit(preferred) === 0) return preferred;
+  const available = buildLayout(quota, floors, weekType, opts, true);
+  const best = deficit(available) < deficit(preferred) ? available : preferred;
+  if (!deficit(best)) return best;
+  return solveRequiredSlots(best, quota, opts) ?? best;
+}
+
+/** Bounded local fallback: solve only calendar placement of existing quota
+ * ranges. Long-session anchors, rest days and sporting exclusions stay fixed.
+ * No generated session is removed: this runs before any model output exists. */
+function solveRequiredSlots(source: WeeklySlotLayout, quota: WeeklyQuota, opts: SlotLayoutOptions): WeeklySlotLayout | null {
+  const days = source.days.map(d => ({ ...d, slots: d.slots.filter(s => s.isLongSession||s.isRaceEvent).map(s => ({ ...s })) }));
+  const sports: LayoutSport[] = ["strength", "run", "bike", "swim", "brick"];
+  const templates = source.days.flatMap(d => d.slots).filter(s => !s.isLongSession&&!s.isRaceEvent);
+  // Strength and brick each occupy their own day, with at most one other
+  // session under the existing placement rules. This is a capacity proof,
+  // not a frequency/volume reduction.
+  if(!hasWeeklyCalendarCapacity(quota,days.filter(d=>!d.isRest).length))return null;
+  let nodes = 0;
+  const visited = new Set<string>();
+  const count = (sport: LayoutSport) => days.reduce((n,d) => n+d.slots.filter(s => s.sport===sport).length,0);
+  const fits = (index: number, sport: LayoutSport) => {
+    const day=days[index], slots=day.slots;
+    if(day.isRest || slots.length>=quota.maxSessionsPerDay || slots.some(s=>s.sport===sport))return false;
+    if((opts.dayBans??[]).some(b=>b.day===day.dayName && (b.sport==="any" || b.sport===sport || (sport==="brick" && (b.sport==="bike" || b.sport==="run")))))return false;
+    if((sport==="run" || sport==="bike") && slots.some(s=>s.sport==="brick"))return false;
+    if(sport==="brick" && slots.some(s=>s.sport==="run" || s.sport==="bike"))return false;
+    if(slots.some(s=>s.sport==="strength") && slots.length>=2)return false;
+    if(sport==="strength" && (slots.length>1 || slots.some(s=>s.sport==="brick") || day.dayName==="vendredi" || days[(index+1)%7].slots.some(s=>s.isLongSession && (s.sport==="bike" || s.sport==="brick"))))return false;
+    if(sport==="brick" && slots.some(s=>s.sport==="strength"))return false;
+    return true;
+  };
+  const search = (): boolean => {
+    if(++nodes>50000)return false;
+    const signature=days.map(d=>d.slots.map(s=>s.sport).sort().join(",")).join("|");
+    if(visited.has(signature))return false;
+    visited.add(signature);
+    const effective=effectiveSessionQuota(quota,count("brick"));
+    const total=days.reduce((n,d)=>n+d.slots.length,0);
+    if(total>effective.totalSessions.max || days.filter(d=>d.slots.length>0).length>7-quota.minFullRestDays)return false;
+    if(sports.some(s=>count(s)>(s==="bike"?effective.bike.max:quota[s].max)))return false;
+    const needs=sports.map(sport=>({sport,need:Math.max(0,(sport==="bike"?effective.bike.min:quota[sport].min)-count(sport)),options:days.flatMap((_,i)=>fits(i,sport)?[i]:[])}));
+    if(needs.some(s=>s.need>s.options.length))return false;
+    const required=needs.filter(s=>s.need>0).sort((a,b)=>(a.options.length-a.need)-(b.options.length-b.need));
+    if(!required.length && total>=effective.totalSessions.min)return true;
+    const choices=required.length?[required[0]]:needs.filter(s=>count(s.sport)<Math.min(source.targetsBySport[s.sport],s.sport==="bike"?effective.bike.max:quota[s.sport].max));
+    for(const choice of choices)for(const index of choice.options){
+      const prototypes=templates.filter(s=>s.sport===choice.sport);
+      const nonLongCount=days.flatMap(d=>d.slots).filter(s=>s.sport===choice.sport&&!s.isLongSession).length;
+      const prototype=prototypes[nonLongCount];
+      days[index].slots.push(prototype?{...prototype}:prototypes[0]?{...prototypes[0],isKeySession:false}:(choice.sport==="run"&&(source.weekType==="race"||source.weekType==="taper"))?{sport:"run",isActivation:true,minDurationMin:20,maxDurationMin:30}:{sport:choice.sport});
+      if(search())return true;
+      days[index].slots.pop();
+    }
+    return false;
+  };
+  return search()?{...source,days}:null;
 }
 
 const DAY_LABEL: Record<DayName, string> = {
@@ -322,7 +434,8 @@ export function formatWeeklySlotLayoutLine(weekNumber: number, layout: WeeklySlo
     if (d.slots.length === 0) return `${DAY_LABEL[d.dayName]}: libre`;
     const inner = d.slots.map(s => {
       const tags: string[] = [SPORT_LABEL[s.sport]];
-      if (s.isLongSession) tags.push(`SL ≥${s.minDurationMin ?? "?"}min`);
+      if (s.isRaceEvent) tags.push("COMPÉTITION DÉCLARÉE — événement officiel (custom=true, catalogId=null), pas une activation ni une simulation");
+      else if (s.isLongSession) tags.push(`SL ≥${s.minDurationMin ?? "?"}min`);
       else if (s.isActivation) tags.push(`(activation ${s.minDurationMin ?? 20}-${s.maxDurationMin ?? 30}min : Z1 + 4-5×30" allure course)`);
       else if (s.isKeySession) tags.push("(qualité)");
       return tags.join(" ");

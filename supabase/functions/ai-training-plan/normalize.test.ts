@@ -172,3 +172,19 @@ Deno.test("normalize — strategicRecap déjà propre ⇒ aucun repair strategic
   assertEquals(repairs.filter(r => r.startsWith("strategicRecap")).length, 0);
 });
 
+
+Deno.test("normalize — unknown non-empty catalogue ID remains visible to strict validation", () => {
+  const input = mkPlan([{ day: "mardi", sport: "run", durationMin: 45, catalogId: "UNKNOWN_RUNNING_CARD", custom: false, title: "Endurance Z2" }]);
+  const { value } = normalizeModelJsonForSchema(input, ["A_RUN_Z2_EASY"]);
+  const session = (value as { weeks: { sessions: { catalogId: string; custom: boolean }[] }[] }).weeks[0].sessions[0];
+  assertEquals(session.catalogId, "UNKNOWN_RUNNING_CARD");
+  assertEquals(session.custom, false);
+});
+
+Deno.test("normalize — mixed-case source ID is preserved exactly", () => {
+  const id = "B_RUN_HILL_TEMPO_3x8";
+  const { value } = normalizeModelJsonForSchema(mkPlan([{ day: "mardi", sport: "run", catalogId: id, custom: true }]), [id]);
+  const session = (value as { weeks: { sessions: { catalogId: string; custom: boolean }[] }[] }).weeks[0].sessions[0];
+  assertEquals(session.catalogId, id);
+  assertEquals(session.custom, false);
+});

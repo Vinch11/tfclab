@@ -120,6 +120,8 @@ export function normalizeRepairSport(raw: unknown): string {
 export function normalizeRepairGoal(raw: unknown): string | null {
   const value = normalizeToken(raw).replace(/\s+/g, " ");
   if (!value) return null;
+  if (value === "half") return "half";
+  if (value === "olympic") return "olympic";
   if (/start.?to.?run|debut.*cour|repris.*cour/.test(value)) return "start_to_run";
   if (/trail.*ultra|ultra.*trail|utmb|\bccc\b/.test(value)) return "trail_ultra";
   if (/trail.*(?:long|80|100)|(?:80|100).*trail/.test(value)) return "trail_long";

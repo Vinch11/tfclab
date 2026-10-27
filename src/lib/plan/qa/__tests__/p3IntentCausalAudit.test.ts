@@ -111,13 +111,13 @@ describe("P3 characterization — intent classifier", () => {
     expect(classifyIntentEvidence("Proprioception cheville", 1).family).toBe("technique");
   });
 
-  it("documents that an incidental test term in catalog structure can classify a recovery workout as test", () => {
+  it("keeps explicit easy recovery intent despite an incidental test term in its instructions", () => {
     const w = workout({
       id: "AUDIT_RUN_Z1_RECOVERY",
       tags: ["recovery"],
       structure: [{ part: "Main", text: "30 min récupération Z1, test de sensations", zones: ["Z1"] }],
     });
-    expect(intentFamilyOf(w)).toBe("test");
+    expect(intentFamilyOf(w)).toBe("recuperation");
   });
 });
 

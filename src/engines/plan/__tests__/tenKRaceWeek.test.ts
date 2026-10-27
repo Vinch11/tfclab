@@ -55,8 +55,18 @@ it("ne demande pas une quatrième fiche d'entraînement pour la compétition cus
  const q=computeWeekQuotaEntry("10K","age_group",4,"race",false)!.quota;
  const metadata=buildRepairWorkoutMetadata(WorkoutLibrary.find(w=>w.id==="D_RUN_RECOVERY_30_PRO")!);
  const pool=[0,1,2].map(i=>({...metadata,id:`RECOVERY_${i}`}));
- expect(catalogueForWeek(pool,{phase:"taper",objective:"10K",weekType:"race"},q).missingSports).toEqual(["run"]);
- expect(catalogueForWeek(pool,{phase:"taper",objective:"10K",weekType:"race"},catalogueTrainingMinimaForWeek(q,calendar,12)).missingSports).toEqual([]);
+ const context={phase:"taper",objective:"10K",weekType:"race"};
+ const trainingMinima=catalogueTrainingMinimaForWeek(q,calendar,12);
+ // Uncapped recovery cards can repeat, but the event must not create a false
+ // request for a fourth distinct training card or another diversity warning.
+ expect(catalogueForWeek(pool,context,q).missingSports).toEqual([]);
+ expect(catalogueForWeek(pool,context,q).limitedDiversitySports).toEqual(["run"]);
+ expect(catalogueForWeek(pool,context,trainingMinima).missingSports).toEqual([]);
+ expect(catalogueForWeek(pool,context,trainingMinima).limitedDiversitySports).toEqual([]);
+ // An explicit frequency cap still makes the event reservation necessary.
+ const capped=pool.map(card=>({...card,when:"Affûtage, 1x/semaine max"}));
+ expect(catalogueForWeek(capped,context,q).missingSports).toEqual(["run"]);
+ expect(catalogueForWeek(capped,context,trainingMinima).missingSports).toEqual([]);
  expect(q.run.min).toBe(4);
  expect(catalogueTrainingMinimaForWeek(q,calendar,11)).toBe(q);
  expect(catalogueTrainingMinimaForWeek(q,{...calendar,raceGoals:[]},12)).toBe(q);

@@ -33,7 +33,7 @@ export const NAMED_RACE_TITLE_PATTERN = /^\s*(?:🏁\s*)?COURSE\s*:\s*\S/i;
  *  la même règle plutôt que de la redupliquer une 3e fois. */
 // Explicit training context must win over references to the target race in
 // instructions. The same title rule is used by schema/repairs and validation.
-const TRAINING_TITLE_PATTERN = /simulation|race[\s_-]*sim|dress rehearsal|allure\s+(?:de\s+)?(?:course|comp[ée]tition)/i;
+const TRAINING_TITLE_PATTERN = /visualisation|visualization|d[ée]parts?\s+(?:de\s+)?comp[ée]tition|simulation|race[\s_-]*sim|dress rehearsal|allure\s+(?:de\s+)?(?:course|comp[ée]tition)/i;
 function raceTitle(title: string): boolean {
   if (NAMED_RACE_TITLE_PATTERN.test(title)) return true;
   if (TRAINING_TITLE_PATTERN.test(title) || PRE_RACE_ACTIVATION_PATTERNS.test(title)) return false;

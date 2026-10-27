@@ -1,0 +1,37 @@
+{
+  "objectives": [
+    "703",
+    "IM",
+    "Sprint",
+    "Olympic",
+    "Marathon",
+    "Semi",
+    "5K",
+    "10K",
+    "StartToRun",
+    "Trail",
+    "TrailShort",
+    "TrailMountain",
+    "TrailUltra"
+  ],
+  "levels": [
+    "untrained",
+    "light",
+    "trained",
+    "highly_trained"
+  ],
+  "ambitions": [
+    "finisher",
+    "age_group",
+    "competitor",
+    "elite",
+    "world_class"
+  ],
+  "coreCases": 520,
+  "missingPairs": [],
+  "supplementalCases": 80,
+  "formats": [
+    "continuous",
+    "lcw_3day"
+  ]
+}

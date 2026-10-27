@@ -1,5 +1,6 @@
 import { evaluateRepairSportingEquivalence, isCompleteRepairWorkoutMetadata, normalizeRepairGoal, normalizeRepairSport, type RepairWorkoutMetadata, type RepairCompatibilityContext } from "./repairSportingEquivalence.ts";
 import { classifyIntentEvidence } from "./intentEvidence.ts";
+import { catalogueWeeklyUsageCapacity } from "./catalogueWeeklyFrequency.ts";
 import { isRaceDaySession } from "./raceDayIdentity.ts";
 export interface ContractSession { title?: string; details?: string; sport?: string; catalogId?: string | null; custom?: boolean; durationMin?: number; zones?: string[]; variantKey?: string; }
 export interface CatalogueContract { phase?: string; weekType?: string; objective?: string; catalog: RepairWorkoutMetadata[]; }
@@ -45,9 +46,11 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
  else if (expected >= 3 && observed < expected) errors.push("catalogue_intensity_diluted");
  else if (expected > 0 && observed > expected) errors.push("catalogue_intensity_exceeded");
  const intent = classifyIntentEvidence(session.title ?? "", observed);
+ const sourceTitleIntent = classifyIntentEvidence(metadata.title, expected);
  const expectedIntent = variantZones.length ? classifyIntentEvidence(variants?.[session.variantKey!] ?? "", expected).family : metadata.intentFamily;
  if (session.title !== metadata.title && intent.source === "pattern" && !["brick", "other"].includes(intent.family) &&
-   !["brick", "other"].includes(expectedIntent) && intent.family !== expectedIntent) errors.push("catalogue_physiological_intent");
+   !["brick", "other"].includes(expectedIntent) && intent.family !== expectedIntent &&
+   (sourceTitleIntent.source !== "pattern" || intent.family !== sourceTitleIntent.family)) errors.push("catalogue_physiological_intent");
  // Reuse the same repetition-pattern notion as B10: compare explicit patterns only.
  const pattern = (text: string) => {
   const m = text.match(/(\d+)\s*[x×]\s*(\d+)\s*(min|'|’|sec|s)/i);
@@ -62,11 +65,30 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
 export function catalogueForWeek(catalog: RepairWorkoutMetadata[], context: RepairCompatibilityContext, minima: Partial<Record<"swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "totalSessions", { min?: number }>> = {}) {
  const eligible = catalog.filter(m => catalogueEligibility(m, context).length === 0);
  const sports = new Set(["swim", "bike", "run", "brick", "strength", "recovery"]);
- const missingSports = Object.entries(minima).filter(([sport, range]) => sports.has(sport) &&
-  (range.min ?? 0) > eligible.filter(m => normalizeRepairSport(m.sport) === sport).length).map(([sport]) => sport);
- return { eligible, missingSports };
+ // Required sessions do not imply distinct catalogue IDs. Apply the SAME
+ // explicit frequency caps as final validation; never choose repetitions.
+ const capacityBySport = Object.entries(minima).filter(([sport, range]) => sports.has(sport) && (range.min ?? 0) > 0).map(([sport, range]) => {
+  const cards = [...new Map(eligible.filter(m => normalizeRepairSport(m.sport) === sport).map(m => [m.id, m])).values()];
+  return { sport, required: range.min ?? 0, distinct: cards.length,
+   capacity: cards.reduce((sum, card) => sum + catalogueWeeklyUsageCapacity(card), 0) };
+ });
+ const missingSports = capacityBySport.filter(c => c.capacity < c.required).map(c => c.sport);
+ const limitedDiversitySports = capacityBySport.filter(c => c.distinct < c.required && c.capacity >= c.required).map(c => c.sport);
+ return { eligible, missingSports, limitedDiversitySports };
 }
 
 export function executableCatalogueVariants(metadata: RepairWorkoutMetadata): Record<string, string> {
  return Object.fromEntries(Object.entries(metadata.variants ?? {}).filter(([, text]) => variantRange(text) !== null));
+}
+
+/** Executable duration alternatives already accepted by checkSessionCatalogue.
+ * Operational feasibility only: no prose variant becomes a numeric waiver. */
+export function executableCatalogueDurationRanges(metadata: RepairWorkoutMetadata, objective?: string): Array<[number,number]> {
+ const ranges:Array<[number,number]>=[metadata.durationMin];
+ for(const [key,text] of Object.entries(metadata.variants??{})) {
+  if(objective && normalizeRepairGoal(key)!==normalizeRepairGoal(objective))continue;
+  const range=variantRange(text);
+  if(range)ranges.push(range);
+ }
+ return ranges;
 }
