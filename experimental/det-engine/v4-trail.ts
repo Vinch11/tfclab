@@ -9,8 +9,8 @@ import{generationEligibility}from'./v4-generation-eligibility';
 import{minimumDistinctDose}from'./v4-distinct-dose';
 export type TrailCalendarModel='separated_exposure'|'specific_back_to_back'|'conservative_taper';export const TRAIL_CALENDAR_MODELS:TrailCalendarModel[]=['separated_exposure','specific_back_to_back','conservative_taper'];
 const DAYS=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
-export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:TrailFixture,model:TrailCalendarModel){
- const common={version:'det-v4-trail-calendar-3',fixtureId:f.id,model,synthetic:true,humanReviewRequired:true,sportingRelevance:'not_attested'};
+export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:TrailFixture,model:TrailCalendarModel,v5Structural=false){
+ const common={version:v5Structural?'det-v5-trail-calendar-1':'det-v4-trail-calendar-3',fixtureId:f.id,model,synthetic:true,humanReviewRequired:true,sportingRelevance:'not_attested'};
  const refuse=(reason:string,evidence:unknown)=>({...common,status:'refused' as const,technicallyConstructed:false,reason,evidence});
  if(!Number.isFinite(f.event.distanceKm)||f.event.distanceKm<=0||!Number.isFinite(f.event.elevationGainM)||f.event.elevationGainM<0||f.event.elevationLossM!=null&&(!Number.isFinite(f.event.elevationLossM)||f.event.elevationLossM<0))return refuse('explicit_event_geometry_invalid',f.event);
  if(model==='specific_back_to_back'&&!f.coach.backToBack)return refuse('synthetic_coach_has_not_authorized_back_to_back',f.coach);
@@ -36,7 +36,9 @@ export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:Tr
   const nRun=roles.filter(r=>r.sport==='run').length,nStrength=roles.filter(r=>r.sport==='strength').length;
   const range=(n:number)=>({min:n,max:n});const quota:WeeklyQuota={swim:range(0),bike:range(0),run:range(nRun),brick:range(0),strength:range(nStrength),totalSessions:range(roles.length),maxSessionsPerDay:1,minFullRestDays:7-roles.length,source:{tier:'elite_practice',ref:'EXPERIMENTAL explicit synthetic coach calendar; not a validated TFCL trail quota'}};
   const inheritedBudget=buildCoachVolumeBudget(config.volumeRamp,week,type,config.weeklyHoursSource);
-  const maxMinutes=Math.min(f.coach.weeklyMinutes,inheritedBudget?.maxMinutes??Infinity,previousLoad!==undefined&&type==='recovery'?previousLoad*.7:Infinity);
+  const rampCeiling=v5Structural&&previousLoad!==undefined&&type==='load'&&inheritedBudget?previousLoad*(1+inheritedBudget.weeklyIncreasePctMax):Infinity;
+  const budgetMinimum=Math.min(f.coach.weeklyMinutes,inheritedBudget?.maxMinutes??Infinity,previousLoad!==undefined&&type==='recovery'?previousLoad*.7:Infinity,rampCeiling);
+  const maxMinutes=v5Structural?Math.floor(budgetMinimum):budgetMinimum;
   const inheritedRate=inheritedBudget?.weeklyIncreasePctMax??config.volumeRamp?.weeklyIncreasePctMax;
   plan.weeklyQuotas![week]={quota,floors:{minStrengthPerWeek:nStrength,longRunWeekly:type==='load'},weekType:type,downgraded:false,phase,
    volumeBudget:inheritedRate===undefined?undefined:{globalWeek:week,maxMinutes,weeklyIncreasePctMax:inheritedRate,referenceSource:'coach'}};
@@ -50,6 +52,7 @@ export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:Tr
     .filter(m=>role.role==='activation'?m.id==='D_TR_TAPER_ACTIVATION':m.id!=='D_TR_TAPER_ACTIVATION')
     .filter(m=>{
      const text=`${m.id} ${m.title} ${m.tags.join(' ')}`;
+     if(v5Structural&&role.role==='activation')return m.id==='D_TR_TAPER_ACTIVATION';
      if(role.role==='long')return m.intentFamily!=='recuperation'&&!/^D_/i.test(m.id)&&m.mainZoneMax<=2&&/long|SL_|marche.course|rando/i.test(text)&&(f.objective!=='TrailUltra'||(phase==='base'?m.id==='A_TR_SL_MONTAGNE_BASE':['A_TR_SL_ULTRA_BUILD','A_TR_SL_PEAK','A_TR_MARCHE_COURSE_ULTRA','A_TR_B2B_SAM'].includes(m.id)))&&!(f.objective==='TrailUltra'&&phase!=='base'&&loadIndex%2===0&&!/marche.course/i.test(text));
      if(role.role==='b2b_second')return m.id==='A_TR_B2B_DIM';
      if(role.role==='ascent')return /montée|côte|ascen/i.test(text)&&m.mainZoneMax>=3;
@@ -68,8 +71,11 @@ export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:Tr
     .flatMap(m=>{
      const remainingMinimum=minimumDistinctDose(remainingDomains.map(domain=>domain.filter(c=>c.id!==m.id)));
      const maximumCurrent=Math.floor(maxMinutes-total-remainingMinimum);
-     const dose=Math.max(Math.ceil(m.durationMin[0]),Math.min(Math.floor(m.durationMin[1]),Math.round(target),maximumCurrent));
-     if(dose>maximumCurrent||role.role==='long'&&dose>f.coach.longPeak||total+dose>maxMinutes)return[];
+     const requiredLong=v5Structural&&role.role==='long'?90:0;
+     const sourceParts=v5Structural&&role.role==='activation'?byId.get(m.id)?.structure.map(p=>p.text.match(/^\s*(\d+)(?:[–-]\d+)?\s*['’]/)):undefined;
+     const sourceStructureMinimum=sourceParts?.length&&sourceParts.every(Boolean)?sourceParts.reduce((sum,p)=>sum+Number(p![1]),0):0;
+     const dose=Math.max(Math.ceil(m.durationMin[0]),requiredLong,sourceStructureMinimum,Math.min(Math.floor(m.durationMin[1]),Math.round(target),maximumCurrent));
+     if(v5Structural&&dose>Math.floor(m.durationMin[1])||dose>maximumCurrent||role.role==='long'&&dose>f.coach.longPeak||total+dose>maxMinutes)return[];
      const route=f.routeEvidence[m.id],vertical=byId.get(m.id)?.dPlusTargetM,dplus=typeof vertical==='number'?{min:vertical,max:vertical}:vertical;
      if(route&&dplus&&(route.dPlusM<dplus.min||route.dPlusM>dplus.max))return[];
      const s:ParsedSession={weekNumber:week,weekTheme:phase,phase,dayName:DAYS[role.day],dayIndex:role.day,sport:role.sport,title:m.title,details:m.structure,catalogId:m.id,durationMin:dose,isRest:false,custom:false,isKeySession:m.mainZoneMax>=3,zones:m.zones};
@@ -78,14 +84,15 @@ export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:Tr
      return[{m,s,dose,score:Math.abs(dose-target)+(usage.get(m.id)??0)*2+(limiterRank<0?5:limiterRank),route,dplus}];
     }).sort((a,b)=>a.score-b.score||a.m.id.localeCompare(b.m.id));
    if(!pool.length)return refuse('trail_role_has_no_catalogue_dose_within_candidate_contract',{week,phase,type,role,remainingMinutes:maxMinutes-total,maxMinutes,partialWeeks:plan.weeks.length,
+    remainingDomainSizes:v5Structural?remainingRoles.map((r,i)=>({role:r,availableDistinctIds:remainingDomains[i].map(m=>m.id)})):undefined,
     requestedActivation:role.role==='activation'?metadata.filter(m=>m.id==='D_TR_TAPER_ACTIVATION').map(m=>({id:m.id,eligibility:generationEligibility(m,context,f.confirmedPrerequisites)})):undefined});
    const {m,s,dose,route,dplus}=pool[0];used.add(m.id);usage.set(m.id,(usage.get(m.id)??0)+1);total+=dose;
-   const text=textFor(m);ledger.push({week,session:sessions.length,dPlusM:role.sport==='strength'?0:route?.dPlusM??dplus?.min??null,dMinusM:role.sport==='strength'?0:route?.dMinusM??null,eccentric:/excentri|eccentric|descente/i.test(text),runWalk:/marche|rando|hike/i.test(text),source:route?.source??(dplus?'structured_catalogue_dplus_lower_endpoint':'unknown_vertical_dose')});
+   const text=textFor(m);ledger.push({week,session:sessions.length,dPlusM:role.sport==='strength'?0:route?.dPlusM??(v5Structural?null:dplus?.min)??null,dMinusM:role.sport==='strength'?0:route?.dMinusM??null,eccentric:/excentri|eccentric|descente/i.test(text),runWalk:/marche|rando|hike/i.test(text),source:v5Structural&&role.sport==='strength'?'non_locomotor_session_no_vertical_dose':route?.source??(dplus&&!v5Structural?'structured_catalogue_dplus_lower_endpoint':'unknown_vertical_dose')});
    sessions.push(s);selection.push({week,day:role.day,role:role.role,id:m.id,duration:dose,source:'existing_phase_goal_level_catalogue',generationEligibility:generationEligibility(m,context,f.confirmedPrerequisites),limiterPriorities:config.identifiedLimitersRaw??[]});
   }
   for(let day=0;day<7;day++)if(!sessions.some(s=>s.dayIndex===day))sessions.push({weekNumber:week,weekTheme:phase,phase,dayIndex:day,dayName:DAYS[day],sport:'rest',title:'Repos',details:'Repos du calendrier trail candidat.',durationMin:0,isRest:true,custom:true,zones:[]});
   // Keep session indices stable for the exposure ledger; calendar order is not a schema requirement.
-  plan.weeks.push({weekNumber:week,phase,theme:phase,sessions});if(type==='load')previousLoad=total;
+  plan.weeks.push({weekNumber:week,phase,theme:v5Structural?`${phase} — ${type==='recovery'?'récupération':type==='taper'?'affûtage':type==='race'?'compétition':'charge'}`:phase,sessions});if(type==='load')previousLoad=total;
  }
  plan.phases=derivePhasesFromWeeks(plan);
  const issues=validateExperimentalCandidate(plan,athlete,config),technical=auditTechnicalPlan(plan),global=auditGlobalProgression(plan,ledger,['run']);
