@@ -16,6 +16,8 @@ it.skipIf(!process.env.TFCL_DET_V3_CONTINUE_OUT)('continues strict repairs from 
   expect(assessRepairQuality(row.issues,once.issues,row.candidate,once.candidate!).accepted).toBe(true);
   if(row.constraintsSatisfied)expect(once.constraintsSatisfied).toBe(true);
   const changes=once.repairs.slice(row.repairs.length);accepted+=changes.filter(r=>r.accepted).length;attempts+=changes.length;
+  expect(changes.every(r=>r.qualityGuard?.policy==='det-v3-quality-1')).toBe(true);
+  expect(changes.filter(r=>r.accepted).every(r=>r.qualityGuard?.accepted===true)).toBe(true);
   rows.push({...row,...once});replayed.push({...row,...replay});
  }
  const out=process.env.TFCL_DET_V3_CONTINUE_OUT!,version=`${baseline.version}-strict-next`;mkdirSync(out,{recursive:true});

@@ -70,5 +70,5 @@ export function assessRepairQuality(before:V2Issue[],after:V2Issue[],beforePlan:
  const a=progressionRisks(beforePlan),b=progressionRisks(afterPlan);
  const worsenedProgression=Object.keys(b).filter(key=>b[key]>(a[key]??0)+1e-9);
  // All new warnings are protected, including unknown and contextual evidence; no scientific severity is rewritten.
- return {accepted:!addedWarnings.length&&!worsenedProgression.length&&!worsenedWarningMagnitude.length,reason:addedWarnings.length?'v3_rejected_new_warning':worsenedProgression.length?'v3_rejected_worsened_interweek_progression':worsenedWarningMagnitude.length?'v3_rejected_worsened_intensity_warning':'v3_quality_guard_passed',addedWarnings,worsenedProgression,worsenedWarningMagnitude};
+ return {policy:WARNING_POLICY_VERSION,accepted:!addedWarnings.length&&!worsenedProgression.length&&!worsenedWarningMagnitude.length,reason:addedWarnings.length?'v3_rejected_new_warning':worsenedProgression.length?'v3_rejected_worsened_interweek_progression':worsenedWarningMagnitude.length?'v3_rejected_worsened_intensity_warning':'v3_quality_guard_passed',addedWarnings,worsenedProgression,worsenedWarningMagnitude};
 }
