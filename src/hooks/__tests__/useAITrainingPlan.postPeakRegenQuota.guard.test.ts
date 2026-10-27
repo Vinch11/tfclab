@@ -33,10 +33,15 @@ import { join } from "node:path";
  */
 describe("useAITrainingPlan — garde-fou anti-régression : les semaines de régénération inter-cycles reçoivent un quota réduit", () => {
   const source = readFileSync(
-    join(__dirname, "../useAITrainingPlan.ts"),
+    join(__dirname, "../../lib/plan/prepareGenerationContracts.ts"),
     "utf-8",
   );
 
+  it("generation consumes the shared preparation rather than a divergent copy",()=>{
+    const hook=readFileSync(join(__dirname,"../useAITrainingPlan.ts"),"utf-8");
+    expect(hook).toContain("prepareGenerationContracts(athleteData, planConfig");
+    expect(hook).toContain("assessPreparedGeneration(planConfig, preparation)");
+  });
   it("calcule cycleSegmentsForRegen via computeObjectiveCycleSegments avant la boucle de quota", () => {
     const idx = source.indexOf("const cycleSegmentsForRegen = computeObjectiveCycleSegments(");
     expect(idx, "cycleSegmentsForRegen est introuvable — a-t-il été renommé/déplacé ?").toBeGreaterThan(-1);

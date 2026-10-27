@@ -1,3 +1,4 @@
+import { PlanPrevalidationPanel } from "@/components/PlanPrevalidationPanel";
 import { declaredRaceSlotsForWeek } from "../../supabase/functions/_shared/catalogueTrainingMinima";
 import { planningFeasibility } from "@/lib/plan/planningFeasibility";
 import type { PhaseTag } from "@/types/workoutLibrary";
@@ -510,7 +511,7 @@ export default function AITrainingPlanPage() {
   // chaque changement d'athlète, cf. PR #63 anti-fuite cross-athlète).
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef, lastWeeklyQuotasRef, lastResponseRef } = useAITrainingPlan();
+  const { prevalidation, prevalidateTrainingPlan, response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef, lastWeeklyQuotasRef, lastResponseRef } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -1798,9 +1799,8 @@ export default function AITrainingPlanPage() {
     }
   };
 
-  const handleGenerate = async (extraConstraints?: string) => {
+  const handleGenerate = async (extraConstraints?: string, prevalidateOnly=false) => {
     // Une génération complète invalide toute régénération ciblée précédente.
-    setPlanOverride(null);
 
     // Une génération pleine ("Générer") repart sur le lundi de la semaine
     // courante UNIQUEMENT quand il n'y a pas déjà de plan actif pour cet
@@ -1814,7 +1814,6 @@ export default function AITrainingPlanPage() {
     // l'ancienne valeur dans le même tick — d'où l'override direct de
     // `config.planStartDate`.
     const freshStartDate = resolveFullRegenerationStartDate(hadExistingActivePlanRef.current, planStartDate);
-    setPlanStartDate(freshStartDate);
 
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
@@ -1832,22 +1831,6 @@ export default function AITrainingPlanPage() {
       }
     }
 
-
-    // Archive current plan if this is a sync-triggered regeneration
-    if (showSyncBanner && currentAthlete) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const archived = await archiveCurrentPlan(
-          currentAthlete.id,
-          user.id,
-          "Auto-archive avant régénération suite à changement de métriques"
-        );
-        if (archived) {
-          toast.info("Plan précédent archivé dans l'historique");
-        }
-      }
-      setShowSyncBanner(false);
-    }
 
     const config = buildConfigFromDiag(athleteContext.diagnostic);
     // Voir commentaire plus haut : `buildConfigFromDiag` a lu l'ancien
@@ -1874,11 +1857,34 @@ export default function AITrainingPlanPage() {
       config._expressFinisher = true;
       config._expressFinisherPromptPrefix = `PROFIL EXPRESS FINISHER — confiance 60%. Pour toutes les prescriptions d’intensité, utiliser UNIQUEMENT les pourcentages de FCmax et le RPE. Format obligatoire : « 65-75% FCmax (RPE 5-6/10 — effort confortable, conversation possible) ». Ne jamais écrire de valeurs absolues en bpm, watts ou min/km. Exemples corrects : « Z2 : 65-75% FCmax (RPE 5-6/10) », « Z3 : 75-83% FCmax (RPE 6-7/10) », « Z4 : 83-90% FCmax (RPE 7-8/10) ». Exemples interdits : « 130 bpm », « 250W », « 4:30/km ». Pour la natation : utiliser uniquement RPE et description sensorielle (« allure où tu peux souffler toutes les 3 foulées »). Pour les durées : toujours en minutes, jamais en km. Objectif unique : que l’athlète termine la course en bonne santé et avec le sourire.`;
     }
-    expressFlagRef.current = false;
     if (extraConstraints && extraConstraints.trim()) {
       config.constraints = [config.constraints || "", extraConstraints.trim()].filter(Boolean).join("\n");
     }
     if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
+    const preview=await prevalidateTrainingPlan(athleteContext.data,config);
+    if(prevalidateOnly||preview.status==="blocked") {
+      if(preview.status==="blocked")toast.error("Prévalidation bloquante : corrige les contraintes avant génération.");
+      return;
+    }
+    expressFlagRef.current = false;
+    setPlanOverride(null);
+    setPlanStartDate(freshStartDate);
+    // Archive current plan if this is a sync-triggered regeneration
+    if (showSyncBanner && currentAthlete) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const archived = await archiveCurrentPlan(
+          currentAthlete.id,
+          user.id,
+          "Auto-archive avant régénération suite à changement de métriques"
+        );
+        if (archived) {
+          toast.info("Plan précédent archivé dans l'historique");
+        }
+      }
+      setShowSyncBanner(false);
+    }
+
     generatePlanWindowed(athleteContext.data, config);
   };
 
@@ -2045,9 +2051,10 @@ export default function AITrainingPlanPage() {
     };
   }, [athleteContext]);
 
-  const handleCoachFormGenerate = useCallback((
+  const handleCoachFormGenerate = useCallback(async (
     payload: CoachProfileFormPayload,
     objectiveOverride?: string,
+    prevalidateOnly=false,
   ) => {
     if (!athleteContext) {
       toast.error("Aucun contexte athlète — sélectionne un athlète d'abord.");
@@ -2065,8 +2072,8 @@ export default function AITrainingPlanPage() {
     // l.1111) sur TOUTE nouvelle génération complète faite via ce formulaire —
     // le coach régénérait, obtenait un plan neuf en mémoire (`jsonParsedPlan`),
     // mais voyait indéfiniment réafficher l'ancien plan figé.
-    setPlanOverride(null);
-    setLastCoachOverridesPayload(payload);
+
+
     const baseConfig = buildConfigFromDiag(athleteContext.diagnostic, undefined, objectiveOverride);
     const config = buildCoachOverrides(payload, baseConfig);
 
@@ -2082,6 +2089,14 @@ export default function AITrainingPlanPage() {
       config.raceDate = payload.raceDate;
     }
 
+    if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
+    const preview=await prevalidateTrainingPlan(athleteContext.data,config);
+    if(prevalidateOnly||preview.status==="blocked") {
+      if(preview.status==="blocked")toast.error("Prévalidation bloquante : aucune génération lancée.");
+      return;
+    }
+    setPlanOverride(null);
+    setLastCoachOverridesPayload(payload);
     // eslint-disable-next-line no-console
     console.log("[CoachProfileForm] identifiedLimiters transmis:", {
       raw: config.identifiedLimitersRaw,
@@ -2092,9 +2107,8 @@ export default function AITrainingPlanPage() {
       overriddenByCoach: payload.overriddenByCoach,
     });
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
-    if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
     generatePlanWindowed(athleteContext.data, config);
-  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed]);
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan]);
 
   const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
     // eslint-disable-next-line no-console
@@ -4231,6 +4245,8 @@ export default function AITrainingPlanPage() {
               </Alert>
             )}
 
+            <Button variant="outline" disabled={isLoading||!hasData} onClick={()=>{void handleGenerate(undefined,true);}}>Prévalider sans IA</Button>
+            <PlanPrevalidationPanel report={prevalidation}/>
             {/* Generate Button */}
             {!isMultiMode ? (
               <Button
@@ -4799,6 +4815,7 @@ export default function AITrainingPlanPage() {
         prefill={coachPrefill}
         onSubmit={handleCoachFormSave}
         onGenerate={handleCoachFormGenerate}
+        onPrevalidate={payload=>handleCoachFormGenerate(payload,undefined,true)}
       />
       <QuickStartWizard
         open={wizardOpen}

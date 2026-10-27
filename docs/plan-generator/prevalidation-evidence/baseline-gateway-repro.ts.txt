@@ -1,0 +1,13 @@
+import {assert} from 'https://deno.land/std@0.224.0/assert/mod.ts';
+import {handleJSONPlanRequest} from './jsonPlanHandler.ts';
+Deno.test('same impossible request before the new prevalidation gate, gateway mocked',async()=>{
+ const previous=globalThis.fetch;let calls=0;
+ globalThis.fetch=(()=>{calls++;return Promise.resolve(new Response('{"error":{"message":"offline mock rejection"}}',{status:400,headers:{'Content-Type':'application/json'}}));}) as typeof fetch;
+ try{
+  const quota={swim:{min:0,max:0},bike:{min:0,max:1},run:{min:5,max:5},brick:{min:0,max:0},strength:{min:2,max:2},totalSessions:{min:7,max:8},maxSessionsPerDay:1,minFullRestDays:1};
+  const layout={days:['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'].map(dayName=>({dayName,isRest:dayName==='lundi',slots:[]}))};
+  const response=handleJSONPlanRequest({apiKey:'mock-key',athleteData:{},planConfig:{objective:'10K',weeksAvailable:12,_weeklyQuotas:{12:{quota,layout,phase:'taper',weekType:'race'}}},corsHeaders:{}});
+  await response.text();assert(calls>0);
+  Deno.writeTextFileSync('/tmp/tfcl-prevalidation-before-proof.json',JSON.stringify({sourceCommit:'a8bd971c98c4af0eb6af80202336e27c146a1ac0',gateway:'mock_only_no_network',mockGatewayCallsBefore:calls,payload:'same as prevalidation.test.ts later-week contradiction'}));
+ }finally{globalThis.fetch=previous;}
+});

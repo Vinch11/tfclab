@@ -1,3 +1,4 @@
+import { prevalidateTransport } from "../_shared/prevalidateTransport.ts";
 import { planReleaseResponse, planContractResponse } from "../_shared/planReleaseInfo.ts";
 import { technicalGenerationConfig } from "../_shared/planDiagnosticPrivacy.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -90,6 +91,11 @@ serve(async (req) => {
     }
 
     const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs, phaseRepairCatalogs, chunkCatalogs, chunkRepairCatalogs, chunkRegenCatalogs, chunkRegenRepairCatalogs, chunkRegenWeeks, catalogDurationStats } = rawBody;
+    const prevalidation = prevalidateTransport(planConfig ?? {});
+    if (prevalidation.status === "blocked") return new Response(JSON.stringify({
+      error: "PLAN_PREVALIDATION_BLOCKED", message: "Contradiction mécanique avant tout appel modèle.",
+      issues: prevalidation.issues.filter(i => i.severity === "blocking"),
+    }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const diagnosticContext = { functionName: "ai-training-plan-test",
       deploymentId: Deno.env.get("DENO_DEPLOYMENT_ID") ?? null,
       executionId: Deno.env.get("SB_EXECUTION_ID") ?? null };

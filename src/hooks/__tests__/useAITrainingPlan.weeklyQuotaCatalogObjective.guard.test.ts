@@ -36,10 +36,15 @@ import { join } from "node:path";
  */
 describe("useAITrainingPlan — garde-fou anti-régression : le quota hebdomadaire déterministe respecte catalogObjective", () => {
   const source = readFileSync(
-    join(__dirname, "../useAITrainingPlan.ts"),
+    join(__dirname, "../../lib/plan/prepareGenerationContracts.ts"),
     "utf-8",
   );
 
+  it("generation consumes the shared preparation rather than a divergent copy",()=>{
+    const hook=readFileSync(join(__dirname,"../useAITrainingPlan.ts"),"utf-8");
+    expect(hook).toContain("prepareGenerationContracts(athleteData, planConfig");
+    expect(hook).toContain("assessPreparedGeneration(planConfig, preparation)");
+  });
   it("objectiveForQuota dérive de catalogObjective, pas de planConfig.objective seul", () => {
     const idx = source.indexOf("const objectiveForQuota =");
     expect(idx, "la ligne objectiveForQuota est introuvable — a-t-elle été renommée/déplacée ?").toBeGreaterThan(-1);
