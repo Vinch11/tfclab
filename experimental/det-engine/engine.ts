@@ -11,11 +11,15 @@ import { checkSessionCatalogue } from '../../supabase/functions/_shared/sessionC
 import { catalogueWeeklyUsageCapacity } from '../../supabase/functions/_shared/catalogueWeeklyFrequency';
 import { normalizeRepairSport, evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
 import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
+import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
+import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
 export interface ExperimentalAssemblyContract {
   id:string;
   adapt:(preparation:ReturnType<typeof prepareGenerationContracts>,config:PlanConfig)=>void;
+  filterCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>boolean;
+  doseRange?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>[number,number]|null;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
@@ -68,10 +72,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         if(slot.isRaceEvent)return [{weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,sport:slot.sport,title:`COURSE : ${w.objective}`,details:'Épreuve déclarée ; durée à confirmer par le coach.',durationMin:0,custom:true,isRest:false,isKeySession:true,zones:[]} satisfies ParsedSession];
         return catalog.filter(m=>allowedIds.has(m.id)&&normalizeRepairSport(m.sport)===slot.sport)
           .filter(m=>evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible)
+          .filter(m=>!experimentalContract?.filterCandidate||experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}))
           .flatMap(m=>{
             // Only the original catalogue dose range is executable; preserve full structure.
-            const duration=Math.max(m.durationMin[0],slot.minDurationMin??0);
-            if(duration>Math.min(m.durationMin[1],slot.maxDurationMin??Infinity))return [];
+            const explicitRange=experimentalContract?.doseRange?.(m,{...context,week:w.week,slot,dayIndex});
+            if(explicitRange===null)return [];
+            const duration=Math.max(m.durationMin[0],slot.minDurationMin??0,explicitRange?.[0]??0);
+            if(duration>Math.min(m.durationMin[1],slot.maxDurationMin??Infinity,explicitRange?.[1]??Infinity))return [];
             const session:ParsedSession={weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,
               sport:slot.sport,title:m.title,details:m.structure,catalogId:m.id,custom:false,durationMin:duration,
               isRest:false,isKeySession:!!slot.isKeySession,zones:m.mainZoneMax?[`Z${m.mainZoneMax}`]:m.zones};
