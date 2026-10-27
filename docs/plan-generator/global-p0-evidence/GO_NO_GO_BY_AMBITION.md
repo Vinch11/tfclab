@@ -2,6 +2,8 @@
 
 P = préparation sans signal mécanique/catalogue/dose sur les cas listés ; pas une preuve de génération. Les autres cas restent NO-GO individuellement. C = construction complète disponible ; D = validation sportive déterministe disponible ; H = revue humaine/scientifique. Les ambitions effectives après plafonnement sont dans le CSV et `summary.json` ; un « world_class demandé » n'est pas attribué à un débutant.
 
+Les 11 alertes de cardinalité ont été corrigées en avertissements de diversité selon les limites de répétition existantes ; ces avertissements restent des signaux et ne créent aucun GO supplémentaire. Voir `RESIDUAL_CLASSIFICATION.md`.
+
 Les contrôles synthétiques ne deviennent jamais des sorties Gemini. La voie trail est partiellement exercée, la voie S2R utilise son générateur statique : leurs zéros de quotas ne valent pas GO général.
 
 | Objectif / format | Ambition demandée | P : GO / cas testés | C : construction complète | D : preuve disponible | H |

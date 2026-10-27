@@ -2039,9 +2039,14 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               weekType: planConfig?._weeklyQuotas?.[week]?.weekType,
               catalog: repairCatalogsByChunk[ci].filter(m => allowedIds.includes(m.id) && isCompleteRepairWorkoutMetadata(m)) };
             catalogueContractsByWeek[week] = contract;
-            const { eligible, missingSports } = catalogueForWeek(contract.catalog, contract,
+            const { eligible, missingSports, limitedDiversitySports } = catalogueForWeek(contract.catalog, contract,
               catalogueTrainingMinimaForWeek(planConfig?._weeklyQuotas?.[week]?.quota ?? {}, planConfig ?? {}, week));
             eligibilityByWeek[week] = eligible.map(m => m.id);
+            if (limitedDiversitySports.length) enqueue("warning", {
+              code: "catalogue_diversity_limited", severity: "warning", weekNumber: week,
+              eligibleCount: eligible.length, limitedDiversitySports,
+              message: `S${week}: diversité catalogue limitée ; dose, placement et plafonds de répétition restent à valider`,
+            });
             if (missingSports.length || (allowedIds.length > 0 && eligible.length === 0)) enqueue("warning", {
               code: "catalogue_pool_insufficient", severity: "critical", weekNumber: week,
               eligibleCount: eligible.length, missingSports,

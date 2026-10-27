@@ -1,3 +1,5 @@
+import { catalogueWeeklyUsageCapacity } from '../../../supabase/functions/_shared/catalogueWeeklyFrequency';
+import { calendarCapacityEvidence } from './residualEvidence';
 import { getCatalogSportFilter, getCatalogExclusions } from "@/hooks/useAITrainingPlan";
 import { planningFeasibility } from "@/lib/plan/planningFeasibility";
 /** Offline contract matrix. No model, persistence backend, deployment or athlete records. */
@@ -8,7 +10,7 @@ import { QA_PROFILES, type QAProfileId } from "@/lib/plan/qa/syntheticProfiles";
 import { buildPilotDiagnosticInput, buildPilotFormConfig } from "@/lib/plan/qa/preparePilotTrainingPlanContext";
 import { prepareTrainingPlanContext } from "@/engines/plan/prepareTrainingPlanContext";
 import { buildPeriodizationCalendar } from "@/lib/plan/periodizationCalendar";
-import { buildWorkoutCatalog, serializeCatalogForPrompt, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
+import { buildWorkoutCatalog, serializeCatalogForPrompt, toInjuryRiskCatalogOption, resetCatalogAttribution, getCatalogAttribution } from "@/lib/workoutCatalogBuilder";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import { buildRepairWorkoutMetadata } from "@/lib/plan/repairCatalogMetadata";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
@@ -47,6 +49,9 @@ export interface MatrixRow {
  dataQuality?:string; format?:"lcw_3day";
  configuration:"passed"|"failed"; quotaPath:string; preparationIssues:Record<string,number>;
  weekly: Array<{week:number;phase:string;weekType:string;catalog:number;missingSports:string[];layoutMissing:number;quotaContradictions:number;preflight:string[];exclusions:Record<string,number>}>;
+ residuals?: Array<{week:number;phase:string;weekType:string;mechanical?:ReturnType<typeof calendarCapacityEvidence>;
+ catalogue?:Array<{sport:string;required:number;limitedDiversity:boolean;selectedEligibleIds:string[];uncappedEligibleIds:string[];
+ candidates:Array<{id:string;durationMin:[number,number];phases:string[];intent:string;zone:number;when:string;weeklyUsageCap:number|null;selected:boolean;uncapped:boolean;eligibilityReasons:string[];pipelineStage?:string}>}>}>;
  limiterOrder:string[]; catalogueSignature:string[]; promptMaxChars:number; examples:Array<{week:number;code:string;id?:string;minimum?:number;maximum?:number}>;
  completePlanConstruction:"static_route_available"|"not_attested_without_matching_recorded_model_output";
  sportingSafety:"not_attested"; scientificValidation:"requires_human_review";
@@ -86,10 +91,14 @@ export function evaluatePlanningCase(spec:PlanningCase): MatrixRow {
   for(let start=1;start<=weeks;start+=chunkSize){
    const end=Math.min(weeks,start+chunkSize-1);
    const phases=[...new Set(Array.from({length:end-start+1},(_,i)=>calendar?.[start+i]??"base"))];
-   const catalog=buildWorkoutCatalog(spec.objective,start,end,weeks,{strictPhaseFilter:true,phaseOverride:phases,maxItems:130,weekContexts:Array.from({length:end-start+1},(_,i)=>({phase:calendar?.[start+i],objective:spec.objective,weekType:inferWeekType(start+i,weeks,spec.objective,profile.athleteData.age,config.deloadCadenceWeeks)})),chunkIndex:Math.floor((start-1)/chunkSize),rotationIds,
+   const catalogOptions:NonNullable<Parameters<typeof buildWorkoutCatalog>[4]>={strictPhaseFilter:true,phaseOverride:phases,maxItems:130,weekContexts:Array.from({length:end-start+1},(_,i)=>({phase:calendar?.[start+i],objective:spec.objective,weekType:inferWeekType(start+i,weeks,spec.objective,profile.athleteData.age,config.deloadCadenceWeeks)})),chunkIndex:Math.floor((start-1)/chunkSize),rotationIds,
     limiters:row.limiterOrder,prohibitions:config.prohibitions,sportFilter:getCatalogSportFilter(spec.objective),
     ...exclusions,rotationSeed:0,injuryRisk:toInjuryRiskCatalogOption(config.injuryRisk),
-    beginnerIntensitySignal:{trainingLevel:spec.level,trainingLevelSource:"manual",weeklyHours:config.weeklyHours??null}});
+    beginnerIntensitySignal:{trainingLevel:spec.level,trainingLevelSource:"manual",weeklyHours:config.weeklyHours??null}};
+   resetCatalogAttribution();
+   const catalog=buildWorkoutCatalog(spec.objective,start,end,weeks,catalogOptions);
+   const attribution=new Map([...getCatalogAttribution()].map(([id,entry])=>[id,entry.chunksDropped.get(Math.floor((start-1)/chunkSize))]));
+   let uncapped:ReturnType<typeof buildWorkoutCatalog>|undefined;
    const metadata=catalog.map(e=>e.repairMetadata),ids=extractCatalogIdsFromDump(serializeCatalogForPrompt(catalog));
    row.promptMaxChars=Math.max(row.promptMaxChars,serializeCatalogForPrompt(catalog).length);
    if(start===1) row.catalogueSignature=catalog.slice(0,12).map(e=>e.id);
@@ -101,12 +110,14 @@ export function evaluatePlanningCase(spec:PlanningCase): MatrixRow {
     const coverage=catalogueForWeek(metadata,context,catalogueTrainingMinimaForWeek(entry?.quota??{},config,week));
     let layoutMissing=0,quotaContradictions=0;
     let preflight:string[]=[];
+    let mechanical:ReturnType<typeof calendarCapacityEvidence>|undefined;
     if(entry){
      row.quotaPath="deterministic_matrix";
      const floors=applySlFloorIndividualization(entry.floors,week,weekType,config.volumeRamp,{run:config.injuryRisk?.run?.level,bike:config.injuryRisk?.bike?.level}).floors;
      const availableSports=new Set(coverage.eligible.map(m=>normalizeRepairSport(m.sport) as "swim"|"bike"|"run"|"brick"|"strength"));
      const layout=buildWeeklySlotLayout(entry.quota,floors,weekType,{availableSports,raceEvents:declaredRaceSlotsForWeek(config,week),dayBans:rules.dayBans,finalStageSport:spec.format==="lcw_3day"?"run":undefined});
      preflight=planningFeasibility(entry.quota,layout);
+     if(preflight.length) mechanical=calendarCapacityEvidence(entry.quota,layout.days.filter(d=>!d.isRest).length);
      for(const code of preflight) add(row.preparationIssues,`preflight_${code}`);
      const slots=layout.days.flatMap(d=>d.slots),bricks=slots.filter(s=>s.sport==="brick").length,effective=effectiveSessionQuota(entry.quota,bricks);
      const required=entry.quota.swim.min+effective.bike.min+entry.quota.run.min+entry.quota.brick.min+entry.quota.strength.min;
@@ -132,11 +143,28 @@ export function evaluatePlanningCase(spec:PlanningCase): MatrixRow {
     }else row.quotaPath=trail?"dedicated_trail_prompt_no_deterministic_quota":"static_template_route";
     add(row.preparationIssues,"quota_contradiction",quotaContradictions);add(row.preparationIssues,"layout_missing_slots",layoutMissing);
     add(row.preparationIssues,"catalogue_week_sport_shortfall",coverage.missingSports.length);
+    add(row.preparationIssues,"catalogue_week_diversity_limited",coverage.limitedDiversitySports.length);
     for(const e of catalog.filter(e=>coverage.eligible.some(m=>m.id===e.id))){
      const m=e.repairMetadata;
      const result=checkSessionCatalogue({catalogId:e.id,title:m.title,sport:normalizeRepairSport(m.sport),durationMin:e.canonicalDurationMin,zones:m.mainZoneMax?[`Z${m.mainZoneMax}`]:m.zones,details:m.structure},{...context,catalog:metadata});
      add(row.preparationIssues,"canonical_prescription_contract_conflict",result.errors.length);
      if(result.errors.length&&row.examples.length<12) for(const code of result.errors)row.examples.push({week,code,id:e.id});
+    }
+    if(preflight.length || coverage.missingSports.length || coverage.limitedDiversitySports.length) {
+     const residual:NonNullable<MatrixRow['residuals']>[number]={week,phase,weekType};
+     if(preflight.length) residual.mechanical=mechanical;
+     if(coverage.missingSports.length || coverage.limitedDiversitySports.length) {
+      uncapped??=buildWorkoutCatalog(spec.objective,start,end,weeks,{...catalogOptions,maxItems:10000});
+      const minima:Partial<Record<string,{min?:number}>>=catalogueTrainingMinimaForWeek(entry?.quota??{},config,week);
+      residual.catalogue=[...coverage.missingSports,...coverage.limitedDiversitySports].map(sport=>({sport,required:minima[sport]?.min??0,limitedDiversity:coverage.limitedDiversitySports.includes(sport),
+       selectedEligibleIds:coverage.eligible.filter(m=>normalizeRepairSport(m.sport)===sport).map(m=>m.id),
+       uncappedEligibleIds:uncapped!.filter(e=>normalizeRepairSport(e.sport)===sport&&!catalogueEligibility(e.repairMetadata,context).length).map(e=>e.id),
+       candidates:WorkoutLibrary.filter(w=>normalizeRepairSport(w.sport)===sport).map(w=>{
+        const m=buildRepairWorkoutMetadata(w);
+        return {id:m.id,durationMin:m.durationMin,phases:m.phases,intent:m.intentFamily,zone:m.mainZoneMax,when:m.when,weeklyUsageCap:Number.isFinite(catalogueWeeklyUsageCapacity(m))?catalogueWeeklyUsageCapacity(m):null,selected:catalog.some(e=>e.id===m.id),uncapped:uncapped!.some(e=>e.id===m.id),eligibilityReasons:catalogueEligibility(m,context),pipelineStage:attribution.get(m.id)};
+       })}));
+     }
+     (row.residuals??=[]).push(residual);
     }
     const exclusions:Record<string,number>={};
     for(const m of metadata) for(const reason of catalogueEligibility(m,context)) add(exclusions,reason);

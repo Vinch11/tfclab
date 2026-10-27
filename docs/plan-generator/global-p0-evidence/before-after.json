@@ -9,9 +9,21 @@
   "after": {
     "quotaContradictions": 0,
     "mechanicalBlockedCases": 58,
-    "catalogueSportShortfallWeekCounts": 11,
+    "catalogueSportShortfallWeekCounts": 0,
     "doseWarningWeekCounts": 64,
-    "roleDurationGapCounts": 310
+    "roleDurationGapCounts": 310,
+    "catalogueDiversityWarningWeekCounts": 11
   },
-  "qualification": "Dose/role coverage measurement changed and new event reservations were added; not a comparison of generated sporting plan quality."
+  "qualification": "Dose/role coverage measurement changed and new event reservations were added; not a comparison of generated sporting plan quality.",
+  "catalogueCountingCorrection": {
+    "beforeCommit": "1651a4533d68ec03ac6f62c533a7c8c606066fe4",
+    "same600Inputs": true,
+    "unchangedPlanningInvariantSha256": "96d0b96b53a41bd4901333bb7c69275831fb8f8af220a5a7f4678224d3701ceb",
+    "same58BlockedIds": true,
+    "beforeCriticalCardinalityAlerts": 11,
+    "afterCriticalCapacityAlerts": 0,
+    "afterLimitedDiversityWarnings": 11,
+    "technicalGoCasesUnchanged": 227,
+    "qualification": "No repeated session selected, no prescription or sporting criterion changed. Diversity remains a signal; complete-plan safety is not proved."
+  }
 }

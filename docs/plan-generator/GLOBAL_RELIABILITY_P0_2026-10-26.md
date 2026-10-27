@@ -4,6 +4,8 @@ Base inchangée : `73fd91ca17bf30b147cd63e32e38d10a5ea3d5eb`. Même branche et m
 
 **Quatre conclusions distinctes** : préparation technique par configuration ; construction complète réellement disponible ; contrôles sportifs déterministes ; revue scientifique/humaine. Aucune réussite de préparation n'est assimilée à un plan produit ni à une preuve scientifique. Aucun modèle appelé, aucune donnée athlète modifiée, aucune migration, modification Nolio, publication ou fusion. #407/#408 restent inactives.
 
+La finalisation ciblée du comptage est détaillée dans [FINALISATION_COMPTAGE_CATALOGUE_2026-10-27.md](FINALISATION_COMPTAGE_CATALOGUE_2026-10-27.md). Les 11 anciennes alertes de cardinalité sont distinguées de la diversité limitée ; aucun quota ni catalogue admissible n’est élargi.
+
 ## Corrections démontrées dans cette continuation
 
 | Cause / première étape défectueuse | Correction minimale | Preuve / protection conservée |
@@ -50,13 +52,13 @@ Le transport mémoire de `useCloudData` exerce également sauvegarde/rechargemen
 |---|---:|---:|
 | Contradictions minima / plafond, occurrences hebdomadaires | 160 | 0 |
 | Configurations mécaniquement bloquées | 162 | 58 |
-| Manques catalogue par sport, occurrences hebdomadaires | 111 | 11 |
+| Insuffisances catalogue par capacité hebdomadaire | 111 (ancien compteur de fiches distinctes) | 0 ; 11 avertissements de diversité conservés |
 
 Les 58 refus d'agenda restants sont tous associés à une condition nécessaire de capacité non satisfaite (total minimal, exclusion brick/run/bike, capacité renfo et/ou jours disponibles). Aucun échec de recherche inexpliqué n'est observé sur ce corpus. Ne pas extrapoler cette conclusion à tout texte libre ou calendrier possible.
 
 La borne de dose corrigée produit 64 signaux hebdomadaires et le contrôle de plages 310 créneaux non couverts par le catalogue sélectionné. Ce sont des mesures distinctes, parfois superposées : pas autant de bugs ni de violations sportives. Une prescription custom autorisée n'est pas évaluée par cette borne catalogue.
 
-**201 tests offline ciblés verts**, couvrant préparation, 11 plans/contrôles existants et contrôles négatifs de transfert d'objectif. Suites serveur : 342 tests production et 338 fonction test ; TypeScript app vérifié. Résultats CI du HEAD final dans #418.
+**213 tests offline ciblés verts**, couvrant préparation, 11 plans/contrôles existants et contrôles négatifs de transfert d'objectif. Suites serveur : 347 tests production et 343 fonction test ; TypeScript app vérifié. Résultats CI du HEAD final dans #418.
 
 La matrice finale par **objectif, format et chacune des cinq ambitions** se trouve dans [GO_NO_GO_BY_AMBITION.md](global-p0-evidence/GO_NO_GO_BY_AMBITION.md). **GO technique seulement pour les configurations identifiées ; pas de GO scientifique ni d'approbation automatique de prescription.** Construction adaptée non attestée là où aucune sortie réelle correspondante n'existe. Le détail des erreurs conservées du corpus est dans `replay.json`.
 
@@ -69,7 +71,7 @@ Les fichiers `global-p0-evidence/matrix.csv`, `matrix.jsonl`, `summary.json` et 
 ## Seuls blocages nécessitant une décision ou une preuve humaine
 
 1. **Agenda incompatible avec la demande** : fréquence, repos, jours interdits, date de course et charge ne peuvent être arbitrés en ajoutant des séances ou en relevant les plafonds. Le coach choisit la contrainte à revoir, l'ambition ou l'objectif. Les cas concernés restent NO-GO individuellement ; cela ne bloque pas toutes les configurations de la famille.
-2. **Absence réelle de fiche pour un rôle / dose** : notamment les bricks admissibles et certaines activations/SL. Ne pas rendre une fiche intense compatible par ses métadonnées. Le choix est une variante réellement autorisée, un protocole custom explicitement revu, ou une modification des contraintes par le coach. Les bornes catalogue ne suffisent pas à prouver l'impossibilité de tout custom autorisé.
+2. **Absence réelle de fiche pour un rôle / dose** : certaines activations/SL et plages de bricks. Les 11 anciennes alertes de cardinalité sont des avertissements de diversité, pas des pools vides ; la possibilité de répétition ne démontre pas l’adéquation de dose ou de rôle. Ne pas rendre une fiche intense compatible par ses métadonnées. Le choix est une variante réellement autorisée, un protocole custom explicitement revu, ou une modification des contraintes par le coach. Les bornes catalogue ne suffisent pas à prouver l'impossibilité de tout custom autorisé.
 3. **Sorties complètes adaptées manquantes** : pas de JSON complet actuel correspondant à chaque famille/ambition. Les PDF athlètes historiques cités dans la conversation ne sont pas présents dans ce workspace ; les PDF de recette disponibles sont des documents synthétiques et ne sont pas comptés comme plans athlètes. Pour augmenter la preuve de construction et de traduction des limiteurs, fournir des exports assainis existants avec diagnostic ordonné, confiance, contraintes, calendrier et plan final. Aucune nouvelle génération n'est lancée.
 4. **Revue des premières prescriptions** : charge réellement supportable quand elle est inconnue, contenu physiologique, enchaînement des séances et récupération autour des jalons doivent être revus par le coach. Aucun test de préparation ou marqueur `isKeySession` ne remplace cette revue.
 

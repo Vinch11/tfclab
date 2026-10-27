@@ -1,0 +1,122 @@
+{
+  "referenceCommit": "1651a4533d68ec03ac6f62c533a7c8c606066fe4",
+  "cases": 600,
+  "invariantSha256": "96d0b96b53a41bd4901333bb7c69275831fb8f8af220a5a7f4678224d3701ceb",
+  "blockedIds": [
+    "703:highly_trained:competitor:unknown",
+    "703:highly_trained:world_class:unknown",
+    "IM:trained:competitor:known_synthetic",
+    "IM:trained:elite:unknown",
+    "IM:highly_trained:world_class:unknown",
+    "Olympic:trained:world_class:unknown",
+    "Olympic:highly_trained:elite:unknown",
+    "Marathon:trained:competitor:unknown",
+    "Marathon:trained:competitor:known_synthetic",
+    "Marathon:trained:elite:unknown",
+    "Marathon:trained:elite:known_synthetic",
+    "Marathon:trained:world_class:unknown",
+    "Marathon:trained:world_class:known_synthetic",
+    "Marathon:highly_trained:competitor:unknown",
+    "Marathon:highly_trained:competitor:known_synthetic",
+    "Marathon:highly_trained:elite:unknown",
+    "Marathon:highly_trained:elite:known_synthetic",
+    "Marathon:highly_trained:world_class:unknown",
+    "Marathon:highly_trained:world_class:known_synthetic",
+    "Semi:trained:competitor:unknown",
+    "Semi:trained:competitor:known_synthetic",
+    "Semi:trained:elite:unknown",
+    "Semi:trained:elite:known_synthetic",
+    "Semi:trained:world_class:unknown",
+    "Semi:trained:world_class:known_synthetic",
+    "Semi:highly_trained:competitor:unknown",
+    "Semi:highly_trained:competitor:known_synthetic",
+    "Semi:highly_trained:elite:unknown",
+    "Semi:highly_trained:elite:known_synthetic",
+    "Semi:highly_trained:world_class:unknown",
+    "Semi:highly_trained:world_class:known_synthetic",
+    "5K:trained:competitor:unknown",
+    "5K:trained:competitor:known_synthetic",
+    "5K:trained:elite:unknown",
+    "5K:trained:elite:known_synthetic",
+    "5K:trained:world_class:unknown",
+    "5K:trained:world_class:known_synthetic",
+    "5K:highly_trained:competitor:unknown",
+    "5K:highly_trained:competitor:known_synthetic",
+    "5K:highly_trained:elite:unknown",
+    "5K:highly_trained:elite:known_synthetic",
+    "5K:highly_trained:world_class:unknown",
+    "5K:highly_trained:world_class:known_synthetic",
+    "10K:trained:competitor:unknown",
+    "10K:trained:competitor:known_synthetic",
+    "10K:trained:elite:unknown",
+    "10K:trained:elite:known_synthetic",
+    "10K:trained:world_class:unknown",
+    "10K:trained:world_class:known_synthetic",
+    "10K:highly_trained:competitor:unknown",
+    "10K:highly_trained:competitor:known_synthetic",
+    "10K:highly_trained:elite:unknown",
+    "10K:highly_trained:elite:known_synthetic",
+    "10K:highly_trained:world_class:unknown",
+    "10K:highly_trained:world_class:known_synthetic",
+    "703:highly_trained:world_class:unknown:lcw_3day",
+    "IM:trained:elite:unknown:lcw_3day",
+    "IM:highly_trained:world_class:unknown:lcw_3day"
+  ],
+  "catalogueAlerts": [
+    {
+      "id": "703:light:competitor:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:world_class:known_synthetic",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "703:trained:age_group:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:age_group:known_synthetic",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:world_class:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:competitor:known_synthetic",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:elite:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 8,
+      "sport": "brick"
+    }
+  ]
+}

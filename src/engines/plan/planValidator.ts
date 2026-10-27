@@ -1,3 +1,4 @@
+import { isOneTimeTestProtocol, parseWeeklyFrequencyCap } from '../../../supabase/functions/_shared/catalogueWeeklyFrequency';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL PLAN VALIDATOR™ — Post-Generation Quality Control
@@ -5305,24 +5306,6 @@ function getCatalogById(): Map<string, LibraryWorkout> {
     for (const w of WorkoutLibrary) catalogByIdCache.set(w.id.toUpperCase(), w);
   }
   return catalogByIdCache;
-}
-
-/** Une fiche tagguée "test" est un protocole de calibration/évaluation
- *  (FTP, VMA, CSS, FatMax zone finder, lactate…) : par nature à usage unique,
- *  jamais une séance d'entraînement répétable dans la même semaine. */
-function isOneTimeTestProtocol(entry: LibraryWorkout): boolean {
-  return (entry.tags || []).some((t) => String(t).toLowerCase() === "test");
-}
-
-/** Extrait un plafond hebdomadaire explicite du champ `when` de la fiche
- *  (ex: "Base/Build, 1x/semaine max") — cf. bug réel : SFR (V3_BIKE_FORCE_SFR,
- *  "1x/semaine max") généré 2x dans la même semaine, plafond jamais vérifié. */
-function parseWeeklyFrequencyCap(when: string | undefined | null): number | null {
-  if (!when) return null;
-  const match = /(\d+)\s*x\s*\/\s*semaine\s*max/i.exec(when);
-  if (!match) return null;
-  const n = parseInt(match[1], 10);
-  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 /** Rule 17bis : Duplication INTRA-semaine (bug réel audit PDF — test FatMax

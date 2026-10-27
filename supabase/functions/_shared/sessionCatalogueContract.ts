@@ -1,5 +1,6 @@
 import { evaluateRepairSportingEquivalence, isCompleteRepairWorkoutMetadata, normalizeRepairGoal, normalizeRepairSport, type RepairWorkoutMetadata, type RepairCompatibilityContext } from "./repairSportingEquivalence.ts";
 import { classifyIntentEvidence } from "./intentEvidence.ts";
+import { catalogueWeeklyUsageCapacity } from "./catalogueWeeklyFrequency.ts";
 import { isRaceDaySession } from "./raceDayIdentity.ts";
 export interface ContractSession { title?: string; details?: string; sport?: string; catalogId?: string | null; custom?: boolean; durationMin?: number; zones?: string[]; variantKey?: string; }
 export interface CatalogueContract { phase?: string; weekType?: string; objective?: string; catalog: RepairWorkoutMetadata[]; }
@@ -64,9 +65,16 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
 export function catalogueForWeek(catalog: RepairWorkoutMetadata[], context: RepairCompatibilityContext, minima: Partial<Record<"swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "totalSessions", { min?: number }>> = {}) {
  const eligible = catalog.filter(m => catalogueEligibility(m, context).length === 0);
  const sports = new Set(["swim", "bike", "run", "brick", "strength", "recovery"]);
- const missingSports = Object.entries(minima).filter(([sport, range]) => sports.has(sport) &&
-  (range.min ?? 0) > eligible.filter(m => normalizeRepairSport(m.sport) === sport).length).map(([sport]) => sport);
- return { eligible, missingSports };
+ // Required sessions do not imply distinct catalogue IDs. Apply the SAME
+ // explicit frequency caps as final validation; never choose repetitions.
+ const capacityBySport = Object.entries(minima).filter(([sport, range]) => sports.has(sport) && (range.min ?? 0) > 0).map(([sport, range]) => {
+  const cards = [...new Map(eligible.filter(m => normalizeRepairSport(m.sport) === sport).map(m => [m.id, m])).values()];
+  return { sport, required: range.min ?? 0, distinct: cards.length,
+   capacity: cards.reduce((sum, card) => sum + catalogueWeeklyUsageCapacity(card), 0) };
+ });
+ const missingSports = capacityBySport.filter(c => c.capacity < c.required).map(c => c.sport);
+ const limitedDiversitySports = capacityBySport.filter(c => c.distinct < c.required && c.capacity >= c.required).map(c => c.sport);
+ return { eligible, missingSports, limitedDiversitySports };
 }
 
 export function executableCatalogueVariants(metadata: RepairWorkoutMetadata): Record<string, string> {
