@@ -72,3 +72,15 @@ export function catalogueForWeek(catalog: RepairWorkoutMetadata[], context: Repa
 export function executableCatalogueVariants(metadata: RepairWorkoutMetadata): Record<string, string> {
  return Object.fromEntries(Object.entries(metadata.variants ?? {}).filter(([, text]) => variantRange(text) !== null));
 }
+
+/** Executable duration alternatives already accepted by checkSessionCatalogue.
+ * Operational feasibility only: no prose variant becomes a numeric waiver. */
+export function executableCatalogueDurationRanges(metadata: RepairWorkoutMetadata, objective?: string): Array<[number,number]> {
+ const ranges:Array<[number,number]>=[metadata.durationMin];
+ for(const [key,text] of Object.entries(metadata.variants??{})) {
+  if(objective && normalizeRepairGoal(key)!==normalizeRepairGoal(objective))continue;
+  const range=variantRange(text);
+  if(range)ranges.push(range);
+ }
+ return ranges;
+}

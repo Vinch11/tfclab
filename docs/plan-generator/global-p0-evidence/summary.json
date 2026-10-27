@@ -40,188 +40,548 @@
     "703": {
       "cases": 80,
       "weeks": 952,
-      "mechanicalBlockedCases": 48,
-      "catalogueShortfallCases": 10,
-      "minimumDoseWarningCases": 18,
-      "casesWithAnySignal": 60,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "mechanicalBlockedCases": 3,
+      "catalogueShortfallCases": 3,
+      "minimumDoseWarningCases": 9,
+      "casesWithAnySignal": 40,
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 16,
+          "weeks": 184,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 2,
+          "casesWithAnySignal": 8,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 16,
+          "weeks": 192,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 10,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 16,
+          "weeks": 200,
+          "mechanicalBlockedCases": 1,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 2,
+          "casesWithAnySignal": 8,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 16,
+          "weeks": 184,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 2,
+          "casesWithAnySignal": 9,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 7,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 16,
+          "weeks": 192,
+          "mechanicalBlockedCases": 2,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 2,
+          "casesWithAnySignal": 9,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 7,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 20,
           "weeks": 232,
           "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
-          "minimumDoseWarningCases": 11,
+          "minimumDoseWarningCases": 9,
           "casesWithAnySignal": 11,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 20,
           "weeks": 240,
-          "mechanicalBlockedCases": 16,
-          "catalogueShortfallCases": 3,
-          "minimumDoseWarningCases": 7,
-          "casesWithAnySignal": 17,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 2,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 8,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 20,
           "weeks": 248,
-          "mechanicalBlockedCases": 16,
-          "catalogueShortfallCases": 2,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 1,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 16,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 10,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 20,
           "weeks": 232,
-          "mechanicalBlockedCases": 16,
-          "catalogueShortfallCases": 5,
+          "mechanicalBlockedCases": 3,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 16,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 11,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
     "IM": {
       "cases": 80,
       "weeks": 1280,
-      "mechanicalBlockedCases": 48,
-      "catalogueShortfallCases": 18,
-      "minimumDoseWarningCases": 16,
-      "casesWithAnySignal": 60,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "mechanicalBlockedCases": 5,
+      "catalogueShortfallCases": 5,
+      "minimumDoseWarningCases": 8,
+      "casesWithAnySignal": 45,
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 16,
+          "weeks": 264,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 8,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 16,
+          "weeks": 248,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 2,
+          "casesWithAnySignal": 9,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 7,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 16,
+          "weeks": 256,
+          "mechanicalBlockedCases": 1,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 2,
+          "casesWithAnySignal": 9,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 7,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 16,
+          "weeks": 264,
+          "mechanicalBlockedCases": 2,
+          "catalogueShortfallCases": 1,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 9,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 7,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 16,
+          "weeks": 248,
+          "mechanicalBlockedCases": 2,
+          "catalogueShortfallCases": 2,
+          "minimumDoseWarningCases": 2,
+          "casesWithAnySignal": 10,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 6,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 20,
           "weeks": 320,
           "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
-          "minimumDoseWarningCases": 10,
-          "casesWithAnySignal": 10,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "minimumDoseWarningCases": 8,
+          "casesWithAnySignal": 13,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 20,
           "weeks": 328,
-          "mechanicalBlockedCases": 16,
-          "catalogueShortfallCases": 4,
-          "minimumDoseWarningCases": 6,
-          "casesWithAnySignal": 18,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 2,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 10,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 20,
           "weeks": 312,
-          "mechanicalBlockedCases": 16,
-          "catalogueShortfallCases": 6,
+          "mechanicalBlockedCases": 3,
+          "catalogueShortfallCases": 2,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 16,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 11,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 20,
           "weeks": 320,
-          "mechanicalBlockedCases": 16,
-          "catalogueShortfallCases": 8,
+          "mechanicalBlockedCases": 2,
+          "catalogueShortfallCases": 1,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 16,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 11,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
     "Sprint": {
       "cases": 40,
       "weeks": 270,
-      "mechanicalBlockedCases": 8,
-      "catalogueShortfallCases": 1,
-      "minimumDoseWarningCases": 2,
-      "casesWithAnySignal": 11,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "mechanicalBlockedCases": 0,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 10,
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 54,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 1,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 7,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 56,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 6,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 50,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 6,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 54,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 3,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 5,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 56,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 6,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
           "weeks": 70,
           "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
-          "minimumDoseWarningCases": 1,
-          "casesWithAnySignal": 1,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
           "weeks": 64,
-          "mechanicalBlockedCases": 1,
+          "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
-          "minimumDoseWarningCases": 1,
-          "casesWithAnySignal": 2,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 1,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
           "weeks": 66,
-          "mechanicalBlockedCases": 3,
+          "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 3,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
           "weeks": 70,
-          "mechanicalBlockedCases": 4,
-          "catalogueShortfallCases": 1,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 5,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 7,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
     "Olympic": {
       "cases": 40,
       "weeks": 396,
-      "mechanicalBlockedCases": 10,
-      "catalogueShortfallCases": 2,
-      "minimumDoseWarningCases": 9,
-      "casesWithAnySignal": 19,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "mechanicalBlockedCases": 2,
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 4,
+      "casesWithAnySignal": 23,
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 76,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 80,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 5,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 3,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 84,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 2,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 76,
+          "mechanicalBlockedCases": 1,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 1,
+          "casesWithAnySignal": 5,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 3,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 80,
+          "mechanicalBlockedCases": 1,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 3,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 5,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
           "weeks": 96,
           "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
-          "minimumDoseWarningCases": 6,
-          "casesWithAnySignal": 6,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "minimumDoseWarningCases": 4,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
           "weeks": 100,
-          "mechanicalBlockedCases": 2,
+          "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
-          "minimumDoseWarningCases": 3,
-          "casesWithAnySignal": 5,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 3,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
           "weeks": 104,
-          "mechanicalBlockedCases": 4,
-          "catalogueShortfallCases": 1,
+          "mechanicalBlockedCases": 1,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 4,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
           "weeks": 96,
-          "mechanicalBlockedCases": 4,
-          "catalogueShortfallCases": 1,
+          "mechanicalBlockedCases": 1,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 4,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 10,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -229,46 +589,136 @@
       "cases": 40,
       "weeks": 640,
       "mechanicalBlockedCases": 12,
-      "catalogueShortfallCases": 15,
+      "catalogueShortfallCases": 0,
       "minimumDoseWarningCases": 0,
       "casesWithAnySignal": 19,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 132,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 2,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 6,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 124,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 1,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 7,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 128,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 132,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 2,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 124,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 2,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
           "weeks": 160,
           "mechanicalBlockedCases": 0,
-          "catalogueShortfallCases": 2,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 2,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 3,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
           "weeks": 164,
           "mechanicalBlockedCases": 0,
-          "catalogueShortfallCases": 2,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 2,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 3,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
           "weeks": 156,
           "mechanicalBlockedCases": 6,
-          "catalogueShortfallCases": 5,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 7,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
           "weeks": 160,
           "mechanicalBlockedCases": 6,
-          "catalogueShortfallCases": 6,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 8,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 7,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -276,19 +726,109 @@
       "cases": 40,
       "weeks": 324,
       "mechanicalBlockedCases": 12,
-      "catalogueShortfallCases": 6,
-      "minimumDoseWarningCases": 2,
-      "casesWithAnySignal": 16,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "catalogueShortfallCases": 0,
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 12,
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 64,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 68,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 60,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 64,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 68,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
           "weeks": 84,
           "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
-          "minimumDoseWarningCases": 2,
-          "casesWithAnySignal": 2,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
@@ -297,25 +837,25 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
           "weeks": 80,
           "mechanicalBlockedCases": 6,
-          "catalogueShortfallCases": 3,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 7,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
           "weeks": 84,
           "mechanicalBlockedCases": 6,
-          "catalogueShortfallCases": 3,
+          "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
-          "casesWithAnySignal": 7,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "casesWithAnySignal": 6,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -326,7 +866,97 @@
       "catalogueShortfallCases": 0,
       "minimumDoseWarningCases": 0,
       "casesWithAnySignal": 12,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 50,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 54,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 56,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 50,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 54,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
@@ -335,7 +965,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
@@ -344,7 +974,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
@@ -353,7 +983,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 6,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
@@ -362,7 +992,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 6,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -371,18 +1001,108 @@
       "weeks": 400,
       "mechanicalBlockedCases": 12,
       "catalogueShortfallCases": 0,
-      "minimumDoseWarningCases": 1,
-      "casesWithAnySignal": 13,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "minimumDoseWarningCases": 0,
+      "casesWithAnySignal": 12,
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 84,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 76,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 8,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 80,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 84,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 76,
+          "mechanicalBlockedCases": 4,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 4,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 4,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
           "weeks": 100,
           "mechanicalBlockedCases": 0,
           "catalogueShortfallCases": 0,
-          "minimumDoseWarningCases": 1,
-          "casesWithAnySignal": 1,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
@@ -391,7 +1111,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
@@ -400,7 +1120,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 6,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
@@ -409,7 +1129,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 6,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -420,7 +1140,97 @@
       "catalogueShortfallCases": 0,
       "minimumDoseWarningCases": 0,
       "casesWithAnySignal": 0,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "existing_static_generator_12_weeks",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "existing_static_generator_12_weeks",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "existing_static_generator_12_weeks",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "existing_static_generator_12_weeks",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 0,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "existing_static_generator_12_weeks",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
@@ -429,7 +1239,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
@@ -438,7 +1248,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
@@ -447,7 +1257,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
@@ -456,7 +1266,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -467,7 +1277,97 @@
       "catalogueShortfallCases": 0,
       "minimumDoseWarningCases": 0,
       "casesWithAnySignal": 0,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 60,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 64,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 68,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 60,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 64,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
@@ -476,7 +1376,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
@@ -485,7 +1385,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
@@ -494,7 +1394,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
@@ -503,7 +1403,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -514,7 +1414,97 @@
       "catalogueShortfallCases": 0,
       "minimumDoseWarningCases": 0,
       "casesWithAnySignal": 0,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 68,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 60,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 64,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 68,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 60,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
@@ -523,7 +1513,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
@@ -532,7 +1522,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
@@ -541,7 +1531,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
@@ -550,7 +1540,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -561,7 +1551,97 @@
       "catalogueShortfallCases": 0,
       "minimumDoseWarningCases": 0,
       "casesWithAnySignal": 0,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 112,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 116,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 108,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 112,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 116,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
@@ -570,7 +1650,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
@@ -579,7 +1659,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
@@ -588,7 +1668,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
@@ -597,7 +1677,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     },
@@ -608,7 +1688,97 @@
       "catalogueShortfallCases": 0,
       "minimumDoseWarningCases": 0,
       "casesWithAnySignal": 0,
-      "verdict": "NO-GO global generation / safety / scientific attestation",
+      "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+      "ambitions": {
+        "finisher": {
+          "cases": 8,
+          "weeks": 156,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "age_group": {
+          "cases": 8,
+          "weeks": 160,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "competitor": {
+          "cases": 8,
+          "weeks": 164,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "competitor"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "elite": {
+          "cases": 8,
+          "weeks": 156,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        },
+        "world_class": {
+          "cases": 8,
+          "weeks": 160,
+          "mechanicalBlockedCases": 0,
+          "catalogueShortfallCases": 0,
+          "minimumDoseWarningCases": 0,
+          "casesWithAnySignal": 0,
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration",
+          "effectiveAmbitions": [
+            "finisher",
+            "age_group",
+            "elite",
+            "world_class"
+          ],
+          "technicalGoCases": 0,
+          "constructionEvidence": "matching_complete_model_outputs_not_attested_for_these_configurations",
+          "deterministicSportsValidation": "see_existing_corpus_replay_and_negative_controls",
+          "scientificHumanReview": "required"
+        }
+      },
       "levels": {
         "untrained": {
           "cases": 10,
@@ -617,7 +1787,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "light": {
           "cases": 10,
@@ -626,7 +1796,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "trained": {
           "cases": 10,
@@ -635,7 +1805,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         },
         "highly_trained": {
           "cases": 10,
@@ -644,7 +1814,7 @@
           "catalogueShortfallCases": 0,
           "minimumDoseWarningCases": 0,
           "casesWithAnySignal": 0,
-          "verdict": "NO-GO global generation / safety / scientific attestation"
+          "verdict": "NO-GO for automatic sporting approval; technical readiness is scoped per configuration"
         }
       }
     }

@@ -1,3 +1,4 @@
+import { declaredRaceSlotsForWeek } from "../../supabase/functions/_shared/catalogueTrainingMinima";
 import { planningFeasibility } from "@/lib/plan/planningFeasibility";
 import { extractCatalogIdsFromDump } from "../../supabase/functions/_shared/catalogueIds";
 import { buildPeriodizationCalendar } from "@/lib/plan/periodizationCalendar";
@@ -832,7 +833,11 @@ export function useAITrainingPlan() {
       const phaseCalendar = buildPeriodizationCalendar(planConfig);
       const phaseOptions = (start: number, end: number) => {
         const phases = [...new Set(Array.from({ length: end - start + 1 }, (_, i) => phaseCalendar?.[start + i - weekOffset]).filter(Boolean))] as PhaseTag[];
-        return phases.length ? { phaseOverride: phases } : {};
+        const weekContexts = Array.from({ length: end - start + 1 }, (_, i) => ({
+          phase: isRegenGapWeek(start + i - weekOffset) ? "base" : phaseCalendar?.[start + i - weekOffset], objective: planConfig.catalogObjective || planConfig.objective,
+          weekType: isRegenGapWeek(start + i - weekOffset) ? "recovery" : inferWeekType(start + i, effTotalWeeks, planConfig.catalogObjective || planConfig.objective, athleteData.age, planConfig.deloadCadenceWeeks),
+        }));
+        return phases.length ? { phaseOverride: phases, weekContexts } : { weekContexts };
       };
       // Build phase-specific workout catalogs for AI injection (fallback for non-chunked plans)
       const phaseCatalogs: Record<string, string> = {};
@@ -1254,6 +1259,7 @@ export function useAITrainingPlan() {
             .map(m => normalizeRepairSport(m.sport) as LayoutSport));
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
             availableSports,
+            raceEvents: declaredRaceSlotsForWeek(planConfig,w),
             dayBans: rulesForQuota.dayBans,
             finalStageSport: isLCWFormat ? "run" : undefined,
           });

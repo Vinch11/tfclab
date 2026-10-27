@@ -468,6 +468,26 @@ export function computeWeeklySessionQuota(
       const s2rTotal = quota.run.min + quota.strength.min; // swim/bike/brick toujours 0 en S2R
       quota = { ...quota, totalSessions: { min: s2rTotal, max: s2rTotal } };
     }
+    // Un plafond d'assimilation ne peut imposer simultanément des minima
+    // supérieurs à sa capacité. Réutiliser l'allocation existante, sans seconde
+    // modulation ×0.7, sans augmenter le total, sans relâcher les floors.
+    const minimum = quota.swim.min + quota.bike.min + quota.run.min + quota.brick.min + quota.strength.min;
+    if (minimum > quota.totalSessions.max) {
+      const cardioTarget = quota.totalSessions.max - quota.strength.min;
+      const essential = (localFloors.minSwimPerWeek ?? 0)
+        + (localFloors.longRideWeekly ? 1 : 0) + (localFloors.longRunWeekly ? 1 : 0) + quota.brick.min;
+      if (cardioTarget >= essential) {
+        const allocated = applySessionsPerWeekTarget({ quota, floors: localFloors }, cardioTarget, "load", quota.brick.min);
+        const sports = ["swim", "bike", "run", "brick"] as const;
+        if (sports.every(sport => allocated.quota[sport].max <= quota[sport].max)) {
+          quota = { ...allocated.quota,
+            maxSessionsPerDay: quota.maxSessionsPerDay,
+            minFullRestDays: quota.minFullRestDays,
+            source: { ...quota.source, ref: `${quota.source.ref} — allocation existante sous plafond d'assimilation, floors conservés` },
+          };
+        }
+      }
+    }
     // Recovery : SL maintenues mais durée plancher × 0.7 (arrondi 5min)
     const round5 = (v: number) => Math.round((v * 0.7) / 5) * 5;
     if (typeof localFloors.slLongRideMin === "number") localFloors.slLongRideMin = round5(localFloors.slLongRideMin);
@@ -708,6 +728,7 @@ export function applySessionsPerWeekTarget(
   input: { quota: WeeklyQuota; floors: SizingFloors },
   targetCardioPerWeek: number,
   weekType: WeekType,
+  protectedBrickMinimum = 0,
 ): { quota: WeeklyQuota; floors: SizingFloors } {
   const target0 = Math.round(targetCardioPerWeek);
   if (!Number.isFinite(target0) || target0 <= 0) return input;
@@ -738,7 +759,7 @@ export function applySessionsPerWeekTarget(
     swim: allowed.swim ? Math.min(floors.minSwimPerWeek ?? 0, quota.swim.max) : 0,
     bike: allowed.bike && floors.longRideWeekly ? 1 : 0,
     run: allowed.run && floors.longRunWeekly ? 1 : 0,
-    brick: 0,
+    brick: allowed.brick ? Math.min(protectedBrickMinimum, quota.brick.max) : 0,
   };
   const relaxOrder: CardioSport[] = ["brick", "swim", "bike"];
   let sumMins = sports.reduce((a, s) => a + mins[s], 0);
@@ -963,7 +984,7 @@ export function computeWeekQuotaEntry(
 // JAMAIS un historique fabriqué. `volumeRamp` rampait déjà le VOLUME HEBDO
 // TOTAL (prompt uniquement, best-effort) ; cette fonction étend LA MÊME rampe
 // (mêmes ancres, aucune nouvelle valeur inventée) à la durée de sortie
-// longue, pour les semaines "load" uniquement (recovery/taper/race restent
+// longue, pour les semaines "load" et "recovery" (taper/race restent
 // modulées comme avant par `floorsFor`, jamais re-modulées ici) — et la rend
 // DÉTERMINISTE (pas seulement une instruction prompt), puisqu'elle s'applique
 // à la source unique lue par l'enforcement/la validation.
@@ -1100,7 +1121,7 @@ export function applySlFloorIndividualization(
   ramp: SlFloorRampAnchors | null | undefined,
   injuryRisk?: { bike?: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" | null; run?: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" | null } | null,
 ): SlFloorIndividualizationResult {
-  if (weekType !== "load") {
+  if (weekType !== "load" && weekType !== "recovery") {
     return { floors, appliedPct: { bike: 1, run: 1 }, reasons: [] };
   }
 

@@ -1,3 +1,4 @@
+import { declaredRaceSlotsForWeek } from "../../supabase/functions/_shared/catalogueTrainingMinima";
 import { planningFeasibility } from "@/lib/plan/planningFeasibility";
 import type { PhaseTag } from "@/types/workoutLibrary";
 import { buildPeriodizationCalendar } from "@/lib/plan/periodizationCalendar";
@@ -360,7 +361,7 @@ async function buildRegenCatalog(
       strictPhaseFilter: true,
       ...(() => { const calendar = buildPeriodizationCalendar(cfg);
         const phases = [...new Set(Array.from({ length: endWeek - startWeek + 1 }, (_, i) => calendar?.[startWeek + i]).filter(Boolean))] as PhaseTag[];
-        return phases.length ? { phaseOverride: phases } : {}; })(),
+        return phases.length ? { phaseOverride: phases, weekContexts: Array.from({length:endWeek-startWeek+1},(_,i)=>({phase:calendar?.[startWeek+i],objective:cfg.objective,})) } : {}; })(),
       maxItems: 80,
       chunkIndex: 0,
       excludeIds: new Set(currentWeekCatalogIds),
@@ -429,8 +430,11 @@ async function buildRegenPhaseCatalogs(
       weeksAvailable,
       {
         maxItems: 80,
+        strictPhaseFilter: true,
+        phaseOverride: [pr.phase as PhaseTag],
+        weekContexts: [{phase:pr.phase,objective:cfg.catalogObjective||cfg.objective}],
         chunkIndex: 0,
-        excludeIds: usedIds,
+        rotationIds: usedIds,
         limiters: limiterKeys,
         prohibitions: cfg.prohibitions,
         sportFilter: catalogSportFilter,
@@ -2882,7 +2886,7 @@ export default function AITrainingPlanPage() {
       : null;
     const regenQuotaTransport = buildWeekQuotaTransport(weekNumber, regenQuotaEntry, isLCWPlan,
       new Set(catalogueForWeek(catalogResult.repairCatalog, { phase: regenQuotaEntry?.phase, objective: fullPlanConfig.objective, weekType: regenWeekType }).eligible
-        .map(m => normalizeRepairSport(m.sport) as import("@/engines/plan/weeklySlotLayout").LayoutSport)), regenConstraintRules.dayBans);
+        .map(m => normalizeRepairSport(m.sport) as import("@/engines/plan/weeklySlotLayout").LayoutSport)), regenConstraintRules.dayBans, declaredRaceSlotsForWeek(fullPlanConfig,weekNumber));
     const regenLayout = regenQuotaTransport._weeklyQuotas[weekNumber]?.layout;
     const regenConflicts = regenQuotaEntry && regenLayout ? planningFeasibility(regenQuotaEntry.quota, regenLayout) : [];
     if (regenConflicts.length) {

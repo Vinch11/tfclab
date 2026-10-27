@@ -1,17 +1,18 @@
 import type { WeeklyQuota } from '@/engines/plan/sessionSizingMatrix';
 import type { WeeklySlotLayout } from '@/engines/plan/weeklySlotLayout';
-import { effectiveSessionQuota } from '../../../supabase/functions/_shared/sessionQuotaAccounting';
+import { effectiveSessionQuota, hasWeeklyCalendarCapacity } from '../../../supabase/functions/_shared/sessionQuotaAccounting';
 
 /** Mechanical feasibility only. Never changes a frequency, volume or recovery rule. */
 export function planningFeasibility(quota: WeeklyQuota, layout: WeeklySlotLayout): string[] {
  const issues:string[]=[];
  const slots=layout.days.flatMap(d=>d.slots);
+ for(const event of layout.requiredEvents??[]) if(!layout.days.some(d=>d.dayName===event.dayName&&d.slots.some(s=>s.isRaceEvent&&s.sport===event.sport))) issues.push('declared_event_unplaced');
  const bricks=slots.filter(s=>s.sport==='brick').length;
  const effective=effectiveSessionQuota(quota,bricks);
  const minimum=quota.swim.min+effective.bike.min+quota.run.min+quota.brick.min+quota.strength.min;
  if(minimum>effective.totalSessions.max) issues.push('minimum_sessions_exceed_total_max');
  const capacity=(7-Math.max(quota.minFullRestDays,layout.days.filter(d=>d.isRest).length))*quota.maxSessionsPerDay;
- if(minimum>capacity) issues.push('minimum_sessions_exceed_available_capacity');
+ if(Math.max(minimum,effective.totalSessions.min)>capacity || !hasWeeklyCalendarCapacity(quota,layout.days.filter(d=>!d.isRest).length)) issues.push('minimum_sessions_exceed_available_capacity');
  for(const sport of ['swim','bike','run','brick','strength'] as const){
   const min=sport==='bike'?effective.bike.min:quota[sport].min;
   const count=slots.filter(s=>s.sport===sport).length;

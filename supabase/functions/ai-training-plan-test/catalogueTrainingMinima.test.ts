@@ -19,11 +19,11 @@ Deno.test("no inferred race, no duplicate subtraction, no invalid date or cross-
 });
 
 for (const [objective,sport] of [["5K","run"],["10K","run"],["Semi-Marathon","run"],["Marathon","run"],["Trail montagne","run"],["Trail ultra","run"],["703","brick"],["IM","brick"]] as const) {
- Deno.test(`official ${objective}: coverage reserves its event sport ${sport}, without changing other quotas`,()=>{
+ Deno.test(`official ${objective}: coverage reserves its event sport ${sport}, while accounting separately for mandatory brick coverage`,()=>{
   const minima={run:{min:4},bike:{min:3},swim:{min:3},brick:{min:1},totalSessions:{min:10}};
   const result=catalogueTrainingMinimaForWeek(minima,{...cfg,objective,raceGoals:[{objective,raceDate:"2027-01-17"}]},12);
   assertEquals(result[sport].min,minima[sport].min-1);
-  for(const other of ["run","bike","swim","brick","totalSessions"] as const) if(other!==sport) assertEquals(result[other],minima[other]);
+  for(const other of ["run","bike","swim","brick","totalSessions"] as const) if(other!==sport) assertEquals(result[other],other==="bike"?{min:2}:minima[other]);
   assertEquals(minima.run.min,4);
  });
 }

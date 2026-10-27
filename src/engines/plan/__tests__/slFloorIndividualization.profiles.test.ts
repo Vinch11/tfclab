@@ -97,14 +97,14 @@ describe("Profil A — Triathlète confirmé, 70.3, 33 semaines (1 objectif inte
     expect(relativeIncrease).toBeGreaterThan(0);
   });
 
-  it("[TEST OBLIGATOIRE] semaine de décharge (recovery) : individualisation SL sans effet — le ×0.7 existant de floorsFor reste la seule modulation (pas de double-réduction)", () => {
+  it("[TEST OBLIGATOIRE] semaine de décharge (recovery) : la rampe reste appliquée au plancher déjà réduit de ×0.7, sans retour au nominal", () => {
     const entry = computeWeekQuotaEntry("IRONMAN 70.3", "age_group", 10, "recovery", false);
     expect(entry).not.toBeNull();
     const recoveryFloor = entry!.floors.slLongRideMin; // déjà modulé ×0.7 par floorsFor en amont
     const result = applySlFloorIndividualization(entry!.floors, 1, "recovery", RAMP_TRAINED, null);
-    expect(result.floors.slLongRideMin).toBe(recoveryFloor);
-    expect(result.appliedPct).toEqual({ bike: 1, run: 1 });
-    expect(result.reasons).toEqual([]);
+    expect(result.floors.slLongRideMin).toBe(Math.round(recoveryFloor! * RAMP_TRAINED.week1PctTarget / 5) * 5);
+    expect(result.appliedPct).toEqual({ bike: .8, run: .8 });
+    expect(result.reasons.length).toBeGreaterThan(0);
   });
 });
 

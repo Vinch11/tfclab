@@ -1,0 +1,17 @@
+{
+  "sameInputCaseIds": true,
+  "beforeCommit": "507a06c0ddbd817c101dafc44f2caf33cdcd3cc8",
+  "before": {
+    "quotaContradictions": 160,
+    "mechanicalBlockedCases": 162,
+    "catalogueSportShortfallWeekCounts": 111
+  },
+  "after": {
+    "quotaContradictions": 0,
+    "mechanicalBlockedCases": 58,
+    "catalogueSportShortfallWeekCounts": 11,
+    "doseWarningWeekCounts": 64,
+    "roleDurationGapCounts": 310
+  },
+  "qualification": "Dose/role coverage measurement changed and new event reservations were added; not a comparison of generated sporting plan quality."
+}

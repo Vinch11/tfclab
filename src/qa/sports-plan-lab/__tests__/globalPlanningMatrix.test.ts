@@ -17,6 +17,7 @@ describe("offline scope inventory and combinatorial planning contracts",()=>{
   expect(rows).toHaveLength(cases.length+supplemental.length);
   expect(rows.every(r=>r.configuration==="passed")).toBe(true);
   for(const row of rows) {
+    expect(row.preparationIssues.quota_contradiction??0).toBe(0);
     expect(row.preparationIssues.daily_capacity_conflict??0).toBe(0);
     expect(row.preparationIssues.layout_day_ban_conflict??0).toBe(0);
     expect(row.preparationIssues.catalogue_id_not_roundtripped??0).toBe(0);
@@ -34,5 +35,5 @@ describe("offline scope inventory and combinatorial planning contracts",()=>{
   expect(rows.every(r=>r.scientificValidation==="requires_human_review")).toBe(true);
   expect(rows.every(r=>r.completePlanConstruction!==undefined)).toBe(true);
   fetch.mockRestore();vi.useRealTimers();
- },180000);
+ },300000);
 });

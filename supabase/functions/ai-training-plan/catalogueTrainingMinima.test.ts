@@ -1,5 +1,5 @@
 import { assertEquals, assertStrictEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { catalogueTrainingMinimaForWeek } from "../_shared/catalogueTrainingMinima.ts";
+import { catalogueTrainingMinimaForWeek, declaredRaceSlotsForWeek } from "../_shared/catalogueTrainingMinima.ts";
 const q={run:{min:4,max:4},strength:{min:0,max:1},totalSessions:{min:4,max:5}};
 const cfg={objective:"10K",planStartDate:"2026-10-26",raceGoals:[{objective:"10K",raceDate:"2027-01-17"},{objective:"10K",raceDate:"2026-12-19"}]};
 Deno.test("coverage excludes only the declared custom event, final quotas remain intact",()=>{
@@ -19,11 +19,11 @@ Deno.test("no inferred race, no duplicate subtraction, no invalid date or cross-
 });
 
 for (const [objective,sport] of [["5K","run"],["10K","run"],["Semi-Marathon","run"],["Marathon","run"],["Trail montagne","run"],["Trail ultra","run"],["703","brick"],["IM","brick"]] as const) {
- Deno.test(`official ${objective}: coverage reserves its event sport ${sport}, without changing other quotas`,()=>{
+ Deno.test(`official ${objective}: coverage reserves its event sport ${sport}, while accounting separately for mandatory brick coverage`,()=>{
   const minima={run:{min:4},bike:{min:3},swim:{min:3},brick:{min:1},totalSessions:{min:10}};
   const result=catalogueTrainingMinimaForWeek(minima,{...cfg,objective,raceGoals:[{objective,raceDate:"2027-01-17"}]},12);
   assertEquals(result[sport].min,minima[sport].min-1);
-  for(const other of ["run","bike","swim","brick","totalSessions"] as const) if(other!==sport) assertEquals(result[other],minima[other]);
+  for(const other of ["run","bike","swim","brick","totalSessions"] as const) if(other!==sport) assertEquals(result[other],other==="bike"?{min:2}:minima[other]);
   assertEquals(minima.run.min,4);
  });
 }
@@ -31,4 +31,18 @@ Deno.test("LCW multi-day and unrecognized goals do not receive an inferred one-e
  assertStrictEquals(catalogueTrainingMinimaForWeek(q,{...cfg,raceGoals:[{objective:"IM",raceDate:"2027-01-17",raceFormat:"lcw_3day"}]},12),q);
  assertStrictEquals(catalogueTrainingMinimaForWeek(q,{...cfg,raceFormat:"lcw_3day"},12),q);
  assertStrictEquals(catalogueTrainingMinimaForWeek(q,{...cfg,raceGoals:[{objective:"Unknown",raceDate:"2027-01-17"}]},12),q);
+});
+
+Deno.test("declared calendar slots preserve event day and global position without inferring a simulation or LCW",()=>{
+ assertEquals(declaredRaceSlotsForWeek(cfg,12),[{dayName:"dimanche",sport:"run"}]);
+ assertEquals(declaredRaceSlotsForWeek(cfg,8),[{dayName:"samedi",sport:"run"}]);
+ assertEquals(declaredRaceSlotsForWeek({...cfg,globalWeekOffset:8},4),[{dayName:"dimanche",sport:"run"}]);
+ assertEquals(declaredRaceSlotsForWeek({...cfg,raceGoals:[{objective:"703",raceDate:"2027-01-17"}]},12),[{dayName:"dimanche",sport:"brick"}]);
+ assertEquals(declaredRaceSlotsForWeek({...cfg,raceFormat:"lcw_3day"},12),[]);
+ assertEquals(declaredRaceSlotsForWeek({...cfg,planStartDate:undefined},12),[]);
+});
+
+Deno.test("single-objective scalar raceDate is declared evidence too, without inventing a missing date",()=>{
+ assertEquals(declaredRaceSlotsForWeek({objective:"10K",planStartDate:cfg.planStartDate,raceDate:"2027-01-17"},12),[{dayName:"dimanche",sport:"run"}]);
+ assertEquals(declaredRaceSlotsForWeek({objective:"10K",planStartDate:cfg.planStartDate},12),[]);
 });

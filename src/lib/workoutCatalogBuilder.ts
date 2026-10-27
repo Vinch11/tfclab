@@ -1,3 +1,4 @@
+import { catalogueEligibility, executableCatalogueDurationRanges } from "../../supabase/functions/_shared/sessionCatalogueContract";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * WORKOUT CATALOG BUILDER
@@ -557,6 +558,24 @@ function pickVariant(w: LibraryWorkout, goals: WorkoutGoal[]): string | undefine
  * v2: Increased capacity (60 items), diversity slots for V5/V6,
  * relaxed caps, and guaranteed minimum per sport.
  */
+/** Minimal interval-union cover of already admissible cards. Preserve every
+ * available duration without widening a card or requiring every recipe. */
+export function retainCatalogueDurationCoverage<T extends { durationMin: readonly [number,number] }>(entries: readonly T[]): T[] {
+  const sorted=[...entries].sort((a,b)=>a.durationMin[0]-b.durationMin[0] || b.durationMin[1]-a.durationMin[1]);
+  const selected:T[]=[];
+  let i=0,end=-Infinity;
+  while(i<sorted.length){
+    if(sorted[i].durationMin[0]>end){selected.push(sorted[i]);end=sorted[i++].durationMin[1];}
+    let best:T|undefined;
+    while(i<sorted.length && sorted[i].durationMin[0]<=end){
+      if(sorted[i].durationMin[1]>end && (!best||sorted[i].durationMin[1]>best.durationMin[1]))best=sorted[i];
+      i++;
+    }
+    if(best){selected.push(best);end=best.durationMin[1];}
+  }
+  return selected;
+}
+
 export function buildWorkoutCatalog(
   objective: string,
   weekStart: number,
@@ -647,6 +666,7 @@ export function buildWorkoutCatalog(
      * `strictPhaseFilter: true` conserve le hard-exclude même sous le floor.
      */
     strictPhaseFilter?: boolean;
+    weekContexts?: Array<{ phase?: string; weekType?: string; objective?: string }>;
     /** Prior offers are a diversity preference, never a sporting exclusion. */
     rotationIds?: ReadonlySet<string>;
     /**
@@ -1594,6 +1614,25 @@ export function buildWorkoutCatalog(
   // Attribution finale : toute fiche présente dans `selected` est "selected"
   // (recouvre les insertions tardives des Pass 4/5 backfill).
   for (const w of selected) recordAttribution(w.id, chunkIdx, "selected");
+
+  // The chunk cap must retain the SAME coverage floor in each actual weekly
+  // contract, not only in the union of its phases. Only already hard-filtered
+  // and scored candidates participate; no phase/intensity metadata is widened.
+  const contexts = [...new Map((options?.weekContexts ?? []).map(c => [JSON.stringify(c), c])).values()];
+  for (const context of contexts) {
+    const weeklyGroups = new Map<string, LibraryWorkout[]>();
+    for (const { workout, score } of scored) {
+      if (score <= -1000 || catalogueEligibility(buildRepairWorkoutMetadata(workout), context).length) continue;
+      const key = `${workout.sport}:${intentFamilyOf(workout)}`;
+      weeklyGroups.set(key, [...(weeklyGroups.get(key) ?? []), workout]);
+    }
+    for (const group of weeklyGroups.values()) for (const workout of [
+      ...group.slice(0, SOCLE_BASE),
+      ...retainCatalogueDurationCoverage(group.flatMap(workout=>executableCatalogueDurationRanges(buildRepairWorkoutMetadata(workout),context.objective).map(durationMin=>({workout,durationMin})))).map(entry=>entry.workout),
+    ]) {
+      if (!selectedIds.has(workout.id)) { selected.push(workout); selectedIds.add(workout.id); recordAttribution(workout.id, chunkIdx, "selected"); }
+    }
+  }
 
   // Convert to compact entries
 
