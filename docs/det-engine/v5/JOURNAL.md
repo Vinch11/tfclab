@@ -13,7 +13,7 @@ Budget absolu : 60 minutes ; dix unités maximum, trois tentatives par unité. L
 | global | 3 | passed | docs/det-engine/v5/evidence/global-3.txt |
 | reference | 1 | passed | docs/det-engine/v5/evidence/reference-1.txt |
 | validation | 2 | passed | docs/det-engine/v5/evidence/validation-2.txt |
-| publication | 1 | running | réservation externe ; reçu GitHub attendu |
+| publication | 1 | passed | publication-proof.json |
 
 Résultats des cycles :
 
@@ -29,3 +29,5 @@ Résultats des cycles :
 - Une proposition de changement des indicateurs de séance clé a été rejetée par l’approbation automatique et abandonnée ; les avertissements restent conservés.
 
 Les variantes rejetées et échecs ordinaires ne sont pas effacés. Les premières sorties intermédiaires ne disposent pas toutes d’un commit source dédié ; leurs commandes/sorties sont conservées. La baseline immuable et les modules finaux versionnés, les matrices finales et leurs rejeux constituent la preuve reproductible de référence.
+
+Clôture : dix unités terminées en 44.11 minutes de budget conservateur. Arrêt à la limite des dix unités ; aucun cycle supplémentaire. PR brouillon vérifiée, NO-GO maintenu.

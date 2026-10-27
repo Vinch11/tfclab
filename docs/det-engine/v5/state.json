@@ -6,7 +6,7 @@
   "deadline": 1793144500,
   "maxUnits": 10,
   "maxAttemptsPerUnit": 3,
-  "status": "running",
+  "status": "completed_no_go",
   "units": [
     {
       "id": "audit",
@@ -389,23 +389,22 @@
     },
     {
       "id": "publication",
-      "status": "running",
+      "status": "passed",
       "attempts": [
         {
           "startedAt": 1793143392994,
           "command": [
             "manual: authorized GitHub draft PR publication and verification"
           ],
-          "status": "running"
+          "status": "passed",
+          "completedAt": 1793143546865,
+          "receipt": "publication-proof.json",
+          "checkpointCommit": "966d2fbbfd9b62756c2fc5a145c3c2feaddd5f2a"
         }
       ]
     }
   ],
-  "activeUnit": {
-    "id": "publication",
-    "startedAt": 1793143392994,
-    "mode": "external_manual_receipt"
-  },
+  "activeUnit": null,
   "immutableV4ManifestSha256": "01b80c01bf4b5ce1704a087c61a59960ef086b18532f429b8a6f9c1872989903",
   "note": "Start conservatively includes initial audit minutes; no V4 registry reset",
   "incidents": [
@@ -419,5 +418,10 @@
       "resolution": "reconnected_and_verified_all_recorded_exit_codes_before_continuing",
       "historicalExitCode": 0
     }
-  ]
+  ],
+  "stopReason": "ten_named_work_units_completed",
+  "completedAt": 1793143546865,
+  "elapsedMinutesAtClosure": 44.11442059675853,
+  "autoRestart": false,
+  "paidApiCalls": 0
 }

@@ -1,10 +1,10 @@
 {
   "docs/det-engine/v5/ARCHITECTURE.md": "971da169fa1efbe3aa2d72832e799bda78582b1909e5c6a10085b6a75ce8fb8d",
   "docs/det-engine/v5/HYPOTHESES_ET_LIMITES.md": "c63d65cdef5672ba126009ba448ef206e7f1aaeb5cbd0503892793d1f12f33e3",
-  "docs/det-engine/v5/JOURNAL.md": "fc3824e89d92c20657f62ce865f2ddd2981c8a3f6b032a277c2f820d45541df5",
+  "docs/det-engine/v5/JOURNAL.md": "90132d02ee6458875bec21bac134f4f540ee5e739f67de42676dff908132e003",
   "docs/det-engine/v5/README.md": "fd9700be69c7bc93aea342b8bbe5c794581e354c0784ab7e8c3220bbb881dbd7",
   "docs/det-engine/v5/REGRESSIONS.md": "ceaf26d8619a57dbaec0307c4f160fd762f3acc1c8d903f94c0ce7ecf98b2420",
-  "docs/det-engine/v5/REPRISE.md": "31049ff858af9c758ea78bd6b013a60a4117720c7eed9a402cfb74c05e55f418",
+  "docs/det-engine/v5/REPRISE.md": "157e01cf1cf54060a7cc294f2e7108a8427cc59d1df10f8ea013199759636cbc",
   "docs/det-engine/v5/RESULTATS.md": "4518c983645dd8cf4f5a97c23cabfa7a106aa7946afa0c47b08255c5a4e01749",
   "docs/det-engine/v5/baseline-preservation.json": "ae061306867e314b58af1d1a0a134d3f9b7f4b4e5a20f8c68dcb19a85cc59d05",
   "docs/det-engine/v5/dashboard.json": "23f6ecc4a73ef895924f88bc1ab6d75c79550bc90894874d45627223bd25b849",
@@ -78,5 +78,6 @@
   "docs/det-engine/v5/plans/trail-court.md": "59a74b45470c05d0249c74343a01295d3d3103811133bc4de442b199238060ec",
   "docs/det-engine/v5/plans/trail-montagne.md": "d92dd36575fe7e70180065b28c80ee421d662cab3576a3b1595962bd29f1a063",
   "docs/det-engine/v5/provenance.json": "218686264ceac52fe260453d4d764fb9ebc00a79c66672d204fc76f648af41fb",
-  "docs/det-engine/v5/state.json": "b905f59a9a3503f8c32e0d3c2cb8808d52703757a690a6fb5e966688b8043d06"
+  "docs/det-engine/v5/publication-proof.json": "5abc287a60120c839ebb76254e902c8abdac77ccc9824a4be28b5390685dd7ff",
+  "docs/det-engine/v5/state.json": "d267856c2a792bd9ab879ba67e372b560a09f1f6a11244901cedfbaa948138cd"
 }

@@ -11,3 +11,5 @@ Une session ultérieure requiert son autorisation et son registre propres. Aucun
 Les artefacts historiques restent dans V3/V4 ; les calendriers synthétiques, candidats bruts et propositions rejetées sont séparés sous `evidence/`. Les jeux de tests n'utilisent aucune donnée personnelle réelle.
 
 La publication GitHub est une unité externe manuelle, réservée dans le même registre, avec preuve de branche, commits, statut brouillon et absence de fusion. Elle ne lance ni workflow de production ni déploiement.
+
+V5 est clos : dix unités terminées. Une reprise corrective exige une nouvelle autorisation et un nouveau registre ; le contrôleur refuse une mission déjà close. Le dernier commit de clôture ne modifie que la documentation et les preuves.
