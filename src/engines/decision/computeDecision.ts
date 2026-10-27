@@ -26,7 +26,7 @@ import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 // Sub-engines (unchanged — they remain the computation core)
 import { computeLorangStrategy, type LorangStrategyResult, type LorangStrategyInput } from "@/lib/v2/lorangStrategyEngine";
-import { computeTFCLDecisionMatrix, type TFCLDecisionResult, type TFCLDecisionInput, type DataWithSource } from "@/lib/v2/tfclDecisionMatrix";
+import { computeTFCLDecisionMatrix, resolveTFCLMatrixObjective, type TFCLDecisionResult, type TFCLDecisionInput, type DataWithSource } from "@/lib/v2/tfclDecisionMatrix";
 import { computeWorkoutRecommendations, type RecommendationContext } from "@/lib/workoutRecommendationEngine";
 import { generateWorkoutAdvisories, type AdvisoryContext } from "@/lib/workoutAdvisoryEngine";
 import { computeStrategicRoadmap, type StrategicRoadmap } from "@/lib/v2/strategicRoadmap";
@@ -193,11 +193,13 @@ function computeStrategyFromDiagnostic(
     } : undefined,
   };
 
+  const calculationIssues: NonNullable<StrategyPrescription["calculationIssues"]> = [];
   let lorangResult: LorangStrategyResult | null = null;
   try {
     lorangResult = computeLorangStrategy(lorangInput);
   } catch {
-    // Fallback si le moteur Lorang échoue
+    calculationIssues.push("lorang_strategy_failed");
+    // Keep diagnostic context, but expose the failure to the prevalidation gate.
   }
 
   // Bridge diagnostic → TFCLDecisionMatrix (uses raw data for full fidelity)
@@ -220,14 +222,20 @@ function computeStrategyFromDiagnostic(
     ambition: diag.ambition,
     age: raw.age,
   };
-  try {
-    matrixResult = computeTFCLDecisionMatrix(matrixInput);
-  } catch {
-    // Fallback
+  if (!resolveTFCLMatrixObjective(diag.objectif)) {
+    // No dedicated matrix: retain the unified limiter, uncertainty and Lorang rules.
+    calculationIssues.push("decision_matrix_not_supported");
+  } else {
+    try {
+      matrixResult = computeTFCLDecisionMatrix(matrixInput);
+    } catch {
+      calculationIssues.push("decision_matrix_failed");
+    }
   }
 
   // Merge results into unified StrategyPrescription
   return {
+    calculationIssues,
     primaryAction: lorangResult?.summary.mainAction ?? matrixResult?.diagnosisShort ?? diag.synthesis.headline,
     whyThis: lorangResult?.summary.whyThis ?? matrixResult?.diagnosisFull ?? "",
     whyNotOthers: lorangResult?.summary.whyNotOthers ?? "",

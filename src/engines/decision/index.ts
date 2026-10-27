@@ -60,6 +60,7 @@ export type {
 // TFCL Decision Matrix
 export {
   computeTFCLDecisionMatrix,
+  resolveTFCLMatrixObjective,
   getDecisionCaseColor,
   getMetricStatusColor,
   getMetricStatusBadgeClass,

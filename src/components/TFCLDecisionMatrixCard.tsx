@@ -40,6 +40,7 @@ import {
 import { useState } from "react";
 import {
   computeTFCLDecisionMatrix,
+  resolveTFCLMatrixObjective,
   getDecisionCaseColor,
   getMetricStatusColor,
   getMetricStatusBadgeClass,
@@ -175,6 +176,9 @@ export function TFCLDecisionMatrixCard({
   const [isDomainsOpen, setIsDomainsOpen] = useState(false);
   const [isNarrativeOpen, setIsNarrativeOpen] = useState(false);
   
+  if (!resolveTFCLMatrixObjective(input.objective)) {
+    return <p role="status">Matrice décisionnelle complémentaire non disponible pour cet objectif. Le classement unifié des limiteurs reste à consulter.</p>;
+  }
   const result = computeTFCLDecisionMatrix(input);
   const caseColors = getCaseColorClasses(result.decisionCase);
   
@@ -534,6 +538,9 @@ function DomainRow({ domain }: { domain: TFCLDomainAnalysis }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function TFCLDecisionMatrixCompact({ input }: { input: TFCLDecisionInput }) {
+  if (!resolveTFCLMatrixObjective(input.objective)) {
+    return <p role="status">Matrice décisionnelle complémentaire non disponible pour cet objectif. Le classement unifié des limiteurs reste à consulter.</p>;
+  }
   const result = computeTFCLDecisionMatrix(input);
   const caseColors = getCaseColorClasses(result.decisionCase);
   

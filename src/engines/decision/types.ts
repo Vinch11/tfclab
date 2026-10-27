@@ -102,7 +102,11 @@ export interface TrainingPrescription {
 
 // ─── Sous-types ─────────────────────────────────────────────────────────────
 
+export type StrategyCalculationIssue = "lorang_strategy_failed" | "decision_matrix_failed" | "decision_matrix_not_supported";
+
 export interface StrategyPrescription {
+  /** Technical codes only; a fallback must not hide a failed computation. */
+  calculationIssues?: StrategyCalculationIssue[];
   /** Le facteur limitant → quoi travailler */
   primaryAction: string;
   whyThis: string;

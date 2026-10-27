@@ -19,3 +19,11 @@ it('shows a blocking mechanical result without presenting a generated plan',()=>
  expect(screen.getByText(/Contradiction bloquante — aucune génération lancée/)).toBeInTheDocument();
  expect(screen.getByText(/La phase de la fenêtre contredit/)).toBeInTheDocument();
 });
+it('explains missing parameters and calculation failures without exposing raw technical codes',()=>{
+ const report={status:'blocked' as const,issues:[{week:0,code:'prevalidation_input_invalid',severity:'blocking' as const},{week:0,code:'decision_matrix_failed',severity:'blocking' as const},{week:0,code:'future_private_code',severity:'blocking' as const}],weeks:[]};
+ render(<PlanPrevalidationPanel report={report}/>);
+ expect(screen.getByText(/Paramètres incomplets ou invalides/)).toBeInTheDocument();
+ expect(screen.getByText(/calcul physiologique a échoué/)).toBeInTheDocument();
+ expect(screen.queryByText(/prevalidation_input_invalid|decision_matrix_failed|future_private_code/)).toBeNull();
+ expect(JSON.stringify(report)).toContain('decision_matrix_failed');
+});
