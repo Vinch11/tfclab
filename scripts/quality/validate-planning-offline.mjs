@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
 const out=resolve(process.argv[2]??'/tmp/tfcl-global-offline');
-execFileSync(process.execPath,['node_modules/vitest/vitest.mjs','run','src/qa/sports-plan-lab/__tests__','src/hooks/__tests__/useCloudData.persistence.test.ts','src/hooks/__tests__/useAITrainingPlan.objectiveCatalogue.test.ts','src/engines/plan/__tests__/taperQuota.crossDiscipline.test.ts','src/engines/plan/__tests__/recoveryQuota.crossDiscipline.test.ts'],{stdio:'inherit',env:{...process.env,TFCL_GLOBAL_QA_OUTPUT:out}});
+execFileSync(process.execPath,['node_modules/vitest/vitest.mjs','run','src/qa/sports-plan-lab/__tests__','src/hooks/__tests__/useCloudData.persistence.test.ts','src/hooks/__tests__/useAITrainingPlan.objectiveCatalogue.test.ts','src/engines/plan/__tests__/tenKRaceWeek.test.ts','src/engines/plan/__tests__/taperQuota.crossDiscipline.test.ts','src/engines/plan/__tests__/recoveryQuota.crossDiscipline.test.ts'],{stdio:'inherit',env:{...process.env,TFCL_GLOBAL_QA_OUTPUT:out}});
 
 const matrix=JSON.parse(readFileSync(resolve(out,'matrix.json'),'utf8'));
 const group=rows=>({cases:rows.length,weeks:rows.reduce((n,r)=>n+r.weekly.length,0),

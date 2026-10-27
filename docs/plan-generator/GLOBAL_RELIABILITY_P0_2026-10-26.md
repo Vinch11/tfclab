@@ -58,7 +58,7 @@ Les 58 refus d'agenda restants sont tous associés à une condition nécessaire 
 
 La borne de dose corrigée produit 64 signaux hebdomadaires et le contrôle de plages 310 créneaux non couverts par le catalogue sélectionné. Ce sont des mesures distinctes, parfois superposées : pas autant de bugs ni de violations sportives. Une prescription custom autorisée n'est pas évaluée par cette borne catalogue.
 
-**213 tests offline ciblés verts**, couvrant préparation, 11 plans/contrôles existants et contrôles négatifs de transfert d'objectif. Suites serveur : 347 tests production et 343 fonction test ; TypeScript app vérifié. Résultats CI du HEAD final dans #418.
+**222 tests offline ciblés verts**, couvrant préparation, 11 plans/contrôles existants et contrôles négatifs de transfert d'objectif. Suites serveur : 347 tests production et 343 fonction test ; TypeScript app vérifié. Résultats CI du HEAD final dans #418.
 
 La matrice finale par **objectif, format et chacune des cinq ambitions** se trouve dans [GO_NO_GO_BY_AMBITION.md](global-p0-evidence/GO_NO_GO_BY_AMBITION.md). **GO technique seulement pour les configurations identifiées ; pas de GO scientifique ni d'approbation automatique de prescription.** Construction adaptée non attestée là où aucune sortie réelle correspondante n'existe. Le détail des erreurs conservées du corpus est dans `replay.json`.
 

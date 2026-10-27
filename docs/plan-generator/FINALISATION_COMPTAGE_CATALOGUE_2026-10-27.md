@@ -38,8 +38,9 @@ Les refus par objectif sont inchangés : 5 km, 10 km, semi et marathon 12 chacun
 
 ## Validation et limites
 
-- 213 tests offline ciblés ; les trois tests rouges sont inclus dans les cinq tests de capacité catalogue, complétés par sept tests de preuve calendaire.
+- 222 tests offline ciblés ; les trois tests rouges sont inclus dans les cinq tests de capacité catalogue, complétés par sept tests de preuve calendaire.
 - Deno : 347 tests production, 343 fonction test ; tests réels de refus de durée/intensité/intention et contrôles de plafonds conservés.
+- Le test historique S12 qui attendait le faux manque de fiches distinctes est mis à jour : diversité limitée avant réservation de course, aucune alerte après ; un pool explicitement plafonné reste insuffisant sans cette réservation. Aucun contrôle de compétition n’est retiré.
 - TypeScript et lint des ajouts vérifiés. Les résultats des quatre jobs CI et de reproductibilité du HEAD final sont liés dans #418.
 - Matrice de 600 configurations et [classement des 58 refus et 11 alertes](global-p0-evidence/RESIDUAL_CLASSIFICATION.md) régénérés. Les bornes, candidats, plafonds et exclusions sont dans `residual-classification.json` ; `null` pour un plafond signifie absence de plafond explicite, pas tolérance physiologique démontrée.
 - [Matrice objectif / ambition](global-p0-evidence/GO_NO_GO_BY_AMBITION.md) : préparation, construction complète, contrôles déterministes et revue humaine restent séparés. Aucun modèle, aucun nouveau plan inventé.
