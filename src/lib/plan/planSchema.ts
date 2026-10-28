@@ -54,7 +54,7 @@ const zPhaseSummary = z.object({
 
 const zSessionBase = {
   day: zDay,
-  variantKey: z.string().optional(),
+  variantKey: z.string().min(1).optional(),
   title: z.string().min(1),
   details: z.string().default(""),
   isKeySession: z.boolean().default(false),
@@ -85,7 +85,8 @@ const zSessionRef = z.object({
 export const zSession = z.union([zSessionRest, zSessionRef, zSessionCustom]).refine(
   s => s.custom || !isRaceEventTitle(s),
   { path: ["catalogId"], message: "race_catalog_conflict: une compétition réelle est un événement custom=true, catalogId=null ; jamais une fiche de simulation ou d'entraînement" },
-);
+).refine(s => s.variantKey === undefined || !s.custom,
+  { path: ["variantKey"], message: "variant_requires_catalogue_reference" });
 
 export const zWeek = z.object({
   weekNumber: z.number().int().positive(),

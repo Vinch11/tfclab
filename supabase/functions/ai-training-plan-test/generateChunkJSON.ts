@@ -1,3 +1,6 @@
+import { executableCatalogueVariantsForWeeks } from "../_shared/sessionCatalogueContract.ts";
+import { restoreCatalogueTitleForExactProtocol } from "../_shared/catalogueSessionIdentity.ts";
+import { gateway400Evidence, type SafeGatewayRejection } from "../_shared/planGatewayDiagnostics.ts";
 import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -67,6 +70,7 @@ interface GatewayDiagnostic {
   constrained: boolean;
   jsonSchemaAttempted: boolean;
   fallbackReason?: string;
+  http400?: SafeGatewayRejection;
   gatewayIndicatedIgnoredResponseFormat?: boolean;
   /** Préparation pilote Mode B (consigne coach) — usage réel renvoyé par le
    *  gateway (format OpenAI-compatible, `data.usage`), capturé tel quel
@@ -424,6 +428,10 @@ export function normalizeModelJsonForSchema(
 
 
 function buildJsonSchemaResponseFormat(allowedIds: string[], opts?: BuildPlanChunkSchemaOptions) {
+  const variants = opts?.catalogueContractsByWeek ? executableCatalogueVariantsForWeeks(opts.catalogueContractsByWeek, allowedIds) : undefined;
+  const variantKeys = [...new Set(Object.values(variants ?? {}).flatMap(byId => Object.values(byId).flatMap(v => Object.keys(v))))];
+  const variantProperty = variants === undefined ? { variantKey: { type: "string", minLength: 1 } }
+    : variantKeys.length ? { variantKey: { type: "string", enum: variantKeys } } : {};
   const catalogIdSchema = allowedIds.length > 0
     ? { type: "string", enum: allowedIds }
     : { type: "string", minLength: 1 };
@@ -452,6 +460,7 @@ function buildJsonSchemaResponseFormat(allowedIds: string[], opts?: BuildPlanChu
       sport: { type: "string", enum: nonRestSports },
       custom: { const: false },
       catalogId: catalogIdSchema,
+      ...variantProperty,
     },
   };
   const sessionCustom = {
@@ -727,9 +736,10 @@ async function callGatewayJSON(input: GatewayCallInput): Promise<GatewayCallResu
       responseFormatType: "json_object",
       constrained: false,
       jsonSchemaAttempted: true,
-      fallbackReason: `json_schema rejected status=400: ${text.slice(0, 300) || "empty body"}`,
+      fallbackReason: "http_400_json_schema_rejected",
+      http400: gateway400Evidence(text),
     };
-    console.warn(`[ai-gateway-json] json_schema rejected; constrained=false; fallback=json_object; reason=${diagnostic.fallbackReason}`);
+    console.warn(`[ai-gateway-json] json_schema rejected; constrained=false; fallback=json_object; evidence=${JSON.stringify(diagnostic.http400)}`);
     const jsonObjectBody = buildBody({ type: "json_object" });
     resp = await call(jsonObjectBody);
   }
@@ -853,6 +863,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
         "GATEWAY_ERROR",
         input.chunkIndex,
         `Gateway AI status=${result.status}`,
+        { gateway: result.gatewayDiagnostic },
       );
     }
 
@@ -895,6 +906,18 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
       ? { value: null, repairs: [] }
       : normalizeModelJsonForSchema(extracted.parsedJson, input.allowedCatalogIds, input.weekRange);
 
+    if (normalized.value && typeof normalized.value === "object") {
+      const weeks = (normalized.value as {weeks?:unknown}).weeks;
+      if (Array.isArray(weeks)) for (const week of weeks) {
+        if (!week || typeof week !== "object" || !Number.isInteger(week.weekNumber)) continue;
+        const contract = input.schemaOptions?.catalogueContractsByWeek?.[week?.weekNumber];
+        if (contract && Array.isArray(week?.sessions)) week.sessions = week.sessions.map((session:unknown,index:number) => {
+          const restored = restoreCatalogueTitleForExactProtocol(session,contract);
+          if (restored) normalized.repairs.push(`weeks.${week.weekNumber}.sessions.${index}.catalogue_title_restored_exact_protocol`);
+          return restored ?? session;
+        });
+      }
+    }
     if (normalized.repairs.length > 0) {
       console.info(`[generateChunkJSON] schema-normalized=true repairs=${normalized.repairs.slice(0, 12).join("; ")}`);
     }
@@ -952,8 +975,9 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     diag: AttemptDiagnostic,
   ): { attempt: 1 | 2; repairs: string[]; parseError?: string } | undefined => {
     const recovered = typeof diag.parseError === "string" && diag.parseError.startsWith("recovered_after_repair");
-    if (!recovered && diag.jsonRepairs.length === 0) return undefined;
-    return { attempt, repairs: diag.jsonRepairs, parseError: diag.parseError };
+    const identityRepairs = diag.repairs.filter(repair => repair.endsWith(".catalogue_title_restored_exact_protocol"));
+    if (!recovered && diag.jsonRepairs.length === 0 && identityRepairs.length === 0) return undefined;
+    return { attempt, repairs: [...diag.jsonRepairs, ...identityRepairs], parseError: diag.parseError };
   };
 
   // 1ère tentative

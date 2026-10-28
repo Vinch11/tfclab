@@ -4,7 +4,7 @@ import { catalogueTrainingMinimaForWeek } from "../_shared/catalogueTrainingMini
 import { periodizationBounds, phaseWithinPeriodization, reducedFondationWeeksPostPeak } from "../_shared/periodizationBounds.ts";
 import { PLAN_RELEASE_INFO } from "../_shared/planReleaseInfo.ts";
 import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
-import { executableCatalogueVariants, catalogueForWeek, checkSessionCatalogue, type CatalogueContract } from "../_shared/sessionCatalogueContract.ts";
+import { executableCatalogueVariantsForWeeks, catalogueForWeek, checkSessionCatalogue, type CatalogueContract } from "../_shared/sessionCatalogueContract.ts";
 import { technicalGenerationConfig, technicalRuntimeContext, technicalFloorAudit, technicalFloors } from "../_shared/planDiagnosticPrivacy.ts";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -2083,9 +2083,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             const ids = extractCatalogIdsFromDump(line);
             return ids.length === 0 || ids.every(id => admissibleIds.has(id));
           }).join("\n");
-          const executableVariants = Object.fromEntries(repairCatalogsByChunk[ci].filter(m => admissibleIds.has(m.id))
-            .map(m => [m.id, executableCatalogueVariants(m)]).filter(([, variants]) => Object.keys(variants).length > 0));
-          const weeklyCatalogBlock = `Phases obligatoires calculées par semaine : ${JSON.stringify(Object.fromEntries(Object.entries(catalogueContractsByWeek).map(([w,c]) => [w,c.phase])))}\nADMISSIBILITÉ STRICTE PAR SEMAINE : seuls ces IDs sont autorisés pour chaque semaine. Aucun ID d'une autre semaine du chunk. Catalogue insuffisant : ne pas inventer d'équivalence. Compétitions officielles custom=true, catalogId=null.\n${JSON.stringify(eligibilityByWeek)}\nVariantes numériques autorisées (variantKey explicite obligatoire pour une adaptation) : ${JSON.stringify(executableVariants)}`;
+          const executableVariants = executableCatalogueVariantsForWeeks(catalogueContractsByWeek, [...admissibleIds]);
+          const weeklyCatalogBlock = `Phases obligatoires calculées par semaine : ${JSON.stringify(Object.fromEntries(Object.entries(catalogueContractsByWeek).map(([w,c]) => [w,c.phase])))}\nADMISSIBILITÉ STRICTE PAR SEMAINE : seuls ces IDs sont autorisés pour chaque semaine. Aucun ID d'une autre semaine du chunk. Catalogue insuffisant : ne pas inventer d'équivalence. Compétitions officielles custom=true, catalogId=null.\n${JSON.stringify(eligibilityByWeek)}\nVariantes numériques autorisées PAR SEMAINE puis ID (variantKey explicite obligatoire pour une adaptation) : ${JSON.stringify(executableVariants)}`;
           const chunkHeader = regenerateWeek
             ? `Régénère UNIQUEMENT la semaine ${regenerateWeek.weekNumber} (phase ${regenerateWeek.phase ?? "?"}, thème "${regenerateWeek.theme ?? ""}") du plan de ${regenerateWeek.totalWeeks} semaines.`
             : isFirst

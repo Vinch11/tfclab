@@ -32,7 +32,7 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
  else if (normalizeRepairSport(session.sport) !== normalizeRepairSport(metadata.sport)) errors.push("catalogue_sport");
  const variants = metadata.variants;
  const variant = session.variantKey ? variantRange(variants?.[session.variantKey]) : null;
- if (session.variantKey && !variant) return { errors, unknown: [...unknown, "variant_not_executable"] };
+ if (session.variantKey && !variant) return { errors: [...errors, "catalogue_variant_unavailable"], unknown: [...unknown, "variant_not_executable"] };
  if (session.variantKey && contract.objective && normalizeRepairGoal(session.variantKey) !== normalizeRepairGoal(contract.objective)) errors.push("variant_goal_mismatch");
  const range = variant ?? metadata.durationMin;
  if (typeof session.durationMin === "number") {
@@ -77,8 +77,8 @@ export function catalogueForWeek(catalog: RepairWorkoutMetadata[], context: Repa
  return { eligible, missingSports, limitedDiversitySports };
 }
 
-export function executableCatalogueVariants(metadata: RepairWorkoutMetadata): Record<string, string> {
- return Object.fromEntries(Object.entries(metadata.variants ?? {}).filter(([, text]) => variantRange(text) !== null));
+export function executableCatalogueVariants(metadata: RepairWorkoutMetadata, objective?: string): Record<string, string> {
+ return Object.fromEntries(Object.entries(metadata.variants ?? {}).filter(([key, text]) => variantRange(text) !== null && (!objective || normalizeRepairGoal(key) === normalizeRepairGoal(objective))));
 }
 
 /** Executable duration alternatives already accepted by checkSessionCatalogue.
@@ -91,4 +91,11 @@ export function executableCatalogueDurationRanges(metadata: RepairWorkoutMetadat
   if(range)ranges.push(range);
  }
  return ranges;
+}
+
+/** Same executable key inventory for prompt and provider schema; bindings remain checked by Zod. */
+export function executableCatalogueVariantsForWeeks(contracts:Record<number,CatalogueContract>,allowedIds?:readonly string[]) {
+ return Object.fromEntries(Object.entries(contracts).map(([week,contract])=>[week,Object.fromEntries(contract.catalog
+  .filter(m=>(!allowedIds||allowedIds.includes(m.id))&&catalogueEligibility(m,contract).length===0)
+  .map(m=>[m.id,executableCatalogueVariants(m,contract.objective)] as const).filter(([,variants])=>Object.keys(variants).length>0))]));
 }
