@@ -6,7 +6,7 @@ const path='docs/det-engine/v6/state.json';const hash=x=>createHash('sha256').up
 const save=s=>{writeFileSync(path+'.tmp',JSON.stringify(s,null,2));renameSync(path+'.tmp',path);};
 const sourceFingerprint=()=>hash(['experimental/det-engine','scripts/det-engine'].flatMap(dir=>readdirSync(dir).filter(n=>/\.(ts|mjs)$/.test(n)).sort().map(n=>dir+'/'+n+':'+hash(readFileSync(dir+'/'+n)))).join('\n'));
 const[id,...args]=process.argv.slice(2);const s=JSON.parse(readFileSync(path));
-const allowed=args[0]==='node_modules/vitest/vitest.mjs'&&args.includes('run')&&args.includes('--maxWorkers=1')||args[0]==='node_modules/typescript/bin/tsc'||id==='validation'&&args[0]==='scripts/det-engine/v6-validate.mjs'||id==='validation'&&args[0]==='--test'&&args.length>1&&args.slice(1).every(p=>/^scripts\/det-engine\/v5-(?:budget|evidence)\.test\.mjs$/.test(p))||['audit','publication'].includes(id)&&args[0]==='-e';if(!allowed)throw Error('COMMAND_OUTSIDE_OFFLINE_REGISTRY');
+const allowed=args[0]==='node_modules/vitest/vitest.mjs'&&args.includes('run')&&args.includes('--maxWorkers=1')||args[0]==='node_modules/typescript/bin/tsc'||id==='validation'&&args[0]==='scripts/det-engine/v6-validate.mjs'||id==='validation'&&args[0]==='--test'&&args.length>1&&args.slice(1).every(p=>/^scripts\/det-engine\/v[56]-(?:budget|evidence)\.test\.mjs$/.test(p))||['audit','publication'].includes(id)&&args[0]==='-e';if(!allowed)throw Error('COMMAND_OUTSIDE_OFFLINE_REGISTRY');
 const old=validateV6Budget(s,id);
 const branch=spawnSync('git',['branch','--show-current'],{encoding:'utf8'});if(branch.stdout.trim()!=='experiment/det-engine')throw Error('BRANCH');
 const source=sourceFingerprint(),outputRoot=process.env.TFCL_DET_V6_OUT??process.env.TFCL_DET_V4_OUT??null;
