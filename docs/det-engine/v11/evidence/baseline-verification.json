@@ -1,0 +1,17 @@
+[
+  {
+    "manifest": "source-checksums.json",
+    "checked": 13,
+    "match": true
+  },
+  {
+    "manifest": "baseline-files.json",
+    "checked": 103,
+    "match": true
+  },
+  {
+    "manifest": "checksums.json",
+    "checked": 68,
+    "match": true
+  }
+]

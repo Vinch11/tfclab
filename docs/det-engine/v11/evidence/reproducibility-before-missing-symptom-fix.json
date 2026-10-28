@@ -1,0 +1,66 @@
+{
+  "version": "det-v11-1",
+  "runs": [
+    {
+      "name": "final",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v11-mesocycle.test.ts",
+        "experimental/det-engine/v11-feedback.test.ts",
+        "experimental/det-engine/v11-trail-evidence.test.ts",
+        "experimental/det-engine/v11-guards.test.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "replay",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v11-mesocycle.test.ts",
+        "experimental/det-engine/v11-feedback.test.ts",
+        "experimental/det-engine/v11-trail-evidence.test.ts",
+        "experimental/det-engine/v11-guards.test.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "comparison": [
+    {
+      "file": "mesocycles.json.gz",
+      "first": "6c99686d0cb6cb7ea897ce3b85dfedc2f1f469f45c31aba6a648527756944f8d",
+      "replay": "6c99686d0cb6cb7ea897ce3b85dfedc2f1f469f45c31aba6a648527756944f8d"
+    },
+    {
+      "file": "mesocycle-summary.json",
+      "first": "0f484a1e42cec715812c79348972b6ae0a0d9cef717fb4cd246822596bbb64a8",
+      "replay": "0f484a1e42cec715812c79348972b6ae0a0d9cef717fb4cd246822596bbb64a8"
+    },
+    {
+      "file": "feedback.json.gz",
+      "first": "97d21fcae41dffd5ff9b714842d8823a3b741041725919711ddb1dccbdc1f619",
+      "replay": "97d21fcae41dffd5ff9b714842d8823a3b741041725919711ddb1dccbdc1f619"
+    },
+    {
+      "file": "feedback-summary.json",
+      "first": "cc292a5bbab4a33aa09ba637bf75d0a7f482e3ba865a77722d824bf9b2ada38b",
+      "replay": "cc292a5bbab4a33aa09ba637bf75d0a7f482e3ba865a77722d824bf9b2ada38b"
+    },
+    {
+      "file": "trail-vertical.json",
+      "first": "481d5a5ca639577ce661f21927eb0e9c53a43fe7ee8b0210d5ef248fdf5da8b3",
+      "replay": "481d5a5ca639577ce661f21927eb0e9c53a43fe7ee8b0210d5ef248fdf5da8b3"
+    }
+  ],
+  "identical": true,
+  "preregistrationUnchanged": true,
+  "clock": "2026-10-26T12:00:00Z",
+  "independentProcesses": true
+}

@@ -1,0 +1,74 @@
+{
+  "reason": "environment restart; original PTY unknown and no node process remains",
+  "interruptedAttempt": {
+    "startedAt": 1793192896132,
+    "command": [
+      "scripts/det-engine/v11-validate.mjs"
+    ],
+    "status": "interrupted_environment_restart",
+    "observedAt": 1793193263114.9138,
+    "evidence": "evidence/validation-resume.json"
+  },
+  "completedSteps": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 42186
+    },
+    {
+      "name": "node",
+      "args": [
+        "--test",
+        "scripts/det-engine/gates.test.mjs",
+        "scripts/det-engine/v2-diagnostic.test.mjs",
+        "scripts/det-engine/v2-supervisor.test.mjs",
+        "scripts/det-engine/v3-supervisor.test.mjs",
+        "scripts/det-engine/v4-supervisor.test.mjs",
+        "scripts/det-engine/v5-budget.test.mjs",
+        "scripts/det-engine/v5-evidence.test.mjs",
+        "scripts/det-engine/v6-budget.test.mjs",
+        "scripts/det-engine/v7-budget.test.mjs",
+        "experimental/det-engine/v8-causal-audit.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 2123
+    },
+    {
+      "name": "experimental",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 118776
+    }
+  ],
+  "sourceFilesAllMtimeBeforeOriginalValidationStart": true,
+  "sourceSnapshot": {
+    "experimental/det-engine/v11-contract.ts": "42a4731b0d38497386ae197ef6a20606454db14459530d351363caa2d4e46d84",
+    "experimental/det-engine/v11-source-context.ts": "cf7a49e0800e455b44b66d387d22657b7f387e4eb2514fb03a57023276e73ed8",
+    "experimental/det-engine/v11-catalogue.ts": "5807ee40d1792661b28d7a0fbfcaa39faa3b020e0f53e2c25230e887cd87076c",
+    "experimental/det-engine/v11-trail-evidence.test.ts": "0a94bd5815ebfe80850436edf2675367c136ff717630979daa828c653fb941bf",
+    "experimental/det-engine/v11-guards.test.ts": "33b4be91cfff61870f513612845dca5236af85cef3836ccbaf25ad8d460ddce5",
+    "experimental/det-engine/v11-mesocycle.ts": "230b73351553b45058f67a20622263a2c554360e4735e27b3abca29c0bf82c84",
+    "experimental/det-engine/v11-roles.ts": "dae6878cc550fe6a76bde869ff9f4761b56aa73b9b5d78d88befe2272634949d",
+    "experimental/det-engine/v11-feedback.test.ts": "fd6c89fe74b5d9a8e4663a41f56685d79229245a4aa17be51ee6ec713c891926",
+    "experimental/det-engine/v11-mesocycle.test.ts": "927809ab6b5b65caf6fdba5661132a2f21ea994b8ea5619840ff6ed0122c1fb8",
+    "experimental/det-engine/v11-calendar.ts": "1cbb763814c15045a50783cffc315de080974002caf40a0ced9212b66747a85b",
+    "experimental/det-engine/v11-week-validation.ts": "aa46d54abf327e798e07144b938eec677c3eb06154c7c868b98daaf294cdd108",
+    "experimental/det-engine/v11-inspect.test.ts": "c5118649ed284b71ff0e296a3f6dfc57830018f27bd19709a13c2c47b3c454ce",
+    "experimental/det-engine/v11-trail-evidence.ts": "8e2fc937c7f15d8d99411847e80f865001be2b4f9536dd1bd0505bba9a7da367",
+    "experimental/det-engine/v11-feedback.ts": "36d11571bd3794f79a12cdef93e73af3e6675eda1d8491e8290297103afb0ad3"
+  },
+  "baselineV2toV10Preserved": true,
+  "noInterruptedHistoricalSuccessClaim": true
+}

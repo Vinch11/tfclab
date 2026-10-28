@@ -1,0 +1,1362 @@
+[
+  {
+    "profile": "IM_aerobic_history",
+    "model": "compact_reference",
+    "status": "constructed",
+    "weeks": [
+      {
+        "week": 1,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 2,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 3,
+        "type": "load",
+        "minutes": 485,
+        "budget": 485,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 4,
+        "type": "recovery",
+        "minutes": 250,
+        "budget": 339.5,
+        "selected": 5,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_aerobic_history:bike:0",
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      }
+    ],
+    "globalPass": true,
+    "technical": {
+      "execution": "executed",
+      "valid": true,
+      "issues": [],
+      "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+    },
+    "legacy": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu run, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu run, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu run, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mardi: attendu swim, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé rest",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "message": "Natation 33% (cible 15-20%, tolérance ±3%)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "message": "Vélo 33% (cible 45-55%, tolérance ±3%)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "title_format",
+        "severity": "error",
+        "message": "Titre H1 non conforme au gabarit RÈGLE #0 : \"Bloc Ironman expérimental quatre semaines — pas un plan de compétition\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Tenue position aéro IM\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Développement aérobie fondamental — sortie longue Z2\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Multi-nages aérobie — endurance globale, équilibre musculaire\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Tenue position aéro IM\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 jeudi: \"Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Développement aérobie fondamental — sortie longue Z2\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Multi-nages aérobie — endurance globale, équilibre musculaire\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ]
+  },
+  {
+    "profile": "IM_aerobic_history",
+    "model": "separated_exposures",
+    "status": "constructed",
+    "weeks": [
+      {
+        "week": 1,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 2,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 3,
+        "type": "load",
+        "minutes": 485,
+        "budget": 485,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 4,
+        "type": "recovery",
+        "minutes": 250,
+        "budget": 339.5,
+        "selected": 5,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_aerobic_history:bike:0",
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      }
+    ],
+    "globalPass": true,
+    "technical": {
+      "execution": "executed",
+      "valid": true,
+      "issues": [],
+      "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+    },
+    "legacy": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu run, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu run, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu run, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mardi: attendu swim, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé rest",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "message": "Natation 33% (cible 15-20%, tolérance ±3%)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "message": "Vélo 33% (cible 45-55%, tolérance ±3%)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "title_format",
+        "severity": "error",
+        "message": "Titre H1 non conforme au gabarit RÈGLE #0 : \"Bloc Ironman expérimental quatre semaines — pas un plan de compétition\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Tenue position aéro IM\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Développement aérobie fondamental — sortie longue Z2\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Multi-nages aérobie — endurance globale, équilibre musculaire\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Tenue position aéro IM\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 jeudi: \"Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Développement aérobie fondamental — sortie longue Z2\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Multi-nages aérobie — endurance globale, équilibre musculaire\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ]
+  },
+  {
+    "profile": "IM_balanced_history",
+    "model": "compact_reference",
+    "status": "constructed",
+    "weeks": [
+      {
+        "week": 1,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 2,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 3,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 4,
+        "type": "recovery",
+        "minutes": 250,
+        "budget": 336,
+        "selected": 5,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_balanced_history:bike:0",
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      }
+    ],
+    "globalPass": true,
+    "technical": {
+      "execution": "executed",
+      "valid": true,
+      "issues": [],
+      "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+    },
+    "legacy": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mardi: attendu swim, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé rest",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "message": "Natation 33% (cible 15-20%, tolérance ±3%)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "message": "Vélo 33% (cible 45-55%, tolérance ±3%)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "title_format",
+        "severity": "error",
+        "message": "Titre H1 non conforme au gabarit RÈGLE #0 : \"Bloc Ironman expérimental quatre semaines — pas un plan de compétition\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Tenue position aéro IM\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Sortie Z2 progressive — montée en puissance graduelle\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Multi-nages aérobie — endurance globale, équilibre musculaire\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Tenue position aéro IM\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Sortie Z2 progressive — montée en puissance graduelle\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 jeudi: \"Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Multi-nages aérobie — endurance globale, équilibre musculaire\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ]
+  },
+  {
+    "profile": "IM_balanced_history",
+    "model": "separated_exposures",
+    "status": "constructed",
+    "weeks": [
+      {
+        "week": 1,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 2,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 3,
+        "type": "load",
+        "minutes": 480,
+        "budget": 480,
+        "selected": 7,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      },
+      {
+        "week": 4,
+        "type": "recovery",
+        "minutes": 250,
+        "budget": 336,
+        "selected": 5,
+        "failed": [],
+        "unknown": [
+          "literal_chronology:IM_balanced_history:bike:0",
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      }
+    ],
+    "globalPass": true,
+    "technical": {
+      "execution": "executed",
+      "valid": true,
+      "issues": [],
+      "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+    },
+    "legacy": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu qualité (isKeySession), observé séance non-clé",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mardi: attendu swim, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé rest",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "message": "Natation 33% (cible 15-20%, tolérance ±3%)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "sport_ratio",
+        "severity": "error",
+        "message": "Vélo 33% (cible 45-55%, tolérance ±3%)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "title_format",
+        "severity": "error",
+        "message": "Titre H1 non conforme au gabarit RÈGLE #0 : \"Bloc Ironman expérimental quatre semaines — pas un plan de compétition\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Sortie Z2 progressive — montée en puissance graduelle\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Tenue position aéro IM\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Multi-nages aérobie — endurance globale, équilibre musculaire\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Sortie Z2 progressive — montée en puissance graduelle\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 jeudi: \"Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Tenue position aéro IM\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Multi-nages aérobie — endurance globale, équilibre musculaire\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ]
+  }
+]

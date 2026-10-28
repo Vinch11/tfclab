@@ -1,0 +1,169 @@
+{
+  "version": "det-v11-1",
+  "baseline": "8c96fb3f81d0aa3d6955081268abc68f3738c912",
+  "startedAt": 1793191642.3578055,
+  "deadline": 1793195242.3578055,
+  "maxUnits": 10,
+  "status": "running_no_go",
+  "activeUnit": "publication",
+  "units": [
+    {
+      "id": "baseline_audit",
+      "status": "passed",
+      "evidence": "evidence/baseline-verification.json"
+    },
+    {
+      "id": "long_position_review",
+      "status": "passed",
+      "evidence": "LONG_PLUS_POSITION_REVIEW.md",
+      "meaning": "bounded candidate review, not independent expert approval"
+    },
+    {
+      "id": "week_adapter",
+      "status": "passed",
+      "evidence": "experimental/det-engine/v11-week-validation.ts",
+      "meaning": "candidate work completed; no expert sporting approval"
+    },
+    {
+      "id": "mesocycles",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793192431406,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v11-mesocycle.test.ts",
+            "experimental/det-engine/v11-feedback.test.ts",
+            "experimental/det-engine/v11-trail-evidence.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793192458171,
+          "exitCode": 0,
+          "output": "docs/det-engine/v11/evidence/mesocycles-1.txt",
+          "sha256": "ffbc4efc5a634c5bcefad3c1caef92d26eb95876df0d1dd8bd2b3343bab1a1f4"
+        },
+        {
+          "startedAt": 1793192747779,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v11-mesocycle.test.ts",
+            "experimental/det-engine/v11-feedback.test.ts",
+            "experimental/det-engine/v11-trail-evidence.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793192774484,
+          "exitCode": 0,
+          "output": "docs/det-engine/v11/evidence/mesocycles-2.txt",
+          "sha256": "b5ddcc29a316f764320b18b14c7b13d2348ec962d5921e32a2dd31772ec0e0fa"
+        }
+      ],
+      "reopenedReason": "source text avoid recovery was not executed; candidate evidence retained",
+      "evidence": "evidence/final/mesocycles.json.gz",
+      "meaning": "bounded candidate work complete; no independent expert approval"
+    },
+    {
+      "id": "global_coherence",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793193660248,
+          "command": [
+            "scripts/det-engine/v11-evidence.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793193739950,
+          "exitCode": 0,
+          "output": "docs/det-engine/v11/evidence/global_coherence-1.txt",
+          "sha256": "2ec44e453f8022536c849ecfcd8178a6b0425edbacc849e7368880c7b47e26da"
+        },
+        {
+          "startedAt": 1793194091436,
+          "command": [
+            "scripts/det-engine/v11-evidence.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793194167991,
+          "exitCode": 0,
+          "output": "docs/det-engine/v11/evidence/global_coherence-2.txt",
+          "sha256": "2ec44e453f8022536c849ecfcd8178a6b0425edbacc849e7368880c7b47e26da"
+        }
+      ],
+      "reopenedReason": "retain absent symptom field as unknown rather than defaulting it to false; no decision/dose change",
+      "evidence": "evidence/reproducibility.json",
+      "meaning": "bounded candidate work complete; no independent expert approval"
+    },
+    {
+      "id": "feedback",
+      "status": "passed",
+      "evidence": "evidence/final/feedback-summary.json",
+      "meaning": "bounded candidate work complete; no independent expert approval"
+    },
+    {
+      "id": "trail_evidence",
+      "status": "passed",
+      "evidence": "evidence/final/trail-vertical.json",
+      "meaning": "bounded candidate work complete; no independent expert approval"
+    },
+    {
+      "id": "validation",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793192896132,
+          "command": [
+            "scripts/det-engine/v11-validate.mjs"
+          ],
+          "status": "interrupted_environment_restart",
+          "observedAt": 1793193263114.9138,
+          "evidence": "evidence/validation-resume.json"
+        },
+        {
+          "startedAt": 1793193263183,
+          "command": [
+            "scripts/det-engine/v11-validate.mjs",
+            "--resume"
+          ],
+          "status": "passed",
+          "completedAt": 1793193608492,
+          "exitCode": 0,
+          "output": "docs/det-engine/v11/evidence/validation-2.txt",
+          "sha256": "ccfed14d0b4063600c9a6dcfd4abecd75fe11044160176e79e98fa3e2833bfbc"
+        },
+        {
+          "startedAt": 1793193812773,
+          "command": [
+            "scripts/det-engine/v11-final-delta.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793193986209,
+          "exitCode": 0,
+          "output": "docs/det-engine/v11/evidence/validation-3.txt",
+          "sha256": "2c28f4a0c2c207fb9bf6d9c67b226c81c2fb1b6b195da0833391d4a6f1466a1f"
+        }
+      ],
+      "reopenedReason": "retain absent symptom field as unknown rather than defaulting it to false; no decision/dose change"
+    },
+    {
+      "id": "documentation",
+      "status": "passed",
+      "evidence": "V11_RESULTS.md",
+      "completedAt": 1793194307.556825,
+      "meaning": "computed dossiers reviewed, no sporting expert approval"
+    },
+    {
+      "id": "publication",
+      "status": "running",
+      "startedAt": 1793194388.8623655,
+      "mode": "authorized_experimental_git_and_draft_pr_metadata"
+    }
+  ],
+  "automaticRestart": false
+}

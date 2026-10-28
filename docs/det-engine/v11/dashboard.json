@@ -1,0 +1,207 @@
+{
+  "version": "det-v11-1",
+  "recommendation": "NO-GO",
+  "distinctProfiles": 2,
+  "placementModels": 2,
+  "constructedCandidateBlocks": 4,
+  "distinctProfileBlocks": 2,
+  "weeksPerBlock": 4,
+  "trainingSessionsPerDistinctBlock": [
+    26,
+    26
+  ],
+  "expertReviewed": 0,
+  "historical600Altered": false,
+  "historical600Regenerated": false,
+  "legacyFullPreparationConforming": false,
+  "rows": [
+    {
+      "profile": "IM_aerobic_history",
+      "model": "compact_reference",
+      "status": "constructed",
+      "weekMinutes": [
+        480,
+        480,
+        485,
+        250
+      ],
+      "legacyBlocking": 7,
+      "legacyWarnings": 31,
+      "weeklyUnknowns": [
+        [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_aerobic_history:bike:0",
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      ]
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "separated_exposures",
+      "status": "constructed",
+      "weekMinutes": [
+        480,
+        480,
+        485,
+        250
+      ],
+      "legacyBlocking": 7,
+      "legacyWarnings": 31,
+      "weeklyUnknowns": [
+        [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "literal_chronology:IM_aerobic_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_aerobic_history:bike:0",
+          "literal_chronology:IM_aerobic_history:strength:0",
+          "literal_chronology:IM_aerobic_history:swim:0",
+          "literal_chronology:IM_aerobic_history:swim:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      ]
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "compact_reference",
+      "status": "constructed",
+      "weekMinutes": [
+        480,
+        480,
+        480,
+        250
+      ],
+      "legacyBlocking": 7,
+      "legacyWarnings": 31,
+      "weeklyUnknowns": [
+        [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_balanced_history:bike:0",
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      ]
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "separated_exposures",
+      "status": "constructed",
+      "weekMinutes": [
+        480,
+        480,
+        480,
+        250
+      ],
+      "legacyBlocking": 7,
+      "legacyWarnings": 31,
+      "weeklyUnknowns": [
+        [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "literal_chronology:IM_balanced_history:run:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ],
+        [
+          "literal_chronology:IM_balanced_history:bike:0",
+          "literal_chronology:IM_balanced_history:strength:0",
+          "literal_chronology:IM_balanced_history:swim:0",
+          "literal_chronology:IM_balanced_history:swim:1",
+          "residual_fatigue",
+          "metabolic_minutes"
+        ]
+      ]
+    }
+  ]
+}
