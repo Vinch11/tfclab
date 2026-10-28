@@ -1,0 +1,12 @@
+✔ the two real threshold candidates prescribe the same prefix through the last effort (2.363649ms)
+✔ an earlier work failure is not repaired by appending final recovery (0.335847ms)
+✔ a favourable synthetic reaction and a high opinion do not certify adaptation (0.145349ms)
+✔ symptoms, poor data, mismatched binding and duplicate observations preserve stops (0.457441ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11.31536

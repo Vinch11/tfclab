@@ -1,0 +1,9 @@
+{
+  "candidate-index.json": "12d562541ebcd5be98af90813ab55741710f7800bb15255213f18bce30ddea02",
+  "catalogue.jsonl.gz": "2f7699b66ce381a44092b611aca0bd344e27b5951d6a98b44828d81e5d05baef",
+  "dose-ledgers.jsonl.gz": "77913c7e0be3e7618ac4b2fc6774785daa26836bb1baf7584d8685b1924ee49a",
+  "outputs.jsonl.gz": "2200667a034dec696836be6b5ceed16f52d16744a645f23db6b1d9df06980996",
+  "recovery-comparisons.json": "a5ce3b47d7d60f18561647172fba0d74af64b759a20ed48c8cf28f472fd1ef54",
+  "serialization-context.json": "e4c75edd8517a415b7db42cb5ee3f4f21e0e2eab68a7ec96ffa0537046fd17a6",
+  "summary.json": "22b6c17d14f93065dfc45a9aa2ade2e8f0dcc46c5237f02285b0e61e668fe64e"
+}

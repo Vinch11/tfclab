@@ -1,0 +1,7 @@
+{
+  "expectedRefusal": true,
+  "returnCode": 1,
+  "stateUnchanged": true,
+  "reason": "ACCEPTED_CYCLE_ONE_CHECKPOINT_REQUIRED",
+  "stderr": "file:///workspace/tfclab/scripts/det-engine/v19-cycle.mjs:8\n if(m.currentCycle===2){console.log(JSON.stringify({alreadyStarted:true,cycle:2,deadline:readJSON(ROOT+'/cycle-2/state.json').deadline}));process.exit(0);}if(m.currentCycle!==1||m.cycles.length!==1||time>=Date.parse(m.hardDeadline))throw Error('NO_NEW_BUDGET_OR_THIRD_CYCLE');const previous=readJSON(ROOT+'/cycle-1/state.json');if(previous.status!=='completed_no_go')throw Error('ACCEPTED_CYCLE_ONE_CHECKPOINT_REQUIRED');for(const[p,h]of Object.entries(readJSON(ROOT+'/cycle-1/checksums.json')))if(hash(fs.readFileSync(p))!==h)throw Error('CYCLE_ONE_PROOF_CHANGED:'+p);const dir=ROOT+'/cycle-2';let s;\n                                                                                                                                                                                                                                                                                                                                                                                     ^\n\nError: ACCEPTED_CYCLE_ONE_CHECKPOINT_REQUIRED\n    at file:///workspace/tfclab/scripts/det-engine/v19-cycle.mjs:8:374\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.19.0\n"
+}

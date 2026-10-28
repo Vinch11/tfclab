@@ -1,0 +1,4184 @@
+{
+  "sourceSwim": 119,
+  "sourceDistanceStructures": 3,
+  "completeCandidateDistanceInstances": 18,
+  "distinctIdsWithCompleteCandidateDistanceStructure": 9,
+  "individualTimingsAttested": 0,
+  "rows": [
+    {
+      "id": "A_SWIM_AEROBIC",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "A_SWIM_AEROBIC@v19:between_repetitions:540aeec541e1",
+          "complete": false
+        },
+        {
+          "key": "A_SWIM_AEROBIC@v19:after_each_repetition:6f4733184468",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 6x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6–10x200m Z2 r=20–30s",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_SPEED_25",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_SPEED_25@v19:between_repetitions:665ff83ec688",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_SPEED_25@v19:after_each_repetition:35f0f766524c",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile + 8x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2 blocs: 12x25m Z6 r=20s + 6x50m Z5 r=30s",
+          "zones": [
+            "Z6",
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "C_SWIM_TECH_DRILLS",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "C_SWIM_TECH_DRILLS@v19:between_repetitions:94a730fbfa13",
+          "complete": false
+        },
+        {
+          "key": "C_SWIM_TECH_DRILLS@v19:after_each_repetition:97a4d606b5ba",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "12x50m éducatifs (scull/catch) r=15–20s + 6x100m Z2",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "D_SWIM_REGEN",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "800–1500m très facile + éducatifs légers",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "A_SWIM_TRI_END_2500",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "A_SWIM_TRI_END_2500@v19:between_repetitions:0a78f1545fb9",
+          "complete": false
+        },
+        {
+          "key": "A_SWIM_TRI_END_2500@v19:after_each_repetition:35b75310e145",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m éducatifs (r=10s)",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2000–2500m continu Z2 (CSS+8–10s/100). Respiration bilat tous les 3 ou 5.",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "A_SWIM_TRI_LONG_3500",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 200m éducatifs",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3000–3500m continu Z2 (CSS+8–12s). Varier respiration. Hydratation au bord si possible.",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "A_SWIM_TRI_OPEN_WATER_SIMU",
+      "sourceDistanceStructureComplete": true,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "1500–2500m Z2 en eau libre. Pratiquer : visées tous les 8–10 coups, départs groupés, contournement bouées, drafting.",
+          "zones": [
+            "Z2"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "A_SWIM_TRI_EASY_TECH_1500",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6x(100m éducatifs + 150m Z2 propre) r=15s",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "B_SWIM_TRI_CSS_10x200",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_TRI_CSS_10x200@v19:between_repetitions:85b072362eb7",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_TRI_CSS_10x200@v19:after_each_repetition:67bdd27ff893",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m prog",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8–10x200m à CSS r=20–25s. Régularité absolue.",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_TRI_CSS_5x400",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_TRI_CSS_5x400@v19:between_repetitions:ceb84372c804",
+          "complete": true
+        },
+        {
+          "key": "B_SWIM_TRI_CSS_5x400@v19:after_each_repetition:865829aa4662",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 200m éducatifs",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4–5x400m à CSS r=30–40s. Garder allure constante.",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_TRI_RACE_PACE_IM",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m prog",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3x(800m allure course IM Z2 haut) r=1' facile. Viser régularité.",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "B_SWIM_TRI_RACE_PACE_703",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m prog",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3x(600m allure course 70.3 Z3 bas) r=1' facile. Rester propre.",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "B_SWIM_TRI_VO2_8x100",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_TRI_VO2_8x100@v19:between_repetitions:2591527db05a",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_TRI_VO2_8x100@v19:after_each_repetition:f87f68c92d82",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m prog",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8–10x100m Z4–Z5 (CSS-5 à -8s/100) r=20–30s",
+          "zones": [
+            "Z4a",
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_TRI_NEGATIVE_SPLIT",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 200m éducatifs",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3x(600m : 200m Z2 + 200m Z2 haut + 200m Z3) r=45s",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "unresolved_execution",
+        "composite_or_nonleading_quantities",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "B_SWIM_TRI_THRESHOLD_PYRAMID",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m éducatifs",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "100-200-300-400-500-400-300-200-100 à CSS (r=15–30s progressif)",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "C_SWIM_TRI_SIGHTING_DRILLS",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "C_SWIM_TRI_SIGHTING_DRILLS@v19:between_repetitions:9824e3c9f59e",
+          "complete": false
+        },
+        {
+          "key": "C_SWIM_TRI_SIGHTING_DRILLS@v19:after_each_repetition:c38883c63ee9",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "10x150m Z2 avec sighting toutes les 8 brasses (lever tête, viser cible) r=15s. + 4x50m nage en 'paquet' (simulation drafting).",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "C_SWIM_TRI_CATCH_PULL",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8x(50m rattrapé + 50m poing fermé + 100m nage complète propre) r=15s",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "C_SWIM_TRI_DRAFTING_PACK",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6x300m : 2 longueurs dans les pieds du partenaire + 2 longueurs côté (aspiration latérale) + 2 longueurs solo Z2. r=20s",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "C_SWIM_TRI_BILATERAL_BREATHING",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8x200m Z2 : 100m respiration tous les 3 coups + 100m respiration tous les 5 coups. r=15s",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "C_SWIM_TRI_KICK_EFFICIENCY",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6x(100m plaquette sans plaquette de battements + 100m nage complète '2 battements/cycle') r=15s. Focus : battements minimaux, propulsion bras.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "D_SWIM_TRI_REGEN_1000",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "800–1200m très facile Z1 : 200m crawl + 100m dos + 100m éducatifs. Répéter. Souplesse épaule.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "composite_or_nonleading_quantities",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "D_SWIM_TRI_PRE_RACE_ACTIVATION@v19:between_repetitions:12d4d1c3b0c1",
+          "complete": false
+        },
+        {
+          "key": "D_SWIM_TRI_PRE_RACE_ACTIVATION@v19:after_each_repetition:155a71c54601",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "600–800m : 200m facile + 4x50m prog (Z1→Z3) r=15s + 200m Z2 + 4x25m vif r=15s + 100m cool",
+          "zones": [
+            "Z1",
+            "Z2",
+            "Z3"
+          ]
+        }
+      ],
+      "unknowns": [
+        "composite_or_nonleading_quantities",
+        "last_recovery_occurrence_not_specified",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "D_TAPER_SWIM_OPENER",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "D_TAPER_SWIM_OPENER@v19:between_repetitions:504c84975a37",
+          "complete": false
+        },
+        {
+          "key": "D_TAPER_SWIM_OPENER@v19:after_each_repetition:f926bb26a2f9",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "300m facile + 4x100m Z2 + 4x50m allure course (Z3) r=15s + 200m cool",
+          "zones": [
+            "Z1",
+            "Z2",
+            "Z3"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "HEAT_SWIM_WARM_WATER",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile, focus technique et gestion rythme cardiaque",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "1500–2000m continu à allure CSS+10% (plus lente). En combinaison si eau < 24°C. Sans combinaison si eau > 24°C pour simuler conditions course. Surveiller FC : ne pas dépasser Z3. Hydratation post-sortie immédiate.",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos facile + rinçage eau froide sur nuque immédiatement après",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "TAPER_SWIM_J3",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile mixte (dos/crawl)",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4x50m à allure course (CSS) récup 20s. 4x25m à 95% allure max récup 30s. Focus : sensations eau, catch, rythme de nage. Total : 600–800m maximum.",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos facile. Sortir en se sentant léger, pas fatigué.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "OWS_DRAFTING_TRAINING",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m crawl facile. Exercices de proximité : nager à 30cm d'un partenaire.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6x200m en drafting (nager à 0-30cm des pieds du nageur devant, ou sur le côté à hauteur d'épaule). Récup 30s. Alterner : 3 fois en tête (Z3), 3 fois en drafting (Z2). Observer : économie réelle — maintenir même allure avec FC plus basse. Réf : Chatard 2003 — drafting réduit le coût énergétique de 13-26%.",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile + simulation de sortie de l'eau (courir 50m après).",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "alternative_branch_selection_unresolved",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "OWS_MASS_START_SIM",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m échauffement calme. Discussion tactique : placement selon niveau (fort = avant-côté, moyen = 2ème rang).",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3 répétitions de départ de masse simulé : sprint 50-75m à 95% max en groupe (contact physique normal), puis transition vers rythme de course. Récup 3 min entre chaque. Pratique : sighting (lever la tête toutes les 6-10 foulées), nage en ligne droite sans ligne d'eau, contact physique géré. 1x500m à allure course en open water (sans ligne).",
+          "zones": [
+            "Z3",
+            "Z4",
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m retour calme + debriefing tactique",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "OWS_NAVIGATION_SIGHTING",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m crawl. 4x25m drill sighting : lever la tête 2x par longueur de 25m.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Exercice 1 : 4x100m avec sighting toutes les 8 foulées (rythme course). Exercice 2 : 200m en piscine yeux fermés → mesurer dérive (objectif < 1m). Exercice 3 (si OWS disponible) : 2x400m navigation vers bouée sans ligne d'eau, focus sur ligne droite. Technique : chin-up sighting (Colwin 2002) — lever uniquement les yeux, pas toute la tête.",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "composite_or_nonleading_quantities",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "OWS_WETSUIT_SPECIFIC",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m avec wetsuit — s'habituer à la flottabilité modifiée et restriction des épaules.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "1000–1500m avec wetsuit. Focus : ajuster stroke rate (cadence augmente naturellement avec flottabilité). Observer : allure wetsuit vs sans — gain typique 3-5s/100m. Adapter technique catch : EVF (Early Vertical Forearm) légèrement modifié. Gestion thermique : si surchauffe, nager plus lentement ou s'arrêter.",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m sans wetsuit si possible (comparaison). Pratiquer retrait rapide du haut < 20 secondes.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "BILLAT_SWIM_30_30",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "BILLAT_SWIM_30_30@v19:between_repetitions:c8b9ffe560f5",
+          "complete": false
+        },
+        {
+          "key": "BILLAT_SWIM_30_30@v19:after_each_repetition:1679e79c26f8",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m progressif + 8×25m éducatifs R:15s + 4×50m à allure CSS R:20s",
+          "zones": [
+            "Z1",
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Adaptation 30/30 natation : 3 séries de 8×[25m sprint maximal (vVO2max nage) + 25m nage lente récup (Z1)]. En bassin 25m : le 25m sprint correspond au 30s course, les 25m retour lent = récup. Récup entre séries : 3 min. L'objectif est la même cinétique VO2 que le 30/30 course. Allure sprint : 5-8% plus rapide que CSS. Observer : la qualité technique ne doit pas s'effondrer sur les dernières répétitions — si le catch se perd, arrêter. Réf : Billat 2001 adapté natation.",
+          "zones": [
+            "Z5",
+            "Z6",
+            "Z1"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos facile + 200m crawl très lent",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "BILLAT_SWIM_CSS_BILLAT",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "BILLAT_SWIM_CSS_BILLAT@v19:between_repetitions:a3e2c2cd1a81",
+          "complete": false
+        },
+        {
+          "key": "BILLAT_SWIM_CSS_BILLAT@v19:after_each_repetition:ae31aa8f7ae7",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m progressif + 4×100m progressifs jusqu'à CSS R:20s",
+          "zones": [
+            "Z1",
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Protocole Billat-CSS : 6×200m à allure CSS exacte (chrono précis) R:30s. Puis 4×[50m sprint 105% CSS + 150m retour à CSS]. Ces transitions rapide→retour à CSS simulent la gestion d'un départ de masse ou d'une accélération sur bouée. Réf : Billat 2009 (progressif) adapté natation — tenir l'allure critique après une accélération = clé de la performance triathlon natation.",
+          "zones": [
+            "Z3",
+            "Z4",
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m dos/brasse lent",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "NORWEGIAN_SWIM_THRESHOLD",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "NORWEGIAN_SWIM_THRESHOLD@v19:between_repetitions:64ef5fd86126",
+          "complete": false
+        },
+        {
+          "key": "NORWEGIAN_SWIM_THRESHOLD@v19:after_each_repetition:7e8d1a644a18",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m progressif + 4×50m éducatifs R:15s + 4×100m progressifs jusqu'à allure seuil R:20s",
+          "zones": [
+            "Z1",
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Protocole double seuil natation : Bloc A (seuil bas natation) : 4×200m à 92-95% CSS R:20s. Récup 3 min. Bloc B (seuil haut natation) : 6×100m à 98-102% CSS R:15s. RPE Bloc A : 7/10. RPE Bloc B : 8/10. Réf : Bakken 2019 adapté natation — même principe de double stimulation du seuil que la course. Le repos très court entre les répétitions (15-20s) force le maintien de la cinétique lactique en zone seuil, simulant le stimulus du double threshold.",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m dos lent + 100m crawl très facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "SEILER_SWIM_Z1_VOLUME",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m progressif mixte crawl/dos",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "1500-3000m continu ou en longues séries (500-800m) à allure Z1-Z2 (> 110% CSS — plus lent que CSS). Cible : CSS+15s/100m minimum. Sensation : facile, technique fluide, respiration contrôlée toutes les 3 foulées. La tentation est de nager 'un peu plus vite' — résister. Réf : Seiler 2010 adapté natation — la natation doit suivre la même distribution polarisée que les autres sports. Le volume facile développe les adaptations centrales (volume sanguin, efficacité cardiaque) sans créer de fatigue périphérique.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos très lent",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "alternative_branch_selection_unresolved",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "A_SWIM_END_CSS_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "A_SWIM_END_CSS_PRO@v19:between_repetitions:83ff31072d7d",
+          "complete": false
+        },
+        {
+          "key": "A_SWIM_END_CSS_PRO@v19:after_each_repetition:8dea557c8fd1",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "Éducatifs + 3x400m (CSS+5 à +10s/100) r=45–60s",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "execution_quantity_missing",
+        "last_recovery_occurrence_not_specified",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "B_SWIM_CSS_12x100_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_CSS_12x100_PRO@v19:between_repetitions:cba1e8f5bcb7",
+          "complete": true
+        },
+        {
+          "key": "B_SWIM_CSS_12x100_PRO@v19:after_each_repetition:f9cfd05a7a1c",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "12–20x100m à CSS r=15–20s (qualité)",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "last_recovery_occurrence_not_specified",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "B_SWIM_CSS_8x200_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_CSS_8x200_PRO@v19:between_repetitions:92bdadab46fd",
+          "complete": true
+        },
+        {
+          "key": "B_SWIM_CSS_8x200_PRO@v19:after_each_repetition:d72a454297e5",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "8x200m à CSS r=20–30s",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "last_recovery_occurrence_not_specified",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "B_SWIM_CSS_LADDER_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "100-200-300-400-300-200-100 à CSS (r=20–40s)",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "B_SWIM_SPEED_25S_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "2 blocs : 12x25m vite r=20–30s, récup longue entre blocs",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "C_SWIM_TECH_DRILLS_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "Drills 20–30' + 8x50m propre (RPE 6)",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "repetition_recovery_not_specified",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "D_SWIM_EASY_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "Nage facile + mobilité épaules",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "D_RECOVERY_VAR_1_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "Z1 très facile + mobilité/respiration 10'",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "D_RECOVERY_VAR_4_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "Z1 très facile + mobilité/respiration 10'",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "D_RECOVERY_VAR_7_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "Z1 très facile + mobilité/respiration 10'",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "D_RECOVERY_VAR_10_PRO",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "Z1 très facile + mobilité/respiration 10'",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "TPL_SWIM_HYPOXIE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3 blocs de (6 x 75m) Z5. Respiration 3, puis 3/5, puis 5/7 mouvements",
+          "zones": [
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "TPL_SWIM_FORCE_PLAQUETTES",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3-4 x 800m (Pull+Grosses Plaquettes) Z3. Chercher à attraper l'eau loin devant",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "TPL_SWIM_CSS_LONG_REPS",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "TPL_SWIM_CSS_LONG_REPS@v19:between_repetitions:2cc4f90044e4",
+          "complete": false
+        },
+        {
+          "key": "TPL_SWIM_CSS_LONG_REPS@v19:after_each_repetition:8d7c7d783737",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8 x 300m ou 6 x 400m Allure CSS (Z4) R:20-30\"",
+          "zones": [
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing",
+        "last_recovery_occurrence_not_specified",
+        "alternative_branch_selection_unresolved",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "TPL_SWIM_SIMULATION_EAU_LIBRE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Main",
+          "text": "3000-3800m continu. 50m Polo toutes les 500m ou accélérer 20 coups toutes les 5'",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        }
+      ],
+      "unknowns": [
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "ENR_SWIM_DESCENDING_SET",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m varié + 4x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "5 x 400m descending (chaque 400 plus rapide que le précédent). De Z2 à Z4+. R:30\"",
+          "zones": [
+            "Z2",
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "ENR_SWIM_BROKEN_SWIM",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m varié (100 NL + 100 dos + 100 pull)",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Broken swim: 1500m découpé en 5×300m à allure course Z3/Z4 avec 10\" repos entre chaque segment. Maintenir régularité (<2\" d'écart entre segments). Respiration bilatérale",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "ENR_SWIM_PADDLES_PULL_FORCE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile + 4x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4 x 600m Pull+Plaquettes Z3 (petit→moyen→gros→moyen). R:20\". Focus: prise d'eau lointaine",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile sans matériel",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "ENR_SWIM_SPEED_ENDURANCE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "ENR_SWIM_SPEED_ENDURANCE@v19:between_repetitions:3c0523eefe13",
+          "complete": false
+        },
+        {
+          "key": "ENR_SWIM_SPEED_ENDURANCE@v19:after_each_repetition:8a91f86425be",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m varié + 4x25m sprint",
+          "zones": [
+            "Z1",
+            "Z2",
+            "Z6"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "16 x 50m Z5 R:15\". Maintenir <+2\" du meilleur temps sur chaque 50m",
+          "zones": [
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "ENR_SWIM_KICK_SET",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "ENR_SWIM_KICK_SET@v19:between_repetitions:af0f1a52c612",
+          "complete": false
+        },
+        {
+          "key": "ENR_SWIM_KICK_SET@v19:after_each_repetition:5630582f4993",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile + éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8 x 100m battements planche Z3/Z4. R:15\". Focus: fréquence haute, amplitude courte depuis la hanche",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile nage complète",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "ENR_SWIM_NEGATIVE_SPLIT_800",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "ENR_SWIM_NEGATIVE_SPLIT_800@v19:between_repetitions:658a5850f447",
+          "complete": true
+        },
+        {
+          "key": "ENR_SWIM_NEGATIVE_SPLIT_800@v19:after_each_repetition:700bd10774d2",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4 x 800m avec chaque 800 en negative split (1ère 400 Z2/Z3, 2ème 400 Z3/Z4). R:30\"",
+          "zones": [
+            "Z2",
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "V2_SWIM_TECHNIQUE_CATCH",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile varié (100 NL + 100 dos + 100 pull)",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6 x (100m catch-up Z1 + 100m nage complète Z2). Focus: entrée main devant épaule, coude haut, prise d'eau loin devant. Compter coups/25m. + 4x50m point fermé Z2 + 4x50m doggy paddle Z1",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "V2_SWIM_TECHNIQUE_ROTATION",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4 x (50m nage bras droit seul + 50m bras gauche + 100m nage complète focus rotation). Puis 4x100m 3 temps respiration alternée. R:15\"",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "V2_SWIM_EAU_LIBRE_DRAFT",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile varié (100 NL + 100 dos + 100 pull) + 4x50m progressif",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2000-3000m en eau libre avec partenaire(s). Alternance 200m en tête / 200m en draft (pieds). Visée toutes les 8-10 brasses. 3 accélérations départ simulé + 3 virages bouées",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple dos ou brasse",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities",
+        "execution_quantity_missing",
+        "conditional_or_alternative_execution"
+      ]
+    },
+    {
+      "id": "V2_SWIM_SIGHTING_DRILL",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6 x 200m Z2/Z3 avec 1 coup de tête Polo toutes les 8 brasses. + 4 x 100m nage tête haute (Tarzan) Z3. Intégrer la visée sans casser le rythme",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "V2_SWIM_ENDURANCE_3K",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3000m continu Z2/Z3 (allure course -2-3\"/100m). Respiration bilatérale. Cadence stable. Focus: efficacité, ne pas forcer",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "V2_RECUP_NAGE_DETENTE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "200m souple au choix (dos ou brasse)",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "1500m: 400m crawl Z1 + 200m dos + 200m brasse + 400m crawl Z1 + 200m pull buoy + 100m éducatifs. Aucun effort. Zéro chrono. Décompresser",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "100m dos souple + étirements bord de bassin 3'",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "conditional_or_alternative_execution",
+        "composite_or_nonleading_quantities",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "V2_IM_SWIM_PROGRESSIVE_3800",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m varié (200 NL + 100 bat + 100 pull) + 4x50m progressif",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3800m: 1900m Z2 (confort) + 1900m Z3 (allure course puis -2-3\"/100m pour finish). Negative split obligatoire. Visée toutes les 200m",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "V2_SWIM_RACE_PACE_IM",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "V2_SWIM_RACE_PACE_IM@v19:between_repetitions:580caa760433",
+          "complete": false
+        },
+        {
+          "key": "V2_SWIM_RACE_PACE_IM@v19:after_each_repetition:53f46f5104a0",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m progressif",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6 x 500m allure course IM (Z3) R:20\". Chaque 500m à ±1\"/100m de l'allure cible. Régularité absolue",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "V2_SWIM_THRESHOLD_MIXTE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4 x (100m Z4 + 200m Z4 + 300m Z4) R:15\" entre chaque, R:30\" entre séries. Même allure /100m sur toutes les distances",
+          "zones": [
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "V3_RACESIM_SWIM_IM",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m varié (100 NL + 100 bat + 100 pull + 100 NL) + 4x50m progressif",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3800m continu à allure cible IM (CSS +5-8''). Respiration bilatérale tous les 3 ou 5 temps. Navigation si eau libre. Ravitaillement liquide toutes les 1000m",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "V3_RACESIM_SWIM_703",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m varié",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "1900m continu à allure cible 70.3 (CSS +3-5''). Départ groupé simulé si possible",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "V3_TEST_CSS",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m varié (200 NL, 100 bat, 100 pull)",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "400m chrono all-out → 5' repos → 200m chrono all-out. CSS = (400-200) / (T400-T200)",
+          "zones": [
+            "Z4",
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "V3_RECUP_SWIM_REGEN",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "100m dos souple",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "400-800m: alternance 50m NL / 50m dos / 50m bat / 50m pull. Tout en Z1, focus technique et respiration",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "100m souple au choix",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "V3_SWIM_OWS_SIGHTING",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m souple avec repérage bouées",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4x500m en eau libre: sighting toutes les 10 brasses, drafting en groupe si possible, entrées/sorties plage. Z2-Z3",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "conditional_or_alternative_execution"
+      ]
+    },
+    {
+      "id": "V3_SWIM_SPEED_ENDURANCE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m varié (100 NL, 100 bat, 100 pull, 100 NL)",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8x100m à CSS -3'' / 15'' repos + 4x200m à CSS / 20'' repos",
+          "zones": [
+            "Z4",
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "C_SWIM_KICK_TECH",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m nage libre souple",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8×50m kick avec planche (repos 15s), 4×100m pull buoy (repos 20s), 6×50m nage complète focus battement minimal et efficace (repos 15s), 4×25m sprint kick sans planche",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple nage au choix",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "C_SWIM_LEGS_ENDURANCE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m nage + 4×50m drill",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4×200m (50m kick + 150m nage), repos 20s. 6×100m nage complète fréquence basse, repos 15s. Focus: jambes économiques, pas de kick excessif",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "C_SWIM_CORD_RESISTANCE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "5min mobilité épaules + band pull-apart 2×15",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Swim Cord attaché au mur ou poteau : 4×30s traction crawl max → 60s repos. + 3×20s traction papillon → 45s repos. + Band-Resisted Catch 3×12 reps/bras. Alternative piscine : 4×25m avec élastique de résistance attaché à la taille. Réf: Girold 2007 – swim cord + natation = gain 2-3% vitesse nage sur 50-100m.",
+          "zones": [
+            "Force spécifique",
+            "Puissance nage"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "5min étirements épaules + rotation externe légère",
+          "zones": [
+            "Récup"
+          ]
+        }
+      ],
+      "unknowns": [
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_PYRAMID_CSS",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m : 200 crawl souple + 100 éducatifs + 100 battements",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Pyramide : 50m → 100m → 200m → 300m → 200m → 100m → 50m à allure CSS ±5s/100m. Repos : 10s par 50m de la distance (ex: 200m = 40s repos). Focus technique maintenue sur les longues distances.",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m nage au choix souple + 100m dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "FM_SWIM_Z2_LONG_FATMAX",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m : 200 nage libre + 100 pull + 100 jambes. Focus position et glisse",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2000-2800m continu Z2 (CSS+15-20s/100m). Séries de 400-500m avec 15s repos. Cadence régulière, amplitude prioritaire. L'immersion en eau froide favorise la lipolyse (brown fat activation)",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple technique + 100m dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "FM_SWIM_FASTED_AM",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m progressif : 100 lent + 100 modéré + 100 allure Z2",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "1500-2000m Z2 (CSS+15s/100m) à jeun. Séries de 200-300m, repos 10-15s. Eau au bord du bassin. Si vertiges → arrêter. La natation à jeun est mieux tolérée que la course (pas d'impact, position horizontale)",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple + petit-déjeuner dans les 20min",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "D_SWIM_LOOSEN",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "200m multi-nages très facile : 50m crawl + 50m dos + 50m brasse + 50m crawl. Pas de chrono, focus sur la glisse.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "**Série A — 4×100m crawl avec pull-buoy**, allure très facile, repos 15\" :\n• Pull-buoy entre les cuisses pour relâcher les jambes (épaules font tout le boulot, mais en mode souple).\n• Sensation : longues coulées, mains qui entrent loin devant l'épaule, expire long sous l'eau.\n• Si pas de pull-buoy : crawl 'glissé' avec 6 battements par cycle de bras.\n\n**Série B — 4×50m dos crawlé**, repos 10\" :\n• Excellent pour ouvrir la cage thoracique et étirer la posture après vélo.\n• Doigts qui pointent au plafond à la sortie de l'eau, regard fixe sur le plafond.\n\n**Optionnel — 2×50m brasse souple** pour relâcher les hanches.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile en alternant 25m crawl / 25m sur le dos. Sors de l'eau lentement, étirement épaules au mur 20\"/côté.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Coaching",
+          "text": "Aucun chrono, aucun virage poussé fort, aucune jambe forcée. Si tes épaules sont tendues, retire 1 série de pull. Idéal en eau libre l'été (lac plat, sans courant).",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "composite_or_nonleading_quantities",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "D_TAPER_SWIM_TOUCH",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "200m multi-nages facile.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "**Bloc principal — 300m facile multi-nages** (alterne 50m crawl / 50m dos) puis **4×50m allure course** (allure prévue le jour J, ni plus vite ni plus lent), repos 15\" entre. Focus glisse, technique, respiration côté faible.\n\n**Cool-down — 200m facile pull-buoy** : épaules relâchées, longues coulées.",
+          "zones": [
+            "Z1",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Étirement épaules au mur 20\"/côté.",
+          "zones": []
+        },
+        {
+          "part": "Coaching",
+          "text": "Garder le 'feel' de l'eau, sans accumuler de fatigue épaule. Aucune série dure. Si tes épaules sont tendues : retire les 4×50m allure course.",
+          "zones": []
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "A_SWIM_CONTINUOUS_2K",
+      "sourceDistanceStructureComplete": true,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile multi-nages",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2000m continu Z2 (splits réguliers, focus respiration bilatérale)",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "A_SWIM_PULL_ENDURANCE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "A_SWIM_PULL_ENDURANCE@v19:between_repetitions:eeda79247521",
+          "complete": false
+        },
+        {
+          "key": "A_SWIM_PULL_ENDURANCE@v19:after_each_repetition:65fed78073fc",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile + 4x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8x200m pull buoy Z2 r=20\" (focus catch et glisse)",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "A_SWIM_PADDLES_Z2",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "A_SWIM_PADDLES_Z2@v19:between_repetitions:5750fe285eb0",
+          "complete": true
+        },
+        {
+          "key": "A_SWIM_PADDLES_Z2@v19:after_each_repetition:ce0115e8bc65",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6x200m plaquettes Z2 r=20\" + 4x100m sans plaquettes Z2 r=15\"",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_CSS_8x200",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_CSS_8x200@v19:between_repetitions:fe940608db4c",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_CSS_8x200@v19:after_each_repetition:c4fea23733d0",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m progressifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8x200m CSS (allure seuil) r=20-30\"",
+          "zones": [
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_CSS_PYRAMID",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 6x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "200-300-400-300-200m CSS r=15-30\" (total 1400m au seuil)",
+          "zones": [
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "B_SWIM_VO2_100",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_VO2_100@v19:between_repetitions:863a133b5e33",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_VO2_100@v19:after_each_repetition:8a604cae78a8",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m build-up",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "10x100m Z5 (90-95% effort) r=30\"",
+          "zones": [
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_DESCENDING_400",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_DESCENDING_400@v19:between_repetitions:6bb45ab2be40",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_DESCENDING_400@v19:after_each_repetition:95b6865a5b07",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m progressifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4x400m descendant (Z2→Z3→Z4→sub-CSS) r=30-45\"",
+          "zones": [
+            "Z2",
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_BROKEN_1500",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m build-up",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "1500m cassé: 5x300m CSS-5\" r=10\" (total sous allure race)",
+          "zones": [
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "C_SWIM_CATCH_FOCUS",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "C_SWIM_CATCH_FOCUS@v19:between_repetitions:b5117e7237e5",
+          "complete": false
+        },
+        {
+          "key": "C_SWIM_CATCH_FOCUS@v19:after_each_repetition:9d39ae8ee6b0",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8x50m scull avant r=15\" + 8x50m catch-up drill r=15\" + 6x100m Z2 focus catch",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "C_SWIM_BILATERAL_BREATH",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "C_SWIM_BILATERAL_BREATH@v19:between_repetitions:fc53a2e045ec",
+          "complete": true
+        },
+        {
+          "key": "C_SWIM_BILATERAL_BREATH@v19:after_each_repetition:b3e67a2fb316",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile respiration libre",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4x200m respiration bilatérale (3 temps) Z2 r=20\" + 4x100m respiration 5 temps Z2 r=15\"",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "C_SWIM_KICK_SET",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "C_SWIM_KICK_SET@v19:between_repetitions:34d0939b2ada",
+          "complete": true
+        },
+        {
+          "key": "C_SWIM_KICK_SET@v19:after_each_repetition:53101bed6f6a",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8x50m kick planche Z2 r=15\" + 4x100m nage complète focus battement Z2 r=15\" + 4x50m kick sans planche Z3 r=20\"",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "C_SWIM_OPEN_WATER_SKILLS",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "C_SWIM_OPEN_WATER_SKILLS@v19:between_repetitions:70dc9ca99243",
+          "complete": false
+        },
+        {
+          "key": "C_SWIM_OPEN_WATER_SKILLS@v19:after_each_repetition:8bae932d8afc",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4x50m sighting drill (relever tête) r=10\" + 6x100m Z3 départ arrêté r=15\" + 2x400m Z2 en peloton simulé",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "C_SWIM_TURNS_STARTS",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "C_SWIM_TURNS_STARTS@v19:between_repetitions:5b67915902c2",
+          "complete": false
+        },
+        {
+          "key": "C_SWIM_TURNS_STARTS@v19:after_each_repetition:fbd58a5adec8",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "10x50m focus virage explosif + coulée longue r=20\" + 4x100m Z2 comptage coups de bras r=15\"",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_RACE_SIM_IM",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile progressif",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3800m allure race: 400m Z3 (départ) + 3000m Z2-Z3 + 400m Z3 (finish)",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile + transition mentale vélo",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "B_SWIM_RACE_SIM_703",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "1900m allure race: 200m Z3 (départ rapide) + 1500m Z3 (steady) + 200m Z3-Z4 (finish)",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "A_SWIM_LONG_3K",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile multi-nages",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3000m: 10x300m Z2 r=15\" (régularité stricte)",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "B_SWIM_MIXED_SET",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4x(200m Z2 + 100m Z4) r=15-20\" (total 1200m mixte)",
+          "zones": [
+            "Z2",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "B_SWIM_SPRINT_25s",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_SPRINT_25s@v19:between_repetitions:a1da5daa664a",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_SPRINT_25s@v19:after_each_repetition:e2cfe582fc1f",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m progressifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "12x25m sprint MAX r=45\" + 4x50m facile récup",
+          "zones": [
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_LACTATE_50s",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_LACTATE_50s@v19:between_repetitions:7408dd4b78d7",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_LACTATE_50s@v19:after_each_repetition:5d41ebee0d3a",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 6x50m progressifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3x(8x50m Z5 r=15\") macro-r=1'30\"",
+          "zones": [
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "unresolved_execution",
+        "last_recovery_occurrence_not_specified",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "B_SWIM_200_BEST_EFFORT",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_200_BEST_EFFORT@v19:between_repetitions:0e96c7346802",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_200_BEST_EFFORT@v19:after_each_repetition:d47a304d1d9f",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m build-up",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4x200m best effort (negative split obligatoire) r=1'30\"",
+          "zones": [
+            "Z4",
+            "Z5"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "400m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_FARTLEK_MIX",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile + 4x50m éducatifs",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2000m fartlek: alterner 50m rapide Z4 / 50m facile Z1 en continu",
+          "zones": [
+            "Z1",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "B_SWIM_NEGATIVE_SPLIT_1K",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_NEGATIVE_SPLIT_1K@v19:between_repetitions:c3b332bd2fe3",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_NEGATIVE_SPLIT_1K@v19:after_each_repetition:2823bd9bbcf3",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2x1000m negative split (500m Z2 → 500m Z3-Z4) r=1'",
+          "zones": [
+            "Z2",
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "B_SWIM_LADDER_50_400",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m progressifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "50-100-200-400-200-100-50m Z3-Z4 r=15-30\" (total 1100m)",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "A_SWIM_TEMPO_1500",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "A_SWIM_TEMPO_1500@v19:between_repetitions:d030eb18fa53",
+          "complete": true
+        },
+        {
+          "key": "A_SWIM_TEMPO_1500@v19:after_each_repetition:23ac94bdef7b",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile multi-nages",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "3x500m tempo (CSS+5\") r=20\" — splits réguliers",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "A_SWIM_AEROBIC_MULTI_NAGES",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "8x(100m crawl + 50m dos + 50m brasse) Z2 r=15\"",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "unresolved_execution",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "A_SWIM_PROGRESSIVE_2K",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2000m progressif: 500m Z1 → 500m Z2 → 500m Z3 → 500m Z3+",
+          "zones": [
+            "Z1",
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities",
+        "empty_instruction"
+      ]
+    },
+    {
+      "id": "D_SWIM_RECOVERY_EASY",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "200m facile multi-nages",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "800m facile: 200m crawl + 200m dos + 200m brasse + 200m au choix (tout Z1)",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos très facile + étirements bord bassin",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "D_SWIM_TECHNIQUE_LIGHT",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "D_SWIM_TECHNIQUE_LIGHT@v19:between_repetitions:8f30ce9e7c2d",
+          "complete": false
+        },
+        {
+          "key": "D_SWIM_TECHNIQUE_LIGHT@v19:after_each_repetition:739af46f8d6a",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "200m facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6x50m rattrapé r=15\" + 6x50m doigts-traînés r=15\" + 4x50m poing fermé r=15\" + 4x100m Z1 focus glisse",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_FORCE_PADDLES_BAND",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_FORCE_PADDLES_BAND@v19:between_repetitions:f4b74774106e",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_FORCE_PADDLES_BAND@v19:after_each_repetition:f89410231547",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m éducatifs",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "6x100m plaquettes + élastique chevilles Z3 r=20\" + 4x100m nage libre sans matériel Z3 r=15\"",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "A_SWIM_PULL_LONG_DISTANCE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile + 4x50m éducatifs",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2000m continu pull buoy Z2 — focus rotation hanches et catch",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile sans pull buoy",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified"
+      ]
+    },
+    {
+      "id": "D_SWIM_TAPER_ACTIVATION",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "D_SWIM_TAPER_ACTIVATION@v19:between_repetitions:251a39db7e5a",
+          "complete": true
+        },
+        {
+          "key": "D_SWIM_TAPER_ACTIVATION@v19:after_each_repetition:81b14684b172",
+          "complete": true
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m facile multi-nages",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "4x50m progressif (Z1→Z4) r=20\" + 2x100m allure race r=30\" + 200m Z1",
+          "zones": [
+            "Z1",
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m dos très facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "D_SWIM_RACE_REHEARSAL",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile avec 4x25m accélérations",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "800m allure race (focus sighting toutes les 8 longueurs) + 200m Z1",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m facile + visualisation mentale",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "additional_or_embedded_execution_unresolved",
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "B_SWIM_CSS_SHORT_REST",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_CSS_SHORT_REST@v19:between_repetitions:4da5d71c0678",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_CSS_SHORT_REST@v19:after_each_repetition:fb965d89b72f",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 4x50m progressifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "12x100m CSS r=10\" (repos volontairement courts)",
+          "zones": [
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_SWIM_THRESHOLD_400_200",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SWIM_THRESHOLD_400_200@v19:between_repetitions:c678c6ee2af6",
+          "complete": false
+        },
+        {
+          "key": "B_SWIM_THRESHOLD_400_200@v19:after_each_repetition:59b6e905b45a",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile + 6x50m éducatifs",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2x(400m CSS r=20\" + 2x200m CSS r=15\") macro-r=1'",
+          "zones": [
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "unresolved_execution",
+        "composite_or_nonleading_quantities",
+        "last_recovery_occurrence_not_specified",
+        "external_repeat_recovery_unresolved"
+      ]
+    },
+    {
+      "id": "A_SWIM_STEADY_STATE_2500",
+      "sourceDistanceStructureComplete": true,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m facile multi-nages",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2500m steady state Z3 (CSS+5-10\") — splits vérifiés chaque 500m",
+          "zones": [
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m facile dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "B_703_SWIM_OWS_RACE_SIM",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "10min souple + 4×50m progressif jusqu'à CSS. Combinaison enfilée, sighting court (toutes les 6 brasses)",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "BLOC 1 : Quick start 200m @ 90-95% effort sprint (simulation départ) puis 800-1000m @ CSS+5% en drafting (pieds d'un partenaire si possible). 3min repos eau. BLOC 2 : 1000-1500m continu @ pace 70.3 (CSS-3 à -5%) avec sighting toutes les 8 brasses + 1 virage simulé toutes les 250m. BLOC 3 : 200m sortie d'eau rapide + transition simulée (combi retirée en courant 50m).",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple + débriefing pace montre (Garmin OWS) + nutrition post",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "repetition_recovery_not_specified",
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "B_703_SWIM_QUICK_START_DRAFT",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m progressif (4×100m crawl Z1→Z2) + 4×50m éducatifs + 4×25m progressif vitesse",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "SÉRIE 1 départ rapide : 6×100m départ explosif (premier 25m @ sprint 95%, finir @ CSS). R=30s. SÉRIE 2 drafting/relais : 4×200m alterné (50m mène @ CSS-2, 50m draft pieds @ CSS+5, ×2). R=20s. SÉRIE 3 maintien race-pace : 4×300m @ pace 70.3 (CSS-3 à -5). R=30s. SÉRIE 4 sortie : 4×50m sprint départ plongé.",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple éducatifs",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "composite_or_nonleading_quantities",
+        "repetition_recovery_not_specified",
+        "individual_elapsed_time_for_distance_unknown"
+      ]
+    },
+    {
+      "id": "B_LCW_SWIM_FRI_EVENING",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m Z1-Z2 + 4×50m technique + 4×25m accélérations",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2 blocs continus : 1200-1800m allure race LCW (CSS+3-5 sec/100m) + 200m Z2 récup + 1000-1500m allure race. Respiration bilatérale, sighting toutes les 8-10 brasses. Simuler nutrition post-natation (30g CHO + 20g protéine dans les 30min).",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "300m Z1 + étirements dorsaux/épaules",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "composite_or_nonleading_quantities",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "S2R_SWIM_INTRO_TECHNIQUE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "100-200m nage libre très facile, alterner avec marche dans l'eau si besoin",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "15-20min de nage continue facile (tous styles acceptés, y compris planche + battements de jambes si le crawl n'est pas maîtrisé). Aucune notion de chrono, respiration confortable uniquement.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "100m très facile + étirements épaules",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "conditional_or_alternative_execution",
+        "individual_elapsed_time_for_distance_unknown",
+        "execution_quantity_missing"
+      ]
+    },
+    {
+      "id": "S2R_SWIM_CONTINUOUS_LOW_IMPACT",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "150m nage libre facile",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "20-30min nage continue Z1-Z2, pause courte autorisée toutes les 200-300m si besoin. Travail de régularité de la respiration.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "100m très facile",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "composite_or_nonleading_quantities"
+      ]
+    },
+    {
+      "id": "B_SPRINT_SWIM_RACE_PACE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_SPRINT_SWIM_RACE_PACE@v19:between_repetitions:d9d27aa3188b",
+          "complete": false
+        },
+        {
+          "key": "B_SPRINT_SWIM_RACE_PACE@v19:after_each_repetition:1927327d1896",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "300m souple + 4x50m progressif",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "15x50m à allure course Sprint (CSS +0-2s/100m) R:15s. Départ groupé simulé sur les 3 premiers (bousculade, respiration contrainte), sortie d'eau rapide sur les 2 derniers.",
+          "zones": [
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified"
+      ]
+    },
+    {
+      "id": "B_OLY_SWIM_RACE_PACE",
+      "sourceDistanceStructureComplete": false,
+      "candidateDistanceStructures": [
+        {
+          "key": "B_OLY_SWIM_RACE_PACE@v19:between_repetitions:7bcff6ed9801",
+          "complete": false
+        },
+        {
+          "key": "B_OLY_SWIM_RACE_PACE@v19:after_each_repetition:a469920f96fd",
+          "complete": false
+        }
+      ],
+      "sourceParts": [
+        {
+          "part": "Warm-up",
+          "text": "400m souple + 4x50m progressif",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2x750m négative split : 1er 750m à allure course Olympique (CSS +2-3s/100m, gestion), 2e 750m plus rapide (CSS +0-1s/100m, lâcher). R:1' entre les deux.",
+          "zones": [
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "200m souple dos",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "individual_elapsed_time_for_distance_unknown",
+        "repetition_recovery_not_specified",
+        "last_recovery_occurrence_not_specified",
+        "composite_or_nonleading_quantities"
+      ]
+    }
+  ]
+}

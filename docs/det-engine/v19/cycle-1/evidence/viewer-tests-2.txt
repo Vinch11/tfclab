@@ -1,0 +1,1 @@
+{"sourceViews":920,"candidateViews":418,"allSourceInstructionsPreserved":true,"sourceDefault":true,"candidateChoiceExplicit":true,"filters":true,"networkRequests":0,"prescriptionOrSyncControl":false}

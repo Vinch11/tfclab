@@ -1,0 +1,9 @@
+{
+  "version": "v19-nonrenewable-budget-1",
+  "startedAt": "2026-10-28T23:04:37Z",
+  "hardDeadline": "2026-10-29T01:04:37Z",
+  "maxTotalSeconds": 7200,
+  "maxCycles": 2,
+  "maxCycleSeconds": 3600,
+  "automaticRenewal": false
+}

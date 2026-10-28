@@ -1,0 +1,11 @@
+{
+  "experimental/det-engine/v19-editorial.mjs": "10b06cb4f482161653fb89d5ab9ae83149947cf29af6d0651029fb89a0f43a06",
+  "experimental/det-engine/v19-outputs.mjs": "d8184565fb38486a182dae459b4f8a7379b44b603a539406cfa8962b6d54b15e",
+  "experimental/det-engine/v19-dose-ledger.mjs": "3e4a7516b02b1adcad6c84a850d2e4181e27fc9d8c30d10cfcee0db8e0595c97",
+  "experimental/det-engine/v19-budget.mjs": "9bf5ea0e415b08cda881f1c5b56bf16b20f9120c1ab427170d46262c635bac8f",
+  "scripts/det-engine/v19-session.mjs": "5f038b4132142056b11e176e1a229b38e6db566e4ecd8e73a87edf188385b825",
+  "scripts/det-engine/v19-build.mjs": "42966bbc1328a2c1c418441d15ce1d2be1e99d23ea2efbafe129b9ce6640ead4",
+  "scripts/det-engine/v19-independent-audit.py": "f3808ac8b98b33687e9f0bae5065200a390464457bd158e96d3c344e3f27cb0e",
+  "scripts/det-engine/v19-contracts.test.mjs": "85cf3016bb4e53a1f4fbbd5d3d8da0c7acea28911bc739f9dbb0a15bdf92f8ed",
+  "scripts/det-engine/v19-independent-audit.test.py": "7ad7b12569ad560ecd2271aca351a93885b07fd66d509f2f9b5fe244e1d3a7d4"
+}

@@ -1,0 +1,93 @@
+✔ all 920 immutable IDs, canonical contents, references and V18 recipes survive (39.147753ms)
+✔ 75 source-complete recipes remain exact source witnesses, not newly edited recipes (0.428958ms)
+✔ all 208 unresolved final-recovery IDs retain both candidate conventions (0.632916ms)
+✔ there is no default winner, optimum or expert validation (0.627788ms)
+✔ real bike threshold source gives 65 and 70 minutes, with work parameters unchanged (4.335116ms)
+✔ not fitting the advertised envelope is retained as a rejection, not a changed threshold (0.488568ms)
+✔ distance, unknown drills and unknown recovery amounts are not fabricated (12.107653ms)
+✖ non-metabolic models are not converted to cardio minutes or repeated duration totals (2.611634ms)
+✔ 119 swim models retain unknown individual duration and no CSS transfer (5.329467ms)
+✔ all brick/mixed models keep explicit disciplines, order and unknown transition (3.227563ms)
+✖ flat fundamental work does not receive a universal vertical/eccentric questionnaire gate (2.791114ms)
+✔ headline correction changes no work, count, rest or intensity and remains historically noncompliant (10.816293ms)
+✔ walk-run source stays 37 minutes, not silently clipped to its 24-30 announcement (3.640768ms)
+✔ every changed path is explicit and no original object mutates (1163.405079ms)
+✔ a fabricated extra minute, count or lower zone cannot enter coach/Nolio (16.229737ms)
+✔ editorial content cannot be relabeled as historical proof or scientific approval (3.827269ms)
+✔ V2, unknown versions and real identity context are refused (8.487957ms)
+✔ uncompiled editorial candidates remain readable and cannot be exported (13.861952ms)
+✔ both real rest proposals expose descriptive recovery accounting without domain inference (4.389408ms)
+✔ 920 coach records preserve source instructions, variants and useful restrictions (6998.319382ms)
+✔ source and candidate replay are deterministic with no external calls (3012.96543ms)
+✔ one hard 120-minute budget remains unchanged by cycle switching (0.373343ms)
+✔ third cycle, auto restart, budget renewal and 61-minute cycles are rejected (0.261155ms)
+✔ deadline is exclusive; no reset on resume and no invented credit balance (0.170978ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 22
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11335.706597
+
+✖ failing tests:
+
+test at scripts/det-engine/v19-contracts.test.mjs:16:1
+✖ non-metabolic models are not converted to cardio minutes or repeated duration totals (2.611634ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    {
+      advertisedMinutes: [
+        25,
+        40
+      ],
+  ...
+                '3',
+  +             undefined,
+  -             null,
+                '10',
+                '12'
+              ],
+              literal: '3x10–12',
+              source: {
+  
+      at file:///workspace/tfclab/scripts/det-engine/v19-contracts.test.mjs:16:302
+      at Array.forEach (<anonymous>)
+      at TestContext.<anonymous> (file:///workspace/tfclab/scripts/det-engine/v19-contracts.test.mjs:16:102)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Object],
+    expected: [Object],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/det-engine/v19-contracts.test.mjs:19:1
+✖ flat fundamental work does not receive a universal vertical/eccentric questionnaire gate (2.791114ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///workspace/tfclab/scripts/det-engine/v19-contracts.test.mjs:19:154)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
