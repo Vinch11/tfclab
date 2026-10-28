@@ -1,6 +1,6 @@
 {
   "FEEDBACK_PROGRESSION.md": "a5d70d62cccb056e76446a6d1936d49e8f61c5ac8b1f85bf41f2b06d4a5150bf",
-  "JOURNAL.md": "8185534bd529e673b78c23d91add419fd32e8da4c0692be1a22f6594c4d9f07d",
+  "JOURNAL.md": "6afeea59fbcf68d4c0cba22a5a93caa4e2f21cd5052f166e858ff5da76e0d62a",
   "LONG_PLUS_POSITION_REVIEW.md": "d01aa961d382823ebe11d6cb39192786de1134a52a6674dccebdf4a3ef3751d7",
   "MESOCYCLE_AEROBIC_PROFILE.md": "e9882ae4145dd41e81461af72a36b6c6b1cce074d702c632b3b52364ae3c0514",
   "MESOCYCLE_BALANCED_PROFILE.md": "ef1a5865f46aeb416e48c9b24cdb39b2ba6c3350f3da5f81bc4bc37a3dedd18f",
@@ -52,6 +52,7 @@
   "evidence/mesocycles-attempt-1.txt": "cc5d43800a21816035346963b4b6b915ce7a396d5f9f26c72395e0d2b5d00f85",
   "evidence/mesocycles-attempt-2.txt": "741b170a396227bccaaab2892cb9301d0da9936719d8af19e08c586442539aa5",
   "evidence/mesocycles-attempt-3.txt": "1856ea45339a65453d418707ce317c9cc38c33633aa3e59b616b43778d35844b",
+  "evidence/pr-publication-checkpoint.json": "613559291d115349fa4976926335be8302459b9db8ca02a8ef518babff59161a",
   "evidence/preregistration.json": "6481ef3fa56d13a61495bcc28538912962c910aee67d2eb8b4adf831e714cc11",
   "evidence/preservation.json": "be5924ac87da677363b43ab4cb5a17ca887bfa7437b59efa2e44210ea8d32654",
   "evidence/rejections.json": "f93f159554345507892429b9519f3c1c12d66318d978a18c38e099049277e8d5",
@@ -86,7 +87,8 @@
   "evidence/validation-3.txt": "2c28f4a0c2c207fb9bf6d9c67b226c81c2fb1b6b195da0833391d4a6f1466a1f",
   "evidence/validation-resume.json": "4031886423f95fe3ffc8776814c9cf724f9df267ea878a62a9eba2f1d0cdc331",
   "provenance.json": "5947a71257539678ca0c146f05a7df2cec82e242a82ba3d1cd17a5646b64f9eb",
+  "publication-proof.json": "ca39901d4e38094c9e6efb9eef53771b0801369a93c361bce3e242534e432fbe",
   "source-checksums.json": "9204ef3ad15ca90634d6cff7801b20a746483351a347adcfa302a7ae5e1d0d07",
-  "state.json": "89bf0fa9615ac304a7b4136ed4cf974745eab9e3935d437e24f6786700e334bf",
+  "state.json": "6795c2eadd02ce0e1325f93f96056735822904abe2ae5fcc04130e2e335b99de",
   "validation-summary.json": "759010654c44637949b85a16b685cf3f8854bfd7e7a4efac5f389c46bb5ffebf"
 }

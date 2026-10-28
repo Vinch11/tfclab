@@ -4,8 +4,8 @@
   "startedAt": 1793191642.3578055,
   "deadline": 1793195242.3578055,
   "maxUnits": 10,
-  "status": "running_no_go",
-  "activeUnit": "publication",
+  "status": "completed_no_go",
+  "activeUnit": null,
   "units": [
     {
       "id": "baseline_audit",
@@ -160,10 +160,15 @@
     },
     {
       "id": "publication",
-      "status": "running",
+      "status": "passed",
       "startedAt": 1793194388.8623655,
-      "mode": "authorized_experimental_git_and_draft_pr_metadata"
+      "mode": "authorized_experimental_git_and_draft_pr_metadata",
+      "completedAt": 1793194643.5909429,
+      "evidence": "publication-proof.json"
     }
   ],
-  "automaticRestart": false
+  "automaticRestart": false,
+  "completedAt": 1793194643.5909467,
+  "elapsedSeconds": 3001.233,
+  "stopReason": "ten_named_units_completed"
 }
