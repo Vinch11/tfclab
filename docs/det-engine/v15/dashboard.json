@@ -1,0 +1,111 @@
+{
+  "version": "det-v15-1",
+  "recommendation": "NO-GO",
+  "calendarsRegenerated": 0,
+  "conditionsResolved": 0,
+  "humanExpertReviews": 0,
+  "variantsRead": 6,
+  "distinctSyntheticProfiles": 2,
+  "selectedInitialBlockSessions": 26,
+  "initialConditionOccurrences": 69,
+  "firstBlockFutureCapacityConditions": 0,
+  "classification": [
+    {
+      "profile": "IM_aerobic_history",
+      "model": "native_floor_conditional",
+      "conditionalSlots": 104,
+      "occurrences": 318,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 50
+      }
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "hold_current_envelope",
+      "conditionalSlots": 104,
+      "occurrences": 312,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 44
+      }
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "blockwise_reassessment",
+      "conditionalSlots": 104,
+      "occurrences": 318,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 50
+      }
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "native_floor_conditional",
+      "conditionalSlots": 104,
+      "occurrences": 317,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 49
+      }
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "hold_current_envelope",
+      "conditionalSlots": 104,
+      "occurrences": 312,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 44
+      }
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "blockwise_reassessment",
+      "conditionalSlots": 104,
+      "occurrences": 318,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 50
+      }
+    }
+  ],
+  "initialBlockReviewPrepared": true,
+  "firstBlockPrescriptionReady": false,
+  "initialPrefixSchemaValidVariants": 6,
+  "fullSchemaValidVariants": 0,
+  "validation": {
+    "version": "det-v15-1",
+    "executedV15": {
+      "types": "passed",
+      "reviewTestsPassed": 16,
+      "reviewTestsSkipped": 0,
+      "schemaTestPassed": 1,
+      "archivedVariantsAuditedBySchema": 6,
+      "proofIndependentProcesses": 2,
+      "proofArtifactsIdentical": 3,
+      "calendarsGenerated": 0,
+      "conditionsResolved": 0
+    },
+    "preservedV14NotRerun": {
+      "experimentalPassed": 132,
+      "historicalPassed": 2999,
+      "governancePassed": 62,
+      "source": "docs/det-engine/v14/validation-summary.json"
+    },
+    "coachValidationPerformed": false
+  }
+}

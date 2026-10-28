@@ -1,0 +1,16 @@
+{
+  "version": "det-v15-1",
+  "baseline": "1d04718d16b2cba990bbe726a21d7cfc7af720e0",
+  "protectedTrackedFiles": 2989,
+  "syntheticOnly": true,
+  "v14SourceStudy": "docs/det-engine/v14/evidence/final/study.json.gz",
+  "inputSha256": "b28ca9a87d34cb8c4bc14908c7515cb8f47f2c752cf23b0a1f7b1a19a3eb21ea",
+  "calendarsGenerated": 0,
+  "originalConditionsResolved": 0,
+  "humanExpertReviews": 0,
+  "readOnlySchemaPrefixAudits": 6,
+  "externalScienceAccess": "four free public abstracts via Europe PMC; metadata and brief excerpts retained",
+  "fullTextClaimed": false,
+  "paidApiCalls": 0,
+  "productionOrNolioWrites": 0
+}

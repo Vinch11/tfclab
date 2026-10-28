@@ -1,0 +1,24 @@
+✔ 104 conditional slots are distinguished from318 and317 original condition occurrences at constant cohort (0.981871ms)
+✔ every original occurrence is uniquely addressable and retained verbatim with its original slot state (16.411201ms)
+✔ routine follow-up never clears a safety gate or becomes an optional omission (0.321652ms)
+✔ unknown conditions fail closed in the review rather than silently mapping to routine (0.378128ms)
+✔ compound interaction conditions retain individual prerequisites as well as future follow-up (0.333209ms)
+✔ the initial26 sessions retain all69 conditions, including19 normal recovery checks and no future capacity condition (0.301791ms)
+✔ a duration envelope is not reinterpreted as posture or force-specific competence (0.280149ms)
+✔ daily doubles are described without invented order, recovery hours or brick credit (0.162759ms)
+✔ first block targets within present envelopes are kept distinct from later capacity deficits (0.310925ms)
+✔ presence and nominal quotas do not fabricate Ironman-specific bricks, strength, nutrition or measured intensity (0.25485ms)
+✔ prefix schema success is independent of sporting and human approval (0.155878ms)
+✔ all six original historical results and severities are retained without promoting any model (1.265684ms)
+✔ question grouping neither removes original occurrences nor shares dynamic recovery across dates (0.185484ms)
+✔ archived calendars remain byte-identical and review never calls generation or mutates a plan (350.462186ms)
+✔ id/kind inconsistencies cannot downgrade a capacity condition to routine follow-up (0.141246ms)
+✔ core-stability arithmetic leaves repetitions, rest and transitions unknown instead of inventing a feasible tempo (0.224383ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 380.026189

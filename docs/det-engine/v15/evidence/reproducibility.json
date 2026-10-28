@@ -1,0 +1,35 @@
+{
+  "runs": [
+    {
+      "name": "final",
+      "exitCode": 0,
+      "output": "{\"rows\":6,\"initialSessions\":26,\"initialConditions\":69,\"calendarsGenerated\":0,\"allOriginalGatesRetained\":true}\n"
+    },
+    {
+      "name": "replay",
+      "exitCode": 0,
+      "output": "{\"rows\":6,\"initialSessions\":26,\"initialConditions\":69,\"calendarsGenerated\":0,\"allOriginalGatesRetained\":true}\n"
+    }
+  ],
+  "comparison": [
+    {
+      "file": "review.json.gz",
+      "first": "70620c3a1061d97f13c7fd6812985087af5900d1dc518f49baa5436945fa8453",
+      "replay": "70620c3a1061d97f13c7fd6812985087af5900d1dc518f49baa5436945fa8453"
+    },
+    {
+      "file": "conditions.jsonl",
+      "first": "2bf6a42157249734f8d3892250e90be29d4bd93d8a74b63a058820fc0086850b",
+      "replay": "2bf6a42157249734f8d3892250e90be29d4bd93d8a74b63a058820fc0086850b"
+    },
+    {
+      "file": "summary.json",
+      "first": "cb44b982c2417c87be973a8459b0af0bee364d654480624b348c19fe279d9dd1",
+      "replay": "cb44b982c2417c87be973a8459b0af0bee364d654480624b348c19fe279d9dd1"
+    }
+  ],
+  "identical": true,
+  "independentProcesses": true,
+  "calendarsRegenerated": 0,
+  "conditionsResolved": 0
+}

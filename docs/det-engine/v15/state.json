@@ -1,0 +1,99 @@
+{
+  "version": "det-v15-1",
+  "baseline": "1d04718d16b2cba990bbe726a21d7cfc7af720e0",
+  "startedAt": 1793206959,
+  "deadline": 1793210559,
+  "maxUnits": 10,
+  "status": "running_no_go",
+  "activeUnit": "publication",
+  "automaticRestart": false,
+  "units": [
+    {
+      "id": "baseline",
+      "status": "passed"
+    },
+    {
+      "id": "condition_registry",
+      "status": "passed",
+      "completedAt": 1793209778.2244046,
+      "evidence": "COACH_PACKET.md",
+      "meaning": "bounded review work complete; no condition resolved or sporting approval granted"
+    },
+    {
+      "id": "initial_block",
+      "status": "passed",
+      "completedAt": 1793209778.2244096,
+      "evidence": "COACH_PACKET.md",
+      "meaning": "bounded review work complete; no condition resolved or sporting approval granted"
+    },
+    {
+      "id": "scientific_review",
+      "status": "passed",
+      "completedAt": 1793209778.2244103,
+      "evidence": "COACH_PACKET.md",
+      "meaning": "bounded review work complete; no condition resolved or sporting approval granted"
+    },
+    {
+      "id": "specificity_16",
+      "status": "passed",
+      "completedAt": 1793209778.2244115,
+      "evidence": "COACH_PACKET.md",
+      "meaning": "bounded review work complete; no condition resolved or sporting approval granted"
+    },
+    {
+      "id": "comparative_review",
+      "status": "passed",
+      "completedAt": 1793209778.2244124,
+      "evidence": "COACH_PACKET.md",
+      "meaning": "bounded review work complete; no condition resolved or sporting approval granted"
+    },
+    {
+      "id": "readiness",
+      "status": "passed",
+      "completedAt": 1793209778.2244132,
+      "evidence": "COACH_PACKET.md",
+      "meaning": "bounded review work complete; no condition resolved or sporting approval granted"
+    },
+    {
+      "id": "validation",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793208108558,
+          "command": [
+            "scripts/det-engine/v15-validate.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793208152487,
+          "exitCode": 0,
+          "output": "docs/det-engine/v15/evidence/validation-1.txt",
+          "sha256": "c1dee64167aaef4c2c571576c939bf1596111f87bcf47b76d4058a87e8e0d986"
+        },
+        {
+          "startedAt": 1793208460941,
+          "command": [
+            "scripts/det-engine/v15-validate.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793208506776,
+          "exitCode": 0,
+          "output": "docs/det-engine/v15/evidence/validation-2.txt",
+          "sha256": "03efb976591357790829fe3ba4a6163e01f036d39acc76dcf544d993375041a9"
+        }
+      ],
+      "reopenedReason": "classification id/kind guard and literal muscle timing witness added; recheck final review layer"
+    },
+    {
+      "id": "documentation",
+      "status": "passed",
+      "completedAt": 1793209778.2244136,
+      "evidence": "COACH_PACKET.md",
+      "meaning": "bounded review work complete; no condition resolved or sporting approval granted"
+    },
+    {
+      "id": "publication",
+      "status": "running",
+      "startedAt": 1793209778.2244148
+    }
+  ]
+}
