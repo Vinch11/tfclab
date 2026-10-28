@@ -1,3 +1,4 @@
+import { sanitizeGatewayRejection } from "./planGatewayDiagnostics.ts";
 /** Privacy boundary for errors: never copy model text, config, prompts or exceptions. */
 const object = (x: unknown): Record<string, unknown> => x && typeof x === "object" ? x as Record<string, unknown> : {};
 const number = (x: unknown) => typeof x === "number" && Number.isFinite(x) && x >= 0 ? x : undefined;
@@ -12,7 +13,7 @@ function issue(x: unknown) {
  const v = object(x);
  const code = typeof v.code === "string" && ["invalid_type","invalid_enum_value","custom","too_small","too_big","unrecognized_keys","invalid_literal","invalid_union"].includes(v.code) ? v.code : "validation";
  const message = String(v.message ?? "");
- const technical = /^(?:catalogue_prescription_incompatible:)?(?:catalogue_(?:sport|duration|intensity_diluted|intensity_exceeded|structure|physiological_intent)|phase:(?:base|build|peak|taper)|week_(?:phase_contract_mismatch|not_in_catalogue_contract)|race_catalog_conflict)$/;
+ const technical = /^(?:catalogue_prescription_incompatible:)?(?:catalogue_(?:sport|duration|intensity_diluted|intensity_exceeded|structure|physiological_intent|variant_unavailable)|variant_requires_catalogue_reference|variant_goal_mismatch|phase:(?:base|build|peak|taper)|week_(?:phase_contract_mismatch|not_in_catalogue_contract)|race_catalog_conflict)$/;
  return { path: path(v.path), code, message: technical.test(message) ? message : code };
 }
 function attempt(x: unknown) {
@@ -24,7 +25,9 @@ function attempt(x: unknown) {
   issueCount: Math.max(number(v.issueCount) ?? 0, Array.isArray(v.zodIssues) ? v.zodIssues.length : 0),
   issuesTruncated: v.issuesTruncated === true || (Array.isArray(v.zodIssues) && v.zodIssues.length > 100),
   zodIssues: Array.isArray(v.zodIssues) ? v.zodIssues.slice(0, 100).map(issue) : [],
-  gateway: { constrained: typeof object(v.gateway).constrained === "boolean" ? object(v.gateway).constrained as boolean : undefined } };
+  gateway: { constrained: typeof object(v.gateway).constrained === "boolean" ? object(v.gateway).constrained as boolean : undefined,
+   responseFormatType:["json_schema","json_object"].includes(String(object(v.gateway).responseFormatType))?String(object(v.gateway).responseFormatType):undefined,
+   http400:sanitizeGatewayRejection(object(v.gateway).http400) } };
 }
 export function sanitizeSchemaFailure(value: unknown) {
  const v = object(value);
