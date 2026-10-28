@@ -1,0 +1,133 @@
+[
+  {
+    "file": "ironman",
+    "id": "IM:trained:finisher:known_synthetic",
+    "weeks": 16,
+    "expertReviewed": false,
+    "candidateStates": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "long_and_training_all_weeks"
+        },
+        "status": "fails",
+        "blocking": 12,
+        "unknowns": 9
+      },
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 12,
+        "unknowns": 9
+      }
+    ]
+  },
+  {
+    "file": "trail-court",
+    "id": "synthetic-v4:TrailShort:highly_trained",
+    "weeks": 12,
+    "expertReviewed": false,
+    "candidateStates": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 16
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 16
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 19
+      }
+    ]
+  },
+  {
+    "file": "trail-montagne",
+    "id": "synthetic-v4:TrailMountain:highly_trained",
+    "weeks": 16,
+    "expertReviewed": false,
+    "candidateStates": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 20
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 20
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 23
+      }
+    ]
+  },
+  {
+    "file": "ultra",
+    "id": "synthetic-v4:TrailUltra:trained",
+    "weeks": 20,
+    "expertReviewed": false,
+    "candidateStates": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 24
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 24
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 24
+      }
+    ]
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "IM": "long_and_training_all_weeks",
+    "cases": 77,
+    "candidateNoExecutedBlocker": 0,
+    "conditional": 0,
+    "reducedLongFailures": 129,
+    "developmentLongFailures": 0,
+    "expertReviewed": 0
+  },
+  {
+    "IM": "week_specific_training_and_competition",
+    "cases": 77,
+    "candidateNoExecutedBlocker": 0,
+    "conditional": 0,
+    "reducedLongFailures": 0,
+    "developmentLongFailures": 0,
+    "expertReviewed": 0
+  }
+]

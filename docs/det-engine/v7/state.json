@@ -1,0 +1,515 @@
+{
+  "version": "det-v7-supervisor-1",
+  "parent": "docs/det-engine/v6/state.json",
+  "baselineCommit": "3763cb1f10203a3a93cab1aaadc6fa8a76d87ef4",
+  "startedAt": 1793174190,
+  "deadline": 1793177790,
+  "maxUnits": 10,
+  "maxAttemptsPerUnit": 3,
+  "status": "running",
+  "units": [
+    {
+      "id": "audit",
+      "attempts": [
+        {
+          "startedAt": 1793174772150,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-audit.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "fd86e14a33f0e2129ee7d88511e80f79cfd46d064d66055bbda65ee9aeee68b9",
+          "outputRoot": "docs/det-engine/v7/evidence/audit",
+          "revisionReason": null,
+          "completedAt": 1793174794674,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/audit-1.txt",
+          "sha256": "eaf3857569b9cfbcca0b34bf4478421186f3f4481962d9b30fabf7cf3d5a9a70",
+          "artifacts": {
+            "summary.json": "185a477900bcc3ac8dabca3f1b4b458df3e71e31f9d285548cca55fa6f980ec8"
+          }
+        },
+        {
+          "startedAt": 1793175502161,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-audit.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "e18e12d88e9845d3bc3010318192976fb47ce5cfd21255a59f3a218d67a3c9fc",
+          "outputRoot": "docs/det-engine/v7/evidence/audit-final",
+          "revisionReason": "retain_inherited_prevalidation_signals_verbatim_as_well_as_reexecuted_rules",
+          "completedAt": 1793175522404,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/audit-2.txt",
+          "sha256": "1145f7e475f47e3f01a953e1550b4dd3bae77c447b55cc3891b2f3d2313a5af6",
+          "artifacts": {
+            "summary.json": "185a477900bcc3ac8dabca3f1b4b458df3e71e31f9d285548cca55fa6f980ec8"
+          }
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "registry",
+      "attempts": [
+        {
+          "startedAt": 1793174879097,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-registry.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "24b4be5d3443aaf4dfd39611828e771fa5a375c34d98092d4e27f7c0206f4fa0",
+          "outputRoot": "docs/det-engine/v7/evidence/registry",
+          "revisionReason": null,
+          "completedAt": 1793174879965,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/registry-1.txt",
+          "sha256": "5485969e5bea66cbfe09cf9ffe0ba64b38618be93f6048bd9dded9659af7e6f6",
+          "artifacts": {
+            "registry.json": "305261da0c4bf13dcdf019568ac2b5b8768b6da984b7c2038058fd32cc8bcfd8"
+          }
+        },
+        {
+          "startedAt": 1793176704614,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-registry.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "548b678223beefa6251d785bcb10cf9c83c37c5edfb000e1ff2863ac833507fa",
+          "outputRoot": "docs/det-engine/v7/evidence/registry-final",
+          "revisionReason": "final_source_symbols_and_executed_taper_contract",
+          "completedAt": 1793176705555,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/registry-2.txt",
+          "sha256": "12982ffdf4406f0c0dd8ff665d73a9ac0f2b9c6a3dd275a7f52b233b98e6c854",
+          "artifacts": {
+            "registry.json": "84efef4b3260a2a54a4d61c82738faf1fd9d144a5cbdb7ebf05c9c9ee1bff939"
+          }
+        },
+        {
+          "startedAt": 1793176954356,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-registry.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "0fa5aa2c6be6c27ff48ab9657b596652240a394f8a8a585a5a183c75b3c59d64",
+          "outputRoot": "docs/det-engine/v7/evidence/registry-complete",
+          "revisionReason": "canonical_reduced_week_AB_applicability_explicitly_registered",
+          "completedAt": 1793176955329,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/registry-3.txt",
+          "sha256": "f868d8ec990bcddb181d59de140ff41e3fc148f82650af33ffdf45a4f615b192",
+          "artifacts": {
+            "registry.json": "04d19848f9d2a663cdb8502c23b0e888f3f908973603a2e03c85890e3a3c45e5"
+          }
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "ratios",
+      "attempts": [
+        {
+          "startedAt": 1793174988561,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-ratios.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "0afbd9b63a2b91691c7f794a16b1328e8f6ed7f98327a91369c185bda76b94f7",
+          "outputRoot": "docs/det-engine/v7/evidence/ratios",
+          "revisionReason": null,
+          "completedAt": 1793175009782,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/ratios-1.txt",
+          "sha256": "7390f1f265933d492a1c885911c42070a6d3ed6643285eebd77d0f81863e8798",
+          "artifacts": {
+            "findings.json.gz": "eb6fc7d91c49ee18251498b734d088021f1ba8144a86ae34d2428d323f71fddd",
+            "summary.json": "ac5b61529802119310e65a4ad9b4e14398b32b6f1bf7580bade03b594dfc8524"
+          }
+        },
+        {
+          "startedAt": 1793175655761,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-ratios.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "4bf13d4a5a60aeb5f95d3f0a9e75c59aa920beef606fc1a4b09684e053531fd8",
+          "outputRoot": "docs/det-engine/v7/evidence/ratios-final",
+          "revisionReason": "validate_conservation_and_derive_percentages_from_minutes_not_supplied_bounds",
+          "completedAt": 1793175676840,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/ratios-2.txt",
+          "sha256": "c0dbdba4cf97931f14561bee8bbddd0fbf5f323ffa03f4bf5f816858455e860a",
+          "artifacts": {
+            "findings.json.gz": "eb6fc7d91c49ee18251498b734d088021f1ba8144a86ae34d2428d323f71fddd",
+            "summary.json": "ac5b61529802119310e65a4ad9b4e14398b32b6f1bf7580bade03b594dfc8524"
+          }
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "trail",
+      "attempts": [
+        {
+          "startedAt": 1793175106149,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-trail.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "4d410b3a7256b5c005042cb8d28d3e2256cf765b22e491a4838a35a9f54e3453",
+          "outputRoot": "docs/det-engine/v7/evidence/trail",
+          "revisionReason": null,
+          "completedAt": 1793175115012,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/trail-1.txt",
+          "sha256": "887c84ad1d584155e556e933e309b42f05c4c64d275fc5f3da131c8c10fb81b5",
+          "artifacts": {
+            "comparison.json.gz": "e9b9c817e6f79e14c0b7a112844970b1f7a773f0f9c5ee68c41762a27578985f",
+            "summary.json": "59e9997fd71f52e94a0c3fe6fbc2661710507f4ad77b662ec86998ea5321db8d"
+          }
+        },
+        {
+          "startedAt": 1793176968133,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-trail.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "0fa5aa2c6be6c27ff48ab9657b596652240a394f8a8a585a5a183c75b3c59d64",
+          "outputRoot": "docs/det-engine/v7/evidence/trail-final",
+          "revisionReason": "canonical_taper_type_not_peak_text_for_missing_AB_only",
+          "completedAt": 1793176975624,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/trail-2.txt",
+          "sha256": "31484490f317d60a419d5c411643b496d2c29bdf3aad9dd3a480d4f2182d4fcb",
+          "artifacts": {
+            "comparison.json.gz": "78e3044f4f6b7e6ada9e45beaab0ae894c33e4aceb1f25fcbb513fd44721efbc",
+            "summary.json": "2cf3eff1467444ebee0e7ae478e56ae383f49dd052ebad5be79cd8a5df4341a1"
+          }
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "ironman",
+      "attempts": [
+        {
+          "startedAt": 1793175288676,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-ironman.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "ff55d1a0faddf2a0527653d3f1869303cf19115c1cd28a8510230d0cb95391ea",
+          "outputRoot": "docs/det-engine/v7/evidence/ironman",
+          "revisionReason": null,
+          "completedAt": 1793175307432,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/ironman-1.txt",
+          "sha256": "09a46399d4adbf734acd0ce5721c4bb9e4aa4f84c9d295f85ec0dad13e523894",
+          "artifacts": {
+            "comparison.json.gz": "710f65b9f108e2a38484fc1b621609ac9375281b703e0337970c86479c0dd2fe",
+            "summary.json": "eb81f1ee8ee278a5e56c28d61602ffb0b07b5ce3312e332ed27a64544b4c199f"
+          }
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "comparison",
+      "attempts": [
+        {
+          "startedAt": 1793175863875,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-comparison.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "83f31144706544b5970711340395a652b932e46d23f47df324314bbf6e6a9d27",
+          "outputRoot": "docs/det-engine/v7/evidence/comparison",
+          "revisionReason": null,
+          "completedAt": 1793175892035,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/comparison-1.txt",
+          "sha256": "ed9a8ad3deea2fc0ca576066592aa1c018bcf8abdd68c540630b4437ada8c429",
+          "artifacts": {
+            "comparison.json.gz": "5ae1dd7c6975247f1e4ac775f3bda6ad73fa97f5cd1bd85ffc4d7593f24588b3",
+            "replay.json.gz": "5ae1dd7c6975247f1e4ac775f3bda6ad73fa97f5cd1bd85ffc4d7593f24588b3",
+            "summary.json": "d5fa56a2eb1f398d6b2336ce5eb9fe73241559fef132e74011df7fd22211fb2e"
+          }
+        },
+        {
+          "startedAt": 1793176305706,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-comparison.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "5521508fc5d16ca54705f6d221e5be55204d12894a5b99c22ec99541fb2b0523",
+          "outputRoot": "docs/det-engine/v7/evidence/comparison-final",
+          "revisionReason": "execute_declared_taper_contract_and_preserve_all_inherited_historical_signals",
+          "completedAt": 1793176331377,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/comparison-2.txt",
+          "sha256": "a313b1ff45baa3a286a1218b02e488d535ecfd458f4afbc5d4e5185de0104578",
+          "artifacts": {
+            "comparison.json.gz": "f1b13e3e38578ea9348a694c9cb3d38d90b37408449dd115bfa190d92853aab9",
+            "replay.json.gz": "f1b13e3e38578ea9348a694c9cb3d38d90b37408449dd115bfa190d92853aab9",
+            "summary.json": "d5fa56a2eb1f398d6b2336ce5eb9fe73241559fef132e74011df7fd22211fb2e"
+          }
+        },
+        {
+          "startedAt": 1793177220280,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-comparison.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "0fa5aa2c6be6c27ff48ab9657b596652240a394f8a8a585a5a183c75b3c59d64",
+          "outputRoot": "docs/det-engine/v7/evidence/comparison-complete",
+          "revisionReason": "separate_sport_model_dimensions_and_canonical_reduced_week_contract",
+          "completedAt": 1793177246559,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/comparison-3.txt",
+          "sha256": "3c691c2a571fd7154adaf2316ba198bb10c65293f2ffdcb87304e009aad2e426",
+          "artifacts": {
+            "comparison.json.gz": "e10cfd3d11905540d52e091d1c6c4e2370cb0531e0bcbaed4d97c317dac9cb52",
+            "replay.json.gz": "e10cfd3d11905540d52e091d1c6c4e2370cb0531e0bcbaed4d97c317dac9cb52",
+            "summary.json": "2898c68bd61defc42387cbba0db5f919c8056fdbcc7fbe44ad1182b102026a25"
+          }
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "reviews",
+      "attempts": [
+        {
+          "startedAt": 1793176480310,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-reviews.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "5521508fc5d16ca54705f6d221e5be55204d12894a5b99c22ec99541fb2b0523",
+          "outputRoot": "docs/det-engine/v7/evidence/reviews",
+          "revisionReason": null,
+          "completedAt": 1793176485630,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/reviews-1.txt",
+          "sha256": "cb1c9263f8226b82d6d726e2feaf51542d3d1bedd8c033ac75d3ecd8466e13f6",
+          "artifacts": {
+            "ironman.json.gz": "a7887747c22552023cff459e37729c42a697eebaeda15922a235b45e3a72e8ee",
+            "ironman.md": "f529e2487105dd110ce080f4b38494bcf0d41512928eb570f64593aa2ed57b40",
+            "summary.json": "73e9bd33410bb636e5389ed9553066ca23ef78c942f77c7ea0b7020168264248",
+            "trail-court.json.gz": "be2a9176a16a3d93c0623ac3fbf66c23a5904630e65297d0b269f0f1e1436eea",
+            "trail-court.md": "51706addedaf8fafc75d73057ee27e036823d3fba013622b618c8d1a9df5637e",
+            "trail-montagne.json.gz": "8d808a962467d58b1a3303d266c39211297e569f9db6e1270d72bb3c81121743",
+            "trail-montagne.md": "d7699df14bf3f83a55f9114a2c6312e6a9e10dc2e69b7ac0477846535d16f9a8",
+            "ultra.json.gz": "6a9b7ed932c473597ce1898568391cb79d71c44ce757dc2dafe7f1475e795a38",
+            "ultra.md": "faacc25e42202dffd3a5b9f02d18537657d27be568168fc949fa0e0c0db67378"
+          }
+        },
+        {
+          "startedAt": 1793176671744,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-reviews.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "548b678223beefa6251d785bcb10cf9c83c37c5edfb000e1ff2863ac833507fa",
+          "outputRoot": "docs/det-engine/v7/evidence/reviews-final",
+          "revisionReason": "read_only_offline_preview_manifest_no_application_integration",
+          "completedAt": 1793176677536,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/reviews-2.txt",
+          "sha256": "f47f4d1baf43ac8b6267241271224167a0b95286e4fd4df18b60d43723eb30a2",
+          "artifacts": {
+            "coach-preview.json": "b1158123ee258f3cc94dac013911f805238ad11eb7a97798b094e13c8a41f2fe",
+            "ironman.json.gz": "a7887747c22552023cff459e37729c42a697eebaeda15922a235b45e3a72e8ee",
+            "ironman.md": "f529e2487105dd110ce080f4b38494bcf0d41512928eb570f64593aa2ed57b40",
+            "summary.json": "73e9bd33410bb636e5389ed9553066ca23ef78c942f77c7ea0b7020168264248",
+            "trail-court.json.gz": "be2a9176a16a3d93c0623ac3fbf66c23a5904630e65297d0b269f0f1e1436eea",
+            "trail-court.md": "51706addedaf8fafc75d73057ee27e036823d3fba013622b618c8d1a9df5637e",
+            "trail-montagne.json.gz": "8d808a962467d58b1a3303d266c39211297e569f9db6e1270d72bb3c81121743",
+            "trail-montagne.md": "d7699df14bf3f83a55f9114a2c6312e6a9e10dc2e69b7ac0477846535d16f9a8",
+            "ultra.json.gz": "6a9b7ed932c473597ce1898568391cb79d71c44ce757dc2dafe7f1475e795a38",
+            "ultra.md": "faacc25e42202dffd3a5b9f02d18537657d27be568168fc949fa0e0c0db67378"
+          }
+        },
+        {
+          "startedAt": 1793177045358,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v7-reviews.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "0fa5aa2c6be6c27ff48ab9657b596652240a394f8a8a585a5a183c75b3c59d64",
+          "outputRoot": "docs/det-engine/v7/evidence/reviews-complete",
+          "revisionReason": "canonical_reduced_week_rule_and_final_preview_classification",
+          "completedAt": 1793177050701,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/reviews-3.txt",
+          "sha256": "fcb3c73d86ce4fc7598e93d33021531ae4f2b2e1a94ccd6d33a58dd347582993",
+          "artifacts": {
+            "coach-preview.json": "5d3e525cf9fa3130c4b52d4c3af5ae2f91d1b51de91443c04423832a8053820d",
+            "ironman.json.gz": "a7887747c22552023cff459e37729c42a697eebaeda15922a235b45e3a72e8ee",
+            "ironman.md": "f529e2487105dd110ce080f4b38494bcf0d41512928eb570f64593aa2ed57b40",
+            "summary.json": "f5a8c2f781eca06ab323544ded6663bb9c515963ae552e7f5e06dcfce2c92be2",
+            "trail-court.json.gz": "4fb4fef590e661fb7dc8ffb02695ec20ca1b2d708d27cf08c388ff4d4eafefe2",
+            "trail-court.md": "30381db026a9869fc4af582b31d74bddb04a2b616cda41654e195b1c0249bd8e",
+            "trail-montagne.json.gz": "8d808a962467d58b1a3303d266c39211297e569f9db6e1270d72bb3c81121743",
+            "trail-montagne.md": "d7699df14bf3f83a55f9114a2c6312e6a9e10dc2e69b7ac0477846535d16f9a8",
+            "ultra.json.gz": "6a9b7ed932c473597ce1898568391cb79d71c44ce757dc2dafe7f1475e795a38",
+            "ultra.md": "faacc25e42202dffd3a5b9f02d18537657d27be568168fc949fa0e0c0db67378"
+          }
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "reference",
+      "attempts": [
+        {
+          "startedAt": 1793176738608,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v4-reference.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "source": "548b678223beefa6251d785bcb10cf9c83c37c5edfb000e1ff2863ac833507fa",
+          "outputRoot": "docs/det-engine/v7/evidence/reference",
+          "revisionReason": null,
+          "completedAt": 1793176913926,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/reference-1.txt",
+          "sha256": "27bf2057bc3ade82bf3a9c5339e3dde60c6f7f208ec0afebb1ae6b60216c6ce4",
+          "artifacts": {
+            "diagnostics.json": "0bfbbffbfdcc0409c11eb1e15591a65aadb60d4bc1bc483ebad1ada110615677",
+            "global-replay.json.gz": "aa42dfefa58ed90a2061cb1da82c2c107b4d3b62073fac59c1a2739893b6cdc7",
+            "global.json.gz": "aa42dfefa58ed90a2061cb1da82c2c107b4d3b62073fac59c1a2739893b6cdc7",
+            "summary.json": "5cc308c4aace5fd3cc5c931007de73fcd5a5a701ec4f0a5194b84f8ba32c26a5"
+          }
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "validation",
+      "attempts": [
+        {
+          "startedAt": 1793177258229,
+          "command": [
+            "scripts/det-engine/v7-validate.mjs"
+          ],
+          "status": "passed",
+          "source": "0fa5aa2c6be6c27ff48ab9657b596652240a394f8a8a585a5a183c75b3c59d64",
+          "outputRoot": null,
+          "revisionReason": null,
+          "completedAt": 1793177667495,
+          "exitCode": 0,
+          "output": "docs/det-engine/v7/evidence/validation-1.txt",
+          "sha256": "9898653523c1c56676cee8d545671ad3eaa73c8ac8fc7fcedcb113a112a67bb4",
+          "artifacts": null
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "publication",
+      "attempts": [
+        {
+          "startedAt": 1793177688358,
+          "status": "running",
+          "command": [
+            "authorized_git_push_and_draft_pr_metadata_update"
+          ],
+          "mode": "external_manual_receipt"
+        }
+      ],
+      "status": "running"
+    }
+  ],
+  "activeUnit": {
+    "id": "publication",
+    "attempt": 1,
+    "mode": "external_manual_receipt"
+  },
+  "note": "New V7 authorization; historical evidence immutable"
+}

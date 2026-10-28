@@ -1,0 +1,542 @@
+{
+  "version": "det-v7-contracts-1",
+  "contracts": [
+    {
+      "id": "technical_calendar",
+      "kind": "programming",
+      "source": {
+        "path": "experimental/det-engine/v2-technical-validation.ts",
+        "symbol": "auditTechnicalPlan"
+      },
+      "unit": "weeks/days/schema",
+      "period": "complete_plan",
+      "applicability": "all candidates",
+      "severity": "error",
+      "requiredData": [
+        "ParsedPlan"
+      ],
+      "uncertainty": "schema does not attest prescription quality",
+      "consequence": "incomplete plans cannot be considered constructed",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "catalogue_integrity",
+      "kind": "safety",
+      "source": {
+        "path": "supabase/functions/_shared/sessionCatalogueContract.ts",
+        "symbol": "checkSessionCatalogue"
+      },
+      "unit": "source dose/zone/phase",
+      "period": "session",
+      "applicability": "catalogued training sessions",
+      "severity": "error",
+      "requiredData": [
+        "complete metadata",
+        "duration",
+        "zones",
+        "objective",
+        "phase"
+      ],
+      "uncertainty": "source editorial ranges do not prove individual tolerance",
+      "consequence": "incompatible or unknown source content blocks attestation",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "coach_load",
+      "kind": "programming",
+      "source": {
+        "path": "src/lib/plan/coachVolumeValidation.ts",
+        "symbol": "validateCoachVolumeBudgets"
+      },
+      "unit": "training_minutes",
+      "period": "week and last load week",
+      "applicability": "recorded coach/internal budget",
+      "severity": "error",
+      "requiredData": [
+        "weekly budget",
+        "actual session durations"
+      ],
+      "uncertainty": "configured progression ceiling is not a universal injury threshold",
+      "consequence": "retain overshoot error",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "physical_frequency",
+      "kind": "programming",
+      "source": {
+        "path": "supabase/functions/_shared/sessionQuotaAccounting.ts",
+        "symbol": "countQuotaSessions"
+      },
+      "unit": "physical_sessions",
+      "period": "week",
+      "applicability": "all counted training slots",
+      "severity": "error",
+      "requiredData": [
+        "sport",
+        "isRest",
+        "race identity",
+        "nominal quotas",
+        "confirmed day availability for exceptions"
+      ],
+      "uncertainty": "physical sessions differ from discipline exposures",
+      "consequence": "calendar capacity/availability must remain respected",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "effective_frequency",
+      "kind": "programming",
+      "source": {
+        "path": "supabase/functions/_shared/sessionQuotaAccounting.ts",
+        "symbol": "effectiveSessionQuota"
+      },
+      "unit": "effective_bike_and_total_sessions",
+      "period": "week",
+      "applicability": "brick replaces one standalone bike in existing quota convention",
+      "severity": "error",
+      "requiredData": [
+        "nominal quota",
+        "brick count"
+      ],
+      "uncertainty": "nominal and effective totals cannot be interchanged",
+      "consequence": "preserve independent frequency checks",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "discipline_minutes",
+      "kind": "methodology",
+      "source": {
+        "path": "supabase/functions/ai-training-plan/sportRatioMatrix.ts",
+        "symbol": "mandatory ratio verification table"
+      },
+      "unit": "endurance_minutes_by_discipline",
+      "period": "actual_generation_block",
+      "applicability": "IM and multisport targets; training only",
+      "severity": "error",
+      "requiredData": [
+        "generation windows",
+        "standalone minutes",
+        "known brick components"
+      ],
+      "uncertainty": "unknown brick time remains in denominator as interval uncertainty",
+      "consequence": "candidate ratio failure; historical session-count issue retained",
+      "candidate": true,
+      "historicalRules": [
+        "sport_ratio"
+      ]
+    },
+    {
+      "id": "historical_discipline_ratio",
+      "kind": "methodology",
+      "source": {
+        "path": "src/engines/plan/planValidator.ts",
+        "symbol": "validateSportRatio"
+      },
+      "unit": "session_counts_with_half_brick_rounding",
+      "period": "load weeks excluding race",
+      "applicability": "legacy objective targets",
+      "severity": "error",
+      "requiredData": [
+        "counted sports",
+        "week classification"
+      ],
+      "uncertainty": "differs from source minute-based verification",
+      "consequence": "retain original error independently",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "intensity_minutes",
+      "kind": "methodology",
+      "source": {
+        "path": "src/engines/plan/planValidator.ts",
+        "symbol": "estimateSessionZoneMinutes / validatePolarization"
+      },
+      "unit": "estimated_zone_minutes",
+      "period": "week",
+      "applicability": "historical non-deload/non-race applicability",
+      "severity": "error",
+      "requiredData": [
+        "session text",
+        "durations",
+        "zones"
+      ],
+      "uncertainty": "clause estimates and unknown time; no equal split of tags",
+      "consequence": "historical intensity errors remain blocking",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "key_role",
+      "kind": "descriptive",
+      "source": {
+        "path": "src/engines/plan/planValidator.ts",
+        "symbol": "isKeySession / self-declaration consistency"
+      },
+      "unit": "session_role_and_content",
+      "period": "session/week",
+      "applicability": "all historical key flags",
+      "severity": "warning",
+      "requiredData": [
+        "unchanged isKeySession",
+        "source content"
+      ],
+      "uncertainty": "structural/long key does not necessarily mean high intensity",
+      "consequence": "retain warnings; never rewrite flags to obtain compliance",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "trail_optional_cycling",
+      "kind": "methodology",
+      "source": {
+        "path": "experimental/det-engine/v7-contracts.ts",
+        "symbol": "trail specificity candidate"
+      },
+      "unit": "run/endurance_minutes_and_role_evidence",
+      "period": "actual_generation_block",
+      "applicability": "explicit trail coach calendar with optional or absent cycling",
+      "severity": "error",
+      "requiredData": [
+        "trail objective",
+        "coach run days",
+        "session sports",
+        "global load controls"
+      ],
+      "uncertainty": "candidate replaces an upper proportion convention, not a safety limit",
+      "consequence": "no mandatory bicycle insertion; historical ratio retained",
+      "candidate": true,
+      "historicalRules": [
+        "sport_ratio"
+      ]
+    },
+    {
+      "id": "trail_base_AB",
+      "kind": "methodology",
+      "source": {
+        "path": "experimental/det-engine/v7-contracts.ts",
+        "symbol": "three base models"
+      },
+      "unit": "actual_quality_and_foundation_roles",
+      "period": "base load week",
+      "applicability": "trail objective plus declared training level and phase",
+      "severity": "error",
+      "requiredData": [
+        "phase",
+        "level",
+        "actual session content",
+        "coach zone cap"
+      ],
+      "uncertainty": "no universal requirement for HIT every base week; models need expert review",
+      "consequence": "compare strict, foundation and source-capability alternatives without relabelling technique",
+      "candidate": true,
+      "historicalRules": [
+        "lorang_categories"
+      ]
+    },
+    {
+      "id": "reduced_week_AB",
+      "kind": "methodology",
+      "source": {
+        "path": "src/engines/plan/planValidator.ts",
+        "symbol": "validateLorangCategories / inferWeekType"
+      },
+      "unit": "quality-session applicability",
+      "period": "recorded recovery/taper/race week",
+      "applicability": "missing A/B under a non-load week type, even if theme still says peak",
+      "severity": "error",
+      "requiredData": [
+        "recorded week type",
+        "phase",
+        "complete volume/intensity checks"
+      ],
+      "uncertainty": "does not prove recovery or permit arbitrary intensity",
+      "consequence": "candidate treats missing A/B as not applicable; legacy issue retained",
+      "candidate": true,
+      "historicalRules": [
+        "lorang_categories"
+      ]
+    },
+    {
+      "id": "long_development",
+      "kind": "programming",
+      "source": {
+        "path": "src/lib/plan/validateWeeklyQuotas.ts",
+        "symbol": "long run/ride floors"
+      },
+      "unit": "minutes_by_discipline",
+      "period": "development/load week",
+      "applicability": "recorded long endurance floor",
+      "severity": "error",
+      "requiredData": [
+        "standalone duration",
+        "known components",
+        "floors"
+      ],
+      "uncertainty": "brick is not automatically autonomous long endurance",
+      "consequence": "retain long-dose obligation in development",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "IM_week_specific_long",
+      "kind": "methodology",
+      "source": {
+        "path": "experimental/det-engine/v7-contracts.ts",
+        "symbol": "development vs recovery/taper/race"
+      },
+      "unit": "training_minutes_and_long_role",
+      "period": "week type",
+      "applicability": "continuous IM candidates",
+      "severity": "error",
+      "requiredData": [
+        "week type",
+        "previous load",
+        "original floors",
+        "standalone long exposure"
+      ],
+      "uncertainty": "allégement does not prove recovery adequacy",
+      "consequence": "compare reference obligation and reduced-week contract; do not change plans",
+      "candidate": true,
+      "historicalRules": [
+        "quota_floor_violation"
+      ]
+    },
+    {
+      "id": "IM_training_continuity",
+      "kind": "programming",
+      "source": {
+        "path": "experimental/det-engine/v5-global.ts",
+        "symbol": "required training discipline gap"
+      },
+      "unit": "training_presence_by_discipline",
+      "period": "week",
+      "applicability": "swim/bike/run continuity contract",
+      "severity": "error",
+      "requiredData": [
+        "standalone sessions",
+        "positive known brick components"
+      ],
+      "uncertainty": "presence is not dose sufficiency",
+      "consequence": "report training gap independently of competition",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "IM_competition_presence",
+      "kind": "descriptive",
+      "source": {
+        "path": "experimental/det-engine/v7-contracts.ts",
+        "symbol": "declared events separate from training"
+      },
+      "unit": "declared_discipline_presence",
+      "period": "competition week",
+      "applicability": "actual matching declared IM race",
+      "severity": "unknown",
+      "requiredData": [
+        "event date",
+        "event objective",
+        "actual race session"
+      ],
+      "uncertainty": "declared triathlon presence does not quantify race components",
+      "consequence": "never fill unknown competition minutes or treat a race as measured training",
+      "candidate": true,
+      "historicalRules": [
+        "continuous_training_discipline_gap"
+      ]
+    },
+    {
+      "id": "recovery_volume",
+      "kind": "programming",
+      "source": {
+        "path": "src/lib/plan/coachVolumeValidation.ts",
+        "symbol": "last prescribed load comparison"
+      },
+      "unit": "training_minutes",
+      "period": "recovery week",
+      "applicability": "previous load and configured budget available",
+      "severity": "error",
+      "requiredData": [
+        "previous load",
+        "week budget",
+        "race exclusion"
+      ],
+      "uncertainty": "existing 70% convention is not universal safety proof",
+      "consequence": "overshoot remains a failure",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "taper",
+      "kind": "methodology",
+      "source": {
+        "path": "experimental/det-engine/v5-taper.ts",
+        "symbol": "auditTaperContract"
+      },
+      "unit": "volume / explicit intensity minutes",
+      "period": "taper and competition week",
+      "applicability": "competitive taper distinct from ordinary recovery",
+      "severity": "error",
+      "requiredData": [
+        "source activation",
+        "date",
+        "dose",
+        "individual cap"
+      ],
+      "uncertainty": "residual fatigue not measured; missing dose is unknown, observed volume failure is error",
+      "consequence": "unknown activation dose prevents full attestation; verified volume failure blocks the candidate",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "vertical_muscle",
+      "kind": "safety",
+      "source": {
+        "path": "experimental/det-engine/v5-global.ts",
+        "symbol": "IndividualExposureContract"
+      },
+      "unit": "D+ / D− / eccentric exposure separately",
+      "period": "session, week, mesocycle",
+      "applicability": "trail or explicit muscle contract",
+      "severity": "unknown",
+      "requiredData": [
+        "route provenance",
+        "separate descent dose",
+        "recent exposure response",
+        "individual limits if set"
+      ],
+      "uncertainty": "no tolerance inferred from level or scheduled sessions",
+      "consequence": "retain unknowns and require human evidence",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "global_progression",
+      "kind": "programming",
+      "source": {
+        "path": "experimental/det-engine/v5-global.ts",
+        "symbol": "auditV5Global"
+      },
+      "unit": "discipline_minutes / mesocycles",
+      "period": "complete_plan",
+      "applicability": "all candidates; vertical only where applicable",
+      "severity": "error",
+      "requiredData": [
+        "full timeline",
+        "ledger",
+        "budgets"
+      ],
+      "uncertainty": "rolling windows are descriptive, not a universal safety threshold",
+      "consequence": "no local correction may hide a global regression",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "catalogue_source_placement",
+      "kind": "programming",
+      "source": {
+        "path": "experimental/det-engine/v6-placement.ts",
+        "symbol": "sourcePlacement"
+      },
+      "unit": "event day offset / format",
+      "period": "session",
+      "applicability": "explicit source timing or LCW-specific source",
+      "severity": "error",
+      "requiredData": [
+        "source when",
+        "event dates",
+        "declared format"
+      ],
+      "uncertainty": "ambiguous source context is not proof of compatibility",
+      "consequence": "candidate source-placement failure without changing legacy alerts",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "injury_prohibitions",
+      "kind": "safety",
+      "source": {
+        "path": "src/engines/plan/planValidator.ts",
+        "symbol": "validateProhibitionCompliance / validateInjuryRiskCompliance"
+      },
+      "unit": "session and athlete contraindication",
+      "period": "complete_plan",
+      "applicability": "declared contraindications",
+      "severity": "error",
+      "requiredData": [
+        "physiological inputs",
+        "prohibitions",
+        "actual source session"
+      ],
+      "uncertainty": "known prohibitions preserved; missing individual evidence remains uncertain",
+      "consequence": "never superseded by a candidate convention",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "limiter_individualization",
+      "kind": "programming",
+      "source": {
+        "path": "src/lib/limiterSessionPatterns.ts",
+        "symbol": "LIMITER_SESSION_PATTERNS"
+      },
+      "unit": "adaptation priority and source intent",
+      "period": "phase/plan",
+      "applicability": "declared limiter keys and coach order",
+      "severity": "error",
+      "requiredData": [
+        "identifiedLimitersRaw",
+        "physiologicalTrace",
+        "actual catalogue selection"
+      ],
+      "uncertainty": "limiter uncertainty does not prove load tolerance",
+      "consequence": "retain coherence errors and disclose unaddressed priorities",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "residual_fatigue",
+      "kind": "safety",
+      "source": {
+        "path": "experimental/det-engine/v7-contracts.ts",
+        "symbol": "candidate fatigue evidence"
+      },
+      "unit": "actual response",
+      "period": "recovery/taper/competition",
+      "applicability": "all experimental plans",
+      "severity": "unknown",
+      "requiredData": [
+        "individual fatigue response",
+        "recent history",
+        "known activation dose"
+      ],
+      "uncertainty": "prescribed reduction is not observed recovery",
+      "consequence": "conditional status until individual evidence and review",
+      "candidate": false,
+      "historicalRules": []
+    },
+    {
+      "id": "expert_review",
+      "kind": "descriptive",
+      "source": {
+        "path": "docs/det-engine/v6/CONTRATS_ET_LIMITES.md",
+        "symbol": "independent review requirement"
+      },
+      "unit": "review_state",
+      "period": "complete_plan",
+      "applicability": "all experimental prescriptions",
+      "severity": "unknown",
+      "requiredData": [
+        "independent qualified review"
+      ],
+      "uncertainty": "no automated test establishes general sporting relevance",
+      "consequence": "NO-GO for integration until independent validation",
+      "candidate": false,
+      "historicalRules": []
+    }
+  ]
+}
