@@ -2,7 +2,7 @@
   "version": "det-v17",
   "baseline": "42a0ca0993a479d6d2f7498287ed855fdfa0dd5a",
   "branch": "experiment/det-engine",
-  "status": "in_progress_no_go",
+  "status": "completed_no_go",
   "startedAt": "2026-10-28T20:31:36+00:00",
   "deadline": "2026-10-28T21:31:36+00:00",
   "maxUnits": 10,
@@ -81,16 +81,18 @@
         }
       ],
       "supplements": [
-        "evidence/contracts-final-supplement.json",
-        "evidence/selection-scope-verification.json",
-        "evidence/types-final-scope.txt"
+        "docs/det-engine/v17/evidence/contracts-final-supplement.json",
+        "docs/det-engine/v17/evidence/selection-scope-verification.json",
+        "docs/det-engine/v17/evidence/types-final-scope.txt"
       ]
     },
     {
       "id": 10,
       "name": "publication",
-      "status": "in_progress",
-      "attempts": 1
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v17/evidence/pr-v17-checkpoint.json",
+      "finishedAt": "2026-10-28T21:21:15.568321+00:00"
     }
   ],
   "active": null,
@@ -106,5 +108,8 @@
     "individualPrescriptionsApproved": 0,
     "localStructuredFixturePass": 12,
     "realNolioCalls": 0
-  }
+  },
+  "finishedAt": "2026-10-28T21:21:15.568321+00:00",
+  "elapsedSeconds": 2979,
+  "sourceCommit": "fd63ff6396ed71d0bc4a0df2e320f522fcb32baa"
 }

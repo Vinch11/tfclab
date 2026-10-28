@@ -30,3 +30,5 @@ Les compléments de présentation coach avec référence fournie et de refus de 
 ## Frontière scientifique
 
 Un témoin mathématique de67 recettes n'est pas une preuve de sécurité ou d'efficacité pour un individu. Les annotations documentaires n'attribuent aucune validation experte. Les mécanismes, variantes par objectif et conditions individuelles restent candidats ; aucun contrat scientifique n'est promu. Les références V2–V16 sont protégées intégralement.
+
+Clôture V17 : dix unités achevées en 49 min 39 s ; état `completed_no_go`. Source `fd63ff6396ed71d0bc4a0df2e320f522fcb32baa` poussée et PR #420 vérifiée ouverte, en brouillon et non fusionnée. Le point de contrôle distant précède le commit de clôture documentaire. Aucun service permanent ou redémarrage automatique.

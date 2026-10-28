@@ -13,3 +13,5 @@ Sorties de référence : evidence/final, replay, outputs-final, outputs-replay, 
 Une exécution interrompue conserve ses sorties et diagnostics ; vérifier le processus actif avant de libérer son verrou. Ne pas compter une sortie partielle comme succès, ne pas écraser les preuves acceptées et utiliser un nouveau chemin de sortie.
 
 Une nouvelle session nécessite un nouveau mandat/budget et un registre séparé. Les choix de science ou de méthodologie restent candidats à revue indépendante ; aucune fusion, déploiement, migration, écriture réelle ou dépense n'est autorisée par ce dossier.
+
+Clôture V17 : dix unités achevées en 49 min 39 s ; état `completed_no_go`. Source `fd63ff6396ed71d0bc4a0df2e320f522fcb32baa` poussée et PR #420 vérifiée ouverte, en brouillon et non fusionnée. Le point de contrôle distant précède le commit de clôture documentaire. Aucun service permanent ou redémarrage automatique.

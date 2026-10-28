@@ -30,3 +30,5 @@ La sélection réutilise les règles existantes. Une estimation VLamax synthéti
 Les tests, mutations indépendantes, régressions ciblées et rejeux sont détaillés dans VALIDATION.md. Les 600 références et les3 206 fichiers antérieurs restent intacts. Aucun plan complet nouveau, aucune donnée réelle athlète/Nolio, aucune migration, fusion, activation en production ou API payante.
 
 Les prochaines étapes sportives sont la clarification des repos/variantes et discordances sources, puis la revue des mécanismes et preuves individuelles par famille. Les prochaines étapes techniques peuvent exploiter le registre global sans nouvelle recherche massive de remplacements.
+
+Clôture V17 : dix unités achevées en 49 min 39 s ; état `completed_no_go`. Source `fd63ff6396ed71d0bc4a0df2e320f522fcb32baa` poussée et PR #420 vérifiée ouverte, en brouillon et non fusionnée. Le point de contrôle distant précède le commit de clôture documentaire. Aucun service permanent ou redémarrage automatique.
