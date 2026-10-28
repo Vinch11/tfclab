@@ -5,8 +5,8 @@
   "deadline": 1793206146,
   "maxUnits": 10,
   "maxAttemptsPerRootCause": 3,
-  "status": "running_no_go",
-  "activeUnit": "publication",
+  "status": "completed_no_go",
+  "activeUnit": null,
   "automaticRestart": false,
   "units": [
     {
@@ -138,8 +138,10 @@
     },
     {
       "id": "publication",
-      "status": "running",
-      "startedAt": 1793205835.7461274
+      "status": "passed",
+      "startedAt": 1793205835.7461274,
+      "completedAt": 1793205876.82939,
+      "evidence": "publication-proof.json"
     }
   ],
   "rootCauseAttempts": [
@@ -191,5 +193,9 @@
       ]
     }
   ],
-  "latestValidation": "evidence/reassessment-delta/commands.json"
+  "latestValidation": "evidence/reassessment-delta/commands.json",
+  "completedAt": 1793205876.829398,
+  "elapsedSeconds": 3331,
+  "stopReason": "ten_bounded_units_completed; prospective proof demonstrated, sporting approval not established",
+  "sourceCommit": "2fe9926eba54e1ac1e41e0d0583be2a42d9439b1"
 }
