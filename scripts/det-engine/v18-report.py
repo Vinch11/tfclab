@@ -161,7 +161,7 @@ Priorités : clarification source des occurrences de repos et du périmètre des
 # Exact CSV registries.
 def csvput(name,headers,rows):
  p=D/name;assert not p.exists()
- with p.open('w',newline='')as f:w=csv.writer(f);w.writerow(headers);w.writerows(rows)
+ with p.open('w',newline='')as f:w=csv.writer(f,lineterminator='\n');w.writerow(headers);w.writerows(rows)
 csvput('RECIPES.csv',['legacy_id','sport','v17_class','v18_class','generic_witness_seconds','strength_model','swim_structure_status','multimodal_kind','unknowns'],[(r['legacyId'],c['prescription']['discipline'],cmp['before'],r['classification'],r['witness']['seconds']if r['witness']else'',bool(m['strength']),m['swim']['structureStatus']if m['swim']else'',m['multimodal']['kind']if m['multimodal']else'',';'.join(r['unknowns']))for c,r,m,cmp in zip(C,R,M,comparison)])
 csvput('VARIANTS.csv',['legacy_id','goal','source_text','class','reason','instance_key','witness_seconds'],[(v['legacyId'],v['goal'],v['sourceText'],v['classification'],v['reason'],v['instance']['instanceKey']if v['instance']else'',v['instance']['executionWitness']['seconds']if v['instance']else'')for v in V])
 queue=load(P/'family/review-queue.jsonl.gz');csvput('QUALIFICATION_MATRIX.csv',['legacy_id','review_priority','review_hints_not_efficacy','source_claim','explicit_physiology','evidence_level','scientific_validation','expert_review','new_references'],[(q['legacyId'],q['scientificQualificationV17']['reviewPriority'],';'.join(q['sourceReviewHints']),q['scientificQualificationV17']['sourceClaim'],json.dumps(q['scientificQualificationV17']['explicitPhysiology'],ensure_ascii=False),q['scientificQualificationV17']['applicableEvidenceLevel'],False,False,0)for q in queue])

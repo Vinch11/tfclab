@@ -30,3 +30,5 @@ Dossier expérimental offline — PR #420 en brouillon, **NO-GO**. Aucun plan ou
 Toutes les sorties intermédiaires et erreurs sont conservées. La reprise n’est ni un processus permanent ni une promesse de redémarrage automatique.
 
 Compléments de l’unité 10 : la garde de dossier de revue rejetait à tort un chemin V18 imbriqué (`validation-2/family_review.txt`). Elle a été corrigée sans autoriser de chemin hors de `v18/evidence` ; le rejeu candidat puis `validation-3` ont passé. Les logs Node vides ont conduit à la capture directe des rapports et à une correction ciblée du superviseur, avec tests négatifs. Deux incompatibilités de l’API locale jsdom 29 (exports CommonJS / retrait de ResourceLoader) ont été diagnostiquées ; la consultation finale est vérifiée avec ses ressources externes désactivées par défaut, des sources non interprétées comme HTML et aucun accès réseau. Les preuves des essais rejetés demeurent présentes.
+
+Avant le push, normalisation technique des séparateurs de lignes CSV (cellules inchangées), sans effacer les six diagnostics de style présents dans des logs bruts. Aucun contenu source sportif modifié.
