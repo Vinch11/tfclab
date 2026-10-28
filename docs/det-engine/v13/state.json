@@ -1,0 +1,159 @@
+{
+  "version": "det-v13-1",
+  "baseline": "e014106819b84036970171586854a9ad3a5029b3",
+  "startedAt": 1793198650,
+  "deadline": 1793202250,
+  "maxUnits": 10,
+  "status": "running_no_go",
+  "activeUnit": "publication",
+  "automaticRestart": false,
+  "units": [
+    {
+      "id": "baseline_audit",
+      "status": "passed",
+      "evidence": "evidence/baseline-verification.json"
+    },
+    {
+      "id": "swim_feasibility",
+      "status": "passed",
+      "evidence": "experimental/det-engine/v13-swim.ts",
+      "meaning": "bounded source/evidence work completed; no independent sports approval"
+    },
+    {
+      "id": "catalogue_integrity",
+      "status": "passed",
+      "evidence": "evidence/candidate/summary.json",
+      "meaning": "bounded source/evidence work completed; no independent sports approval"
+    },
+    {
+      "id": "experimental_overlay",
+      "status": "passed",
+      "evidence": "experimental/det-engine/v13-integrity.ts",
+      "meaning": "bounded source/evidence work completed; no independent sports approval"
+    },
+    {
+      "id": "v12_sport_review",
+      "status": "passed",
+      "evidence": "experimental/det-engine/v13-review.ts",
+      "meaning": "bounded source/evidence work completed; no independent sports approval"
+    },
+    {
+      "id": "full_preparation_feasibility",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793199569772,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v13-study.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793199588550,
+          "exitCode": 0,
+          "output": "docs/det-engine/v13/evidence/full_preparation_feasibility-1.txt",
+          "sha256": "6777451135784cb7f9aa2fd97708bfab77d7d3126706f586fd58da0848d2c63f"
+        },
+        {
+          "startedAt": 1793200312698,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v13-study.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793200334644,
+          "exitCode": 0,
+          "output": "docs/det-engine/v13/evidence/full_preparation_feasibility-2.txt",
+          "sha256": "2799214a68b0cf2c1a482343dfbf4c6e02ba498324b139bfecaace72ffd921d0"
+        }
+      ],
+      "reopenedReason": "legacy parser projections were not a complete-session proof; source audit refined without changing production"
+    },
+    {
+      "id": "determinism",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793201721073,
+          "command": [
+            "scripts/det-engine/v13-evidence.mjs"
+          ],
+          "status": "failed",
+          "completedAt": 1793201747149,
+          "exitCode": 1,
+          "output": "docs/det-engine/v13/evidence/determinism-1.txt",
+          "sha256": "a16ca4a37fc7891f4548c72a7ae5296220bca3faa2fd574e421dc1c8f4876239"
+        },
+        {
+          "startedAt": 1793201793458,
+          "command": [
+            "scripts/det-engine/v13-evidence.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793201845056,
+          "exitCode": 0,
+          "output": "docs/det-engine/v13/evidence/determinism-2.txt",
+          "sha256": "bfd2929f3e0220427ccea2383f7ffda39d7fe8f21978d48450a36a8a6276ee5e"
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793200485254,
+          "command": [
+            "scripts/det-engine/v13-validate.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793201031409,
+          "exitCode": 0,
+          "output": "docs/det-engine/v13/evidence/validation-1.txt",
+          "sha256": "5ba419cfe81e36af1cce16c0415a32386cd6dcce49eab294573e9e78ce68b16f"
+        },
+        {
+          "startedAt": 1793201064665,
+          "command": [
+            "scripts/det-engine/v13-final-delta.mjs"
+          ],
+          "status": "failed",
+          "completedAt": 1793201108190,
+          "exitCode": 1,
+          "output": "docs/det-engine/v13/evidence/validation-2.txt",
+          "sha256": "72b87ffd57f44e88cd05f3d9503d3b57e7b3d69b2acb474f79f5a70e02ea6aab"
+        },
+        {
+          "startedAt": 1793201501111,
+          "command": [
+            "scripts/det-engine/v13-final-delta.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793201709854,
+          "exitCode": 0,
+          "output": "docs/det-engine/v13/evidence/validation-3.txt",
+          "sha256": "bcc46571c54ba2f3f03a6902b780a3f6741b00050b87c4a97dd34f0e6bfc6175"
+        }
+      ],
+      "reopenedReason": "late experimental budget-target reconciliation; all production and historical inputs unchanged"
+    },
+    {
+      "id": "documentation",
+      "status": "passed",
+      "completedAt": 1793201916.0554352,
+      "evidence": "README.md"
+    },
+    {
+      "id": "publication",
+      "status": "running",
+      "startedAt": 1793201916.0554373
+    }
+  ]
+}

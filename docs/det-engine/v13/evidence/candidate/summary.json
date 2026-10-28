@@ -1,0 +1,191 @@
+{
+  "version": "det-v13-1",
+  "completePlansProduced": 0,
+  "catalogue": {
+    "uniqueSources": 340,
+    "counts": {
+      "temporal_coverage_unknown": 302,
+      "complete_literal_temporal_bounds_compatible": 3,
+      "advertised_range_partly_outside_demonstrated_recipe": 19,
+      "mandatory_components_conflict_with_advertised_total": 1,
+      "partial_timing_bounds_only": 12,
+      "unattributed_advertised_session_time": 3
+    }
+  },
+  "overlay": {
+    "version": "det-v13-brick-overlay-1",
+    "sourceId": "C_BRICK_TRANSITION_DRILL",
+    "sourceHash": "9d4547403a96ff80d9629078ff5a6c04e6d4ac684153accf5c50767b74a8d841",
+    "originalMetadata": {
+      "variants": {
+        "half": "Transition en 20s objectif",
+        "ironman": "Focus confort + nutrition en transition"
+      },
+      "metadataVersion": 1,
+      "complete": true,
+      "id": "C_BRICK_TRANSITION_DRILL",
+      "sport": "brick",
+      "title": "Technique de transition T2 – vitesse et automatismes",
+      "objective": "Technique de transition T2 – vitesse et automatismes",
+      "intentFamily": "technique",
+      "goals": [
+        "ironman",
+        "half"
+      ],
+      "objectiveSpecific": false,
+      "phases": [
+        "peak"
+      ],
+      "durationMin": [
+        30,
+        45
+      ],
+      "mainZoneMax": 3,
+      "specialContext": null,
+      "prerequisiteKeys": [],
+      "necessity": "Recommandé",
+      "when": "Phase peak, 1×/sem",
+      "avoid": "Si pas d'accès zone de transition",
+      "tags": [
+        "brick",
+        "transition",
+        "technique"
+      ],
+      "structure": "Warm-up: 15min vélo Z2 | Main: 5× transition drill: Vélo 3min Z3 → transition chrono → course 3min Z3. Focus: descendre du vélo, changer chaussures, trouver rythme course en <30s. Chronométrer chaque transition | Cool-down: 10min jogging Z1",
+      "zones": [
+        "Z2",
+        "Z3",
+        "Z1"
+      ]
+    },
+    "originalAdvertisedRange": [
+      30,
+      45
+    ],
+    "activeMetadata": {
+      "variants": {
+        "half": "Transition en 20s objectif",
+        "ironman": "Focus confort + nutrition en transition"
+      },
+      "metadataVersion": 1,
+      "complete": true,
+      "id": "C_BRICK_TRANSITION_DRILL",
+      "sport": "brick",
+      "title": "Technique de transition T2 – vitesse et automatismes",
+      "objective": "Technique de transition T2 – vitesse et automatismes",
+      "intentFamily": "technique",
+      "goals": [
+        "ironman",
+        "half"
+      ],
+      "objectiveSpecific": false,
+      "phases": [
+        "peak"
+      ],
+      "durationMin": [
+        55,
+        55
+      ],
+      "mainZoneMax": 3,
+      "specialContext": null,
+      "prerequisiteKeys": [],
+      "necessity": "Recommandé",
+      "when": "Phase peak, 1×/sem",
+      "avoid": "Si pas d'accès zone de transition",
+      "tags": [
+        "brick",
+        "transition",
+        "technique"
+      ],
+      "structure": "Warm-up: 15min vélo Z2 | Main: 5× transition drill: Vélo 3min Z3 → transition chrono → course 3min Z3. Focus: descendre du vélo, changer chaussures, trouver rythme course en <30s. Chronométrer chaque transition | Cool-down: 10min jogging Z1",
+      "zones": [
+        "Z2",
+        "Z3",
+        "Z1"
+      ]
+    },
+    "components": {
+      "bike": 30,
+      "run": 25,
+      "knownActiveMinutes": 55,
+      "transitionMinutes": null,
+      "fullElapsedMinutes": null,
+      "formula": "15 + 5×(3+3) + 10",
+      "source": "literal named warm-up, explicit five bike/run cycles and named cool-down; transition time absent"
+    },
+    "fullElapsedContract": {
+      "minimumMinutes": 55,
+      "maximumMinutes": null,
+      "unattributedTransitionMinutes": null
+    },
+    "originalCheck": {
+      "errors": [
+        "catalogue_duration"
+      ],
+      "unknown": []
+    },
+    "activePortionCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "fullSessionExecutable": false,
+    "enduranceLongEvidence": {
+      "autonomousLongCreditMinutes": 0,
+      "knownBikeMinutes": 30,
+      "knownRunMinutes": 25,
+      "full55NotABikeDose": true
+    },
+    "reason": "full_transition_duration_and_applicability_not_established; active-component correction is not a full-session prescription",
+    "phaseRestrictionsUnchanged": true,
+    "sourceUnchanged": true,
+    "notPromoted": true
+  },
+  "profiles": [
+    {
+      "id": "IM_aerobic_history",
+      "status": "refused_under_current_evidence",
+      "plan": null,
+      "firstCapacityFailure": {
+        "week": 5,
+        "role": "IM_aerobic_history:S5:run:0",
+        "classification": "current_individual_envelope_conflicts_with_programming_floor",
+        "floor": 90,
+        "documentedCap": 75,
+        "notAUniversalSafetyCeiling": true,
+        "newEvidenceRequired": true
+      },
+      "weeksReviewed": 16,
+      "swimConfirmed": false,
+      "reason": "documented_caps_and_future_native_floors_conflict",
+      "fullValidation": {
+        "technical": "not_applicable_no_admissible_complete_plan",
+        "historical": "not_applicable_no_admissible_complete_plan",
+        "globalPrescribedLoadAndIntensity": "not_applicable_no_complete_prescription",
+        "executed": "whole16-week necessary constraints and source domains, not16 independently validated microcycles"
+      }
+    },
+    {
+      "id": "IM_balanced_history",
+      "status": "refused_under_current_evidence",
+      "plan": null,
+      "firstCapacityFailure": {
+        "week": 6,
+        "role": "IM_balanced_history:S6:run:0",
+        "classification": "current_individual_envelope_conflicts_with_programming_floor",
+        "floor": 95,
+        "documentedCap": 90,
+        "notAUniversalSafetyCeiling": true,
+        "newEvidenceRequired": true
+      },
+      "weeksReviewed": 16,
+      "swimConfirmed": false,
+      "reason": "documented_caps_and_future_native_floors_conflict",
+      "fullValidation": {
+        "technical": "not_applicable_no_admissible_complete_plan",
+        "historical": "not_applicable_no_admissible_complete_plan",
+        "globalPrescribedLoadAndIntensity": "not_applicable_no_complete_prescription",
+        "executed": "whole16-week necessary constraints and source domains, not16 independently validated microcycles"
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "experimental/det-engine/v13-budget.ts": "eaa13431e58b3ad1480765d0a3ddf7676385d39be331c6f147505465fadc5f89",
+  "experimental/det-engine/v13-contract.ts": "00fe5656555928fbb317ff1a2bb9320d26fb0df4f47aac612ab0993e9f384378",
+  "experimental/det-engine/v13-feasibility.ts": "77f5aab04cb87b178736f790fc66baec9a54150017e081d8121a7ff23fac536c",
+  "experimental/det-engine/v13-inspect.test.ts": "3582e8fa172520b6caa6970edc8b55f39cde0af970e613018d812fe68a583907",
+  "experimental/det-engine/v13-integrity.ts": "420c56c28f4864eba1180eec3b9a70a138d1235092a0b9cfee381b974885a145",
+  "experimental/det-engine/v13-review.ts": "fd548f120d87b0d43529c5be8712726d2d3042d7640c2365ae735e204eddecab",
+  "experimental/det-engine/v13-source-context.ts": "be971e55960fef2ec1e85b8f9e920fda76e0e7d843fc554d0d72fada03935449",
+  "experimental/det-engine/v13-study.test.ts": "82f42b494cb86bb2de2d8c7025655e663f95d67cbdd01b83c95f000843a9c5dc",
+  "experimental/det-engine/v13-study.ts": "ba62fb6d674387f1992848594eff95ade80a4cd3f4c8fb3f4d705fbc723a3c21",
+  "experimental/det-engine/v13-swim.ts": "eed3daa39606e760505e3b20ac00fd92b161f21b3915cf15f96ed87c86d1a917",
+  "scripts/det-engine/v13-evidence.mjs": "538fe958e616350c35c108e9d74726b5c1d858e677d8123a3ab0cf9a528dc24b",
+  "scripts/det-engine/v13-final-delta.mjs": "7c49d38330c30a4800fae8a4b2c991b33a8f26cdac60bb3e77f93b791c4cd7ac",
+  "scripts/det-engine/v13-report.py": "e940c4f9e46d91b84dc84a83e092a7957ec426d64a1ceaa816944d3e45cb5af0",
+  "scripts/det-engine/v13-run.mjs": "e3affaedc5ce0a3247eb975ef7e572c66d6df4b02781af2809117801bdd1b0ab",
+  "scripts/det-engine/v13-validate.mjs": "e3644694d1f96c6fc4aa2d454af1efc1a0e59931f231a3b0407f343a38a6a4ab"
+}

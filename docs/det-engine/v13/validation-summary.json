@@ -1,0 +1,78 @@
+{
+  "version": "det-v13-1",
+  "types": "passed",
+  "governancePassed": 62,
+  "completePlansProduced": 0,
+  "full16PlanValidation": "not_applicable_no_admissible_plan",
+  "independentReplay": {
+    "version": "det-v13-1",
+    "runs": [
+      {
+        "name": "final",
+        "args": [
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "--config",
+          "experimental/det-engine/vitest.v3.config.ts",
+          "experimental/det-engine/v13-study.test.ts",
+          "--maxWorkers=1",
+          "--testTimeout=30000"
+        ],
+        "exitCode": 0
+      },
+      {
+        "name": "replay",
+        "args": [
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "--config",
+          "experimental/det-engine/vitest.v3.config.ts",
+          "experimental/det-engine/v13-study.test.ts",
+          "--maxWorkers=1",
+          "--testTimeout=30000"
+        ],
+        "exitCode": 0
+      }
+    ],
+    "comparison": [
+      {
+        "file": "study.json.gz",
+        "first": "b6b18328e5d200ec451b1daa45d81650cecff19dadaa7c365a0c35ac0e2113b8",
+        "replay": "b6b18328e5d200ec451b1daa45d81650cecff19dadaa7c365a0c35ac0e2113b8"
+      },
+      {
+        "file": "summary.json",
+        "first": "85d31442b70d4ce6fc8aa0a93035b8f29665b4d64d7c0d21323433801fc21738",
+        "replay": "85d31442b70d4ce6fc8aa0a93035b8f29665b4d64d7c0d21323433801fc21738"
+      },
+      {
+        "file": "requirements16.json",
+        "first": "d524cd97f218c921c3128ecc823decb23616d10e6d063843d7cd313cbbf58c8e",
+        "replay": "d524cd97f218c921c3128ecc823decb23616d10e6d063843d7cd313cbbf58c8e"
+      }
+    ],
+    "identical": true,
+    "preregistrationUnchanged": true,
+    "clock": "2026-10-26T12:00:00Z",
+    "independentProcesses": true
+  },
+  "experimental": {
+    "passed": 122,
+    "skipped": 47,
+    "todo": 0,
+    "proof": "evidence/final-delta/experimental.txt"
+  },
+  "historical": {
+    "passed": 2999,
+    "skipped": 1,
+    "todo": 6,
+    "proof": "evidence/validation/historical.txt"
+  },
+  "targeted": {
+    "passed": 11,
+    "skipped": 0,
+    "todo": 0,
+    "proof": "evidence/final/tests.txt"
+  },
+  "targetedOverlapsExperimental": true
+}

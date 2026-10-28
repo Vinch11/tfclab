@@ -1,0 +1,82 @@
+{
+  "reason": "late experimental fixture ramp-target reconciliation; no sporting threshold or production change",
+  "sourceSnapshot": {
+    "experimental/det-engine/v13-budget.ts": "0e806f07fe7fd1ece924fd8dc5821cb7899710a78c983726abfb6c20e17df70a",
+    "experimental/det-engine/v13-contract.ts": "00fe5656555928fbb317ff1a2bb9320d26fb0df4f47aac612ab0993e9f384378",
+    "experimental/det-engine/v13-feasibility.ts": "77f5aab04cb87b178736f790fc66baec9a54150017e081d8121a7ff23fac536c",
+    "experimental/det-engine/v13-inspect.test.ts": "3582e8fa172520b6caa6970edc8b55f39cde0af970e613018d812fe68a583907",
+    "experimental/det-engine/v13-integrity.ts": "420c56c28f4864eba1180eec3b9a70a138d1235092a0b9cfee381b974885a145",
+    "experimental/det-engine/v13-review.ts": "fd548f120d87b0d43529c5be8712726d2d3042d7640c2365ae735e204eddecab",
+    "experimental/det-engine/v13-source-context.ts": "be971e55960fef2ec1e85b8f9e920fda76e0e7d843fc554d0d72fada03935449",
+    "experimental/det-engine/v13-study.test.ts": "82f42b494cb86bb2de2d8c7025655e663f95d67cbdd01b83c95f000843a9c5dc",
+    "experimental/det-engine/v13-study.ts": "ba62fb6d674387f1992848594eff95ade80a4cd3f4c8fb3f4d705fbc723a3c21",
+    "experimental/det-engine/v13-swim.ts": "eed3daa39606e760505e3b20ac00fd92b161f21b3915cf15f96ed87c86d1a917"
+  },
+  "proof": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 2,
+      "elapsedMs": 43124
+    }
+  ],
+  "previousFullValidation": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 42742
+    },
+    {
+      "name": "node",
+      "args": [
+        "--test",
+        "scripts/det-engine/gates.test.mjs",
+        "scripts/det-engine/v2-diagnostic.test.mjs",
+        "scripts/det-engine/v2-supervisor.test.mjs",
+        "scripts/det-engine/v3-supervisor.test.mjs",
+        "scripts/det-engine/v4-supervisor.test.mjs",
+        "scripts/det-engine/v5-budget.test.mjs",
+        "scripts/det-engine/v5-evidence.test.mjs",
+        "scripts/det-engine/v6-budget.test.mjs",
+        "scripts/det-engine/v7-budget.test.mjs",
+        "experimental/det-engine/v8-causal-audit.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 2310
+    },
+    {
+      "name": "experimental",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 161086
+    },
+    {
+      "name": "historical",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 339979
+    }
+  ],
+  "protectedReferencesUnchanged": true
+}

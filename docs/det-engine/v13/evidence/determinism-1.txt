@@ -1,0 +1,11 @@
+file:///workspace/tfclab/scripts/det-engine/v13-evidence.mjs:6
+for(const name of['final','replay']){const out=`${root}/evidence/${name}`;if(existsSync(out))throw Error('OUTPUT_ALREADY_EXISTS_PRESERVE_PROOF');mkdirSync(out,{recursive:true});const timeout=Math.min(180000,s.deadline*1000-Date.now());if(timeout<=0)throw Error('DEADLINE');const r=spawnSync(process.execPath,args,{encoding:'utf8',env:{...baseEnv,TFCL_DET_V13_OUT:out},timeout,maxBuffer:64*1024*1024});writeFileSync(`${out}/tests.txt`,(r.stdout??'')+(r.stderr??''));runs.push({name,args,exitCode:r.status,error:r.error?.code});if(r.status!==0||r.error){writeFileSync(`${root}/evidence/replay-runs.json`,JSON.stringify(runs,null,2));throw Error('EVIDENCE_RUN_FAILED');}}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^
+
+Error: EVIDENCE_RUN_FAILED
+    at file:///workspace/tfclab/scripts/det-engine/v13-evidence.mjs:6:638
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.19.0

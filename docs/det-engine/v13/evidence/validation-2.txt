@@ -1,0 +1,11 @@
+file:///workspace/tfclab/scripts/det-engine/v13-final-delta.mjs:7
+for(const[name,args]of[['types',['node_modules/typescript/bin/tsc','--noEmit','-p','experimental/det-engine/tsconfig.json']],['experimental',['node_modules/vitest/vitest.mjs','run','--config','experimental/det-engine/vitest.v3.config.ts','--maxWorkers=1']]]){const timeout=Math.min(360000,s.deadline*1000-Date.now());if(timeout<=0)throw Error('DEADLINE');const start=Date.now(),r=spawnSync(process.execPath,args,{encoding:'utf8',env,timeout,maxBuffer:64*1024*1024});writeFileSync(`${out}/${name}.txt`,(r.stdout??'')+(r.stderr??''));proof.push({name,args,exitCode:r.status,error:r.error?.code,elapsedMs:Date.now()-start});writeFileSync(out+'/commands.json',JSON.stringify({reason:'late experimental fixture ramp-target reconciliation; no sporting threshold or production change',sourceSnapshot,proof,previousFullValidation:previous,protectedReferencesUnchanged:true},null,2));if(r.status!==0||r.error)throw Error('DELTA_VALIDATION_FAILED');}console.log(JSON.stringify(proof));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+
+Error: DELTA_VALIDATION_FAILED
+    at file:///workspace/tfclab/scripts/det-engine/v13-final-delta.mjs:7:907
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.19.0

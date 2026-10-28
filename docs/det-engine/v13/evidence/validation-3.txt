@@ -1,0 +1,1 @@
+[{"name":"types","args":["node_modules/typescript/bin/tsc","--noEmit","-p","experimental/det-engine/tsconfig.json"],"exitCode":0,"elapsedMs":43232},{"name":"experimental","args":["node_modules/vitest/vitest.mjs","run","--config","experimental/det-engine/vitest.v3.config.ts","--maxWorkers=1"],"exitCode":0,"elapsedMs":165115}]
