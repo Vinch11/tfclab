@@ -1,0 +1,17 @@
+[
+  {
+    "manifest": "source-checksums.json",
+    "entries": 20,
+    "identical": true
+  },
+  {
+    "manifest": "baseline-files.json",
+    "entries": 2206,
+    "identical": true
+  },
+  {
+    "manifest": "checksums.json",
+    "entries": 92,
+    "identical": true
+  }
+]

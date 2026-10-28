@@ -1,0 +1,144 @@
+[
+  {
+    "profile": "IM_aerobic_history",
+    "progression": [
+      {
+        "model": "justified_maintenance",
+        "status": "retained_reference",
+        "reason": "all_executed_full_block_guards_pass; actual_response_and_expert_review_missing",
+        "weeklyMinutes": [
+          480,
+          480,
+          485,
+          250
+        ],
+        "newCritical": false,
+        "newWarnings": false,
+        "failed": []
+      },
+      {
+        "model": "priority_duration",
+        "status": "rejected",
+        "reason": "priority_source_or_individual_cap_exhausted"
+      },
+      {
+        "model": "rest_density",
+        "status": "rejected",
+        "reason": "same_source_rest_is_fixed_do_not_rewrite_recipe"
+      },
+      {
+        "model": "controlled_intensity",
+        "status": "rejected",
+        "reason": "source_and_role_domain_fixed_no_individual_basis_for_higher_intensity"
+      },
+      {
+        "model": "technical_segmentation",
+        "status": "retained_conditional",
+        "reason": "all_executed_full_block_guards_pass; actual_response_and_expert_review_missing",
+        "weeklyMinutes": [
+          480,
+          480,
+          485,
+          250
+        ],
+        "newCritical": false,
+        "newWarnings": false,
+        "failed": []
+      }
+    ],
+    "recovery": [
+      {
+        "model": "native_minima",
+        "status": "diagnostic_only",
+        "minutes": 250,
+        "newCritical": false,
+        "newWarnings": false
+      },
+      {
+        "model": "bike_source_upper_bound",
+        "status": "diagnostic_only",
+        "minutes": 270,
+        "newCritical": false,
+        "newWarnings": false
+      },
+      {
+        "model": "previous_swim_exposure",
+        "status": "diagnostic_only",
+        "minutes": 250,
+        "newCritical": false,
+        "newWarnings": false
+      }
+    ]
+  },
+  {
+    "profile": "IM_balanced_history",
+    "progression": [
+      {
+        "model": "justified_maintenance",
+        "status": "retained_reference",
+        "reason": "all_executed_full_block_guards_pass; actual_response_and_expert_review_missing",
+        "weeklyMinutes": [
+          480,
+          480,
+          480,
+          250
+        ],
+        "newCritical": false,
+        "newWarnings": false,
+        "failed": []
+      },
+      {
+        "model": "priority_duration",
+        "status": "rejected",
+        "reason": "priority_source_or_individual_cap_exhausted"
+      },
+      {
+        "model": "rest_density",
+        "status": "rejected",
+        "reason": "same_source_rest_is_fixed_do_not_rewrite_recipe"
+      },
+      {
+        "model": "controlled_intensity",
+        "status": "rejected",
+        "reason": "source_and_role_domain_fixed_no_individual_basis_for_higher_intensity"
+      },
+      {
+        "model": "technical_segmentation",
+        "status": "retained_conditional",
+        "reason": "all_executed_full_block_guards_pass; actual_response_and_expert_review_missing",
+        "weeklyMinutes": [
+          480,
+          480,
+          480,
+          250
+        ],
+        "newCritical": false,
+        "newWarnings": false,
+        "failed": []
+      }
+    ],
+    "recovery": [
+      {
+        "model": "native_minima",
+        "status": "diagnostic_only",
+        "minutes": 250,
+        "newCritical": false,
+        "newWarnings": false
+      },
+      {
+        "model": "bike_source_upper_bound",
+        "status": "diagnostic_only",
+        "minutes": 270,
+        "newCritical": false,
+        "newWarnings": false
+      },
+      {
+        "model": "previous_swim_exposure",
+        "status": "diagnostic_only",
+        "minutes": 265,
+        "newCritical": false,
+        "newWarnings": false
+      }
+    ]
+  }
+]

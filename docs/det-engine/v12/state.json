@@ -1,0 +1,126 @@
+{
+  "version": "det-v12-1",
+  "baseline": "0bf3d0a14738ea68ccf1cd347929b306b2b3b5b2",
+  "startedAt": 1793194866,
+  "deadline": 1793198466,
+  "maxUnits": 10,
+  "status": "running_no_go",
+  "activeUnit": "publication",
+  "automaticRestart": false,
+  "units": [
+    {
+      "id": "baseline_audit",
+      "status": "passed",
+      "evidence": "evidence/baseline-verification.json"
+    },
+    {
+      "id": "prospective_contract",
+      "status": "passed",
+      "evidence": "experimental/det-engine/v12-contract.ts",
+      "meaning": "candidate analysis, not human sporting approval"
+    },
+    {
+      "id": "progression_models",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793195517205,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v12-study.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793195531801,
+          "exitCode": 0,
+          "output": "docs/det-engine/v12/evidence/progression_models-1.txt",
+          "sha256": "1e177eddfb4a06f4d3fb4637dfc40059964d10f2828576b4219cf1a02057e8ef"
+        }
+      ]
+    },
+    {
+      "id": "recovery_models",
+      "status": "passed",
+      "evidence": "evidence/attempt-1/summary.json",
+      "meaning": "candidate analysis, not human sporting approval"
+    },
+    {
+      "id": "specificity_review",
+      "status": "passed",
+      "evidence": "IRONMAN_SPECIFICITY.md",
+      "meaning": "source-backed candidate review, no expert validation"
+    },
+    {
+      "id": "full_block_comparison",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793195761940,
+          "command": [
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--config",
+            "experimental/det-engine/vitest.v3.config.ts",
+            "experimental/det-engine/v12-study.test.ts",
+            "experimental/det-engine/v12-comparison.test.ts",
+            "--maxWorkers=1"
+          ],
+          "status": "passed",
+          "completedAt": 1793195786919,
+          "exitCode": 0,
+          "output": "docs/det-engine/v12/evidence/full_block_comparison-1.txt",
+          "sha256": "3c7bb2cf9be7c5628e5390fd5396d728751219a9f55089608dc47665982b2196"
+        }
+      ]
+    },
+    {
+      "id": "determinism",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793196741220,
+          "command": [
+            "scripts/det-engine/v12-evidence.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793196800873,
+          "exitCode": 0,
+          "output": "docs/det-engine/v12/evidence/determinism-1.txt",
+          "sha256": "5f1d5f74aa6158711af52543390d0e5763aaad373b99ecf4d1bc49090a2d9b86"
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793195947973,
+          "command": [
+            "scripts/det-engine/v12-validate.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793196487297,
+          "exitCode": 0,
+          "output": "docs/det-engine/v12/evidence/validation-1.txt",
+          "sha256": "4c1ef45bfeaa482a681cd4a6a56883beeea4238721ff005b69f3aa918d29820b"
+        }
+      ]
+    },
+    {
+      "id": "documentation",
+      "status": "passed",
+      "evidence": "V12_RESULTS.md",
+      "meaning": "computed dossiers reviewed; not expert sporting approval"
+    },
+    {
+      "id": "publication",
+      "status": "running",
+      "startedAt": 1793197570.997815,
+      "mode": "authorized_experimental_commits_and_draft_pr"
+    }
+  ]
+}

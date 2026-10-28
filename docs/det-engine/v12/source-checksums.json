@@ -1,0 +1,14 @@
+{
+  "experimental/det-engine/v12-audit.ts": "7de1238e95707362d08ad318b25826097a13d19f748f9c529ea204cc53f5891c",
+  "experimental/det-engine/v12-comparison.test.ts": "40f734650c71bba1ace4b2c88953d3ac7dca18b61f6d6455576b09b9947779b8",
+  "experimental/det-engine/v12-comparison.ts": "800bf63c05d2637f433c3dac46d4d43de4d5ba1ec5635d2d702745e54da09718",
+  "experimental/det-engine/v12-contract.ts": "d27f7ad2220adcb08152352f91a24df05fedf9a1eb5c944708963cc2bedcfdb1",
+  "experimental/det-engine/v12-models.ts": "969e89cdc5392bf64ef5a228f1bfe379f506a424db1bb073da152ff5e5084f95",
+  "experimental/det-engine/v12-prescription.ts": "d8f2fc748cf1e561d71c1b97ba7ef1eaa48bb8ffc10c22bf192481683070bf55",
+  "experimental/det-engine/v12-study.test.ts": "156fca3acc9ab7e7ee0b124ea17fb20b3525e7a71193aeaa32fe633f89c15f72",
+  "scripts/det-engine/v12-evidence.mjs": "fa74c663c59c28cb444133bae985a755e86daf0fa25e4fd23e25a5e2dc976b74",
+  "scripts/det-engine/v12-report.py": "bb544c6ca286fb00a52368d75cb08fa938f6909caa8971604fe297b8d5b676de",
+  "scripts/det-engine/v12-run.mjs": "19ff6fcd8b5b2a87ff0395a132e06296d2cf45a9b2fa882a14417d685023b5e9",
+  "scripts/det-engine/v12-specificity.py": "758bc027570113aac60a50d0e7c169acdc4d77676fcd5c3003bd9d1a945e07b3",
+  "scripts/det-engine/v12-validate.mjs": "e8e8752b5ab27c59d25d62a4f39c5def91e148051a9c1f6398504573124a0940"
+}

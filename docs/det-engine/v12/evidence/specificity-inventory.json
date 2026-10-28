@@ -1,0 +1,90 @@
+{
+  "scope": "four existing catalogue examples only; not all workouts or a full16-week plan",
+  "rows": [
+    {
+      "source": "C_STR_MAX_LOWER_HEAVY",
+      "path": "src/lib/enrichedWorkoutsStrengthV2.ts",
+      "line": 45,
+      "fileSha256": "f1486331b0d56bf8bd956d3d8023814f6f69cd90f77066368735b0c1d5b37a93",
+      "durationRange": [
+        50,
+        65
+      ],
+      "phases": [
+        "base",
+        "build"
+      ],
+      "when": "Base & d\u00e9but Build (8-12 sem avant course A)",
+      "avoid": "Tapering \u00b7 Fatigue >7/10 \u00b7 D\u00e9butant <8 sem exp\u00e9rience barre",
+      "insertedInV12": false,
+      "currentV10SupportCap": 40,
+      "minimumExceedsCurrentCap": true,
+      "barExperienceEvidence": null,
+      "sourceProgrammeIsNotMobility": true
+    },
+    {
+      "source": "C_SWIM_CATCH_FOCUS",
+      "path": "src/lib/enrichedWorkoutsSwim.ts",
+      "line": 175,
+      "fileSha256": "2b50a0672cac4ae2990fcd128941f4d59fd0d0bc30da5ed7cab76182d10cbd54",
+      "durationRange": [
+        35,
+        50
+      ],
+      "phases": [
+        "base",
+        "build"
+      ],
+      "when": "Toute l'ann\u00e9e",
+      "avoid": "N/A",
+      "insertedInV12": false
+    },
+    {
+      "source": "C_BRICK_TRANSITION_DRILL",
+      "path": "src/lib/enrichedWorkoutsV4.ts",
+      "line": 159,
+      "fileSha256": "50fd70dd565d0da337f011c68b6c726151f7ab641b5fb062dacd4bae0ef223df",
+      "durationRange": [
+        30,
+        45
+      ],
+      "phases": [
+        "build",
+        "peak"
+      ],
+      "when": "Phase peak, 1\u00d7/sem",
+      "avoid": "Si pas d'acc\u00e8s zone de transition",
+      "insertedInV12": false,
+      "parsedLiteralWitness": true,
+      "knownBikeMinutes": 30,
+      "knownRunMinutes": 25,
+      "totalLowerBoundMinutes": 55,
+      "transitionMinutes": null,
+      "totalWithinDeclaredRangeImpossible": true,
+      "formula": "15 + 5\u00d7(3+3) + 10 = 55, hors transitions non quantifi\u00e9es"
+    },
+    {
+      "source": "V3_BIKE_Z2_ENDURANCE_LONG",
+      "path": "src/lib/enrichedWorkoutsV3.ts",
+      "line": 15,
+      "fileSha256": "3861ed42c47a1cddbbdf5efbed7fff7a25ceea7cec704e4f6ea16a3df2e47648",
+      "durationRange": [
+        150,
+        300
+      ],
+      "phases": [
+        "base",
+        "build"
+      ],
+      "when": "Base et Build, week-end",
+      "avoid": "Semaine de r\u00e9cup\u00e9ration",
+      "insertedInV12": false,
+      "fuellingMentionPresent": true,
+      "individualNutritionProtocol": null,
+      "carbohydrateGramsPerHour": null,
+      "gutToleranceEvidence": null
+    }
+  ],
+  "actualAthleteDataRead": false,
+  "expertReviewed": false
+}

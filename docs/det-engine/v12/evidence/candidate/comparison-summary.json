@@ -1,0 +1,98 @@
+[
+  {
+    "profile": "IM_aerobic_history",
+    "baselineIdentical": true,
+    "model": "technical_segmentation",
+    "status": "retained_conditional",
+    "weeklyMinutes": [
+      480,
+      480,
+      485,
+      250
+    ],
+    "globalPass": true,
+    "newCritical": false,
+    "newWarnings": false,
+    "divergences": [
+      {
+        "week": 1,
+        "role": "IM_aerobic_history:bike:1",
+        "before": {
+          "source": "C_IM_AERO_HOLD",
+          "minutes": 80
+        },
+        "after": {
+          "source": "C_BIKE_AERO_POSITION_DRILLS",
+          "minutes": 85
+        },
+        "nominalTimeChangeOnly": false,
+        "physiologicalLoadEquivalent": false
+      },
+      {
+        "week": 1,
+        "role": "IM_aerobic_history:run:0",
+        "before": {
+          "source": "A_RUN_Z2_EASY",
+          "minutes": 70
+        },
+        "after": {
+          "source": "A_RUN_Z2_EASY",
+          "minutes": 65
+        },
+        "nominalTimeChangeOnly": true,
+        "physiologicalLoadEquivalent": false
+      }
+    ],
+    "recordCount": 26,
+    "rawLegacyErrors": 7,
+    "rawLegacyWarnings": 30
+  },
+  {
+    "profile": "IM_balanced_history",
+    "baselineIdentical": true,
+    "model": "technical_segmentation",
+    "status": "retained_conditional",
+    "weeklyMinutes": [
+      480,
+      480,
+      480,
+      250
+    ],
+    "globalPass": true,
+    "newCritical": false,
+    "newWarnings": false,
+    "divergences": [
+      {
+        "week": 1,
+        "role": "IM_balanced_history:swim:0",
+        "before": {
+          "source": "A_SWIM_AEROBIC_MULTI_NAGES",
+          "minutes": 55
+        },
+        "after": {
+          "source": "A_SWIM_AEROBIC_MULTI_NAGES",
+          "minutes": 45
+        },
+        "nominalTimeChangeOnly": true,
+        "physiologicalLoadEquivalent": false
+      },
+      {
+        "week": 1,
+        "role": "IM_balanced_history:bike:1",
+        "before": {
+          "source": "C_IM_AERO_HOLD",
+          "minutes": 75
+        },
+        "after": {
+          "source": "C_BIKE_AERO_POSITION_DRILLS",
+          "minutes": 85
+        },
+        "nominalTimeChangeOnly": false,
+        "physiologicalLoadEquivalent": false
+      }
+    ],
+    "recordCount": 26,
+    "rawLegacyErrors": 7,
+    "rawLegacyWarnings": 30
+  }
+]
