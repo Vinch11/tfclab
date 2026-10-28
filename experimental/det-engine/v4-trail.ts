@@ -7,16 +7,17 @@ import{checkSessionCatalogue}from'../../supabase/functions/_shared/sessionCatalo
 import{validateExperimentalCandidate}from'./v2-validation';import{auditTechnicalPlan}from'./v2-technical-validation';import{auditGlobalProgression,type ExposureDose}from'./v4-progression';import type{TrailFixture}from'./v4-trail-fixtures';
 import{generationEligibility}from'./v4-generation-eligibility';
 import{minimumDistinctDose}from'./v4-distinct-dose';
+import type{RepairWorkoutMetadata}from'../../supabase/functions/_shared/repairSportingEquivalence';
 export type TrailCalendarModel='separated_exposure'|'specific_back_to_back'|'conservative_taper';export const TRAIL_CALENDAR_MODELS:TrailCalendarModel[]=['separated_exposure','specific_back_to_back','conservative_taper'];
 const DAYS=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
-export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:TrailFixture,model:TrailCalendarModel,v5Structural=false){
+export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:TrailFixture,model:TrailCalendarModel,v5Structural=false,supplemental?:{cards:RepairWorkoutMetadata[];minimumDose:Record<string,number>}){
  const common={version:v5Structural?'det-v5-trail-calendar-1':'det-v4-trail-calendar-3',fixtureId:f.id,model,synthetic:true,humanReviewRequired:true,sportingRelevance:'not_attested'};
  const refuse=(reason:string,evidence:unknown)=>({...common,status:'refused' as const,technicallyConstructed:false,reason,evidence});
  if(!Number.isFinite(f.event.distanceKm)||f.event.distanceKm<=0||!Number.isFinite(f.event.elevationGainM)||f.event.elevationGainM<0||f.event.elevationLossM!=null&&(!Number.isFinite(f.event.elevationLossM)||f.event.elevationLossM<0))return refuse('explicit_event_geometry_invalid',f.event);
  if(model==='specific_back_to_back'&&!f.coach.backToBack)return refuse('synthetic_coach_has_not_authorized_back_to_back',f.coach);
  if(new Set([...f.coach.runDays,f.coach.strengthDay]).size!==f.coach.runDays.length+1||!f.coach.runDays.includes(5)||f.coach.runDays.some(d=>d<0||d>6))return refuse('contradictory_synthetic_calendar',f.coach);
  const prep=prepareGenerationContracts(athlete,config,{rotationSeed:0}),calendar=buildPeriodizationCalendar(config),byId=new Map(WorkoutLibrary.map(w=>[w.id,w]));
- const metadata=[...new Map([...Object.values(prep.phaseRepairCatalogs).flat(),...prep.chunkRepairCatalogs.flat(),...prep.chunkRegenRepairCatalogs.flat()].map(m=>[m.id,m])).values()];
+ const metadata=[...new Map([...Object.values(prep.phaseRepairCatalogs).flat(),...prep.chunkRepairCatalogs.flat(),...prep.chunkRegenRepairCatalogs.flat(),...(supplemental?.cards??[])].map(m=>[m.id,m])).values()];
  const plan:ParsedPlan={title:`Plan TFCL™ — ${f.objective} QA offline — ${f.weeks} semaines`,phases:[],totalWeeks:f.weeks,weeks:[],weeklyQuotas:{}};
  const ledger:ExposureDose[]=[],selection=[];const usage=new Map<string,number>();
  const limiterKeys=(config.identifiedLimitersRaw??[]).map(resolveLimiterKey).filter((k):k is string=>!!k);
@@ -63,7 +64,7 @@ export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:Tr
 ;
    const remainingRoles=roles.slice(roles.indexOf(role)+1).filter(r=>r.role!=='race');
    const remainingDomains=remainingRoles.map(next=>domainFor(next).flatMap(m=>{
-    const min=Math.ceil(m.durationMin[0]);if(next.role==='long'&&min>f.coach.longPeak)return[];
+    const min=Math.max(Math.ceil(m.durationMin[0]),supplemental?.minimumDose[m.id]??0);if(next.role==='long'&&min>f.coach.longPeak)return[];
     const check=checkSessionCatalogue({catalogId:m.id,title:m.title,details:m.structure,sport:next.sport,durationMin:min,zones:m.zones},{...context,catalog:metadata});
     return check.errors.length||check.unknown.length?[]:[{id:m.id,min}];
    }));
@@ -74,7 +75,7 @@ export function generateTrailPlan(athlete:PlanAthleteData,config:PlanConfig,f:Tr
      const requiredLong=v5Structural&&role.role==='long'?90:0;
      const sourceParts=v5Structural&&role.role==='activation'?byId.get(m.id)?.structure.map(p=>p.text.match(/^\s*(\d+)(?:[–-]\d+)?\s*['’]/)):undefined;
      const sourceStructureMinimum=sourceParts?.length&&sourceParts.every(Boolean)?sourceParts.reduce((sum,p)=>sum+Number(p![1]),0):0;
-     const dose=Math.max(Math.ceil(m.durationMin[0]),requiredLong,sourceStructureMinimum,Math.min(Math.floor(m.durationMin[1]),Math.round(target),maximumCurrent));
+     const dose=Math.max(Math.ceil(m.durationMin[0]),requiredLong,sourceStructureMinimum,supplemental?.minimumDose[m.id]??0,Math.min(Math.floor(m.durationMin[1]),Math.round(target),maximumCurrent));
      if(v5Structural&&dose>Math.floor(m.durationMin[1])||dose>maximumCurrent||role.role==='long'&&dose>f.coach.longPeak||total+dose>maxMinutes)return[];
      const route=f.routeEvidence[m.id],vertical=byId.get(m.id)?.dPlusTargetM,dplus=typeof vertical==='number'?{min:vertical,max:vertical}:vertical;
      if(route&&dplus&&(route.dPlusM<dplus.min||route.dPlusM>dplus.max))return[];
