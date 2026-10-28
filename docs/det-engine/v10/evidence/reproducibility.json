@@ -1,0 +1,36 @@
+{
+  "version": "det-v10-replay-1",
+  "runs": [
+    "evidence/final-targeted.txt",
+    "evidence/full-replay.txt"
+  ],
+  "simulationClock": "2026-10-26T12:00:00Z",
+  "proofs": [
+    {
+      "file": "allocation.json.gz",
+      "sha256": "f42b547b74a9e25ab3fb8724f8781cde7d1f8af5a72f2bb5ebe961e61f706d71",
+      "independentReplayIdentical": true
+    },
+    {
+      "file": "summary.json",
+      "sha256": "2819f645a9e801f4bb72bc122f2225f2f4b3b83f8a454914267a149a616a0908",
+      "independentReplayIdentical": true
+    },
+    {
+      "file": "microcycles.json.gz",
+      "sha256": "ad7f7770cc91a2e1644e61b3db6d03db10ddcf7e854bfed89c3481e547528bc9",
+      "independentReplayIdentical": true
+    },
+    {
+      "file": "microcycle-summary.json",
+      "sha256": "68eaee76d5df7e83b515478b6eb0dfd51f8a46d572292c9abd4206a8d3052c6d",
+      "independentReplayIdentical": true
+    },
+    {
+      "file": "v9-refusal-audit.json",
+      "sha256": "44d1aa983d61f168ec77093359c08c34a84e2347ca5fbf793ba6185033d29204",
+      "independentReplayIdentical": true
+    }
+  ],
+  "preregisteredFixtureUnchanged": true
+}

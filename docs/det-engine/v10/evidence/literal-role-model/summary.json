@@ -1,0 +1,158 @@
+[
+  {
+    "id": "IM_aerobic_history",
+    "status": "refused",
+    "reason": "empty_role_domain",
+    "minLowerBound": 325,
+    "minutes": 0,
+    "unused": 480,
+    "essential": 7,
+    "selected": 0,
+    "empty": [
+      {
+        "role": "IM_aerobic_history:bike:1",
+        "reason": "no_compatible_catalogue_range"
+      }
+    ],
+    "nodes": 0,
+    "errors": [
+      "missing_essential:IM_aerobic_history:swim:0",
+      "missing_essential:IM_aerobic_history:swim:1",
+      "missing_essential:IM_aerobic_history:bike:0",
+      "missing_essential:IM_aerobic_history:bike:1",
+      "missing_essential:IM_aerobic_history:run:0",
+      "missing_essential:IM_aerobic_history:run:1",
+      "missing_essential:IM_aerobic_history:strength:0"
+    ],
+    "sourcePool": 160,
+    "doses": []
+  },
+  {
+    "id": "IM_balanced_history",
+    "status": "refused",
+    "reason": "empty_role_domain",
+    "minLowerBound": 325,
+    "minutes": 0,
+    "unused": 480,
+    "essential": 7,
+    "selected": 0,
+    "empty": [
+      {
+        "role": "IM_balanced_history:bike:1",
+        "reason": "no_compatible_catalogue_range"
+      }
+    ],
+    "nodes": 0,
+    "errors": [
+      "missing_essential:IM_balanced_history:swim:0",
+      "missing_essential:IM_balanced_history:swim:1",
+      "missing_essential:IM_balanced_history:bike:0",
+      "missing_essential:IM_balanced_history:bike:1",
+      "missing_essential:IM_balanced_history:run:0",
+      "missing_essential:IM_balanced_history:run:1",
+      "missing_essential:IM_balanced_history:strength:0"
+    ],
+    "sourcePool": 160,
+    "doses": []
+  },
+  {
+    "id": "IM_insufficient",
+    "status": "refused",
+    "reason": "limiter_missing",
+    "minLowerBound": 295,
+    "minutes": 0,
+    "unused": 480,
+    "essential": 7,
+    "selected": 0,
+    "empty": [
+      {
+        "role": "IM_insufficient:bike:1",
+        "reason": "no_compatible_catalogue_range"
+      }
+    ],
+    "nodes": 0,
+    "errors": [
+      "missing_essential:IM_insufficient:swim:0",
+      "missing_essential:IM_insufficient:swim:1",
+      "missing_essential:IM_insufficient:bike:0",
+      "missing_essential:IM_insufficient:bike:1",
+      "missing_essential:IM_insufficient:run:0",
+      "missing_essential:IM_insufficient:run:1",
+      "missing_essential:IM_insufficient:strength:0"
+    ],
+    "sourcePool": 158,
+    "doses": []
+  },
+  {
+    "id": "Trail_unknown",
+    "status": "refused",
+    "reason": "empty_role_domain",
+    "minLowerBound": 15,
+    "minutes": 0,
+    "unused": 420,
+    "essential": 5,
+    "selected": 0,
+    "empty": [
+      {
+        "role": "Trail_unknown:run:0",
+        "reason": "individual_vertical_evidence_missing"
+      },
+      {
+        "role": "Trail_unknown:run:1",
+        "reason": "no_compatible_catalogue_range"
+      },
+      {
+        "role": "Trail_unknown:run:2",
+        "reason": "no_compatible_catalogue_range"
+      },
+      {
+        "role": "Trail_unknown:run:3",
+        "reason": "no_compatible_catalogue_range"
+      }
+    ],
+    "nodes": 0,
+    "errors": [
+      "missing_essential:Trail_unknown:run:0",
+      "missing_essential:Trail_unknown:run:1",
+      "missing_essential:Trail_unknown:run:2",
+      "missing_essential:Trail_unknown:run:3",
+      "missing_essential:Trail_unknown:strength:0"
+    ],
+    "sourcePool": 160,
+    "doses": []
+  },
+  {
+    "id": "Trail_documented",
+    "status": "refused",
+    "reason": "empty_role_domain",
+    "minLowerBound": 135,
+    "minutes": 0,
+    "unused": 420,
+    "essential": 5,
+    "selected": 0,
+    "empty": [
+      {
+        "role": "Trail_documented:run:1",
+        "reason": "no_compatible_catalogue_range"
+      },
+      {
+        "role": "Trail_documented:run:2",
+        "reason": "no_compatible_catalogue_range"
+      },
+      {
+        "role": "Trail_documented:run:3",
+        "reason": "no_compatible_catalogue_range"
+      }
+    ],
+    "nodes": 0,
+    "errors": [
+      "missing_essential:Trail_documented:run:0",
+      "missing_essential:Trail_documented:run:1",
+      "missing_essential:Trail_documented:run:2",
+      "missing_essential:Trail_documented:run:3",
+      "missing_essential:Trail_documented:strength:0"
+    ],
+    "sourcePool": 160,
+    "doses": []
+  }
+]

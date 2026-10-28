@@ -1,0 +1,2032 @@
+[
+  {
+    "id": "IM_reference",
+    "request": "IM_reference:bike:0",
+    "reasons": [
+      "no_admissible_catalogue_dose_in_prospective_envelope"
+    ],
+    "bucket": "catalogue_and_allocation_domain",
+    "classification": "algorithmic_share_ceiling_plus_joint_constraints",
+    "weeklyBudget": 480,
+    "v9Share": 90,
+    "roleMinimum": 90,
+    "witnesses": [
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "catalogueRange": [
+          150,
+          300
+        ],
+        "literalRange": [
+          180,
+          300
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 150
+      },
+      {
+        "id": "V3_BIKE_Z2_PROGRESSIF",
+        "catalogueRange": [
+          90,
+          150
+        ],
+        "literalRange": [
+          120,
+          120
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "C_BIKE_CADENCE",
+        "catalogueRange": [
+          45,
+          75
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "catalogueRange": [
+          60,
+          120
+        ],
+        "literalRange": [
+          85,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "C_IM_AERO_HOLD",
+        "catalogueRange": [
+          60,
+          120
+        ],
+        "literalRange": [
+          75,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V3_BIKE_Z2_ENDURANCE_LONG"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "IM_reference",
+    "request": "IM_reference:bike:1",
+    "reasons": [
+      "no_admissible_catalogue_dose_in_prospective_envelope"
+    ],
+    "bucket": "catalogue_and_allocation_domain",
+    "classification": "algorithmic_share_ceiling_plus_joint_constraints",
+    "weeklyBudget": 480,
+    "v9Share": 68,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "catalogueRange": [
+          150,
+          300
+        ],
+        "literalRange": [
+          180,
+          300
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 150
+      },
+      {
+        "id": "V3_BIKE_Z2_PROGRESSIF",
+        "catalogueRange": [
+          90,
+          150
+        ],
+        "literalRange": [
+          120,
+          120
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "C_BIKE_CADENCE",
+        "catalogueRange": [
+          45,
+          75
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 45
+      },
+      {
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "catalogueRange": [
+          60,
+          120
+        ],
+        "literalRange": [
+          85,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      },
+      {
+        "id": "C_IM_AERO_HOLD",
+        "catalogueRange": [
+          60,
+          120
+        ],
+        "literalRange": [
+          75,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V3_BIKE_Z2_ENDURANCE_LONG"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "IM_glycolytic",
+    "request": "IM_glycolytic:swim:0",
+    "reasons": [
+      "no_classifiable_limiter"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 480,
+    "v9Share": 68,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "A_SWIM_CONTINUOUS_2K",
+        "catalogueRange": [
+          40,
+          55
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 40
+      },
+      {
+        "id": "C_SWIM_TRI_BILATERAL_BREATHING",
+        "catalogueRange": [
+          30,
+          50
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 30
+      },
+      {
+        "id": "C_SWIM_TRI_KICK_EFFICIENCY",
+        "catalogueRange": [
+          30,
+          50
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 30
+      },
+      {
+        "id": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "catalogueRange": [
+          40,
+          55
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 40
+      }
+    ],
+    "shareCeilingWitnesses": [],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "IM_glycolytic",
+    "request": "IM_glycolytic:swim:1",
+    "reasons": [
+      "no_classifiable_limiter"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 480,
+    "v9Share": 68,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "A_SWIM_CONTINUOUS_2K",
+        "catalogueRange": [
+          40,
+          55
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 40
+      },
+      {
+        "id": "C_SWIM_TRI_BILATERAL_BREATHING",
+        "catalogueRange": [
+          30,
+          50
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 30
+      },
+      {
+        "id": "C_SWIM_TRI_KICK_EFFICIENCY",
+        "catalogueRange": [
+          30,
+          50
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 30
+      },
+      {
+        "id": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "catalogueRange": [
+          40,
+          55
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 40
+      }
+    ],
+    "shareCeilingWitnesses": [],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "IM_glycolytic",
+    "request": "IM_glycolytic:bike:0",
+    "reasons": [
+      "no_classifiable_limiter"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 480,
+    "v9Share": 90,
+    "roleMinimum": 90,
+    "witnesses": [
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "catalogueRange": [
+          150,
+          300
+        ],
+        "literalRange": [
+          180,
+          300
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 150
+      },
+      {
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "catalogueRange": [
+          60,
+          120
+        ],
+        "literalRange": [
+          85,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "C_BIKE_CADENCE",
+        "catalogueRange": [
+          45,
+          75
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "C_IM_AERO_HOLD",
+        "catalogueRange": [
+          60,
+          120
+        ],
+        "literalRange": [
+          75,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "V3_BIKE_Z2_PROGRESSIF",
+        "catalogueRange": [
+          90,
+          150
+        ],
+        "literalRange": [
+          120,
+          120
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V3_BIKE_Z2_ENDURANCE_LONG"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "IM_glycolytic",
+    "request": "IM_glycolytic:bike:1",
+    "reasons": [
+      "no_classifiable_limiter"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 480,
+    "v9Share": 68,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "catalogueRange": [
+          150,
+          300
+        ],
+        "literalRange": [
+          180,
+          300
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 150
+      },
+      {
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "catalogueRange": [
+          60,
+          120
+        ],
+        "literalRange": [
+          85,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      },
+      {
+        "id": "C_BIKE_CADENCE",
+        "catalogueRange": [
+          45,
+          75
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 45
+      },
+      {
+        "id": "C_IM_AERO_HOLD",
+        "catalogueRange": [
+          60,
+          120
+        ],
+        "literalRange": [
+          75,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      },
+      {
+        "id": "V3_BIKE_Z2_PROGRESSIF",
+        "catalogueRange": [
+          90,
+          150
+        ],
+        "literalRange": [
+          120,
+          120
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 90
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V3_BIKE_Z2_ENDURANCE_LONG"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "IM_glycolytic",
+    "request": "IM_glycolytic:run:0",
+    "reasons": [
+      "no_classifiable_limiter"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 480,
+    "v9Share": 68,
+    "roleMinimum": 60,
+    "witnesses": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "catalogueRange": [
+          35,
+          90
+        ],
+        "literalRange": [
+          35,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "catalogueRange": [
+          40,
+          70
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "catalogueRange": [
+          70,
+          150
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 70
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "catalogueRange": [
+          15,
+          30
+        ],
+        "literalRange": [
+          15,
+          30
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "catalogueRange": [
+          25,
+          40
+        ],
+        "literalRange": [
+          25,
+          40
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "catalogueRange": [
+          90,
+          180
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          20
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 60
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "SEILER_RUN_Z1_EASY_LONG",
+      "LYDIARD_RUN_AEROBIC_BASE_LONG"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "IM_glycolytic",
+    "request": "IM_glycolytic:run:1",
+    "reasons": [
+      "no_classifiable_limiter"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 480,
+    "v9Share": 68,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "catalogueRange": [
+          35,
+          90
+        ],
+        "literalRange": [
+          35,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 35
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "catalogueRange": [
+          40,
+          70
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 40
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "catalogueRange": [
+          70,
+          150
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 70
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "catalogueRange": [
+          15,
+          30
+        ],
+        "literalRange": [
+          15,
+          30
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 15
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "catalogueRange": [
+          25,
+          40
+        ],
+        "literalRange": [
+          25,
+          40
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 25
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "catalogueRange": [
+          90,
+          180
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          20
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 15
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "SEILER_RUN_Z1_EASY_LONG",
+      "LYDIARD_RUN_AEROBIC_BASE_LONG"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "IM_glycolytic",
+    "request": "IM_glycolytic:strength:0",
+    "reasons": [
+      "no_classifiable_limiter"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 480,
+    "v9Share": 68,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "RECOVERY_YOGA_MOBILITY_TRI",
+        "catalogueRange": [
+          30,
+          45
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 30
+      }
+    ],
+    "shareCeilingWitnesses": [],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_known_history",
+    "request": "Trail_known_history:run:0",
+    "reasons": [
+      "individual_vertical_eccentric_tolerance_unknown"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 420,
+    "v9Share": 120,
+    "roleMinimum": 120,
+    "witnesses": [
+      {
+        "id": "A_TR_EF_VALLON",
+        "catalogueRange": [
+          55,
+          80
+        ],
+        "literalRange": [
+          60,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "A_TR_SL_MONTAGNE_BASE",
+        "catalogueRange": [
+          120,
+          180
+        ],
+        "literalRange": [
+          120,
+          180
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+        "catalogueRange": [
+          180,
+          300
+        ],
+        "literalRange": [
+          190,
+          310
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 180
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          20
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "catalogueRange": [
+          35,
+          90
+        ],
+        "literalRange": [
+          35,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "catalogueRange": [
+          90,
+          180
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "catalogueRange": [
+          70,
+          150
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V2_TRAIL_MARCHE_COURSE_ALTERNE"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_known_history",
+    "request": "Trail_known_history:run:3",
+    "reasons": [
+      "no_admissible_catalogue_dose_in_prospective_envelope"
+    ],
+    "bucket": "catalogue_and_allocation_domain",
+    "classification": "algorithmic_share_ceiling_plus_joint_constraints",
+    "weeklyBudget": 420,
+    "v9Share": 84,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "A_TR_EF_VALLON",
+        "catalogueRange": [
+          55,
+          80
+        ],
+        "literalRange": [
+          60,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 55
+      },
+      {
+        "id": "A_TR_SL_MONTAGNE_BASE",
+        "catalogueRange": [
+          120,
+          180
+        ],
+        "literalRange": [
+          120,
+          180
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+        "catalogueRange": [
+          180,
+          300
+        ],
+        "literalRange": [
+          190,
+          310
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 180
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          20
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 15
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "catalogueRange": [
+          35,
+          90
+        ],
+        "literalRange": [
+          35,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 35
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "catalogueRange": [
+          90,
+          180
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "catalogueRange": [
+          70,
+          150
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 70
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+      "LYDIARD_RUN_AEROBIC_BASE_LONG"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_known_history",
+    "request": "Trail_known_history:targeted_TTE",
+    "reasons": [
+      "no_individual_threshold_dose_tolerance_evidence"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 420,
+    "v9Share": 84,
+    "roleMinimum": 0,
+    "witnesses": [],
+    "shareCeilingWitnesses": [],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_unknown_history",
+    "request": "Trail_unknown_history:run:0",
+    "reasons": [
+      "recent_history_missing",
+      "individual_vertical_eccentric_tolerance_unknown"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 600,
+    "v9Share": 120,
+    "roleMinimum": 120,
+    "witnesses": [
+      {
+        "id": "A_TR_EF_VALLON",
+        "catalogueRange": [
+          55,
+          80
+        ],
+        "literalRange": [
+          60,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "A_TR_SL_MONTAGNE_BASE",
+        "catalogueRange": [
+          120,
+          180
+        ],
+        "literalRange": [
+          120,
+          180
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+        "catalogueRange": [
+          180,
+          300
+        ],
+        "literalRange": [
+          190,
+          310
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 180
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          20
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "catalogueRange": [
+          35,
+          90
+        ],
+        "literalRange": [
+          35,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "catalogueRange": [
+          90,
+          180
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "catalogueRange": [
+          70,
+          150
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V2_TRAIL_MARCHE_COURSE_ALTERNE"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_unknown_history",
+    "request": "Trail_unknown_history:run:1",
+    "reasons": [
+      "recent_history_missing"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 600,
+    "v9Share": 120,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "A_TR_EF_VALLON",
+        "catalogueRange": [
+          55,
+          80
+        ],
+        "literalRange": [
+          60,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 55
+      },
+      {
+        "id": "A_TR_SL_MONTAGNE_BASE",
+        "catalogueRange": [
+          120,
+          180
+        ],
+        "literalRange": [
+          120,
+          180
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+        "catalogueRange": [
+          180,
+          300
+        ],
+        "literalRange": [
+          190,
+          310
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 180
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          20
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 15
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "catalogueRange": [
+          35,
+          90
+        ],
+        "literalRange": [
+          35,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 35
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "catalogueRange": [
+          90,
+          180
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "catalogueRange": [
+          70,
+          150
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 70
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V2_TRAIL_MARCHE_COURSE_ALTERNE"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_unknown_history",
+    "request": "Trail_unknown_history:run:2",
+    "reasons": [
+      "recent_history_missing"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 600,
+    "v9Share": 120,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "A_TR_EF_VALLON",
+        "catalogueRange": [
+          55,
+          80
+        ],
+        "literalRange": [
+          60,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 55
+      },
+      {
+        "id": "A_TR_SL_MONTAGNE_BASE",
+        "catalogueRange": [
+          120,
+          180
+        ],
+        "literalRange": [
+          120,
+          180
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+        "catalogueRange": [
+          180,
+          300
+        ],
+        "literalRange": [
+          190,
+          310
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 180
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          20
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 15
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "catalogueRange": [
+          35,
+          90
+        ],
+        "literalRange": [
+          35,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 35
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "catalogueRange": [
+          90,
+          180
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "catalogueRange": [
+          70,
+          150
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 70
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V2_TRAIL_MARCHE_COURSE_ALTERNE"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_unknown_history",
+    "request": "Trail_unknown_history:run:3",
+    "reasons": [
+      "recent_history_missing"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 600,
+    "v9Share": 120,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "A_TR_EF_VALLON",
+        "catalogueRange": [
+          55,
+          80
+        ],
+        "literalRange": [
+          60,
+          80
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 55
+      },
+      {
+        "id": "A_TR_SL_MONTAGNE_BASE",
+        "catalogueRange": [
+          120,
+          180
+        ],
+        "literalRange": [
+          120,
+          180
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 120
+      },
+      {
+        "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+        "catalogueRange": [
+          180,
+          300
+        ],
+        "literalRange": [
+          190,
+          310
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": false,
+        "minimumIgnoringShare": 180
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          20
+        ],
+        "v9SourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 15
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "catalogueRange": [
+          35,
+          90
+        ],
+        "literalRange": [
+          35,
+          90
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 35
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "catalogueRange": [
+          90,
+          180
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 90
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "catalogueRange": [
+          70,
+          150
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 70
+      }
+    ],
+    "shareCeilingWitnesses": [
+      "V2_TRAIL_MARCHE_COURSE_ALTERNE"
+    ],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_unknown_history",
+    "request": "Trail_unknown_history:strength:0",
+    "reasons": [
+      "recent_history_missing"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 600,
+    "v9Share": 120,
+    "roleMinimum": 0,
+    "witnesses": [
+      {
+        "id": "RECOVERY_YOGA_MOBILITY_TRI",
+        "catalogueRange": [
+          30,
+          45
+        ],
+        "literalRange": null,
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 30
+      },
+      {
+        "id": "C_TR_PROPRIO_ANKLE_FOOT",
+        "catalogueRange": [
+          20,
+          35
+        ],
+        "literalRange": [
+          20,
+          35
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 20
+      },
+      {
+        "id": "D_TR_REST_MOBILITY",
+        "catalogueRange": [
+          15,
+          25
+        ],
+        "literalRange": [
+          15,
+          25
+        ],
+        "v9SourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "fitsV9Share": true,
+        "minimumIgnoringShare": 15
+      }
+    ],
+    "shareCeilingWitnesses": [],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  },
+  {
+    "id": "Trail_unknown_history",
+    "request": "Trail_unknown_history:targeted_TTE",
+    "reasons": [
+      "no_individual_threshold_dose_tolerance_evidence"
+    ],
+    "bucket": "individual_data_missing",
+    "classification": "contingent_on_missing_individual_evidence",
+    "weeklyBudget": 600,
+    "v9Share": 120,
+    "roleMinimum": 0,
+    "witnesses": [],
+    "shareCeilingWitnesses": [],
+    "availabilityProof": "V9 selection refused before placement; no refusal is attributed to availability without a placement witness",
+    "contraindicationProof": "No counterfactual removes an existing prohibition. Catalogue/source and component conflicts remain independent.",
+    "scope": "Current source pool and contracts only. An independently fitting source is not proof of a globally feasible or physiologically admissible microcycle."
+  }
+]

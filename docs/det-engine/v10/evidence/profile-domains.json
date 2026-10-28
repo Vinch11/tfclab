@@ -1,0 +1,6291 @@
+[
+  {
+    "id": "IM_aerobic_history",
+    "diagnostic": {
+      "executed": true,
+      "confidenceGlobal": 0.6050000000000002,
+      "dataCompleteness": 1,
+      "limiters": [
+        {
+          "metric": "VLamax",
+          "priority": 1,
+          "status": "limiting",
+          "value": 0.35,
+          "target": 0.26,
+          "weightedImpact": 32.88461538461537
+        }
+      ],
+      "uncertainty": [
+        "Confiance diagnostique limitée (61%)."
+      ]
+    },
+    "quota": {
+      "quota": {
+        "swim": {
+          "min": 2,
+          "max": 2
+        },
+        "bike": {
+          "min": 2,
+          "max": 2
+        },
+        "run": {
+          "min": 2,
+          "max": 3
+        },
+        "brick": {
+          "min": 0,
+          "max": 1
+        },
+        "strength": {
+          "min": 1,
+          "max": 1
+        },
+        "totalSessions": {
+          "min": 7,
+          "max": 9
+        },
+        "maxSessionsPerDay": 2,
+        "minFullRestDays": 1,
+        "source": {
+          "tier": "elite_practice",
+          "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+        }
+      },
+      "floors": {
+        "minSwimPerWeek": 2,
+        "longRideWeekly": true,
+        "longRunWeekly": true,
+        "minStrengthPerWeek": 1,
+        "slLongRideMin": 90,
+        "slLongRunMin": 60
+      },
+      "weekType": "load",
+      "downgraded": false,
+      "phase": "base",
+      "layout": {
+        "weekType": "load",
+        "days": [
+          {
+            "dayName": "lundi",
+            "isRest": true,
+            "slots": []
+          },
+          {
+            "dayName": "mardi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": true
+              },
+              {
+                "sport": "bike",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "mercredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              },
+              {
+                "sport": "strength"
+              }
+            ]
+          },
+          {
+            "dayName": "jeudi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": false
+              }
+            ]
+          },
+          {
+            "dayName": "vendredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "samedi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "brick",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 110
+              }
+            ]
+          },
+          {
+            "dayName": "dimanche",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 60
+              }
+            ]
+          }
+        ],
+        "targetsBySport": {
+          "swim": 2,
+          "bike": 2,
+          "run": 3,
+          "brick": 1,
+          "strength": 1
+        }
+      },
+      "volumeBudget": {
+        "globalWeek": 1,
+        "maxMinutes": 480,
+        "weeklyIncreasePctMax": 0.1,
+        "referenceSource": "coach"
+      },
+      "floorAudit": {
+        "version": 2,
+        "localWeek": 1,
+        "globalWeek": 1,
+        "rampConfigured": true,
+        "nominal": {
+          "slLongRideMin": 150,
+          "slLongRunMin": 100,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        },
+        "individualized": {
+          "slLongRideMin": 90,
+          "slLongRunMin": 60,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        }
+      }
+    },
+    "config": {
+      "objective": "IM",
+      "level": {
+        "saisie": "finisher",
+        "effective": "finisher",
+        "saisieLabel": "Découverte",
+        "effectiveLabel": "Découverte",
+        "downgraded": false,
+        "trainingLevel": "trained",
+        "trainingLevelSource": "manual",
+        "diagnosticNote": null
+      },
+      "weeklyHours": 10,
+      "history": {
+        "recentWeeklyHours": 10,
+        "chronicWeeklyHours": 10,
+        "recentWeeksCount": 8
+      }
+    },
+    "cards": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "range": [
+          35,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km",
+        "range": [
+          40,
+          70
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base — séance quotidienne ou quasi-quotidienne. Le volume total hebdomadaire est la clé Lydiard."
+      },
+      {
+        "id": "A_SWIM_PULL_LONG_DISTANCE",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Pull buoy longue distance — endurance bras, économie de nage",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "SEILER_SWIM_Z1_VOLUME",
+        "sport": "swim",
+        "intent": "seuil",
+        "title": "Volume Z1 Seiler natation — accumulation volume aérobie en piscine (80% distribution polarisée)",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Socle du volume natation."
+      },
+      {
+        "id": "C_SWIM_TECH_DRILLS",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique (alignement, catch), économie de nage",
+        "range": [
+          30,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "V3_BIKE_CADENCE_DRILLS",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Travail de cadence — efficacité de pédalage",
+        "range": [
+          60,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build, dans sortie Z2"
+      },
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Développement aérobie fondamental — sortie longue Z2",
+        "range": [
+          150,
+          300
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base et Build, week-end"
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+        "range": [
+          70,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler."
+      },
+      {
+        "id": "V2_BIKE_SINGLE_LEG",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Single leg drills — 6x(2' jambe droite + 2' jambe gauche) Z2. Éliminer les points morts",
+        "range": [
+          50,
+          65
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "V3_BIKE_Z2_PROGRESSIF",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie Z2 progressive — montée en puissance graduelle",
+        "range": [
+          90,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build, mi-semaine"
+      },
+      {
+        "id": "D_BIKE_REGEN_60_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récup vélo sans impact",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "A_STR_AERO_STRENGTH",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force aérobie – circuit à basse intensité avec charge modérée",
+        "range": [
+          45,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base, 1-2×/sem"
+      },
+      {
+        "id": "D_SWIM_TRI_REGEN_1000",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active natation triathlon (post-séance dure)",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance B / brick / long vélo"
+      },
+      {
+        "id": "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération Z1 strict Seiler — séance de récupération vraiment active (pas de dérive Z3)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — lendemain de séance haute intensité ou longue sortie. Remplace le repos complet."
+      },
+      {
+        "id": "C_BIKE_CADENCE_SKILLS_PRO",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Technique pédalage / cadence",
+        "range": [
+          45,
+          70
+        ],
+        "zones": [
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_SWIM_CONTINUOUS_2K",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "RECOVERY_YOGA_MOBILITY_TRI",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Idéal J de repos ou après séance légère."
+      },
+      {
+        "id": "D_DELOAD_RUN",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Footing de décharge — volume réduit 40-50%, intensité Z1 stricte",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Semaine de récupération (1 semaine sur 3-4)"
+      },
+      {
+        "id": "D_SEMI_RECOVERY_30",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active semi-marathon",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B / long run"
+      },
+      {
+        "id": "D_RECOVERY_VAR_7_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #7",
+        "range": [
+          30,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_9_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #9",
+        "range": [
+          20,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "REST_ACTIVE_WALK",
+        "sport": "mixed",
+        "intent": "recuperation",
+        "title": "Récupération active par marche — circulation sans stress mécanique",
+        "range": [
+          20,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé ou longue sortie"
+      },
+      {
+        "id": "ENR_RECUP_ACTIVE_MULTI",
+        "sport": "mixed",
+        "intent": "recuperation",
+        "title": "Récup active multi-sport — 20' nage facile + 20' vélo facile. Varier les contraintes mécaniques",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé"
+      },
+      {
+        "id": "C_SWIM_TRI_BILATERAL_BREATHING",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Respiration bilatérale (adaptation eau libre / vagues)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_STR_UPPER_BODY_TRI",
+        "sport": "strength",
+        "intent": "endurance_fondamentale",
+        "title": "Haut du corps triathlon (épaules, dos, stabilité nage)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_SWIM_TRI_KICK_EFFICIENCY",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Battements économiques (réduire coût jambes pour vélo/course)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "RECOVERY_HRV_GUIDED_DAY",
+        "sport": "strength",
+        "intent": "recuperation",
+        "title": "Journée guidée par HRV — adapter l'entraînement selon le signal de récupération objectif",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — remplacer toute séance si HRV < seuil individuel"
+      },
+      {
+        "id": "RMT_EXPIRATORY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Entraînement expiratoire et gainage respiratoire — stabilité centrale et puissance respiratoire",
+        "range": [
+          15,
+          20
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build — 3-4x/semaine. Combinable avec renforcement core."
+      },
+      {
+        "id": "V2_SWIM_TECHNIQUE_CATCH",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch — 6x(100m catch-up + 100m nage). Améliorer prise d'eau et longueur de bras",
+        "range": [
+          45,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build (toute l'année)"
+      },
+      {
+        "id": "V2_SWIM_TECHNIQUE_ROTATION",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Rotation & roulis — éducatifs rotation tronc + nage unilatérale. Alignement et propulsion",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_BIKE_CADENCE",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Efficience pédalage, endurance musculaire légère",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Base aérobie Lydiard — sortie longue fondamentale pour construire le moteur aérobie (phase 1)",
+        "range": [
+          90,
+          180
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base — pilier de la phase 1 Lydiard. 1x/semaine weekend. Volume progressif sur 16-24 semaines."
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Transition vélo-course sans stress",
+        "range": [
+          15,
+          30
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après long vélo IM"
+      },
+      {
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "range": [
+          60,
+          120
+        ],
+        "zones": [
+          "Z2",
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année IM / 70.3"
+      },
+      {
+        "id": "C_IM_AERO_HOLD",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Tenue position aéro IM",
+        "range": [
+          60,
+          120
+        ],
+        "zones": [
+          "Z2",
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année IM"
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Régénération marathon",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B"
+      },
+      {
+        "id": "D_SWIM_RECOVERY_EASY",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Récup active natation — flush lactates, mobilité épaules",
+        "range": [
+          20,
+          30
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_SWIM_AEROBIC",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Aérobie spécifique, technique sous faible contrainte",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_SWIM_PULL_ENDURANCE",
+        "sport": "swim",
+        "intent": "force",
+        "title": "Endurance pull buoy — force propulsion bras, position corps",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "D_RECOVERY_VAR_6_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #6",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_3_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #3",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_10_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #10",
+        "range": [
+          25,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_1_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #1",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_8_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #8",
+        "range": [
+          35,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RUN_RECOVERY_30_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Footing récupération",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_5_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #5",
+        "range": [
+          20,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Multi-nages aérobie — endurance globale, équilibre musculaire",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "A_STR_ENDURANCE_CIRCUIT",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Circuit endurance musculaire général – socle de force",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base/build, 2×/sem max"
+      },
+      {
+        "id": "D_RECOVERY_VAR_4_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #4",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Shakeout J-1 — 15-20' trot très facile. Dernier check sensoriel",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Veille de course"
+      },
+      {
+        "id": "D_RECOVERY_VAR_2_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #2",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "C_SWIM_TRI_CATCH_PULL",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "V2_RECUP_NAGE_DETENTE",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Nage détente — 1500m multi-nages facile. Décompression articulaire + circulation",
+        "range": [
+          30,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé CAP/vélo"
+      },
+      {
+        "id": "A_STR_STABILITY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Stabilité et gainage – prévention blessure",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute phase, 2-3×/sem"
+      },
+      {
+        "id": "D_SWIM_TECHNIQUE_LIGHT",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique légère — éducatifs sans fatigue, travail proprioceptif",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_SWIM_CATCH_FOCUS",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_10K_RECOVERY_30",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active 10K",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B"
+      },
+      {
+        "id": "V2_RECUP_VELO_REGENERATION",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Vélo régénération — 45-60' Z1 strict <60% FTP. Flush sanguin sans stress mécanique",
+        "range": [
+          40,
+          60
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé / post-compétition"
+      },
+      {
+        "id": "V3_BIKE_RECOVERY_SPIN",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active vélo — flush lactate",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain de séance clé"
+      }
+    ],
+    "allCatalogCount": 334
+  },
+  {
+    "id": "IM_balanced_history",
+    "diagnostic": {
+      "executed": true,
+      "confidenceGlobal": 0.5,
+      "dataCompleteness": 0.64,
+      "limiters": [
+        {
+          "metric": "VLamax",
+          "priority": 1,
+          "status": "limiting",
+          "value": 0.55,
+          "target": 0.26,
+          "weightedImpact": 105.96153846153847
+        }
+      ],
+      "uncertainty": [
+        "Données physiologiques incomplètes (64%).",
+        "Confiance diagnostique limitée (50%)."
+      ]
+    },
+    "quota": {
+      "quota": {
+        "swim": {
+          "min": 2,
+          "max": 2
+        },
+        "bike": {
+          "min": 2,
+          "max": 2
+        },
+        "run": {
+          "min": 2,
+          "max": 3
+        },
+        "brick": {
+          "min": 0,
+          "max": 1
+        },
+        "strength": {
+          "min": 1,
+          "max": 1
+        },
+        "totalSessions": {
+          "min": 7,
+          "max": 9
+        },
+        "maxSessionsPerDay": 2,
+        "minFullRestDays": 1,
+        "source": {
+          "tier": "elite_practice",
+          "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+        }
+      },
+      "floors": {
+        "minSwimPerWeek": 2,
+        "longRideWeekly": true,
+        "longRunWeekly": true,
+        "minStrengthPerWeek": 1,
+        "slLongRideMin": 90,
+        "slLongRunMin": 60
+      },
+      "weekType": "load",
+      "downgraded": false,
+      "phase": "base",
+      "layout": {
+        "weekType": "load",
+        "days": [
+          {
+            "dayName": "lundi",
+            "isRest": true,
+            "slots": []
+          },
+          {
+            "dayName": "mardi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": true
+              },
+              {
+                "sport": "bike",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "mercredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              },
+              {
+                "sport": "strength"
+              }
+            ]
+          },
+          {
+            "dayName": "jeudi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": false
+              }
+            ]
+          },
+          {
+            "dayName": "vendredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "samedi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "brick",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 110
+              }
+            ]
+          },
+          {
+            "dayName": "dimanche",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 60
+              }
+            ]
+          }
+        ],
+        "targetsBySport": {
+          "swim": 2,
+          "bike": 2,
+          "run": 3,
+          "brick": 1,
+          "strength": 1
+        }
+      },
+      "volumeBudget": {
+        "globalWeek": 1,
+        "maxMinutes": 480,
+        "weeklyIncreasePctMax": 0.1,
+        "referenceSource": "coach"
+      },
+      "floorAudit": {
+        "version": 2,
+        "localWeek": 1,
+        "globalWeek": 1,
+        "rampConfigured": true,
+        "nominal": {
+          "slLongRideMin": 150,
+          "slLongRunMin": 100,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        },
+        "individualized": {
+          "slLongRideMin": 90,
+          "slLongRunMin": 60,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        }
+      }
+    },
+    "config": {
+      "objective": "IM",
+      "level": {
+        "saisie": "finisher",
+        "effective": "finisher",
+        "saisieLabel": "Découverte",
+        "effectiveLabel": "Découverte",
+        "downgraded": false,
+        "trainingLevel": "trained",
+        "trainingLevelSource": "manual",
+        "diagnosticNote": null
+      },
+      "weeklyHours": 10,
+      "history": {
+        "recentWeeklyHours": 10,
+        "chronicWeeklyHours": 10,
+        "recentWeeksCount": 8
+      }
+    },
+    "cards": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "range": [
+          35,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km",
+        "range": [
+          40,
+          70
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base — séance quotidienne ou quasi-quotidienne. Le volume total hebdomadaire est la clé Lydiard."
+      },
+      {
+        "id": "A_SWIM_PULL_LONG_DISTANCE",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Pull buoy longue distance — endurance bras, économie de nage",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "SEILER_SWIM_Z1_VOLUME",
+        "sport": "swim",
+        "intent": "seuil",
+        "title": "Volume Z1 Seiler natation — accumulation volume aérobie en piscine (80% distribution polarisée)",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Socle du volume natation."
+      },
+      {
+        "id": "C_SWIM_TECH_DRILLS",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique (alignement, catch), économie de nage",
+        "range": [
+          30,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "V3_BIKE_CADENCE_DRILLS",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Travail de cadence — efficacité de pédalage",
+        "range": [
+          60,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build, dans sortie Z2"
+      },
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Développement aérobie fondamental — sortie longue Z2",
+        "range": [
+          150,
+          300
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base et Build, week-end"
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+        "range": [
+          70,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler."
+      },
+      {
+        "id": "V2_BIKE_SINGLE_LEG",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Single leg drills — 6x(2' jambe droite + 2' jambe gauche) Z2. Éliminer les points morts",
+        "range": [
+          50,
+          65
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "V3_BIKE_Z2_PROGRESSIF",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie Z2 progressive — montée en puissance graduelle",
+        "range": [
+          90,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build, mi-semaine"
+      },
+      {
+        "id": "D_BIKE_REGEN_60_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récup vélo sans impact",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "A_STR_AERO_STRENGTH",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force aérobie – circuit à basse intensité avec charge modérée",
+        "range": [
+          45,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base, 1-2×/sem"
+      },
+      {
+        "id": "D_SWIM_TRI_REGEN_1000",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active natation triathlon (post-séance dure)",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance B / brick / long vélo"
+      },
+      {
+        "id": "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération Z1 strict Seiler — séance de récupération vraiment active (pas de dérive Z3)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — lendemain de séance haute intensité ou longue sortie. Remplace le repos complet."
+      },
+      {
+        "id": "C_BIKE_CADENCE_SKILLS_PRO",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Technique pédalage / cadence",
+        "range": [
+          45,
+          70
+        ],
+        "zones": [
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_SWIM_CONTINUOUS_2K",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "RECOVERY_YOGA_MOBILITY_TRI",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Idéal J de repos ou après séance légère."
+      },
+      {
+        "id": "D_DELOAD_RUN",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Footing de décharge — volume réduit 40-50%, intensité Z1 stricte",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Semaine de récupération (1 semaine sur 3-4)"
+      },
+      {
+        "id": "D_SEMI_RECOVERY_30",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active semi-marathon",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B / long run"
+      },
+      {
+        "id": "D_RECOVERY_VAR_7_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #7",
+        "range": [
+          30,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_9_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #9",
+        "range": [
+          20,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "REST_ACTIVE_WALK",
+        "sport": "mixed",
+        "intent": "recuperation",
+        "title": "Récupération active par marche — circulation sans stress mécanique",
+        "range": [
+          20,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé ou longue sortie"
+      },
+      {
+        "id": "ENR_RECUP_ACTIVE_MULTI",
+        "sport": "mixed",
+        "intent": "recuperation",
+        "title": "Récup active multi-sport — 20' nage facile + 20' vélo facile. Varier les contraintes mécaniques",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé"
+      },
+      {
+        "id": "C_SWIM_TRI_BILATERAL_BREATHING",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Respiration bilatérale (adaptation eau libre / vagues)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_STR_UPPER_BODY_TRI",
+        "sport": "strength",
+        "intent": "endurance_fondamentale",
+        "title": "Haut du corps triathlon (épaules, dos, stabilité nage)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_SWIM_TRI_KICK_EFFICIENCY",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Battements économiques (réduire coût jambes pour vélo/course)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "RECOVERY_HRV_GUIDED_DAY",
+        "sport": "strength",
+        "intent": "recuperation",
+        "title": "Journée guidée par HRV — adapter l'entraînement selon le signal de récupération objectif",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — remplacer toute séance si HRV < seuil individuel"
+      },
+      {
+        "id": "RMT_EXPIRATORY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Entraînement expiratoire et gainage respiratoire — stabilité centrale et puissance respiratoire",
+        "range": [
+          15,
+          20
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build — 3-4x/semaine. Combinable avec renforcement core."
+      },
+      {
+        "id": "V2_SWIM_TECHNIQUE_CATCH",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch — 6x(100m catch-up + 100m nage). Améliorer prise d'eau et longueur de bras",
+        "range": [
+          45,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build (toute l'année)"
+      },
+      {
+        "id": "V2_SWIM_TECHNIQUE_ROTATION",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Rotation & roulis — éducatifs rotation tronc + nage unilatérale. Alignement et propulsion",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_BIKE_CADENCE",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Efficience pédalage, endurance musculaire légère",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Base aérobie Lydiard — sortie longue fondamentale pour construire le moteur aérobie (phase 1)",
+        "range": [
+          90,
+          180
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base — pilier de la phase 1 Lydiard. 1x/semaine weekend. Volume progressif sur 16-24 semaines."
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Transition vélo-course sans stress",
+        "range": [
+          15,
+          30
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après long vélo IM"
+      },
+      {
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "range": [
+          60,
+          120
+        ],
+        "zones": [
+          "Z2",
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année IM / 70.3"
+      },
+      {
+        "id": "C_IM_AERO_HOLD",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Tenue position aéro IM",
+        "range": [
+          60,
+          120
+        ],
+        "zones": [
+          "Z2",
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année IM"
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Régénération marathon",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B"
+      },
+      {
+        "id": "D_SWIM_RECOVERY_EASY",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Récup active natation — flush lactates, mobilité épaules",
+        "range": [
+          20,
+          30
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_SWIM_AEROBIC",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Aérobie spécifique, technique sous faible contrainte",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_SWIM_PULL_ENDURANCE",
+        "sport": "swim",
+        "intent": "force",
+        "title": "Endurance pull buoy — force propulsion bras, position corps",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "D_RECOVERY_VAR_6_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #6",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_3_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #3",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_10_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #10",
+        "range": [
+          25,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_1_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #1",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_8_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #8",
+        "range": [
+          35,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RUN_RECOVERY_30_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Footing récupération",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_5_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #5",
+        "range": [
+          20,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Multi-nages aérobie — endurance globale, équilibre musculaire",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "A_STR_ENDURANCE_CIRCUIT",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Circuit endurance musculaire général – socle de force",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base/build, 2×/sem max"
+      },
+      {
+        "id": "D_RECOVERY_VAR_4_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #4",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Shakeout J-1 — 15-20' trot très facile. Dernier check sensoriel",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Veille de course"
+      },
+      {
+        "id": "D_RECOVERY_VAR_2_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #2",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "C_SWIM_TRI_CATCH_PULL",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "V2_RECUP_NAGE_DETENTE",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Nage détente — 1500m multi-nages facile. Décompression articulaire + circulation",
+        "range": [
+          30,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé CAP/vélo"
+      },
+      {
+        "id": "A_STR_STABILITY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Stabilité et gainage – prévention blessure",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute phase, 2-3×/sem"
+      },
+      {
+        "id": "D_SWIM_TECHNIQUE_LIGHT",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique légère — éducatifs sans fatigue, travail proprioceptif",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_SWIM_CATCH_FOCUS",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_10K_RECOVERY_30",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active 10K",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B"
+      },
+      {
+        "id": "V2_RECUP_VELO_REGENERATION",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Vélo régénération — 45-60' Z1 strict <60% FTP. Flush sanguin sans stress mécanique",
+        "range": [
+          40,
+          60
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé / post-compétition"
+      },
+      {
+        "id": "V3_BIKE_RECOVERY_SPIN",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active vélo — flush lactate",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain de séance clé"
+      }
+    ],
+    "allCatalogCount": 334
+  },
+  {
+    "id": "IM_insufficient",
+    "quota": {
+      "quota": {
+        "swim": {
+          "min": 2,
+          "max": 2
+        },
+        "bike": {
+          "min": 2,
+          "max": 2
+        },
+        "run": {
+          "min": 2,
+          "max": 3
+        },
+        "brick": {
+          "min": 0,
+          "max": 1
+        },
+        "strength": {
+          "min": 1,
+          "max": 1
+        },
+        "totalSessions": {
+          "min": 7,
+          "max": 9
+        },
+        "maxSessionsPerDay": 2,
+        "minFullRestDays": 1,
+        "source": {
+          "tier": "elite_practice",
+          "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+        }
+      },
+      "floors": {
+        "minSwimPerWeek": 2,
+        "longRideWeekly": true,
+        "longRunWeekly": true,
+        "minStrengthPerWeek": 1,
+        "slLongRideMin": 90,
+        "slLongRunMin": 60
+      },
+      "weekType": "load",
+      "downgraded": false,
+      "phase": "base",
+      "layout": {
+        "weekType": "load",
+        "days": [
+          {
+            "dayName": "lundi",
+            "isRest": true,
+            "slots": []
+          },
+          {
+            "dayName": "mardi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": true
+              },
+              {
+                "sport": "bike",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "mercredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              },
+              {
+                "sport": "strength"
+              }
+            ]
+          },
+          {
+            "dayName": "jeudi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": false
+              }
+            ]
+          },
+          {
+            "dayName": "vendredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "samedi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "brick",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 110
+              }
+            ]
+          },
+          {
+            "dayName": "dimanche",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 60
+              }
+            ]
+          }
+        ],
+        "targetsBySport": {
+          "swim": 2,
+          "bike": 2,
+          "run": 3,
+          "brick": 1,
+          "strength": 1
+        }
+      },
+      "volumeBudget": {
+        "globalWeek": 1,
+        "maxMinutes": 480,
+        "weeklyIncreasePctMax": 0.1,
+        "referenceSource": "coach"
+      },
+      "floorAudit": {
+        "version": 2,
+        "localWeek": 1,
+        "globalWeek": 1,
+        "rampConfigured": true,
+        "nominal": {
+          "slLongRideMin": 150,
+          "slLongRunMin": 100,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        },
+        "individualized": {
+          "slLongRideMin": 90,
+          "slLongRunMin": 60,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        }
+      }
+    },
+    "config": {
+      "objective": "IM",
+      "level": {
+        "saisie": "finisher",
+        "effective": "finisher",
+        "saisieLabel": "Découverte",
+        "effectiveLabel": "Découverte",
+        "downgraded": false,
+        "trainingLevel": "trained",
+        "trainingLevelSource": "manual",
+        "diagnosticNote": null
+      },
+      "weeklyHours": 10,
+      "history": {
+        "recentWeeklyHours": 10,
+        "chronicWeeklyHours": 10,
+        "recentWeeksCount": 8
+      }
+    },
+    "cards": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "range": [
+          35,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km",
+        "range": [
+          40,
+          70
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base — séance quotidienne ou quasi-quotidienne. Le volume total hebdomadaire est la clé Lydiard."
+      },
+      {
+        "id": "A_SWIM_PULL_LONG_DISTANCE",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Pull buoy longue distance — endurance bras, économie de nage",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "SEILER_SWIM_Z1_VOLUME",
+        "sport": "swim",
+        "intent": "seuil",
+        "title": "Volume Z1 Seiler natation — accumulation volume aérobie en piscine (80% distribution polarisée)",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Socle du volume natation."
+      },
+      {
+        "id": "C_SWIM_TECH_DRILLS",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique (alignement, catch), économie de nage",
+        "range": [
+          30,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_SWIM_TRI_CATCH_PULL",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_STR_AERO_STRENGTH",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force aérobie – circuit à basse intensité avec charge modérée",
+        "range": [
+          45,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base, 1-2×/sem"
+      },
+      {
+        "id": "A_STR_ENDURANCE_CIRCUIT",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Circuit endurance musculaire général – socle de force",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base/build, 2×/sem max"
+      },
+      {
+        "id": "D_SWIM_TRI_REGEN_1000",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active natation triathlon (post-séance dure)",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance B / brick / long vélo"
+      },
+      {
+        "id": "V3_BIKE_CADENCE_DRILLS",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Travail de cadence — efficacité de pédalage",
+        "range": [
+          60,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build, dans sortie Z2"
+      },
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Développement aérobie fondamental — sortie longue Z2",
+        "range": [
+          150,
+          300
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base et Build, week-end"
+      },
+      {
+        "id": "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération Z1 strict Seiler — séance de récupération vraiment active (pas de dérive Z3)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — lendemain de séance haute intensité ou longue sortie. Remplace le repos complet."
+      },
+      {
+        "id": "C_BIKE_CADENCE_SKILLS_PRO",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Technique pédalage / cadence",
+        "range": [
+          45,
+          70
+        ],
+        "zones": [
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_SWIM_CONTINUOUS_2K",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "V2_BIKE_SINGLE_LEG",
+        "sport": "bike",
+        "intent": "technique",
+        "title": "Single leg drills — 6x(2' jambe droite + 2' jambe gauche) Z2. Éliminer les points morts",
+        "range": [
+          50,
+          65
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "RECOVERY_YOGA_MOBILITY_TRI",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Idéal J de repos ou après séance légère."
+      },
+      {
+        "id": "D_DELOAD_RUN",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Footing de décharge — volume réduit 40-50%, intensité Z1 stricte",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Semaine de récupération (1 semaine sur 3-4)"
+      },
+      {
+        "id": "D_SEMI_RECOVERY_30",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active semi-marathon",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B / long run"
+      },
+      {
+        "id": "D_RECOVERY_VAR_8_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #8",
+        "range": [
+          35,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_7_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #7",
+        "range": [
+          30,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_10_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #10",
+        "range": [
+          25,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_9_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #9",
+        "range": [
+          20,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "REST_ACTIVE_WALK",
+        "sport": "mixed",
+        "intent": "recuperation",
+        "title": "Récupération active par marche — circulation sans stress mécanique",
+        "range": [
+          20,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé ou longue sortie"
+      },
+      {
+        "id": "D_RECOVERY_VAR_6_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #6",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_1_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #1",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "ENR_RECUP_ACTIVE_MULTI",
+        "sport": "mixed",
+        "intent": "recuperation",
+        "title": "Récup active multi-sport — 20' nage facile + 20' vélo facile. Varier les contraintes mécaniques",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé"
+      },
+      {
+        "id": "D_RECOVERY_VAR_3_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #3",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "C_SWIM_TRI_BILATERAL_BREATHING",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Respiration bilatérale (adaptation eau libre / vagues)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_STR_UPPER_BODY_TRI",
+        "sport": "strength",
+        "intent": "endurance_fondamentale",
+        "title": "Haut du corps triathlon (épaules, dos, stabilité nage)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_SWIM_TRI_KICK_EFFICIENCY",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Battements économiques (réduire coût jambes pour vélo/course)",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "RECOVERY_HRV_GUIDED_DAY",
+        "sport": "strength",
+        "intent": "recuperation",
+        "title": "Journée guidée par HRV — adapter l'entraînement selon le signal de récupération objectif",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — remplacer toute séance si HRV < seuil individuel"
+      },
+      {
+        "id": "RMT_EXPIRATORY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Entraînement expiratoire et gainage respiratoire — stabilité centrale et puissance respiratoire",
+        "range": [
+          15,
+          20
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build — 3-4x/semaine. Combinable avec renforcement core."
+      },
+      {
+        "id": "A_SWIM_TRI_EASY_TECH_1500",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Endurance facile + technique (base triathlon)",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_SWIM_CATCH_FOCUS",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_SWIM_AEROBIC",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Aérobie spécifique, technique sous faible contrainte",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+        "range": [
+          70,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler."
+      },
+      {
+        "id": "V2_SWIM_TECHNIQUE_CATCH",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique catch — 6x(100m catch-up + 100m nage). Améliorer prise d'eau et longueur de bras",
+        "range": [
+          45,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build (toute l'année)"
+      },
+      {
+        "id": "C_SWIM_BILATERAL_BREATH",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Respiration bilatérale — équilibre nage, réduction traînée",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "A_SWIM_PULL_ENDURANCE",
+        "sport": "swim",
+        "intent": "force",
+        "title": "Endurance pull buoy — force propulsion bras, position corps",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "C_SWIM_TURNS_STARTS",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Virages et coulées — efficacité virages, poussée murale, coulées",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "D_RUN_RECOVERY_30_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Footing récupération",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Transition vélo-course sans stress",
+        "range": [
+          15,
+          30
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après long vélo IM"
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Régénération marathon",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B"
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Base aérobie Lydiard — sortie longue fondamentale pour construire le moteur aérobie (phase 1)",
+        "range": [
+          90,
+          180
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base — pilier de la phase 1 Lydiard. 1x/semaine weekend. Volume progressif sur 16-24 semaines."
+      },
+      {
+        "id": "D_SWIM_RECOVERY_EASY",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Récup active natation — flush lactates, mobilité épaules",
+        "range": [
+          20,
+          30
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "range": [
+          60,
+          120
+        ],
+        "zones": [
+          "Z2",
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année IM / 70.3"
+      },
+      {
+        "id": "C_BIKE_CADENCE",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Efficience pédalage, endurance musculaire légère",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_RECOVERY_VAR_5_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #5",
+        "range": [
+          20,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "sport": "swim",
+        "intent": "endurance_fondamentale",
+        "title": "Multi-nages aérobie — endurance globale, équilibre musculaire",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "V2_RECUP_VELO_REGENERATION",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Vélo régénération — 45-60' Z1 strict <60% FTP. Flush sanguin sans stress mécanique",
+        "range": [
+          40,
+          60
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé / post-compétition"
+      },
+      {
+        "id": "D_BIKE_REGEN_60_PRO",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récup vélo sans impact",
+        "range": [
+          45,
+          75
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "C_IM_AERO_HOLD",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Tenue position aéro IM",
+        "range": [
+          60,
+          120
+        ],
+        "zones": [
+          "Z2",
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année IM"
+      },
+      {
+        "id": "D_RECOVERY_VAR_4_PRO",
+        "sport": "swim",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #4",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_2_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #2",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "V2_RECUP_NAGE_DETENTE",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Nage détente — 1500m multi-nages facile. Décompression articulaire + circulation",
+        "range": [
+          30,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain séance clé CAP/vélo"
+      },
+      {
+        "id": "A_STR_STABILITY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Stabilité et gainage – prévention blessure",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute phase, 2-3×/sem"
+      },
+      {
+        "id": "V3_BIKE_Z2_PROGRESSIF",
+        "sport": "bike",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie Z2 progressive — montée en puissance graduelle",
+        "range": [
+          90,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build, mi-semaine"
+      },
+      {
+        "id": "V3_BIKE_RECOVERY_SPIN",
+        "sport": "bike",
+        "intent": "recuperation",
+        "title": "Récupération active vélo — flush lactate",
+        "range": [
+          30,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain de séance clé"
+      },
+      {
+        "id": "D_SWIM_TECHNIQUE_LIGHT",
+        "sport": "swim",
+        "intent": "technique",
+        "title": "Technique légère — éducatifs sans fatigue, travail proprioceptif",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Shakeout J-1 — 15-20' trot très facile. Dernier check sensoriel",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Veille de course"
+      },
+      {
+        "id": "D_10K_RECOVERY_30",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active 10K",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après séance B"
+      }
+    ],
+    "allCatalogCount": 333
+  },
+  {
+    "id": "Trail_unknown",
+    "diagnostic": {
+      "executed": true,
+      "confidenceGlobal": 0.5,
+      "dataCompleteness": 0.6,
+      "limiters": [
+        {
+          "metric": "TTE",
+          "priority": 1,
+          "status": "limiting",
+          "value": 45,
+          "target": 57,
+          "weightedImpact": 17.89473684210526
+        }
+      ],
+      "uncertainty": [
+        "Données physiologiques incomplètes (60%).",
+        "Confiance diagnostique limitée (50%)."
+      ]
+    },
+    "config": {
+      "objective": "TrailMountain",
+      "level": {
+        "saisie": "competitor",
+        "effective": "competitor",
+        "saisieLabel": "Compétiteur",
+        "effectiveLabel": "Compétiteur",
+        "downgraded": false,
+        "trainingLevel": "trained",
+        "trainingLevelSource": "manual",
+        "diagnosticNote": null
+      },
+      "weeklyHours": 10,
+      "history": {
+        "recentWeeklyHours": 7,
+        "chronicWeeklyHours": 7,
+        "recentWeeksCount": 8
+      }
+    },
+    "cards": [
+      {
+        "id": "D_TR50_RECOVERY_WALK_RUN",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération marche/course (lendemain longue sortie)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après long run / séance B"
+      },
+      {
+        "id": "D_TR_RECOVERY_SOFT",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active trail (surface souple)",
+        "range": [
+          25,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge / semaine de choc"
+      },
+      {
+        "id": "D_TR_RECOVERY_SOFT_30",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active (surface souple)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après B / grosse sortie"
+      },
+      {
+        "id": "RECOVERY_YOGA_MOBILITY_TRI",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Idéal J de repos ou après séance légère."
+      },
+      {
+        "id": "RECOVERY_HRV_GUIDED_DAY",
+        "sport": "strength",
+        "intent": "recuperation",
+        "title": "Journée guidée par HRV — adapter l'entraînement selon le signal de récupération objectif",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — remplacer toute séance si HRV < seuil individuel"
+      },
+      {
+        "id": "C_STR_UPPER_BODY_TRI",
+        "sport": "strength",
+        "intent": "endurance_fondamentale",
+        "title": "Haut du corps triathlon (épaules, dos, stabilité nage)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "RMT_EXPIRATORY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Entraînement expiratoire et gainage respiratoire — stabilité centrale et puissance respiratoire",
+        "range": [
+          15,
+          20
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build — 3-4x/semaine. Combinable avec renforcement core."
+      },
+      {
+        "id": "A_TR_EF_SENTIER",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Endurance fondamentale sentier — adaptation terrain",
+        "range": [
+          50,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_TR_DESC_TECH_PRO",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Technique descente (tolérance excentrique)",
+        "range": [
+          40,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "V2_TRAIL_PROPRIOCEPTION",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Proprioception trail — 40' terrain technique irrégulier Z2. Stabilité cheville + lecture terrain",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année (trail)"
+      },
+      {
+        "id": "C_TR50_TECH_APPUIS",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Technique appuis sentier (coordination, lecture terrain)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_TR_EF_VALLON",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Endurance fondamentale vallonnée — adaptation D+",
+        "range": [
+          55,
+          80
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "A_TR_SL_MONTAGNE_BASE",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie longue montagne base — volume D+ progressif",
+        "range": [
+          120,
+          180
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base, week-end"
+      },
+      {
+        "id": "A_STR_AERO_STRENGTH",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force aérobie – circuit à basse intensité avec charge modérée",
+        "range": [
+          45,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base, 1-2×/sem"
+      },
+      {
+        "id": "C_TR_STRENGTH_GENERAL",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force générale & prévention blessures (trail)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année (1–2x/sem)"
+      },
+      {
+        "id": "C_TR_PROPRIO_ANKLE_FOOT",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Pied/cheville (proprioception) + prévention entorses",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_TR_STRENGTH_PRO",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force trail (quadris/mollets/fessiers + gainage)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_TR_REST_MOBILITY",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Repos actif + mobilité (jour off intelligent)",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_DELOAD_RUN",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Footing de décharge — volume réduit 40-50%, intensité Z1 stricte",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Semaine de récupération (1 semaine sur 3-4)"
+      },
+      {
+        "id": "EXPE_HORS_VILLE_FORET_PERIURBAINE",
+        "sport": "run",
+        "intent": "technique",
+        "title": "[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet",
+        "range": [
+          80,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build (1× /sem, alternative à SL urbaine bitume)"
+      },
+      {
+        "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Marche/course alternée ultra — 3-5h (10' course Z2 / 5' marche rapide). Stratégie ultra longue distance",
+        "range": [
+          180,
+          300
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Spécifique ultra (S10-S18)"
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Shakeout J-1 — 15-20' trot très facile. Dernier check sensoriel",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Veille de course"
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "range": [
+          35,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Base aérobie Lydiard — sortie longue fondamentale pour construire le moteur aérobie (phase 1)",
+        "range": [
+          90,
+          180
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base — pilier de la phase 1 Lydiard. 1x/semaine weekend. Volume progressif sur 16-24 semaines."
+      },
+      {
+        "id": "C_TR_MOBILITY_HIPS_20",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Mobilité hanches/dos + gainage (trail)",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_RECOVERY_VAR_8_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #8",
+        "range": [
+          35,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_5_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #5",
+        "range": [
+          20,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_TR_WALK_REGEN",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Marche active récupération",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Post long run / ultra"
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+        "range": [
+          70,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler."
+      },
+      {
+        "id": "C_TR50_STRENGTH_EXPLOSIVE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force explosive (spécifique trail court/moyen)",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base / Build"
+      },
+      {
+        "id": "A_STR_STABILITY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Stabilité et gainage – prévention blessure",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute phase, 2-3×/sem"
+      },
+      {
+        "id": "D_RUN_RECOVERY_30_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Footing récupération",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_TR_RECUP_ACTIVE",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active trail — trot très facile sentier",
+        "range": [
+          25,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge, décharge"
+      },
+      {
+        "id": "A_STR_ENDURANCE_CIRCUIT",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Circuit endurance musculaire général – socle de force",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base/build, 2×/sem max"
+      }
+    ],
+    "allCatalogCount": 205
+  },
+  {
+    "id": "Trail_documented",
+    "diagnostic": {
+      "executed": true,
+      "confidenceGlobal": 0.5,
+      "dataCompleteness": 0.6,
+      "limiters": [
+        {
+          "metric": "TTE",
+          "priority": 1,
+          "status": "limiting",
+          "value": 45,
+          "target": 57,
+          "weightedImpact": 17.89473684210526
+        }
+      ],
+      "uncertainty": [
+        "Données physiologiques incomplètes (60%).",
+        "Confiance diagnostique limitée (50%)."
+      ]
+    },
+    "config": {
+      "objective": "TrailMountain",
+      "level": {
+        "saisie": "competitor",
+        "effective": "competitor",
+        "saisieLabel": "Compétiteur",
+        "effectiveLabel": "Compétiteur",
+        "downgraded": false,
+        "trainingLevel": "trained",
+        "trainingLevelSource": "manual",
+        "diagnosticNote": null
+      },
+      "weeklyHours": 10,
+      "history": {
+        "recentWeeklyHours": 7,
+        "chronicWeeklyHours": 7,
+        "recentWeeksCount": 8
+      }
+    },
+    "cards": [
+      {
+        "id": "D_TR50_RECOVERY_WALK_RUN",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération marche/course (lendemain longue sortie)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après long run / séance B"
+      },
+      {
+        "id": "D_TR_RECOVERY_SOFT",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active trail (surface souple)",
+        "range": [
+          25,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge / semaine de choc"
+      },
+      {
+        "id": "D_TR_RECOVERY_SOFT_30",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active (surface souple)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Après B / grosse sortie"
+      },
+      {
+        "id": "RECOVERY_YOGA_MOBILITY_TRI",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon",
+        "range": [
+          30,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Idéal J de repos ou après séance légère."
+      },
+      {
+        "id": "RECOVERY_HRV_GUIDED_DAY",
+        "sport": "strength",
+        "intent": "recuperation",
+        "title": "Journée guidée par HRV — adapter l'entraînement selon le signal de récupération objectif",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — remplacer toute séance si HRV < seuil individuel"
+      },
+      {
+        "id": "C_STR_UPPER_BODY_TRI",
+        "sport": "strength",
+        "intent": "endurance_fondamentale",
+        "title": "Haut du corps triathlon (épaules, dos, stabilité nage)",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "RMT_EXPIRATORY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Entraînement expiratoire et gainage respiratoire — stabilité centrale et puissance respiratoire",
+        "range": [
+          15,
+          20
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build — 3-4x/semaine. Combinable avec renforcement core."
+      },
+      {
+        "id": "A_TR_EF_SENTIER",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Endurance fondamentale sentier — adaptation terrain",
+        "range": [
+          50,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_TR_DESC_TECH_PRO",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Technique descente (tolérance excentrique)",
+        "range": [
+          40,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "V2_TRAIL_PROPRIOCEPTION",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Proprioception trail — 40' terrain technique irrégulier Z2. Stabilité cheville + lecture terrain",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année (trail)"
+      },
+      {
+        "id": "C_TR50_TECH_APPUIS",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Technique appuis sentier (coordination, lecture terrain)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "A_TR_EF_VALLON",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Endurance fondamentale vallonnée — adaptation D+",
+        "range": [
+          55,
+          80
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build"
+      },
+      {
+        "id": "A_TR_SL_MONTAGNE_BASE",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie longue montagne base — volume D+ progressif",
+        "range": [
+          120,
+          180
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base, week-end"
+      },
+      {
+        "id": "A_STR_AERO_STRENGTH",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force aérobie – circuit à basse intensité avec charge modérée",
+        "range": [
+          45,
+          60
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base, 1-2×/sem"
+      },
+      {
+        "id": "C_TR_STRENGTH_GENERAL",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force générale & prévention blessures (trail)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année (1–2x/sem)"
+      },
+      {
+        "id": "C_TR_PROPRIO_ANKLE_FOOT",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Pied/cheville (proprioception) + prévention entorses",
+        "range": [
+          20,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "C_TR_STRENGTH_PRO",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force trail (quadris/mollets/fessiers + gainage)",
+        "range": [
+          35,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_TR_REST_MOBILITY",
+        "sport": "strength",
+        "intent": "technique",
+        "title": "Repos actif + mobilité (jour off intelligent)",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_DELOAD_RUN",
+        "sport": "run",
+        "intent": "technique",
+        "title": "Footing de décharge — volume réduit 40-50%, intensité Z1 stricte",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Semaine de récupération (1 semaine sur 3-4)"
+      },
+      {
+        "id": "EXPE_HORS_VILLE_FORET_PERIURBAINE",
+        "sport": "run",
+        "intent": "technique",
+        "title": "[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet",
+        "range": [
+          80,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base/Build (1× /sem, alternative à SL urbaine bitume)"
+      },
+      {
+        "id": "V2_TRAIL_MARCHE_COURSE_ALTERNE",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Marche/course alternée ultra — 3-5h (10' course Z2 / 5' marche rapide). Stratégie ultra longue distance",
+        "range": [
+          180,
+          300
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Spécifique ultra (S10-S18)"
+      },
+      {
+        "id": "ENR_TAPER_SHAKEOUT_RUN",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Shakeout J-1 — 15-20' trot très facile. Dernier check sensoriel",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_timing_or_format_incompatible",
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Veille de course"
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "range": [
+          35,
+          90
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Base aérobie Lydiard — sortie longue fondamentale pour construire le moteur aérobie (phase 1)",
+        "range": [
+          90,
+          180
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base — pilier de la phase 1 Lydiard. 1x/semaine weekend. Volume progressif sur 16-24 semaines."
+      },
+      {
+        "id": "C_TR_MOBILITY_HIPS_20",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Mobilité hanches/dos + gainage (trail)",
+        "range": [
+          15,
+          25
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année"
+      },
+      {
+        "id": "D_RECOVERY_VAR_8_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #8",
+        "range": [
+          35,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_RECOVERY_VAR_5_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active — variante #5",
+        "range": [
+          20,
+          55
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_TR_WALK_REGEN",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Marche active récupération",
+        "range": [
+          30,
+          60
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Post long run / ultra"
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "sport": "run",
+        "intent": "endurance_fondamentale",
+        "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+        "range": [
+          70,
+          150
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler."
+      },
+      {
+        "id": "C_TR50_STRENGTH_EXPLOSIVE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Force explosive (spécifique trail court/moyen)",
+        "range": [
+          35,
+          50
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Base / Build"
+      },
+      {
+        "id": "A_STR_STABILITY_CORE",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Stabilité et gainage – prévention blessure",
+        "range": [
+          25,
+          35
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Toute phase, 2-3×/sem"
+      },
+      {
+        "id": "D_RUN_RECOVERY_30_PRO",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Footing récupération",
+        "range": [
+          25,
+          40
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge"
+      },
+      {
+        "id": "D_TR_RECUP_ACTIVE",
+        "sport": "run",
+        "intent": "recuperation",
+        "title": "Récupération active trail — trot très facile sentier",
+        "range": [
+          25,
+          45
+        ],
+        "zones": [
+          "Z1"
+        ],
+        "sourceGate": {
+          "compatible": false,
+          "reasons": [
+            "source_role_not_endurance",
+            "explicit_endurance_intent_unproven"
+          ],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Lendemain charge, décharge"
+      },
+      {
+        "id": "A_STR_ENDURANCE_CIRCUIT",
+        "sport": "strength",
+        "intent": "force",
+        "title": "Circuit endurance musculaire général – socle de force",
+        "range": [
+          40,
+          55
+        ],
+        "zones": [
+          "Z1",
+          "Z2"
+        ],
+        "sourceGate": {
+          "compatible": true,
+          "reasons": [],
+          "sourceTiming": "V6 sourcePlacement unchanged",
+          "uncertainty": "candidate refuses ambiguous source roles, does not assert they are unsafe"
+        },
+        "when": "Phase base/build, 2×/sem max"
+      }
+    ],
+    "allCatalogCount": 205
+  }
+]

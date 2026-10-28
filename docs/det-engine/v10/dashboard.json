@@ -1,0 +1,119 @@
+{
+  "status": "NO-GO",
+  "profiles": [
+    {
+      "id": "IM_aerobic_history",
+      "status": "constructed",
+      "reason": null,
+      "requestedBudget": 600,
+      "effectiveBudget": 480,
+      "minutes": 480,
+      "roles": 7,
+      "selected": 7,
+      "errors": [],
+      "verticalStatus": "passes_executed_constraints",
+      "historicalBlocking": 5,
+      "historicalWarnings": 7,
+      "feedbackAccepted": true,
+      "alternativeStatus": "refused",
+      "alternativeReason": "joint_minima_exceed_budget"
+    },
+    {
+      "id": "IM_balanced_history",
+      "status": "constructed",
+      "reason": null,
+      "requestedBudget": 600,
+      "effectiveBudget": 480,
+      "minutes": 480,
+      "roles": 7,
+      "selected": 7,
+      "errors": [],
+      "verticalStatus": "passes_executed_constraints",
+      "historicalBlocking": 5,
+      "historicalWarnings": 7,
+      "feedbackAccepted": true,
+      "alternativeStatus": "refused",
+      "alternativeReason": "distinct_catalogue_capacity_conflict"
+    },
+    {
+      "id": "IM_insufficient",
+      "status": "refused",
+      "reason": "limiter_missing",
+      "requestedBudget": 600,
+      "effectiveBudget": 480,
+      "minutes": 0,
+      "roles": 7,
+      "selected": 0,
+      "errors": [
+        "missing_essential:IM_insufficient:swim:0",
+        "missing_essential:IM_insufficient:swim:1",
+        "missing_essential:IM_insufficient:bike:0",
+        "missing_essential:IM_insufficient:bike:1",
+        "missing_essential:IM_insufficient:run:0",
+        "missing_essential:IM_insufficient:run:1",
+        "missing_essential:IM_insufficient:strength:0"
+      ],
+      "verticalStatus": "fail",
+      "historicalBlocking": 9,
+      "historicalWarnings": 12,
+      "feedbackAccepted": false,
+      "alternativeStatus": "refused",
+      "alternativeReason": "limiter_missing"
+    },
+    {
+      "id": "Trail_unknown",
+      "status": "refused",
+      "reason": "empty_role_domain",
+      "requestedBudget": 600,
+      "effectiveBudget": 420,
+      "minutes": 0,
+      "roles": 5,
+      "selected": 0,
+      "errors": [
+        "missing_essential:Trail_unknown:run:0",
+        "missing_essential:Trail_unknown:run:1",
+        "missing_essential:Trail_unknown:run:2",
+        "missing_essential:Trail_unknown:run:3",
+        "missing_essential:Trail_unknown:strength:0"
+      ],
+      "verticalStatus": "fail",
+      "historicalBlocking": 5,
+      "historicalWarnings": 2,
+      "feedbackAccepted": false,
+      "alternativeStatus": "refused",
+      "alternativeReason": "empty_role_domain"
+    },
+    {
+      "id": "Trail_documented",
+      "status": "constructed",
+      "reason": null,
+      "requestedBudget": 600,
+      "effectiveBudget": 420,
+      "minutes": 420,
+      "roles": 5,
+      "selected": 5,
+      "errors": [],
+      "verticalStatus": "unknown_vertical_total",
+      "historicalBlocking": 4,
+      "historicalWarnings": 2,
+      "feedbackAccepted": false,
+      "alternativeStatus": "constructed",
+      "alternativeReason": null
+    }
+  ],
+  "v9RefusalsAudited": 18,
+  "auditClassifications": {
+    "algorithmic_share_ceiling_plus_joint_constraints": 3,
+    "contingent_on_missing_individual_evidence": 15
+  },
+  "completeIronmanMicrocycles": 2,
+  "counts": {
+    "ironmanComplete": 2,
+    "trailTechnicallyComplete": 1,
+    "trailFullVerticalAttestation": 0,
+    "completeRacePlans": 0,
+    "expertReviewed": 0,
+    "acceptedExperimentalFeedbackProposals": 2
+  },
+  "note": "historical whole-plan conformity and candidate microcycle construction are separate"
+}

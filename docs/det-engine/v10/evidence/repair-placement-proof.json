@@ -1,0 +1,12 @@
+[
+  {
+    "id": "IM_aerobic_history",
+    "request": "IM_aerobic_history:run:0",
+    "otherPlacementsAndDosesUnchanged": true
+  },
+  {
+    "id": "IM_balanced_history",
+    "request": "IM_balanced_history:run:0",
+    "otherPlacementsAndDosesUnchanged": true
+  }
+]

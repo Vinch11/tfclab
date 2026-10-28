@@ -1,0 +1,15 @@
+{
+  "experimental/det-engine/v10-history.ts": "fec583ec4d2b01eff30ce9fe7449964f9c3cbd08c78c22ea2f9daae5d3922e49",
+  "experimental/det-engine/v10-profiles.ts": "740610b5b4c67b158d10719726cf89622d8587044d6fb464958e99d309041008",
+  "experimental/det-engine/v10-audit.ts": "e007b14dfddb15599a19629242ba6d20dd1d0b2c8f001fa6891517d49cf260f1",
+  "experimental/det-engine/v10-allocation.ts": "2f032781f4db2c088101581b79b60f85e5945659cb1b09871253e85eb2b8f208",
+  "experimental/det-engine/v10-validation.ts": "ebcb7aca0a5b27b6b5be632db032812acb319c54d5c6d4c08c503e13798d97d9",
+  "experimental/det-engine/v10-minima.ts": "07ef02e37fdd9da23e3b30f13b967dcf1a6c4d7a6e737f3cbb2a87825161e244",
+  "experimental/det-engine/v10-allocation.test.ts": "86730627522d4e68aa3351663614e3df4e782bf02b7744efaae31a88aa6d714b",
+  "experimental/det-engine/v10-contracts.test.ts": "37c21793e3f7c8852f46cf8c87166a8fc0eb11f9655cbf25ee6970a47f0c3522",
+  "experimental/det-engine/v10-source-dose.ts": "e458a028f2ca519d08b6a4f0c01ed208a9c57b86adadefee1b7f54ad4b6b309a",
+  "experimental/det-engine/v10-inspect.test.ts": "ecfca1e047ccf7155c17631a11b239cb41a39c4c26622d2e5e7e55229f941b65",
+  "experimental/det-engine/v10-fixtures.ts": "b6a3475572b2be48bbaeee22953a6444fdfe8491be9af6fd42a37ee48eeba479",
+  "scripts/det-engine/v10-validate.mjs": "8fdbeb73e9056d888e9bf4427be236a43a0a7de4bf1f9d2adb377dda2142ad62",
+  "scripts/det-engine/v10-run.mjs": "4275490dc099d216cc84b6f18a1b702345f38931b13252a2e72c651300202509"
+}

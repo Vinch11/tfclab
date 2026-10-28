@@ -1,0 +1,22 @@
+{
+  "version": "det-v10",
+  "baseline": "a73a6383ff2d56fd5ff9e86b207eff27dba4de41",
+  "mandate": "Physiological Dose Allocation & Individualization",
+  "syntheticProfiles": true,
+  "syntheticFeedback": true,
+  "historiesInstrumented": false,
+  "fixturePreregistration": "evidence/preregistration.json",
+  "canonical": "evidence/final",
+  "independentReplay": "evidence/replay",
+  "nodeVersion": "v24.19.0",
+  "sourceModels": [
+    "endurance_only",
+    "long_plus_technical"
+  ],
+  "productionChanged": false,
+  "historicalValidatorsChanged": false,
+  "paidCalls": 0,
+  "fullRacePlans": 0,
+  "humanExpertReview": false,
+  "scientificPromotion": false
+}

@@ -1,0 +1,289 @@
+[
+  {
+    "id": "IM_aerobic_history",
+    "status": "constructed",
+    "reason": null,
+    "minLowerBound": 400,
+    "minutes": 480,
+    "unused": 0,
+    "essential": 7,
+    "selected": 7,
+    "empty": [],
+    "nodes": 8,
+    "errors": [],
+    "sourcePool": 360,
+    "doses": [
+      {
+        "role": "IM_aerobic_history:strength:0",
+        "source": "RECOVERY_YOGA_MOBILITY_TRI",
+        "dose": 30,
+        "range": [
+          30,
+          40
+        ],
+        "priority": 12
+      },
+      {
+        "role": "IM_aerobic_history:bike:0",
+        "source": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "dose": 180,
+        "range": [
+          180,
+          180
+        ],
+        "priority": 0
+      },
+      {
+        "role": "IM_aerobic_history:bike:1",
+        "source": "C_IM_AERO_HOLD",
+        "dose": 80,
+        "range": [
+          75,
+          80
+        ],
+        "priority": 2
+      },
+      {
+        "role": "IM_aerobic_history:swim:0",
+        "source": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "dose": 40,
+        "range": [
+          40,
+          55
+        ],
+        "priority": 11
+      },
+      {
+        "role": "IM_aerobic_history:swim:1",
+        "source": "A_SWIM_CONTINUOUS_2K",
+        "dose": 40,
+        "range": [
+          40,
+          55
+        ],
+        "priority": 11
+      },
+      {
+        "role": "IM_aerobic_history:run:0",
+        "source": "A_RUN_Z2_EASY",
+        "dose": 70,
+        "range": [
+          60,
+          75
+        ],
+        "priority": 10
+      },
+      {
+        "role": "IM_aerobic_history:run:1",
+        "source": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "dose": 40,
+        "range": [
+          40,
+          70
+        ],
+        "priority": 11
+      }
+    ]
+  },
+  {
+    "id": "IM_balanced_history",
+    "status": "constructed",
+    "reason": null,
+    "minLowerBound": 400,
+    "minutes": 480,
+    "unused": 0,
+    "essential": 7,
+    "selected": 7,
+    "empty": [],
+    "nodes": 8,
+    "errors": [],
+    "sourcePool": 360,
+    "doses": [
+      {
+        "role": "IM_balanced_history:bike:0",
+        "source": "V3_BIKE_Z2_PROGRESSIF",
+        "dose": 120,
+        "range": [
+          120,
+          120
+        ],
+        "priority": 10
+      },
+      {
+        "role": "IM_balanced_history:strength:0",
+        "source": "RECOVERY_YOGA_MOBILITY_TRI",
+        "dose": 30,
+        "range": [
+          30,
+          40
+        ],
+        "priority": 12
+      },
+      {
+        "role": "IM_balanced_history:swim:0",
+        "source": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "dose": 55,
+        "range": [
+          40,
+          55
+        ],
+        "priority": 11
+      },
+      {
+        "role": "IM_balanced_history:swim:1",
+        "source": "A_SWIM_CONTINUOUS_2K",
+        "dose": 40,
+        "range": [
+          40,
+          55
+        ],
+        "priority": 11
+      },
+      {
+        "role": "IM_balanced_history:bike:1",
+        "source": "C_IM_AERO_HOLD",
+        "dose": 75,
+        "range": [
+          75,
+          80
+        ],
+        "priority": 12
+      },
+      {
+        "role": "IM_balanced_history:run:0",
+        "source": "A_RUN_Z2_EASY",
+        "dose": 90,
+        "range": [
+          60,
+          90
+        ],
+        "priority": 0
+      },
+      {
+        "role": "IM_balanced_history:run:1",
+        "source": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "dose": 70,
+        "range": [
+          40,
+          70
+        ],
+        "priority": 1
+      }
+    ]
+  },
+  {
+    "id": "IM_insufficient",
+    "status": "refused",
+    "reason": "limiter_missing",
+    "minLowerBound": 370,
+    "minutes": 0,
+    "unused": 480,
+    "essential": 7,
+    "selected": 0,
+    "empty": [],
+    "nodes": 0,
+    "errors": [
+      "missing_essential:IM_insufficient:swim:0",
+      "missing_essential:IM_insufficient:swim:1",
+      "missing_essential:IM_insufficient:bike:0",
+      "missing_essential:IM_insufficient:bike:1",
+      "missing_essential:IM_insufficient:run:0",
+      "missing_essential:IM_insufficient:run:1",
+      "missing_essential:IM_insufficient:strength:0"
+    ],
+    "sourcePool": 353,
+    "doses": []
+  },
+  {
+    "id": "Trail_unknown",
+    "status": "refused",
+    "reason": "empty_role_domain",
+    "minLowerBound": 120,
+    "minutes": 0,
+    "unused": 420,
+    "essential": 5,
+    "selected": 0,
+    "empty": [
+      {
+        "role": "Trail_unknown:run:0",
+        "reason": "individual_vertical_evidence_missing"
+      }
+    ],
+    "nodes": 0,
+    "errors": [
+      "missing_essential:Trail_unknown:run:0",
+      "missing_essential:Trail_unknown:run:1",
+      "missing_essential:Trail_unknown:run:2",
+      "missing_essential:Trail_unknown:run:3",
+      "missing_essential:Trail_unknown:strength:0"
+    ],
+    "sourcePool": 279,
+    "doses": []
+  },
+  {
+    "id": "Trail_documented",
+    "status": "constructed",
+    "reason": null,
+    "minLowerBound": 240,
+    "minutes": 420,
+    "unused": 0,
+    "essential": 5,
+    "selected": 5,
+    "empty": [],
+    "nodes": 6,
+    "errors": [],
+    "sourcePool": 279,
+    "doses": [
+      {
+        "role": "Trail_documented:run:0",
+        "source": "A_TR_SL_MONTAGNE_BASE",
+        "dose": 180,
+        "range": [
+          120,
+          180
+        ],
+        "priority": 0
+      },
+      {
+        "role": "Trail_documented:run:1",
+        "source": "A_RUN_Z2_EASY",
+        "dose": 65,
+        "range": [
+          35,
+          90
+        ],
+        "priority": 1
+      },
+      {
+        "role": "Trail_documented:run:2",
+        "source": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": 70,
+        "range": [
+          70,
+          90
+        ],
+        "priority": 1
+      },
+      {
+        "role": "Trail_documented:run:3",
+        "source": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "dose": 90,
+        "range": [
+          90,
+          90
+        ],
+        "priority": 1
+      },
+      {
+        "role": "Trail_documented:strength:0",
+        "source": "D_TR_REST_MOBILITY",
+        "dose": 15,
+        "range": [
+          15,
+          25
+        ],
+        "priority": 12
+      }
+    ]
+  }
+]

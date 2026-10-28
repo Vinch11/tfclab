@@ -1,0 +1,13 @@
+[
+  {
+    "name": "types",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "exitCode": 2,
+    "elapsedMs": 40074
+  }
+]
