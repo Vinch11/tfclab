@@ -1,0 +1,31 @@
+✔ All 920 occurrences / IDs / 22 aggregation groups accounted for (0.958717ms)
+✔ All raw and effective source objects are preserved exactly, including Wbal and variants (237.658408ms)
+✔ All records validate against versioned runtime schema and preserve future unknown fields (25.255753ms)
+✔ Reconversion is idempotent across all 920 records (134.231162ms)
+✔ Missing duration remains null, never a zero or midpoint (2.360932ms)
+✔ Unknown schema version and forged resolved status fail closed (0.875912ms)
+✔ Tampered prescriptions or source fields cannot enter coach/Nolio adapters (3.427542ms)
+✔ Coach presentation retains all original effective fields of all 920 records (212.038397ms)
+✔ HTML presentation escapes instructions rather than executing them (0.84865ms)
+✔ Repeated/composite protocols are not reduced to their first number (200.133742ms)
+✔ 833 single-discipline source cards yield explicit text-only local mock contracts; 87 multisports refuse (394.525594ms)
+✔ Every successful mock payload retains instructions, restrictions, legacy ID and chosen date (404.065154ms)
+✔ All text payloads serialize and replay identically with stable occurrence keys (793.336139ms)
+✔ No complete source structured workout is claimed by the conservative parser (415.388623ms)
+✔ Text-only machine-structure loss requires explicit acknowledgement (0.757343ms)
+✔ Impossible/unknown budgets, impossible dates and absent mode are rejected (2.555297ms)
+✔ Real identity context and Nolio v2 cannot use synthetic v1 adapter (0.955282ms)
+✔ Local sender contract accepts explicit repeated DTO syntax and rejects nonfinite/negative units (0.333433ms)
+✔ Personalized display changes with a documented anchor without inventing dose or adaptation (1.144137ms)
+✔ Missing anchors and missing explicit intent are never reconstructed from training level or text (0.807789ms)
+✔ VO2 display requires the individual upper anchor, without a silent fallback (0.895952ms)
+✔ No conversion claims scientific validation or individual admission; unknown references remain unknown (0.688409ms)
+✔ JSON Schema is an explicit V2 external contract with required source evidence (0.146ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2840.971663

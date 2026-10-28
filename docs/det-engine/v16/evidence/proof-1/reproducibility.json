@@ -1,0 +1,48 @@
+{
+  "outputs": [
+    {
+      "file": "canonical.jsonl.gz",
+      "sha256": "59d8bcaa068282fa918fd097905aed1e6cb5b8e8f50d7bf721e17aa3d3f9f351",
+      "identical": true
+    },
+    {
+      "file": "checksums.json",
+      "sha256": "b6c7c9aa0bc871ca328c971665a6c9e3a2ac8bae40b2e518c4d77f6d2c3e1c63",
+      "identical": true
+    },
+    {
+      "file": "coach-renders.jsonl.gz",
+      "sha256": "a230e441ca1037dbd38194afe3c4877c611f068eab164f0c0dfdb0b3804910a0",
+      "identical": true
+    },
+    {
+      "file": "conversion-reports.jsonl",
+      "sha256": "dcb24b67db3d8d09d164811de32731d1961249fe85354c3c6c52dbcb5badd884",
+      "identical": true
+    },
+    {
+      "file": "dashboard.json",
+      "sha256": "92c5b785fa0d9466b1ece92cadd1c28766ce4dabded76da943e898a836a04460",
+      "identical": true
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "070a5765641e8ae2cde62f88452dad9066bac10c010aca6cb12b829f19a8ce23",
+      "identical": true
+    },
+    {
+      "file": "nolio-coverage.json",
+      "sha256": "e46a0a56ae7c3b96c0424258c6ce47714084fc44fa416a02b6dd760a7c5e9ecd",
+      "identical": true
+    }
+  ],
+  "study": [
+    {
+      "file": "integration-study.json",
+      "sha256": "207db59a4640c56d98d2d0e2890a10ae24c25865df8d35c69e1e8e945089357d",
+      "identical": true
+    }
+  ],
+  "independentProcesses": true,
+  "generatedAthleteEvidence": false
+}

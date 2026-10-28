@@ -1,0 +1,33 @@
+✔ All 920 occurrences / IDs / 22 aggregation groups accounted for (0.982395ms)
+✔ All raw and effective source objects are preserved exactly, including Wbal and variants (222.598015ms)
+✔ All records validate against versioned runtime schema and preserve future unknown fields (24.403415ms)
+✔ Reconversion is idempotent across all 920 records (128.627113ms)
+✔ Missing duration remains null, never a zero or midpoint (2.705479ms)
+✔ Unknown schema version and forged resolved status fail closed (0.911698ms)
+✔ Tampered prescriptions or source fields cannot enter coach/Nolio adapters (3.826713ms)
+✔ Coach presentation retains all prescription fields of all 920 records; internal mapping remains canonical (396.0054ms)
+✔ HTML presentation escapes instructions rather than executing them (1.742052ms)
+✔ Repeated/composite protocols are not reduced to their first number (300.968296ms)
+✔ 833 single-discipline source cards yield explicit text-only local mock contracts; 87 multisports refuse (554.431121ms)
+✔ Every successful mock payload retains instructions, restrictions, legacy ID and chosen date (534.500649ms)
+✔ All text payloads serialize and replay identically with stable occurrence keys (1087.685425ms)
+✔ No complete source structured workout is claimed by the conservative parser (512.131034ms)
+✔ Text-only machine-structure loss requires explicit acknowledgement (0.889894ms)
+✔ Impossible/unknown budgets, impossible dates and absent mode are rejected (4.02089ms)
+✔ Real identity context and Nolio v2 cannot use synthetic v1 adapter (1.234934ms)
+✔ Local sender contract accepts explicit repeated DTO syntax and rejects nonfinite/negative units (0.358681ms)
+✔ Personalized display changes with a documented anchor without inventing dose or adaptation (1.010405ms)
+✔ Missing anchors and missing explicit intent are never reconstructed from training level or text (0.708239ms)
+✔ VO2 display requires the individual upper anchor, without a silent fallback (0.565604ms)
+✔ No conversion claims scientific validation or individual admission; unknown references remain unknown (0.561287ms)
+✔ JSON Schema is an explicit V2 external contract with required source evidence (0.103466ms)
+✔ The current sender source confirms numeric id_partner, calendar date and the six base payload fields (29.806225ms)
+✔ Coach view resolves intensity from documented anchors and hides internal Nolio mapping (1.546014ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3836.548103

@@ -1,0 +1,9 @@
+{
+  "validator": "python jsonschema Draft202012Validator",
+  "version": "4.26.0",
+  "records": 920,
+  "valid": 920,
+  "errors": [],
+  "schemaSha256": "bacdd4d418f331b25ac6b0e57ff2e4d33720b443c87a5bb82f2a894639862d57",
+  "scientificValidation": false
+}

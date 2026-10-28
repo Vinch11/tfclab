@@ -1,0 +1,27 @@
+{
+  "source": "supabase/functions/nolio-send-plan/index.ts",
+  "sourceSha256": "22a7c2b6421084e79bfd135ba0adb97e49ac198601d718bfc4797ebe860c83ae",
+  "basePayload": {
+    "keys": [
+      "id_partner",
+      "athlete_id",
+      "sport_id",
+      "name",
+      "date_start",
+      "description"
+    ],
+    "line": 1925
+  },
+  "idPartnerSource": "parseInt(\n        String(body.nolio_athlete_id) +\n        String(s.weekNumber).padStart(2, '0') +\n        String(s.dayIndex) +\n        String(sessionIndex),\n        10,\n      )",
+  "dateStartSource": "addDaysYMD(\n        body.planStartDate,\n        (s.weekNumber - 1) * 7 + s.dayIndex,\n      )",
+  "stepType": "{\n  type: \"step\";\n  step_duration_type: \"duration\";\n  step_duration_value: number;\n  intensity_type: \"warmup\" | \"active\" | \"rest\" | \"cooldown\" | \"repetition\";\n  target_type: \"no_target\" | \"power\" | \"pace\" | \"pace_min100\" | \"min/100m\" | \"heartrate\" | \"duration\" | \"rpe\";\n  target_unit?: \"W\" | \"%ftp\" | \"min/km\" | \"bpm\";\n\n  target_value_min?: number;\n  target_value_max?: number;\n  target_value?: number;\n  notes?: string;\n}",
+  "repetitionType": "{\n  type: \"repetition\";\n  intensity_type: \"repetition\";\n  value: number; // reps\n  steps: NolioStep[];\n}",
+  "adapterScope": "current sender subset checked offline; no remote acceptance or official OpenAPI v2 certification",
+  "v2": {
+    "evidence": "docs/nolio-v2/NOLIO_V2_EXECUTIVE_SUMMARY.md",
+    "machineSchemaPresent": false,
+    "complexWorkoutContract": "documented incomplete",
+    "numericV1IdsCannotBeReused": true
+  },
+  "networkRequests": 0
+}

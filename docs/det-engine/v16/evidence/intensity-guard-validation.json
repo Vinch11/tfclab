@@ -1,0 +1,12 @@
+{
+  "command": [
+    "node",
+    "--max-old-space-size=2048",
+    "scripts/det-engine/v16-contracts.test.mjs"
+  ],
+  "exitCode": 0,
+  "elapsedMs": 5424,
+  "tests": 27,
+  "scope": "source-specific intensity display guard and all global conversion/render/Nolio contracts",
+  "previousFailingTestPreserved": "intensity-source-regression-rejected.txt"
+}

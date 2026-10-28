@@ -1,0 +1,18 @@
+{
+  "version": "v16-dossier-verification-1",
+  "protectedFiles": 3057,
+  "allProtectedUnchanged": true,
+  "sourceRecords": 920,
+  "uniqueIds": 920,
+  "qualityRecords": 920,
+  "manifestCSVRows": 920,
+  "anomalyCSVRows": 3282,
+  "localLinksChecked": 57,
+  "replayedCanonicalArtifacts": 7,
+  "replayedStudies": 1,
+  "postIntensityGuardArtifactsIdentical": 7,
+  "automaticPrescriptions": 0,
+  "newFullPlans": 0,
+  "scientificOrHumanReviewClaimed": false,
+  "allowedV16ScopeOnly": true
+}

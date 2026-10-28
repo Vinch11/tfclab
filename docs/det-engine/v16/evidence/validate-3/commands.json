@@ -1,0 +1,60 @@
+[
+  {
+    "name": "types",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 41963
+  },
+  {
+    "name": "canonical_contracts",
+    "args": [
+      "scripts/det-engine/v16-contracts.test.mjs"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 5417
+  },
+  {
+    "name": "experimental_regression",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16-regression.config.ts",
+      "--maxWorkers=1"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 52145
+  },
+  {
+    "name": "current_v16_study",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16.config.ts"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 23701
+  },
+  {
+    "name": "historical_regression",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16-historical.config.ts"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 23969
+  }
+]

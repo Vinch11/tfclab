@@ -1,0 +1,2 @@
+experimental/det-engine/v16-study.test.ts(38,1336): error TS2551: Property 'tteEffectif' does not exist on type 'AthleteDiagnostic'. Did you mean 'effectifs'?
+experimental/det-engine/v16-study.test.ts(38,1378): error TS2339: Property 'fatigueEffectif' does not exist on type 'AthleteDiagnostic'.

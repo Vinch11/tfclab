@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tfclab:tfcl-canonical-v2.0.0",
+  "title": "TFCLab canonical library V2 — experimental lossless representation",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "tfcl-canonical-v2.0.0"
+    },
+    "converterVersion": {
+      "const": "det-v16-converter-1"
+    },
+    "identity": {
+      "type": "object",
+      "properties": {
+        "legacyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonicalKey": {
+          "type": "string"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "legacyId",
+        "canonicalKey",
+        "ordinal"
+      ],
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "export": {
+          "type": "string"
+        },
+        "index": {
+          "type": "integer"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "rawContentSha256": {
+          "type": "string"
+        },
+        "effectiveContentSha256": {
+          "type": "string"
+        },
+        "enrichmentChanges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        }
+      },
+      "required": [
+        "file",
+        "export",
+        "index",
+        "sha256",
+        "rawContentSha256",
+        "effectiveContentSha256",
+        "enrichmentChanges"
+      ],
+      "additionalProperties": false
+    },
+    "original": {
+      "type": "object",
+      "properties": {
+        "raw": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "effective": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "raw",
+        "effective"
+      ],
+      "additionalProperties": false
+    },
+    "prescription": {
+      "type": "object",
+      "properties": {
+        "discipline": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "objective": {
+          "type": "string"
+        },
+        "goals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "variants": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "durationMinutes": {
+          "anyOf": [
+            {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "number",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "durationByPhase": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {}
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "physiology": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {}
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "doctrineDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domainStatus": {
+          "type": "string",
+          "enum": [
+            "explicit_source_declaration",
+            "unknown"
+          ]
+        },
+        "structure": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "intervalEvidence": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {}
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "restrictions": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "muscular": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "terrain": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "reassessment": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        }
+      },
+      "required": [
+        "discipline",
+        "category",
+        "title",
+        "objective",
+        "goals",
+        "phases",
+        "variants",
+        "durationMinutes",
+        "durationByPhase",
+        "physiology",
+        "doctrineDomains",
+        "domainStatus",
+        "structure",
+        "intervalEvidence",
+        "parameters",
+        "restrictions",
+        "muscular",
+        "terrain",
+        "reassessment",
+        "references"
+      ],
+      "additionalProperties": false
+    },
+    "conversion": {
+      "type": "object",
+      "properties": {
+        "lossless": {
+          "const": true
+        },
+        "unknownFieldsRetained": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unknowns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "anomalies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "technicalStatus": {
+          "const": "represented_losslessly"
+        },
+        "executionStatus": {
+          "type": "string",
+          "enum": [
+            "literal_timed_parts",
+            "requires_interpretation"
+          ]
+        },
+        "scientificStatus": {
+          "const": "not_validated_by_conversion"
+        },
+        "automaticPrescription": {
+          "const": false
+        },
+        "reviewRequired": {
+          "const": true
+        }
+      },
+      "required": [
+        "lossless",
+        "unknownFieldsRetained",
+        "unknowns",
+        "anomalies",
+        "technicalStatus",
+        "executionStatus",
+        "scientificStatus",
+        "automaticPrescription",
+        "reviewRequired"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "converterVersion",
+    "identity",
+    "provenance",
+    "original",
+    "prescription",
+    "conversion"
+  ],
+  "additionalProperties": false
+}
