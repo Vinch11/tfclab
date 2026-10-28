@@ -4,8 +4,8 @@
   "startedAt": 1793206959,
   "deadline": 1793210559,
   "maxUnits": 10,
-  "status": "running_no_go",
-  "activeUnit": "publication",
+  "status": "completed_no_go",
+  "activeUnit": null,
   "automaticRestart": false,
   "units": [
     {
@@ -92,8 +92,14 @@
     },
     {
       "id": "publication",
-      "status": "running",
-      "startedAt": 1793209778.2244148
+      "status": "passed",
+      "startedAt": 1793209778.2244148,
+      "completedAt": 1793209890.2548645,
+      "evidence": "publication-proof.json"
     }
-  ]
+  ],
+  "completedAt": 1793209890.2548735,
+  "elapsedSeconds": 2931,
+  "stopReason": "ten_bounded_units_completed; review_packet_prepared; qualified_coach_review_not_performed",
+  "sourceCommit": "1bf745ff3dcd61891446e62446b8a90ac7d6238d"
 }

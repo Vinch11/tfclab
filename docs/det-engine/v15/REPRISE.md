@@ -32,3 +32,5 @@ Les tests V15 sont ceux du dossier et du schéma. Les 132/2999/62 résultats exp
 Les quatre résumés publics scientifiques relus ont leurs métadonnées, URL, empreinte et bref extrait conservés ; les réponses intégrales du cache ne sont pas publiées. Aucun texte intégral ou achat d’article revendiqué. Les principes documentés de Lorang restent distincts des hypothèses et nombres TFCL.
 
 Prochaine décision : revue par un coach qualifié, sur les preuves pertinentes, avec portée/version, réserves et suivi consignés. Le formulaire reste vierge. Aucune fusion, production, migration, donnée réelle/Nolio, déploiement, publication Lovable, API payante ou promotion automatique de contrat.
+
+Clôture : dix unités V15 achevées, état completed_no_go ; source 1bf745ff3dcd61891446e62446b8a90ac7d6238d. PR420 vérifiée brouillon et non fusionnée. Le point de contrôle distant précède la clôture documentaire ; voir publication-proof.json. Aucun processus permanent ou relance automatique n’est lancé.
