@@ -1,0 +1,65 @@
+{
+  "recipes": [
+    {
+      "file": "checksums.json",
+      "sha256": "1ea9085917f2204a6e1090147aadfb0cdd0076084506b5518e97b2e0a4c12c41",
+      "identical": true
+    },
+    {
+      "file": "classification-index.json",
+      "sha256": "ecd22deaa7447670629c61a64976a324e627b2d3c110db2735bca76144998e0b",
+      "identical": true
+    },
+    {
+      "file": "enriched-canonical.jsonl.gz",
+      "sha256": "125117c6184d11997f35447ca20365302f0015c46218074f6dbbf0ab2abf2e00",
+      "identical": true
+    },
+    {
+      "file": "independent-audit.json",
+      "sha256": "594ce7f44565f096fd320468c9e13fd2192d9d2d8a0a66dae7696cb8ccdd2194",
+      "identical": true
+    },
+    {
+      "file": "recipes.jsonl.gz",
+      "sha256": "ba6e28b94c5cb6d1ef2fa97d8d22614004c0671f774f600c6b1fdbb500db275e",
+      "identical": true
+    },
+    {
+      "file": "summary.json",
+      "sha256": "3b1f759f23c89c98bb028de1813f852a01a9b618bcddeebad710d56c0b3d7020",
+      "identical": true
+    }
+  ],
+  "outputs": [
+    {
+      "file": "checksums.json",
+      "sha256": "dbc91dfdc07a79939c944475947f1de26a755580ac159f03be32f24067b76256",
+      "identical": true
+    },
+    {
+      "file": "outputs.jsonl.gz",
+      "sha256": "d8c265562786fbabd39b88e905afffec8504b9417ad383f77d80260e9cd4b8c1",
+      "identical": true
+    },
+    {
+      "file": "overlays.json",
+      "sha256": "b52b30b4861157a08d82694f1fa124dcf89ef75f4ff489446d742c87b7300922",
+      "identical": true
+    },
+    {
+      "file": "summary.json",
+      "sha256": "8c1be580b78cbe13f3f9f2a5d54a45390e39aaf7b44e2e927156580275e8163b",
+      "identical": true
+    }
+  ],
+  "selection": [
+    {
+      "file": "selection-sensitivity.json",
+      "sha256": "ba0d30a45147245445df644fcf35279a5d9b2428f4cc245bae1fb07eacb465f4",
+      "identical": true
+    }
+  ],
+  "qualificationIdentical": true,
+  "independentProcesses": true
+}

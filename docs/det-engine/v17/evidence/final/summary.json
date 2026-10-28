@@ -1,0 +1,76 @@
+{
+  "version": "det-v17-build-1",
+  "source": "V16 accepted canonical; not reconverted",
+  "sourceSha256": "59d8bcaa068282fa918fd097905aed1e6cb5b8e8f50d7bf721e17aa3d3f9f351",
+  "sourceRecords": 920,
+  "uniqueIds": 920,
+  "counts": {
+    "complete": 67,
+    "partial": 299,
+    "ambiguous": 401,
+    "contradictory": 2,
+    "descriptive_non_metabolic": 151
+  },
+  "bySport": {
+    "bike": {
+      "total": 168,
+      "complete": 20,
+      "partial": 50,
+      "ambiguous": 98,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "run": {
+      "total": 416,
+      "complete": 47,
+      "partial": 163,
+      "ambiguous": 205,
+      "contradictory": 1,
+      "descriptive_non_metabolic": 0
+    },
+    "swim": {
+      "total": 119,
+      "complete": 0,
+      "partial": 36,
+      "ambiguous": 83,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "brick": {
+      "total": 55,
+      "complete": 0,
+      "partial": 39,
+      "ambiguous": 15,
+      "contradictory": 1,
+      "descriptive_non_metabolic": 0
+    },
+    "strength": {
+      "total": 127,
+      "complete": 0,
+      "partial": 0,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 127
+    },
+    "trail": {
+      "total": 3,
+      "complete": 0,
+      "partial": 3,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "mixed": {
+      "total": 32,
+      "complete": 0,
+      "partial": 8,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 24
+    }
+  },
+  "completeScope": "generic source execution timeline with included explicit optional work and a source-bounded witness; individual intensity, goal variants and sports admission independent",
+  "scientificPromotion": 0,
+  "automaticPrescriptions": 0,
+  "realNolioCalls": 0
+}

@@ -1,0 +1,143 @@
+[
+  {
+    "name": "types",
+    "bin": "node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 42394
+  },
+  {
+    "name": "recipe_contracts",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v17-contracts.test.mjs"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 9857
+  },
+  {
+    "name": "independent_mutation_tests",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v17-independent-audit.test.py"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 917
+  },
+  {
+    "name": "selection_final",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v17.config.ts"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 3766
+  },
+  {
+    "name": "selection_replay",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v17.config.ts"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 3979
+  },
+  {
+    "name": "historical_regression",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16-historical.config.ts"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 22073
+  },
+  {
+    "name": "experimental_guards",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16-regression.config.ts"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 49866
+  },
+  {
+    "name": "v16_contract_regression",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v16-contracts.test.mjs"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 5744
+  },
+  {
+    "name": "output_final",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v17-output-study.mjs",
+      "docs/det-engine/v17/evidence/outputs-final"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 3582
+  },
+  {
+    "name": "output_replay",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v17-output-study.mjs",
+      "docs/det-engine/v17/evidence/outputs-replay"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 3416
+  },
+  {
+    "name": "qualification_final",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v17-qualify.py",
+      "docs/det-engine/v17/evidence/final",
+      "docs/det-engine/v17/evidence/qualification-final.jsonl.gz"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 532
+  },
+  {
+    "name": "qualification_replay",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v17-qualify.py",
+      "docs/det-engine/v17/evidence/replay",
+      "docs/det-engine/v17/evidence/qualification-replay.jsonl.gz"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 528
+  }
+]

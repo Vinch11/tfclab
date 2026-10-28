@@ -1,0 +1,110 @@
+{
+  "version": "det-v17",
+  "baseline": "42a0ca0993a479d6d2f7498287ed855fdfa0dd5a",
+  "branch": "experiment/det-engine",
+  "status": "in_progress_no_go",
+  "startedAt": "2026-10-28T20:31:36+00:00",
+  "deadline": "2026-10-28T21:31:36+00:00",
+  "maxUnits": 10,
+  "maxNodeMemoryMB": 2048,
+  "maxStepSeconds": 180,
+  "automaticRestart": false,
+  "units": [
+    {
+      "id": 1,
+      "name": "grammar_audit",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v17/evidence/grammar-inventory.json"
+    },
+    {
+      "id": 2,
+      "name": "typed_IR",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "experimental/det-engine/v17-ir.ts"
+    },
+    {
+      "id": 3,
+      "name": "recipe_compiler",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v17/evidence/contracts-final-supplement.txt"
+    },
+    {
+      "id": 4,
+      "name": "global_compilation",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v17/evidence/final/summary.json"
+    },
+    {
+      "id": 5,
+      "name": "safe_overlays",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v17/evidence/outputs-final/overlays.json"
+    },
+    {
+      "id": 6,
+      "name": "scientific_qualification",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v17/evidence/qualification-final.jsonl.gz"
+    },
+    {
+      "id": 7,
+      "name": "physiological_selection",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v17/evidence/selection-final-scope.txt"
+    },
+    {
+      "id": 8,
+      "name": "coach_nolio",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v17/evidence/outputs-final/summary.json"
+    },
+    {
+      "id": 9,
+      "name": "validation",
+      "status": "passed",
+      "attempts": 3,
+      "evidence": "docs/det-engine/v17/evidence/validation-3",
+      "finishedAt": "2026-10-28T21:00:06.046Z",
+      "rejectedAttempts": [
+        {
+          "attempt": 2,
+          "reason": "TypeScript rejected map(JSON.parse) callback signature in the new harness",
+          "evidence": "docs/det-engine/v17/evidence/validation-2/failure.json"
+        }
+      ],
+      "supplements": [
+        "evidence/contracts-final-supplement.json",
+        "evidence/selection-scope-verification.json",
+        "evidence/types-final-scope.txt"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "publication",
+      "status": "in_progress",
+      "attempts": 1
+    }
+  ],
+  "active": null,
+  "evidencePathConvention": "repository-relative",
+  "progress": {
+    "sourceRecords": 920,
+    "completeGenericTimelines": 67,
+    "partial": 299,
+    "ambiguous": 401,
+    "contradictory": 2,
+    "descriptiveNonMetabolic": 151,
+    "scientificPromotions": 0,
+    "individualPrescriptionsApproved": 0,
+    "localStructuredFixturePass": 12,
+    "realNolioCalls": 0
+  }
+}

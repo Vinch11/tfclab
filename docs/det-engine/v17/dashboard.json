@@ -1,0 +1,138 @@
+{
+  "version": "det-v17-dossier-1",
+  "counts": {
+    "complete": 67,
+    "partial": 299,
+    "ambiguous": 401,
+    "contradictory": 2,
+    "descriptive_non_metabolic": 151
+  },
+  "bySport": {
+    "bike": {
+      "total": 168,
+      "complete": 20,
+      "partial": 50,
+      "ambiguous": 98,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "run": {
+      "total": 416,
+      "complete": 47,
+      "partial": 163,
+      "ambiguous": 205,
+      "contradictory": 1,
+      "descriptive_non_metabolic": 0
+    },
+    "swim": {
+      "total": 119,
+      "complete": 0,
+      "partial": 36,
+      "ambiguous": 83,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "brick": {
+      "total": 55,
+      "complete": 0,
+      "partial": 39,
+      "ambiguous": 15,
+      "contradictory": 1,
+      "descriptive_non_metabolic": 0
+    },
+    "strength": {
+      "total": 127,
+      "complete": 0,
+      "partial": 0,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 127
+    },
+    "trail": {
+      "total": 3,
+      "complete": 0,
+      "partial": 3,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "mixed": {
+      "total": 32,
+      "complete": 0,
+      "partial": 8,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 24
+    }
+  },
+  "trailSourceFacet": {
+    "complete": 18,
+    "descriptive_non_metabolic": 22,
+    "partial": 60,
+    "ambiguous": 36
+  },
+  "variants": {
+    "entries": 2425,
+    "withLiteralQuantities": 976,
+    "fullGoalSpecificVariantRecipesApproved": 0,
+    "sourceStringsPreserved": true
+  },
+  "outputs": {
+    "records": 920,
+    "coachSourcePreservation": 920,
+    "textLocalContractPass": 833,
+    "structuredLocalContractPass": 12,
+    "structuredIds": [
+      "D_BIKE_RECOVERY",
+      "D_RUN_REGEN",
+      "D_IM_BRICK_REGEN",
+      "A_MAR_LONG_RUN",
+      "D_MAR_REGEN",
+      "A_TR_BIKE_SUPPORT",
+      "A_10K_EASY_60",
+      "A_SEMI_LONG_RUN_90",
+      "TPL_IM_RUN_MARATHON_PRE_FATIGUE",
+      "V3_BIKE_Z2_CAFE_RIDE",
+      "D_TR_RECUP_ACTIVE",
+      "D_TR_VELO_CROSS"
+    ],
+    "encodingScope": "synthetic explicit coach domain bindings and anchors; no source numeric targets overwritten; no individual sports admission or remote acceptance",
+    "technicalOverlayRecords": 9,
+    "unappliedRecoveryCandidates": 104,
+    "sourceChanges": 0,
+    "scientificPromotions": 0,
+    "networkRequests": 0
+  },
+  "qualification": {
+    "records": 920,
+    "explicitPhysiology": 25,
+    "exactIndividualVerifiedLinks": 0,
+    "scientificallyQualifiedByV17": 0,
+    "reviewPriority": {
+      "3": 869,
+      "1": 19,
+      "2": 30,
+      "0": 2
+    },
+    "globalContextBibliographyRetained": 12,
+    "newFullTextReviews": 0,
+    "documentaryAnnotations": 3,
+    "publicAbstractsRead": 2,
+    "referenceInheritanceFromModule": false
+  },
+  "protectedFiles": 3206,
+  "tests": {
+    "nodeFinal": 27,
+    "selection": 8,
+    "independentMutation": 3,
+    "historicalTargeted": 186,
+    "experimentalGuards": 30,
+    "preexistingArchiveTestsSkipped": 3,
+    "v16ContractRegression": 27
+  },
+  "independentCompleteWitnesses": 67,
+  "newFullPlans": 0,
+  "expertReview": false,
+  "scientificPromotion": 0,
+  "status": "DRAFT_NO_GO"
+}

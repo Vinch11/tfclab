@@ -1,0 +1,2624 @@
+{
+  "version": "v17-overlay-register-1",
+  "appliedTechnicalInterpretations": [
+    {
+      "id": "A_RUN_Z2_EASY",
+      "rule": "explicit_optional_work_included_in_witness",
+      "originalSource": [
+        {
+          "part": "Warm-up",
+          "text": "10 min Z1–Z2 relâché",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "20–70 min Z2 (technique, relâchement)",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "5 min Z1 + éducatifs 5 min (optionnel)",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "sourceHash": "37d6cd8b91217009baae9e47c0df6bb63686dd800316ceb408d246c7ea438f87",
+      "action": "include the explicitly optional task as documented in the witness, no essential work removed",
+      "doseChanged": false,
+      "sourceModified": false
+    },
+    {
+      "id": "FATMAX_BIKE_FATFLUSH",
+      "rule": "explicit_integrated_peripherals",
+      "beforeSource": [
+        {
+          "part": "Warm-up",
+          "text": "20 min Z1 très progressif. Petit-déjeuner léger 2h avant (avoine + œufs, pas de sucres simples).",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "2h30–4h en Z1 strict (< 60% FTP, < 65% FCmax). Cadence libre. Maintenir conversation possible en permanence. Si FC monte > 68% FCmax : ralentir ou pause. Ravitaillement : eau + électrolytes toutes les 30 min. CHO minimal (1 banane/heure suffit après 2h). Priorité absolue à l'oxydation des graisses. Réf : Volek & Phinney 2012 — sorties Z1 longues augmentent les enzymes mitochondriales de 30-50%.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Intégré dans la séance (derniers 20 min Z1 encore plus facile). Repas protéiné + légumes après.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "after": "source text unchanged; peripheral parts are inside the explicitly declared total",
+      "sourceHash": "0f983e1fd110bc874c9fe65b573812997618efdde5fbe2afde4282512d258287",
+      "doseChanged": false,
+      "sourceModified": false,
+      "scientificPromotion": false
+    },
+    {
+      "id": "CANOVA_RUN_PROGRESSIVE_LONG",
+      "rule": "explicit_integrated_peripherals",
+      "beforeSource": [
+        {
+          "part": "Warm-up",
+          "text": "Intégré dans la séance (les 8 premiers km sont l'échauffement naturel).",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Sortie longue 25-32 km avec accélération progressive en 3 phases. Phase 1 (premiers 40% — ex: km 1-10 sur 25km) : allure Z2 facile (~4:30-5:00/km pour marathon 3h30). Phase 2 (40-75% — ex: km 10-19) : allure Z3 soutenue, accélération progressive de 10-15s/km. Phase 3 (derniers 25% — ex: km 19-25) : allure marathon cible ou légèrement plus rapide. Derniers 3 km : free pace (allure naturelle). PHILOSOPHIE : Canova dit 'les champions ne ralentissent jamais en fin de marathon — ils s'entraînent à accélérer sur legs fatiguées'. Cette sortie simule exactement la physiologie des 15 derniers km de course. Ravitaillement : 30-45g glucides/h depuis le km 10. RPE final : 8.5/10.",
+          "zones": [
+            "Z2",
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Marche 10 min + récupération nutritionnelle immédiate (1g CHO/kg + 0.3g prot/kg dans les 30 min).",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "after": "source text unchanged; peripheral parts are inside the explicitly declared total",
+      "sourceHash": "205ddec7666a86c9e339bd929e829f4ed680dd819b9b6a3eb12c766cba7dfaad",
+      "doseChanged": false,
+      "sourceModified": false,
+      "scientificPromotion": false
+    },
+    {
+      "id": "CANOVA_TRI_BRICK_SPECIFIC",
+      "rule": "explicit_integrated_peripherals",
+      "beforeSource": [
+        {
+          "part": "Warm-up",
+          "text": "Intégré dans le vélo (20 min Z2 échauffement au début du vélo).",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "VÉLO (2h-3h) : 60-70% du temps en Z2 + 2-3 blocs de 15-20 min à allure vélo course (80-85% FTP). TRANSITION : rapide, simuler exactement T2 de course. RUN (20-40 min) : Phase 1 (5-10 min) : Z2 lent (jambes encore lourdes post-vélo — normal et prévu). Phase 2 (10-20 min) : progression vers allure run IM ou semi. Phase 3 (derniers 10 min) : allure race cible. PHILOSOPHIE CANOVA adaptée triathlon : la spécificité post-vélo est unique au triathlon — l'athlète doit s'entraîner à trouver son allure course spécifique sur jambes pré-fatiguées.",
+          "zones": [
+            "Z2",
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "10 min marche + récupération nutritionnelle immédiate.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "after": "source text unchanged; peripheral parts are inside the explicitly declared total",
+      "sourceHash": "2c9ac68c8cd8b79a6fc3181a17fd8eaf75c7b67ed12a27be59baec24ee8f8b4a",
+      "doseChanged": false,
+      "sourceModified": false,
+      "scientificPromotion": false
+    },
+    {
+      "id": "SEILER_RUN_Z1_EASY_LONG",
+      "rule": "explicit_integrated_peripherals",
+      "beforeSource": [
+        {
+          "part": "Warm-up",
+          "text": "Intégré — les 10 premières minutes sont l'échauffement naturel.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Intégré — les 10 dernières minutes naturellement plus lentes.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "after": "source text unchanged; peripheral parts are inside the explicitly declared total",
+      "sourceHash": "2860fb01098a797f373b240e79e0b2b85c42ecf199c49ff93833176003984600",
+      "doseChanged": false,
+      "sourceModified": false,
+      "scientificPromotion": false
+    },
+    {
+      "id": "SEILER_BIKE_Z1_LONG",
+      "rule": "explicit_integrated_peripherals",
+      "beforeSource": [
+        {
+          "part": "Warm-up",
+          "text": "Intégré — les 15 premières minutes Z1 très progressif.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "90-180 min en Z1-Z2 strict (55-72% FTP, < 75% FCmax). Cadence libre 85-95 rpm. CONTRÔLE PUISSANCE : utiliser la puissance comme guide principal (pas la FC qui réagit trop lentement). Maintenir < 72% FTP en plat, autoriser jusqu'à 76% FTP dans les côtes courtes. Descentes : pédaler léger pour maintenir le stimulus sans dépasser Z2. Réf : Seiler 2006 — les cyclistes norvégiens élites (cross-country ski adapté au vélo) maintiennent 78-82% de leur volume < 72% FTP. Ceux qui dérivent vers Z3 sur les longues sorties stagnent.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Intégré — dernières 15 min Z1 strict.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "after": "source text unchanged; peripheral parts are inside the explicitly declared total",
+      "sourceHash": "bdb4045d4df89cf9c28636e435d24b1f9c28771eee3a6ca3ed46b018ea5a5c67",
+      "doseChanged": false,
+      "sourceModified": false,
+      "scientificPromotion": false
+    },
+    {
+      "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+      "rule": "explicit_integrated_peripherals",
+      "beforeSource": [
+        {
+          "part": "Warm-up",
+          "text": "Intégré — les 15 premières minutes sont l'échauffement naturel en Z1.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "90-150 min en Z1-Z2 strict. PHILOSOPHIE LYDIARD : 'La course aérobie développe le cœur, les poumons, les muscles et le système vasculaire. Sans cette base, la vitesse n'a aucun fondement.' Allure : conversation complète possible. FC < 75% FCmax STRICTEMENT. Pour un coureur avec FCmax 185 : rester sous 139 bpm. Progression Lydiard sur 24 semaines : S1=90 min, S4=110 min, S8=130 min, S12=150 min, S16=165 min, S20=180 min. La DURÉE augmente, pas l'intensité. Lydiard prescrivait même des marches si la FC montait trop. Cette base développe : densité capillaire, densité mitochondriale, enzymes aérobies, économie de course, volume sanguin, efficacité cardiaque.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Intégré — les 10 dernières minutes naturellement plus lentes. Étirements doux.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "after": "source text unchanged; peripheral parts are inside the explicitly declared total",
+      "sourceHash": "3ccad6fa06c7fe6443d25489614240c364048b86f333d02a01c65e4ca5471e76",
+      "doseChanged": false,
+      "sourceModified": false,
+      "scientificPromotion": false
+    },
+    {
+      "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+      "rule": "explicit_integrated_peripherals",
+      "beforeSource": [
+        {
+          "part": "Warm-up",
+          "text": "Intégré — départ très progressif 5 min Z1.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "40-60 min en Z1-Z2. Cette séance est volontairement courte et facile — c'est son but. Lydiard prescrivait des doubles journées : matin 40-60 min Z1, soir 40-60 min Z1. Le volume hebdomadaire total (pas l'intensité de chaque séance) crée l'adaptation. RÈGLE LYDIARD : 'Il vaut mieux courir 100 km/semaine à Z1-Z2 que 60 km/semaine avec trop d'intensité.' Pour les Age Groupers : 6×50 min Z2/semaine = 300 min de base aérobie pure. Résultat sur 12-16 semaines : augmentation naturelle de la VMA de 5-12% sans aucune séance intense.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Marche 5 min + mobilité légère",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "after": "source text unchanged; peripheral parts are inside the explicitly declared total",
+      "sourceHash": "19a54c1821ef70c8280efb755ec4608a2a7e29ff2de380832b183d6bb40f0058",
+      "doseChanged": false,
+      "sourceModified": false,
+      "scientificPromotion": false
+    },
+    {
+      "id": "KENYAN_RUN_LONG_NEGATIVE_SPLIT",
+      "rule": "explicit_integrated_peripherals",
+      "beforeSource": [
+        {
+          "part": "Warm-up",
+          "text": "Intégré — les 5 premiers km en Z1 sont l'échauffement naturel.",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Sortie 28-34 km avec negative split structuré à la Kipchoge. Structure : km 1-18 : Z2 très confortable (4:00-4:30/km pour sub-3h). km 18-26 : accélération progressive vers allure marathon (+10s/km de progression). km 26-32 : allure marathon exacte ou légèrement plus vite. Derniers 2 km : free pace. Ravitaillement : 40g CHO/h depuis le km 12 (gut training simultané). RPE km 1 : 5/10. RPE km 30 : 8.5/10. Cette structure simule parfaitement la physiologie d'un marathon réussi. Réf : Kipchoge court systématiquement ses sorties longues avec negative split — c'est sa signature de course.",
+          "zones": [
+            "Z2",
+            "Z3",
+            "Z4"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Marche 15 min + récupération nutritionnelle complète dans les 20 min (70g CHO + 30g protéines).",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "after": "source text unchanged; peripheral parts are inside the explicitly declared total",
+      "sourceHash": "c464f6e57419c01bf18a2db14ff7b8779a0f610160039367a792ac7886891d0d",
+      "doseChanged": false,
+      "sourceModified": false,
+      "scientificPromotion": false
+    }
+  ],
+  "unappliedCandidates": [
+    {
+      "id": "B_BIKE_VO2_3MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x30s Z5 r=60s",
+      "sourceHash": "1a0a9cefcb534eec2bb082c3624c5c3889429b03998ec64ed78aa2e72ac3c681",
+      "candidates": {
+        "betweenOnly": {
+          "min": 210,
+          "max": 210
+        },
+        "afterEach": {
+          "min": 270,
+          "max": 270
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_BIKE_VO2_3MIN",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "5–7x3 min Z5 r=3 min Z1–Z2",
+      "sourceHash": "1a0a9cefcb534eec2bb082c3624c5c3889429b03998ec64ed78aa2e72ac3c681",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1620,
+          "max": 2340
+        },
+        "afterEach": {
+          "min": 1800,
+          "max": 2520
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_BIKE_THRESHOLD",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2–3x15 min Z4 r=5 min Z1",
+      "sourceHash": "42ffa8d8597656af7d39e853b53971ac47abad9d3a90012239b291a4680a6050",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2100,
+          "max": 3300
+        },
+        "afterEach": {
+          "min": 2400,
+          "max": 3600
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_RUN_THRESHOLD",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x10 min Z4b-Z5 r=3 min trot",
+      "sourceHash": "8a8bce3202dc7a08ee4769f7ddb0769e97a84e9df4949cad03d31c79d49b9510",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2160,
+          "max": 2160
+        },
+        "afterEach": {
+          "min": 2340,
+          "max": 2340
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "C_BIKE_FORCE",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6x3 min Z3 cadence 50–60 rpm r=3 min Z1",
+      "sourceHash": "bff01e49244f4e87aa07e9a7a53a766e4903460538e0a9834ab7e672efbeb2b9",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1980,
+          "max": 1980
+        },
+        "afterEach": {
+          "min": 2160,
+          "max": 2160
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "C_IM_AERO_HOLD",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4x15' Z2 en position aéro r=5' Z1",
+      "sourceHash": "a00c4816d6effeff0a9761f583e4e9c442e5a4bbe947f719afdd8763ac98af12",
+      "candidates": {
+        "betweenOnly": {
+          "min": 4500,
+          "max": 4500
+        },
+        "afterEach": {
+          "min": 4800,
+          "max": 4800
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_MAR_TEMPO_BLOCKS",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x20' Z4 bas (allure marathon) r=5' Z1",
+      "sourceHash": "8acdee02b5aa37d5f134573c989616f414d1bc6e1f9457531be859abfb00ffb5",
+      "candidates": {
+        "betweenOnly": {
+          "min": 4200,
+          "max": 4200
+        },
+        "afterEach": {
+          "min": 4500,
+          "max": 4500
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_SEMI_RACE_PACE",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2x15' allure semi (Z4a–Z4b) r=4' trot",
+      "sourceHash": "62fe555e7a14bb669f07555be0c1b7f5a28237f5fabe6f9f2ca04a070fc4d7ea",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2040,
+          "max": 2040
+        },
+        "afterEach": {
+          "min": 2280,
+          "max": 2280
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_703_RUN_THRESHOLD",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x10' Z4a–Z4b r=3' trot",
+      "sourceHash": "c68583f1171ef51bae2b5583aee6beb2559449a211409cb8a604dfdc2228e2f9",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2160,
+          "max": 2160
+        },
+        "afterEach": {
+          "min": 2340,
+          "max": 2340
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "C_TR_SKILLS_TECH",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "12x20s technique (relance, virages, marches) r=1'",
+      "sourceHash": "c2fdcabe5e6340f8163b49a285248653cc3da9be3c2f54b5fa6c8e922218a644",
+      "candidates": {
+        "betweenOnly": {
+          "min": 900,
+          "max": 900
+        },
+        "afterEach": {
+          "min": 960,
+          "max": 960
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "A_TR_EASY_TRAIL_STRIDES",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6–10x12–15s accélérations (plat/descente douce) r=1'",
+      "sourceHash": "282ada5d0bc23ad464b3f387fa2c0069cdab7b006dac33bd7d0434f075833b3e",
+      "candidates": {
+        "betweenOnly": {
+          "min": 372,
+          "max": 690
+        },
+        "afterEach": {
+          "min": 432,
+          "max": 750
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_TR_HILL_SPRINTS_10x10",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "10–14x10s côte 'explosif propre' r=2' marche/retour complet",
+      "sourceHash": "5d6d3dfde9ae3f700973b0202f01f5ce05070fa613743857e75f740389cbdc56",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1180,
+          "max": 1700
+        },
+        "afterEach": {
+          "min": 1300,
+          "max": 1820
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_TR_RACEPACE_BLOCKS_3x10",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x10' Z3–Z4a sur terrain race-like r=5' Z1–Z2",
+      "sourceHash": "e83e3443a99bdaed21432a2bdfa0e5e27951a96888d1d90400eb29015aae666d",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2400,
+          "max": 2400
+        },
+        "afterEach": {
+          "min": 2700,
+          "max": 2700
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_TR_TEMPO_VARIANT_1",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2x10' Z3–Z4a sur terrain vallonné r=4' easy",
+      "sourceHash": "db1b4fb51be58289b94bb445c219117a95aa7da81e05cf33418a04867bbd974f",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1440,
+          "max": 1440
+        },
+        "afterEach": {
+          "min": 1680,
+          "max": 1680
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_TR_TEMPO_VARIANT_2",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x12' Z3–Z4a sur terrain vallonné r=4' easy",
+      "sourceHash": "3a4226aab31f9ec69a69128e1a8779acc91e28d88f70bad23762fcb0300f1e74",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2640,
+          "max": 2640
+        },
+        "afterEach": {
+          "min": 2880,
+          "max": 2880
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_TR_PACK_SHORT_RACEWEEK_1",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4x6' Z4a (côte modérée) r=3' Z1",
+      "sourceHash": "12c177b207c00dd7c9c1bada60e978d6d952d89b04285b3a43b4806327212587",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1980,
+          "max": 1980
+        },
+        "afterEach": {
+          "min": 2160,
+          "max": 2160
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_10K_RACE_PACE_BLOCKS",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x10' allure 10K (Z4b) r=3' trot Z1",
+      "sourceHash": "daf4e9844c51a50c6a48f82eaef7afa8e1cd11d39c823ebac300c4086d09bbc2",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2160,
+          "max": 2160
+        },
+        "afterEach": {
+          "min": 2340,
+          "max": 2340
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_10K_TEMPO_20",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2x12' Z4a–Z4b r=4' trot",
+      "sourceHash": "c64a172932acbd39ab73d9d9ed2f7b55b40098de63f42c84e9ce09667fd0b0d4",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1680,
+          "max": 1680
+        },
+        "afterEach": {
+          "min": 1920,
+          "max": 1920
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "C_10K_STRIDES_SPEED",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "10x15s accélérations (95%) r=1' trot",
+      "sourceHash": "dadf297484e9c8127812f2369e8faba97d05b935c16ebcc2dc732d9e303dbe23",
+      "candidates": {
+        "betweenOnly": {
+          "min": 690,
+          "max": 690
+        },
+        "afterEach": {
+          "min": 750,
+          "max": 750
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_SEMI_RACE_PACE_2x15",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2x15' allure semi (Z4a) r=4' trot Z1",
+      "sourceHash": "c0a55cbd2f886b8354a327be623b18d80c66a05a4ad5d324572e5a19ee8ccb4b",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2040,
+          "max": 2040
+        },
+        "afterEach": {
+          "min": 2280,
+          "max": 2280
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_TR50_RACE_EFFORT_5x5",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "5x5' Z3–Z4a terrain varié (côte + plat) r=3' Z1–Z2",
+      "sourceHash": "457126c59847de2c5ba3119d4afdbcf28a3f91b25b47840e744569a15968a3aa",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2220,
+          "max": 2220
+        },
+        "afterEach": {
+          "min": 2400,
+          "max": 2400
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_BIKE_SST_3x20",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x20' Z3–Z4a r=5' Z1–Z2",
+      "sourceHash": "5aa99a16ab34a0b5dff9a706bdcfee4473b4553f30a555f45768c78b831dae5e",
+      "candidates": {
+        "betweenOnly": {
+          "min": 4200,
+          "max": 4200
+        },
+        "afterEach": {
+          "min": 4500,
+          "max": 4500
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "C_BIKE_FORCE_LOW_CAD",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6x5' Z3 cadence 50–60 rpm (assis) r=5' Z1 cadence libre",
+      "sourceHash": "5946b4fcca2b030499c6083bc5eb8c5ce0e344531f0715a7cdcdc205d37b6974",
+      "candidates": {
+        "betweenOnly": {
+          "min": 3300,
+          "max": 3300
+        },
+        "afterEach": {
+          "min": 3600,
+          "max": 3600
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_BIKE_VO2_5x5",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "5x5' Z5 (105–115% FTP) r=5' Z1–Z2",
+      "sourceHash": "bc6e426f20983a41b4cb4aa55614eac17542bef93eeb06af52299a6d1d724ec1",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2700,
+          "max": 2700
+        },
+        "afterEach": {
+          "min": 3000,
+          "max": 3000
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_BIKE_THRESHOLD_2x20",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2x20' Z4a (95–100% FTP) r=8' Z1–Z2",
+      "sourceHash": "28f251389c17138a090b70b425b6ffddfa866c6b70d7334489760c29f774033b",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2880,
+          "max": 2880
+        },
+        "afterEach": {
+          "min": 3360,
+          "max": 3360
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_RUN_CRUISE_INTERVALS",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "5x6' Z4a (seuil) r=1' trot (repos très court)",
+      "sourceHash": "239994133d4cc29bd0201aad735ba2eea4ef4dc4efacbb7a973552b9636ee254",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2040,
+          "max": 2040
+        },
+        "afterEach": {
+          "min": 2100,
+          "max": 2100
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_RUN_VO2_LONG_4x5",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4x5' Z4b–Z5 r=4' trot",
+      "sourceHash": "fe36ed2dc72badf35c91d57092888f1b4ee2803512e8be254f9b95365d9d92b5",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1920,
+          "max": 1920
+        },
+        "afterEach": {
+          "min": 2160,
+          "max": 2160
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BRICK_ACTIVATION_PRE_RACE",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4x20s accélération (Z4a) r=1'",
+      "sourceHash": "5b6ac9ba48c23f017bccff60190a67d19e3e91dfcc2b0f8102f2064bf545b599",
+      "candidates": {
+        "betweenOnly": {
+          "min": 260,
+          "max": 260
+        },
+        "afterEach": {
+          "min": 320,
+          "max": 320
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "D_TAPER_BIKE_OPENER",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4x1' Z4a (ouverture) r=3' Z1",
+      "sourceHash": "fb4abdb6d2965487f77de2eb3cb9ae71456733342b06b5b23e2033f562903a23",
+      "candidates": {
+        "betweenOnly": {
+          "min": 780,
+          "max": 780
+        },
+        "afterEach": {
+          "min": 960,
+          "max": 960
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "D_TAPER_RUN_OPENER",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4x30s allure course (Z4a) r=2' Z1",
+      "sourceHash": "c1d07cc21d174fed35d37f4ff63f037cc14e210f9cb35bc937ce844f29811a08",
+      "candidates": {
+        "betweenOnly": {
+          "min": 480,
+          "max": 480
+        },
+        "afterEach": {
+          "min": 600,
+          "max": 600
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "D_TAPER_SHAKEOUT",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x15s accélérations (relâché) r=1'",
+      "sourceHash": "912032f6b7f2bc3e3424019ba1340ddc5efbca6e933ac742108c16753101e3ef",
+      "candidates": {
+        "betweenOnly": {
+          "min": 165,
+          "max": 165
+        },
+        "afterEach": {
+          "min": 225,
+          "max": 225
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "D_PRE_RACE_ACTIVATION_RUN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x20s prog (Z2→Z4a) r=1'",
+      "sourceHash": "0afc043f45e9cc433f7a11d75e5e20dad6c8b820e37024f94122e894ac7560b0",
+      "candidates": {
+        "betweenOnly": {
+          "min": 180,
+          "max": 180
+        },
+        "afterEach": {
+          "min": 240,
+          "max": 240
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_30_30_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x30s à vVO2max R:90s (activation neuromusculaire et cinétique VO2)",
+      "sourceHash": "cd7ecbedc83e2ad277448f0477b2da999391365d22e05ec98a39d1e573a68a7a",
+      "candidates": {
+        "betweenOnly": {
+          "min": 270,
+          "max": 270
+        },
+        "afterEach": {
+          "min": 360,
+          "max": 360
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_3MIN_3MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min Z4 R:2 min",
+      "sourceHash": "47b0fffc9c41ba3f4de6abc9c51f48cfb90ceab674dd8992a61bf0668d95773f",
+      "candidates": {
+        "betweenOnly": {
+          "min": 420,
+          "max": 420
+        },
+        "afterEach": {
+          "min": 540,
+          "max": 540
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_3MIN_3MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s à vVO2max R:90s",
+      "sourceHash": "47b0fffc9c41ba3f4de6abc9c51f48cfb90ceab674dd8992a61bf0668d95773f",
+      "candidates": {
+        "betweenOnly": {
+          "min": 150,
+          "max": 150
+        },
+        "afterEach": {
+          "min": 240,
+          "max": 240
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_BIKE_3MIN_3MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s à 130% FTP R:2 min",
+      "sourceHash": "25fbfc768a932db6a5a656e62df97e3f59752ffc65baafc7e2e2ebd001b76743",
+      "candidates": {
+        "betweenOnly": {
+          "min": 180,
+          "max": 180
+        },
+        "afterEach": {
+          "min": 300,
+          "max": 300
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_TLIM_TEST",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×2 min à 90% VMA R:2 min",
+      "sourceHash": "fcc06c1a3d7b9935751cbb565e0c7639cd37f8fd48e6948146867ba6fa426b06",
+      "candidates": {
+        "betweenOnly": {
+          "min": 360,
+          "max": 360
+        },
+        "afterEach": {
+          "min": 480,
+          "max": 480
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_TLIM_TEST",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s à vVO2max R:3 min (pour s'assurer que le système VO2 est activé)",
+      "sourceHash": "fcc06c1a3d7b9935751cbb565e0c7639cd37f8fd48e6948146867ba6fa426b06",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 420,
+          "max": 420
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_BIKE_TLIM_TEST",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min à 105% FTP R:3 min",
+      "sourceHash": "eadfb16a5ea93e83c6909964be57d205ee21fc51ac4a781e324bca65948f027b",
+      "candidates": {
+        "betweenOnly": {
+          "min": 540,
+          "max": 540
+        },
+        "afterEach": {
+          "min": 720,
+          "max": 720
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_BIKE_TLIM_TEST",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s sprint modéré R:3 min",
+      "sourceHash": "eadfb16a5ea93e83c6909964be57d205ee21fc51ac4a781e324bca65948f027b",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 420,
+          "max": 420
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_CRITICAL_VELOCITY",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×1 min Z4 R:2 min",
+      "sourceHash": "b1463855e42cbc9a38b071e508167bcd2b990ac6a7c3107ab016fa5f478b2868",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 360,
+          "max": 360
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_VO2MAX_LONG_5MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min Z4 R:2 min",
+      "sourceHash": "2d9d8fba6bd78e1165af2612ecfd07a0a13795a09b00679608e2ffe44789453c",
+      "candidates": {
+        "betweenOnly": {
+          "min": 420,
+          "max": 420
+        },
+        "afterEach": {
+          "min": 540,
+          "max": 540
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_VO2MAX_LONG_5MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s à vVO2max R:3 min",
+      "sourceHash": "2d9d8fba6bd78e1165af2612ecfd07a0a13795a09b00679608e2ffe44789453c",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 420,
+          "max": 420
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_BIKE_VO2MAX_4MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×2 min à 100% FTP R:2 min",
+      "sourceHash": "047c020c70bedbd58da05980f89d35adda55130198fe07262a8f02553efc624c",
+      "candidates": {
+        "betweenOnly": {
+          "min": 600,
+          "max": 600
+        },
+        "afterEach": {
+          "min": 720,
+          "max": 720
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_BIKE_VO2MAX_4MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s sprint R:3 min",
+      "sourceHash": "047c020c70bedbd58da05980f89d35adda55130198fe07262a8f02553efc624c",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 420,
+          "max": 420
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "BILLAT_RUN_LACTATE_TOLERANCE",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4×30s à vVO2max R:2 min",
+      "sourceHash": "3bd150cf55904d69f21a744e9c1fa0258157b7995c82e3dbd270fcf49684c053",
+      "candidates": {
+        "betweenOnly": {
+          "min": 480,
+          "max": 480
+        },
+        "afterEach": {
+          "min": 600,
+          "max": 600
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "NORWEGIAN_RUN_THRESHOLD_HIGH_5MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min à allure seuil R:2 min",
+      "sourceHash": "ea997116a30754ae3e46c822ba3f3067ec8e4467bc559dedfdaeaf96c9a5df8d",
+      "candidates": {
+        "betweenOnly": {
+          "min": 420,
+          "max": 420
+        },
+        "afterEach": {
+          "min": 540,
+          "max": 540
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "NORWEGIAN_BIKE_THRESHOLD_HIGH",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min à 95% FTP R:2 min",
+      "sourceHash": "fa0bc7078561d6c95d263ecca72387744cfdb21ab009805b2ea1ceca2ca06d5c",
+      "candidates": {
+        "betweenOnly": {
+          "min": 420,
+          "max": 420
+        },
+        "afterEach": {
+          "min": 540,
+          "max": 540
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "NORWEGIAN_RUN_VMA_POST_BLOCK",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×30s à vVO2max R:90s",
+      "sourceHash": "d088d68e35837aea8ee18e3abd65b88738b88edeb514c928415dc16200d925df",
+      "candidates": {
+        "betweenOnly": {
+          "min": 270,
+          "max": 270
+        },
+        "afterEach": {
+          "min": 360,
+          "max": 360
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SEILER_RUN_4X4MIN_STANDARD",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×1 min à allure seuil R:2 min",
+      "sourceHash": "d21640ba03acf653cf7c03b92fdc5c483a5f8a00987e55ac4dc0febee1d1aabf",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 360,
+          "max": 360
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SEILER_BIKE_4X4MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×2 min à 95% FTP R:2 min",
+      "sourceHash": "e47d1a24d7cdc04767d94d46d731f59148fccf290432db233da2ae61aa3e3c90",
+      "candidates": {
+        "betweenOnly": {
+          "min": 360,
+          "max": 360
+        },
+        "afterEach": {
+          "min": 480,
+          "max": 480
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SEILER_BIKE_4X4MIN",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4×4 min à 106-115% FTP (Z5) R:3 min 50% FTP. Cadence 90-105 rpm. Sur les 2 dernières minutes de chaque répétition : FC cible ≥ 93% FCmax. Réf : Seiler 2013 — même protocole que la course, adapté au vélo. La puissance est facile à contrôler précisément. IMPORTANT : la récupération à 50% FTP (et non arrêt complet) est essentielle pour maintenir la cinétique VO2 et réduire le lactate progressivement, permettant la répétition suivante d'atteindre VO2max plus rapidement.",
+      "sourceHash": "e47d1a24d7cdc04767d94d46d731f59148fccf290432db233da2ae61aa3e3c90",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1500,
+          "max": 1500
+        },
+        "afterEach": {
+          "min": 1680,
+          "max": 1680
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SEILER_RUN_4X8MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min à allure Z5 R:2 min",
+      "sourceHash": "3cee9a2729cb50a92e08b77cf15298e009bfaf673f3d6b2bada6b36001e0e3da",
+      "candidates": {
+        "betweenOnly": {
+          "min": 420,
+          "max": 420
+        },
+        "afterEach": {
+          "min": 540,
+          "max": 540
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SEILER_BIKE_4X8MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min à 105% FTP R:2 min",
+      "sourceHash": "7eaeaa859b3dcbd0b022b41edf6d1140df57a6114154a9714cf0d4ab83643440",
+      "candidates": {
+        "betweenOnly": {
+          "min": 420,
+          "max": 420
+        },
+        "afterEach": {
+          "min": 540,
+          "max": 540
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SEILER_RUN_PROGRESSION_4TO8",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×1 min Z5 R:2 min",
+      "sourceHash": "61ee179e913ce7ffca4d980aa35859782636f2e71e8e317c83a928f1aa9d9054",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 360,
+          "max": 360
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SEILER_BIKE_PROGRESSION_POLARIZED",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×2 min à 100% FTP R:2 min",
+      "sourceHash": "491a8fe6d8cfd00c7f7bddfcfaa6bce0d629bbf0f2a370339ec30c7f05e17fbc",
+      "candidates": {
+        "betweenOnly": {
+          "min": 360,
+          "max": 360
+        },
+        "afterEach": {
+          "min": 480,
+          "max": 480
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_ZONE6_AC_SHORT",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×20s à 130% FTP R:2 min (activation neuromusculaire)",
+      "sourceHash": "7d6f16867aaa6225c82c0cae7e4d2a00bea145c2129348103a149110892ea9c0",
+      "candidates": {
+        "betweenOnly": {
+          "min": 300,
+          "max": 300
+        },
+        "afterEach": {
+          "min": 420,
+          "max": 420
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_ZONE6_AC_LONG",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s à 130% FTP R:3 min",
+      "sourceHash": "d6e840510da4de3b28e672f6051e46414c99bc3eb3a6d7b24418fed6a247d622",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 420,
+          "max": 420
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_ZONE7_NEURO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×10s sprint départ arrêté R:3 min (activation neuromusculaire complète)",
+      "sourceHash": "62fcf6b05610af9c13d4652e16b439390c787b83e2cbeabe90e38718a87cd598",
+      "candidates": {
+        "betweenOnly": {
+          "min": 390,
+          "max": 390
+        },
+        "afterEach": {
+          "min": 570,
+          "max": 570
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_CP_OVER_UNDER",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×2 min à 95% FTP R:2 min",
+      "sourceHash": "4b9ffcc62662490bf294ebd6a850e588a6a70a91fe39fc8b6c9290de31203be8",
+      "candidates": {
+        "betweenOnly": {
+          "min": 360,
+          "max": 360
+        },
+        "afterEach": {
+          "min": 480,
+          "max": 480
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_CP_DEPLETION",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×30s à 120% FTP R:2 min",
+      "sourceHash": "a668c9e5a3755195539d7190ccfcb9b3e89e9b2a20b74ad98d975567826860bb",
+      "candidates": {
+        "betweenOnly": {
+          "min": 330,
+          "max": 330
+        },
+        "afterEach": {
+          "min": 450,
+          "max": 450
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_RUN_CP_INTERVALS",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min à allure seuil R:90s",
+      "sourceHash": "42756c89c93367356d3aeac9e32a6ae851623ba8b60629d5561a190c8c8461e0",
+      "candidates": {
+        "betweenOnly": {
+          "min": 360,
+          "max": 360
+        },
+        "afterEach": {
+          "min": 450,
+          "max": 450
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_SST_EXTENDED",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2-3×20 min à 88-93% FTP R:5 min Z1. Cadence 85-95 rpm. RPE 7.5/10 — 'dur mais soutenable, phrases courtes'. POURQUOI LE SWEET SPOT : Coggan 2010 — à 88-93% FTP (entre Z3 et Z4), l'intensité est suffisamment haute pour stimuler des adaptations physiologiques profondes (amélioration FTP, densité mitochondriale, efficacité lipidique) mais pas assez haute pour créer une fatigue excessive qui réduirait le volume total. C'est la zone avec le meilleur ROI (return on investment) en endurance. La règle Coggan : 'Une heure en Sweet Spot vaut deux heures en Z2 pour le développement du FTP.' Observer : puissance NP stable sur tout le bloc (±5W), FC en plateau sans dérive, RPE qui monte légèrement mais reste gérable.",
+      "sourceHash": "b6f79e137ab0fb6ba05d07cec076025e5abce12c2bebe7e11f74da1303f717ae",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2700,
+          "max": 4200
+        },
+        "afterEach": {
+          "min": 3000,
+          "max": 4500
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_ZONE5_MAP",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min à 105% FTP R:2 min",
+      "sourceHash": "1eb037870159a119e8295eeba265843dc69e36822f1144269fa9717a9bdaae1e",
+      "candidates": {
+        "betweenOnly": {
+          "min": 420,
+          "max": 420
+        },
+        "afterEach": {
+          "min": 540,
+          "max": 540
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_ZONE5_MAP",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s à 120% FTP R:3 min",
+      "sourceHash": "1eb037870159a119e8295eeba265843dc69e36822f1144269fa9717a9bdaae1e",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 420,
+          "max": 420
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "COGGAN_BIKE_FTP_TEST_20MIN",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×1 min à 100-105% FTP R:2 min",
+      "sourceHash": "17958e275bbdacdab5f6f590ec9708d8e484e01663056578bcaafef1ceec0a6b",
+      "candidates": {
+        "betweenOnly": {
+          "min": 420,
+          "max": 420
+        },
+        "afterEach": {
+          "min": 540,
+          "max": 540
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SKIBA_BIKE_WPRIME_RECHARGE",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2×30s à 130% FTP R:3 min",
+      "sourceHash": "a8138e576df94e27ca80c1ba48bcca63a1a731d70db30ec5c8f46bd7b752c745",
+      "candidates": {
+        "betweenOnly": {
+          "min": 240,
+          "max": 240
+        },
+        "afterEach": {
+          "min": 420,
+          "max": 420
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "SKIBA_RUN_WPRIME_INTERVALS",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×30s à VMA R:90s",
+      "sourceHash": "7852e198ddc436203a29b3c1136b4d5463df0868721d6548c068579c3c6b89c2",
+      "candidates": {
+        "betweenOnly": {
+          "min": 270,
+          "max": 270
+        },
+        "afterEach": {
+          "min": 360,
+          "max": 360
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "A_RUN_EASY_STRIDES_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6–10x12–15s accélérations r=60–75s",
+      "sourceHash": "534077558d0b61c47822760e75bcac40af87ddf4be94290393cec1643d1bbcd1",
+      "candidates": {
+        "betweenOnly": {
+          "min": 372,
+          "max": 825
+        },
+        "afterEach": {
+          "min": 432,
+          "max": 900
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_RUN_TEMPO_CRUISE_PRO",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x10' Z3–Z4a r=3–4' Z1",
+      "sourceHash": "3f33cf70c8a0ea96e513ff5e4f805f7c97c77e9a15cc97682f1e9f4da741e680",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2160,
+          "max": 2280
+        },
+        "afterEach": {
+          "min": 2340,
+          "max": 2520
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_RUN_TEMPO_2x20_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2x20' Z3–Z4a r=5' Z1",
+      "sourceHash": "17c13621b0344cbdb4d4e95793fd3b437691510927618aca13a84eac36a3793b",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2700,
+          "max": 2700
+        },
+        "afterEach": {
+          "min": 3000,
+          "max": 3000
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_RUN_VO2_5x3_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "5–7x3' Z4b–Z5 r=2' easy",
+      "sourceHash": "36611f382e6fd3edc378217147243b3c8b1edc2a85631d243699c8bdf67c5387",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1380,
+          "max": 1980
+        },
+        "afterEach": {
+          "min": 1500,
+          "max": 2100
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_RUN_FARTLEK_60_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4×20\" accélérations r=40\" marche/trot",
+      "sourceHash": "3d801350d64bda6907b6e703c2d893ae46fbd328ce51d9bf7eb7638f839d94ec",
+      "candidates": {
+        "betweenOnly": {
+          "min": 200,
+          "max": 200
+        },
+        "afterEach": {
+          "min": 240,
+          "max": 240
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_BIKE_SST_3x12_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3x12' Z3–Z4a r=5' Z2",
+      "sourceHash": "5427bb0394331c5c891c940b744c75f1d5ee421af8102ff7b665f827a0091ef5",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2760,
+          "max": 2760
+        },
+        "afterEach": {
+          "min": 3060,
+          "max": 3060
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_BIKE_SST_2x20_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2x20' Z3–Z4a r=7' Z2",
+      "sourceHash": "c5eb0177831e058c88b6e2d85cdaeb1c69dc76300802586119d1c7db37195e6f",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2820,
+          "max": 2820
+        },
+        "afterEach": {
+          "min": 3240,
+          "max": 3240
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_BIKE_VO2_6x3_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6x3' Z5 r=3' Z1–Z2",
+      "sourceHash": "bce533efd83c348b19ae9b71e105d84bf95c3e199221fb0dc563fe06874cf033",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1980,
+          "max": 1980
+        },
+        "afterEach": {
+          "min": 2160,
+          "max": 2160
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_TR_HILLREPS_6x3_PRO",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6x3' Z4b–Z5 r=3'",
+      "sourceHash": "695f6d6e3ec71c72f2894db94c601bb39c8d7b4e830b159a53af34ef5b145f1b",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1980,
+          "max": 1980
+        },
+        "afterEach": {
+          "min": 2160,
+          "max": 2160
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_SEMI_VMA_MOYENNE_1MIN",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "15 x 1' Z6 (100-105% VMA) r:1' Z1",
+      "sourceHash": "e37f34feeba48e42700c0ff08e33eb546650c30ed3f63e5e111d9ab0d56d095a",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1740,
+          "max": 1740
+        },
+        "afterEach": {
+          "min": 1800,
+          "max": 1800
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_SEMI_FORCE_COTES_SPRINT",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "10 x 15\" Sprint en côte raide (Z7) r:2' marche. Focus poussée explosive",
+      "sourceHash": "a6464a8b3d38c4ea3dc38b8cec67f36fa9d1790d34b5ed18fbb91de176cb26cb",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1230,
+          "max": 1230
+        },
+        "afterEach": {
+          "min": 1350,
+          "max": 1350
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_SEMI_FORCE_COTES_VOLUME",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "12 x 45\" Côte Z6 r:1'30 descente",
+      "sourceHash": "29b29d689d78afc12535c031f0ed99e5e3f4647a0b08217614e4f3717dfe7835",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1530,
+          "max": 1530
+        },
+        "afterEach": {
+          "min": 1620,
+          "max": 1620
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_SEMI_SEUIL_INTRO",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4 x 6' Z5 bas r:2' trot",
+      "sourceHash": "57b0aff08f534490be6fa9412a6a60eb2dbc7aeee43a02189f55170165bd21fe",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1800,
+          "max": 1800
+        },
+        "afterEach": {
+          "min": 1920,
+          "max": 1920
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_SEMI_SEUIL_EXTENSIF",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3 x 10-12' Z4b/Z5 (Mix allure semi/seuil) r:2'30-3'",
+      "sourceHash": "9e031477f30d7c7846f87681f6df9a75c9b26de5d265bd438a633f79a4e759f7",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2100,
+          "max": 2520
+        },
+        "afterEach": {
+          "min": 2250,
+          "max": 2700
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_MAR_TEMPO_SWEET_SPOT",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2 x 15-20' Tempo (Z3) r:4-5'. \"Je pourrais tenir ça longtemps\"",
+      "sourceHash": "b43a1c59aa2f5f17666a7b63393b615bb9b10a01c5580f131e79d79537ad6217",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2040,
+          "max": 2700
+        },
+        "afterEach": {
+          "min": 2280,
+          "max": 3000
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_IM_BIKE_FORCE_K3",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3 x 15-20' Force (50-55 rpm) Z3. R:5'. Pédalage rond obligatoire",
+      "sourceHash": "81cbb02ec83c6d8d1d8394b2d829cc2144535aca68f220c7c6003d51aff88001",
+      "candidates": {
+        "betweenOnly": {
+          "min": 3300,
+          "max": 4200
+        },
+        "afterEach": {
+          "min": 3600,
+          "max": 4500
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_703_RUN_TEMPO_2x20",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2-3 x 15-20' Z4 (Allure 70.3) r:2-3'. Cadence 180spm",
+      "sourceHash": "4ebae66d0350ca9d450a935708384879200329001a54911418ae98f2cc56c9f7",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1920,
+          "max": 3960
+        },
+        "afterEach": {
+          "min": 2040,
+          "max": 4140
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "TPL_IM_RUN_SEUIL_EXTENSIF",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2-3 x 20' Z4a (Allure Marathon) R:3-4'. Minimiser dérive cardiaque",
+      "sourceHash": "34166887a64cbb10185b120c880f47c43f5bad738602819f389533ea68d287bd",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2580,
+          "max": 4080
+        },
+        "afterEach": {
+          "min": 2760,
+          "max": 4320
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_RUN_NORWEGIAN_4x8",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4 x 8' Z5a (88-92% FCmax) R:4' trot Z1. Chercher steady-state VO2",
+      "sourceHash": "a53bfb8a37bd0f249790811f7c27d2179e329e36145ed3db50d52bacf46d821e",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2640,
+          "max": 2640
+        },
+        "afterEach": {
+          "min": 2880,
+          "max": 2880
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_RUN_NORWEGIAN_5x6",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "5 x 6' Z5a (90% FCmax) R:3' trot Z1",
+      "sourceHash": "9b8b89d1163560b6341d0e71c4186e858a994d6f684bf0b33bf2623ae168129f",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2520,
+          "max": 2520
+        },
+        "afterEach": {
+          "min": 2700,
+          "max": 2700
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_RUN_ALLURE_SEMI_BLOCS",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3 x 15' Allure Semi (Z4a) R:3'. Cadence 180-185spm, respiration contrôlée",
+      "sourceHash": "0e67729bfc1a2d600267845a1ac264c883f31e3bd2911d115c108f8850ed2dd7",
+      "candidates": {
+        "betweenOnly": {
+          "min": 3060,
+          "max": 3060
+        },
+        "afterEach": {
+          "min": 3240,
+          "max": 3240
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_BIKE_NORWEGIAN_5x5",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "5 x 5' à 110-115% FTP (88-92% FCmax) R:5' Z1. Steady-state VO2 obligatoire",
+      "sourceHash": "e95fa924149c1bc9bc6693e0f666cd2e1ccf06195ee18a82ff5418ce71bd789a",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2700,
+          "max": 2700
+        },
+        "afterEach": {
+          "min": 3000,
+          "max": 3000
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_BIKE_SWEET_SPOT_PROGRESSIF",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3 x 20' (début 86% FTP → fin 92% FTP, progression intra-bloc). R:5' Z1",
+      "sourceHash": "a4a2722ca79326fad78fea3fd01101dd1b2800206fdf0d2760078c46c1431df1",
+      "candidates": {
+        "betweenOnly": {
+          "min": 4200,
+          "max": 4200
+        },
+        "afterEach": {
+          "min": 4500,
+          "max": 4500
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_BIKE_TEMPO_CADENCE_BASSE",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3 x 20' Z3 (78-82% FTP) à 55-65 RPM. Force spécifique sans lactate. R:5' Z1 cadence libre",
+      "sourceHash": "c26b264c6444ef3243763fe2a072082459950d88744612cc24e1a874dbc286fd",
+      "candidates": {
+        "betweenOnly": {
+          "min": 4200,
+          "max": 4200
+        },
+        "afterEach": {
+          "min": 4500,
+          "max": 4500
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_BIKE_GIMENEZ_TEST_FORMAT",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6 x 6' Z4 (93-97% FTP) R:1' Z1. Haute densité, clearance lactate rapide",
+      "sourceHash": "4b20a3911b306ea320003393fa8ea86be90daa27f7f853aa24a175cc19cac795",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2460,
+          "max": 2460
+        },
+        "afterEach": {
+          "min": 2520,
+          "max": 2520
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_BIKE_RAMP_4x10",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4 x 10' Ramp (85%→105% FTP progressif chaque minute). R:4' Z1",
+      "sourceHash": "f518805f241656fe916a65e23bb4fd8377f18b85b68f7e5b4ab8ae58dd5716d1",
+      "candidates": {
+        "betweenOnly": {
+          "min": 3120,
+          "max": 3120
+        },
+        "afterEach": {
+          "min": 3360,
+          "max": 3360
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_BRICK_DOUBLE_RUN",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×5' Z4 (Allure Semi) R:2' trot Z1",
+      "sourceHash": "a544d5b8e6a1734b45e3fa175a03044ebf8ce3e412a2bbdbc8b92c7afdc46f00",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1140,
+          "max": 1140
+        },
+        "afterEach": {
+          "min": 1260,
+          "max": 1260
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "ENR_TAPER_OPENERS_BIKE",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3 x 1' à 120% FTP R:3' Z1. Court, intense, pas fatigant. Préparer le système nerveux",
+      "sourceHash": "18c983ab91612f3c8c5dfe1769a181bae40f04ff29be731474196a5ca8961ad0",
+      "candidates": {
+        "betweenOnly": {
+          "min": 540,
+          "max": 540
+        },
+        "afterEach": {
+          "min": 720,
+          "max": 720
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "V2_BIKE_SFR_CLASSIQUE",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "5 x 8' en côte (4-6%) à 50-60 RPM, Z3/Z4 (85-95% FTP). R:4' moulinage descente. Assis, mains basses, force pure",
+      "sourceHash": "5c6619ca9bc011ead2007e23ddb435618c169858a51ecf19aab594fe998fc0cb",
+      "candidates": {
+        "betweenOnly": {
+          "min": 3360,
+          "max": 3360
+        },
+        "afterEach": {
+          "min": 3600,
+          "max": 3600
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "V2_BIKE_GRIMPEUR_TEMPO",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "2 x 25' en montée soutenue Z3 (75-82% FTP). Cadence naturelle 70-80rpm. R:8' descente",
+      "sourceHash": "ca735aa563b80868dca8eb99775894600dc657b9d5d99dbbb7d225d5f9654edc",
+      "candidates": {
+        "betweenOnly": {
+          "min": 3480,
+          "max": 3480
+        },
+        "afterEach": {
+          "min": 3960,
+          "max": 3960
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "V2_BIKE_TT_POSITION",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3 x 15' position aéro stricte Z3/Z4 (80-92% FTP). R:5' Z1 mains hautes. Focus: respiration diaphragme, stabilité bassin",
+      "sourceHash": "bd5e88880466d8d159950ac37fe19810a43b29e74b41a5dd7a29c6c5c3959a75",
+      "candidates": {
+        "betweenOnly": {
+          "min": 3300,
+          "max": 3300
+        },
+        "afterEach": {
+          "min": 3600,
+          "max": 3600
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "V2_BIKE_CADENCE_HAUTE",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6 x 5' Z2 (70-75% FTP) à 100-110rpm. R:3' cadence libre. Focus: pédalage rond, pas de rebond sur la selle, hanche stable",
+      "sourceHash": "2ec015b02b531df281e4885c197b62ba7363eb0ecd425b03f7bba5a97997a77d",
+      "candidates": {
+        "betweenOnly": {
+          "min": 2700,
+          "max": 2700
+        },
+        "afterEach": {
+          "min": 2880,
+          "max": 2880
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "URBAN_TAPIS_INCLINE_SEUIL",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "4 × 12' à 8-12% inclinaison, allure Z3/Z4 (85-92% FCmax, ~seuil running montée), cadence 75-85 spm. R:3-4' marche 2% incl. Cible cardio = équivalent seuil montée long sentier. D",
+      "sourceHash": "fe642d266221b2fef6d736e4b7370b02418f942f6633cebfe0520b782d44ec59",
+      "candidates": {
+        "betweenOnly": {
+          "min": 3420,
+          "max": 3600
+        },
+        "afterEach": {
+          "min": 3600,
+          "max": 3840
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "URBAN_COTES_SPRINT_NEURO",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "12×8\" sprint côte raide >10% max effort (engagement bras+jambes, attaque pied avant). R: 2-3' marche descente RÉCUP COMPLÈTE. Pas filière lactique : neuromusculaire pur.",
+      "sourceHash": "80a88880419258781e58e492a761d234b12de254b94c27d9530a0d3e0c6e5bb6",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1416,
+          "max": 2076
+        },
+        "afterEach": {
+          "min": 1536,
+          "max": 2256
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_LCW_BIKE_LONG_RACE_SAT",
+      "partIndex": 0,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "3×2min @ 90% FTP r=2min",
+      "sourceHash": "ac08674ca1633a402e4b40cddc088789044662d8b6fca1a84f80c4c9b4c98c7a",
+      "candidates": {
+        "betweenOnly": {
+          "min": 600,
+          "max": 600
+        },
+        "afterEach": {
+          "min": 720,
+          "max": 720
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    },
+    {
+      "id": "B_SPRINT_BIKE_VO2_SHORT",
+      "partIndex": 1,
+      "rule": "final_recovery_occurrence_missing",
+      "sourceText": "6x3' Z5 (105-110% FTP, intensité proche de l'allure course Sprint) R:2' Z1 roue libre. Cadence élevée 95-100rpm, position aéro dès la 2e répétition. Objectif : habituer le corps à partir vite sans s'effondrer avant le run.",
+      "sourceHash": "806436256fa6a330ceed1b1beaeb48a5fb2baff4e2d3583afc42e5886c618acf",
+      "candidates": {
+        "betweenOnly": {
+          "min": 1680,
+          "max": 1680
+        },
+        "afterEach": {
+          "min": 1800,
+          "max": 1800
+        }
+      },
+      "unit": "seconds_for_this_repeat_only",
+      "selected": null,
+      "sourceModified": false,
+      "requiresClarification": true,
+      "reason": "Both are retained; catalogue fit alone cannot establish which final recovery the source intended."
+    }
+  ],
+  "grammarRules": [
+    {
+      "id": "utf16_literal_offsets",
+      "type": "technical",
+      "effect": "preserve exact source spans including accented/astral text"
+    },
+    {
+      "id": "explicit_units_to_seconds_or_meters",
+      "type": "technical",
+      "effect": "literal dimensional conversion only"
+    },
+    {
+      "id": "closed_parenthesized_cycle",
+      "type": "technical",
+      "effect": "every written child is repeated; no missing recovery inferred"
+    },
+    {
+      "id": "named_activity_duration",
+      "type": "technical",
+      "effect": "a written drills/mobility duration may follow its activity label"
+    },
+    {
+      "id": "preparation_duration_scope",
+      "type": "unresolved_scope",
+      "effect": "keep cognitive preparation separate; do not presume advertised duration scope"
+    }
+  ],
+  "originalSourcesModified": 0,
+  "scientificRulesPromoted": 0
+}

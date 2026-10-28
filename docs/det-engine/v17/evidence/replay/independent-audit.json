@@ -1,0 +1,764 @@
+{
+  "version": "v17-independent-python-1",
+  "sourceRecords": 920,
+  "completeChecked": 67,
+  "passed": 67,
+  "failures": [],
+  "witnesses": [
+    {
+      "id": "A_RUN_Z2_EASY",
+      "seconds": 2400,
+      "bounds": [
+        2400,
+        5400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "D_BIKE_RECOVERY",
+      "seconds": 1800,
+      "bounds": [
+        1800,
+        3600
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "D_RUN_REGEN",
+      "seconds": 1200,
+      "bounds": [
+        1200,
+        2700
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_IM_BIKE_STEADY_LONG",
+      "seconds": 10800,
+      "bounds": [
+        9000,
+        16200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_IM_RUN_PACE",
+      "seconds": 3600,
+      "bounds": [
+        3600,
+        7200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "D_IM_BRICK_REGEN",
+      "seconds": 900,
+      "bounds": [
+        900,
+        1800
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_MAR_LONG_RUN",
+      "seconds": 5400,
+      "bounds": [
+        5400,
+        9000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_MAR_END_FAST_FINISH",
+      "seconds": 5400,
+      "bounds": [
+        5400,
+        8400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "D_MAR_REGEN",
+      "seconds": 1500,
+      "bounds": [
+        1500,
+        2400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_703_BIKE_RACE_SIM",
+      "seconds": 9000,
+      "bounds": [
+        9000,
+        10800
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_LONG_HIKE_RUN_DPLUS",
+      "seconds": 7200,
+      "bounds": [
+        7200,
+        14400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_EASY_TECH",
+      "seconds": 3300,
+      "bounds": [
+        3300,
+        5100
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_BACK_TO_BACK_1",
+      "seconds": 7200,
+      "bounds": [
+        7200,
+        12600
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_BACK_TO_BACK_2",
+      "seconds": 3600,
+      "bounds": [
+        3600,
+        7200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_BIKE_SUPPORT",
+      "seconds": 3600,
+      "bounds": [
+        3600,
+        9000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_TR_FARTLEK_TRAIL",
+      "seconds": 3000,
+      "bounds": [
+        3000,
+        3000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_END_ROLLING_75",
+      "seconds": 3600,
+      "bounds": [
+        3600,
+        5400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_LONG_DPLUS_3H",
+      "seconds": 9000,
+      "bounds": [
+        9000,
+        12600
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "D_TR_RECOVERY_SOFT_30",
+      "seconds": 2100,
+      "bounds": [
+        2100,
+        3000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "D_TR_BIKE_REGEN_60",
+      "seconds": 2700,
+      "bounds": [
+        2700,
+        4500
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_10K_EASY_60",
+      "seconds": 2700,
+      "bounds": [
+        2700,
+        4200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_SEMI_LONG_RUN_90",
+      "seconds": 4800,
+      "bounds": [
+        4800,
+        6600
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_SEMI_PROGRESSIVE_FINISH",
+      "seconds": 4500,
+      "bounds": [
+        4500,
+        6300
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_SEMI_TEMPO_LONG_30",
+      "seconds": 3300,
+      "bounds": [
+        3000,
+        3600
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_SEMI_FARTLEK_CONTROLLED",
+      "seconds": 3720,
+      "bounds": [
+        3720,
+        3720
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR50_LONG_RUN_2H30",
+      "seconds": 7800,
+      "bounds": [
+        7800,
+        10800
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR50_PROGRESSIVE_FINISH",
+      "seconds": 6600,
+      "bounds": [
+        6000,
+        9000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR50_EASY_DPLUS_60",
+      "seconds": 3000,
+      "bounds": [
+        3000,
+        4500
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_TR50_FARTLEK_SENTIER",
+      "seconds": 3420,
+      "bounds": [
+        3420,
+        3900
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_BIKE_RACE_SIM_IM",
+      "seconds": 14400,
+      "bounds": [
+        14400,
+        18000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_BIKE_RACE_SIM_703",
+      "seconds": 8700,
+      "bounds": [
+        8700,
+        10500
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_RUN_MARATHON_PACE_LONG",
+      "seconds": 3900,
+      "bounds": [
+        3600,
+        4200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_RUN_703_RACE_SIM",
+      "seconds": 3300,
+      "bounds": [
+        3300,
+        4500
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_BIKE_DURABILITY_TEST",
+      "seconds": 7200,
+      "bounds": [
+        7200,
+        10800
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "SEILER_BIKE_Z1_LONG",
+      "seconds": 5400,
+      "bounds": [
+        5400,
+        10800
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_RUN_EASY_45_PRO",
+      "seconds": 2700,
+      "bounds": [
+        2700,
+        3300
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "TPL_SEMI_TEMPO_CONTINU",
+      "seconds": 3300,
+      "bounds": [
+        3300,
+        3900
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "TPL_MAR_BLOC_CONTINU_MP",
+      "seconds": 4500,
+      "bounds": [
+        4200,
+        5700
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "TPL_MAR_LONGUE_PRE_FATIGUE",
+      "seconds": 8400,
+      "bounds": [
+        8400,
+        9300
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "TPL_IM_RUN_MARATHON_PRE_FATIGUE",
+      "seconds": 8100,
+      "bounds": [
+        8100,
+        8100
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "ENR_RUN_ALLURE_MARATHON_LONG",
+      "seconds": 6600,
+      "bounds": [
+        5400,
+        7200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "ENR_RUN_DESCENTE_TECHNIQUE",
+      "seconds": 3000,
+      "bounds": [
+        3000,
+        3600
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "ENR_BIKE_ENDURANCE_NEGATIVE_SPLIT",
+      "seconds": 10500,
+      "bounds": [
+        10500,
+        11400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "ENR_BIKE_LACTATE_SHUTTLE",
+      "seconds": 3960,
+      "bounds": [
+        3960,
+        3960
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V2_BIKE_TT_RACE_PACE",
+      "seconds": 5400,
+      "bounds": [
+        4500,
+        5700
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V2_BIKE_FATMAX_LONG",
+      "seconds": 9600,
+      "bounds": [
+        9600,
+        13200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+      "seconds": 10800,
+      "bounds": [
+        10800,
+        18000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V3_BIKE_Z2_CAFE_RIDE",
+      "seconds": 4200,
+      "bounds": [
+        4200,
+        7200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V3_BIKE_FATMAX_LONG",
+      "seconds": 7800,
+      "bounds": [
+        7800,
+        15000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V3_BIKE_TEMPO_LONG",
+      "seconds": 5400,
+      "bounds": [
+        4200,
+        5400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V3_BIKE_RACE_PACE_TT",
+      "seconds": 5400,
+      "bounds": [
+        5100,
+        10500
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V3_BIKE_RECOVERY_SPIN",
+      "seconds": 1800,
+      "bounds": [
+        1800,
+        3000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "V3_TRAIL_ULTRA_NIGHT",
+      "seconds": 6600,
+      "bounds": [
+        6600,
+        10200
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_EF_SENTIER",
+      "seconds": 3600,
+      "bounds": [
+        3600,
+        5400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_SL_MONTAGNE_BASE",
+      "seconds": 7200,
+      "bounds": [
+        7200,
+        10800
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_SL_PEAK",
+      "seconds": 12600,
+      "bounds": [
+        12600,
+        23400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_B2B_DIM",
+      "seconds": 8400,
+      "bounds": [
+        8400,
+        12000
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "A_TR_MARCHE_COURSE_ULTRA",
+      "seconds": 12600,
+      "bounds": [
+        12600,
+        19800
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "B_TR_FARTLEK_TERRAIN",
+      "seconds": 3300,
+      "bounds": [
+        3300,
+        4500
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "RS_TR_SIM_COURT",
+      "seconds": 8700,
+      "bounds": [
+        8700,
+        12300
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "RS_TR_SIM_MTN",
+      "seconds": 12600,
+      "bounds": [
+        12600,
+        19800
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "RS_TR_SIM_NUIT",
+      "seconds": 8700,
+      "bounds": [
+        8700,
+        15900
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "RS_TR_GUT_TRAINING",
+      "seconds": 8700,
+      "bounds": [
+        8700,
+        12300
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "D_TR_RECUP_ACTIVE",
+      "seconds": 1500,
+      "bounds": [
+        1500,
+        2400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "D_TR_VELO_CROSS",
+      "seconds": 2700,
+      "bounds": [
+        2700,
+        5400
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "S2R_WALK_BRISK_RECOVERY",
+      "seconds": 2100,
+      "bounds": [
+        2100,
+        2700
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    },
+    {
+      "id": "S2R_ACTIVE_RECOVERY_WALK_LONG",
+      "seconds": 2700,
+      "bounds": [
+        2700,
+        3600
+      ],
+      "sourceSpansPass": true,
+      "independentArithmeticPass": true,
+      "individualAdmission": false
+    }
+  ],
+  "checks": [
+    "canonical_hash",
+    "all_source_parts_accounted_for",
+    "exact_UTF16_source_spans",
+    "source_literals_reparsed_with_fraction_arithmetic",
+    "repeat_counts_and_closed_recovery_structure",
+    "independent_range_sums",
+    "independent_witness_expansion",
+    "advertised_duration_intersection",
+    "verbatim_zones_and_instructions"
+  ],
+  "notAttested": [
+    "physiological_individual_admissibility",
+    "goal_variant_execution",
+    "time_in_intensity_domains",
+    "fatigue_response",
+    "expert_review"
+  ]
+}

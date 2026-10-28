@@ -1,0 +1,15 @@
+[
+  {
+    "name": "types",
+    "bin": "node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "exitCode": 2,
+    "error": null,
+    "elapsedMs": 40515
+  }
+]
