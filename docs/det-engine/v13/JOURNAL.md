@@ -16,3 +16,5 @@ U7 tentative 1 : le calcul et les trois fichiers ont été produits, mais le tes
 U7/U8 : deux processus indépendants reproduisent trois artefacts exactement ; typage,62 tests de gouvernance,122 tests expérimentaux (47 opt-in ignorés),2999 historiques (1 ignoré,6 todo) réussis. Les11 tests de preuve ciblés recouvrent la suite et son opt-in.2381 fichiers protégés inchangés. Aucune préparation complète admissible ni validation experte déclarée.
 
 U9 : audit, revue sportive, matrice des16 semaines, témoins de refus, résultats et registre rédigés ; liens locaux et empreintes vérifiés. U10 : publication des preuves sur la seule branche expérimentale et mise à jour de la PR brouillon.
+
+U10 achevée : commit source c4581976bb0734c786d090595353649641d1f622 poussé sans force ; PR420 vérifiée ouverte, brouillon, non fusionnée avec titre/description V13. Dix unités closes dans le budget. NO-GO conservé. Une clôture documentaire conserve cette observation du commit source ; aucune relance automatique.

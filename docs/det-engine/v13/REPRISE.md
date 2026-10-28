@@ -26,3 +26,5 @@ Le contrôleur scripts/det-engine/v13-run.mjs borne branche, unités, tentatives
 Travaux suivants : preuves d’exécution des nages, réponses posturales et récupération, capacités longues documentées après réévaluation, durée de transitions et cohérence des sources, puis nouvelle tentative de construction intégrale si les préconditions sont réellement satisfaites. Les hypothèses de récupération, affûtage, nutrition et force restent candidates ou conditionnelles aux données connues.
 
 Aucune fusion, aucun déploiement/publication Lovable, aucun moteur ou validateur de production modifié, aucune donnée réelle/Nolio, migration ou dépense. Aucune promotion automatique des contrats candidats.
+
+Clôture : dix unités V13 achevées, état completed_no_go. Source et preuves publiées : c4581976bb0734c786d090595353649641d1f622. Voir publication-proof.json pour le point de contrôle distant avant la clôture documentaire. Une reprise nécessite un mandat/budget explicite distinct ; aucun processus permanent n’est lancé.
