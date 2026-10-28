@@ -1,0 +1,16 @@
+{
+  "repository": "Vinch11/tfclab",
+  "pr": 420,
+  "url": "https://github.com/Vinch11/tfclab/pull/420",
+  "verifiedDraft": true,
+  "verifiedOpen": true,
+  "verifiedNotMerged": true,
+  "branch": "experiment/det-engine",
+  "publishedSourceCommit": "8cfb8fd6ee91e196f093d7f9392623b37fa06b10",
+  "verifiedRemoteHeadAtPublication": "8cfb8fd6ee91e196f093d7f9392623b37fa06b10",
+  "recommendation": "NO-GO",
+  "verification": "successful github_update_pull_request response and independent gh pr view",
+  "closure": "subsequent commit changes only completed ledger, journal, checksums and publication receipts; engine sources unchanged",
+  "productionAction": false,
+  "verifiedAt": 1793197772.9064145
+}

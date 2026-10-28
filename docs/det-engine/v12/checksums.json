@@ -1,7 +1,7 @@
 {
   "BASELINE_AUDIT.md": "6cdac59d551c51a90820ca29d5ea8c2f5394f4455dca0bbb22f8115f01b98d9e",
   "IRONMAN_SPECIFICITY.md": "bd4fbf6fc95ca113a63a07f8612c10b3d2eccc2a8d679afbd4c84b0ebe6a2ef5",
-  "JOURNAL.md": "75d4b13b6b88f93c9a911589f5b89ba302dd96509777daa6329d41423c4dabad",
+  "JOURNAL.md": "61a25183c1b8a6080f1c678db991791f56caecc547e896ede6d632cae0f7f542",
   "LORANG_DECISION_LOGIC.md": "868e7c1bf6412421a48c44bf264e3270c28a7172968979e233317403b7b5b321",
   "MESOCYCLE_AEROBIC_PROFILE.md": "5d3b6d05cc4342609fcb3cff684f4aedd04a21dbb39b44f9db17b749791574ec",
   "MESOCYCLE_BALANCED_PROFILE.md": "58d9867b565069f06dcd3f41a7a5572730e694be7ae98c42c5b808f8d5a84184",
@@ -27,6 +27,7 @@
   "evidence/final/summary.json": "6e5c21cc9e7088c20c55cd5a1bbd0961758dcaaac2451b0b6c1865f8ef1d04da",
   "evidence/final/tests.txt": "8adc5fd1155e994ec35cb153b632a26dea2e1300de1ec9e8aceed03011967e25",
   "evidence/full_block_comparison-1.txt": "3c7bb2cf9be7c5628e5390fd5396d728751219a9f55089608dc47665982b2196",
+  "evidence/pr-publication-checkpoint.json": "b901fda6111604cf1bf4b8fd3b6902ec43bf86d4d326aca3f9cc8bfe783feced",
   "evidence/preregistration.json": "47658e3efccbcdf659655819fe13630a7f0869f63ed65dea3d1f083b89f3a5b9",
   "evidence/preservation.json": "257c97990c99d6d99f074a6e5131b598378d0ff64bbd33c2e5d78bf7f7301beb",
   "evidence/progression_models-1.txt": "1e177eddfb4a06f4d3fb4637dfc40059964d10f2828576b4219cf1a02057e8ef",
@@ -44,7 +45,8 @@
   "evidence/validation/types.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "evidence/validation-1.txt": "4c1ef45bfeaa482a681cd4a6a56883beeea4238721ff005b69f3aa918d29820b",
   "provenance.json": "15289fb70c988656a271a6b2385bc59b20ef492c5645905893c8c2192aaf1384",
+  "publication-proof.json": "6ea446a5aadfafe398a1e88671c19ca3026d58d3d45edfb1293b04d0cc3baf17",
   "source-checksums.json": "3039af9c8d8a2fe036f483b4c66b4fc01f0fa028a59f41cf6eee52706c9bdd48",
-  "state.json": "8720e93c241dc8d197c59834b26e8556c078955830a8231b951d3854fe35cfdc",
+  "state.json": "bfdccde3c19fa40292c009c6f5f526607ad7e727cb496e2dae149871727c2db7",
   "validation-summary.json": "4f7cb5c1e5d7f0fe0eba2bf431cba652427cb4b006b425043064d08926ac4c85"
 }
