@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/workspace/tfclab/scripts/det-engine/v18-family-review.py", line 4, in <module>
+    out=pathlib.Path(sys.argv[1]);assert not out.exists()and out.parent==D/'evidence'
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

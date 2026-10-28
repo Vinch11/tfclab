@@ -1,0 +1,1 @@
+{"normalStdoutAndStderrPreserved":true,"nonzeroExitPreserved":true,"missingExecutableRejected":true,"timeoutRejected":true,"overwriteRejected":true}

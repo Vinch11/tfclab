@@ -1,0 +1,87 @@
+✔ all 920 IDs and full source objects retained, no scientific promotion (1199.525012ms)
+✖ 67 complete V17 generic recipes retain complete status and same witness (2.595896ms)
+✔ lexer boundaries prevent zone descriptions becoming hours (0.180333ms)
+✔ composite hours and quoted seconds remain distinct and source-literal (0.181865ms)
+✔ explicit closed cycles and nested brackets have independent arithmetical expectations (0.262787ms)
+✔ a written between-series rest gives n-1 occurrences only (0.267704ms)
+✔ no final rest invented when r= alone is written (0.16526ms)
+✔ explicit between-repetition recovery does not include an extra final rest (0.22459ms)
+✔ indeterminate final recovery and source alternatives are blocked (0.256638ms)
+✔ explicit finish is inside total, not added to it (1.50153ms)
+✔ conditional or unspecified embedded work remains unresolved (0.151388ms)
+✔ a contradictory block sum is never padded to a label (0.174724ms)
+✔ distance timing not inferred from title, window, or CSS for another stroke (0.41057ms)
+✔ explicit matching stroke scenario is arithmetic, not capacity evidence (0.120201ms)
+✔ 119 swim models preserve all original parts and do not default to crawl (0.299553ms)
+✔ CSS-offset seconds are a target parameter, not swim elapsed duration (0.252842ms)
+✔ 127 strength models retain exercise data, unknown load/time, and no HR equivalence (0.542851ms)
+✔ time-based sets cannot become a fabricated repetition count (0.707139ms)
+✔ tempo, load, contractions and exercise headings are extracted from actual source (0.110347ms)
+✔ all 55 bricks and 32 mixed keep multimodal models and original order (97.491758ms)
+✔ missing transition is null, upper-bound transition has no zero lower bound (0.247995ms)
+✔ mixed recovery/mental exercise is not silently called a brick (0.111248ms)
+✔ all 2425 goal texts and source IDs survive variant analysis (18.603092ms)
+✔ parameter overlays never remove a warmup, cooldown, rest or discipline (9.764095ms)
+✔ all 920 coach outputs preserve all source instructions and restrictions (1592.958417ms)
+✔ local Nolio fixture refusals: v2, unknown versions, real mode, missing anchors, tamper (3.089361ms)
+✔ whole-library local output contracts retain timing and no real requests (3377.02545ms)
+✔ compiler, execution models and variants replay deterministically (807.209918ms)
+✔ explicit recovery including last occurrence is distinct from between-only (0.299121ms)
+✔ distance/time alternatives remain typed and cannot acquire a chosen duration (0.133952ms)
+✔ explicit named peripheral time can be read without turning it into running load (0.278529ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 30
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7137.130109
+
+✖ failing tests:
+
+test at scripts/det-engine/v18-contracts.test.mjs:7:1
+✖ 67 complete V17 generic recipes retain complete status and same witness (2.595896ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    {
+      assignment: [
+        {
+          nodeKind: 'time',
+          partIndex: 0,
+  ...
+        {
+  -       optionalIncluded: true,
+  -       partIndex: 2,
+  -       source: {
+  -         end: 38,
+  -         literal: 'éducatifs 5 min (optionnel)',
+  -         partIndex: 2,
+  -         start: 11
+  -       }
+  -     },
+  -     {
+          nodeKind: 'time',
+          partIndex: 2,
+          range: [
+            300,
+            300
+  
+      at file:///workspace/tfclab/scripts/det-engine/v18-contracts.test.mjs:7:271
+      at Array.forEach (<anonymous>)
+      at TestContext.<anonymous> (file:///workspace/tfclab/scripts/det-engine/v18-contracts.test.mjs:7:158)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Object],
+    expected: [Object],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

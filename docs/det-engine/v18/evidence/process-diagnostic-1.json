@@ -1,0 +1,32 @@
+[
+  {
+    "name": "node_version",
+    "status": 0,
+    "signal": null,
+    "error": {
+      "name": "Error",
+      "message": "spawnSync node EPERM",
+      "errno": -1,
+      "code": "EPERM",
+      "syscall": "spawnSync node",
+      "path": "node"
+    },
+    "stdout": "v24.19.0\n",
+    "stderr": ""
+  },
+  {
+    "name": "python_version",
+    "status": 0,
+    "signal": null,
+    "error": {
+      "name": "Error",
+      "message": "spawnSync python3 EPERM",
+      "errno": -1,
+      "code": "EPERM",
+      "syscall": "spawnSync python3",
+      "path": "python3"
+    },
+    "stdout": "Python 3.12.14\n",
+    "stderr": ""
+  }
+]

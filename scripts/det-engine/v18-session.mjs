@@ -1,0 +1,6 @@
+import fs from'node:fs';import path from'node:path';import{createHash}from'node:crypto';
+export const D='docs/det-engine/v18';export const sha=x=>createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
+export function guard(){const s=JSON.parse(fs.readFileSync(D+'/state.json'));if(s.status!=='in_progress_no_go'||Date.now()>Date.parse(s.deadline)||s.units.length>10)throw Error('V18_CLOSED_OR_BUDGET_EXCEEDED');if(fs.readFileSync('.git/HEAD','utf8').trim()!=='ref: refs/heads/experiment/det-engine')throw Error('EXPERIMENT_BRANCH_REQUIRED');return s;}
+export function preserve(){const m=JSON.parse(fs.readFileSync(D+'/baseline-files.json'));for(const[p,h]of Object.entries(m))if(!fs.existsSync(p)||sha(fs.readFileSync(p))!==h)throw Error('PROTECTED_FILE_CHANGED:'+p);return Object.keys(m).length;}
+export function fresh(out){guard();if(!path.resolve(out).startsWith(path.resolve(D+'/evidence')+'/')||fs.existsSync(out))throw Error('NEW_V18_EVIDENCE_PATH_REQUIRED');fs.mkdirSync(out,{recursive:true});}
+export function put(p,value){if(fs.existsSync(p))throw Error('NO_OVERWRITE:'+p);fs.writeFileSync(p,Buffer.isBuffer(value)||typeof value==='string'?value:JSON.stringify(value,null,2)+'\n');}

@@ -1,0 +1,30 @@
+{
+  "contracts-logged-final.txt": {
+    "sha256": "6ce5d36945e5cebe96716029f44541c3ed7f1991815329ffe78f1eeffb3ea739",
+    "expectedResultFound": "tests 32"
+  },
+  "selection-logged-final.txt": {
+    "sha256": "d4da9b77b99a6cdb787f599b122fbbe7ba90fb1b4d4cc14a466b485c4d3a54e0",
+    "expectedResultFound": "9 passed"
+  },
+  "historical-logged-final.txt": {
+    "sha256": "6c8718c8f66a0561325ea0d76a0fa22a8bd0b71c5566cdb28e991c38a9760570",
+    "expectedResultFound": "186 passed"
+  },
+  "guards-logged-final.txt": {
+    "sha256": "a6517798ea87e487803c75abf59ede57d6e2c3e1eb306497b8bdb45388990835",
+    "expectedResultFound": "30 passed"
+  },
+  "v17-contracts-logged-final.txt": {
+    "sha256": "d2e6df784284ca252a7043775903d7f1da2159d6912f2df051ce2bcfe7b550ea",
+    "expectedResultFound": "tests 27"
+  },
+  "viewer-attempt-3.txt": {
+    "sha256": "8949a8bbedf02c7e65d2376b8b61cfc5028c7336af98968b7f8025f63f77ef28",
+    "expectedResultFound": "\"coachRecordsVerified\":920"
+  },
+  "process-hard-bound-test.txt": {
+    "sha256": "5c86e9534526895a4c0813014ac7ecb44044c4290780b86fdd62116093895458",
+    "expectedResultFound": "\"timeoutRejected\":true"
+  }
+}

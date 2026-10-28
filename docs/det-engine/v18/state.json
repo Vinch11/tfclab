@@ -1,0 +1,147 @@
+{
+  "version": "v18-ledger-1",
+  "baseline": "13e5d334d221b11317cbe4a84793890b6936dcde",
+  "startedAt": "2026-10-28T21:44:37Z",
+  "deadline": "2026-10-28T22:44:37Z",
+  "status": "in_progress_no_go",
+  "maxUnits": 10,
+  "maxAttemptsPerRoot": 3,
+  "maxProcessSeconds": 180,
+  "memoryMb": 2048,
+  "automaticRestart": false,
+  "units": [
+    {
+      "unit": 1,
+      "name": "Baseline and root-cause audit of 700 incomplete records",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00"
+    },
+    {
+      "unit": 2,
+      "name": "Boundary-safe quantities and syntax regression",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00"
+    },
+    {
+      "unit": 3,
+      "name": "Compositional timeline, explicit recovery and alternatives",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00"
+    },
+    {
+      "unit": 4,
+      "name": "127 strength execution models",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00"
+    },
+    {
+      "unit": 5,
+      "name": "119 swim distance and stroke models",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00"
+    },
+    {
+      "unit": 6,
+      "name": "55 brick and 32 mixed execution models",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00"
+    },
+    {
+      "unit": 7,
+      "name": "2425 goal-variant source bindings",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00"
+    },
+    {
+      "unit": 8,
+      "name": "Coach, local Nolio and family scientific review",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/validation-3/build/outputs.jsonl.gz",
+        "evidence/validation-3/family",
+        "evidence/family-candidate-replay.json"
+      ],
+      "recordedAt": null
+    },
+    {
+      "unit": 9,
+      "name": "Independent audit, sensitivity and historical non-regression",
+      "status": "passed",
+      "attempts": 3,
+      "evidence": "docs/det-engine/v18/evidence/validation-3",
+      "recordedAt": null,
+      "failure": "Error: COMMAND_FAILED:family_review",
+      "finishedAt": "2026-10-28T22:19:33.447Z"
+    },
+    {
+      "unit": 10,
+      "name": "Dossier, publication and explicit closure",
+      "status": "active",
+      "attempts": 1,
+      "evidence": [],
+      "recordedAt": null
+    }
+  ],
+  "active": {
+    "unit": 10,
+    "operation": "dossier, offline viewer, publication and closure",
+    "pid": null
+  },
+  "rejectedOrUnchosen": [
+    {
+      "cause": "unqualified_final_recovery",
+      "decision": "retain unresolved; no n-1 or n choice merely to fit window"
+    },
+    {
+      "cause": "standalone_goal_duration_on_multicomponent_recipe",
+      "decision": "retain ambiguous; no warm-up/cool-down deletion"
+    },
+    {
+      "cause": "swim_or_technical_distance_time_unknown",
+      "decision": "protocol shape separated from athlete duration"
+    }
+  ]
+}

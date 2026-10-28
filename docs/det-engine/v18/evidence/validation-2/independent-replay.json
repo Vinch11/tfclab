@@ -1,0 +1,419 @@
+{
+  "version": "v18-independent-python-1",
+  "records": 920,
+  "protectedV17Complete": 67,
+  "completeChecked": 75,
+  "witnesses": [
+    {
+      "legacyId": "A_RUN_Z2_EASY",
+      "seconds": 2400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "D_BIKE_RECOVERY",
+      "seconds": 1800,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "D_RUN_REGEN",
+      "seconds": 1200,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_IM_BIKE_STEADY_LONG",
+      "seconds": 10800,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_IM_RUN_PACE",
+      "seconds": 3600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "D_IM_BRICK_REGEN",
+      "seconds": 900,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_MAR_LONG_RUN",
+      "seconds": 5400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_MAR_END_FAST_FINISH",
+      "seconds": 5400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "D_MAR_REGEN",
+      "seconds": 1500,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_SEMI_TEMPO_LONG",
+      "seconds": 3600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_703_BIKE_RACE_SIM",
+      "seconds": 9000,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_LONG_HIKE_RUN_DPLUS",
+      "seconds": 7200,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_EASY_TECH",
+      "seconds": 3300,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_BACK_TO_BACK_1",
+      "seconds": 7200,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_BACK_TO_BACK_2",
+      "seconds": 3600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_BIKE_SUPPORT",
+      "seconds": 3600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_TR_FARTLEK_TRAIL",
+      "seconds": 3000,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_END_ROLLING_75",
+      "seconds": 3600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_LONG_DPLUS_3H",
+      "seconds": 9000,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_FLAT_SUPPORT_END",
+      "seconds": 3600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "D_TR_RECOVERY_SOFT_30",
+      "seconds": 2100,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "D_TR_BIKE_REGEN_60",
+      "seconds": 2700,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_10K_EASY_60",
+      "seconds": 2700,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_10K_PROGRESSIVE_60",
+      "seconds": 3600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_SEMI_LONG_RUN_90",
+      "seconds": 4800,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_SEMI_PROGRESSIVE_FINISH",
+      "seconds": 4500,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_SEMI_TEMPO_LONG_30",
+      "seconds": 3300,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_SEMI_FARTLEK_CONTROLLED",
+      "seconds": 3720,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR50_LONG_RUN_2H30",
+      "seconds": 7800,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR50_PROGRESSIVE_FINISH",
+      "seconds": 6600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR50_EASY_DPLUS_60",
+      "seconds": 3000,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_TR50_FARTLEK_SENTIER",
+      "seconds": 3420,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_BIKE_RACE_SIM_IM",
+      "seconds": 14400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_BIKE_RACE_SIM_703",
+      "seconds": 8700,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_RUN_MARATHON_PACE_LONG",
+      "seconds": 3900,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_RUN_IM_RACE_SIM",
+      "seconds": 4500,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_RUN_703_RACE_SIM",
+      "seconds": 3300,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_RUN_TEMPO_PROGRESSIVE",
+      "seconds": 3000,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_BIKE_DURABILITY_TEST",
+      "seconds": 7200,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "SEILER_BIKE_Z1_LONG",
+      "seconds": 5400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_RUN_EASY_45_PRO",
+      "seconds": 2700,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "TPL_SEMI_TEMPO_CONTINU",
+      "seconds": 3300,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "TPL_MAR_BLOC_CONTINU_MP",
+      "seconds": 4500,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "TPL_MAR_LONGUE_PRE_FATIGUE",
+      "seconds": 8400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "TPL_IM_RUN_LONGUE_DURABILITE",
+      "seconds": 5400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "TPL_IM_RUN_MARATHON_PRE_FATIGUE",
+      "seconds": 8100,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "ENR_RUN_TEMPO_PROGRESSIF",
+      "seconds": 3300,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "ENR_RUN_ALLURE_MARATHON_LONG",
+      "seconds": 6600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "ENR_RUN_DESCENTE_TECHNIQUE",
+      "seconds": 3000,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "ENR_BIKE_ENDURANCE_NEGATIVE_SPLIT",
+      "seconds": 10500,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "ENR_BIKE_LACTATE_SHUTTLE",
+      "seconds": 3960,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V2_BIKE_TT_RACE_PACE",
+      "seconds": 5400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V2_BIKE_FATMAX_LONG",
+      "seconds": 9600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V3_BIKE_Z2_ENDURANCE_LONG",
+      "seconds": 10800,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V3_BIKE_Z2_CAFE_RIDE",
+      "seconds": 4200,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V3_BIKE_FATMAX_LONG",
+      "seconds": 7800,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V3_BIKE_TEMPO_LONG",
+      "seconds": 5400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V3_BIKE_RACE_PACE_TT",
+      "seconds": 5400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V3_BIKE_RECOVERY_SPIN",
+      "seconds": 1800,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V3_TRAIL_ULTRA_NIGHT",
+      "seconds": 6600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "V3_RECUP_WALK_NATURE",
+      "seconds": 2100,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_EF_SENTIER",
+      "seconds": 3600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_SL_MONTAGNE_BASE",
+      "seconds": 7200,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_SL_PEAK",
+      "seconds": 12600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_B2B_DIM",
+      "seconds": 8400,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "A_TR_MARCHE_COURSE_ULTRA",
+      "seconds": 12600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "B_TR_FARTLEK_TERRAIN",
+      "seconds": 3300,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "RS_TR_SIM_COURT",
+      "seconds": 8700,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "RS_TR_SIM_MTN",
+      "seconds": 12600,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "RS_TR_SIM_NUIT",
+      "seconds": 8700,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "RS_TR_GUT_TRAINING",
+      "seconds": 8700,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "D_TR_RECUP_ACTIVE",
+      "seconds": 1500,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "D_TR_VELO_CROSS",
+      "seconds": 2700,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "S2R_WALK_BRISK_RECOVERY",
+      "seconds": 2100,
+      "source_and_arithmetic": true
+    },
+    {
+      "legacyId": "S2R_ACTIVE_RECOVERY_WALK_LONG",
+      "seconds": 2700,
+      "source_and_arithmetic": true
+    }
+  ],
+  "swimSourceProtocols": [
+    "A_SWIM_TRI_OPEN_WATER_SIMU",
+    "A_SWIM_CONTINUOUS_2K",
+    "A_SWIM_STEADY_STATE_2500"
+  ],
+  "strengthSourceEvidenceChecked": 710,
+  "strengthModelsChecked": 127,
+  "multimodalModelsChecked": 87,
+  "variantsChecked": 2425,
+  "variantBindingsChecked": 6,
+  "coachRendersChecked": 920,
+  "textNolioPayloadsChecked": 831,
+  "structuredNolioPayloadsChecked": 13,
+  "structuredIds": [
+    "D_BIKE_RECOVERY",
+    "D_RUN_REGEN",
+    "D_IM_BRICK_REGEN",
+    "A_MAR_LONG_RUN",
+    "D_MAR_REGEN",
+    "A_TR_BIKE_SUPPORT",
+    "A_TR_FLAT_SUPPORT_END",
+    "A_10K_EASY_60",
+    "A_SEMI_LONG_RUN_90",
+    "TPL_IM_RUN_MARATHON_PRE_FATIGUE",
+    "V3_BIKE_Z2_CAFE_RIDE",
+    "D_TR_RECUP_ACTIVE",
+    "D_TR_VELO_CROSS"
+  ],
+  "failures": [],
+  "notAttested": [
+    "individual_admissibility",
+    "scientific_efficacy",
+    "optimal_dose",
+    "remote_Nolio_acceptance",
+    "expert_review"
+  ]
+}

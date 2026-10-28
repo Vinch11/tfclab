@@ -1,0 +1,167 @@
+[
+  {
+    "name": "types",
+    "bin": "node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 40598
+  },
+  {
+    "name": "contracts",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v18-contracts.test.mjs"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 9200
+  },
+  {
+    "name": "build",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v18-build.mjs",
+      "docs/det-engine/v18/evidence/validation-2/build"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 7211
+  },
+  {
+    "name": "replay",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v18-build.mjs",
+      "docs/det-engine/v18/evidence/validation-2/replay"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 6942
+  },
+  {
+    "name": "independent",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v18-independent-audit.py",
+      "docs/det-engine/v18/evidence/validation-2/build",
+      "docs/det-engine/v18/evidence/validation-2/independent.json"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1179
+  },
+  {
+    "name": "independent_replay",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v18-independent-audit.py",
+      "docs/det-engine/v18/evidence/validation-2/replay",
+      "docs/det-engine/v18/evidence/validation-2/independent-replay.json"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1284
+  },
+  {
+    "name": "mutations",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v18-independent-audit.test.py"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 16109
+  },
+  {
+    "name": "selection",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v18.config.ts"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 8612
+  },
+  {
+    "name": "selection_replay",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v18.config.ts"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 7626
+  },
+  {
+    "name": "historical_regression",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16-historical.config.ts"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 22067
+  },
+  {
+    "name": "experimental_guards",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16-regression.config.ts"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 49475
+  },
+  {
+    "name": "v17_pure_contracts",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v17-contracts.test.mjs"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 8742
+  },
+  {
+    "name": "family_review",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v18-family-review.py",
+      "docs/det-engine/v18/evidence/validation-2/family"
+    ],
+    "exitCode": 1,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 26
+  }
+]
