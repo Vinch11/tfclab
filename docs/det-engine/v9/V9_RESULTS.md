@@ -52,3 +52,5 @@ Les dernières corrections ont été suivies de vérifications ciblées, d’un 
 NO-GO. Un microcycle et huit doses ne constituent pas deux plans complets. L’allocation égale du temps est une convention de prototype ; les contrats de dose sont prudents et révisables, mais non validés cliniquement. Les volumes vélo, la tolérance verticale/excentrique, le dosage au seuil et la récupération réelle restent ouverts.
 
 Les variantes méthodologiques doivent rester candidates et passer une revue sportive avant promotion. Les travaux techniques réversibles et comparaisons futures restent autorisés dans une exécution bornée ; aucune permission supplémentaire n’est demandée pour des corrections ordinaires. Aucune CoachPreview applicative, migration, écriture athlète/Nolio, fusion, dépense ou publication de produit.
+
+La différenciation démontrée porte notamment sur les refus et les enveloppes d’entrée. Une comparaison de deux profils tous deux admissibles recevant des doses positives différentes pour le même objectif reste à démontrer. Le prototype ne revendique pas cette preuve supplémentaire.

@@ -12,3 +12,5 @@
 10. Publication : branche expérimentale et PRbrouillon uniquement, reçu séparé à clôture.
 
 Les premiers pilot-attempt et source-role ne font pas foi comme résultats finaux. Les preuves canoniques sont dans evidence/canonical, avec rejeu indépendant evidence/replay-full. Les erreurs de types, mauvais témoins, mauvaises intentions et substitutions régressives restent disponibles. Aucune règle historique ni scientifique affaiblie pour obtenir un résultat vert.
+
+Clôture :10unités terminées en2031.922secondes, dans le budget3600secondes. Branche poussée et PR420mise à jour en brouillon, NO-GO. La comparaison de deux profils tous deux admissibles avec doses positives différentes reste explicitement non démontrée. Le commit de clôture est documentaire.

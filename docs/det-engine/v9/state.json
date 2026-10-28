@@ -5,8 +5,8 @@
   "deadline": 1793184031,
   "maxUnits": 10,
   "maxAttempts": 3,
-  "status": "running",
-  "activeUnit": "publication",
+  "status": "completed_no_go",
+  "activeUnit": null,
   "units": [
     {
       "id": "baseline",
@@ -77,9 +77,15 @@
     },
     {
       "id": "publication",
-      "status": "running",
+      "status": "passed",
       "startedAt": 1793182357.1273816,
-      "mode": "authorized_git_push_and_draft_pr_update"
+      "mode": "authorized_git_push_and_draft_pr_update",
+      "completedAt": 1793182462.9224384,
+      "evidence": "publication-proof.json"
     }
-  ]
+  ],
+  "completedAt": 1793182462.9224405,
+  "elapsedSeconds": 2031.922,
+  "stopReason": "ten_named_units_completed",
+  "automaticRestart": false
 }
