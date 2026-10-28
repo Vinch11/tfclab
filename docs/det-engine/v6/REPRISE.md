@@ -9,3 +9,5 @@ Les sorties structurées, plans et rejeux sont empreintés. Un cache ne remplace
 Les scripts V6 ne déclenchent pas de processus permanent, d'appel de modèle ou d'action de production. La publication GitHub est une unité externe manuelle dans le même registre, avec reçu de branche, statut brouillon et absence de fusion.
 
 Après clôture, une nouvelle session corrective exige une autorisation et un registre propres. Aucun service ne relance automatiquement le chantier. Les contrôles restent distincts : technique, règles sportives existantes, contrats expérimentaux, inconnues et revue experte.
+
+V6 est clos : dix unités terminées. Le dernier commit ne clôture que la documentation et les preuves. Une reprise corrective exige un nouveau mandat et un nouveau registre ; le garde refuse de relancer cette mission close.

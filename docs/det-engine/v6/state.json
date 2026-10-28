@@ -6,7 +6,7 @@
   "deadline": 1793173800,
   "maxUnits": 10,
   "maxAttemptsPerUnit": 3,
-  "status": "running",
+  "status": "completed_no_go",
   "units": [
     {
       "id": "audit",
@@ -434,22 +434,26 @@
     },
     {
       "id": "publication",
-      "status": "running",
+      "status": "passed",
       "attempts": [
         {
           "startedAt": 1793173163980,
           "command": [
             "manual: authorized draft PR update, experimental push and verification"
           ],
-          "status": "running"
+          "status": "passed",
+          "completedAt": 1793173483261,
+          "receipt": "publication-proof.json",
+          "checkpointCommit": "85ce98c30ff3dede02a956299fc5db65c083b397"
         }
       ]
     }
   ],
-  "activeUnit": {
-    "id": "publication",
-    "mode": "external_manual_receipt",
-    "startedAt": 1793173163980
-  },
-  "note": "New V6 grant; V5 register and evidence immutable"
+  "activeUnit": null,
+  "note": "New V6 grant; V5 register and evidence immutable",
+  "stopReason": "ten_named_work_units_completed",
+  "completedAt": 1793173483261,
+  "elapsedMinutesAtClosure": 54.72102399667104,
+  "paidApiCalls": 0,
+  "autoRestart": false
 }

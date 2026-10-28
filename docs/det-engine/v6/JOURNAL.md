@@ -13,7 +13,7 @@ Budget nouveau : 60 minutes maximum, dix unités maximum. Parent V5 immuable ; a
 | cohort | 1 | passed | docs/det-engine/v6/evidence/cohort-1.txt |
 | reference | 1 | passed | docs/det-engine/v6/evidence/reference-1.txt |
 | validation | 2 | passed | docs/det-engine/v6/evidence/validation-2.txt |
-| publication | 1 | running | réservation externe, reçu attendu |
+| publication | 1 | passed | publication-proof.json |
 
 ## Cycles et décisions
 
@@ -28,3 +28,5 @@ Budget nouveau : 60 minutes maximum, dix unités maximum. Parent V5 immuable ; a
 - Validation complète : TypeScript, 56 Node, 62 expérimentaux et 2 999 historiques passent. Un test historique ignoré, six à compléter.
 - Après la suite complète : seul le diagnostic analytique par fenêtres de génération est complété ; tests ciblés et TypeScript passent. Le moteur et les corrections sportives sont inchangés.
 - Aucun arbitrage scientifique controversé n’est promu ; aucune réécriture d’indicateur déjà rejetée n’est reprise.
+
+Clôture : dix unités terminées en 54.72 minutes. Arrêt à la première limite atteinte : dix unités. Aucun cycle supplémentaire ; PR brouillon vérifiée et NO-GO maintenu.

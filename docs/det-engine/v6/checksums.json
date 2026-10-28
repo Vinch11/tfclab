@@ -1,9 +1,9 @@
 {
   "docs/det-engine/v6/CONTRADICTIONS.md": "159a25f68afbe9b8259a29ae67d7bdf51e2a4d074b9e5758c81bc6ec09ff5e85",
   "docs/det-engine/v6/CONTRATS_ET_LIMITES.md": "52a92c63313a679e08c8128d62b7ac8d5cbf504792992c9ccc36c47c558c254e",
-  "docs/det-engine/v6/JOURNAL.md": "da0176035ea57e562ea862ac6ef75f2338d4aef45be58b689f8ddc40dff65830",
+  "docs/det-engine/v6/JOURNAL.md": "f7d43aa355b6d71f42126570f67062942a56390f23d713cbfa0b48abc6fc3a08",
   "docs/det-engine/v6/README.md": "ee671b21df31a0395a51c5923d4180d93931e6e99e04c336765d2ac46875847f",
-  "docs/det-engine/v6/REPRISE.md": "ab115fc978d43beb90b1dfd7a71401e57a6987e61b77536f6547892979272d65",
+  "docs/det-engine/v6/REPRISE.md": "e55bb2d6d1e8444c8f80b59be4370760598221c7190d2ebecb75f0be60db47c8",
   "docs/det-engine/v6/RESULTATS.md": "0af47ea34571ff546a4b76270a92cf64ad276fbc477d1a253cec7252b3283766",
   "docs/det-engine/v6/baseline-preservation.json": "b1f17a8be4efb2054ba294c66f9ca099aa75b5bb6c69d68e9aa78c246e442b42",
   "docs/det-engine/v6/comparison.json": "55392192cd2716df361c3186380b844322bd37f73a86c8b40fcb4d94a46d072b",
@@ -78,5 +78,6 @@
   "docs/det-engine/v6/plans/ultra-entraine.md": "e8cdf910ee10c69f3011977a9378098abdc11e3a86c89cc73ee15f2a27fc6643",
   "docs/det-engine/v6/plans/ultra-tres-entraine.md": "c6ef86afe55b79c637cf36e5b1e22be6fbbe59cb2a98cc696e61d4e14ac446a3",
   "docs/det-engine/v6/provenance.json": "5a750101e34845e0614a5272cbb608540f22ca754092eb810f0b17ef23eb9002",
-  "docs/det-engine/v6/state.json": "ca06e171831a2fafb74abbdde8d556c794e200ad14bffded894733a469dc5cb1"
+  "docs/det-engine/v6/publication-proof.json": "1b10ede80fca7c8f8f433102fb0187f6a7378061136aaa334a9b4bae9d671792",
+  "docs/det-engine/v6/state.json": "b121ccab62d809095d6c599687219375feceb051470db559bef81f740551dd6b"
 }
