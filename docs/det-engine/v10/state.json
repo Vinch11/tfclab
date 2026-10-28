@@ -4,8 +4,8 @@
   "startedAt": 1793187925,
   "deadline": 1793191525,
   "maxUnits": 10,
-  "status": "running",
-  "activeUnit": "publication",
+  "status": "completed_no_go",
+  "activeUnit": null,
   "units": [
     {
       "id": "baseline_audit",
@@ -87,9 +87,15 @@
     },
     {
       "id": "publication",
-      "status": "running",
+      "status": "passed",
       "startedAt": 1793190722.948642,
-      "mode": "authorized_git_and_draft_pr_metadata"
+      "mode": "authorized_git_and_draft_pr_metadata",
+      "completedAt": 1793190895.1969943,
+      "evidence": "publication-proof.json"
     }
-  ]
+  ],
+  "completedAt": 1793190895.196997,
+  "elapsedSeconds": 2970.197,
+  "stopReason": "ten_named_units_completed",
+  "automaticRestart": false
 }

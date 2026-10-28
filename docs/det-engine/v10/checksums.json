@@ -3,7 +3,7 @@
   "FEEDBACK_REPAIR_RESULTS.md": "64ed2f7116e49e70594e34ba2e64984590d35a38405d23956ada3617bdac0017",
   "INDIVIDUALIZATION_COMPARISON.md": "a4c368e9a8eaf0df2a19f70a1da660f5f3ab46f4d18e7191919a986ab0dc559f",
   "IRONMAN_MICROCYCLES.md": "8caad5d2ebb30a9be75d6e1cb176cc7efb3af52b6e274dd2972935543bf4deeb",
-  "JOURNAL.md": "c41af969fca644ad887786f8584ad3b6a6827a6b8d2a8eeb84c845f0e8f841d2",
+  "JOURNAL.md": "111e93d1f61ca12a6aa673542613a8b58897e4d3c47a893d5a4add28c3b873eb",
   "README.md": "dffc603444df6c67d08c625502cfd8ef2d0e7ad6e1271e3d45c93cc55a96d757",
   "REPRISE.md": "a912c720aa57bf74dc5b3b24412196c56efff91d6c2480be69e89d96fc64a940",
   "TRAIL_SENSITIVITY.md": "fc8ec1271f9a26044c1f8356769813e10cbf8d44525a1d23e361c7b79fba64bb",
@@ -63,7 +63,8 @@
   "evidence/validation-types-rejected/commands.json": "2ac7869d832baebb8fc5ca889d011d7a7e25e416823cab59bcd8543deabcee22",
   "evidence/validation-types-rejected/types.txt": "2026e73f1d8bfb65e09022a94f8043db091a52f85baeb584b92b0af3c8555df7",
   "provenance.json": "de084596eb13da06f1602873da42fc465f8843c1051b8cc0254b4f3cc8f9cb94",
+  "publication-proof.json": "a2676eed216a029633e4e8ed3713fb01efc370300b0a006f47f6172909d666ab",
   "source-checksums.json": "f125e454912a1e4812642cca41f0310373cbfca5d705aca0784e771b6e29e200",
-  "state.json": "0668d3f0423c8e2eed7452d04d07bfa87220b3396580c03cebf8dcd6cba522e9",
+  "state.json": "9b982ed3099c6bad48d1e30f7fb418d5debf32a64e50e2176e071895aa5c2de0",
   "validation-summary.json": "0f7b39efad244c9ed1de641d707646869b3d9fd26380db022b4d1f379249abda"
 }

@@ -14,3 +14,5 @@
 La troncature du catalogue a été corrigée par union des domaines déjà filtrés pour le même profil, suivie de réapplication des contrôles source/phase/prérequis. Le filtre lexical trop étroit n’est levé que devant des tags/contenus explicites déjà présents. Aucune fiche technique n’est présentée comme endurance longue.
 
 Les erreurs de portée des validateurs de plan complet restent brutes, sans présentation trompeuse de conformité. Aucun seuil scientifique ou protection de production n’a été abaissé. Les versions intermédiaires sont conservées ; evidence/final fait foi, avec evidence/replay indépendant.
+
+Clôture :dix unités terminées en2970.197secondes, sous la limite3600secondes. Branche poussée et PR420mise à jour, brouillon confirmé. Le commit de clôture ne modifie que les reçus documentaires. NO-GO maintenu.
