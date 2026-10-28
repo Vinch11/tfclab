@@ -1,0 +1,583 @@
+{
+  "candidates": 76,
+  "trail": 15,
+  "ironman": 61,
+  "technicalValid": 76,
+  "existingIssuesIdentical": true,
+  "exactReplay": 76,
+  "categories": [
+    {
+      "cause": "long_endurance_and_minimum_dose",
+      "plans": 10,
+      "blockingOccurrences": 42,
+      "warnings": 0,
+      "examples": [
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "quota_floor_violation",
+              "week": 1,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            },
+            {
+              "code": "quota_floor_violation",
+              "week": 2,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            },
+            {
+              "code": "quota_floor_violation",
+              "week": 3,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "conservative_taper",
+          "issues": [
+            {
+              "code": "quota_floor_violation",
+              "week": 1,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            },
+            {
+              "code": "quota_floor_violation",
+              "week": 2,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            },
+            {
+              "code": "quota_floor_violation",
+              "week": 3,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:light",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "quota_floor_violation",
+              "week": 1,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            },
+            {
+              "code": "quota_floor_violation",
+              "week": 2,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            },
+            {
+              "code": "quota_floor_violation",
+              "week": 3,
+              "severity": "critical",
+              "message": "pas de SL CAP (≥90min) en semaine load",
+              "control": "weekly_quotas"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cause": "global_progression",
+      "plans": 63,
+      "blockingOccurrences": 16,
+      "warnings": 307,
+      "examples": [
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "progression",
+              "severity": "error",
+              "message": "Aucune séance clé dans la première moitié du plan",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "progression",
+              "week": 6,
+              "severity": "warning",
+              "message": "S6: sortie longue Course +33% vs S5 (60min → 80min)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "progression",
+              "week": 12,
+              "severity": "warning",
+              "message": "S12: volume Course pendant l'affûtage non réduit (315min vs moyenne récente 205min)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "conservative_taper",
+          "issues": [
+            {
+              "code": "progression",
+              "severity": "error",
+              "message": "Aucune séance clé dans la première moitié du plan",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "progression",
+              "week": 6,
+              "severity": "warning",
+              "message": "S6: sortie longue Course +33% vs S5 (60min → 80min)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "progression",
+              "week": 12,
+              "severity": "warning",
+              "message": "S12: volume Course pendant l'affûtage non réduit (315min vs moyenne récente 205min)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:light",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "coach_load_violation",
+              "week": 3,
+              "severity": "critical",
+              "message": "S3: 203 min prescrites > 202 min (progression depuis la dernière semaine de charge prescrite)",
+              "control": "weekly_quotas"
+            },
+            {
+              "code": "coach_load_violation",
+              "week": 5,
+              "severity": "critical",
+              "message": "S5: 245 min prescrites > 223 min (progression depuis la dernière semaine de charge prescrite)",
+              "control": "weekly_quotas"
+            },
+            {
+              "code": "coach_load_violation",
+              "week": 6,
+              "severity": "critical",
+              "message": "S6: 270 min prescrites > 269 min (progression depuis la dernière semaine de charge prescrite)",
+              "control": "weekly_quotas"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cause": "disciplinary_ratio_units",
+      "plans": 76,
+      "blockingOccurrences": 137,
+      "warnings": 24,
+      "examples": [
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "sport_ratio",
+              "severity": "error",
+              "message": "Course 100% (cible 70-80%, tolérance ±3%)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "conservative_taper",
+          "issues": [
+            {
+              "code": "sport_ratio",
+              "severity": "error",
+              "message": "Course 100% (cible 70-80%, tolérance ±3%)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:light",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "sport_ratio",
+              "severity": "error",
+              "message": "Course 100% (cible 70-80%, tolérance ±3%)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cause": "periodization_and_recovery",
+      "plans": 70,
+      "blockingOccurrences": 0,
+      "warnings": 107,
+      "examples": [
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "phase_coherence",
+              "severity": "warning",
+              "message": "Phase \"build\" trop longue : 8 sem (maximum recommandé 6)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "phase_coherence",
+              "severity": "info",
+              "message": "Bloc Fondation sans intensité détectée — la Reverse Periodization Lorang recommande des blocs VO2max courts dès la phase 1",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "conservative_taper",
+          "issues": [
+            {
+              "code": "phase_coherence",
+              "severity": "warning",
+              "message": "Phase \"build\" trop longue : 8 sem (maximum recommandé 6)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "phase_coherence",
+              "severity": "info",
+              "message": "Bloc Fondation sans intensité détectée — la Reverse Periodization Lorang recommande des blocs VO2max courts dès la phase 1",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:light",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "phase_coherence",
+              "week": 10,
+              "severity": "warning",
+              "message": "S10: \"Force isométrique membres inférieurs – tendons, stabilité articulaire\" inadapté en phase \"peak\" — contenu typique d'une phase différente",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "phase_coherence",
+              "week": 10,
+              "severity": "warning",
+              "message": "S10: \"Endurance fondamentale sentier — adaptation terrain\" inadapté en phase \"peak\" — contenu typique d'une phase différente",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "phase_coherence",
+              "severity": "info",
+              "message": "Bloc Fondation sans intensité détectée — la Reverse Periodization Lorang recommande des blocs VO2max courts dès la phase 1",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cause": "catalogue_or_other",
+      "plans": 67,
+      "blockingOccurrences": 6,
+      "warnings": 386,
+      "examples": [
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "trail_dplus_presence",
+              "severity": "warning",
+              "message": "26/37 séances CAP/Trail sans D+ chiffré — chaque séance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Pied/cheville (proprioception) + prévention entorses\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "conservative_taper",
+          "issues": [
+            {
+              "code": "trail_dplus_presence",
+              "severity": "warning",
+              "message": "26/37 séances CAP/Trail sans D+ chiffré — chaque séance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Pied/cheville (proprioception) + prévention entorses\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:light",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "trail_dplus_presence",
+              "severity": "warning",
+              "message": "26/37 séances CAP/Trail sans D+ chiffré — chaque séance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Pied/cheville (proprioception) + prévention entorses\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cause": "key_session_role",
+      "plans": 76,
+      "blockingOccurrences": 36,
+      "warnings": 3522,
+      "examples": [
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "key_session_self_declaration_mismatch",
+              "week": 12,
+              "severity": "warning",
+              "message": "S12: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"COURSE : TrailShort\"",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:untrained",
+          "model": "conservative_taper",
+          "issues": [
+            {
+              "code": "key_session_self_declaration_mismatch",
+              "week": 12,
+              "severity": "warning",
+              "message": "S12: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"COURSE : TrailShort\"",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:light",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "key_sessions",
+              "week": 1,
+              "severity": "error",
+              "message": "S1: Aucune séance clé détectée (attendu: 2-4 séances d'intensité/semaine)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "key_sessions_per_sport",
+              "week": 1,
+              "severity": "error",
+              "message": "S1: Course — 3 séance(s) cette semaine, aucune classée séance clé (toutes récupération/technique)",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "key_sessions",
+              "week": 2,
+              "severity": "error",
+              "message": "S2: Aucune séance clé détectée (attendu: 2-4 séances d'intensité/semaine)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cause": "intensity_and_method_categories",
+      "plans": 72,
+      "blockingOccurrences": 414,
+      "warnings": 1037,
+      "examples": [
+        {
+          "id": "synthetic-v4:TrailShort:light",
+          "model": "separated_exposure",
+          "issues": [
+            {
+              "code": "lorang_categories",
+              "week": 1,
+              "severity": "error",
+              "message": "S1 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "lorang_categories",
+              "week": 2,
+              "severity": "error",
+              "message": "S2 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "lorang_categories",
+              "week": 3,
+              "severity": "error",
+              "message": "S3 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:light",
+          "model": "conservative_taper",
+          "issues": [
+            {
+              "code": "lorang_categories",
+              "week": 1,
+              "severity": "error",
+              "message": "S1 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "lorang_categories",
+              "week": 2,
+              "severity": "error",
+              "message": "S2 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "lorang_categories",
+              "week": 3,
+              "severity": "error",
+              "message": "S3 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "synthetic-v4:TrailShort:trained",
+          "model": "conservative_taper",
+          "issues": [
+            {
+              "code": "lorang_categories",
+              "week": 1,
+              "severity": "error",
+              "message": "S1 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "lorang_categories",
+              "week": 2,
+              "severity": "error",
+              "message": "S2 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            },
+            {
+              "code": "lorang_categories",
+              "week": 3,
+              "severity": "error",
+              "message": "S3 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cause": "placement_and_accumulation",
+      "plans": 22,
+      "blockingOccurrences": 44,
+      "warnings": 0,
+      "examples": [
+        {
+          "id": "IM:light:finisher:known_synthetic",
+          "model": "standalone_preserve",
+          "issues": [
+            {
+              "code": "demanding_session_accumulation",
+              "week": 9,
+              "severity": "error",
+              "message": "S9: 4 séance(s) exigeante(s) sur 7 (\"Long ride race-pace samedi LCW — 2h30-3h à intensité race étape 2 (85-88% FTP autorisé, PAS de contrainte T2), préparation étape 2 (SANS brique)\", \"Pyramide CSS natation – variété de distances, maintien technique sous fatigue\", \"MLSS Billat vélo — seuil lactique maximal stable (88-93% FTP)\", \"Pyramide CSS — variation distance au seuil pour stimulus cognitif\") — accumulation excessive pour un niveau light (source manual)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "IM:light:finisher:known_synthetic",
+          "model": "standalone_recovery_relief",
+          "issues": [
+            {
+              "code": "demanding_session_accumulation",
+              "week": 9,
+              "severity": "error",
+              "message": "S9: 4 séance(s) exigeante(s) sur 7 (\"Long ride race-pace samedi LCW — 2h30-3h à intensité race étape 2 (85-88% FTP autorisé, PAS de contrainte T2), préparation étape 2 (SANS brique)\", \"Pyramide CSS natation – variété de distances, maintien technique sous fatigue\", \"MLSS Billat vélo — seuil lactique maximal stable (88-93% FTP)\", \"Pyramide CSS — variation distance au seuil pour stimulus cognitif\") — accumulation excessive pour un niveau light (source manual)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        },
+        {
+          "id": "IM:light:finisher:known_synthetic",
+          "model": "peak_brick_recovery_relief",
+          "issues": [
+            {
+              "code": "demanding_session_accumulation",
+              "week": 9,
+              "severity": "error",
+              "message": "S9: 4 séance(s) exigeante(s) sur 7 (\"Long ride race-pace samedi LCW — 2h30-3h à intensité race étape 2 (85-88% FTP autorisé, PAS de contrainte T2), préparation étape 2 (SANS brique)\", \"Pyramide CSS natation – variété de distances, maintien technique sous fatigue\", \"MLSS Billat vélo — seuil lactique maximal stable (88-93% FTP)\", \"Pyramide CSS — variation distance au seuil pour stimulus cognitif\") — accumulation excessive pour un niveau light (source manual)",
+              "control": "plan_validator_complete_context"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

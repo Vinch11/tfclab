@@ -1,0 +1,1204 @@
+{
+  "version": "det-v6-dashboard-1",
+  "status": "NO-GO",
+  "same76Comparison": {
+    "cohort": "same_76_V5_candidates",
+    "cases": 76,
+    "distinctInputs": 29,
+    "beforeBlockingIncludingSupplementaryV5Continuity": 698,
+    "afterBlockingIncludingSupplementaryV5Continuity": 676,
+    "beforeWarnings": 5383,
+    "afterWarnings": 5381,
+    "improvedVariants": 17,
+    "improvedDistinctInputs": 6,
+    "acceptedRepairs": 22,
+    "allNewCandidatesSeparate": true
+  },
+  "diagnostic": {
+    "candidates": 76,
+    "trail": 15,
+    "ironman": 61,
+    "technicalValid": 76,
+    "existingIssuesIdentical": true,
+    "exactReplay": 76,
+    "categories": [
+      {
+        "cause": "long_endurance_and_minimum_dose",
+        "plans": 10,
+        "blockingOccurrences": 42,
+        "warnings": 0,
+        "examples": [
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "quota_floor_violation",
+                "week": 1,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              },
+              {
+                "code": "quota_floor_violation",
+                "week": 2,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              },
+              {
+                "code": "quota_floor_violation",
+                "week": 3,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "conservative_taper",
+            "issues": [
+              {
+                "code": "quota_floor_violation",
+                "week": 1,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              },
+              {
+                "code": "quota_floor_violation",
+                "week": 2,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              },
+              {
+                "code": "quota_floor_violation",
+                "week": 3,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:light",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "quota_floor_violation",
+                "week": 1,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              },
+              {
+                "code": "quota_floor_violation",
+                "week": 2,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              },
+              {
+                "code": "quota_floor_violation",
+                "week": 3,
+                "severity": "critical",
+                "message": "pas de SL CAP (≥90min) en semaine load",
+                "control": "weekly_quotas"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cause": "global_progression",
+        "plans": 63,
+        "blockingOccurrences": 16,
+        "warnings": 307,
+        "examples": [
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "progression",
+                "severity": "error",
+                "message": "Aucune séance clé dans la première moitié du plan",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "progression",
+                "week": 6,
+                "severity": "warning",
+                "message": "S6: sortie longue Course +33% vs S5 (60min → 80min)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "progression",
+                "week": 12,
+                "severity": "warning",
+                "message": "S12: volume Course pendant l'affûtage non réduit (315min vs moyenne récente 205min)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "conservative_taper",
+            "issues": [
+              {
+                "code": "progression",
+                "severity": "error",
+                "message": "Aucune séance clé dans la première moitié du plan",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "progression",
+                "week": 6,
+                "severity": "warning",
+                "message": "S6: sortie longue Course +33% vs S5 (60min → 80min)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "progression",
+                "week": 12,
+                "severity": "warning",
+                "message": "S12: volume Course pendant l'affûtage non réduit (315min vs moyenne récente 205min)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:light",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "coach_load_violation",
+                "week": 3,
+                "severity": "critical",
+                "message": "S3: 203 min prescrites > 202 min (progression depuis la dernière semaine de charge prescrite)",
+                "control": "weekly_quotas"
+              },
+              {
+                "code": "coach_load_violation",
+                "week": 5,
+                "severity": "critical",
+                "message": "S5: 245 min prescrites > 223 min (progression depuis la dernière semaine de charge prescrite)",
+                "control": "weekly_quotas"
+              },
+              {
+                "code": "coach_load_violation",
+                "week": 6,
+                "severity": "critical",
+                "message": "S6: 270 min prescrites > 269 min (progression depuis la dernière semaine de charge prescrite)",
+                "control": "weekly_quotas"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cause": "disciplinary_ratio_units",
+        "plans": 76,
+        "blockingOccurrences": 137,
+        "warnings": 24,
+        "examples": [
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "sport_ratio",
+                "severity": "error",
+                "message": "Course 100% (cible 70-80%, tolérance ±3%)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "conservative_taper",
+            "issues": [
+              {
+                "code": "sport_ratio",
+                "severity": "error",
+                "message": "Course 100% (cible 70-80%, tolérance ±3%)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:light",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "sport_ratio",
+                "severity": "error",
+                "message": "Course 100% (cible 70-80%, tolérance ±3%)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cause": "periodization_and_recovery",
+        "plans": 70,
+        "blockingOccurrences": 0,
+        "warnings": 107,
+        "examples": [
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "phase_coherence",
+                "severity": "warning",
+                "message": "Phase \"build\" trop longue : 8 sem (maximum recommandé 6)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "phase_coherence",
+                "severity": "info",
+                "message": "Bloc Fondation sans intensité détectée — la Reverse Periodization Lorang recommande des blocs VO2max courts dès la phase 1",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "conservative_taper",
+            "issues": [
+              {
+                "code": "phase_coherence",
+                "severity": "warning",
+                "message": "Phase \"build\" trop longue : 8 sem (maximum recommandé 6)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "phase_coherence",
+                "severity": "info",
+                "message": "Bloc Fondation sans intensité détectée — la Reverse Periodization Lorang recommande des blocs VO2max courts dès la phase 1",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:light",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "phase_coherence",
+                "week": 10,
+                "severity": "warning",
+                "message": "S10: \"Force isométrique membres inférieurs – tendons, stabilité articulaire\" inadapté en phase \"peak\" — contenu typique d'une phase différente",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "phase_coherence",
+                "week": 10,
+                "severity": "warning",
+                "message": "S10: \"Endurance fondamentale sentier — adaptation terrain\" inadapté en phase \"peak\" — contenu typique d'une phase différente",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "phase_coherence",
+                "severity": "info",
+                "message": "Bloc Fondation sans intensité détectée — la Reverse Periodization Lorang recommande des blocs VO2max courts dès la phase 1",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cause": "catalogue_or_other",
+        "plans": 67,
+        "blockingOccurrences": 6,
+        "warnings": 386,
+        "examples": [
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "trail_dplus_presence",
+                "severity": "warning",
+                "message": "26/37 séances CAP/Trail sans D+ chiffré — chaque séance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "anti_repetition",
+                "week": 2,
+                "severity": "warning",
+                "message": "S2 mercredi: \"Pied/cheville (proprioception) + prévention entorses\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "anti_repetition",
+                "week": 2,
+                "severity": "warning",
+                "message": "S2 samedi: \"[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "conservative_taper",
+            "issues": [
+              {
+                "code": "trail_dplus_presence",
+                "severity": "warning",
+                "message": "26/37 séances CAP/Trail sans D+ chiffré — chaque séance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "anti_repetition",
+                "week": 2,
+                "severity": "warning",
+                "message": "S2 mercredi: \"Pied/cheville (proprioception) + prévention entorses\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "anti_repetition",
+                "week": 2,
+                "severity": "warning",
+                "message": "S2 samedi: \"[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:light",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "trail_dplus_presence",
+                "severity": "warning",
+                "message": "26/37 séances CAP/Trail sans D+ chiffré — chaque séance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "anti_repetition",
+                "week": 2,
+                "severity": "warning",
+                "message": "S2 mercredi: \"Pied/cheville (proprioception) + prévention entorses\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "anti_repetition",
+                "week": 2,
+                "severity": "warning",
+                "message": "S2 samedi: \"[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cause": "key_session_role",
+        "plans": 76,
+        "blockingOccurrences": 36,
+        "warnings": 3522,
+        "examples": [
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "key_session_self_declaration_mismatch",
+                "week": 12,
+                "severity": "warning",
+                "message": "S12: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"COURSE : TrailShort\"",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:untrained",
+            "model": "conservative_taper",
+            "issues": [
+              {
+                "code": "key_session_self_declaration_mismatch",
+                "week": 12,
+                "severity": "warning",
+                "message": "S12: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"COURSE : TrailShort\"",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:light",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "key_sessions",
+                "week": 1,
+                "severity": "error",
+                "message": "S1: Aucune séance clé détectée (attendu: 2-4 séances d'intensité/semaine)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "key_sessions_per_sport",
+                "week": 1,
+                "severity": "error",
+                "message": "S1: Course — 3 séance(s) cette semaine, aucune classée séance clé (toutes récupération/technique)",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "key_sessions",
+                "week": 2,
+                "severity": "error",
+                "message": "S2: Aucune séance clé détectée (attendu: 2-4 séances d'intensité/semaine)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cause": "intensity_and_method_categories",
+        "plans": 72,
+        "blockingOccurrences": 414,
+        "warnings": 1037,
+        "examples": [
+          {
+            "id": "synthetic-v4:TrailShort:light",
+            "model": "separated_exposure",
+            "issues": [
+              {
+                "code": "lorang_categories",
+                "week": 1,
+                "severity": "error",
+                "message": "S1 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "lorang_categories",
+                "week": 2,
+                "severity": "error",
+                "message": "S2 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "lorang_categories",
+                "week": 3,
+                "severity": "error",
+                "message": "S3 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:light",
+            "model": "conservative_taper",
+            "issues": [
+              {
+                "code": "lorang_categories",
+                "week": 1,
+                "severity": "error",
+                "message": "S1 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "lorang_categories",
+                "week": 2,
+                "severity": "error",
+                "message": "S2 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "lorang_categories",
+                "week": 3,
+                "severity": "error",
+                "message": "S3 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "synthetic-v4:TrailShort:trained",
+            "model": "conservative_taper",
+            "issues": [
+              {
+                "code": "lorang_categories",
+                "week": 1,
+                "severity": "error",
+                "message": "S1 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "lorang_categories",
+                "week": 2,
+                "severity": "error",
+                "message": "S2 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              },
+              {
+                "code": "lorang_categories",
+                "week": 3,
+                "severity": "error",
+                "message": "S3 : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cause": "placement_and_accumulation",
+        "plans": 22,
+        "blockingOccurrences": 44,
+        "warnings": 0,
+        "examples": [
+          {
+            "id": "IM:light:finisher:known_synthetic",
+            "model": "standalone_preserve",
+            "issues": [
+              {
+                "code": "demanding_session_accumulation",
+                "week": 9,
+                "severity": "error",
+                "message": "S9: 4 séance(s) exigeante(s) sur 7 (\"Long ride race-pace samedi LCW — 2h30-3h à intensité race étape 2 (85-88% FTP autorisé, PAS de contrainte T2), préparation étape 2 (SANS brique)\", \"Pyramide CSS natation – variété de distances, maintien technique sous fatigue\", \"MLSS Billat vélo — seuil lactique maximal stable (88-93% FTP)\", \"Pyramide CSS — variation distance au seuil pour stimulus cognitif\") — accumulation excessive pour un niveau light (source manual)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "IM:light:finisher:known_synthetic",
+            "model": "standalone_recovery_relief",
+            "issues": [
+              {
+                "code": "demanding_session_accumulation",
+                "week": 9,
+                "severity": "error",
+                "message": "S9: 4 séance(s) exigeante(s) sur 7 (\"Long ride race-pace samedi LCW — 2h30-3h à intensité race étape 2 (85-88% FTP autorisé, PAS de contrainte T2), préparation étape 2 (SANS brique)\", \"Pyramide CSS natation – variété de distances, maintien technique sous fatigue\", \"MLSS Billat vélo — seuil lactique maximal stable (88-93% FTP)\", \"Pyramide CSS — variation distance au seuil pour stimulus cognitif\") — accumulation excessive pour un niveau light (source manual)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          },
+          {
+            "id": "IM:light:finisher:known_synthetic",
+            "model": "peak_brick_recovery_relief",
+            "issues": [
+              {
+                "code": "demanding_session_accumulation",
+                "week": 9,
+                "severity": "error",
+                "message": "S9: 4 séance(s) exigeante(s) sur 7 (\"Long ride race-pace samedi LCW — 2h30-3h à intensité race étape 2 (85-88% FTP autorisé, PAS de contrainte T2), préparation étape 2 (SANS brique)\", \"Pyramide CSS natation – variété de distances, maintien technique sous fatigue\", \"MLSS Billat vélo — seuil lactique maximal stable (88-93% FTP)\", \"Pyramide CSS — variation distance au seuil pour stimulus cognitif\") — accumulation excessive pour un niveau light (source manual)",
+                "control": "plan_validator_complete_context"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ratioContractModels": {
+    "cases": 76,
+    "models": [
+      {
+        "model": "reference_session_frequency",
+        "trail": 0,
+        "IM": 0
+      },
+      {
+        "model": "endurance_minutes_load",
+        "trail": 0,
+        "IM": 15
+      },
+      {
+        "model": "endurance_minutes_all",
+        "trail": 0,
+        "IM": 8
+      }
+    ],
+    "quotaRatioContradictions": 76,
+    "runOnlyConflicts": 15,
+    "noLegacyIssuesRemoved": true
+  },
+  "actualGenerationBlockRatios": {
+    "cases": 76,
+    "period": "actual_prepareGenerationContracts_chunksForQuota",
+    "strictSourceBounds": true,
+    "IMAllBlocks": 0,
+    "trailAllBlocks": 0,
+    "notEquivalentToFullSportingValidity": true
+  },
+  "strictIronman": {
+    "distinctInputs": 8,
+    "models": [
+      {
+        "model": "standalone_strict",
+        "cases": 8,
+        "built": 8,
+        "withoutBlocking": 0,
+        "refusals": [],
+        "enduranceFloorsRelaxed": false
+      },
+      {
+        "model": "peak_components_strict",
+        "cases": 8,
+        "built": 8,
+        "withoutBlocking": 0,
+        "refusals": [],
+        "enduranceFloorsRelaxed": false
+      }
+    ],
+    "expertReviewed": 0
+  },
+  "ultraRoleCoverage": {
+    "fixtures": 6,
+    "ultra": [
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:untrained",
+        "status": "refused",
+        "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+        "withoutBlocking": false,
+        "controls": null
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:light",
+        "status": "refused",
+        "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+        "withoutBlocking": false,
+        "controls": null
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:trained",
+        "status": "candidate",
+        "reason": null,
+        "withoutBlocking": false,
+        "controls": {
+          "existingSports": "executed",
+          "candidateTrailQuota": "executed_experimental",
+          "referenceTrailQuota": "not_implemented",
+          "verticalProgression": "known_doses_only",
+          "eccentricAdaptation": "not_attested"
+        }
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+        "status": "candidate",
+        "reason": null,
+        "withoutBlocking": false,
+        "controls": {
+          "existingSports": "executed",
+          "candidateTrailQuota": "executed_experimental",
+          "referenceTrailQuota": "not_implemented",
+          "verticalProgression": "known_doses_only",
+          "eccentricAdaptation": "not_attested"
+        }
+      }
+    ],
+    "expertReviewed": 0
+  },
+  "independentValidation": [
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "plans": 76,
+      "distinctInputs": 29,
+      "technicalValid": 76,
+      "withoutBlockingExistingAndGlobal": 0,
+      "passesGlobal": 70,
+      "blockingOccurrences": 673,
+      "warnings": 5381,
+      "counterfactualOnly": 0,
+      "expertReviewed": 0,
+      "byObjective": [
+        {
+          "objective": "TrailShort",
+          "plans": 7,
+          "withoutBlocking": 0
+        },
+        {
+          "objective": "TrailMountain",
+          "plans": 8,
+          "withoutBlocking": 0
+        },
+        {
+          "objective": "IM",
+          "plans": 61,
+          "withoutBlocking": 0
+        }
+      ]
+    },
+    {
+      "cohort": "strict_IM_contracts_8_inputs_2_models",
+      "plans": 16,
+      "distinctInputs": 8,
+      "technicalValid": 16,
+      "withoutBlockingExistingAndGlobal": 0,
+      "passesGlobal": 14,
+      "blockingOccurrences": 121,
+      "warnings": 1256,
+      "counterfactualOnly": 0,
+      "expertReviewed": 0,
+      "byObjective": [
+        {
+          "objective": "IM",
+          "plans": 16,
+          "withoutBlocking": 0
+        }
+      ]
+    },
+    {
+      "cohort": "role_coverage_ultra_and_nonultra_controls",
+      "plans": 4,
+      "distinctInputs": 4,
+      "technicalValid": 4,
+      "withoutBlockingExistingAndGlobal": 0,
+      "passesGlobal": 4,
+      "blockingOccurrences": 16,
+      "warnings": 53,
+      "counterfactualOnly": 0,
+      "expertReviewed": 0,
+      "byObjective": [
+        {
+          "objective": "TrailShort",
+          "plans": 1,
+          "withoutBlocking": 0
+        },
+        {
+          "objective": "TrailMountain",
+          "plans": 1,
+          "withoutBlocking": 0
+        },
+        {
+          "objective": "TrailUltra",
+          "plans": 2,
+          "withoutBlocking": 0
+        }
+      ]
+    }
+  ],
+  "byObjectiveAmbitionLevel": [
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "TrailShort",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "untrained",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 18,
+      "warnings": 22,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "TrailShort",
+      "effectiveAmbition": "age_group",
+      "declaredLevel": "light",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 50,
+      "warnings": 24,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "TrailShort",
+      "effectiveAmbition": "competitor",
+      "declaredLevel": "trained",
+      "variants": 1,
+      "distinctInputs": 1,
+      "technicalValid": 1,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 12,
+      "warnings": 10,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "TrailShort",
+      "effectiveAmbition": "elite",
+      "declaredLevel": "highly_trained",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 9,
+      "warnings": 21,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "TrailMountain",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "untrained",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 18,
+      "warnings": 18,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "TrailMountain",
+      "effectiveAmbition": "age_group",
+      "declaredLevel": "light",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 44,
+      "warnings": 20,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "TrailMountain",
+      "effectiveAmbition": "competitor",
+      "declaredLevel": "trained",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 12,
+      "warnings": 17,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "TrailMountain",
+      "effectiveAmbition": "elite",
+      "declaredLevel": "highly_trained",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 8,
+      "warnings": 21,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "untrained",
+      "variants": 12,
+      "distinctInputs": 4,
+      "technicalValid": 12,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 101,
+      "warnings": 988,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "light",
+      "variants": 3,
+      "distinctInputs": 1,
+      "technicalValid": 3,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 10,
+      "warnings": 167,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "age_group",
+      "declaredLevel": "light",
+      "variants": 9,
+      "distinctInputs": 3,
+      "technicalValid": 9,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 98,
+      "warnings": 886,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "trained",
+      "variants": 3,
+      "distinctInputs": 1,
+      "technicalValid": 3,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 24,
+      "warnings": 161,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "age_group",
+      "declaredLevel": "trained",
+      "variants": 6,
+      "distinctInputs": 2,
+      "technicalValid": 6,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 54,
+      "warnings": 444,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "competitor",
+      "declaredLevel": "trained",
+      "variants": 3,
+      "distinctInputs": 1,
+      "technicalValid": 3,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 22,
+      "warnings": 276,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "elite",
+      "declaredLevel": "trained",
+      "variants": 6,
+      "distinctInputs": 2,
+      "technicalValid": 6,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 41,
+      "warnings": 658,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "highly_trained",
+      "variants": 6,
+      "distinctInputs": 2,
+      "technicalValid": 6,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 46,
+      "warnings": 417,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "age_group",
+      "declaredLevel": "highly_trained",
+      "variants": 3,
+      "distinctInputs": 1,
+      "technicalValid": 3,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 15,
+      "warnings": 160,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "competitor",
+      "declaredLevel": "highly_trained",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 36,
+      "warnings": 256,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "elite",
+      "declaredLevel": "highly_trained",
+      "variants": 5,
+      "distinctInputs": 2,
+      "technicalValid": 5,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 32,
+      "warnings": 568,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "same_76_V5_candidates_after_guarded_repairs",
+      "objective": "IM",
+      "effectiveAmbition": "world_class",
+      "declaredLevel": "highly_trained",
+      "variants": 3,
+      "distinctInputs": 1,
+      "technicalValid": 3,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 23,
+      "warnings": 247,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "strict_IM_contracts_8_inputs_2_models",
+      "objective": "IM",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "untrained",
+      "variants": 4,
+      "distinctInputs": 2,
+      "technicalValid": 4,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 34,
+      "warnings": 334,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "strict_IM_contracts_8_inputs_2_models",
+      "objective": "IM",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "light",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 8,
+      "warnings": 114,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "strict_IM_contracts_8_inputs_2_models",
+      "objective": "IM",
+      "effectiveAmbition": "age_group",
+      "declaredLevel": "light",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 16,
+      "warnings": 186,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "strict_IM_contracts_8_inputs_2_models",
+      "objective": "IM",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "trained",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 16,
+      "warnings": 122,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "strict_IM_contracts_8_inputs_2_models",
+      "objective": "IM",
+      "effectiveAmbition": "age_group",
+      "declaredLevel": "trained",
+      "variants": 2,
+      "distinctInputs": 1,
+      "technicalValid": 2,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 21,
+      "warnings": 208,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "strict_IM_contracts_8_inputs_2_models",
+      "objective": "IM",
+      "effectiveAmbition": "finisher",
+      "declaredLevel": "highly_trained",
+      "variants": 4,
+      "distinctInputs": 2,
+      "technicalValid": 4,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 26,
+      "warnings": 292,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "role_coverage_ultra_and_nonultra_controls",
+      "objective": "TrailShort",
+      "effectiveAmbition": "elite",
+      "declaredLevel": "highly_trained",
+      "variants": 1,
+      "distinctInputs": 1,
+      "technicalValid": 1,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 4,
+      "warnings": 10,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "role_coverage_ultra_and_nonultra_controls",
+      "objective": "TrailMountain",
+      "effectiveAmbition": "elite",
+      "declaredLevel": "highly_trained",
+      "variants": 1,
+      "distinctInputs": 1,
+      "technicalValid": 1,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 4,
+      "warnings": 10,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "role_coverage_ultra_and_nonultra_controls",
+      "objective": "TrailUltra",
+      "effectiveAmbition": "competitor",
+      "declaredLevel": "trained",
+      "variants": 1,
+      "distinctInputs": 1,
+      "technicalValid": 1,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 4,
+      "warnings": 17,
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "role_coverage_ultra_and_nonultra_controls",
+      "objective": "TrailUltra",
+      "effectiveAmbition": "elite",
+      "declaredLevel": "highly_trained",
+      "variants": 1,
+      "distinctInputs": 1,
+      "technicalValid": 1,
+      "withoutBlockingExistingAndGlobal": 0,
+      "blockingExisting": 4,
+      "warnings": 16,
+      "expertReviewed": 0
+    }
+  ],
+  "historical": {
+    "version": "det-v4-reference-1",
+    "cases": 600,
+    "built": 167,
+    "withoutBlocking": 11,
+    "technicalValid": 167,
+    "existingCriticalRegressions": 0,
+    "existingWarningRegressions": 0,
+    "unchangedReferencePayload": true,
+    "replay": 600,
+    "classifications": {
+      "remaining_fixed_layout_or_solver_conflict": 42,
+      "candidate_contract_constraint_conflict": 60,
+      "assembled_with_executed_controls": 160,
+      "current_catalogue_domain_conflict": 72,
+      "existing_prevalidation_conflict": 50,
+      "inconclusive_search": 16,
+      "unsupported_static_adaptation": 40,
+      "insufficient_data": 160
+    },
+    "globalAuditContractFailures": 0,
+    "newInstrumentation": "V4 global observations do not rewrite reference issue severity or acceptance",
+    "promotedCandidateContracts": 0
+  },
+  "coverage": {
+    "existingSportRules": "executed_and_retained",
+    "globalProgression": "executed",
+    "keyFlags": "unchanged_independent_invariant_test",
+    "ratioUnits": "counts_and_minutes_separate",
+    "zoneMinutes": "legacy_clause_estimates_and_unknowns",
+    "verticalTolerance": "not_attested",
+    "generalSportingRelevance": "not_attested",
+    "expertReview": "none"
+  }
+}

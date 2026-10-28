@@ -1,0 +1,12 @@
+{
+  "cases": 76,
+  "accepted": 22,
+  "attempts": 28,
+  "beforeBlocking": 698,
+  "afterBlocking": 676,
+  "beforeRaceOnly": 41,
+  "afterRaceOnly": 19,
+  "withoutBlocking": 0,
+  "expertReviewed": 0,
+  "exactReplay": 76
+}

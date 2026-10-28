@@ -1,0 +1,21 @@
+{
+  "productionQuestionnaireAdded": false,
+  "productionInterfaceChanged": false,
+  "fields": {
+    "route": {
+      "distanceKm": "explicit",
+      "durationMinutes": "explicit_or_unknown",
+      "dPlusM": "separate_observation_or_bounds",
+      "dMinusM": "separate_observation_or_unknown",
+      "terrain": "documented_surface_technicality",
+      "source": "provenance_and_observation_date"
+    },
+    "tolerance": {
+      "recentDownhillExposures": "dated_duration_gradient_surface_descent_speed_when_available",
+      "response": "documented_symptoms_functional_recovery_and_uncertainty",
+      "strengthExposure": "type_duration_load_and_familiarization_if_known",
+      "individualDoseCeiling": "only_if_explicitly_set_by_coach_with_provenance"
+    }
+  },
+  "missingPolicy": "unknown; no capacity inferred from training level or scheduled sessions"
+}

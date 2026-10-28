@@ -1,0 +1,2730 @@
+[
+  {
+    "id": "IM:light:age_group:unknown",
+    "model": "standalone_preserve",
+    "week": 6,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:age_group:unknown",
+    "model": "standalone_preserve",
+    "week": 9,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:age_group:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 6,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:age_group:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 9,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:age_group:unknown",
+    "model": "peak_brick_recovery_relief",
+    "week": 6,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:age_group:unknown",
+    "model": "peak_brick_recovery_relief",
+    "week": 9,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:competitor:known_synthetic",
+    "model": "standalone_preserve",
+    "week": 13,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 50
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:competitor:known_synthetic",
+    "model": "standalone_recovery_relief",
+    "week": 13,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 50
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 5
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:competitor:known_synthetic",
+    "model": "peak_brick_recovery_relief",
+    "week": 13,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 50
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 5
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:elite:unknown",
+    "model": "standalone_preserve",
+    "week": 13,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:elite:unknown",
+    "model": "standalone_preserve",
+    "week": 15,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 105,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 165
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:elite:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 12,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:elite:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 15,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 105,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 165
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:elite:unknown",
+    "model": "peak_brick_recovery_relief",
+    "week": 12,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_DURABILITY_LONG",
+        "dose": [
+          100,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:light:elite:unknown",
+    "model": "peak_brick_recovery_relief",
+    "week": 17,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 90,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 30
+      },
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 180
+      },
+      {
+        "id": "NUTRITION_RACE_MORNING_PROTOCOL",
+        "dose": [
+          20,
+          30
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:age_group:unknown",
+    "model": "standalone_preserve",
+    "week": 16,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 105,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 165
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:age_group:unknown",
+    "model": "standalone_preserve",
+    "week": 17,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 5
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:age_group:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 16,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 105,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 165
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:age_group:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 17,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 5
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:age_group:unknown",
+    "model": "peak_brick_recovery_relief",
+    "week": 16,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 90,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 30
+      },
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 180
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:age_group:unknown",
+    "model": "peak_brick_recovery_relief",
+    "week": 17,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 5
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:world_class:unknown",
+    "model": "standalone_preserve",
+    "week": 16,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:world_class:unknown",
+    "model": "standalone_preserve",
+    "week": 17,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:world_class:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 16,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:world_class:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 17,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:world_class:unknown",
+    "model": "peak_brick_recovery_relief",
+    "week": 16,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:trained:world_class:unknown",
+    "model": "peak_brick_recovery_relief",
+    "week": 17,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 20,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 15
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 85
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "A_RUN_LONG_PROG_PRO",
+        "dose": [
+          90,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 70
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_preserve",
+    "week": 6,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_preserve",
+    "week": 7,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_preserve",
+    "week": 9,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_preserve",
+    "week": 14,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_preserve",
+    "week": 15,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 90,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 180
+      },
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 30
+      },
+      {
+        "id": "NUTRITION_RACE_MORNING_PROTOCOL",
+        "dose": [
+          20,
+          30
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_preserve",
+    "week": 15,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 6,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 7,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 9,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 14,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_IM_BRICK_REGEN",
+        "dose": [
+          15,
+          30
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 15,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 90,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 180
+      },
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 30
+      },
+      {
+        "id": "NUTRITION_RACE_MORNING_PROTOCOL",
+        "dose": [
+          20,
+          30
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:competitor:unknown",
+    "model": "standalone_recovery_relief",
+    "week": 15,
+    "sessionId": "ENR_TAPER_SHAKEOUT_RUN",
+    "duration": 15,
+    "sourceWhen": "Veille de course",
+    "domain": [
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "dose": [
+          90,
+          135
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 75
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "dose": [
+          105,
+          130
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 90
+      },
+      {
+        "id": "D_MAR_REGEN",
+        "dose": [
+          25,
+          40
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 10
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "dose": [
+          35,
+          90
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 20
+      },
+      {
+        "id": "A_RUN_EASY_45_PRO",
+        "dose": [
+          40,
+          55
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 25
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "dose": [
+          70,
+          150
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 55
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:elite:known_synthetic",
+    "model": "standalone_preserve",
+    "week": 17,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 90,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 30
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 180
+      },
+      {
+        "id": "NUTRITION_RACE_MORNING_PROTOCOL",
+        "dose": [
+          20,
+          30
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  },
+  {
+    "id": "IM:highly_trained:elite:known_synthetic",
+    "model": "standalone_recovery_relief",
+    "week": 17,
+    "sessionId": "V3_BIKE_RACE_PACE_TT",
+    "duration": 90,
+    "sourceWhen": "Peak phase, simulation jour J",
+    "domain": [
+      {
+        "id": "V2_BIKE_TT_POSITION",
+        "dose": [
+          75,
+          100
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V2_BIKE_TT_RACE_PACE",
+        "dose": [
+          90,
+          120
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "dose": [
+          120,
+          180
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 30
+      },
+      {
+        "id": "V3_RACESIM_BIKE_IM",
+        "dose": [
+          270,
+          360
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 180
+      },
+      {
+        "id": "NUTRITION_RACE_MORNING_PROTOCOL",
+        "dose": [
+          20,
+          30
+        ],
+        "sameDoseCompatible": false,
+        "minimumExtraMinutes": 0
+      },
+      {
+        "id": "V3_BIKE_TT_AERO",
+        "dose": [
+          60,
+          90
+        ],
+        "sameDoseCompatible": true,
+        "minimumExtraMinutes": 0
+      }
+    ],
+    "proofScope": "same-day same-dose same-intent current prepared catalogue; not global impossibility"
+  }
+]
