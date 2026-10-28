@@ -1,0 +1,27 @@
+{
+  "baselineCommit": "4ae69e47b99224cc4a06c8a1c1a7deec72119220",
+  "evaluation": "offline preparation matrix, not generated plan or scientific validation",
+  "counts": {
+    "coach_review": 465,
+    "admissible": 77,
+    "blocked": 58
+  },
+  "statusChanges": [],
+  "coverage": {
+    "703": 80,
+    "IM": 80,
+    "Sprint": 40,
+    "Olympic": 40,
+    "Marathon": 40,
+    "Semi": 40,
+    "5K": 40,
+    "10K": 40,
+    "StartToRun": 40,
+    "Trail": 40,
+    "TrailShort": 40,
+    "TrailMountain": 40,
+    "TrailUltra": 40
+  },
+  "historicalRefusalsPreserved": 58,
+  "historicalDiversityContractsNonblocking": 11
+}

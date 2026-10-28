@@ -194,7 +194,7 @@ export interface CoachingCompassInput {
     limiterLabel?: string;
     limiterEmoji?: string;
     limiterExplanation?: string;
-    gapAnalysis: Array<{ metric: string; gap: number; weightedImpact: number }>;
+    gapAnalysis: Array<{ metric: string; gap: number; weightedImpact: number; prescriptionApplicable?: boolean }>;
     confidence: number;
     fatigueWarning?: { level: string; message: string } | null;
   } | null;

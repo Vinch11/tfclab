@@ -1,3 +1,6 @@
+import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
+import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
+import { applyCoachProfileOverrides } from "@/lib/plan/coachProfileOverrides";
 import { PlanPrevalidationPanel } from "@/components/PlanPrevalidationPanel";
 import { declaredRaceSlotsForWeek } from "../../supabase/functions/_shared/catalogueTrainingMinima";
 import { planningFeasibility } from "@/lib/plan/planningFeasibility";
@@ -53,7 +56,7 @@ import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import { evaluateDurationCoherenceMultiObjective, evaluateLimiterDurationCoherence } from "@/lib/plan/recommendedPlanDuration";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
-import { prepareTrainingPlanContext, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
+import { prepareTrainingPlanContext, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
 import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksForFullPeak, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 import { validatePlan, computeMissingFinalRaceDayFix, type ValidationIssue } from "@/engines/plan/planValidator";
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
@@ -1658,6 +1661,46 @@ export default function AITrainingPlanPage() {
   }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
 
 
+  // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
+  // saisis, choix S2R) pour pouvoir le réappliquer lors d'une régénération —
+  // ces choix explicites n'étaient jusqu'ici transmis qu'à la génération
+  // initiale et disparaissaient silencieusement dès qu'on régénérait une
+  // semaine, le reste du plan, ou une fenêtre (tous ces chemins ne font que
+  // `buildConfigFromDiag(...)`, sans jamais repasser par `buildCoachOverrides`).
+  const [lastCoachSelection, setLastCoachSelection] = useState<{payload:Partial<CoachProfileFormPayload>;athleteId?:string;objective:string}|null>(null);
+  const lastCoachOverridesPayload = lastCoachSelection?.athleteId===currentAthlete?.id && lastCoachSelection?.objective===normalizeObjectiveKey(objective)
+    ? lastCoachSelection.payload : null;
+
+  // ─── COACH FORM — Apply Lorang limiter overrides to config ────────────────
+  // Le coach saisit ce qu'il SAIT. Les choix explicites réordonnent ou excluent ceux du diagnostic
+  // dans identifiedLimiters/identifiedLimitersRaw/prohibitions transmis à
+  // useAITrainingPlan. On ne réinvente pas le moteur : on alimente le même flux.
+  const buildCoachOverrides = useCallback((payload: Partial<CoachProfileFormPayload>, baseConfig: PlanConfig): PlanConfig => {
+    return applyCoachProfileOverrides(payload, baseConfig, athleteContext?.diagnostic);
+  }, [athleteContext]);
+
+  /**
+   * Comme buildConfigFromDiag, mais réapplique en plus les derniers choix
+   * explicites du formulaire coach (interdictions, limiteurs, S2R) s'ils ont
+   * été validés dans cette session ou restaurés depuis la politique locale explicite. À utiliser à la place de
+   * buildConfigFromDiag pour toute régénération (semaine, reste du plan,
+   * fenêtre) — sinon ces choix sont silencieusement perdus.
+   */
+  const buildConfigWithCoachOverrides = useCallback((
+    diagnostic: AthleteDiagnostic,
+    athleteAmbition?: string,
+    objectiveOverride?: string,
+    athleteIdOverride?: string,
+  ): PlanConfig => {
+    const base = buildConfigFromDiag(diagnostic, athleteAmbition, objectiveOverride, athleteIdOverride);
+    return lastCoachOverridesPayload ? buildCoachOverrides(lastCoachOverridesPayload, base) : base;
+  }, [buildConfigFromDiag, buildCoachOverrides, lastCoachOverridesPayload]);
+
+  useEffect(()=>{
+    const policy=readCommittedLimiterPolicy(localStorage,currentAthlete?.id,objective);
+    setLastCoachSelection(policy?{payload:policy,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)}:null);
+  },[currentAthlete?.id,currentAthlete?.nom,objective]);
+
   const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
     if (!rawParsedPlan) return null;
     if (!athleteContext) return { plan: rawParsedPlan, taperFix: null };
@@ -1678,7 +1721,7 @@ export default function AITrainingPlanPage() {
         : undefined,
     };
 
-    const config = buildConfigFromDiag(athleteContext.diagnostic);
+    const config = buildConfigWithCoachOverrides(athleteContext.diagnostic);
 
     // ⚠ Mesure AVANT post-traitement : le réconciliateur reclasse déjà les
     // semaines terminales en affûtage (silencieusement). Sans cette sonde
@@ -1727,7 +1770,7 @@ export default function AITrainingPlanPage() {
     }
     return { plan, taperFix: taperFix ?? null };
 
-  }, [rawParsedPlan, athleteContext, buildConfigFromDiag, objective]);
+  }, [rawParsedPlan, athleteContext, buildConfigWithCoachOverrides, objective]);
 
   const parsedPlan = parsedPlanWithMeta?.plan ?? null;
   const legacyTaperReport = parsedPlanWithMeta?.taperFix ?? null;
@@ -1832,7 +1875,7 @@ export default function AITrainingPlanPage() {
     }
 
 
-    const config = buildConfigFromDiag(athleteContext.diagnostic);
+    const config = buildConfigWithCoachOverrides(athleteContext.diagnostic);
     // Voir commentaire plus haut : `buildConfigFromDiag` a lu l'ancien
     // `planStartDate` (closure figée au dernier render) — on force ici la
     // valeur fraîche calculée en tête de fonction.
@@ -1888,151 +1931,12 @@ export default function AITrainingPlanPage() {
     generatePlanWindowed(athleteContext.data, config);
   };
 
-  // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
-  // saisis, choix S2R) pour pouvoir le réappliquer lors d'une régénération —
-  // ces choix explicites n'étaient jusqu'ici transmis qu'à la génération
-  // initiale et disparaissaient silencieusement dès qu'on régénérait une
-  // semaine, le reste du plan, ou une fenêtre (tous ces chemins ne font que
-  // `buildConfigFromDiag(...)`, sans jamais repasser par `buildCoachOverrides`).
-  const [lastCoachOverridesPayload, setLastCoachOverridesPayload] = useState<CoachProfileFormPayload | null>(null);
-
-  // ─── COACH FORM — Apply Lorang limiter overrides to config ────────────────
-  // Le coach saisit ce qu'il SAIT. Ces limiteurs REMPLACENT ceux du diagnostic
-  // dans identifiedLimiters/identifiedLimitersRaw/prohibitions transmis à
-  // useAITrainingPlan. On ne réinvente pas le moteur : on alimente le même flux.
-  const buildCoachOverrides = useCallback((payload: CoachProfileFormPayload, baseConfig: PlanConfig): PlanConfig => {
-    const cfg: PlanConfig = { ...baseConfig };
-
-    const primaryMetric = payload.primaryLimiterMetric;
-    const secondaryMetric = payload.secondaryLimiterMetric;
-
-    // identifiedLimitersRaw — noms de métriques (ordre coach = priorité)
-    const rawList = [primaryMetric];
-    if (secondaryMetric && secondaryMetric !== primaryMetric) rawList.push(secondaryMetric);
-    cfg.identifiedLimitersRaw = rawList;
-
-    // Durée du bloc Chantier — calculée depuis l'ampleur réelle du gap sur le
-    // limiteur #1 (status "limiting"/"acceptable"/"optimal" du diagnostic),
-    // plutôt que la valeur fixe "3-4 sem" jusqu'ici codée en dur dans le
-    // prompt. Le coach peut avoir choisi un limiteur différent de celui
-    // ressorti en tête du diagnostic auto — on relit le statut du bon
-    // limiteur (primaryMetric), pas juste gapAnalysis[0].
-    const primaryGap = athleteContext?.diagnostic.limiter.gapAnalysis.find(
-      (g) => g.metric === primaryMetric,
-    );
-    cfg.chantierDurationWeeks = computeChantierDurationWeeks(
-      primaryGap?.status,
-      payload.weeksAvailable,
-    );
-
-    // identifiedLimiters — markdown injecté chunk 1 (format coach-authored)
-    const md: string[] = [];
-    md.push(`## ⚙️ LIMITEURS SAISIS PAR LE COACH (source manuelle, prime sur inférence auto)`);
-    md.push(`Profil métabolique : **${payload.metabolicProfile === "sprinter" ? "Sprinteur / explosif (VLamax haute probable)" : payload.metabolicProfile === "diesel" ? "Diesel / endurant (moteur aérobie à développer)" : "Équilibré (aucun dominant métabolique)"}**`);
-    md.push("");
-    md.push(`### Limiteur #1 — ${primaryMetric} (jugement coach)`);
-    md.push(`- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine (Base/Build).`);
-    md.push(`- Catégorie Lorang : ${payload.primaryLimiter}`);
-    md.push("");
-    if (secondaryMetric) {
-      md.push(`### Limiteur #2 — ${secondaryMetric} (jugement coach)`);
-      md.push(`- ⚡ PRIORITÉ HAUTE : Ce limiteur doit recevoir la séance clé #2 de chaque semaine.`);
-      md.push(`- Catégorie Lorang : ${payload.secondaryLimiter}`);
-      md.push("");
-    } else {
-      md.push(`_Limiteur secondaire non renseigné par le coach → l'IA élargit son incertitude (aucun défaut inventé)._`);
-      md.push("");
-    }
-    md.push(`## RÈGLE DE PÉRIODISATION`);
-    md.push(`- Phase Base : Focus principal sur le Limiteur #1. #2 en maintien.`);
-    md.push(`- Phase Build : #1 toujours prioritaire, #2 monte en importance.`);
-    md.push(`- Phase Spécifique : intégration race-specific.`);
-    cfg.identifiedLimiters = md;
-
-    // Prohibitions — traduction texte pour le prompt
-    const prohibitionLabels: Record<string, string> = {
-      sprints: "🚫 Pas de sprints all-out (jugement coach).",
-      micro_intervals: "🚫 Pas de micro-intervalles explosifs <20s (jugement coach).",
-      vo2_heavy_blocks: "🚫 Pas de blocs VO2max longs ≥5min (jugement coach).",
-      erratic_pacing: "🚫 Pas de pacing erratique (jugement coach).",
-      train_low: "🚫 Pas de train-low / sleep-low (jugement coach).",
-    };
-    const prohibText = payload.prohibitions.map((p) => prohibitionLabels[p] || p);
-    if (prohibText.length > 0) {
-      // Merge sans dupliquer les prohibitions objectif-driven déjà présentes.
-      cfg.prohibitions = [...(cfg.prohibitions || []), ...prohibText];
-    }
-
-    // Start to Run — dose de renforcement choisie (prompt edge function)
-    // + application DÉTERMINISTE : quota hebdo + contrainte dure si "none".
-    if (payload.s2rStrength) {
-      (cfg as any)._s2rStrength = payload.s2rStrength;
-      const strengthQuota =
-        payload.s2rStrength === "none" ? 0 : payload.s2rStrength === "light" ? 1 : 2;
-      cfg.strengthSessionsPerWeek = strengthQuota;
-      if (payload.s2rStrength === "none") {
-        const banText = "Pas de renforcement musculaire (choix athlète)";
-        cfg.constraints = [cfg.constraints || "", banText].filter(Boolean).join("\n");
-        cfg.prohibitions = [
-          ...(cfg.prohibitions || []),
-          "🚫 Aucune séance de renforcement / PPG / gainage dans le plan (choix explicite de l'athlète).",
-        ];
-      }
-    }
-
-    if (payload.sessionsPerWeek && payload.sessionsPerWeek > 0) {
-      cfg.sessionsPerWeek = payload.sessionsPerWeek;
-    }
-
-    // La trace conserve le diagnostic automatique, mais identifie sans
-    // ambiguïté l'ordre et les interdictions que le coach a effectivement
-    // substitués avant génération.
-    if (cfg.physiologicalTrace) {
-      cfg.physiologicalTrace = {
-        ...cfg.physiologicalTrace,
-        transmission: {
-          ...cfg.physiologicalTrace.transmission,
-          identifiedLimitersRaw: {
-            ...cfg.physiologicalTrace.transmission.identifiedLimitersRaw,
-            status: "consumed",
-            origin: "coach override",
-            detail: `Ordre transmis: ${rawList.join(" > ")}`,
-          },
-          prohibitions: {
-            ...cfg.physiologicalTrace.transmission.prohibitions,
-            status: (cfg.prohibitions?.length ?? 0) > 0 ? "consumed" : "missing",
-            origin: "planConfigBuilder + decision.strategy.prohibitions + coach override",
-          },
-        },
-      };
-    }
-
-    return cfg;
-  }, [athleteContext]);
-
-  /**
-   * Comme buildConfigFromDiag, mais réapplique en plus les derniers choix
-   * explicites du formulaire coach (interdictions, limiteurs, S2R) s'ils ont
-   * été saisis pendant cette session. À utiliser à la place de
-   * buildConfigFromDiag pour toute régénération (semaine, reste du plan,
-   * fenêtre) — sinon ces choix sont silencieusement perdus.
-   */
-  const buildConfigWithCoachOverrides = useCallback((
-    diagnostic: AthleteDiagnostic,
-    athleteAmbition?: string,
-    objectiveOverride?: string,
-    athleteIdOverride?: string,
-  ): PlanConfig => {
-    const base = buildConfigFromDiag(diagnostic, athleteAmbition, objectiveOverride, athleteIdOverride);
-    return lastCoachOverridesPayload ? buildCoachOverrides(lastCoachOverridesPayload, base) : base;
-  }, [buildConfigFromDiag, buildCoachOverrides, lastCoachOverridesPayload]);
-
   // Pre-fill from auto diagnostic (metric names → Lorang categories, best-effort).
   const coachPrefill = useMemo<CoachProfilePrefill | null>(() => {
     if (!athleteContext) return null;
-    const ranked = [...athleteContext.diagnostic.limiter.gapAnalysis]
-      .filter((g) => g.weightedImpact > 0)
-      .sort((a, b) => b.weightedImpact - a.weightedImpact);
+    const gaps = rankPrescriptionGaps(athleteContext.diagnostic.limiter.gapAnalysis);
+    const order = resolveCoachLimiterOrder(gaps.map(g=>g.metric),{order:coachLimiterOrder});
+    const ranked=order.map(metric=>gaps.find(g=>g.metric===metric)).filter((g):g is typeof gaps[number]=>!!g);
     const primary = ranked[0]?.metric;
     const secondary = ranked[1]?.metric;
 
@@ -2046,10 +1950,11 @@ export default function AITrainingPlanPage() {
     }
     return {
       metabolicProfile: metabolic,
+      limiterMetrics: ranked.map(g => g.metric),
       primaryLimiterMetric: primary,
       secondaryLimiterMetric: secondary,
     };
-  }, [athleteContext]);
+  }, [athleteContext,coachLimiterOrder]);
 
   const handleCoachFormGenerate = useCallback(async (
     payload: CoachProfileFormPayload,
@@ -2096,25 +2001,19 @@ export default function AITrainingPlanPage() {
       return;
     }
     setPlanOverride(null);
-    setLastCoachOverridesPayload(payload);
-    // eslint-disable-next-line no-console
-    console.log("[CoachProfileForm] identifiedLimiters transmis:", {
-      raw: config.identifiedLimitersRaw,
-      prohibitions: config.prohibitions,
-      weeksAvailable: config.weeksAvailable,
-      durationMode: payload.durationMode,
-      raceDate: config.raceDate ?? null,
-      overriddenByCoach: payload.overriddenByCoach,
-    });
+    setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objectiveOverride??objective)});
+    if(payload.limiterOrder?.length)writeCommittedLimiterPolicy(localStorage,currentAthlete?.id,objectiveOverride??objective,{limiterOrder:payload.limiterOrder,excludedLimiterMetrics:payload.excludedLimiterMetrics??[],prohibitions:payload.prohibitions,metabolicProfile:payload.metabolicProfile,s2rStrength:payload.s2rStrength,sessionsPerWeek:payload.sessionsPerWeek});
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
     generatePlanWindowed(athleteContext.data, config);
-  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan]);
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective]);
 
   const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
-    // eslint-disable-next-line no-console
-    console.log("[CoachProfileForm] Profil enregistré (sans génération):", payload);
+    setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)});
+    if(payload.limiterOrder?.length && !writeCommittedLimiterPolicy(localStorage,currentAthlete?.id,objective,{limiterOrder:payload.limiterOrder,excludedLimiterMetrics:payload.excludedLimiterMetrics??[],prohibitions:payload.prohibitions,metabolicProfile:payload.metabolicProfile,s2rStrength:payload.s2rStrength,sessionsPerWeek:payload.sessionsPerWeek})) {
+      toast.error("Enregistrement local impossible : choix conservés uniquement pour cette session.");return;
+    }
     toast.success("Profil coach enregistré. Ouvre à nouveau le formulaire pour générer.");
-  }, []);
+  }, [currentAthlete?.id, currentAthlete?.nom, objective]);
 
   // ─── QUICK-START WIZARD handlers ──────────────────────────────────────────
   /** Persiste les chronos du wizard dans le snapshot actif (ou crée un minimal). */
@@ -2432,10 +2331,11 @@ export default function AITrainingPlanPage() {
     let criticalIssues: ValidationIssue[] = [];
     try {
       if (athleteContext) {
-        const cfg = buildConfigFromDiag(athleteContext.diagnostic);
+        const cfg = buildConfigWithCoachOverrides(athleteContext.diagnostic);
         const limiterKeys = deriveLimiterKeysFromGapAnalysis(
           athleteContext.diagnostic.limiter.gapAnalysis,
-          coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
+          cfg.identifiedLimitersRaw,
+          cfg.identifiedLimitersRaw,
         );
         const raceNums: number[] = [];
         // Correction sprint qualité Marathon/Ironman (oct. 2026), #B : même
@@ -2649,7 +2549,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     await doSave();
-  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion, ambition, mergedPlan, weeklyQuotaIssues, catalogIdIssues]);
+  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion, buildConfigWithCoachOverrides, ambition, mergedPlan, weeklyQuotaIssues, catalogIdIssues]);
 
   const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
 
@@ -4205,6 +4105,11 @@ export default function AITrainingPlanPage() {
                   orderedMetrics={coachLimiterOrder}
                   onOrderChange={(order) => {
                     setCoachLimiterOrder(order);
+                    if(lastCoachOverridesPayload) {
+                      const payload={...lastCoachOverridesPayload,limiterOrder:order};
+                      setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)});
+                      if(order.length)writeCommittedLimiterPolicy(localStorage,currentAthlete?.id,objective,{limiterOrder:order,excludedLimiterMetrics:payload.excludedLimiterMetrics??[],prohibitions:payload.prohibitions,metabolicProfile:payload.metabolicProfile,s2rStrength:payload.s2rStrength,sessionsPerWeek:payload.sessionsPerWeek});
+                    }
                     setIsSaved(false);
                   }}
                 />
@@ -4213,7 +4118,7 @@ export default function AITrainingPlanPage() {
 
             {/* Adaptation Projections Summary */}
             {!isMultiMode && athleteContext && (() => {
-              const projections = buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections;
+              const projections = buildConfigWithCoachOverrides(athleteContext.diagnostic).adaptationProjections;
               return projections && projections.length > 0 ? (
                 <CollapsibleCard
                   className="border-primary/20 bg-primary/5"
@@ -4587,17 +4492,17 @@ export default function AITrainingPlanPage() {
                         plan={parsedPlan}
                         objective={objective}
                         ambition={ambition}
-                        ambitionEffective={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.ambitionMeta?.effective : undefined}
-                        ambitionEffectiveLabel={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.ambitionMeta?.effectiveLabel : undefined}
-                        ambitionSaisieLabel={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.ambitionMeta?.saisieLabel : undefined}
+                        ambitionEffective={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.ambitionMeta?.effective : undefined}
+                        ambitionEffectiveLabel={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.ambitionMeta?.effectiveLabel : undefined}
+                        ambitionSaisieLabel={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.ambitionMeta?.saisieLabel : undefined}
                         athleteName={currentAthlete?.nom}
                         limiterResult={athleteContext?.diagnostic.limiter ?? null}
-                        prohibitions={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.prohibitions : undefined}
-                        identifiedLimiters={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.identifiedLimiters : undefined}
-                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined) : undefined}
-                        coachLimiterOrder={coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined}
+                        prohibitions={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.prohibitions : undefined}
+                        identifiedLimiters={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.identifiedLimiters : undefined}
+                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw) : undefined}
+                        coachLimiterOrder={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw : undefined}
                         athleteData={athleteContext?.data}
-                        constraintsText={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.constraints : undefined}
+                        constraintsText={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.constraints : undefined}
                         raceWeekNumbers={(() => {
                           const allGoals = [
                             { raceDate: raceDate, priority: "A" as const },
@@ -4690,10 +4595,10 @@ export default function AITrainingPlanPage() {
                         loadedFromCacheAt={loadedFromCacheAt}
                         adaptationProjections={
                           athleteContext
-                            ? buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections
+                            ? buildConfigWithCoachOverrides(athleteContext.diagnostic).adaptationProjections
                             : undefined
                         }
-                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined) : undefined}
+                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw) : undefined}
                         gapContext={(() => {
                           const ambRes = computeAmbitionEffective({
                             ambitionSaisie: ambition,

@@ -1,3 +1,4 @@
+import { canGuidePrescription } from "@/lib/limiterPrescription";
 import { isOneTimeTestProtocol, parseWeeklyFrequencyCap } from '../../../supabase/functions/_shared/catalogueWeeklyFrequency';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -268,6 +269,7 @@ export interface SessionDensityConfig {
 }
 
 export type LimiterGapLike = {
+  prescriptionApplicable?: boolean;
   metric: string;
   weightedImpact: number;
   status?: string;
@@ -3778,12 +3780,13 @@ function detectLimiterKeyFromMetric(metric: string): string | null {
 
 export function deriveLimiterKeysFromGapAnalysis(
   gapAnalysis: LimiterGapLike[],
-  coachLimiterOrder?: string[]
+  coachLimiterOrder?: string[],
+  selectedMetrics?: readonly string[],
 ): string[] {
   if (!gapAnalysis || gapAnalysis.length === 0) return [];
 
   let rankedGaps = [...gapAnalysis]
-    .filter((gap) => gap.weightedImpact > 0 && gap.status !== "unknown")
+    .filter((gap) => gap.weightedImpact > 0 && gap.status !== "unknown" && canGuidePrescription(gap) && (!selectedMetrics || selectedMetrics.includes(gap.metric)))
     .sort((a, b) => b.weightedImpact - a.weightedImpact);
 
   if (coachLimiterOrder && coachLimiterOrder.length > 0) {

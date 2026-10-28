@@ -1,3 +1,4 @@
+import { canGuidePrescription } from "@/lib/limiterPrescription";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL COACHING COMPASS™ — Couche de Synthèse
@@ -362,7 +363,7 @@ function buildLimiter(input: CoachingCompassInput): TFCLLimiter {
       label,
       description,
       icon,
-      metricsUsed: lr.gapAnalysis?.filter(g => g.weightedImpact > 0).map(g => g.metric) ?? [],
+      metricsUsed: lr.gapAnalysis?.filter(g => g.weightedImpact > 0 && canGuidePrescription(g)).map(g => g.metric) ?? [],
       confidence: lr.confidence >= 70 ? "high" : lr.confidence >= 50 ? "moderate" : "low",
     };
   }
@@ -379,7 +380,7 @@ function buildLimiter(input: CoachingCompassInput): TFCLLimiter {
       description: sr.limiterExplanation,
       icon: mapped.icon,
       metricsUsed: input.limiterResult?.gapAnalysis
-        ?.filter(g => g.weightedImpact > 0)
+        ?.filter(g => g.weightedImpact > 0 && canGuidePrescription(g))
         ?.map(g => g.metric) ?? [],
       confidence: sr.confidence as "high" | "moderate" | "low",
     };

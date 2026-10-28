@@ -1,3 +1,4 @@
+import { canGuidePrescription } from "@/lib/limiterPrescription";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL DIAGNOSTIC ENGINE™ — Orchestrateur
@@ -298,6 +299,7 @@ function computeReadinessFromInput(
   let robustnessScore = 50;
 
   for (const gap of limiter.gapAnalysis) {
+    if (!canGuidePrescription(gap)) continue;
     if (gap.metric === "VO2max" || gap.metric === "FTP/kg" || gap.metric === "VMA") {
       const score = Math.max(0, Math.min(100, 100 + gap.gapPercent));
       aerobicScore = Math.min(aerobicScore === 50 ? score : aerobicScore, score);
@@ -555,7 +557,7 @@ function generateHeadline(
     return `Profil équilibré — ${readiness.readiness.categoryLabel}`;
   }
   // Use limiter-specific severity instead of global readiness to avoid contradictions
-  const worstGap = Math.min(...limiter.gapAnalysis.filter(g => g.status === "limiting").map(g => g.gap));
+  const worstGap = Math.min(...limiter.gapAnalysis.filter(g => g.status === "limiting" && canGuidePrescription(g)).map(g => g.gap));
   const severityLabel = worstGap < -15 ? "Axe prioritaire"
     : worstGap < -5 ? "À développer"
     : "Axe de progression";

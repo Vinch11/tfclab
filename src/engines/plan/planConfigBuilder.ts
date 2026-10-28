@@ -1,3 +1,4 @@
+import { canGuidePrescription } from "@/lib/limiterPrescription";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL PLAN ENGINE™ — Plan Config Builder
@@ -425,7 +426,7 @@ function buildLimitersRawList(
   coachLimiterOrder?: string[]
 ): string[] {
   let ranked = [...limiterResult.gapAnalysis]
-    .filter(g => g.weightedImpact > 0)
+    .filter(g => g.weightedImpact > 0 && canGuidePrescription(g))
     .sort((a, b) => b.weightedImpact - a.weightedImpact);
   if (coachLimiterOrder && coachLimiterOrder.length > 0) {
     ranked = ranked.sort((a, b) => {
@@ -447,7 +448,7 @@ function formatLimitersForPrompt(
 
   // Sort ALL gaps by weighted impact (highest = most limiting)
   let rankedGaps = [...limiterResult.gapAnalysis]
-    .filter(g => g.weightedImpact > 0)
+    .filter(g => g.weightedImpact > 0 && canGuidePrescription(g))
     .sort((a, b) => b.weightedImpact - a.weightedImpact);
 
   // If coach provided a custom order, re-sort to match it
