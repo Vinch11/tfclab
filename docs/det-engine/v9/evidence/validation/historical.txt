@@ -1,0 +1,13 @@
+
+ RUN  v4.1.12 /workspace/tfclab
+
+
+ Test Files  382 passed (382)
+      Tests  2999 passed | 1 skipped | 6 todo (3006)
+   Start at  09:58:27
+   Duration  333.12s (transform 7.89s, setup 17.27s, import 50.72s, tests 121.42s, environment 93.20s)
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+9:58:26 AM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.

@@ -1,0 +1,12 @@
+{
+  "experimental/det-engine/v9-source-gate.ts": "a764aa60c12d52f7af7ffdde35f157edf479c7c194ee17decf13c224a0e8cdd8",
+  "experimental/det-engine/v9-inspect.test.ts": "93e38753c69d9b6d7dfdb6afbba90fa652b10a9536a22faa62af9f486b500301",
+  "experimental/det-engine/v9-historical.ts": "9ef59aa6240d1dd9bfff96777c08bae9000521639429cfed14ed23493d3f6a70",
+  "experimental/det-engine/v9-source-gate.test.ts": "f7beb537e0a98ce5126e7397d618cf4b9e619d2152a9da99630066ea65fc6b74",
+  "experimental/det-engine/v9-prospective.test.ts": "dc8e9864008f450b730825dced6d83258a31cf87efab37cca0118864c8ea5d21",
+  "experimental/det-engine/v9-prospective.ts": "c03aa40c34ba7a7f63066c7ef86e746badd0d8143e8c07c429b7d077c75fc1f3",
+  "experimental/det-engine/v9-feedback.ts": "3e30773127e7e1e3a77e284c319453cfdfb2ba4dd414e4d92d77da74f7334414",
+  "experimental/det-engine/v9-pilots.ts": "0d3d626cd506e25c3b6db4be0eda97a1ef3a16d88a2a71b15b89cab85a4da6c3",
+  "scripts/det-engine/v9-validate.mjs": "4ebfe48d153f8cb1e1573cbe54fddc1f2a60fad2085009acb103618597eb3cf4",
+  "scripts/det-engine/v9-run.mjs": "4d2fa20f8c2d182fcf98f50211642e3ff8388f5388cd7d7a403f6b132331b818"
+}

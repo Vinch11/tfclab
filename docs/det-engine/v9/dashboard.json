@@ -1,0 +1,122 @@
+{
+  "status": "NO-GO",
+  "prospectiveRequests": 26,
+  "selectedDoses": 8,
+  "refusalReasonOccurrences": {
+    "no_admissible_catalogue_dose_in_prospective_envelope": 3,
+    "no_classifiable_limiter": 7,
+    "individual_vertical_eccentric_tolerance_unknown": 2,
+    "no_individual_threshold_dose_tolerance_evidence": 2,
+    "recent_history_missing": 5
+  },
+  "profiles": [
+    {
+      "id": "IM_reference",
+      "prospectiveDecisions": 7,
+      "selected": 5,
+      "refused": 2,
+      "minutes": 210,
+      "calendarComplete": false,
+      "calendarErrors": [],
+      "missingObligations": [
+        {
+          "sport": "bike",
+          "required": 2,
+          "placed": 0
+        }
+      ],
+      "trajectoryCount": 35,
+      "actions": {
+        "maintain": 10,
+        "coach_review": 24,
+        "substitute": 1
+      },
+      "expertReviewed": false
+    },
+    {
+      "id": "IM_glycolytic",
+      "prospectiveDecisions": 7,
+      "selected": 0,
+      "refused": 7,
+      "minutes": 0,
+      "calendarComplete": false,
+      "calendarErrors": [],
+      "missingObligations": [
+        {
+          "sport": "swim",
+          "required": 2,
+          "placed": 0
+        },
+        {
+          "sport": "bike",
+          "required": 2,
+          "placed": 0
+        },
+        {
+          "sport": "run",
+          "required": 2,
+          "placed": 0
+        },
+        {
+          "sport": "strength",
+          "required": 1,
+          "placed": 0
+        }
+      ],
+      "trajectoryCount": 0,
+      "actions": {},
+      "expertReviewed": false
+    },
+    {
+      "id": "Trail_known_history",
+      "prospectiveDecisions": 6,
+      "selected": 3,
+      "refused": 3,
+      "minutes": 120,
+      "calendarComplete": false,
+      "calendarErrors": [],
+      "missingObligations": [
+        {
+          "sport": "run",
+          "required": 4,
+          "placed": 2
+        }
+      ],
+      "trajectoryCount": 21,
+      "actions": {
+        "maintain": 6,
+        "coach_review": 14,
+        "substitute": 1
+      },
+      "expertReviewed": false
+    },
+    {
+      "id": "Trail_unknown_history",
+      "prospectiveDecisions": 6,
+      "selected": 0,
+      "refused": 6,
+      "minutes": 0,
+      "calendarComplete": false,
+      "calendarErrors": [],
+      "missingObligations": [
+        {
+          "sport": "run",
+          "required": 4,
+          "placed": 0
+        },
+        {
+          "sport": "strength",
+          "required": 1,
+          "placed": 0
+        }
+      ],
+      "trajectoryCount": 0,
+      "actions": {},
+      "expertReviewed": false
+    }
+  ],
+  "fullRacePlans": 0,
+  "physiologicalAdaptationsObserved": 0,
+  "expertReviewed": 0,
+  "applicationIntegration": false
+}

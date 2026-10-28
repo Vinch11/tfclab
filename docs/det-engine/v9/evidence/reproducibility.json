@@ -1,0 +1,25 @@
+{
+  "runs": [
+    "canonical-comparison.txt",
+    "full-replay.txt"
+  ],
+  "comparison": [
+    {
+      "file": "decisions.json.gz",
+      "sha256": "99716018093808de86015920420a74db3011a4d6f6ba70d39bdfb3d1f9b47ef6",
+      "independentRunsIdentical": true
+    },
+    {
+      "file": "replay.json.gz",
+      "sha256": "99716018093808de86015920420a74db3011a4d6f6ba70d39bdfb3d1f9b47ef6",
+      "independentRunsIdentical": true
+    },
+    {
+      "file": "summary.json",
+      "sha256": "5577b4b201cd330d7feb860ee2b3153d607e96deaf26789875049583ed402c2b",
+      "independentRunsIdentical": true
+    }
+  ],
+  "frozenSimulationClock": "2026-10-26T12:00:00Z",
+  "scope": "same code/runtime, independent full context reconstruction"
+}

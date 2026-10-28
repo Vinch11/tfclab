@@ -1,0 +1,19 @@
+{
+  "version": "det-v9",
+  "baseline": "902353d732e08a4a54f3e11cadf911714aa9cce2",
+  "missionSha256": "24b0d1e9aaa1230a1440204d026d282424f7ecb99e796d3711f8da27121cc04d",
+  "canonical": "evidence/canonical",
+  "fullReplay": "evidence/replay-full",
+  "simulationDate": "2026-10-26T12:00:00Z",
+  "nodeVersion": "v24.19.0",
+  "profilesSynthetic": true,
+  "observationsSynthetic": true,
+  "sourceControls": "docs/det-engine/v6/evidence/repair-final/retained.json.gz",
+  "productionModified": false,
+  "paidCalls": 0,
+  "realAthleteData": false,
+  "historicalValidatorsModified": false,
+  "scientificPromotion": false,
+  "fullRacePlanBuilt": false,
+  "expertReviewPerformed": false
+}

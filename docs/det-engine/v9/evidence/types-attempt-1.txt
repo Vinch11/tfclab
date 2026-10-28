@@ -1,0 +1,6 @@
+experimental/det-engine/v9-inspect.test.ts(2,308): error TS2339: Property 'trainingLevel' does not exist on type 'PlanConfig | { loadHistory: any; _outputFormat?: "json" | "markdown"; objective: string; athleteId?: string; raceName?: string; raceDate?: string; raceGoals?: RaceGoal[]; ... 38 more ...; lcwSignatureCountsElsewhere?: Record<...>; }'.
+  Property 'trainingLevel' does not exist on type 'PlanConfig'.
+experimental/det-engine/v9-prospective.test.ts(12,129): error TS2339: Property 'trainingLevel' does not exist on type 'PlanConfig | { loadHistory: any; _outputFormat?: "json" | "markdown"; objective: string; athleteId?: string; raceName?: string; raceDate?: string; raceGoals?: RaceGoal[]; ... 38 more ...; lcwSignatureCountsElsewhere?: Record<...>; }'.
+  Property 'trainingLevel' does not exist on type 'PlanConfig'.
+experimental/det-engine/v9-prospective.ts(30,120): error TS2339: Property 'trainingLevel' does not exist on type 'PlanConfig | { loadHistory: any; _outputFormat?: "json" | "markdown"; objective: string; athleteId?: string; raceName?: string; raceDate?: string; raceGoals?: RaceGoal[]; ... 38 more ...; lcwSignatureCountsElsewhere?: Record<...>; }'.
+  Property 'trainingLevel' does not exist on type 'PlanConfig'.
