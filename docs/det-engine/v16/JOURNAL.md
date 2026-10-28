@@ -36,3 +36,5 @@ Un test de régression supplémentaire a démontré qu'une plage d'affichage gé
 Pendant cette vérification, l'environnement a été transitoirement indisponible et le handle du processus précédent a été perdu. Ses sorties restent conservées avec statut de sortie inconnu ; une exécution distincte a obtenu un reçu complet. Aucun redémarrage du registre, aucune adaptation acquise ni reprise permanente n'est prétendu.
 
 Le bundle source conserve aussi les commentaires des modules et les types/doctrine, sans attribuer automatiquement leurs références scientifiques à toutes les séances. Le catalogue de production reste intact.
+
+Clôture V16 : dix unités achevées en 48 min 13 s ; état `completed_no_go`. Source `8091a13d2f2333ac674a9c14534a451d75e62d45` poussée et PR #420 vérifiée ouverte, en brouillon et non fusionnée. Le point de contrôle distant précède le commit de clôture documentaire. Aucun service permanent ou redémarrage automatique.

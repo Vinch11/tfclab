@@ -14,7 +14,7 @@ L'audit statique est traçable par fichier/ligne/SHA dans [lineage-source-map.js
 
 ## Sensibilités réellement exécutées
 
-Même cas IM, niveau/budget/disponibilité et plafonds individuels hérités constants ; seul le paramètre décrit change. Horloge des tests fixée au 28/10/2026. Les valeurs représentent des fixtures déclarées, jamais des capacités réelles acquises.
+Même cas IM, niveau/budget/disponibilité et plafonds individuels hérités constants ; seul le paramètre décrit change. Horloge des tests fixée au 28/10/2026. Les valeurs représentent des fixtures déclarées, jamais des capacités réelles acquises. La sensibilité commence au résultat estimé de test déjà stocké (champ `vlamax`), pas au chrono du sprint, aux lactatémies ou à la reconstruction d’un protocole brut. L’acquisition et le calcul terrain amont ne sont pas rejoués ; la classification source `test` du moteur reste une sortie logicielle, pas une validation scientifique indépendante.
 
 | Fixture | VLamax effective | TTE effectif / source | Limiteurs transmis | Offres vélo long |
 | --- | --- | --- | --- | --- |

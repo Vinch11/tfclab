@@ -13,3 +13,5 @@ La chaîne terrain→profil→limiteurs→adaptations→offres est observable su
 Aucun nouveau calendrier complet, aucun athlète/Nolio lu ou écrit, aucune condition V14/V15 satisfaite, aucune revue experte humaine, aucune promotion ou modification de production. Les contrats scientifiques restent candidats.
 
 Les prochains travaux techniques peuvent utiliser le registre global pour résoudre progressivement les recettes par famille. Les décisions réellement nécessaires concernent la revue des ambiguïtés sportives, la portée des preuves individuelles et le contrat Noliov 2 complet ; aucune autorisation de fusion/déploiement n'est impliquée.
+
+Clôture V16 : dix unités achevées en 48 min 13 s ; état `completed_no_go`. Source `8091a13d2f2333ac674a9c14534a451d75e62d45` poussée et PR #420 vérifiée ouverte, en brouillon et non fusionnée. Le point de contrôle distant précède le commit de clôture documentaire. Aucun service permanent ou redémarrage automatique.

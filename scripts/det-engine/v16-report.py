@@ -1,5 +1,5 @@
 """Render a coach-facing dossier from accepted offline evidence, without generating sessions."""
-import json,gzip,pathlib,csv,collections,hashlib,re
+import json,gzip,pathlib,csv,collections,hashlib,re,time,datetime
 D=pathlib.Path('docs/det-engine/v16');F=D/'evidence/final';I=D/'evidence/integration-final';V=D/'evidence/validate-3';P=D/'evidence/proof-1'
 def load(p):return json.loads(pathlib.Path(p).read_text())
 def write(name,text):
@@ -11,6 +11,7 @@ def write(name,text):
  formatted=''.join(pieces).replace('PR420','PR #420').replace('Node2Go','Node 2 Go').replace('20:26UTC','20:26 UTC').replace('Draft 202012Validator','Draft202012Validator')
  (D/name).write_text(formatted.rstrip()+'\n')
 def table(headers,rows):return '| '+' | '.join(headers)+' |\n| '+' | '.join(['---']*len(headers))+' |\n'+'\n'.join('| '+' | '.join(str(v).replace('|',' / ').replace('\n',' ')for v in r)+' |'for r in rows)+'\n'
+register=load(D/'state.json');assert register['status']=='in_progress_no_go' and time.time()<datetime.datetime.fromisoformat(register['deadline'].replace('Z','+00:00')).timestamp(),'CLOSED_OR_EXPIRED_REGISTER'
 m=load(F/'manifest.json');dash=load(F/'dashboard.json');study=load(I/'integration-study.json');cards=[json.loads(l)for l in gzip.open(F/'canonical.jsonl.gz','rt')];renders={x['id']:x['text']for x in (json.loads(l)for l in gzip.open(F/'coach-renders.jsonl.gz','rt'))};temporal=study['temporalAudit'];protected=load(D/'baseline-files.json');state=load(D/'state.json');counts=collections.Counter(d['field']for c in cards for d in c['provenance']['enrichmentChanges']);sportrows=[(sport,v['total'],v['anomalies'].get('PHYSIOLOGY_UNDOCUMENTED',0),v['anomalies'].get('DOMAIN_UNRESOLVED',0),sum(c['prescription']['restrictions']['prerequisites']is not None for c in cards if c['prescription']['discipline']==sport))for sport,v in dash['audit']['bySport'].items()]
 write('README.md',f'''# DET-ENGINE V16 — bibliothèque canonique parallèle
 
@@ -149,7 +150,7 @@ L'audit statique est traçable par fichier/ligne/SHA dans [lineage-source-map.js
 
 ## Sensibilités réellement exécutées
 
-Même cas IM, niveau/budget/disponibilité et plafonds individuels hérités constants ; seul le paramètre décrit change. Horloge des tests fixée au28/10/2026. Les valeurs représentent des fixtures déclarées, jamais des capacités réelles acquises.
+Même cas IM, niveau/budget/disponibilité et plafonds individuels hérités constants ; seul le paramètre décrit change. Horloge des tests fixée au28/10/2026. Les valeurs représentent des fixtures déclarées, jamais des capacités réelles acquises. La sensibilité commence au résultat estimé de test déjà stocké (champ `vlamax`), pas au chrono du sprint, aux lactatémies ou à la reconstruction d’un protocole brut. L’acquisition et le calcul terrain amont ne sont pas rejoués ; la classification source `test` du moteur reste une sortie logicielle, pas une validation scientifique indépendante.
 
 {table(['Fixture','VLamax effective','TTE effectif / source','Limiteurs transmis','Offres vélo long'],sensitivity)}
 

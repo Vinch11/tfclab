@@ -2,7 +2,7 @@
   "version": "det-v16",
   "baseline": "e9fd91a6e9d4eb3cf2c59d708818e5901ae69d07",
   "branch": "experiment/det-engine",
-  "status": "in_progress_no_go",
+  "status": "completed_no_go",
   "startedAt": "2026-10-28T19:26:00Z",
   "deadline": "2026-10-28T20:26:00Z",
   "maxUnits": 10,
@@ -95,8 +95,10 @@
     {
       "id": 10,
       "name": "publication",
-      "status": "in_progress",
-      "attempts": 1
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "evidence/pr-v16-checkpoint.json",
+      "finishedAt": "2026-10-28T20:14:13.531810+00:00"
     }
   ],
   "automaticRestart": false,
@@ -109,5 +111,8 @@
     "newFullPlans": 0,
     "realNolioRequests": 0,
     "scientificContractsPromoted": 0
-  }
+  },
+  "finishedAt": "2026-10-28T20:14:13.531810+00:00",
+  "elapsedSeconds": 2893,
+  "sourceCommit": "8091a13d2f2333ac674a9c14534a451d75e62d45"
 }
