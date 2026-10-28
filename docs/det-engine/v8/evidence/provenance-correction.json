@@ -1,0 +1,8 @@
+{
+  "stage": "verified code anchors",
+  "initialFailure": "AssertionError: ['reduced_week_AB']",
+  "rootCause": "original V7 source points to planValidator.ts; attempted candidate literal does not exist there",
+  "correction": "verified actual function validateLorangCategories at line4656 in original source",
+  "sportingRulesChanged": false,
+  "priorEvidenceDeleted": false
+}

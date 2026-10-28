@@ -1,0 +1,17 @@
+{
+  "baseline": "3c47c8f064ffcfbbdf2dec96ee7c01f2e4944905",
+  "readOnlyPreviousArtifacts": true,
+  "historicalRulesModified": false,
+  "productionChanged": false,
+  "paidCalls": 0,
+  "candidatePromotion": false,
+  "independentHumanReview": false,
+  "sourceFiles": [
+    "experimental/det-engine/v8-causal-audit.mjs",
+    "scripts/det-engine/v8-compare.mjs",
+    "scripts/det-engine/v8-run.mjs",
+    "scripts/det-engine/v8-validate.mjs"
+  ],
+  "sourceCohort": "docs/det-engine/v7/reviews/",
+  "replay": "evidence/replay.json.gz"
+}

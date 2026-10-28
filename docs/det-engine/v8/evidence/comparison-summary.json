@@ -1,0 +1,674 @@
+[
+  {
+    "file": "ironman",
+    "inputSha256": "a7887747c22552023cff459e37729c42a697eebaeda15922a235b45e3a72e8ee",
+    "mode": "v7_provenance_only",
+    "weeks": 16,
+    "trainingSessions": 110,
+    "causalComplete": 0,
+    "evidenceGate": "not_executed",
+    "anomalies": [
+      {
+        "id": "confidence_semantics_need_separation",
+        "classification": "TECHNIQUE",
+        "evidence": {
+          "decisionConfidence": "high",
+          "diagnosticConfidence": 0.6050000000000002,
+          "uncertainty": [
+            "Confiance diagnostique limitée (61%)."
+          ]
+        }
+      },
+      {
+        "id": "economy_deficit_requires_measurement",
+        "classification": "INCONNUE",
+        "evidence": {
+          "lever": "force_max",
+          "reason": "Âge >35 ans — maintien force neuromusculaire essentiel",
+          "source": "LL24; possible group benefit is not an individual deficit diagnosis"
+        }
+      },
+      {
+        "id": "actual_fatigue_response",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not observed",
+          "source": "L417/W23"
+        }
+      }
+    ],
+    "v7": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "long_and_training_all_weeks"
+        },
+        "status": "fails",
+        "blocking": 12,
+        "unknowns": 9
+      },
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 12,
+        "unknowns": 9
+      }
+    ],
+    "historicalErrors": 8
+  },
+  {
+    "file": "ironman",
+    "inputSha256": "a7887747c22552023cff459e37729c42a697eebaeda15922a235b45e3a72e8ee",
+    "mode": "causal_evidence_required",
+    "weeks": 16,
+    "trainingSessions": 110,
+    "causalComplete": 0,
+    "evidenceGate": "incomplete_no_prescription_attestation",
+    "anomalies": [
+      {
+        "id": "confidence_semantics_need_separation",
+        "classification": "TECHNIQUE",
+        "evidence": {
+          "decisionConfidence": "high",
+          "diagnosticConfidence": 0.6050000000000002,
+          "uncertainty": [
+            "Confiance diagnostique limitée (61%)."
+          ]
+        }
+      },
+      {
+        "id": "economy_deficit_requires_measurement",
+        "classification": "INCONNUE",
+        "evidence": {
+          "lever": "force_max",
+          "reason": "Âge >35 ans — maintien force neuromusculaire essentiel",
+          "source": "LL24; possible group benefit is not an individual deficit diagnosis"
+        }
+      },
+      {
+        "id": "actual_fatigue_response",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not observed",
+          "source": "L417/W23"
+        }
+      }
+    ],
+    "v7": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "long_and_training_all_weeks"
+        },
+        "status": "fails",
+        "blocking": 12,
+        "unknowns": 9
+      },
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 12,
+        "unknowns": 9
+      }
+    ],
+    "historicalErrors": 8
+  },
+  {
+    "file": "trail-court",
+    "inputSha256": "4fb4fef590e661fb7dc8ffb02695ec20ca1b2d708d27cf08c388ff4d4eafefe2",
+    "mode": "v7_provenance_only",
+    "weeks": 12,
+    "trainingSessions": 56,
+    "causalComplete": 0,
+    "evidenceGate": "not_executed",
+    "anomalies": [
+      {
+        "id": "confidence_semantics_need_separation",
+        "classification": "TECHNIQUE",
+        "evidence": {
+          "decisionConfidence": "high",
+          "diagnosticConfidence": 0.5,
+          "uncertainty": [
+            "Données physiologiques incomplètes (60%).",
+            "Confiance diagnostique limitée (50%)."
+          ]
+        }
+      },
+      {
+        "id": "universal_progression_claim",
+        "classification": "MÉTHODOLOGIQUE",
+        "evidence": {
+          "lever": "z2_volume",
+          "adaptations": [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max"
+          ],
+          "source": "I20; does not establish alternative safe ceiling"
+        }
+      },
+      {
+        "id": "economy_deficit_requires_measurement",
+        "classification": "INCONNUE",
+        "evidence": {
+          "lever": "force_max",
+          "reason": "Économie faible — renforcement musculaire nécessaire",
+          "source": "LL24; possible group benefit is not an individual deficit diagnosis"
+        }
+      },
+      {
+        "id": "actual_fatigue_response",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not observed",
+          "source": "L417/W23"
+        }
+      },
+      {
+        "id": "individual_vertical_eccentric_tolerance",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not quantified",
+          "source": "B20"
+        }
+      }
+    ],
+    "v7": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 16
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 16
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 19
+      }
+    ],
+    "historicalErrors": 5
+  },
+  {
+    "file": "trail-court",
+    "inputSha256": "4fb4fef590e661fb7dc8ffb02695ec20ca1b2d708d27cf08c388ff4d4eafefe2",
+    "mode": "causal_evidence_required",
+    "weeks": 12,
+    "trainingSessions": 56,
+    "causalComplete": 0,
+    "evidenceGate": "incomplete_no_prescription_attestation",
+    "anomalies": [
+      {
+        "id": "confidence_semantics_need_separation",
+        "classification": "TECHNIQUE",
+        "evidence": {
+          "decisionConfidence": "high",
+          "diagnosticConfidence": 0.5,
+          "uncertainty": [
+            "Données physiologiques incomplètes (60%).",
+            "Confiance diagnostique limitée (50%)."
+          ]
+        }
+      },
+      {
+        "id": "universal_progression_claim",
+        "classification": "MÉTHODOLOGIQUE",
+        "evidence": {
+          "lever": "z2_volume",
+          "adaptations": [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max"
+          ],
+          "source": "I20; does not establish alternative safe ceiling"
+        }
+      },
+      {
+        "id": "economy_deficit_requires_measurement",
+        "classification": "INCONNUE",
+        "evidence": {
+          "lever": "force_max",
+          "reason": "Économie faible — renforcement musculaire nécessaire",
+          "source": "LL24; possible group benefit is not an individual deficit diagnosis"
+        }
+      },
+      {
+        "id": "actual_fatigue_response",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not observed",
+          "source": "L417/W23"
+        }
+      },
+      {
+        "id": "individual_vertical_eccentric_tolerance",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not quantified",
+          "source": "B20"
+        }
+      }
+    ],
+    "v7": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 16
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 16
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 19
+      }
+    ],
+    "historicalErrors": 5
+  },
+  {
+    "file": "trail-montagne",
+    "inputSha256": "8d808a962467d58b1a3303d266c39211297e569f9db6e1270d72bb3c81121743",
+    "mode": "v7_provenance_only",
+    "weeks": 16,
+    "trainingSessions": 74,
+    "causalComplete": 0,
+    "evidenceGate": "not_executed",
+    "anomalies": [
+      {
+        "id": "confidence_semantics_need_separation",
+        "classification": "TECHNIQUE",
+        "evidence": {
+          "decisionConfidence": "high",
+          "diagnosticConfidence": 0.5,
+          "uncertainty": [
+            "Données physiologiques incomplètes (60%).",
+            "Confiance diagnostique limitée (50%)."
+          ]
+        }
+      },
+      {
+        "id": "universal_progression_claim",
+        "classification": "MÉTHODOLOGIQUE",
+        "evidence": {
+          "lever": "z2_volume",
+          "adaptations": [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max"
+          ],
+          "source": "I20; does not establish alternative safe ceiling"
+        }
+      },
+      {
+        "id": "economy_deficit_requires_measurement",
+        "classification": "INCONNUE",
+        "evidence": {
+          "lever": "force_max",
+          "reason": "Économie faible — renforcement musculaire nécessaire",
+          "source": "LL24; possible group benefit is not an individual deficit diagnosis"
+        }
+      },
+      {
+        "id": "actual_fatigue_response",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not observed",
+          "source": "L417/W23"
+        }
+      },
+      {
+        "id": "individual_vertical_eccentric_tolerance",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not quantified",
+          "source": "B20"
+        }
+      }
+    ],
+    "v7": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 20
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 20
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 23
+      }
+    ],
+    "historicalErrors": 4
+  },
+  {
+    "file": "trail-montagne",
+    "inputSha256": "8d808a962467d58b1a3303d266c39211297e569f9db6e1270d72bb3c81121743",
+    "mode": "causal_evidence_required",
+    "weeks": 16,
+    "trainingSessions": 74,
+    "causalComplete": 0,
+    "evidenceGate": "incomplete_no_prescription_attestation",
+    "anomalies": [
+      {
+        "id": "confidence_semantics_need_separation",
+        "classification": "TECHNIQUE",
+        "evidence": {
+          "decisionConfidence": "high",
+          "diagnosticConfidence": 0.5,
+          "uncertainty": [
+            "Données physiologiques incomplètes (60%).",
+            "Confiance diagnostique limitée (50%)."
+          ]
+        }
+      },
+      {
+        "id": "universal_progression_claim",
+        "classification": "MÉTHODOLOGIQUE",
+        "evidence": {
+          "lever": "z2_volume",
+          "adaptations": [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max"
+          ],
+          "source": "I20; does not establish alternative safe ceiling"
+        }
+      },
+      {
+        "id": "economy_deficit_requires_measurement",
+        "classification": "INCONNUE",
+        "evidence": {
+          "lever": "force_max",
+          "reason": "Économie faible — renforcement musculaire nécessaire",
+          "source": "LL24; possible group benefit is not an individual deficit diagnosis"
+        }
+      },
+      {
+        "id": "actual_fatigue_response",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not observed",
+          "source": "L417/W23"
+        }
+      },
+      {
+        "id": "individual_vertical_eccentric_tolerance",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not quantified",
+          "source": "B20"
+        }
+      }
+    ],
+    "v7": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 20
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 20
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 23
+      }
+    ],
+    "historicalErrors": 4
+  },
+  {
+    "file": "ultra",
+    "inputSha256": "6a9b7ed932c473597ce1898568391cb79d71c44ce757dc2dafe7f1475e795a38",
+    "mode": "v7_provenance_only",
+    "weeks": 20,
+    "trainingSessions": 92,
+    "causalComplete": 0,
+    "evidenceGate": "not_executed",
+    "anomalies": [
+      {
+        "id": "confidence_semantics_need_separation",
+        "classification": "TECHNIQUE",
+        "evidence": {
+          "decisionConfidence": "high",
+          "diagnosticConfidence": 0.5,
+          "uncertainty": [
+            "Données physiologiques incomplètes (60%).",
+            "Confiance diagnostique limitée (50%)."
+          ]
+        }
+      },
+      {
+        "id": "universal_progression_claim",
+        "classification": "MÉTHODOLOGIQUE",
+        "evidence": {
+          "lever": "z2_volume",
+          "adaptations": [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max"
+          ],
+          "source": "I20; does not establish alternative safe ceiling"
+        }
+      },
+      {
+        "id": "economy_deficit_requires_measurement",
+        "classification": "INCONNUE",
+        "evidence": {
+          "lever": "force_max",
+          "reason": "Économie faible — renforcement musculaire nécessaire",
+          "source": "LL24; possible group benefit is not an individual deficit diagnosis"
+        }
+      },
+      {
+        "id": "actual_fatigue_response",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not observed",
+          "source": "L417/W23"
+        }
+      },
+      {
+        "id": "individual_vertical_eccentric_tolerance",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not quantified",
+          "source": "B20"
+        }
+      }
+    ],
+    "v7": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 24
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 24
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 24
+      }
+    ],
+    "historicalErrors": 4
+  },
+  {
+    "file": "ultra",
+    "inputSha256": "6a9b7ed932c473597ce1898568391cb79d71c44ce757dc2dafe7f1475e795a38",
+    "mode": "causal_evidence_required",
+    "weeks": 20,
+    "trainingSessions": 92,
+    "causalComplete": 0,
+    "evidenceGate": "incomplete_no_prescription_attestation",
+    "anomalies": [
+      {
+        "id": "confidence_semantics_need_separation",
+        "classification": "TECHNIQUE",
+        "evidence": {
+          "decisionConfidence": "high",
+          "diagnosticConfidence": 0.5,
+          "uncertainty": [
+            "Données physiologiques incomplètes (60%).",
+            "Confiance diagnostique limitée (50%)."
+          ]
+        }
+      },
+      {
+        "id": "universal_progression_claim",
+        "classification": "MÉTHODOLOGIQUE",
+        "evidence": {
+          "lever": "z2_volume",
+          "adaptations": [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max"
+          ],
+          "source": "I20; does not establish alternative safe ceiling"
+        }
+      },
+      {
+        "id": "economy_deficit_requires_measurement",
+        "classification": "INCONNUE",
+        "evidence": {
+          "lever": "force_max",
+          "reason": "Économie faible — renforcement musculaire nécessaire",
+          "source": "LL24; possible group benefit is not an individual deficit diagnosis"
+        }
+      },
+      {
+        "id": "actual_fatigue_response",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not observed",
+          "source": "L417/W23"
+        }
+      },
+      {
+        "id": "individual_vertical_eccentric_tolerance",
+        "classification": "INCONNUE",
+        "evidence": {
+          "value": "not quantified",
+          "source": "B20"
+        }
+      }
+    ],
+    "v7": [
+      {
+        "model": {
+          "AB": "historical_AB_every_base",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 24
+      },
+      {
+        "model": {
+          "AB": "foundation_roles_then_quality",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "conditional_no_executed_blocker",
+        "blocking": 0,
+        "unknowns": 24
+      },
+      {
+        "model": {
+          "AB": "quality_only_when_source_supported",
+          "IM": "week_specific_training_and_competition"
+        },
+        "status": "fails",
+        "blocking": 3,
+        "unknowns": 24
+      }
+    ],
+    "historicalErrors": 4
+  }
+]

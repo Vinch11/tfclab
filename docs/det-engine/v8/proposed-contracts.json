@@ -1,0 +1,1051 @@
+[
+  {
+    "id": "technical_calendar",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "all candidates",
+    "conditions": {
+      "period": "complete_plan",
+      "unit": "weeks/days/schema",
+      "applicability": "all candidates"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "ParsedPlan"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "experimental/det-engine/v2-technical-validation.ts",
+      "symbol": "auditTechnicalPlan"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "schema does not attest prescription quality",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "catalogue_integrity",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "catalogued training sessions",
+    "conditions": {
+      "period": "session",
+      "unit": "source dose/zone/phase",
+      "applicability": "catalogued training sessions"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "complete metadata",
+      "duration",
+      "zones",
+      "objective",
+      "phase"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "supabase/functions/_shared/sessionCatalogueContract.ts",
+      "symbol": "checkSessionCatalogue"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "source editorial ranges do not prove individual tolerance",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "coach_load",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "recorded coach/internal budget",
+    "conditions": {
+      "period": "week and last load week",
+      "unit": "training_minutes",
+      "applicability": "recorded coach/internal budget"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "weekly budget",
+      "actual session durations"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "src/lib/plan/coachVolumeValidation.ts",
+      "symbol": "validateCoachVolumeBudgets"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "configured progression ceiling is not a universal injury threshold",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "physical_frequency",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "all counted training slots",
+    "conditions": {
+      "period": "week",
+      "unit": "physical_sessions",
+      "applicability": "all counted training slots"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "sport",
+      "isRest",
+      "race identity",
+      "nominal quotas",
+      "confirmed day availability for exceptions"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "supabase/functions/_shared/sessionQuotaAccounting.ts",
+      "symbol": "countQuotaSessions"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "physical sessions differ from discipline exposures",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "effective_frequency",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "brick replaces one standalone bike in existing quota convention",
+    "conditions": {
+      "period": "week",
+      "unit": "effective_bike_and_total_sessions",
+      "applicability": "brick replaces one standalone bike in existing quota convention"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "nominal quota",
+      "brick count"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "supabase/functions/_shared/sessionQuotaAccounting.ts",
+      "symbol": "effectiveSessionQuota"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "nominal and effective totals cannot be interchanged",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "discipline_minutes",
+    "v7ContractRetained": true,
+    "disposition": "contextualize",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "IM and multisport targets; training only",
+    "conditions": {
+      "period": "actual_generation_block",
+      "unit": "endurance_minutes_by_discipline",
+      "applicability": "IM and multisport targets; training only"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "generation windows",
+      "standalone minutes",
+      "known brick components"
+    ],
+    "sources": [
+      "R25",
+      "O24",
+      "L175"
+    ],
+    "sourceCode": {
+      "path": "supabase/functions/ai-training-plan/sportRatioMatrix.ts",
+      "symbol": "mandatory ratio verification table"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "unknown brick time remains in denominator as interval uncertainty",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "historical_discipline_ratio",
+    "v7ContractRetained": true,
+    "disposition": "candidate_withdrawal",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "legacy objective targets",
+    "conditions": {
+      "period": "load weeks excluding race",
+      "unit": "session_counts_with_half_brick_rounding",
+      "applicability": "legacy objective targets"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "counted sports",
+      "week classification"
+    ],
+    "sources": [
+      "L175"
+    ],
+    "sourceCode": {
+      "path": "src/engines/plan/planValidator.ts",
+      "symbol": "validateSportRatio"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "differs from source minute-based verification",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "intensity_minutes",
+    "v7ContractRetained": true,
+    "disposition": "experimental_modification",
+    "adaptation": "Retain original failure; expose thresholds, denominator and unknown minutes. Compare context-dependent distributions, no universal80/20.",
+    "sportObjective": "historical non-deload/non-race applicability",
+    "conditions": {
+      "period": "week",
+      "unit": "estimated_zone_minutes",
+      "applicability": "historical non-deload/non-race applicability"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "session text",
+      "durations",
+      "zones",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "R25",
+      "O24"
+    ],
+    "sourceCode": {
+      "path": "src/engines/plan/planValidator.ts",
+      "symbol": "estimateSessionZoneMinutes / validatePolarization"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "clause estimates and unknown time; no equal split of tags",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "key_role",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "all historical key flags",
+    "conditions": {
+      "period": "session/week",
+      "unit": "session_role_and_content",
+      "applicability": "all historical key flags"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "unchanged isKeySession",
+      "source content"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "src/engines/plan/planValidator.ts",
+      "symbol": "isKeySession / self-declaration consistency"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "structural/long key does not necessarily mean high intensity",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "trail_optional_cycling",
+    "v7ContractRetained": true,
+    "disposition": "contextualize",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "explicit trail coach calendar with optional or absent cycling",
+    "conditions": {
+      "period": "actual_generation_block",
+      "unit": "run/endurance_minutes_and_role_evidence",
+      "applicability": "explicit trail coach calendar with optional or absent cycling"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "trail objective",
+      "coach run days",
+      "session sports",
+      "global load controls"
+    ],
+    "sources": [
+      "B20",
+      "M21"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v7-contracts.ts",
+      "symbol": "trail specificity candidate"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "candidate replaces an upper proportion convention, not a safety limit",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "trail_base_AB",
+    "v7ContractRetained": true,
+    "disposition": "experimental_modification",
+    "adaptation": "Phase-specific stimulus rationale required; A/B labels and HIT counts are not universally mandated by the interviews.",
+    "sportObjective": "trail objective plus declared training level and phase",
+    "conditions": {
+      "period": "base load week",
+      "unit": "actual_quality_and_foundation_roles",
+      "applicability": "trail objective plus declared training level and phase"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "phase",
+      "level",
+      "actual session content",
+      "coach zone cap",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "L175",
+      "L417",
+      "R25"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v7-contracts.ts",
+      "symbol": "three base models"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "no universal requirement for HIT every base week; models need expert review",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "reduced_week_AB",
+    "v7ContractRetained": true,
+    "disposition": "contextualize",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "missing A/B under a non-load week type, even if theme still says peak",
+    "conditions": {
+      "period": "recorded recovery/taper/race week",
+      "unit": "quality-session applicability",
+      "applicability": "missing A/B under a non-load week type, even if theme still says peak"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "recorded week type",
+      "phase",
+      "complete volume/intensity checks"
+    ],
+    "sources": [
+      "W23",
+      "L175"
+    ],
+    "sourceCode": {
+      "path": "src/engines/plan/planValidator.ts",
+      "symbol": "validateLorangCategories / inferWeekType"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "does not prove recovery or permit arbitrary intensity",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "long_development",
+    "v7ContractRetained": true,
+    "disposition": "contextualize",
+    "adaptation": "Retain programming obligation; exact duration minima require level, history, opportunity and purpose, not a universal law.",
+    "sportObjective": "recorded long endurance floor",
+    "conditions": {
+      "period": "development/load week",
+      "unit": "minutes_by_discipline",
+      "applicability": "recorded long endurance floor"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "standalone duration",
+      "known components",
+      "floors",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "L175",
+      "M21"
+    ],
+    "sourceCode": {
+      "path": "src/lib/plan/validateWeeklyQuotas.ts",
+      "symbol": "long run/ride floors"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "brick is not automatically autonomous long endurance",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "IM_week_specific_long",
+    "v7ContractRetained": true,
+    "disposition": "contextualize",
+    "adaptation": "Differentiate development, recovery and taper; no evidence here fixes exact reduced-week long doses.",
+    "sportObjective": "continuous IM candidates",
+    "conditions": {
+      "period": "week type",
+      "unit": "training_minutes_and_long_role",
+      "applicability": "continuous IM candidates"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "week type",
+      "previous load",
+      "original floors",
+      "standalone long exposure",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "W23",
+      "L175"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v7-contracts.ts",
+      "symbol": "development vs recovery/taper/race"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "all\u00e9gement does not prove recovery adequacy",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "IM_training_continuity",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "swim/bike/run continuity contract",
+    "conditions": {
+      "period": "week",
+      "unit": "training_presence_by_discipline",
+      "applicability": "swim/bike/run continuity contract"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "standalone sessions",
+      "positive known brick components"
+    ],
+    "sources": [
+      "L417"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v5-global.ts",
+      "symbol": "required training discipline gap"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "presence is not dose sufficiency",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "IM_competition_presence",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "actual matching declared IM race",
+    "conditions": {
+      "period": "competition week",
+      "unit": "declared_discipline_presence",
+      "applicability": "actual matching declared IM race"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "event date",
+      "event objective",
+      "actual race session"
+    ],
+    "sources": [
+      "L175"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v7-contracts.ts",
+      "symbol": "declared events separate from training"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "declared triathlon presence does not quantify race components",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "recovery_volume",
+    "v7ContractRetained": true,
+    "disposition": "contextualize",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "previous load and configured budget available",
+    "conditions": {
+      "period": "recovery week",
+      "unit": "training_minutes",
+      "applicability": "previous load and configured budget available"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "previous load",
+      "week budget",
+      "race exclusion"
+    ],
+    "sources": [
+      "L417",
+      "I20"
+    ],
+    "sourceCode": {
+      "path": "src/lib/plan/coachVolumeValidation.ts",
+      "symbol": "last prescribed load comparison"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "existing 70% convention is not universal safety proof",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "taper",
+    "v7ContractRetained": true,
+    "disposition": "experimental_modification",
+    "adaptation": "Separate volume reduction from quality reminders and ordinary recovery; J\u22121/J\u22122 dose and individual fatigue remain unknown.",
+    "sportObjective": "competitive taper distinct from ordinary recovery",
+    "conditions": {
+      "period": "taper and competition week",
+      "unit": "volume / explicit intensity minutes",
+      "applicability": "competitive taper distinct from ordinary recovery"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "source activation",
+      "date",
+      "dose",
+      "individual cap",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "W23"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v5-taper.ts",
+      "symbol": "auditTaperContract"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "residual fatigue not measured; missing dose is unknown, observed volume failure is error",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "vertical_muscle",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "D+ and D\u2212, slope/terrain, eccentric dose and observed response separate; unknown tolerance cannot pass.",
+    "sportObjective": "trail or explicit muscle contract",
+    "conditions": {
+      "period": "session, week, mesocycle",
+      "unit": "D+ / D\u2212 / eccentric exposure separately",
+      "applicability": "trail or explicit muscle contract"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "route provenance",
+      "separate descent dose",
+      "recent exposure response",
+      "individual limits if set",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "B20"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v5-global.ts",
+      "symbol": "IndividualExposureContract"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "no tolerance inferred from level or scheduled sessions",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "global_progression",
+    "v7ContractRetained": true,
+    "disposition": "contextualize",
+    "adaptation": "Compare complete timelines by discipline and specific exposure; no universal10% or ACWR safety certificate.",
+    "sportObjective": "all candidates; vertical only where applicable",
+    "conditions": {
+      "period": "complete_plan",
+      "unit": "discipline_minutes / mesocycles",
+      "applicability": "all candidates; vertical only where applicable"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "full timeline",
+      "ledger",
+      "budgets",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "I20",
+      "M21"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v5-global.ts",
+      "symbol": "auditV5Global"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "rolling windows are descriptive, not a universal safety threshold",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "catalogue_source_placement",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "explicit source timing or LCW-specific source",
+    "conditions": {
+      "period": "session",
+      "unit": "event day offset / format",
+      "applicability": "explicit source timing or LCW-specific source"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "source when",
+      "event dates",
+      "declared format"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "experimental/det-engine/v6-placement.ts",
+      "symbol": "sourcePlacement"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "ambiguous source context is not proof of compatibility",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "injury_prohibitions",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "declared contraindications",
+    "conditions": {
+      "period": "complete_plan",
+      "unit": "session and athlete contraindication",
+      "applicability": "declared contraindications"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "physiological inputs",
+      "prohibitions",
+      "actual source session"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "src/engines/plan/planValidator.ts",
+      "symbol": "validateProhibitionCompliance / validateInjuryRiskCompliance"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "known prohibitions preserved; missing individual evidence remains uncertain",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "limiter_individualization",
+    "v7ContractRetained": true,
+    "disposition": "experimental_modification",
+    "adaptation": "Add session-level causal evidence and preserve uncertainty; TTE is not measured durability and inferred VLamax is not laboratory measurement.",
+    "sportObjective": "declared limiter keys and coach order",
+    "conditions": {
+      "period": "phase/plan",
+      "unit": "adaptation priority and source intent",
+      "applicability": "declared limiter keys and coach order"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "identifiedLimitersRaw",
+      "physiologicalTrace",
+      "actual catalogue selection",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "L175",
+      "M21",
+      "S25",
+      "LL24"
+    ],
+    "sourceCode": {
+      "path": "src/lib/limiterSessionPatterns.ts",
+      "symbol": "LIMITER_SESSION_PATTERNS"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "limiter uncertainty does not prove load tolerance",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "residual_fatigue",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "No observed response: status remains unknown; a volume drop is not proof of recovered state.",
+    "sportObjective": "all experimental plans",
+    "conditions": {
+      "period": "recovery/taper/competition",
+      "unit": "actual response",
+      "applicability": "all experimental plans"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "individual fatigue response",
+      "recent history",
+      "known activation dose",
+      "individual dose rationale",
+      "observed or missing response",
+      "reassessment criterion"
+    ],
+    "sources": [
+      "L417",
+      "W23"
+    ],
+    "sourceCode": {
+      "path": "experimental/det-engine/v7-contracts.ts",
+      "symbol": "candidate fatigue evidence"
+    },
+    "confidence": "contextual_indirect",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "prescribed reduction is not observed recovery",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  },
+  {
+    "id": "expert_review",
+    "v7ContractRetained": true,
+    "disposition": "maintain",
+    "adaptation": "no direct adaptation claim; constraint, descriptive indicator or allocation convention",
+    "sportObjective": "all experimental prescriptions",
+    "conditions": {
+      "period": "complete_plan",
+      "unit": "review_state",
+      "applicability": "all experimental prescriptions"
+    },
+    "profileAndLimiters": "existing discipline-specific tests, ordered limiters with uncertainty, declared coach level; no new physiological target",
+    "requiredData": [
+      "independent qualified review"
+    ],
+    "sources": [],
+    "sourceCode": {
+      "path": "docs/det-engine/v6/CONTRATS_ET_LIMITES.md",
+      "symbol": "independent review requirement"
+    },
+    "confidence": "software_or_declared_guard_no_efficacy_claim",
+    "validationCriteria": [
+      "preserve historical diagnostics and known safety errors",
+      "verify input/source applicability and units",
+      "missing evidence remains unknown",
+      "compare full-plan dose and continuity",
+      "independent review before promotion"
+    ],
+    "risksAndContraindications": [
+      "existing prohibitions unchanged",
+      "absence of retrieved evidence does not authorize removal",
+      "unmeasured fatigue or muscle tolerance cannot be certified"
+    ],
+    "exceptionsAndUncertainty": "no automated test establishes general sporting relevance",
+    "productionEnabled": false,
+    "changeToHistoricalSeverity": false
+  }
+]

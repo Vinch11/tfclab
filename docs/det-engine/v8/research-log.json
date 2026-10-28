@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-28",
+  "strategy": "targeted verification; not exhaustive systematic search",
+  "queries": [
+    "exact DOIs/PMIDs from mandate",
+    "Dan Lorang TTS175 TTS417 220Triathlon",
+    "VLamax validity reliability2025/2026",
+    "durability physiological profiling",
+    "running economy strength systematic review2024",
+    "polarized pyramidal2025/2026"
+  ],
+  "selection": "verified primary abstracts/publisher and original interview shownotes; no secondary source used to establish thresholds",
+  "unavailable": [
+    "several PMC full texts returned recaptcha",
+    "no full audio transcription verification",
+    "no original metabolic presentation with adequate provenance inspected",
+    "no IPD requested"
+  ],
+  "paidAccess": false,
+  "sources": "bibliography.json",
+  "sourceContradictions": "SCIENTIFIC_EVIDENCE_MATRIX.md"
+}
