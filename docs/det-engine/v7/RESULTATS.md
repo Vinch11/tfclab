@@ -59,3 +59,5 @@ Les premiers agrégats V7 `comparison` et `comparison-final` sont conservés mai
 ## Validation exécutée
 
 Le typage et les 58 tests Node du contrôleur passent. La suite expérimentale ordinaire passe 70 tests (34 tests de matrices restent opt-in dans cette invocation ; les matrices V7 ont leurs exécutions explicites et preuves séparées). Le résultat historique complet et les durées sont consignés dans `validation-summary.json`, sans assimiler tests ignorés à des contrôles exécutés.
+
+Validation historique terminée : 2 999 tests réussis, 1 ignoré, 6 à faire. Toutes les commandes de validation ont un code de sortie zéro.

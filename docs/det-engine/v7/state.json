@@ -6,7 +6,7 @@
   "deadline": 1793177790,
   "maxUnits": 10,
   "maxAttemptsPerUnit": 3,
-  "status": "running",
+  "status": "completed_no_go",
   "units": [
     {
       "id": "audit",
@@ -496,20 +496,23 @@
       "attempts": [
         {
           "startedAt": 1793177688358,
-          "status": "running",
+          "status": "passed",
           "command": [
             "authorized_git_push_and_draft_pr_metadata_update"
           ],
-          "mode": "external_manual_receipt"
+          "mode": "external_manual_receipt",
+          "completedAt": 1793177724760,
+          "receipt": "publication-proof.json"
         }
       ],
-      "status": "running"
+      "status": "passed"
     }
   ],
-  "activeUnit": {
-    "id": "publication",
-    "attempt": 1,
-    "mode": "external_manual_receipt"
-  },
-  "note": "New V7 authorization; historical evidence immutable"
+  "activeUnit": null,
+  "note": "New V7 authorization; historical evidence immutable",
+  "completedAt": 1793177724760,
+  "stopReason": "ten_named_work_units_completed",
+  "elapsedSeconds": 3534.76,
+  "ongoingTechnicalAuthorization": true,
+  "automaticDevelopmentRestart": false
 }

@@ -56,5 +56,8 @@
   "experimentalPassed": 70,
   "experimentalSkipped": 34,
   "historicalLog": "evidence/validation/historical.txt",
-  "allCommandsPassed": true
+  "allCommandsPassed": true,
+  "historicalPassed": 2999,
+  "historicalSkipped": 1,
+  "historicalTodo": 6
 }

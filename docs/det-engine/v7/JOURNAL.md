@@ -12,3 +12,5 @@
 10. Publication : mise à jour autorisée de la branche et de la PR brouillon, preuves de publication séparées.
 
 Les répétitions sont des révisions justifiées et bornées des mêmes unités, pas de nouvelles permutations massives. Aucun plan n’a été modifié pour améliorer les chiffres. Les preuves intermédiaires ne sont pas effacées.
+
+Clôture : dix unités terminées dans la limite de soixante minutes. Typage, 58 tests Node, 70 tests expérimentaux et 2 999 tests historiques réussis ; 1 ignoré et 6 à faire en historique. Branche poussée et métadonnées de #420 mises à jour, brouillon confirmé. Le commit de clôture ne modifie que les preuves documentaires.
