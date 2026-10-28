@@ -27,3 +27,5 @@ Décisions réellement ouvertes : clarifier les repos finaux et les variantes qu
 **Recommandation : maintenir DRAFT / NO-GO.** Les corrections techniques réversibles peuvent continuer avec un nouveau budget ; la promotion et les arbitrages sportifs ne sont pas autorisés par ce dossier.
 
 La sensibilité physiologique fait passer les sous-ensembles de revue de 10/12 à 11/13 candidats pour les deux estimations synthétiques, sans remplacer la sélection par un appariement lexical. [Preuve et limites](PHYSIOLOGICAL_SELECTION.md).
+
+Budget final : 10 unités, 50 min 47 s à la clôture du registre ; arrêt sur la limite de dix unités. Les opérations finales de clôture et de vérification restent dans la fenêtre de 60 minutes.

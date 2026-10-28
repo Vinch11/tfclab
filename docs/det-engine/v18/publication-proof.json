@@ -1,0 +1,14 @@
+{
+  "repository": "Vinch11/tfclab",
+  "branch": "experiment/det-engine",
+  "pr": 420,
+  "sourceCommit": "2fb67ec8f1d829a7f9bafd0d7e227976f281d20f",
+  "remoteSourceHeadVerified": "2fb67ec8f1d829a7f9bafd0d7e227976f281d20f",
+  "draftVerified": true,
+  "openVerified": true,
+  "mergedAt": null,
+  "recommendation": "NO-GO",
+  "elapsedSecondsAtClosure": 3047,
+  "unitsCompleted": 10,
+  "scope": "source checkpoint before documentary closure commit; no merge, deployment or real data operation"
+}

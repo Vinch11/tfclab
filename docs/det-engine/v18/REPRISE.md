@@ -11,3 +11,5 @@ Le compilateur V18 et ses modèles sont des fonctions pures réutilisables. `v18
 Pour la session suivante : nouveau mandat/budget et registre séparé, vérifier les empreintes et l’état distant, réutiliser les preuves sans rejouer les unités closes comme nouveau travail. Le vérificateur final de dépôt reste lisible sans modifier le registre. Les champs de réaction réellement observée restent inconnus ; aucune progression attendue ou conversion technique ne prouve une adaptation.
 
 Priorités : clarification source des occurrences de repos et du périmètre des variantes ; poursuivre les grammaires dont des témoins écrits existent ; renforcer les modèles techniques sans inventer une dose ; revue scientifique individuelle progressive et contrat Nolio officiel avant tout transport multidisciplinaire.
+
+Clôture V18 : dix unités achevées en 50 min 47 s ; état `completed_no_go`, aucun redémarrage automatique. Source `2fb67ec8f1d829a7f9bafd0d7e227976f281d20f` poussée ; PR #420 vérifiée ouverte, en brouillon, non fusionnée. Le contrôle distant du source précède le commit documentaire de clôture.
