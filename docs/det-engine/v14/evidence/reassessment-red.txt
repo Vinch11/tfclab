@@ -1,0 +1,30 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../vitest.config" without a file extension (experimental/det-engine/vitest.v3.config.ts:2:18). Add the file extension
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+4:36:50 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab
+
+ ❯ experimental/det-engine/v14-reassessment.test.ts (1 test | 1 failed) 10ms
+   × refuses a due target when a valid reassessment explicitly retains a smaller capacity, while absence of evidence stays pending 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  experimental/det-engine/v14-reassessment.test.ts > refuses a due target when a valid reassessment explicitly retains a smaller capacity, while absence of evidence stays pending
+AssertionError: expected 'conditional_pending_reassessment' to be 'not_admissible' // Object.is equality
+
+Expected: "not_admissible"
+Received: "conditional_pending_reassessment"
+
+ ❯ experimental/det-engine/v14-reassessment.test.ts:2:673
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  16:36:50
+   Duration  447ms (transform 35ms, setup 55ms, import 25ms, tests 10ms, environment 221ms)
+

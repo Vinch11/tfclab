@@ -1,0 +1,19 @@
+{
+  "version": "det-v14-1",
+  "baseline": "061b60e69637b081ac089be30ca157dacb7c1df7",
+  "syntheticOnly": true,
+  "distinctProfiles": 2,
+  "sourceProfiles": "V10 existing Ironman mock histories, current caps unchanged",
+  "budgetReconciliation": "V13 copy-only14h->10h reused",
+  "scienceSources": [
+    "docs/det-engine/v8/SCIENTIFIC_EVIDENCE_MATRIX.md",
+    "docs/det-engine/v8/LORANG_METHODOLOGY.md"
+  ],
+  "newLiteratureReviewClaimed": false,
+  "noUniversalProgressionPercentage": true,
+  "realAdaptationObservations": 0,
+  "humanExpertReviews": 0,
+  "paidApiCalls": 0,
+  "realAthleteOrNolioWrites": 0,
+  "productionChanges": false
+}
