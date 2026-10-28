@@ -14,3 +14,5 @@ Les10unités sont énumérées dans state.json ; limite absolue60minutes,3tentat
 10. Publication autorisée de la branche et PRbrouillon ; reçu final séparé. Aucun service permanent lancé.
 
 Une bibliographie n’a pas été utilisée pour effacer des alertes ou faire artificiellement passer un plan. Les garde-fous ont été conservés.
+
+Clôture confirmée :10unités terminées en919.405secondes, sous la limite3600secondes. Branche poussée, #420mise à jour et brouillon confirmé. Le commit de clôture ne change que les reçus documentaires.

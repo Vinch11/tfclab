@@ -1,0 +1,7 @@
+{
+  "experimental/det-engine/v8-causal-audit.mjs": "77a4749be4474a724e884a2119c3ef5da5c7da9cad87c07235a1ae1fccbd7a0e",
+  "experimental/det-engine/v8-causal-audit.test.mjs": "b083392deaf3b768794678c9c3c1c1d5c900c96d677bb7e05513aeda150a2112",
+  "scripts/det-engine/v8-compare.mjs": "5bedd8fc4745325738793e14e03d2f70adf88f814c9b1ff121a7a957f0b2b079",
+  "scripts/det-engine/v8-validate.mjs": "3872ea6a4eb2143c2605fe8b694c73d4a75333522554e983b70a8f100d259bc4",
+  "scripts/det-engine/v8-run.mjs": "299967642b3e1e17b3af3fe772981a4c4527ab8c15963d37167ed82f577b11c1"
+}

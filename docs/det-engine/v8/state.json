@@ -4,7 +4,7 @@
   "deadline": 1793181922,
   "maxUnits": 10,
   "baseline": "3c47c8f064ffcfbbdf2dec96ee7c01f2e4944905",
-  "status": "running",
+  "status": "completed_no_go",
   "units": [
     {
       "id": "baseline",
@@ -83,10 +83,16 @@
     },
     {
       "id": "publication",
-      "status": "running",
+      "status": "passed",
       "startedAt": 1793179154.300591,
-      "mode": "manual_git_and_draft_pr_receipt"
+      "mode": "manual_git_and_draft_pr_receipt",
+      "completedAt": 1793179241.404824,
+      "evidence": "publication-proof.json"
     }
   ],
-  "activeUnit": "publication"
+  "activeUnit": null,
+  "completedAt": 1793179241.4048266,
+  "stopReason": "ten_named_units_completed",
+  "elapsedSeconds": 919.405,
+  "automaticRestart": false
 }

@@ -1,5 +1,5 @@
 {
-  "JOURNAL.md": "87f757f2f2acc7a8659aea989699305f4524cac93451b4735fd8a19fee8845c7",
+  "JOURNAL.md": "49866b8d4ba7e522298afc168ef309ac61a392a767ba6dadeea46e4f1467c946",
   "LORANG_METHODOLOGY.md": "74bba1aa3ddfb3758625769e90eb607fde4e1cf59d76d1804ba2cc66a548c491",
   "PROPOSED_SPORT_CONTRACTS.md": "c01c33a8732e1d17367fc05c88abf11f9c077757f9b3893bc3622d58d3dffc99",
   "README.md": "ba96f7683d19c5b8ea1dfd3bb5dfdf4a2b55c528005db2911b022005b0959ec5",
@@ -23,7 +23,9 @@
   "evidence/validation-1.txt": "5817c1e9a84df1d0bb8eedd794df4d0ab0a76b7758031b03cb110187640fd530",
   "proposed-contracts.json": "b3715fa1cfb6297da52475c80e8c6b18a26fde0decaf23922f4510598ad2b544",
   "provenance.json": "fd7e57879e05c3d08c25e05d774e2fa3a78caf617338f0dfecf67f9987347a73",
+  "publication-proof.json": "da9e360446073788f8e26fe54759db42da888bfbc21ca79c80ded1a5dd45ee9e",
   "research-log.json": "a3eb6fe3dec2948eaf9818eae8e9f3376490de85ab76b707a71384f3a209e6ae",
-  "state.json": "e902491a10ec4e750b185b5a078f922fcc2b91e9a7ba332cb867cf03cb180230",
+  "source-checksums.json": "4f951315a7c888171b1def05632216062285ab246e2c4e57c3703c0dae199443",
+  "state.json": "f11c058d1a6e094c4ed73d2879e18f470bae8d9c0925bdde1d568050ef344349",
   "validation-summary.json": "8dd6316bf6141c4c3db791cd41041d7af4db359abcba210f838d73df499051e8"
 }
