@@ -3,9 +3,10 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { computeDiagnostic } from "@/engines/diagnostic/computeDiagnostic";
 import { QA_PROFILES } from "@/lib/plan/qa/syntheticProfiles";
 import { buildPilotDiagnosticInput } from "@/lib/plan/qa/preparePilotTrainingPlanContext";
+import type { DiagnosticInput, AthleteDiagnostic } from "@/engines/diagnostic/types";
 
-const spec = JSON.parse(readFileSync("docs/physiology-validation/v2/evidence/det-v22-inputs.json", "utf8"));
-const handoff = JSON.parse(readFileSync("docs/physiology-validation/v2/evidence/det-current-handoff.json", "utf8"));
+const spec: { clock: string; common: { objective: string; ambition: DiagnosticInput["ambition"] }; cases: { id: string; rawOverrides: Partial<DiagnosticInput> }[] } = JSON.parse(readFileSync("docs/physiology-validation/v2/evidence/det-v22-inputs.json", "utf8"));
+const handoff: { cases: { caseId: string; conflict: { actualDiagnostic: AthleteDiagnostic["runMLSS"] } }[] } = JSON.parse(readFileSync("docs/physiology-validation/v2/evidence/det-current-handoff.json", "utf8"));
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date(spec.clock));
   vi.stubGlobal("fetch", () => { throw Error("NETWORK_FORBIDDEN"); });
@@ -16,14 +17,14 @@ afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(
 describe("V22 frozen input compatibility, including current V23 physiology handoff", () => {
   it("keeps actual threshold proxies but removes cross-validation manufactured from score3", () => {
     const seed = buildPilotDiagnosticInput(QA_PROFILES.find(p => p.id === "B-IM")!);
-    const rows = spec.cases.map((c: any) => {
-      const raw = { ...seed, ...c.rawOverrides, athleteId: `synthetic:v22:${c.id}`, sportFocus: "tri", objectif: spec.common.objective, ambition: spec.common.ambition };
+    const rows = spec.cases.map(c => {
+      const raw: DiagnosticInput = { ...seed, ...c.rawOverrides, athleteId: `synthetic:v22:${c.id}`, sportFocus: "tri", objectif: spec.common.objective, ambition: spec.common.ambition };
       const frozen = structuredClone(raw);
       const d = computeDiagnostic(raw);
       expect(raw).toEqual(frozen);
       expect(d.runMLSS?.prediction ?? null).toBeNull();
       expect(d.runMLSS?.crossValidation ?? null).toBeNull();
-      const before = handoff.cases.find((r: any) => r.caseId === c.id)?.conflict.actualDiagnostic;
+      const before = handoff.cases.find(r => r.caseId === c.id)?.conflict.actualDiagnostic;
       if (before) {
         expect(d.runMLSS?.observedPct).toBe(before.observedPct);
         expect(d.runMLSS?.effectivePct).toBe(before.effectivePct);

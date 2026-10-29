@@ -438,8 +438,20 @@ export function useCloudData() {
   const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
     // Strip non-DB fields before sending to Supabase
     const { id: _id, created_at: _ca, updated_at: _ua, ...cleanUpdates } = updates as any;
-    if (Object.prototype.hasOwnProperty.call(cleanUpdates, "coach_notes")) {
-      cleanUpdates.coach_notes = preservePhysiologyNotes(snapshots.find(s => s.id === id)?.coach_notes, cleanUpdates.coach_notes);
+    const previousNotes = snapshots.find(s => s.id === id)?.coach_notes;
+    try {
+      const notes = preservePhysiologyNotes(previousNotes, cleanUpdates.coach_notes, cleanUpdates);
+      if (notes !== (previousNotes ?? "") || Object.prototype.hasOwnProperty.call(cleanUpdates, "coach_notes")) {
+        const validatedNotes = snapshotSchema.shape.coach_notes.safeParse(notes);
+        if (!validatedNotes.success) {
+          toast.error("Notes et provenance dépassent 2 000 caractères — aucune modification sauvegardée.");
+          return false;
+        }
+        cleanUpdates.coach_notes = validatedNotes.data;
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Métadonnées physiologiques invalides");
+      return false;
     }
     const { error } = await supabase.from("snapshots").update(cleanUpdates).eq("id", id);
     if (error) {

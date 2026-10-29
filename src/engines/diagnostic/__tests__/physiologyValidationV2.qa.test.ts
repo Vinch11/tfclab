@@ -8,7 +8,7 @@ import { buildPilotDiagnosticInput } from "@/lib/plan/qa/preparePilotTrainingPla
 const file = "docs/physiology-validation/v2/evidence/qa-before.json";
 const capture = process.env.PHYSIOLOGY_V2_CAPTURE_BASELINE === "1";
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-const baseline = capture ? null : JSON.parse(readFileSync(file, "utf8"));
+const baseline: { id: string; stableBlocks: Record<string, string>; runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"] }[] | null = capture ? null : JSON.parse(readFileSync(file, "utf8"));
 const rows: unknown[] = [];
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-10-29T14:00:00Z"));
@@ -26,7 +26,7 @@ describe("37 unchanged QA fixtures — baseline main versus V2", () => {
         stableBlocks: Object.fromEntries(["effectifs", "limiter", "readiness", "targets"].map(key => [key, hash(d[key])])),
         runMLSS: d.runMLSS, alerts: d.synthesis.alerts };
       if (!capture) {
-        const before = baseline.find((r: any) => r.id === row.id);
+        const before = baseline.find(r => r.id === row.id);
         expect(row.stableBlocks, row.id).toEqual(before.stableBlocks);
         expect(d.runMLSS?.prediction ?? null).toBeNull(); // existing QA inputs have scores, no explicit O2 cost
         expect(d.runMLSS?.observedPct ?? null, row.id).toBe(before.runMLSS?.observedPct ?? null);

@@ -141,13 +141,21 @@ function isLabMeasuredVlamaxSnapshot(s: SnapshotCloud): boolean {
  * doivent être exclus du pipeline `sport=velo` pour éviter qu'un sprint CAP
  * récent (ex. "Sprint 15s CAP" 0.71) ne masque la VLamax vélo réelle.
  */
-function explicitTestDiscipline(t: TestCloud): "run" | "bike" | "unassigned" | null {
+function explicitTestDiscipline(t: TestCloud): "run" | "bike" | "swim" | "unassigned" | null {
   const value = t.sport ?? t.raw?.labExtract?.performance?.sport;
-  if (typeof value !== "string" || !value.trim()) return null; // legacy, unspecified
-  const sport = value.toLowerCase();
-  if (["run", "cap", "course", "course à pied", "running"].includes(sport)) return "run";
-  if (["bike", "velo", "vélo", "cyclisme", "cycling"].includes(sport)) return "bike";
-  return "unassigned"; // mixed/unknown/swim is not a bike/run lactate measurement
+  if (typeof value === "string" && value.trim()) {
+    const sport = value.trim().toLowerCase();
+    if (["run", "cap", "course", "course à pied", "running"].includes(sport)) return "run";
+    if (["bike", "velo", "vélo", "cyclisme", "cycling"].includes(sport)) return "bike";
+    if (["swim", "natation", "nage"].includes(sport)) return "swim";
+    return "unassigned";
+  }
+  // An identifiable historical protocol remains usable; the athlete goal is not its discipline.
+  const protocol = `${t.type ?? ""} ${t.name ?? ""} ${t.raw?.protocol ?? ""}`.toLowerCase();
+  if (/\bcap\b|\brun\b|running|course à pied/.test(protocol)) return "run";
+  if (/\bbike\b|\bvelo\b|vélo|cycling|cyclisme|wingate/.test(protocol)) return "bike";
+  if (/\bswim\b|natation|nage/.test(protocol)) return "swim";
+  return null;
 }
 
 function isCapSpecificVlamaxTest(t: TestCloud): boolean {
@@ -345,10 +353,10 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   // =============================================
   const athleteTestsAll = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
   const athleteTests = sport === "cap"
-    ? athleteTestsAll.filter(t => isLabMeasuredVlamaxTest(t) && !["bike", "unassigned"].includes(explicitTestDiscipline(t)))
+    ? athleteTestsAll.filter(t => isLabMeasuredVlamaxTest(t) && explicitTestDiscipline(t) === "run")
     // Pour sport=velo/natation : exclure les tests CAP-spécifiques (Sprint 15s CAP, etc.)
     // qui mesurent la glycolyse en course et polluent la VLamax vélo.
-    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t) && (sport !== "velo" || explicitTestDiscipline(t) !== "unassigned"));
+    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t) && explicitTestDiscipline(t) === (sport === "velo" ? "bike" : "swim"));
   
   if (athleteTests.length > 0) {
     const sortedTests = [...athleteTests].sort((a, b) => {

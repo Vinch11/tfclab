@@ -20,7 +20,7 @@ describe("V2 — rendered scientific provenance and explicit unknown cost", () =
   });
   it("the actual staff HTML builder keeps missing cost explicit even when a score exists", () => {
     const runMLSS = computeRunMLSSFromInput({ sportFocus: "run", vlamaxRun: 0.5, vma: 18, paceThresholdSecPerKm: 240 });
-    const html = buildRunMLSSCoherenceHTML({ athlete: { goal: "Marathon" }, effectiveSnapshot: { run_economy_score: 65 }, runMLSS } as any);
+    const html = buildRunMLSSCoherenceHTML({ athlete: { goal: "Marathon" }, effectiveSnapshot: { run_economy_score: 65 }, runMLSS });
     expect(html).toContain("inconnu — aucune conversion du score économie");
     expect(html).toContain("VLamax run ou CE manquant");
     expect(html).not.toContain("93.7");

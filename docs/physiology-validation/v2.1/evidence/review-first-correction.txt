@@ -1,0 +1,29 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+3:37:39 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+ ❯ src/lib/__tests__/vlamaxEffectif.test.ts (9 tests | 1 failed) 14ms
+       × test-derived VLamax has reasonable confidence 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/__tests__/vlamaxEffectif.test.ts > computeVLamaxEffectif > Confidence scoring > test-derived VLamax has reasonable confidence
+AssertionError: expected 0.39 to be greater than or equal to 0.6
+ ❯ src/lib/__tests__/vlamaxEffectif.test.ts:97:35
+     95|       // Test-derived should have confidence >= 0.6 (terrain sprint te…
+     96|       // 0.7 réservé aux tests labo/lactate).
+     97|       expect(fromTest.confidence).toBeGreaterThanOrEqual(0.6);
+       |                                   ^
+     98|     });
+     99|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 10 passed (11)
+      Tests  1 failed | 86 passed (87)
+   Start at  15:37:39
+   Duration  7.58s (transform 7.68s, setup 798ms, import 12.63s, tests 683ms, environment 4.48s)

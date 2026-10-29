@@ -39,7 +39,7 @@ export function mapExtractToSnapshot(
   
   // Calculate metabolic profile if we have VO2max and VLamax
   const { profile, score } = deriveMetabolicProfile(
-    extract.vlamax.value,
+    knownSegment ? extract.vlamax.value : null,
     extract.performance.vo2max_ml_kg_min
   );
   

@@ -20,10 +20,26 @@ export function physiologyNarrative(notes: string | null | undefined): string {
   return (notes ?? "").split("\n").filter(line => !line.startsWith(MARKER)).join("\n").trim();
 }
 
-export function preservePhysiologyNotes(previous: string | null | undefined, next: string | null | undefined): string {
-  if (next?.split("\n").some(line => line.startsWith(MARKER))) return next;
-  const metadata = previous?.split("\n").find(line => line.startsWith(MARKER));
-  return [next ?? "", metadata].filter(Boolean).join("\n");
+export function preservePhysiologyNotes(previous: string | null | undefined, next: string | null | undefined, changes: Partial<DbSnapshot> = {}): string {
+  const incoming = metadataLines(next);
+  if (incoming.length && (incoming.length !== 1 || !parseEnvelope(incoming[0]))) {
+    throw new Error("Métadonnées physiologiques invalides — notes non sauvegardées.");
+  }
+  const metadata = incoming.length ? incoming : metadataLines(previous);
+  const envelope = metadata.length === 1 ? parseEnvelope(metadata[0]) : null;
+  let changed = false;
+  if (envelope) {
+    envelope.parameters = { ...envelope.parameters };
+    for (const [field, parameter] of Object.entries(envelope.parameters)) {
+      if (Object.prototype.hasOwnProperty.call(changes, field) && changes[field as keyof DbSnapshot] !== parameter.value) {
+        delete envelope.parameters[field];
+        changed = true;
+      }
+    }
+  }
+  if (next === undefined && !changed) return previous ?? "";
+  return [next === undefined ? physiologyNarrative(previous) : physiologyNarrative(next),
+    ...(changed ? [`${MARKER}${JSON.stringify(envelope)}`] : metadata)].filter(Boolean).join("\n");
 }
 const FIELDS = {
   vo2max: ["ml O2/kg/min", "unknown"], ftp: ["W", "bike"], vma: ["km/h", "run"],
@@ -49,6 +65,24 @@ interface Envelope {
   parameters: Record<string, Pick<PhysiologicalEvidence, "value" | "unit" | "discipline"> & Partial<PhysiologicalEvidence>>;
 }
 
+const metadataLines = (notes: string | null | undefined) => (notes ?? "").split("\n").filter(line => line.startsWith(MARKER));
+const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
+function parseEnvelope(line: string): Envelope | null {
+  try {
+    const value: unknown = JSON.parse(line.slice(MARKER.length));
+    if (!record(value) || value.version !== 1 || !record(value.parameters)) return null;
+    if (!Object.values(value.parameters).every(parameter => record(parameter) && finite(parameter.value) && typeof parameter.unit === "string")) return null;
+    return value as unknown as Envelope;
+  } catch { return null; }
+}
+function testDate(value: unknown): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value ? value : null;
+}
+const ownOr = <T>(parameter: Partial<PhysiologicalEvidence>, key: keyof PhysiologicalEvidence, fallback: T): unknown =>
+  Object.prototype.hasOwnProperty.call(parameter, key) ? parameter[key] : fallback;
+
 /** Persist in the existing notes field; no new DB column or migration. */
 export function appendPhysiologyEvidence(notes: string, envelope: Envelope): string {
   const narrative = notes.split("\n").filter(line => !line.startsWith(MARKER)).join("\n");
@@ -62,34 +96,35 @@ function readSnapshotPhysiologyEvidence(snapshot: Partial<DbSnapshot> | null | u
     const value = snapshot[field as keyof DbSnapshot];
     if (!finite(value)) continue;
     result[field] = { value, unit, discipline, method: null, date: null, scientificOrigin: "unknown",
-      storageSource: snapshot.source ?? null, storageDate: snapshot.date ?? null, confidence: finite(snapshot.confidence) ? snapshot.confidence : null,
+      storageSource: snapshot.source ?? null, storageDate: snapshot.date ?? null, confidence: finite(snapshot.confidence) && snapshot.confidence >= 0 && snapshot.confidence <= 1 ? snapshot.confidence : null,
       confidenceBasis: "unknown", errorMargin: null };
   }
-  const line = snapshot.coach_notes?.split("\n").find(line => line.startsWith(MARKER));
-  if (!line) return result;
+  const lines = metadataLines(snapshot.coach_notes);
+  if (lines.length !== 1) return result;
+  const envelope = parseEnvelope(lines[0]);
+  if (!envelope) return result;
   try {
-    const envelope = JSON.parse(line.slice(MARKER.length)) as Envelope;
-    if (envelope.version !== 1 || !envelope.parameters || typeof envelope.parameters !== "object") return result;
     for (const [field, parameter] of Object.entries(envelope.parameters)) {
       if (!parameter || !finite(parameter.value) || typeof parameter.unit !== "string") continue;
       const definition = FIELDS[field as keyof typeof FIELDS];
       // An edited scalar must not inherit stale evidence from a previous value.
       if (definition && (snapshot[field as keyof DbSnapshot] !== parameter.value || parameter.unit !== definition[0])) continue;
       if (field === "runningEconomyCostMlKgKm" && (parameter.discipline !== "run" || parameter.unit !== "ml O2/kg/km" || validRunningEconomyCost(parameter.value) === null)) continue;
-      const confidence = parameter.confidence ?? envelope.confidence;
-      const date = parameter.date ?? envelope.date;
+      const confidence = ownOr(parameter, "confidence", envelope.confidence);
+      const date = ownOr(parameter, "date", envelope.date);
       const origin = parameter.scientificOrigin;
-      const basis = parameter.confidenceBasis ?? envelope.confidenceBasis;
+      const basis = ownOr(parameter, "confidenceBasis", envelope.confidenceBasis);
+      const storageSource = ownOr(parameter, "storageSource", envelope.storageSource ?? snapshot.source ?? null);
       result[field] = {
         value: parameter.value, unit: parameter.unit,
         discipline: ["run", "bike", "swim"].includes(parameter.discipline) ? parameter.discipline : "unknown",
         method: typeof parameter.method === "string" ? parameter.method : null,
-        date: typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null,
+        date: testDate(date),
         scientificOrigin: ["direct_measurement", "field_estimate", "model_inference", "coach_declared"].includes(origin) ? origin : "unknown",
-        storageSource: envelope.storageSource ?? snapshot.source ?? null,
+        storageSource: typeof storageSource === "string" ? storageSource : null,
         storageDate: snapshot.date ?? null,
         confidence: finite(confidence) && confidence >= 0 && confidence <= 1 ? confidence : null,
-        confidenceBasis: ["extraction", "heuristic", "reported"].includes(basis) ? basis : "unknown",
+        confidenceBasis: basis === "extraction" || basis === "heuristic" || basis === "reported" ? basis : "unknown",
         errorMargin: finite(parameter.errorMargin) && parameter.errorMargin >= 0 ? parameter.errorMargin : null,
       };
     }
@@ -128,10 +163,12 @@ export function diagnosticPhysiologicalEvidence(diagnostic: import("@/engines/di
     scientificOrigin: "unknown", storageSource: null, confidence: null, confidenceBasis: "unknown", errorMargin: null,
   };
   const discipline = diagnostic.sportFocus === "run" ? "run" : "bike";
+  const storedVLamax = evidence[discipline === "run" ? "vlamax_run" : "vlamax"];
+  const matchingVLamax = storedVLamax?.value === vlamax.value && storedVLamax.discipline === discipline ? storedVLamax : null;
   if (vlamax.value !== null) evidence.vlamaxEffective = {
     value: vlamax.value, unit: "mmol/L/s", discipline,
-    method: vlamax.v2?.source ?? vlamax.details?.protocol ?? null, date: vlamax.details?.date ?? null,
-    scientificOrigin: vlamax.v2?.source === "test_labo" ? "direct_measurement" : ["test_terrain", "semaine_reference"].includes(vlamax.v2?.source) ? "field_estimate" : "model_inference",
+    method: matchingVLamax?.method ?? vlamax.details?.protocol ?? vlamax.v2?.source ?? null, date: matchingVLamax?.date ?? vlamax.details?.date ?? null,
+    scientificOrigin: matchingVLamax?.scientificOrigin ?? (vlamax.v2?.source === "test_labo" ? "unknown" : ["test_terrain", "semaine_reference"].includes(vlamax.v2?.source) ? "field_estimate" : "model_inference"),
     storageSource: vlamax.source, confidence: vlamax.confidence, confidenceBasis: "heuristic",
     errorMargin: vlamax.errorMargin ?? null,
   };

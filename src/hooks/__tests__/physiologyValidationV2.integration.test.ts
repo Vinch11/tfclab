@@ -41,7 +41,7 @@ vi.mock("@/integrations/supabase/client", () => ({ supabase: {
     return query;
   },
 } }));
-import { useCloudData } from "../useCloudData";
+import { useCloudData, type DbSnapshot } from "../useCloudData";
 
 const athleteId = "22222222-2222-4222-8222-222222222222";
 beforeEach(() => {
@@ -85,13 +85,13 @@ describe("V2 — actual import editing, validation, mocked save/reopen, diagnost
     expect(extractToValidationFields(extract).find(f => f.key === "running_economy")?.editable).toBe(true);
     const edited = applyFieldEdits(extract, { running_economy: 200 });
     expect(edited.economy.running_cost_ml_kg_km).toBe(200);
-    const payload = { athlete_id: athleteId, coach_id: "", ...mapExtractToSnapshot(edited, "Marathon") } as any;
+    const payload = { athlete_id: athleteId, coach_id: "", date: "2026-10-20", source: "lab_import", ...mapExtractToSnapshot(edited, "Marathon") };
     const validated = snapshotSchema.parse(payload);
     const evidence = snapshotPhysiologyEvidence(validated);
     expect(evidence.runningEconomyCostMlKgKm).toMatchObject({ value: 200, unit: "ml O2/kg/km", discipline: "run", date: "2026-10-20", storageSource: "lab_import", confidence: 0.9, confidenceBasis: "extraction", scientificOrigin: "unknown", errorMargin: null });
     const first = renderHook(() => useCloudData());
     await waitFor(() => expect(first.result.current.loading).toBe(false));
-    let saved: any;
+    let saved: DbSnapshot | null = null;
     await act(async () => { saved = await first.result.current.addSnapshot(payload); });
     expect(saved.vlamax_run).toBe(0.42);
     expect(saved.vlamax).toBeNull();
@@ -113,7 +113,7 @@ describe("V2 — actual import editing, validation, mocked save/reopen, diagnost
     expect(prepared.trace.parameters.runningEconomyCostMlKgKm).toEqual(evidence.runningEconomyCostMlKgKm);
     expect(prepared.athleteData.physiologicalEvidence?.vlamaxEffective.confidenceBasis).toBe("heuristic");
     expect(prepared.athleteData.physiologicalEvidence?.vlamaxEffective.errorMargin).toBeGreaterThan(0);
-    const html = buildRunMLSSCoherenceHTML({ athlete: { goal: "Marathon" }, effectiveSnapshot: snapshot, runMLSS: prepared.diagnostic.runMLSS } as any);
+    const html = buildRunMLSSCoherenceHTML({ athlete: { goal: "Marathon" }, effectiveSnapshot: snapshot, runMLSS: prepared.diagnostic.runMLSS });
     expect(html).toContain("200 ml O2/kg/km");
     expect(html).toContain("2026-10-20");
     expect(html).toContain("extraction");
@@ -141,8 +141,8 @@ describe("V2 — actual import editing, validation, mocked save/reopen, diagnost
     hook.unmount();
     const loaded = renderHook(() => useCloudData());
     await waitFor(() => expect(loaded.result.current.loading).toBe(false));
-    let saved: any;
-    await act(async () => { saved = await loaded.result.current.addSnapshot({ athlete_id: athleteId, coach_id: "", ...mapExtractToSnapshot(extraction("bike"), "Marathon") } as any); });
+    let saved: DbSnapshot | null = null;
+    await act(async () => { saved = await loaded.result.current.addSnapshot({ athlete_id: athleteId, coach_id: "", date: "2026-10-20", source: "lab_import", ...mapExtractToSnapshot(extraction("bike"), "Marathon") }); });
     expect(saved.sport_main).toBe("bike");
     expect(saved.vlamax).toBe(0.42);
     expect(saved.vlamax_run).toBeNull();
@@ -154,8 +154,56 @@ describe("V2 — actual import editing, validation, mocked save/reopen, diagnost
     await waitFor(() => expect(hook.result.current.loading).toBe(false));
     const before = structuredClone(hook.result.current.snapshots);
     transport.failWrite = true;
-    await act(async () => { expect(await hook.result.current.addSnapshot({ athlete_id: athleteId, coach_id: "", ...mapExtractToSnapshot(extraction(), "Marathon") } as any)).toBeNull(); });
+    await act(async () => { expect(await hook.result.current.addSnapshot({ athlete_id: athleteId, coach_id: "", date: "2026-10-20", source: "lab_import", ...mapExtractToSnapshot(extraction(), "Marathon") })).toBeNull(); });
     expect(hook.result.current.snapshots).toEqual(before);
+    hook.unmount();
+  });
+});
+
+
+describe("V2.1 — successive edits and bounded provenance persistence", () => {
+  it("accepts exactly 2000 characters and rejects an overflowing merged note without a write", async () => {
+    const hook = renderHook(() => useCloudData());
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+    const payload = { athlete_id: athleteId, coach_id: "", date: "2026-10-20", source: "lab_import", ...mapExtractToSnapshot(extraction(), "Marathon") };
+    const metadata = payload.coach_notes.split("\n").at(-1)!;
+    const exact = "x".repeat(1999 - metadata.length) + "\n" + metadata;
+    let saved: DbSnapshot | null = null;
+    await act(async () => { saved = await hook.result.current.addSnapshot({ ...payload, coach_notes: exact }); });
+    expect(saved.coach_notes).toHaveLength(2000);
+    const before = structuredClone(transport.rows.snapshots);
+    await act(async () => { expect(await hook.result.current.updateSnapshot(saved.id, { coach_notes: "x" + exact })).toBe(false); });
+    expect(transport.rows.snapshots).toEqual(before);
+    expect(hook.result.current.snapshots.find(s => s.id === saved.id)?.coach_notes).toBe(exact);
+    hook.unmount();
+  });
+  it("invalidates edited metadata in storage, so an old value does not restore old provenance", async () => {
+    const hook = renderHook(() => useCloudData());
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+    let saved: DbSnapshot | null = null;
+    await act(async () => { saved = await hook.result.current.addSnapshot({ athlete_id: athleteId, coach_id: "", date: "2026-10-20", source: "lab_import", ...mapExtractToSnapshot(extraction(), "Marathon") }); });
+    await act(async () => { expect(await hook.result.current.updateSnapshot(saved.id, { vma: 19 })).toBe(true); });
+    await act(async () => { expect(await hook.result.current.updateSnapshot(saved.id, { vma: 18, coach_notes: "Edited twice" })).toBe(true); });
+    const read = hook.result.current.snapshots.find(s => s.id === saved.id)!;
+    expect(snapshotPhysiologyEvidence(read).vma.date).toBeNull();
+    expect(snapshotPhysiologyEvidence(read).vo2max.date).toBe("2026-10-20");
+    const before = structuredClone(transport.rows.snapshots);
+    await act(async () => { expect(await hook.result.current.updateSnapshot(saved.id, { coach_notes: "TFCL_PHYSIOLOGY_V1:broken" })).toBe(false); });
+    expect(transport.rows.snapshots).toEqual(before);
+    hook.unmount();
+    const reopened = renderHook(() => useCloudData());
+    await waitFor(() => expect(reopened.result.current.loading).toBe(false));
+    expect(snapshotPhysiologyEvidence(reopened.result.current.snapshots.find(s => s.id === saved.id)!).vma.date).toBeNull();
+    reopened.unmount();
+  });
+  it("keeps a historical malformed envelope consultable and never extracts a cost from it", async () => {
+    transport.rows.snapshots[0].coach_notes = "Historical narrative\nTFCL_PHYSIOLOGY_V1:broken";
+    const before = structuredClone(transport.rows.snapshots);
+    const hook = renderHook(() => useCloudData());
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+    expect(transport.rows.snapshots).toEqual(before);
+    expect(runningEconomyCostFromSnapshot(hook.result.current.snapshots[0])).toBeNull();
+    expect(hook.result.current.snapshots[0].coach_notes).toContain("TFCL_PHYSIOLOGY_V1:broken");
     hook.unmount();
   });
 });

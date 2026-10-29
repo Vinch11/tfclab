@@ -1,0 +1,1092 @@
+[
+  {
+    "id": "B-70.3",
+    "stableBlocks": {
+      "effectifs": "b779e83ea907e65d6c91c8beaf46899baa25cb1a37d3f64de75e508abf8f3c68",
+      "limiter": "79b402db7a94dfa763f2e5f223ceb11adc841ac4fbada40f40a027b5e9837586",
+      "readiness": "07f7918023a6bb0ef686d6efe4e445868295bfb7823a1843d80372bbce2b8d86",
+      "targets": "4fa6e307ee9dae457609c117844fb40318afd43fd012e73125668ee9e75b94c0"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "developing"
+  },
+  {
+    "id": "B-SEMI",
+    "stableBlocks": {
+      "effectifs": "555a9e1462c86d1e125f8d754948c61d5080a44ec8ecf7309d42581297c24352",
+      "limiter": "d1ccf7e7180e0d1e0ab9ac8e8400760b08e71b1c03be13b4e3767558c915ab2f",
+      "readiness": "ae5d09f9472ab5d119d9f115b85f1b8f9307a0c9ba5a6a483e671503ab767f02",
+      "targets": "6a3173d3a48ea7ebeac72aa2ca81b3600e87863983a4b37e29f11fdacc291b7d"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "B-SPRINT",
+    "stableBlocks": {
+      "effectifs": "b779e83ea907e65d6c91c8beaf46899baa25cb1a37d3f64de75e508abf8f3c68",
+      "limiter": "468f5162cc4beacf96113385e3a56d1cbf83bc4fd4dc47213049fe49966e07fd",
+      "readiness": "848670bf9c7fea981b3909770cbf6b761db841ea8dbb3ee57a1ad49517093784",
+      "targets": "65532f59e029dfc431a27f6c26c747628db80bc1671a38c268304af7076af6cc"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "developing"
+  },
+  {
+    "id": "B-IM",
+    "stableBlocks": {
+      "effectifs": "b6d7ca95fe3a6e730d4cffda9036853321011b45b8bca8d0c4b61c123d491ee7",
+      "limiter": "eccd0e9afe37606238403624a115522895f23fc4d07dd0f0b9c99819cac3ae0d",
+      "readiness": "1ae5b7d23efde62ad6fd20f78c885dac246ae322d6d6785c4da167da8d392e5b",
+      "targets": "77e879b73e0eb62fde3da4cb034a05f70c9db9c17e3384306cb3bf52163e0c94"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "B-MARATHON",
+    "stableBlocks": {
+      "effectifs": "2e7adc6eb55940537444de282c05e857e70a5111014bed8a38b9873652ec0f78",
+      "limiter": "4dc50cd910ba505779a18b94024fd35477bd588e9c5b3c773f0e34415ccf33bd",
+      "readiness": "7f81b624e459888b6e998795828a8e4ac63d8f0e908ec1c11b5406e8212bb3d6",
+      "targets": "b57660ed17fd961958a955085f019118acfe0b97be11f1ff3bfc627f91c204dc"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "developing"
+  },
+  {
+    "id": "B-10K",
+    "stableBlocks": {
+      "effectifs": "555a9e1462c86d1e125f8d754948c61d5080a44ec8ecf7309d42581297c24352",
+      "limiter": "d1ccf7e7180e0d1e0ab9ac8e8400760b08e71b1c03be13b4e3767558c915ab2f",
+      "readiness": "ae5d09f9472ab5d119d9f115b85f1b8f9307a0c9ba5a6a483e671503ab767f02",
+      "targets": "821be899290ecc63b6cece6ab4b3b317a6b02f90b69c3c9bff9c4513f1667283"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "B-5K",
+    "stableBlocks": {
+      "effectifs": "555a9e1462c86d1e125f8d754948c61d5080a44ec8ecf7309d42581297c24352",
+      "limiter": "1b48d0f1953a007996fdcbd7d6e5b45bba3501e1e255458315716c1ec7e59d8d",
+      "readiness": "bfb7e28f20df1f8dd18aff7da05f76533c9e8f781a4225f787b43fba96317a19",
+      "targets": "e4ec135de9d1b8f96e9c3a56b37a3046e40ed101ea04f4dbc528037f210b229e"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "B-OLYMPIC",
+    "stableBlocks": {
+      "effectifs": "b779e83ea907e65d6c91c8beaf46899baa25cb1a37d3f64de75e508abf8f3c68",
+      "limiter": "468f5162cc4beacf96113385e3a56d1cbf83bc4fd4dc47213049fe49966e07fd",
+      "readiness": "848670bf9c7fea981b3909770cbf6b761db841ea8dbb3ee57a1ad49517093784",
+      "targets": "05a7a4b7cf566ae204aa628aaa36820a04346c89462ba8a40e50dd7c36c37807"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "developing"
+  },
+  {
+    "id": "B-STARTTORUN",
+    "stableBlocks": {
+      "effectifs": "555a9e1462c86d1e125f8d754948c61d5080a44ec8ecf7309d42581297c24352",
+      "limiter": "ae2cf90584fb71fcb9edc48f892eba35dd16a0ac1b0b2c40b05f29d640bb6183",
+      "readiness": "bfb7e28f20df1f8dd18aff7da05f76533c9e8f781a4225f787b43fba96317a19",
+      "targets": "27ce15d6f94d81991e0c043ccc6e41646c51423524e3e79401f44a60de4ae6fa"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "B-TRAIL-SHORT",
+    "stableBlocks": {
+      "effectifs": "555a9e1462c86d1e125f8d754948c61d5080a44ec8ecf7309d42581297c24352",
+      "limiter": "d1ccf7e7180e0d1e0ab9ac8e8400760b08e71b1c03be13b4e3767558c915ab2f",
+      "readiness": "ae5d09f9472ab5d119d9f115b85f1b8f9307a0c9ba5a6a483e671503ab767f02",
+      "targets": "57e5756d580e9346f713dff7a98e7fa64f4d4d347fa6cbd9b41725a0e0b1be61"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "B-TRAIL-MOUNTAIN",
+    "stableBlocks": {
+      "effectifs": "555a9e1462c86d1e125f8d754948c61d5080a44ec8ecf7309d42581297c24352",
+      "limiter": "baea484a62e091c3df12e385d33577ef3b7ced57118f6cc23a839bcb7c8ceefb",
+      "readiness": "bd50f789a453efea84fa282eb7f47141d26dd729d30426e48bd42cae9d67cab4",
+      "targets": "e7fcf73cc18f3ab8ff514ef57b49d03e22fe93ec1bbe8f1db9e5b5d018253989"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "B-TRAIL-ULTRA",
+    "stableBlocks": {
+      "effectifs": "555a9e1462c86d1e125f8d754948c61d5080a44ec8ecf7309d42581297c24352",
+      "limiter": "7368688d95b44e6b19645e04b6e68f943d84ec0d19902fb0844c0398e7b314a9",
+      "readiness": "7931efbd9c816105fdad6e336804115bebfdd204e8ad7585522c866539ea2f45",
+      "targets": "ca7368c152df480e419db54b01ceff78a2af39a96badf6ff9d0f4d5c43d99182"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 90.9,
+    "proxyAfter": 90.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "B-5K-BEGINNER",
+    "stableBlocks": {
+      "effectifs": "26e1c0520fcb2b6b8c225d908afa062dcb00790ddf85f448dc8dd975c6143fe6",
+      "limiter": "34141bf8c39e13e47a20fefdcc64cca8e5b80c986385b90968490cee518d80d9",
+      "readiness": "83fdce0d7b50787454dafcca8c11b0ec7aa72e4ee5a942470a0dfe3687a4a07a",
+      "targets": "9da6360dabcbf3375b6b94d0ba6e3c695690eeef8cdae3af563987cd0b1318c9"
+    },
+    "predictionBefore": {
+      "mlssPct": 92,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 18.54,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 79.9,
+    "proxyAfter": 79.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (57%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "warning",
+        "message": "Incohérence VLamax/CE/seuil run (Δ-12.1%) — recalibrer",
+        "source": "runMLSS"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (57%)",
+        "source": "injuryRisk"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "B-10K-TO-70.3",
+    "stableBlocks": {
+      "effectifs": "07f291b9dc86e149ecbbecfff3ab05abc08c2eea144e4c1802bc7ef6f03ed07d",
+      "limiter": "cbcd3f3c4dd53e9219699212327b0e40a614ccb5dc1c4e11d037abd88af45235",
+      "readiness": "474f811b551f8414bccd8fd0c5129bf26e3f7f30794fddd7f3d9d2712129a79f",
+      "targets": "f2de3361d57e8bdd89d6c435804e38785cc604861be5a2c821288f3feba2dcdd"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": null,
+    "proxyAfter": null,
+    "effectiveSource": "none",
+    "alertsBefore": [
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-01",
+    "stableBlocks": {
+      "effectifs": "51476d7f4d5c2c3a73997f36e0075708d34a2b29c8c551fd51da866dd473e414",
+      "limiter": "b6e88ac3531941b36025d708ca94362e76ef27051d2bb0e03400f70a54aae9a2",
+      "readiness": "bfb7e28f20df1f8dd18aff7da05f76533c9e8f781a4225f787b43fba96317a19",
+      "targets": "27ce15d6f94d81991e0c043ccc6e41646c51423524e3e79401f44a60de4ae6fa"
+    },
+    "predictionBefore": {
+      "mlssPct": 95,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 10.78,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 87.9,
+    "proxyAfter": 87.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-02",
+    "stableBlocks": {
+      "effectifs": "55d230707c6110f1a26b43cdd885b4567981b6ae29a92b75bb8935f1d1da755c",
+      "limiter": "5539a7a59028a6e95bae10cae5ac234a25a1f2fc74ae900deeb4b13007f86e99",
+      "readiness": "f7c8c5fb940dc64873663571381ab079c3f19b52cfc25107b8646fd6a0ff26e8",
+      "targets": "b3e83680c25f37acea21882f3ac1ca4eca73e10d56e268e2521070355bc94101"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": 88,
+    "proxyAfter": 88,
+    "effectiveSource": "observed",
+    "alertsBefore": [
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "V2-03",
+    "stableBlocks": {
+      "effectifs": "8d83acec3384c926ec7d52f109a6907af9dabfe474bf28dab7c1c4d801af7380",
+      "limiter": "23c5c2307766118d8ac0d79683eddc3a945bdc53cd330a06873151d16c3c9dc2",
+      "readiness": "74dd170191feae560ea7edd397fd1a7bb19635a2febdf749cadf045f1ae89dfa",
+      "targets": "57e5756d580e9346f713dff7a98e7fa64f4d4d347fa6cbd9b41725a0e0b1be61"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 88.1,
+    "proxyAfter": 88.1,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-04",
+    "stableBlocks": {
+      "effectifs": "730068c7a9aab63949ea8f85626a872015364728cd394dcf1e0b69ff40f49f89",
+      "limiter": "ea3037fa6e5347226b626d4651b2ba7bd8cb752cb284a44b2cfcb2f5e6a56e49",
+      "readiness": "b994db014dd01c652e7c89992aca6aad4bbf94ae64a8e158ee7f12483ecfe143",
+      "targets": "8b3c36c3f16b683dc50d755bdb0413f64a2d131860ad614f8f6ed47ed74b45ac"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": null,
+    "proxyAfter": null,
+    "effectiveSource": "none",
+    "alertsBefore": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (54%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (54%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-05",
+    "stableBlocks": {
+      "effectifs": "b681add27f1037969cd7b38bb7ee2a26280203f9669765536e96cc5e1e9959fb",
+      "limiter": "1f9b4fd7b91ec5c938aa6db0684223ad3da8e679fce6eb4bc6d9128510314852",
+      "readiness": "2fcac8bc4baab1312c639b8a3812cd49a2652092258c228ca7b02ed5577dd733",
+      "targets": "8e6320e4762745501ab41f645e8a43e42e06f9e23f59029c826bb02e4d1fe97d"
+    },
+    "predictionBefore": {
+      "mlssPct": 95,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 15.5,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 88,
+    "proxyAfter": 88,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "V2-06",
+    "stableBlocks": {
+      "effectifs": "d17b889699a677491a74274790dcd6eb18d96134268677b0964e0f6d983b9240",
+      "limiter": "4ae82fcbee0b31e444fe5401d4e7b1f3c2a4376e77dabb10841c40209b362e01",
+      "readiness": "498069f62d8ca2e8eb6370b726c552491a712d40c94fab306f597d4fb6712b1c",
+      "targets": "27ce15d6f94d81991e0c043ccc6e41646c51423524e3e79401f44a60de4ae6fa"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": 87.9,
+    "proxyAfter": 87.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "V2-07",
+    "stableBlocks": {
+      "effectifs": "730ed48145f6be3b8f27aa0d634eda0d1ddb17a241617da715e478b7ca527bd8",
+      "limiter": "88aa286930ebaf784db12fb62a4ad17c676145ed432d58a5a4a0a831795069f5",
+      "readiness": "e7a105b1685e0bbe1ee8ea2fffa885210c3e2d26a049a302b82f4ee37ea1f966",
+      "targets": "e4ec135de9d1b8f96e9c3a56b37a3046e40ed101ea04f4dbc528037f210b229e"
+    },
+    "predictionBefore": {
+      "mlssPct": 87.6,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 22.92,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 88,
+    "proxyAfter": 88,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-08",
+    "stableBlocks": {
+      "effectifs": "47ca6b21a405ff1c6f643604159729958f7cdcc7cd46eb6e4dacac3ecc0bb638",
+      "limiter": "dcb464688a83098b00ad99e635e6de4ac303286dcb09768b6022e2179081abb7",
+      "readiness": "3d0fe4a24426dad88272598b19263211e89ae015e8b7fa74458233e47508d43f",
+      "targets": "6a3173d3a48ea7ebeac72aa2ca81b3600e87863983a4b37e29f11fdacc291b7d"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": null,
+    "proxyAfter": null,
+    "effectiveSource": "none",
+    "alertsBefore": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (55%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (55%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-09",
+    "stableBlocks": {
+      "effectifs": "4914b7cd2b7b0d107b9ebafea8291908ed76ea6e70017eef59925fe7da56a592",
+      "limiter": "b24cede2c02f75798d77d1f063e43c8793004d984f362e9487a021515a614b9d",
+      "readiness": "fa431c2081eea72a7f65faf053080bf1c900224005485b4bf40c835e551ec448",
+      "targets": "94a94ac062b93535226382e2486a9596b64e4cfc26119b5016a33434716e36c1"
+    },
+    "predictionBefore": {
+      "mlssPct": 86.2,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 24.26,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 87.8,
+    "proxyAfter": 87.8,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-10",
+    "stableBlocks": {
+      "effectifs": "78bf24a6f85996c206bfbaabaf015dc00b8f2d1575ee22f409d7fe4ec0d24308",
+      "limiter": "d02ac0c39af13cfaf1a623f3ac440bda041dab9d999e09f906f31ef275edcaa1",
+      "readiness": "1ce657c05cb9de9385ccefb38f946d941035dfaa9d7c28b4564120ce35ead1a4",
+      "targets": "e6b0516b96cf0fc26623eadb8cf7149df263d096fc38c0082fbb5f2237d3c322"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": 88,
+    "proxyAfter": 88,
+    "effectiveSource": "observed",
+    "alertsBefore": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (57%)",
+        "source": "injuryRisk"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (57%)",
+        "source": "injuryRisk"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "V2-11",
+    "stableBlocks": {
+      "effectifs": "51476d7f4d5c2c3a73997f36e0075708d34a2b29c8c551fd51da866dd473e414",
+      "limiter": "bcec8f7a77739bee46ca89a891cec1799f5dd88b9fdb30461e242282eb939dde",
+      "readiness": "e7a105b1685e0bbe1ee8ea2fffa885210c3e2d26a049a302b82f4ee37ea1f966",
+      "targets": "e0490e40b9671c6e9a08f6dbc0ca43774ef268cf0f1ab39300b7638bfc10219e"
+    },
+    "predictionBefore": {
+      "mlssPct": 95,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 10.78,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 87.9,
+    "proxyAfter": 87.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-12",
+    "stableBlocks": {
+      "effectifs": "23d677e89caa8afd6b7d332ea2552a0779cc777503ac767e4090a542ca0c95d3",
+      "limiter": "8c2cc94a175446989c7011443661e8c0c463351d3e50fe44c323bfa2c07588bf",
+      "readiness": "3d0fe4a24426dad88272598b19263211e89ae015e8b7fa74458233e47508d43f",
+      "targets": "37e9301bc2e57ba0927ac8da4ab7de60d56b60147fbf3e99a20279ce9361fb2b"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": null,
+    "proxyAfter": null,
+    "effectiveSource": "none",
+    "alertsBefore": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (54%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (54%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-13",
+    "stableBlocks": {
+      "effectifs": "8d83acec3384c926ec7d52f109a6907af9dabfe474bf28dab7c1c4d801af7380",
+      "limiter": "baf7f1435511b11fdb6b14eb1635f2ac61c2da8872c3091329805dd96abed9bc",
+      "readiness": "e8e74a1daa5d9755d1c6f68461d068f339c9c3920b9e0a41fd52aea9c2527283",
+      "targets": "e7fcf73cc18f3ab8ff514ef57b49d03e22fe93ec1bbe8f1db9e5b5d018253989"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 88.1,
+    "proxyAfter": 88.1,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-14",
+    "stableBlocks": {
+      "effectifs": "730068c7a9aab63949ea8f85626a872015364728cd394dcf1e0b69ff40f49f89",
+      "limiter": "fa965daae80ab65520b4c70eeea2da4d042dd68d57cac7322e006a57e990b6d9",
+      "readiness": "1ce657c05cb9de9385ccefb38f946d941035dfaa9d7c28b4564120ce35ead1a4",
+      "targets": "b7ea9880bfb2928f4526c915380f911d88a63d878b1fe5eb27bd17f513b3fb8f"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": 87.8,
+    "proxyAfter": 87.8,
+    "effectiveSource": "observed",
+    "alertsBefore": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (54%)",
+        "source": "injuryRisk"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (54%)",
+        "source": "injuryRisk"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "V2-15",
+    "stableBlocks": {
+      "effectifs": "b681add27f1037969cd7b38bb7ee2a26280203f9669765536e96cc5e1e9959fb",
+      "limiter": "aa541f6414d7b8eb0aa9c598e31ed1334ae618ffc40d836ac5a8ea0cd09630ea",
+      "readiness": "fadc152815e2d85a3bec77464a57baa16882efce4edf78b005d399d37d53bfe5",
+      "targets": "e204965530aaa67b0010fa274b0f8081774397189200d5ac4dfbc2918898b619"
+    },
+    "predictionBefore": {
+      "mlssPct": 95,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 15.5,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 88,
+    "proxyAfter": 88,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "developing"
+  },
+  {
+    "id": "V2-16",
+    "stableBlocks": {
+      "effectifs": "447736458c1de2f33907ea718633b39da9a16133ed2fd39b903f4051a58a743a",
+      "limiter": "1becacf46f5b8f25b02fe5ce4b2c22a00c1ecab46f11868b10b29f58196cce70",
+      "readiness": "3d0fe4a24426dad88272598b19263211e89ae015e8b7fa74458233e47508d43f",
+      "targets": "e0490e40b9671c6e9a08f6dbc0ca43774ef268cf0f1ab39300b7638bfc10219e"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": null,
+    "proxyAfter": null,
+    "effectiveSource": "none",
+    "alertsBefore": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (55%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (55%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-17",
+    "stableBlocks": {
+      "effectifs": "2706ef72f85dc8f931bcaa379138c3fdd668ff9b04932daad4ddbb0973441da3",
+      "limiter": "ee91e653a890ff6c7e09a224741fee77a6a8ce1d8b4f7dabd385de42c8250e80",
+      "readiness": "d5634e8a2acb842383f8255e0b7fbaf131658127c88a9ec8cdbe89e77146a954",
+      "targets": "a50836aae2900fa4cc1d50081d707f76ef9c02395799abc59ae93a7061f8520c"
+    },
+    "predictionBefore": {
+      "mlssPct": 87.6,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 22.92,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 88,
+    "proxyAfter": 88,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "V2-18",
+    "stableBlocks": {
+      "effectifs": "d4492395d41cc81918489f08565246ea376b447f149c34447e17c793dee59455",
+      "limiter": "0f99e0950607a46518cda20504ac34b0ec3210b8aacd13a651f2b63e12500c20",
+      "readiness": "498069f62d8ca2e8eb6370b726c552491a712d40c94fab306f597d4fb6712b1c",
+      "targets": "e7fcf73cc18f3ab8ff514ef57b49d03e22fe93ec1bbe8f1db9e5b5d018253989"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": 88.1,
+    "proxyAfter": 88.1,
+    "effectiveSource": "observed",
+    "alertsBefore": [
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "V2-19",
+    "stableBlocks": {
+      "effectifs": "4914b7cd2b7b0d107b9ebafea8291908ed76ea6e70017eef59925fe7da56a592",
+      "limiter": "a24e68cf69345b2f97de3d6114ca9f6493530f8fe3f658e523511a22556dd8e2",
+      "readiness": "bc94f44756c35e237d19f0533eadb57401fb93c8f1ce4dddf5c22814c30a1156",
+      "targets": "f992a306fcb3718136569e60aac5c241c1daf1dd98b6cf33b8ff9ce6df8224d0"
+    },
+    "predictionBefore": {
+      "mlssPct": 86.2,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 24.26,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 87.8,
+    "proxyAfter": 87.8,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-20",
+    "stableBlocks": {
+      "effectifs": "4ab5e6483dfc24aad678bd24a2ca94b207e859e50ae01a05ed3d07347754c567",
+      "limiter": "53aeb2a76fc605ba5beb4f29bea36b01e71235d8ed22913edf29391c5649dc4b",
+      "readiness": "3d0fe4a24426dad88272598b19263211e89ae015e8b7fa74458233e47508d43f",
+      "targets": "bb60b647cf9bcb4e498fccdc74b48acd5c5259154eb5aa78c64b7ee71d912487"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": null,
+    "proxyAfter": null,
+    "effectiveSource": "none",
+    "alertsBefore": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (57%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "alertsAfter": [
+      {
+        "severity": "warning",
+        "message": "Risque blessure CAP Élevé (57%)",
+        "source": "injuryRisk"
+      },
+      {
+        "severity": "info",
+        "message": "Données incomplètes — diagnostic à interpréter avec prudence",
+        "source": "readiness"
+      }
+    ],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  },
+  {
+    "id": "V2-EXTRA-MARATHON",
+    "stableBlocks": {
+      "effectifs": "245da1af2eb7d0cb994d5ce26a74d0a342ab38ea3b2cc67169b71bdad7e52f3a",
+      "limiter": "e57dc48c2e691a6be409bbec5bbc2cbb09eae8458ae2c7d0d7b9484af6562ad0",
+      "readiness": "7a00501c73372e5c2651a012cd0a0388dcdc5a653d3d3259e2d6e2811478c745",
+      "targets": "b57660ed17fd961958a955085f019118acfe0b97be11f1ff3bfc627f91c204dc"
+    },
+    "predictionBefore": {
+      "mlssPct": 95,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 10.78,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 87.9,
+    "proxyAfter": 87.9,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "developing"
+  },
+  {
+    "id": "V2-EXTRA-CYCLING",
+    "stableBlocks": {
+      "effectifs": "2706ef72f85dc8f931bcaa379138c3fdd668ff9b04932daad4ddbb0973441da3",
+      "limiter": "ee91e653a890ff6c7e09a224741fee77a6a8ce1d8b4f7dabd385de42c8250e80",
+      "readiness": "d5634e8a2acb842383f8255e0b7fbaf131658127c88a9ec8cdbe89e77146a954",
+      "targets": "29461e6898a0c4cbcdcffc1acc985dae7d40d9ae11c2b2a4d827ded874e2c8d2"
+    },
+    "predictionBefore": null,
+    "predictionAfter": null,
+    "proxyBefore": null,
+    "proxyAfter": null,
+    "effectiveSource": "none",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "critical"
+  },
+  {
+    "id": "V2-EXTRA-ULTRA",
+    "stableBlocks": {
+      "effectifs": "8d83acec3384c926ec7d52f109a6907af9dabfe474bf28dab7c1c4d801af7380",
+      "limiter": "b5d70cc1abf3b88f41e8a696f394c995433361d853d0182617b4b8207a156440",
+      "readiness": "f9e29e7176a235dd38e6a43509d109e15ee14a4fdc6dbc724af61227f42e86ba",
+      "targets": "94a94ac062b93535226382e2486a9596b64e4cfc26119b5016a33434716e36c1"
+    },
+    "predictionBefore": {
+      "mlssPct": 93.7,
+      "confidence": 0.75,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": -10.5,
+        "rmseExpected": 2.64
+      }
+    },
+    "predictionAfter": null,
+    "proxyBefore": 88.1,
+    "proxyAfter": 88.1,
+    "effectiveSource": "observed",
+    "alertsBefore": [],
+    "alertsAfter": [],
+    "crossValidation": "unavailable, not successful",
+    "globalCategory": "solid"
+  }
+]

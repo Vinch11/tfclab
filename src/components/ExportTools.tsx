@@ -3855,7 +3855,11 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 // RUN MLSS COHÉRENCE — Modèle C (RMSE 2.64% sur N=14 run)
 // Affiche % MLSS effectif (observé > prédit), source, prédiction, cross-validation
 // =============================================
-export function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
+export function buildRunMLSSCoherenceHTML(payload: {
+  athlete: Pick<DbAthlete, "goal">;
+  effectiveSnapshot: Partial<DbSnapshot> | null;
+  runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"];
+}): string {
   const runMLSS = payload.runMLSS;
   const evidence = snapshotPhysiologyEvidence(payload.effectiveSnapshot);
   const cost = evidence.runningEconomyCostMlKgKm;
