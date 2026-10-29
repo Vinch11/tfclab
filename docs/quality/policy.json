@@ -1,0 +1,18 @@
+{
+  "status": "proposal_inactive",
+  "maxIterations": 5,
+  "maxMissionSeconds": 1800,
+  "maxApiEur": 5,
+  "apiEnabled": false,
+  "offlineFixturesOnly": true,
+  "humanValidationRequired": true,
+  "draftPullRequestsOnly": true,
+  "paidGeminiAllowed": false,
+  "athleteDataWritesAllowed": false,
+  "maxCalls": 10,
+  "maxInputTokensPerCall": 16000,
+  "maxOutputTokensPerCall": 4000,
+  "recurringEnabled": false,
+  "autoMerge": false,
+  "deploy": false
+}

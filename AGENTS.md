@@ -2,6 +2,27 @@
 
 - Intensity domains (LT1 → MLSS → VO₂max) are defined only in `src/lib/zones/tfclDoctrine.ts`; zones, workouts and AI prompts must reference a doctrine domain, never hardcoded % VMA. Why: author-named methods were redefining intensities inconsistently.
 
+## Itérations de qualité sportive
+
+- Avant une mission : lire `docs/quality/ITERATION_PROTOCOL.md`, son inventaire
+  et les audits référencés. Ne pas refaire une validation close sans preuve nouvelle.
+- Conserver tests de terrain, modèles, fiabilités, taxonomie et hiérarchie
+  existants. Les critères sportifs sont référencés dans
+  `docs/quality/SPORT_SCIENCE_CONTRACT.md`, sans nouvelle doctrine.
+- Une mission = un défaut documenté, une fixture autorisée, une branche isolée,
+  baseline et candidat identifiés par SHA et empreintes. Ne pas mélanger #406,
+  déploiement, Nolio et corrections sportives.
+- Aucune donnée athlète, migration, génération payante, publication ou fusion.
+  Ne pas masquer une régression par un changement de fixture, seuil ou sévérité.
+- L'évaluateur scientifique peut rejeter un candidat aux tests verts. Les
+  critères incertains restent incertains ; aucun avis modèle ne vaut preuve clinique.
+- Appliquer `QUALITY_GATES.md` : arrêt sur régression, plafond atteint ou
+  désaccord scientifique majeur. Corriger automatiquement uniquement dans le
+  périmètre préautorisé ; escalader les prescriptions/doctrines sensibles.
+- Les exemples d'automatisation sous `docs/quality/workflows/` sont **inactifs**.
+  Ne pas les installer, créer de secret ou activer de récurrence sans autorisation.
+  Terminer par une PR brouillon et les preuves ; ne jamais l'auto-fusionner.
+
 ## Pourquoi cette section existe
 
 Carte (audit 2026-10) pour retrouver où vivent les choses sans dépendre
