@@ -1,0 +1,73 @@
+{
+  "summary": {
+    "version": "v19-modal-library-1",
+    "sourceRecords": 920,
+    "uniqueIds": 920,
+    "cycleOneSourceTimelinesUnchanged": 75,
+    "cycleOneEditorialTimelinesUnchanged": 96,
+    "cycleOneEditorialDistinctIds": 51,
+    "swim": {
+      "records": 119,
+      "sourceDistanceStructuresComplete": 3,
+      "candidateDistanceStructureInstances": 18,
+      "candidateDistanceDistinctIds": 9,
+      "individualDurationsAttested": 0
+    },
+    "strength": {
+      "records": 127,
+      "instructionBlocks": 573,
+      "primaryHeadingDoseBlocks": 98,
+      "timedSetFacts": 51,
+      "elapsedWorkoutTimesInferred": 0,
+      "heartRateMuscleLoadMappings": 0
+    },
+    "trail": {
+      "sourceGoalOrExposureRecords": 325,
+      "explicitDescentFacts": 6,
+      "explicitVerticalFacts": 16,
+      "acquiredTolerancesInferred": 0
+    },
+    "explicitPaceDistanceFacts": 1,
+    "calendar": {
+      "initialInventoryQuestions": 27,
+      "explicitMultipleOccurrenceStructures": 16,
+      "sourceTextRawEncodingCompatibility": 831,
+      "sourceNominalSingleEventFixtures": 75,
+      "candidateNominalEventFixtures": 96,
+      "sourceStructuredFixturesRetained": 13,
+      "realSyncPermitted": 0
+    },
+    "scientificPromotions": 0,
+    "individualPrescriptionsApproved": 0,
+    "humanExpertReviews": 0,
+    "realNolioCalls": 0
+  },
+  "fieldTestSensitivity": [
+    {
+      "vlamax": 0.2,
+      "limiters": [
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "catalogue": 158,
+      "sourceCompiledSubset": 11,
+      "editorialReviewOffers": 3
+    },
+    {
+      "vlamax": 0.9,
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "catalogue": 160,
+      "sourceCompiledSubset": 13,
+      "editorialReviewOffers": 3
+    }
+  ],
+  "scientificPromotions": 0,
+  "coachViews": 920,
+  "editorialViews": 418
+}

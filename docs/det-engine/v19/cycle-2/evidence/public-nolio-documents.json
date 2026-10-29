@@ -1,0 +1,17 @@
+{
+  "retrievedAt": "2026-10-29T00:30:33.904486+00:00",
+  "structuredUrl": "https://github.com/NolioApp/NolioAPI-Documentation/wiki/Structured-Workout",
+  "createUrl": "https://github.com/NolioApp/NolioAPI-Documentation/wiki/Planned-workout-create",
+  "structuredDocumentSha256": "da5e8642ede6a098868deedb1349fbf7a1ad90dd11c87c338e88402d5c922979",
+  "createDocumentSha256": "31006a280ecc2614d54f4cea5dbb74d0eb7b3e9e2a0d6a78f4c125b0dde4033d",
+  "retrieval": "free unauthenticated GET of public GitHub wiki markdown; no Nolio API called",
+  "structuredExcerpt": "If target_type is not \"no_target\", target_value_max is mandatory, but target_value_min is optional.",
+  "paraphrases": [
+    "Atomic time steps use integer seconds; pace and pace_min100 values are metres per second; comments support line breaks.",
+    "Create parameters include description, integer duration, sport_id, date_start and optional athlete_id. No 4000-character maximum is stated on this retrieved create page.",
+    "Strength exercise and superset tables exist, but the later type enum lists only step and repetition; RPE statements also differ. These internal documentation uncertainties do not establish tested endpoint support."
+  ],
+  "officialVersionNumberNotInferred": true,
+  "liveRemoteAcceptanceTested": false,
+  "paidCalls": 0
+}

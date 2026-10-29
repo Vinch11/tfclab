@@ -1,0 +1,128 @@
+{
+  "sourceRecords": 920,
+  "pureFunctionsExtracted": 10,
+  "edgeModuleImported": false,
+  "realNolioCalls": 0,
+  "rawTextLocalFixtures": 831,
+  "rawTextFixturesWithinKnown4000CharacterPolicy": 815,
+  "sourceFormatterAllPartsPreserved": 799,
+  "sourceFormatterAtLeastOnePartMissing": 121,
+  "sourceFormatterRestrictionsPreserved": 47,
+  "structuredFixtures": 15,
+  "structuredStrictFidelityPass": 0,
+  "structuredDocumentedMachinePrecisionPass": 11,
+  "structuredTargetSemanticsChanged": 4,
+  "structuredStrictRefusals": [
+    {
+      "legacyId": "D_BIKE_RECOVERY",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "D_RUN_REGEN",
+      "candidateKey": null,
+      "reasons": [
+        "target_semantics_changed_or_removed",
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "C_IM_AERO_HOLD",
+      "candidateKey": "C_IM_AERO_HOLD@v19:between_repetitions:5a9daecc4fac",
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "C_IM_AERO_HOLD",
+      "candidateKey": "C_IM_AERO_HOLD@v19:after_each_repetition:18ae8b1932ab",
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "D_IM_BRICK_REGEN",
+      "candidateKey": null,
+      "reasons": [
+        "target_semantics_changed_or_removed",
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "A_MAR_LONG_RUN",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "D_MAR_REGEN",
+      "candidateKey": null,
+      "reasons": [
+        "target_semantics_changed_or_removed",
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "A_TR_BIKE_SUPPORT",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "A_TR_FLAT_SUPPORT_END",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "A_10K_EASY_60",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "A_SEMI_LONG_RUN_90",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "TPL_IM_RUN_MARATHON_PRE_FATIGUE",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "V3_BIKE_Z2_CAFE_RIDE",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "D_TR_RECUP_ACTIVE",
+      "candidateKey": null,
+      "reasons": [
+        "target_semantics_changed_or_removed",
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    },
+    {
+      "legacyId": "D_TR_VELO_CROSS",
+      "candidateKey": null,
+      "reasons": [
+        "numeric_bounds_changed_requires_explicit_serialization_contract"
+      ]
+    }
+  ],
+  "sourcePayloadOrSportRuleChanged": false,
+  "scientificPromotions": 0
+}

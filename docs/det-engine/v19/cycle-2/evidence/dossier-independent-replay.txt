@@ -1,0 +1,1 @@
+{"dossiersChecked": 920, "sourceContentsPreserved": 920, "scientificRowsUnchanged": 920, "noMissingDoseSupplied": true, "manualCasesNotPropagated": 4, "individualProfileNotFabricated": true, "scientificValidation": false}

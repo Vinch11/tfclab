@@ -1,0 +1,34 @@
+{
+  "comparisons": [
+    {
+      "build": "dossiers-1",
+      "replay": "dossiers-replay",
+      "filesIdentical": [
+        "checksums.json",
+        "recurring-blockers.json",
+        "review-dossiers.jsonl.gz",
+        "summary.json"
+      ]
+    },
+    {
+      "build": "nolio-path-2",
+      "replay": "nolio-path-replay",
+      "filesIdentical": [
+        "checksums.json",
+        "provenance.json",
+        "sender-path-audit.jsonl.gz",
+        "summary.json"
+      ]
+    },
+    {
+      "build": "public-format-1",
+      "replay": "public-format-replay",
+      "filesIdentical": [
+        "checksums.json",
+        "fixtures.jsonl.gz",
+        "summary.json"
+      ]
+    }
+  ],
+  "allIdentical": true
+}

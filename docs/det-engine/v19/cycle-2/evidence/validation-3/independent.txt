@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/workspace/tfclab/scripts/det-engine/v19-modal-independent.py", line 105, in <module>
+    result=audit(sys.argv[1],len(sys.argv)>3 and sys.argv[3]=='mutations');pathlib.Path(sys.argv[2]).write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n');print(json.dumps(result))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tfclab/scripts/det-engine/v19-modal-independent.py", line 99, in audit
+    i=next(i for i,r in enumerate(rows)if find(r));r,e=copy.deepcopy(rows[i]),copy.deepcopy(events[i]);mut(r)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration

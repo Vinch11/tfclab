@@ -9,7 +9,7 @@
   "maxTotalSeconds": 7200,
   "maxCycles": 2,
   "maxCycleSeconds": 3600,
-  "currentCycle": 1,
+  "currentCycle": 2,
   "cycles": [
     {
       "cycle": 1,
@@ -17,7 +17,14 @@
       "startedAt": "2026-10-28T23:04:37Z",
       "deadline": "2026-10-29T00:04:37Z",
       "finishedAt": "2026-10-28T23:55:07.498Z",
-      "status": "completed_no_go"
+      "status": "completed_no_go",
+      "checkpointCommit": "0fced83ac8840680e47a6f3e65529c2f5bd8d229"
+    },
+    {
+      "cycle": 2,
+      "state": "cycle-2/state.json",
+      "startedAt": "2026-10-28T23:55:36.478Z",
+      "deadline": "2026-10-29T00:55:36.478Z"
     }
   ],
   "resources": {

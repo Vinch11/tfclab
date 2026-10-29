@@ -1,0 +1,1 @@
+{"sourceViewsVerified":920,"candidateViewsVerified":418,"allViewsActuallyDisplayed":true,"originalInstructionsAndVariantsRetained":true,"syntheticOnly":true,"networkRequests":0,"noPrescriptionOrSyncControls":true}

@@ -1,0 +1,9 @@
+{
+  "filesIdenticalToEarlierReplay": [
+    "summary.json",
+    "fixtures.jsonl.gz",
+    "checksums.json"
+  ],
+  "versionGuardHardenedWithoutChangingValidFixtures": true,
+  "noNewSourceDose": true
+}

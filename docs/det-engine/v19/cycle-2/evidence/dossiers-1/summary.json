@@ -1,0 +1,68 @@
+{
+  "sourceIds": 920,
+  "uniqueIds": 920,
+  "sourceDoseCandidateIds": 210,
+  "sourceClaimNotMechanism": true,
+  "scientificRowsCopiedUnchanged": 920,
+  "manualDocumentaryCases": 4,
+  "perSport": {
+    "bike": {
+      "records": 168,
+      "sourceComplete": 20,
+      "editorialIds": 50,
+      "editorialCompleteIds": 21,
+      "clarificationRequests": 240,
+      "multimodalProtocols": 0
+    },
+    "run": {
+      "records": 416,
+      "sourceComplete": 55,
+      "editorialIds": 116,
+      "editorialCompleteIds": 30,
+      "clarificationRequests": 848,
+      "multimodalProtocols": 0
+    },
+    "swim": {
+      "records": 119,
+      "sourceComplete": 0,
+      "editorialIds": 43,
+      "editorialCompleteIds": 0,
+      "clarificationRequests": 572,
+      "multimodalProtocols": 0
+    },
+    "brick": {
+      "records": 55,
+      "sourceComplete": 0,
+      "editorialIds": 1,
+      "editorialCompleteIds": 0,
+      "clarificationRequests": 216,
+      "multimodalProtocols": 55
+    },
+    "strength": {
+      "records": 127,
+      "sourceComplete": 0,
+      "editorialIds": 0,
+      "editorialCompleteIds": 0,
+      "clarificationRequests": 433,
+      "multimodalProtocols": 0
+    },
+    "trail": {
+      "records": 3,
+      "sourceComplete": 0,
+      "editorialIds": 0,
+      "editorialCompleteIds": 0,
+      "clarificationRequests": 9,
+      "multimodalProtocols": 0
+    },
+    "mixed": {
+      "records": 32,
+      "sourceComplete": 0,
+      "editorialIds": 0,
+      "editorialCompleteIds": 0,
+      "clarificationRequests": 103,
+      "multimodalProtocols": 32
+    }
+  },
+  "scientificPromotions": 0,
+  "individualPrescriptions": 0
+}

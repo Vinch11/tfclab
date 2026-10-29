@@ -1,0 +1,123 @@
+[
+  {
+    "name": "contracts",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v19-modal.test.mjs"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 685,
+    "logBytes": 1265,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "types",
+    "bin": "node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 41670,
+    "logBytes": 0,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "build",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v19-modal-build.mjs",
+      "docs/det-engine/v19/cycle-2/evidence/validation-2/build"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1161,
+    "logBytes": 1033,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "replay",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v19-modal-build.mjs",
+      "docs/det-engine/v19/cycle-2/evidence/validation-2/replay"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1242,
+    "logBytes": 1033,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "independent",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v19-modal-independent.py",
+      "docs/det-engine/v19/cycle-2/evidence/validation-2/build",
+      "docs/det-engine/v19/cycle-2/evidence/validation-2/independent.json",
+      "mutations"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1169,
+    "logBytes": 608,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "independent_replay",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v19-modal-independent.py",
+      "docs/det-engine/v19/cycle-2/evidence/validation-2/replay",
+      "docs/det-engine/v19/cycle-2/evidence/validation-2/independent-replay.json",
+      "mutations"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1203,
+    "logBytes": 608,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "chain",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v19.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 5385,
+    "logBytes": 830,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "chain_replay",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v19.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 6076,
+    "logBytes": 830,
+    "outputCapturedDirectly": true
+  }
+]
