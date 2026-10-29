@@ -1,6 +1,6 @@
 {
   "schema": "det-v29-state-1",
-  "status": "running",
+  "status": "closed_no_go",
   "firstObservedAt": "2026-10-29T21:52:08+00:00",
   "deadline": "2026-10-29T22:51:50+00:00",
   "maxUnits": 10,
@@ -52,7 +52,12 @@
     {
       "unit": 9,
       "purpose": "Publish verified V29 additions and update draft PR420 without merging",
-      "status": "in_progress"
+      "status": "complete"
+    },
+    {
+      "unit": 10,
+      "purpose": "Verify publication, close bounded registry and persist explicit resume state",
+      "status": "complete"
     }
   ],
   "validationAttempts": 3,
@@ -71,5 +76,10 @@
     "sameBudgetAndAttempt": true
   },
   "closingPhysiologySha": "18c20998eed1539f5c5fc2f8831d41245b237fe5",
-  "acceptedEvidence": "evidence/validation-3"
+  "acceptedEvidence": "evidence/validation-3",
+  "closedAt": "2026-10-29T22:41:50.120591+00:00",
+  "elapsedSeconds": 2982.120591,
+  "implementationCommit": "022fb4fd497afa29edb0951a11beb52f23506af2",
+  "stopReason": "Authorized V29 deliverables complete; no automatic budget renewal or prescription promotion",
+  "creditQuotaAccessible": false
 }
