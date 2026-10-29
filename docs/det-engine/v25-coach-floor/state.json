@@ -6,7 +6,7 @@
   "maxUnits": 10,
   "budgetRenewal": false,
   "automaticRestart": false,
-  "status": "closed_pending_publication_no_go",
+  "status": "closed_no_go",
   "units": [
     {
       "unit": 1,
@@ -51,12 +51,13 @@
     {
       "unit": 9,
       "name": "guarded_experimental_commit_push_and_draft_pr_update",
-      "status": "in_progress"
+      "status": "complete",
+      "publishedImplementationCommit": "c9820ecc394f5211ed3d54eec3850e7cd3f092df"
     },
     {
       "unit": 10,
       "name": "bounded_closure_guard_and_publication_receipt",
-      "status": "guard_verified_awaiting_publication_receipt"
+      "status": "complete"
     }
   ],
   "developmentAttempts": [
@@ -78,5 +79,20 @@
   "recommendation": "DRAFT_NO_GO_INDIVIDUAL_PRESCRIPTION_NOT_APPROVED",
   "lastSavedAt": "2026-10-29T17:51:56.933507+00:00",
   "developmentClosedAt": "2026-10-29T17:54:47.547816+00:00",
-  "resumeRequiresNewBudget": true
+  "resumeRequiresNewBudget": true,
+  "closedAt": "2026-10-29T17:58:03.391171+00:00",
+  "elapsedMinutesAtClosureCheckpoint": 32.957,
+  "publishedImplementationCommit": "c9820ecc394f5211ed3d54eec3850e7cd3f092df",
+  "prDraftVerified": true,
+  "prMerged": false,
+  "explicitCoachPolicyAuthorizations": 1,
+  "actualIndividualDoseApprovals": 0,
+  "individualExpertReviews": 0,
+  "planningFloorPermissionAlreadyGranted": true,
+  "remainingIndividualConditions": [
+    "run reference conflicts and missing anchors",
+    "source-specific individual tolerance and intensity interpretation",
+    "actual recovery and independent individual coach prescription decision"
+  ],
+  "closureEvidence": "evidence/publication-receipt.json; final documentation-only closure commit discoverable with git log on this file"
 }
