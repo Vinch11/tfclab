@@ -67,8 +67,10 @@ it("a stored laboratory category alone does not establish direct measurement", (
   d._rawInput.physiologicalEvidence = {};
   expect(diagnosticPhysiologicalEvidence(d).vlamaxEffective.scientificOrigin).toBe("unknown");
 });
-it("keeps known per-parameter origin, method and test date on an unchanged effective value", () => {
-  const d = computeDiagnostic(buildPilotDiagnosticInput(QA_PROFILES.find(p => p.id === "B-MARATHON")!));
+it("keeps known per-parameter origin, method and test date for a selected snapshot value", () => {
+  const input = { ...buildPilotDiagnosticInput(QA_PROFILES.find(p => p.id === "B-MARATHON")!), vlamaxRun: 0.42, vlamaxSource: "lab" };
+  const d = computeDiagnostic(input);
+  expect(d.effectifs.vlamax.source).toBe("snapshot");
   d._rawInput.physiologicalEvidence = { vlamax_run: {
     value: d.effectifs.vlamax.value!, unit: "mmol/L/s", discipline: "run", method: "declared-method",
     date: "2026-10-20", scientificOrigin: "coach_declared", storageSource: "synthetic", confidence: null,

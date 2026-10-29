@@ -51,7 +51,7 @@ export function mapSnapshotToV2(s: DbSnapshot) {
 /**
  * Maps a test record to the minimal object required by computeVLamaxEffectif.
  */
-export function mapTestToV2(t: { athlete_id: string; vlamax: number | null; date: string; type: string; name: string; sport?: string | null }) {
+export function mapTestToV2(t: { athlete_id: string; vlamax: number | null; date: string; type: string; name: string; sport?: string | null; raw?: unknown; note?: string | null }) {
   return {
     athlete_id: t.athlete_id,
     vlamax: t.vlamax,
@@ -59,5 +59,7 @@ export function mapTestToV2(t: { athlete_id: string; vlamax: number | null; date
     type: t.type,
     name: t.name,
     sport: t.sport ?? null,
+    raw: t.raw ?? null,
+    note: t.note ?? null,
   };
 }

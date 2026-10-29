@@ -8,7 +8,7 @@ import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
-import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { mapSnapshotToV2, mapTestToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
 import { fatigueStateToScore100 } from "@/lib/fatigueStateMapping";
 import { getVLamaxRange } from "@/lib/physiologicalTargets";
@@ -112,13 +112,7 @@ export function computeEssentielsData(args: {
     objectif: athlete.objectif || "IM",
     sportOverride: isRunGoal ? "cap" : undefined,
     activeSnapshotId: athlete.active_snapshot_id,
-    tests: (tests || []).map((t: any) => ({
-      athlete_id: t.athlete_id,
-      vlamax: t.vlamax,
-      date: t.date,
-      type: t.type,
-      name: t.name,
-    })),
+    tests: (tests || []).map(mapTestToV2),
     snapshots: (snapshots || []).map(mapSnapshotToV2),
   });
 
@@ -139,7 +133,7 @@ export function computeEssentielsData(args: {
   const vo2 = effectiveSnapshot?.vo2max ?? athlete?.vo2max ?? null;
 
   // Résolveur unifié CE : mesure > estimation VMA/allure > null.
-  const ceResolved = resolveRunningEconomyFromSnapshot(effectiveSnapshot as any);
+  const ceResolved = resolveRunningEconomyFromSnapshot(effectiveSnapshot ? { ...effectiveSnapshot, run_economy_score: null } : null);
   const ce = runningEconomyCostFromSnapshot(effectiveSnapshot); // ml O₂/kg/km — unité attendue par runMLSSPredictor
   const ceCategory = ceResolved
     ? { category: ceResolved.category, label: ceResolved.categoryLabel }
@@ -256,7 +250,7 @@ export function computeEssentielsData(args: {
     title: "MLSS Run — seuil lactique en course (Model C)",
     metrics: [
       {
-        label: "% VMA au MLSS",
+        label: "% VO₂max prédit au MLSS",
         value: mlssRun ? mlssRun.mlssPct : null,
         unit: "%",
         decimals: 1,
@@ -265,7 +259,7 @@ export function computeEssentielsData(args: {
         direction: "band",
       },
       {
-        label: ce === null ? "Coût O₂ estimé (voie distincte)" : "Coût O₂ explicite",
+        label: ce === null ? "Coût O₂ estimé (inférence VMA/allure)" : "Coût O₂ explicite",
         value: ce ?? ceResolved?.mlKgKm ?? null,
         unit: "ml O₂/kg/km",
         decimals: 1,

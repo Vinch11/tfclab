@@ -160,7 +160,7 @@ export function RunMLSSCoherenceCard({
                 ? `Écart modéré (Δ${crossValidation.deltaPct > 0 ? "+" : ""}${crossValidation.deltaPct}%)`
                 : `Incohérence (Δ${crossValidation.deltaPct > 0 ? "+" : ""}${crossValidation.deltaPct}%)`}
             </div>
-            <div className="mt-0.5 opacity-90">{crossValidation.explanation}</div>
+            <div className="mt-0.5 opacity-90">{crossValidation.severity === "ok" ? "Comparaison interne ; aucune validation physiologique indépendante déduite." : crossValidation.explanation}</div>
           </div>
         </div>
       )}

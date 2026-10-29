@@ -1,6 +1,6 @@
 import { runningEconomyCostFromSnapshot, snapshotPhysiologyEvidence, physiologyNarrative } from "@/lib/physiologyEvidence";
 import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
-import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { mapSnapshotToV2, mapTestToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
@@ -1481,13 +1481,7 @@ function buildExportPayload(
     athleteId: athlete.id,
     objectif: athlete.goal || "IM",
     activeSnapshotId: athlete.active_snapshot_id,
-    tests: athleteTests.map(t => ({
-      athlete_id: t.athlete_id,
-      vlamax: t.vlamax,
-      date: t.date,
-      type: t.type,
-      name: t.name
-    })),
+    tests: athleteTests.map(mapTestToV2),
     snapshots: athleteSnapshots.map(mapSnapshotToV2)
   });
   
@@ -3917,7 +3911,7 @@ export function buildRunMLSSCoherenceHTML(payload: {
   const predBlock = prediction ? `
     <div class="card" style="padding:10px;">
       <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
-      <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${prediction.mlssPct.toFixed(1)}% VMA</div>
+      <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${prediction.mlssPct.toFixed(1)}% VO₂max</div>
       <div style="font-size:10px;color:#6E6B78;margin-top:2px;">RMSE historique ${prediction.trace.rmseExpected.toFixed(2)} points ; pas une marge individuelle</div>
     </div>` : `
     <div class="card" style="padding:10px;">
@@ -3939,7 +3933,7 @@ export function buildRunMLSSCoherenceHTML(payload: {
   const xvBlock = crossValidation && observedPct != null && prediction ? `
     <div class="alert ${xvAlertClass} mt" style="font-size:11px;">
       <b>🔬 Cross-validation observé vs prédit :</b> Δ = ${crossValidation.deltaPct > 0 ? "+" : ""}${crossValidation.deltaPct.toFixed(1)}% — <b>${crossValidation.severity.toUpperCase()}</b><br>
-      ${crossValidation.explanation ?? ""}
+      ${crossValidation.severity === "ok" ? "Comparaison interne ; aucune validation physiologique indépendante déduite." : crossValidation.explanation ?? ""}
     </div>` : "";
 
   return `
@@ -3951,7 +3945,7 @@ export function buildRunMLSSCoherenceHTML(payload: {
           <div>
             <div style="font-size:10px;color:#6E6B78;">% MLSS effectif (utilisé pour ancrage Z5)</div>
             <div style="font-size:24px;font-weight:800;font-family:ui-monospace,monospace;">
-              ${effectivePct != null ? `${effectivePct.toFixed(1)}% VMA` : "—"}
+              ${effectivePct != null ? `${effectivePct.toFixed(1)}% ${effectiveSource === "observed" ? "VMA (proxy de vitesse)" : "VO₂max"}` : "—"}
             </div>
           </div>
           <span class="badge ${sourceBadgeClass}" style="font-size:11px;padding:5px 12px;">${sourceLabel}</span>

@@ -164,12 +164,15 @@ export function diagnosticPhysiologicalEvidence(diagnostic: import("@/engines/di
   };
   const discipline = diagnostic.sportFocus === "run" ? "run" : "bike";
   const storedVLamax = evidence[discipline === "run" ? "vlamax_run" : "vlamax"];
-  const matchingVLamax = storedVLamax?.value === vlamax.value && storedVLamax.discipline === discipline ? storedVLamax : null;
+  const matchingVLamax = vlamax.source === "snapshot" && vlamax.v2?.source === "test_labo"
+    && storedVLamax?.value === vlamax.value && storedVLamax.discipline === discipline
+    && storedVLamax.unit === "mmol/L/s" ? storedVLamax : null;
   if (vlamax.value !== null) evidence.vlamaxEffective = {
     value: vlamax.value, unit: "mmol/L/s", discipline,
-    method: matchingVLamax?.method ?? vlamax.details?.protocol ?? vlamax.v2?.source ?? null, date: matchingVLamax?.date ?? vlamax.details?.date ?? null,
+    method: matchingVLamax ? matchingVLamax.method : vlamax.details?.protocol ?? null,
+    date: matchingVLamax ? matchingVLamax.date : testDate(vlamax.details?.date),
     scientificOrigin: matchingVLamax?.scientificOrigin ?? (vlamax.v2?.source === "test_labo" ? "unknown" : ["test_terrain", "semaine_reference"].includes(vlamax.v2?.source) ? "field_estimate" : "model_inference"),
-    storageSource: vlamax.source, confidence: vlamax.confidence, confidenceBasis: "heuristic",
+    storageSource: matchingVLamax ? matchingVLamax.storageSource : null, confidence: vlamax.confidence, confidenceBasis: "heuristic",
     errorMargin: vlamax.errorMargin ?? null,
   };
   if (tte.source !== "unknown") evidence.tteEffective = {

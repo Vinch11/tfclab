@@ -206,7 +206,7 @@ import { ProfileChoiceDialog } from "@/components/ProfileChoiceDialog";
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
-import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { mapSnapshotToV2, mapTestToV2 } from "@/lib/mapSnapshotToV2";
 
 import { adaptPotentielV2ToLegacyShape, insufficientPotentielResult, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 // ✅ RACE READINESS EFFECTIF - Source unique de vérité
@@ -538,13 +538,7 @@ const Index = () => {
       athleteId: currentAthlete.id,
       objectif: currentAthlete.goal || "IM",
       activeSnapshotId: currentAthlete.active_snapshot_id,
-      tests: tests.map(t => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
+      tests: tests.map(mapTestToV2),
       snapshots: snapshots.map(mapSnapshotToV2),
       raceRecords: raceRecordsForVlamax,
     });

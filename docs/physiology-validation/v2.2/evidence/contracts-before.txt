@@ -1,0 +1,322 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+5:23:38 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+stdout | src/lib/__tests__/physiologyReviewV22.contract.test.tsx
+🔧 [phase_widened] 139 fiche(s) élargies (endurance/technique)
+  [phase_widened] id=A_RUN_Z2_EASY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_AEROBIC ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_CADENCE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TECH_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=D_RUN_REGEN ancien=[taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=D_SWIM_REGEN ancien=[taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=A_IM_BIKE_STEADY_LONG ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_IM_AERO_HOLD ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_MAR_LONG_RUN ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_HIKE_RUN_DPLUS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_EASY_TECH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BACK_TO_BACK_1 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BACK_TO_BACK_2 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_PROGRESSIVE ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BIKE_SUPPORT ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR_DESCENT_TOLERANCE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_SKILLS_TECH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DOWNHILL_EASY_V39 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_POLES_SESSION ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_END_ROLLING_75 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_2H ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_3H ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_PROGRESSIVE_Z3_FINISH ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_STEADY_CLIMB_CONTINUOUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_FLAT_SUPPORT_END ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR_DESCENT_TOLERANCE_8x2 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_SKILLS_UPHILL_EFFICIENCY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PROPRIO_ANKLE_FOOT ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_PACK_SHORT_LONGRUN_2H ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PACK_LONG_DESC_SKILL ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_PACK_LONG_LONGRUN_3H ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DOWNHILL_EASY ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_10K_EASY_60 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_10K_LONG_RUN_75 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_SEMI_LONG_RUN_90 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR50_LONG_RUN_2H30 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR50_EASY_DPLUS_60 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR50_DESCENT_SPEED ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR50_TECH_APPUIS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_TRI_OPEN_WATER_SIMU ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_TRI_EASY_TECH_1500 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_SWIM_TRI_NEGATIVE_SPLIT ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_SIGHTING_DRILLS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_CATCH_PULL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_DRAFTING_PACK ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_BILATERAL_BREATHING ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_KICK_EFFICIENCY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_AERO_POSITION_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_PLYOMETRIC ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_UPPER_BODY_TRI ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_DURABILITY_LONG ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=HEAT_BIKE_ACCLIM_INTRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=HEAT_RUN_ACCLIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=OWS_WETSUIT_SPECIFIC ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=ECONOMY_RUN_FATIGUE_FORM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=LYDIARD_RUN_AEROBIC_BASE_LONG ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=LYDIARD_RUN_AEROBIC_BASE_MEDIUM ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=KENYAN_RUN_DOUBLE_DAY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_EASY_45_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_LONG_PROG_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_RUN_HILL_TECH_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_BIKE_END_90_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_BIKE_LONG_IM_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_CADENCE_SKILLS_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TECH_DRILLS_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DESC_TECH_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V1_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V2_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V3_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V4_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V5_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V6_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V7_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V8_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V9_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V10_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=TPL_IM_RUN_LONGUE_DURABILITE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_RUN_DESCENTE_TECHNIQUE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_TRAIL_LONGUE_DPLUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_HEAT_ACCLIM_Z2 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_ALTITUDE_EASY_RUN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_BACK_TO_BACK_SAM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_BACK_TO_BACK_DIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_MARCHE_COURSE_ALTERNE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_PROPRIOCEPTION ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_SWIM_TECHNIQUE_CATCH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_SWIM_TECHNIQUE_ROTATION ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_STR_HANCHE_COUREUR ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_BIKE_SINGLE_LEG ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_RUN_EDUCATIFS_TECHNIQUES ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_Z2_ENDURANCE_LONG ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_CADENCE_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_MTN_LONG_D_PLUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_B2B_WEEKEND ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_MARCHE_COURSE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_NIGHT ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_Z2_PROGRESSIF ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_MONTAGNE_BASE ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_ULTRA_BUILD ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_PEAK ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_B2B_SAM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_B2B_DIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_MARCHE_COURSE_ULTRA ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_EF_VALLON ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PLIO_TRAIL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_DOUBLE_TAPIS_AM_PM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_SL_OUTDOOR_VARIETE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_BATONS_TECHNIQUE_PARC ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_SL_DPLUS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_BACK_TO_BACK ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_NOCTURNE ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_BRICK_TRANSITION_DRILL ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_LEGS_ENDURANCE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_HEAT_ACCLIM_RUN ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=D_DELOAD_RUN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_CONTINUOUS_2K ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_CATCH_FOCUS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_BILATERAL_BREATH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_OPEN_WATER_SKILLS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TURNS_STARTS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_AEROBIC_MULTI_NAGES ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_PULL_LONG_DISTANCE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_BEGINNER_FOUNDATION_FULL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_IM_RUN_LATE_RACE_FRACTIONS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=B_IM_RUN_NEG_SPLIT_LR ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=B_703_RUN_NEG_SPLIT ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_WALK_RUN_1_2 ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_WALK_RUN_2_2 ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_CONTINUOUS_20_25 ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_CONTINUOUS_30_LONG ancien=[peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_TECHNIQUE_CADENCE_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_SWIM_INTRO_TECHNIQUE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_SWIM_CONTINUOUS_LOW_IMPACT ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_BIKE_INTRO_SPIN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_BIKE_CONTINUOUS_LOW_IMPACT ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_WALK_RUN_4_1 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_BREATHING_TECHNIQUE_INTRO ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_CONTINUOUS_20_PARK_VARIANT ancien=[peak,taper] nouveau=[base,build,peak,taper]
+✅ Pro Pack: 107 | Templates: 50 | Enriched: 56 | V2: 52 | V3: 67 | Trail: 68 | V4: 19 | V5: 11 | V6: 9 | FatMax: 14 | Recovery: 28 | Swim+: 17 | SwimV2: 18 | StrengthV2: 32 | Hedgehog: 4 | IM Run Durability: 6 | 70.3 Podium: 9 | LCW: 5 | Run Hills: 4 | Short Formats: 12 | Total: 920
+
+ ❯ src/lib/__tests__/physiologyReviewV22.contract.test.tsx (7 tests | 7 failed) 77ms
+     × preserves an explicit unknown raw discipline over a misleading run test name 8ms
+     × preserves an explicit raw running discipline even without a sport word in the name 1ms
+     × does not drop the discipline when the same source is consumed by Essentiels 17ms
+     × does not display an oxygen cost computed solely from a dimensionless historical score 1ms
+     × labels a Model C prediction in the oxygen fraction documented by the predictor 6ms
+     × does not describe an internal consistency result as a certified model validation 32ms
+     × equal scalar values do not make a computed estimate inherit a coach declaration 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV22.contract.test.tsx > V2.2 independent oracles: source identity, physical dimensions and acknowledged writes > preserves an explicit unknown raw discipline over a misleading run test name
+AssertionError: expected 0.42 to be null
+
+- Expected:
+null
+
++ Received:
+0.42
+
+ ❯ src/lib/__tests__/physiologyReviewV22.contract.test.tsx:24:26
+     22|     const test = laboratory("unknown", "Run laboratory test");
+     23|     const result = computeVLamaxEffectif({ athleteId: subject, objecti…
+     24|     expect(result.value).toBeNull();
+       |                          ^
+     25|   });
+     26|   it("preserves an explicit raw running discipline even without a spor…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV22.contract.test.tsx > V2.2 independent oracles: source identity, physical dimensions and acknowledged writes > preserves an explicit raw running discipline even without a sport word in the name
+AssertionError: expected null to be close to 0.42, received difference is 0.42, but expected 0.005
+ ❯ src/lib/__tests__/physiologyReviewV22.contract.test.tsx:28:26
+     26|   it("preserves an explicit raw running discipline even without a spor…
+     27|     const result = computeVLamaxEffectif({ athleteId: subject, objecti…
+     28|     expect(result.value).toBeCloseTo(0.42);
+       |                          ^
+     29|   });
+     30|   it("does not drop the discipline when the same source is consumed by…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV22.contract.test.tsx > V2.2 independent oracles: source identity, physical dimensions and acknowledged writes > does not drop the discipline when the same source is consumed by Essentiels
+AssertionError: expected null to be close to 0.42, received difference is 0.42, but expected 0.005
+ ❯ src/lib/__tests__/physiologyReviewV22.contract.test.tsx:32:69
+     30|   it("does not drop the discipline when the same source is consumed by…
+     31|     const identity = essential([laboratory("run")]).pillars.find(p => …
+     32|     expect(identity.metrics.find(m => m.label === "VLamax")!.value).to…
+       |                                                                     ^
+     33|   });
+     34|   it("does not display an oxygen cost computed solely from a dimension…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV22.contract.test.tsx > V2.2 independent oracles: source identity, physical dimensions and acknowledged writes > does not display an oxygen cost computed solely from a dimensionless historical score
+AssertionError: expected 197.5 to be null
+
+- Expected:
+null
+
++ Received:
+197.5
+
+ ❯ src/lib/__tests__/physiologyReviewV22.contract.test.tsx:36:69
+     34|   it("does not display an oxygen cost computed solely from a dimension…
+     35|     const mlss = essential([], { run_economy_score: 65 }).pillars.find…
+     36|     expect(mlss.metrics.find(m => m.unit === "ml O₂/kg/km")!.value).to…
+       |                                                                     ^
+     37|     expect(mlss.status).toBe("missing");
+     38|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV22.contract.test.tsx > V2.2 independent oracles: source identity, physical dimensions and acknowledged writes > labels a Model C prediction in the oxygen fraction documented by the predictor
+AssertionError: expected '\n    <section id="run-mlss-coherence…' to contain '83.2% VO₂max'
+
+- Expected
++ Received
+
+- 83.2% VO₂max
++
++     <section id="run-mlss-coherence" class="section pagebreakAvoid">
++       <h2>🎯 Run MLSS — Cohérence Modèle C <span style="font-size:11px;font-weight:400;color:#6E6B78;">(RMSE 2.64% sur N=14 run)</span></h2>
++
++       <div class="card">
++         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
++           <div>
++             <div style="font-size:10px;color:#6E6B78;">% MLSS effectif (utilisé pour ancrage Z5)</div>
++             <div style="font-size:24px;font-weight:800;font-family:ui-monospace,monospace;">
++               83.2% VMA
++             </div>
++           </div>
++           <span class="badge badgeWarning" style="font-size:11px;padding:5px 12px;">🧪 Prédit (Modèle C ; confiance heuristique)</span>
++         </div>
++
++         <div class="grid2">
++
++     <div class="card" style="padding:10px;">
++       <div style="font-size:10px;color:#6E6B78;">Observé terrain</div>
++       <div style="font-size:12px;color:#97949F;">Pas de test seuil</div>
++     </div>
++
++     <div class="card" style="padding:10px;">
++       <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
++       <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">83.2% VMA</div>
++       <div style="font-size:10px;color:#6E6B78;margin-top:2px;">RMSE historique 2.64 points ; pas une marge individuelle</div>
++     </div>
++         </div>
++
++
++       </div>
++
++       <div class="alert alertInfo mt" style="font-size:10px;">
++         <b>📚 Modèle C (TFCL™ N=14 run) :</b> <code>MLSS_pct = 1 − 0.337·VLa_run − 0.0021·(CE − 200)</code>.
++         Quand un test seuil 30 min est disponible, l'observé prime. Sinon, la prédiction Modèle C ancre Z5 dans le plan IA (à confirmer par un test terrain).
++       </div>
++       <div class="card" style="font-size:11px;">
++     <b>Coût O₂ course :</b> inconnu — aucune conversion du score économie.<br>
++     La voie seuil/VMA reste utilisable si renseignée.
++   </div>
++     </section>
++
+
+ ❯ src/lib/__tests__/physiologyReviewV22.contract.test.tsx:42:18
+     40|     const runMLSS = computeRunMLSSFromInput({ sportFocus: "run", vlama…
+     41|     const html = buildRunMLSSCoherenceHTML({ athlete: { goal: "Maratho…
+     42|     expect(html).toContain("83.2% VO₂max");
+       |                  ^
+     43|     expect(html).not.toContain("83.2% VMA");
+     44|     expect(essential([], { vlamax_run: 0.5 }).pillars.find(p => p.id =…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV22.contract.test.tsx > V2.2 independent oracles: source identity, physical dimensions and acknowledged writes > does not describe an internal consistency result as a certified model validation
+AssertionError: expected <div class="mt-0.5 opacity-90"></div> to be null
+
+- Expected:
+null
+
++ Received:
+<div
+  class="mt-0.5 opacity-90"
+>
+  Cohérence VLamax/CE/seuil validée par le Modèle C.
+</div>
+
+ ❯ src/lib/__tests__/physiologyReviewV22.contract.test.tsx:50:59
+     48|     expect(runMLSS?.crossValidation?.severity).toBe("ok");
+     49|     render(<RunMLSSCoherenceCard runMLSS={runMLSS} />);
+     50|     expect(screen.queryByText(/validée par le Modèle C/)).toBeNull();
+       |                                                           ^
+     51|     expect(buildRunMLSSCoherenceHTML({ athlete: { goal: "Marathon" }, …
+     52|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV22.contract.test.tsx > V2.2 independent oracles: source identity, physical dimensions and acknowledged writes > equal scalar values do not make a computed estimate inherit a coach declaration
+AssertionError: expected 'coach_declared' to be 'model_inference' // Object.is equality
+
+Expected: "model_inference"
+Received: "coach_declared"
+
+ ❯ src/lib/__tests__/physiologyReviewV22.contract.test.tsx:57:90
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  17:23:38
+   Duration  5.06s (transform 3.24s, setup 84ms, import 4.25s, tests 77ms, environment 384ms)

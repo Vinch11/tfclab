@@ -7,12 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables, TablesInsert, TablesUpdate, Json } from "@/integrations/supabase/types";
-import { 
-  athleteSchema, 
-  snapshotSchema, 
-  checkinSchema, 
+import {
+  athleteSchema,
+  snapshotSchema,
+  checkinSchema,
   testSchema,
-  validateOrNull 
+  validateOrNull
 } from "@/lib/validationSchemas";
 import { enrichSnapshotWithRunEconomy } from "@/lib/runningEconomySimple";
 import { preservePhysiologyNotes } from "@/lib/physiologyEvidence";
@@ -184,14 +184,14 @@ export function useCloudData() {
   // ========== ATHLETES ==========
   const addAthlete = async (name: string, goal: string, refs: Json = {}, vo2max: number | null = null, sex: string | null = null) => {
     if (!user) return null;
-    
+
     // Validate input data
     const { data: validated, error: validationError } = validateOrNull(athleteSchema, { name, goal, vo2max, sex, refs });
     if (validationError) {
       toast.error(`Données invalides: ${validationError}`);
       return null;
     }
-    
+
     const insertData: TablesInsert<"athletes"> = {
       coach_id: user.id,
       name: validated.name,
@@ -252,16 +252,16 @@ export function useCloudData() {
     note: string | null = null
   ) => {
     if (!user) return null;
-    
+
     // Validate input data
-    const { data: validated, error: validationError } = validateOrNull(testSchema, { 
-      athlete_id: athleteId, type, name, sport, reliability, vlamax, raw, note 
+    const { data: validated, error: validationError } = validateOrNull(testSchema, {
+      athlete_id: athleteId, type, name, sport, reliability, vlamax, raw, note
     });
     if (validationError) {
       toast.error(`Données invalides: ${validationError}`);
       return null;
     }
-    
+
     const insertData: TablesInsert<"tests"> = {
       coach_id: user.id,
       athlete_id: validated.athlete_id,
@@ -391,48 +391,53 @@ export function useCloudData() {
 
     const insertPayload: TablesInsert<"snapshots"> = {
       ...validated,
+      id: crypto.randomUUID(),
       ...(finalSport ? { sport_main: finalSport } : {}),
       coach_id: user.id,
     };
 
-    const { data: inserted, error } = await supabase
-      .from("snapshots")
-      .insert(insertPayload)
-      .select("*");
-
-    if (error) {
-      // Log only error message (no user data)
-      console.error("Add snapshot error:", error.message);
-      toast.error(`Erreur lors de l'ajout du snapshot: ${error.message}`);
-      return null;
-    }
-
-    // PostgREST can sometimes return 0 rows on insert+select; fallback fetch.
-    const row = inserted?.[0] as DbSnapshot | undefined;
-    if (!row) {
-      const { data: fetched, error: fetchError } = await supabase
+    try {
+      const { data: inserted, error } = await supabase
         .from("snapshots")
-        .select("*")
-        .eq("coach_id", user.id)
-        .eq("athlete_id", snapshot.athlete_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .insert(insertPayload)
+        .select("*");
 
-      if (fetchError || !fetched) {
-        if (import.meta.env.DEV) console.error("Fetch inserted snapshot error:", fetchError);
-        toast.error("Snapshot créé, mais impossible de le récupérer");
+      if (error) {
+        // Log only error message (no user data)
+        console.error("Add snapshot error:", error.message);
+        toast.error(`Erreur lors de l'ajout du snapshot: ${error.message}`);
         return null;
       }
 
-      setSnapshots((prev) => [enrichSnapshotWithRunEconomy(fetched as DbSnapshot) as DbSnapshot, ...prev]);
-      toast.success("Snapshot créé");
-      return fetched as DbSnapshot;
-    }
+      // Recover only the exact generated ID; an older row cannot acknowledge this insert.
+      const row = inserted?.[0] as DbSnapshot | undefined;
+      if (!row) {
+        const { data: fetched, error: fetchError } = await supabase
+          .from("snapshots")
+          .select("*")
+          .eq("id", insertPayload.id)
+          .eq("coach_id", user.id)
+          .eq("athlete_id", snapshot.athlete_id)
+          .maybeSingle();
 
-    setSnapshots((prev) => [enrichSnapshotWithRunEconomy(row) as DbSnapshot, ...prev]);
-    toast.success("Snapshot créé");
-    return row;
+        if (fetchError || !fetched) {
+          if (import.meta.env.DEV) console.error("Fetch inserted snapshot error:", fetchError);
+          toast.error("Création non confirmée — aucune ligne récupérée, profil local inchangé.");
+          return null;
+        }
+
+        setSnapshots((prev) => [enrichSnapshotWithRunEconomy(fetched as DbSnapshot) as DbSnapshot, ...prev]);
+        toast.success("Snapshot créé");
+        return fetched as DbSnapshot;
+      }
+
+      setSnapshots((prev) => [enrichSnapshotWithRunEconomy(row) as DbSnapshot, ...prev]);
+      toast.success("Snapshot créé");
+      return row;
+    } catch {
+      toast.error("Erreur réseau — création non confirmée, profil local inchangé.");
+      return null;
+    }
   };
 
   const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
@@ -453,16 +458,21 @@ export function useCloudData() {
       toast.error(error instanceof Error ? error.message : "Métadonnées physiologiques invalides");
       return false;
     }
-    const { error } = await supabase.from("snapshots").update(cleanUpdates).eq("id", id);
-    if (error) {
-      const detail = error.details || error.message || "Erreur inconnue";
-      toast.error(`Mise à jour snapshot échouée : ${detail}`);
-      console.error("Update snapshot error:", error.message, error.details, error.code, JSON.stringify(cleanUpdates));
+    if (!user) return false;
+    try {
+      const { data: saved, error } = await supabase.from("snapshots").update(cleanUpdates)
+        .eq("id", id).eq("coach_id", user.id).select("*").single();
+      if (error || !saved || saved.id !== id || saved.coach_id !== user.id) {
+        toast.error("Mise à jour non confirmée — profil local inchangé.");
+        return false;
+      }
+      setSnapshots((prev) => prev.map((s) => (s.id === id ? enrichSnapshotWithRunEconomy(saved) as DbSnapshot : s)));
+      toast.success("Profil mis à jour");
+      return true;
+    } catch {
+      toast.error("Erreur réseau — mise à jour non confirmée, profil local inchangé.");
       return false;
     }
-    setSnapshots((prev) => prev.map((s) => (s.id === id ? enrichSnapshotWithRunEconomy({ ...s, ...cleanUpdates }) as DbSnapshot : s)));
-    toast.success("Profil mis à jour");
-    return true;
   };
 
   const deleteSnapshot = async (id: string) => {
@@ -474,7 +484,7 @@ export function useCloudData() {
     }
     setSnapshots((prev) => prev.filter((s) => s.id !== id));
     // Also clear active_snapshot_id if this was the active snapshot
-    setAthletes((prev) => prev.map((a) => 
+    setAthletes((prev) => prev.map((a) =>
       a.active_snapshot_id === id ? { ...a, active_snapshot_id: null } : a
     ));
     toast.success("Profil supprimé");
@@ -492,7 +502,7 @@ export function useCloudData() {
       if (import.meta.env.DEV) console.error("Set active snapshot error");
       return false;
     }
-    setAthletes((prev) => prev.map((a) => 
+    setAthletes((prev) => prev.map((a) =>
       a.id === athleteId ? { ...a, active_snapshot_id: snapshotId } : a
     ));
     toast.success(snapshotId ? "Snapshot défini comme actif" : "Snapshot actif retiré");
@@ -506,14 +516,14 @@ export function useCloudData() {
 
   const addCheckin = async (checkin: Omit<DbCheckin, "id" | "created_at" | "updated_at">) => {
     if (!user) return null;
-    
+
     // Validate input data
     const { error: validationError } = validateOrNull(checkinSchema, checkin);
     if (validationError) {
       toast.error(`Données invalides: ${validationError}`);
       return null;
     }
-    
+
     const { data, error } = await supabase
       .from("checkins")
       .insert({ ...checkin, coach_id: user.id })
