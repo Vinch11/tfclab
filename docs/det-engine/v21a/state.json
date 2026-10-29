@@ -6,7 +6,7 @@
   "maxUnits": 10,
   "budgetRenewal": false,
   "automaticRestart": false,
-  "status": "in_progress_no_go",
+  "status": "completed_no_go",
   "units": [
     {
       "unit": 1,
@@ -106,9 +106,14 @@
     {
       "unit": 10,
       "name": "closure_push_and_draft_pr_delivery",
-      "status": "active",
+      "status": "completed",
       "startedAt": "2026-10-29T09:17:32.934860+00:00",
-      "evidence": []
+      "evidence": [
+        "final-integrity.json",
+        "source-checksums.json",
+        "evidence/dossier-review.json"
+      ],
+      "completedAt": "2026-10-29T09:18:55.157765+00:00"
     }
   ],
   "acceptedData": "evidence/accepted",
@@ -124,5 +129,14 @@
     "paidApiCalls": 0,
     "automaticRestart": false,
     "quotaMeterExposed": false
+  },
+  "finishedAt": "2026-10-29T09:18:55.157765+00:00",
+  "elapsedSeconds": 1708,
+  "closedWithinBudget": true,
+  "sourceCheckpointCommit": "d678b2b315f17187657468aa60cc57e8c81c7e05",
+  "delivery": {
+    "checkpointPushed": true,
+    "finalClosurePushAndPrVerification": "performed_after_closure_commit_in_same_unit",
+    "automaticContinuation": false
   }
 }
