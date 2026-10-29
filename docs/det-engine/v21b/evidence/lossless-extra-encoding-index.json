@@ -1,0 +1,44 @@
+[
+  {
+    "originalPath": "docs/det-engine/v21b/evidence/build-1/WORKOUT_RESEARCH_ROUTING.jsonl",
+    "preservedAs": "docs/det-engine/v21b/evidence/build-1/WORKOUT_RESEARCH_ROUTING.jsonl.gz",
+    "uncompressedSha256": "0e7a215f44c4291b3481baf2c4590399f67ed93ffe4b6800fcec7e0be1be51eb",
+    "compressedSha256": "59c1725ab1b9cf4dcd9f084459d65dbaa669282dcee365c218e79c8a190821a7",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21b/evidence/build-1/CANDIDATE_96_REVIEW.jsonl",
+    "preservedAs": "docs/det-engine/v21b/evidence/build-1/CANDIDATE_96_REVIEW.jsonl.gz",
+    "uncompressedSha256": "579631078b939e0ab993093c02d3bb19851236253ba277b8c0b01ffb129a2c9c",
+    "compressedSha256": "6c9b2887a0408b2b231b38aa3a8f2bd919b83b1aea385fbce3632f9328a0d1aa",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21b/evidence/build-1/EVIDENCE_ATTACHMENT_CANDIDATES.jsonl",
+    "preservedAs": "docs/det-engine/v21b/evidence/build-1/EVIDENCE_ATTACHMENT_CANDIDATES.jsonl.gz",
+    "uncompressedSha256": "31ab6b68fd746d82ebaf93531d6a7de2fd6556bf2f03a1d0ac4639710bdaa70f",
+    "compressedSha256": "bd720c76383e4601e92aed8c04af22b95a3b42c6d50a1e61e0ebd0f4514bb34f",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21b/evidence/final-gate-replay/WORKOUT_RESEARCH_ROUTING.jsonl",
+    "preservedAs": "docs/det-engine/v21b/evidence/final-gate-replay/WORKOUT_RESEARCH_ROUTING.jsonl.gz",
+    "uncompressedSha256": "0e7a215f44c4291b3481baf2c4590399f67ed93ffe4b6800fcec7e0be1be51eb",
+    "compressedSha256": "59c1725ab1b9cf4dcd9f084459d65dbaa669282dcee365c218e79c8a190821a7",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21b/evidence/final-gate-replay/CANDIDATE_96_REVIEW.jsonl",
+    "preservedAs": "docs/det-engine/v21b/evidence/final-gate-replay/CANDIDATE_96_REVIEW.jsonl.gz",
+    "uncompressedSha256": "07138767e831cde6d3a6ef9a6b51402f9a0f899b8776a55aea26ac3ccc21390d",
+    "compressedSha256": "a773d1da3dc45e5bcf4fcf10b98f0eb070ecf9e779ad33959aecabd690558121",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21b/evidence/final-gate-replay/EVIDENCE_ATTACHMENT_CANDIDATES.jsonl",
+    "preservedAs": "docs/det-engine/v21b/evidence/final-gate-replay/EVIDENCE_ATTACHMENT_CANDIDATES.jsonl.gz",
+    "uncompressedSha256": "31ab6b68fd746d82ebaf93531d6a7de2fd6556bf2f03a1d0ac4639710bdaa70f",
+    "compressedSha256": "bd720c76383e4601e92aed8c04af22b95a3b42c6d50a1e61e0ebd0f4514bb34f",
+    "lossless": true
+  }
+]

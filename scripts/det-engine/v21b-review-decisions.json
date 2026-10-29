@@ -1,0 +1,257 @@
+{
+  "version": "det-v21b-documentary-review-decisions-1",
+  "role": "Codex documentary review; not independent qualified coach approval",
+  "fullTextReviewed": false,
+  "referenceDiscrepancies": [
+    {
+      "referenceId": "THR-01",
+      "code": "WRONG_PROVIDED_AUTHORS",
+      "detail": "The provided Faude/Kindermann/Meyer attribution does not match the retrieved PMID: Beneke, Leithäuser, Ochentel. Preserve the original; use retrieved identity only in a separately reviewed citation.",
+      "providedAttributionUsable": false
+    },
+    {
+      "referenceId": "VLA-03",
+      "code": "UNSUPPORTED_PROVIDED_YEAR",
+      "detail": "Provided 2024 is neither online 2020 nor journal 2021 in the retrieved record. Quarantine the supplied citation year, without altering the handoff.",
+      "providedAttributionUsable": false
+    },
+    {
+      "referenceId": "SWIM-01",
+      "code": "ONLINE_PRINT_YEAR_DISTINCTION",
+      "detail": "Provided 2024 corresponds to electronic publication; journal issue is 2025. Both dates retained, no article substitution.",
+      "providedAttributionUsable": true
+    },
+    {
+      "referenceId": "SWIM-03",
+      "code": "ONLINE_PRINT_YEAR_DISTINCTION",
+      "detail": "Provided 2021 corresponds to electronic publication; journal issue is 2023. Both dates retained.",
+      "providedAttributionUsable": true
+    },
+    {
+      "referenceId": "IM-03",
+      "code": "ONLINE_PRINT_YEAR_DISTINCTION",
+      "detail": "Provided 2016 corresponds to electronic publication; journal issue is 2017. Both dates retained.",
+      "providedAttributionUsable": true
+    },
+    {
+      "referenceId": "IM-03",
+      "code": "HANDOFF_JOURNAL_STUDY_TYPE_CONFLICT",
+      "detail": "JOURNAL_VERIFICATION_SOURCES.md calls IM-03 an Ironman scoping review, whereas the reference JSON and retrieved article describe an acute bike-fit comfort/fatigue/pain study. The scoping review in this corpus is IM-02; do not silently relabel the original journal row.",
+      "providedAttributionUsable": false
+    }
+  ],
+  "protocolCautions": [
+    {
+      "referenceId": "STR-01",
+      "detail": "Abstract supports the component participant counts and 6–40 weeks / 1–4 sessions weekly. The supplied 38-study count is not independently confirmed from this abstract alone."
+    },
+    {
+      "referenceId": "STR-02",
+      "detail": "Different modalities and speeds have different results; no significant economy improvement for submaximal or isometric methods in this abstract. Do not extend heavy-load effects to every strength entry."
+    },
+    {
+      "referenceId": "TEC-01",
+      "detail": "40 randomized, 22 completed; no significant between-group economy difference. Observed mechanics and measured economy remain distinct."
+    },
+    {
+      "referenceId": "TEC-02",
+      "detail": "Recall with cueing reduced impact variables; retention was not statistically established. Do not state that six-month autonomous learning was demonstrated."
+    },
+    {
+      "referenceId": "VO2-02",
+      "detail": "86 articles / 239 acute protocols, long intervals at least 2 min; active/passive recovery did not affect acute time near VO2max. Contrast with REC-02 mechanical outcomes, without erasing either result."
+    },
+    {
+      "referenceId": "THR-01",
+      "detail": "CP in this abstract also abbreviates constant-power tests, not necessarily critical power. Preserve terminology context; do not join abbreviations as identical constructs."
+    },
+    {
+      "referenceId": "THR-02",
+      "detail": "The authors report possible reconciliation under strict measurement criteria, not that all operational FTP, LT2, CP and MLSS estimates are interchangeable."
+    },
+    {
+      "referenceId": "TRAIL-02",
+      "detail": "Six alternating 5-min trials, -15% versus level, two occasions three weeks apart; do not infer an individual D− ceiling or an unambiguous total downhill exposure absent explicit reconstruction."
+    },
+    {
+      "referenceId": "SWIM-01",
+      "detail": "11 male national-level collegiate front-crawl swimmers; CV from 200/400 m tests. Recovery periods are reported, but the abstract does not resolve every last-rest convention of a TFCL recipe."
+    },
+    {
+      "referenceId": "BRICK-02",
+      "detail": "20 km bike at 80/85/90% FTP then 5 km maximal run. Even the authors' broad 90% recommendation must not become a 180 km Ironman target."
+    },
+    {
+      "referenceId": "IM-01",
+      "detail": "Race correlations are not a causal training allocation. The abstract's wording about Sprint predictors is internally uneven; no dose or discipline quota follows."
+    },
+    {
+      "referenceId": "IM-03",
+      "detail": "20 cyclists, 45 min at 50% individual peak aerobic power in three positions. Not a 4×15 versus 6×10 aero-bout trial and not individual postural tolerance."
+    },
+    {
+      "referenceId": "HEAT-02",
+      "detail": "Metadata only: editorial with no abstract in the retrieved record; no protocol or outcome extracted."
+    },
+    {
+      "referenceId": "NUT-05",
+      "detail": "High carbohydrate doses concern specific trained contexts, oxidation measures and a review including practitioner insight; no universal personal dose or acquired GI tolerance."
+    }
+  ],
+  "targetedCases": [
+    {
+      "legacyId": "B_BIKE_VO2_3MIN",
+      "familyId": "vo2max",
+      "referenceId": "VO2-01",
+      "sourceReadPointers": [
+        "/original/effective/structure/0/text",
+        "/original/effective/structure/1/text",
+        "/original/effective/structure/2/text",
+        "/original/effective/physiology/rationale"
+      ],
+      "comparison": {
+        "source": "20 min progressive + 3×30 s Z5 r60 s; main 5–7×3 min Z5 r3 min Z1–Z2; 10 min cool-down. The final rest policies remain unresolved in the original and candidate in V19.",
+        "studyPopulation": "Narrative programming review with examples from several sports; no single intervention cohort or athlete-specific dose established.",
+        "studyProtocol": "Review of work/relief intensity and duration, modality, repetitions, series and between-series recovery, plus cardiopulmonary and non-cardiopulmonary loads.",
+        "studyComparator": "Programming configurations discussed in a narrative review, not a direct trial of this TFCL recipe.",
+        "studyResults": "Work/recovery configuration can alter acute physiological responses; cardiorespiratory response alone does not capture all loading.",
+        "differences": "No direct validation of 5–7×3 min, Z5 individual domain, 3-min recovery, final-rest occurrence, weekly frequency or VLamax-based restriction. Existing source restrictions remain unchanged.",
+        "individualDataMissing": [
+          "sport-specific upper-intensity anchor and uncertainty",
+          "actual recovery tolerance",
+          "microcycle interaction",
+          "observed response and reason for limiter priority"
+        ],
+        "doseAndRecoveryFullyMatched": false
+      },
+      "claim": "La configuration travail/récupération influence les réponses aiguës des intervalles ; ce contexte ne démontre ni l'optimalité ni l'admissibilité individuelle de cette recette.",
+      "finding": "supports_with_limits",
+      "scope": "family_context",
+      "doseStatus": "dose_not_individually_verified",
+      "referencePmid": "23539308"
+    },
+    {
+      "legacyId": "C_IM_AERO_HOLD",
+      "familyId": "technique",
+      "referenceId": "IM-03",
+      "sourceReadPointers": [
+        "/original/effective/structure/0/text"
+      ],
+      "comparison": {
+        "source": "4×15 min Z2 en position aéro, r5 min Z1; unknown original final-rest occurrence; candidate totals 75 or 80 min. Source avoid: lumbar pain. The archived 6×10 alternative has another continuous exposure.",
+        "studyPopulation": "20 cyclists; results about perceptions across tested positions, not an individual Ironman cohort tolerance certificate.",
+        "studyProtocol": "Three tests in randomized order, 45 min at 50% individual peak aerobic power, with different knee and trunk flexion combinations.",
+        "studyComparator": "Different bicycle positions at the experimental workload, not 4×15 versus 6×10 min bouts.",
+        "studyResults": "Perceptions of comfort, fatigue and pain varied across positions; upright trunk was more comfortable in the study's recreational context.",
+        "differences": "Study intensity is relative to peak aerobic power, not automatically Z2/FTP. No 15-min bout tolerance, recovery duration, aerodynamic gain or equivalence of interruptions is demonstrated.",
+        "individualDataMissing": [
+          "actual postural exposure and cervical/lumbar symptoms",
+          "bike-fit and position-specific power anchor",
+          "response to interruptions and full microcycle",
+          "future reassessment before any increase"
+        ],
+        "doseAndRecoveryFullyMatched": false
+      },
+      "claim": "La position sur le vélo peut modifier le confort, la fatigue et la douleur ressentis ; cette étude ne valide ni les blocs de 15 minutes ni leur équivalence aux blocs de 10 minutes.",
+      "finding": "supports_with_limits",
+      "scope": "family_context",
+      "doseStatus": "dose_not_individually_verified",
+      "referencePmid": "27490817"
+    }
+  ],
+  "abstractReadReferenceIds": [
+    "REC-01",
+    "REC-02",
+    "REC-03",
+    "STR-01",
+    "STR-02",
+    "TEC-01",
+    "TEC-02",
+    "AER-01",
+    "AER-02",
+    "AER-03",
+    "VO2-01",
+    "VO2-02",
+    "THR-01",
+    "THR-02",
+    "DUR-01",
+    "DUR-02",
+    "DUR-03",
+    "DUR-04",
+    "VLA-01",
+    "VLA-02",
+    "VLA-03",
+    "VLA-04",
+    "TRAIL-01",
+    "TRAIL-02",
+    "TRAIL-03",
+    "SWIM-01",
+    "SWIM-02",
+    "SWIM-03",
+    "BRICK-01",
+    "BRICK-02",
+    "BRICK-03",
+    "IM-01",
+    "IM-02",
+    "IM-03",
+    "TAPER-01",
+    "TAPER-02",
+    "NUT-01",
+    "NUT-02",
+    "NUT-03",
+    "NUT-04",
+    "NUT-05",
+    "HEAT-01",
+    "HEAT-03",
+    "HEAT-04",
+    "LOAD-01"
+  ],
+  "metadataReadReferenceIds": [
+    "REC-01",
+    "REC-02",
+    "REC-03",
+    "STR-01",
+    "STR-02",
+    "TEC-01",
+    "TEC-02",
+    "AER-01",
+    "AER-02",
+    "AER-03",
+    "VO2-01",
+    "VO2-02",
+    "THR-01",
+    "THR-02",
+    "DUR-01",
+    "DUR-02",
+    "DUR-03",
+    "DUR-04",
+    "VLA-01",
+    "VLA-02",
+    "VLA-03",
+    "VLA-04",
+    "TRAIL-01",
+    "TRAIL-02",
+    "TRAIL-03",
+    "SWIM-01",
+    "SWIM-02",
+    "SWIM-03",
+    "BRICK-01",
+    "BRICK-02",
+    "BRICK-03",
+    "IM-01",
+    "IM-02",
+    "IM-03",
+    "TAPER-01",
+    "TAPER-02",
+    "NUT-01",
+    "NUT-02",
+    "NUT-03",
+    "NUT-04",
+    "NUT-05",
+    "HEAT-01",
+    "HEAT-02",
+    "HEAT-03",
+    "HEAT-04",
+    "LOAD-01"
+  ]
+}

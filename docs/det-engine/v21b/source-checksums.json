@@ -1,0 +1,10 @@
+{
+  "scripts/det-engine/v21b-build.py": "f2761025c8fe12338732650abd576051e309a4302d2c2d125716267aefb142a5",
+  "scripts/det-engine/v21b-documentary.py": "a3b11556a7438530eff131a4bfc15c8c58f2548a7674959206388227db46dcaa",
+  "scripts/det-engine/v21b-independent.py": "02c8ed85283417642eaf4cd7f85d680c2dc2d7d1cd5cd5b2ca538634ef4d2421",
+  "scripts/det-engine/v21b-report.py": "48464aa50428709a0f530f2d536c74f846b91b268c78bb2443ad117f31bc361a",
+  "scripts/det-engine/v21b-retrieve.py": "544029d6cf062aeda0aff3fe88bc9c2a8b0820918f8cd43f817a135cf5e347f6",
+  "scripts/det-engine/v21b-review-decisions.json": "aa963492a92970eca4fc08f47d4a32cc929cb77f1f71931002868b1e3b36141a",
+  "scripts/det-engine/v21b-session.py": "7adca27828b2d231004cefc3250a80f37fd06f319174edc6fddb14572c7662e9",
+  "scripts/det-engine/v21b-tests.py": "7554ca60820e79d603ccc638fab6f1955a8aa67380d7b787da62ce69ae8e4698"
+}

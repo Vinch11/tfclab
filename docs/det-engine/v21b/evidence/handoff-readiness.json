@@ -1,0 +1,18 @@
+{
+  "essentialDeliverables": [
+    "README.md",
+    "SOURCE_VERIFICATION_LOG.md",
+    "FAMILY_KNOWLEDGE_BASE.json",
+    "WORKOUT_RESEARCH_ROUTING.jsonl",
+    "EVIDENCE_ATTACHMENT_CANDIDATES.jsonl",
+    "REJECTION_AND_GAPS.csv",
+    "COACH_EXPLANATIONS.md",
+    "TEST_RESULTS.md",
+    "REPRISE.md"
+  ],
+  "localLinksChecked": 32,
+  "protectedFiles": 4203,
+  "acceptedData": "evidence/coach-consolidated",
+  "independentValidation": "evidence/independent-coach-final.json",
+  "sourceDataAndNolioUnchangedAfterCoachCorrection": true
+}

@@ -1,0 +1,24 @@
+{
+  "archiveSha256": "4b4348548b4e742cb8c38cafe8868e8b3631d2fbe5fd22236dee314950698dd3",
+  "files": {
+    "DOSSIER_SCIENTIFIQUE_COMPLET.md": "6050b2d6f134431d69019dc36acce8a3089728cac5251ea601da134160297317",
+    "GUIDE_REVUE_FICHE_PAR_FICHE.md": "52c3c2134dba72c66c602ec79c5bb08f1f1b35f7c4f87ddb8047f50dd39bee82",
+    "JOURNAL_VERIFICATION_SOURCES.md": "d08366c594999e05a73f88bb38de9491fc791e44fcaefb8f19b1b5f4cabf11d6",
+    "PRINCIPES_COACHING_LORANG.md": "74bf9a7a78206b3b9759ae7e74ea87bc6d1bb2d9fd2606a13400a43bd9fb2bf9",
+    "PROMPT_CODEX_V21B.md": "426f8f2cf198360ea821bebcbe049b4796c9bdc4de01e38da9bc8d2a7b64d533",
+    "README_POUR_CODEX.md": "aaf3f59fcabb781d8f4be4f1817b13f7362593ce5913120f55b803e886184ff3",
+    "REPONSES_62_QUESTIONS_V21A.csv": "33d5531e94a5629cf85470a9f6bc799fe84496c5ed95ed33307b9d0709e0153d",
+    "REPONSES_62_QUESTIONS_V21A.json": "a86eed27ad969598b0cc75ac28258380fb75ce48c596e1f3cb310c9362ee2075",
+    "assertions_familiales_non_liees.jsonl": "3794fc845d6fc9bd4e1411ba6317f18caf77f3e05b97192659ec13f04c5b21f8",
+    "garde_fous_integration.json": "72f7949c74417879ed71d83cb67631598069c6eb114dee2b9933c362a30d5e6f",
+    "mecanismes_15_familles.json": "4d58d9d2632c5d214ebedb49598c1716e72331005f5012782fedcc55c9879ccd",
+    "protocoles_et_doses_etudies.csv": "4c05284ffc6010489927e2cc14138d3853e23cfc145fd54fa4871a6d43a52451",
+    "references_verifiees.csv": "3a5d154131edd205ee0e4c4abee3f340381d33a510106fed089d8f9ec3602763",
+    "references_verifiees.json": "1d9808ddd5989e5761a6970b882c68fba6cad4bcad0c9adaa8b351360958f311",
+    "verify_handoff.py": "c5157ac0eda898ed17b21084f13c59fef0fed5f88496360cd3ca1df6ee3ac2ae",
+    "manifest_sha256.json": "659ecde75ff2310c67ba8ff393cb3b07b8e2548c24d3ad7c9dd54afe6a136c5c"
+  },
+  "manifestPass": true,
+  "baselineFiles": 4203,
+  "remoteHeadVerifiedBeforeWrites": "36fa6b248f7a3ac98e505ce88705beedd8987d74"
+}

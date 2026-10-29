@@ -1,0 +1,513 @@
+{
+  "version": "tfcl-scientific-family-context-v21b-2026-10-29",
+  "baseCommit": "36fa6b248f7a3ac98e505ce88705beedd8987d74",
+  "noAutomaticPromotion": true,
+  "families": [
+    {
+      "familyId": "aerobic_endurance",
+      "label": "Endurance aérobie",
+      "axis": "mechanism",
+      "referenceIds": [
+        "AER-01",
+        "AER-02",
+        "AER-03",
+        "DUR-01"
+      ],
+      "scientificContextClaims": [
+        "L’endurance à intensité sous-maximale constitue un stimulus plausible dans un programme de longue durée.",
+        "La distribution polarisée ne garantit pas la meilleure performance globale pour tous les athlètes."
+      ],
+      "disallowedAutomaticClaims": [
+        "Z2 produit systématiquement une baisse de VLamax.",
+        "80/20 est la répartition optimale obligatoire.",
+        "Une durée longue programmée prouve l’endurance individuelle acquise."
+      ],
+      "individualDataNeeded": [
+        "ancre LT1 datée ou domaine opérationnel justifié",
+        "discipline et historique de tolérance",
+        "RPE/retour de séance",
+        "disponibilité et charges croisées"
+      ],
+      "auditActions": [
+        "périmètre exact des Z1/Z2 source",
+        "durée effective versus réservation",
+        "définition du volume faible intensité"
+      ],
+      "doseEvidenceLimit": "Études comparant des PROGRAMMES sur semaines; aucune dose d’une séance individuelle n’est établie par ces revues.",
+      "outcomesToMonitor": "Performance, VO2peak, TTE, progression d’exposition et tolérance.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "vo2max",
+      "label": "Stimuli VO2max",
+      "axis": "mechanism",
+      "referenceIds": [
+        "VO2-01",
+        "VO2-02"
+      ],
+      "scientificContextClaims": [
+        "La structure travail/repos et la durée influencent le temps aigu passé à forte consommation d’oxygène.",
+        "Un intervalle long peut produire davantage de temps proche de VO2max que certains formats très courts, mais la réponse varie."
+      ],
+      "disallowedAutomaticClaims": [
+        "Titre VO2max = sollicitation VO2max atteinte.",
+        "Minutes >90% VO2max = adaptation chronique garantie.",
+        "Imposer une intensité FTP fixe pour tous."
+      ],
+      "individualDataNeeded": [
+        "vVO2 ou pVO2 ou test valide selon sport",
+        "contrôle tolérance intensité et récupération",
+        "volume haute intensité sur semaine",
+        "RPE et qualité répétitions"
+      ],
+      "auditActions": [
+        "durées travail/repos exactes",
+        "preuve du domaine à partir des tests disponibles",
+        "conditions de progression"
+      ],
+      "doseEvidenceLimit": "239 protocoles aiguës de la revue 2026 ne déterminent pas le meilleur plan chronique individuel.",
+      "outcomesToMonitor": "VO2 mesurée/puissance aérobie et réponse répétitions.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "thresholds",
+      "label": "Seuils et intensité soutenable",
+      "axis": "mechanism",
+      "referenceIds": [
+        "THR-01",
+        "THR-02"
+      ],
+      "scientificContextClaims": [
+        "CP, MLSS et seuils sont des constructions et mesures liées mais non interchangeables sans méthodologie."
+      ],
+      "disallowedAutomaticClaims": [
+        "FTP=MLSS=LT2=CP par définition.",
+        "Séance au seuil a un avantage universel démontré sur les autres intensités."
+      ],
+      "individualDataNeeded": [
+        "définition et protocole de chaque ancre",
+        "date du test",
+        "erreur de mesure et domaine cible",
+        "temps soutenable réel ou incertain"
+      ],
+      "auditActions": [
+        "vérifier équivalence du repère au stimulus",
+        "éviter seuils arbitraires",
+        "sport, tests, zone de récupération"
+      ],
+      "doseEvidenceLimit": "Aucune des sources examinées ne certifie les dosages exacts des 920 recettes de seuil.",
+      "outcomesToMonitor": "TTE, référence soutenable, TT et tolérance.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "durability",
+      "label": "Durabilité et fatigue prolongée",
+      "axis": "mechanism",
+      "referenceIds": [
+        "DUR-01",
+        "DUR-02",
+        "DUR-03",
+        "DUR-04"
+      ],
+      "scientificContextClaims": [
+        "Un profil physiologique mesuré frais ne décrit pas à lui seul les performances après fatigue prolongée.",
+        "Le préchargement, alimentation et environnement influencent le test de durabilité."
+      ],
+      "disallowedAutomaticClaims": [
+        "TTE frais = durabilité.",
+        "Une sortie longue prévue démontre adaptation future.",
+        "Qualificatif coach résistant fatigue = preuve clinique."
+      ],
+      "individualDataNeeded": [
+        "épreuve fraîche et épreuve pré-fatiguée comparables",
+        "travail préalable kJ/kg ou temps/intensité",
+        "nutrition/chaleur",
+        "historique tolérance et feedback"
+      ],
+      "auditActions": [
+        "protocole de pré-fatigue",
+        "validité cross-sport",
+        "progressivité conditionnelle"
+      ],
+      "doseEvidenceLimit": "Protocoles très dépendants du préchargement; pas de plafond universel déductible.",
+      "outcomesToMonitor": "Déclin performance/physiologie à charge standardisée et feedback longitudinal.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "strength",
+      "label": "Force et préparation musculaire",
+      "axis": "mechanism",
+      "referenceIds": [
+        "STR-01",
+        "STR-02",
+        "LOAD-01"
+      ],
+      "scientificContextClaims": [
+        "Certaines formes de force lourde/combinée ou pliométrique améliorent performance et économie chez des coureurs entraînés.",
+        "Des résultats de groupe n’authentifient pas chaque circuit de gainage."
+      ],
+      "disallowedAutomaticClaims": [
+        "Tout renforcement améliore VO2max.",
+        "Toute séance core prévient blessure.",
+        "Force endurance basse cadence vélo = même preuve que squat lourd course."
+      ],
+      "individualDataNeeded": [
+        "exercice, séries, reps, intensité force, tempo, repos",
+        "expérience technique, restrictions",
+        "interférence avec séances endurance",
+        "symptômes et tolérance musculaire"
+      ],
+      "auditActions": [
+        "séparer isométrie, force lourde, pliométrie, circuit, corde nage",
+        "prévenir durées calculées à partir de répétitions",
+        "revue douleur"
+      ],
+      "doseEvidenceLimit": "Études regroupées sur 6-40 semaines, souvent 1-4 fois/semaine: pas dose universelle d’une fiche TFCL.",
+      "outcomesToMonitor": "Force, économie standardisée, performance, fatigue, symptômes.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "economy",
+      "label": "Économie et coordination",
+      "axis": "mechanism",
+      "referenceIds": [
+        "STR-02",
+        "TEC-01"
+      ],
+      "scientificContextClaims": [
+        "Des méthodes spécifiques de force peuvent améliorer le coût énergétique de la course.",
+        "Un changement de mécanique de foulée ne garantit pas une économie améliorée."
+      ],
+      "disallowedAutomaticClaims": [
+        "Éducatifs = gain mesuré d’économie.",
+        "Une cadence universelle minimise le coût individuel."
+      ],
+      "individualDataNeeded": [
+        "vitesse/allure standardisée",
+        "sport et mode de mesure",
+        "capacité technique observée",
+        "symptômes/réponse"
+      ],
+      "auditActions": [
+        "séparer économie énergétique, coordination et performance",
+        "contrôler effets adverses d’un changement forcé"
+      ],
+      "doseEvidenceLimit": "Travaux multi-semaines ou mécanismes; pas une dose validée de drills individuels.",
+      "outcomesToMonitor": "Coût énergétique à charge constante, transfert, performance.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "technique",
+      "label": "Technique et apprentissage moteur",
+      "axis": "mechanism",
+      "referenceIds": [
+        "TEC-01",
+        "TEC-02",
+        "SWIM-03"
+      ],
+      "scientificContextClaims": [
+        "Feedback, pratique et contexte peuvent modifier la réalisation du geste; rétention et transfert doivent être vérifiés."
+      ],
+      "disallowedAutomaticClaims": [
+        "Feedback technique = économie améliorée.",
+        "Drills systématiquement utiles sans déficit observable.",
+        "Technique natation et foulée partagent une dose physiologique."
+      ],
+      "individualDataNeeded": [
+        "critère technique mesurable",
+        "mode de feedback, contexte de pratique",
+        "qualité sous fatigue",
+        "symptômes et rétention"
+      ],
+      "auditActions": [
+        "drills vs posture aéro vs mobilité",
+        "rétention hors feedback",
+        "ne pas confondre technique et métabolisme"
+      ],
+      "doseEvidenceLimit": "Dosages spécifiques à l’apprentissage et à la population; pas de règle universelle.",
+      "outcomesToMonitor": "Précision geste, rétention, transfert, économie si mesurée.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "recovery",
+      "label": "Récupération et gestion fatigue",
+      "axis": "mechanism",
+      "referenceIds": [
+        "REC-01",
+        "REC-02",
+        "REC-03"
+      ],
+      "scientificContextClaims": [
+        "Repos entre efforts, cool-down et séance facile séparée répondent à des questions distinctes.",
+        "Le cool-down actif n’améliore pas systématiquement la performance au lendemain."
+      ],
+      "disallowedAutomaticClaims": [
+        "Diminution lactatémie = récupération musculaire prouvée.",
+        "Tout repos actif meilleur que passif.",
+        "Dernier repos de chaque échauffement = cooldown final."
+      ],
+      "individualDataNeeded": [
+        "emplacement du repos",
+        "durée, type actif/passif, cible",
+        "sollicitation précédente et microcycle",
+        "RPE/douleur/sommeil et réaction"
+      ],
+      "auditActions": [
+        "416 politiques de récupération V19/V20",
+        "59 cibles de repos non univoques",
+        "éventuel risque zone de travail héritée"
+      ],
+      "doseEvidenceLimit": "Ne pas choisir n ou n-1 sans indication source ou décision éditoriale du coach.",
+      "outcomesToMonitor": "Performance suivante, fatigue, qualité des répétitions, sécurité.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "trail",
+      "label": "Trail, vertical et excentrique",
+      "axis": "context",
+      "referenceIds": [
+        "TRAIL-01",
+        "TRAIL-02",
+        "TRAIL-03"
+      ],
+      "scientificContextClaims": [
+        "La descente peut induire un stress excentrique important malgré un coût métabolique relatif faible.",
+        "Une habituation partielle à l’excentrique existe, mais ne démontre pas une tolérance illimitée."
+      ],
+      "disallowedAutomaticClaims": [
+        "D+ suffit à quantifier D−.",
+        "Courbatures en baisse = capacité neuromusculaire prouvée.",
+        "Progression verticale universelle sans expérience préalable."
+      ],
+      "individualDataNeeded": [
+        "D+ et D− distincts",
+        "pente, technicité, type terrain",
+        "historique descente, douleur, fatigue après 24-72h",
+        "matériel et expérience"
+      ],
+      "auditActions": [
+        "règles de D−, escaliers vs terrain technique",
+        "différencier marche/course descente",
+        "refus si capacités inconnues"
+      ],
+      "doseEvidenceLimit": "Études ponctuelles à pentes spécifiques; aucune échelle générale de D− validée.",
+      "outcomesToMonitor": "Tolérance mécanique, fonction et récupération différée.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "swimming",
+      "label": "Natation et milieu aquatique",
+      "axis": "context",
+      "referenceIds": [
+        "SWIM-01",
+        "SWIM-02",
+        "SWIM-03"
+      ],
+      "scientificContextClaims": [
+        "La longueur des répétitions à vitesse critique en crawl modifie la réponse lactate/RPE/technique.",
+        "Les contraintes piscine/eau libre et les nages sont distinctes."
+      ],
+      "disallowedAutomaticClaims": [
+        "CSS crawl appliquée à brasse/dos/éducatifs.",
+        "Distance totale = durée individuelle garantie.",
+        "Une longueur à CSS donne une réponse identique quelle que soit récupération."
+      ],
+      "individualDataNeeded": [
+        "CSS et provenance, date, nage concernée",
+        "distances/restes exacts",
+        "niveau technique, bassin/eau libre",
+        "temps individuel et créneau"
+      ],
+      "auditActions": [
+        "119 fiches nage: durée et transitions",
+        "mélanges de nages",
+        "décompte échauffement/retour"
+      ],
+      "doseEvidenceLimit": "Étude aiguë 5x400 r60/10x200 r30/20x100 r15 ne prouve pas supériorité chronique universelle.",
+      "outcomesToMonitor": "RPE, lactate, allure propre à nage, qualité technique.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "bricks",
+      "label": "Bricks et transitions",
+      "axis": "context",
+      "referenceIds": [
+        "BRICK-01",
+        "BRICK-02",
+        "BRICK-03"
+      ],
+      "scientificContextClaims": [
+        "L’enchaînement vélo-course modifie parfois performance et contrôle moteur de la course initiale.",
+        "La modulation de puissance/cadence ne dispose pas de règle générale transférable à toute distance."
+      ],
+      "disallowedAutomaticClaims": [
+        "Un brick a un temps de transition égal zéro si absent.",
+        "Une séance vélo-course = vélo seul pour compte durée.",
+        "90% FTP sur 20 km = cible Ironman 180 km."
+      ],
+      "individualDataNeeded": [
+        "durées séparées par discipline et transitions",
+        "références propres à chaque sport",
+        "tolérance course post-vélo",
+        "nutrition et état musculaire"
+      ],
+      "auditActions": [
+        "55 bricks + mixed réellement bricks séparés",
+        "conversion Nolio multi-événements",
+        "compatibilité créneaux"
+      ],
+      "doseEvidenceLimit": "Études souvent vélo court et course courte, aucun dosage optimal Ironman.",
+      "outcomesToMonitor": "Course sous fatigue, aisance en transition, réponse différée.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "ironman_specificity",
+      "label": "Ironman et posture aéro",
+      "axis": "context",
+      "referenceIds": [
+        "IM-01",
+        "IM-02",
+        "IM-03",
+        "DUR-01",
+        "BRICK-01"
+      ],
+      "scientificContextClaims": [
+        "La performance d’Ironman dépend d’interactions multisports, du maintien tardif et du contexte nutrition/posture.",
+        "Une position aéro peut avoir un coût de confort et un besoin de tolérance spécifique."
+      ],
+      "disallowedAutomaticClaims": [
+        "6x10 et 4x15 sont physiologiquement équivalents car 60 min.",
+        "Une expérience élite détermine le volume minimum amateur.",
+        "Marathon sec permet prédire directement marathon IM."
+      ],
+      "individualDataNeeded": [
+        "historique posture et symptômes",
+        "références disciplines, tolérance à fatigue",
+        "nutrition/hydratation",
+        "calendrier entier et schéma compétition"
+      ],
+      "auditActions": [
+        "2 calendriers 16 sem: ratios et schéma course",
+        "4x15 postural vs 6x10",
+        "longues séances et enchaînements"
+      ],
+      "doseEvidenceLimit": "Aucune étude identifiée ne certifie les 4x15 ou 6x10 spécifiques à tous.",
+      "outcomesToMonitor": "Tolérance position, qualité effort course, adaptation sans aggravation.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "taper",
+      "label": "Affûtage et activation compétitive",
+      "axis": "context",
+      "referenceIds": [
+        "TAPER-01",
+        "TAPER-02"
+      ],
+      "scientificContextClaims": [
+        "Réduire progressivement la charge avant compétition tout en maintenant des qualités de travail peut améliorer la performance de groupe."
+      ],
+      "disallowedAutomaticClaims": [
+        "41–60% exactement pour tout profil et toute course.",
+        "Activation J−1 obligatoire et universelle."
+      ],
+      "individualDataNeeded": [
+        "fatigue accumulée",
+        "historique réponse affûtage",
+        "date/heure/type de compétition",
+        "contraintes calendrier"
+      ],
+      "auditActions": [
+        "différencier décharge ordinaire et taper",
+        "préserver intensity/frequency selon contexte",
+        "schéma course événement"
+      ],
+      "doseEvidenceLimit": "Réduction 41–60% sur 2 semaines = synthèse moyenne de méta-analyse, non cible automatique.",
+      "outcomesToMonitor": "Performance/course, fraîcheur et maintien intensité.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "nutrition",
+      "label": "Nutrition et tolérance digestive",
+      "axis": "support",
+      "referenceIds": [
+        "NUT-01",
+        "NUT-02",
+        "NUT-03",
+        "NUT-04",
+        "NUT-05"
+      ],
+      "scientificContextClaims": [
+        "L’apport de glucides à l’effort favorise généralement la performance pour efforts prolongés.",
+        "Le gut training peut améliorer la tolérance; les adaptations aiguës train-low ne garantissent pas performance."
+      ],
+      "disallowedAutomaticClaims": [
+        "Tous ont besoin de 90-120g/h.",
+        "Train-low toujours bénéfique.",
+        "Oxydation de lipides accrue = performance Ironman améliorée."
+      ],
+      "individualDataNeeded": [
+        "historique GI et quantités tolérées",
+        "durée et intensité effort",
+        "énergie disponible et signes REDs",
+        "stratégie alimentaire, environnement"
+      ],
+      "auditActions": [
+        "consignes LCW ambiguës",
+        "fiches jeûne/sleep-low et mineurs",
+        "ne pas délivrer nutrition thérapeutique universelle"
+      ],
+      "doseEvidenceLimit": "Doses étudiées dépendent durée, formulation et entraînement intestinal; seuil de 120g/h non universel.",
+      "outcomesToMonitor": "Performance, tolérance GI, récupération, santé.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    },
+    {
+      "familyId": "heat_hypoxia",
+      "label": "Chaleur, hypoxie et environnement",
+      "axis": "support",
+      "referenceIds": [
+        "HEAT-01",
+        "HEAT-02",
+        "HEAT-03",
+        "HEAT-04"
+      ],
+      "scientificContextClaims": [
+        "Expositions contrôlées à la chaleur peuvent favoriser l’acclimatation; sécurité et hydratation personnalisée essentielles."
+      ],
+      "disallowedAutomaticClaims": [
+        "Sauna après chaque séance recommandé à tous.",
+        "Volume hydrique universel.",
+        "Sommeil = unité mL/h; corriger automatiquement la consigne LCW.",
+        "Hypoxie et chaleur ont les mêmes protocoles."
+      ],
+      "individualDataNeeded": [
+        "température/humidité, état de santé",
+        "historique de chaleur et signes d’intolérance",
+        "pertes sudorales approximatives",
+        "surveillance, accès refroidissement"
+      ],
+      "auditActions": [
+        "bloc chaleur à haut risque et contre-indications",
+        "LCW unité hydrique suspecte",
+        "dissocier hypoxie, preuve non couverte dans cette revue"
+      ],
+      "doseEvidenceLimit": "Consensus chaleur 1–2 semaines est une plage d’exposition générale, pas une prescription sans contexte.",
+      "outcomesToMonitor": "Tolérance chaleur, symptômes, performance milieu cible.",
+      "status": "family_research_only",
+      "promotionAllowed": false
+    }
+  ]
+}

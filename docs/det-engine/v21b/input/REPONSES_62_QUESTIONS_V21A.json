@@ -1,0 +1,947 @@
+{
+  "version": "tfcl-v21b-question-matrix-1.0",
+  "baseV21A": "36fa6b248f7a3ac98e505ce88705beedd8987d74",
+  "count": 62,
+  "noneValidatedForExactDose": true,
+  "items": [
+    {
+      "questionId": "Q-aerobic_endurance-mechanism",
+      "familyId": "aerobic_endurance",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "L’endurance à intensité sous-maximale constitue un stimulus plausible dans un programme de longue durée. | La distribution polarisée ne garantit pas la meilleure performance globale pour tous les athlètes.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "AER-01",
+        "AER-02",
+        "AER-03",
+        "DUR-01"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-aerobic_endurance-dose",
+      "familyId": "aerobic_endurance",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Études comparant des PROGRAMMES sur semaines; aucune dose d’une séance individuelle n’est établie par ces revues.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "AER-01",
+        "AER-02",
+        "AER-03",
+        "DUR-01"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-aerobic_endurance-individualization",
+      "familyId": "aerobic_endurance",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : ancre LT1 datée ou domaine opérationnel justifié; discipline et historique de tolérance; RPE/retour de séance; disponibilité et charges croisées",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "AER-01",
+        "AER-02",
+        "AER-03",
+        "DUR-01"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-aerobic_endurance-interaction",
+      "familyId": "aerobic_endurance",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : périmètre exact des Z1/Z2 source; durée effective versus réservation; définition du volume faible intensité",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "AER-01",
+        "AER-02",
+        "AER-03",
+        "DUR-01"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-vo2max-mechanism",
+      "familyId": "vo2max",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "La structure travail/repos et la durée influencent le temps aigu passé à forte consommation d’oxygène. | Un intervalle long peut produire davantage de temps proche de VO2max que certains formats très courts, mais la réponse varie.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "VO2-01",
+        "VO2-02"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-vo2max-dose",
+      "familyId": "vo2max",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "239 protocoles aiguës de la revue 2026 ne déterminent pas le meilleur plan chronique individuel.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "VO2-01",
+        "VO2-02"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-vo2max-individualization",
+      "familyId": "vo2max",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : vVO2 ou pVO2 ou test valide selon sport; contrôle tolérance intensité et récupération; volume haute intensité sur semaine; RPE et qualité répétitions",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "VO2-01",
+        "VO2-02"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-vo2max-interaction",
+      "familyId": "vo2max",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : durées travail/repos exactes; preuve du domaine à partir des tests disponibles; conditions de progression",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "VO2-01",
+        "VO2-02"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-thresholds-mechanism",
+      "familyId": "thresholds",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "CP, MLSS et seuils sont des constructions et mesures liées mais non interchangeables sans méthodologie.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "THR-01",
+        "THR-02"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-thresholds-dose",
+      "familyId": "thresholds",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Aucune des sources examinées ne certifie les dosages exacts des 920 recettes de seuil.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "THR-01",
+        "THR-02"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-thresholds-individualization",
+      "familyId": "thresholds",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : définition et protocole de chaque ancre; date du test; erreur de mesure et domaine cible; temps soutenable réel ou incertain",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "THR-01",
+        "THR-02"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-thresholds-interaction",
+      "familyId": "thresholds",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : vérifier équivalence du repère au stimulus; éviter seuils arbitraires; sport, tests, zone de récupération",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "THR-01",
+        "THR-02"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-durability-mechanism",
+      "familyId": "durability",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Un profil physiologique mesuré frais ne décrit pas à lui seul les performances après fatigue prolongée. | Le préchargement, alimentation et environnement influencent le test de durabilité.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "DUR-01",
+        "DUR-02",
+        "DUR-03",
+        "DUR-04"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-durability-dose",
+      "familyId": "durability",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Protocoles très dépendants du préchargement; pas de plafond universel déductible.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "DUR-01",
+        "DUR-02",
+        "DUR-03",
+        "DUR-04"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-durability-individualization",
+      "familyId": "durability",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : épreuve fraîche et épreuve pré-fatiguée comparables; travail préalable kJ/kg ou temps/intensité; nutrition/chaleur; historique tolérance et feedback",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "DUR-01",
+        "DUR-02",
+        "DUR-03",
+        "DUR-04"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-durability-interaction",
+      "familyId": "durability",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : protocole de pré-fatigue; validité cross-sport; progressivité conditionnelle",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "DUR-01",
+        "DUR-02",
+        "DUR-03",
+        "DUR-04"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-strength-mechanism",
+      "familyId": "strength",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Certaines formes de force lourde/combinée ou pliométrique améliorent performance et économie chez des coureurs entraînés. | Des résultats de groupe n’authentifient pas chaque circuit de gainage.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "STR-01",
+        "STR-02",
+        "LOAD-01"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-strength-dose",
+      "familyId": "strength",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Études regroupées sur 6-40 semaines, souvent 1-4 fois/semaine: pas dose universelle d’une fiche TFCL.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "STR-01",
+        "STR-02",
+        "LOAD-01"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-strength-individualization",
+      "familyId": "strength",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : exercice, séries, reps, intensité force, tempo, repos; expérience technique, restrictions; interférence avec séances endurance; symptômes et tolérance musculaire",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "STR-01",
+        "STR-02",
+        "LOAD-01"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-strength-interaction",
+      "familyId": "strength",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : séparer isométrie, force lourde, pliométrie, circuit, corde nage; prévenir durées calculées à partir de répétitions; revue douleur",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "STR-01",
+        "STR-02",
+        "LOAD-01"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-economy-mechanism",
+      "familyId": "economy",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Des méthodes spécifiques de force peuvent améliorer le coût énergétique de la course. | Un changement de mécanique de foulée ne garantit pas une économie améliorée.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "STR-02",
+        "TEC-01"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-economy-dose",
+      "familyId": "economy",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Travaux multi-semaines ou mécanismes; pas une dose validée de drills individuels.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "STR-02",
+        "TEC-01"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-economy-individualization",
+      "familyId": "economy",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : vitesse/allure standardisée; sport et mode de mesure; capacité technique observée; symptômes/réponse",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "STR-02",
+        "TEC-01"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-economy-interaction",
+      "familyId": "economy",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : séparer économie énergétique, coordination et performance; contrôler effets adverses d’un changement forcé",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "STR-02",
+        "TEC-01"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-technique-mechanism",
+      "familyId": "technique",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Feedback, pratique et contexte peuvent modifier la réalisation du geste; rétention et transfert doivent être vérifiés.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "TEC-01",
+        "TEC-02",
+        "SWIM-03"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-technique-dose",
+      "familyId": "technique",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Dosages spécifiques à l’apprentissage et à la population; pas de règle universelle.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "TEC-01",
+        "TEC-02",
+        "SWIM-03"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-technique-individualization",
+      "familyId": "technique",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : critère technique mesurable; mode de feedback, contexte de pratique; qualité sous fatigue; symptômes et rétention",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "TEC-01",
+        "TEC-02",
+        "SWIM-03"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-technique-interaction",
+      "familyId": "technique",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : drills vs posture aéro vs mobilité; rétention hors feedback; ne pas confondre technique et métabolisme",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "TEC-01",
+        "TEC-02",
+        "SWIM-03"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-recovery-mechanism",
+      "familyId": "recovery",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Repos entre efforts, cool-down et séance facile séparée répondent à des questions distinctes. | Le cool-down actif n’améliore pas systématiquement la performance au lendemain.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "REC-01",
+        "REC-02",
+        "REC-03"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-recovery-dose",
+      "familyId": "recovery",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Ne pas choisir n ou n-1 sans indication source ou décision éditoriale du coach.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "REC-01",
+        "REC-02",
+        "REC-03"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-recovery-individualization",
+      "familyId": "recovery",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : emplacement du repos; durée, type actif/passif, cible; sollicitation précédente et microcycle; RPE/douleur/sommeil et réaction",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "REC-01",
+        "REC-02",
+        "REC-03"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-recovery-interaction",
+      "familyId": "recovery",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : 416 politiques de récupération V19/V20; 59 cibles de repos non univoques; éventuel risque zone de travail héritée",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "REC-01",
+        "REC-02",
+        "REC-03"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-trail-mechanism",
+      "familyId": "trail",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "La descente peut induire un stress excentrique important malgré un coût métabolique relatif faible. | Une habituation partielle à l’excentrique existe, mais ne démontre pas une tolérance illimitée.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "TRAIL-01",
+        "TRAIL-02",
+        "TRAIL-03"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-trail-dose",
+      "familyId": "trail",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Études ponctuelles à pentes spécifiques; aucune échelle générale de D− validée.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "TRAIL-01",
+        "TRAIL-02",
+        "TRAIL-03"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-trail-individualization",
+      "familyId": "trail",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : D+ et D− distincts; pente, technicité, type terrain; historique descente, douleur, fatigue après 24-72h; matériel et expérience",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "TRAIL-01",
+        "TRAIL-02",
+        "TRAIL-03"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-trail-interaction",
+      "familyId": "trail",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : règles de D−, escaliers vs terrain technique; différencier marche/course descente; refus si capacités inconnues",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "TRAIL-01",
+        "TRAIL-02",
+        "TRAIL-03"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-swimming-mechanism",
+      "familyId": "swimming",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "La longueur des répétitions à vitesse critique en crawl modifie la réponse lactate/RPE/technique. | Les contraintes piscine/eau libre et les nages sont distinctes.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "SWIM-01",
+        "SWIM-02",
+        "SWIM-03"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-swimming-dose",
+      "familyId": "swimming",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Étude aiguë 5x400 r60/10x200 r30/20x100 r15 ne prouve pas supériorité chronique universelle.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "SWIM-01",
+        "SWIM-02",
+        "SWIM-03"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-swimming-individualization",
+      "familyId": "swimming",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : CSS et provenance, date, nage concernée; distances/restes exacts; niveau technique, bassin/eau libre; temps individuel et créneau",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "SWIM-01",
+        "SWIM-02",
+        "SWIM-03"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-swimming-interaction",
+      "familyId": "swimming",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : 119 fiches nage: durée et transitions; mélanges de nages; décompte échauffement/retour",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "SWIM-01",
+        "SWIM-02",
+        "SWIM-03"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-bricks-mechanism",
+      "familyId": "bricks",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "L’enchaînement vélo-course modifie parfois performance et contrôle moteur de la course initiale. | La modulation de puissance/cadence ne dispose pas de règle générale transférable à toute distance.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "BRICK-01",
+        "BRICK-02",
+        "BRICK-03"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-bricks-dose",
+      "familyId": "bricks",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Études souvent vélo court et course courte, aucun dosage optimal Ironman.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "BRICK-01",
+        "BRICK-02",
+        "BRICK-03"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-bricks-individualization",
+      "familyId": "bricks",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : durées séparées par discipline et transitions; références propres à chaque sport; tolérance course post-vélo; nutrition et état musculaire",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "BRICK-01",
+        "BRICK-02",
+        "BRICK-03"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-bricks-interaction",
+      "familyId": "bricks",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : 55 bricks + mixed réellement bricks séparés; conversion Nolio multi-événements; compatibilité créneaux",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "BRICK-01",
+        "BRICK-02",
+        "BRICK-03"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-ironman_specificity-mechanism",
+      "familyId": "ironman_specificity",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "La performance d’Ironman dépend d’interactions multisports, du maintien tardif et du contexte nutrition/posture. | Une position aéro peut avoir un coût de confort et un besoin de tolérance spécifique.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "IM-01",
+        "IM-02",
+        "IM-03",
+        "DUR-01",
+        "BRICK-01"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-ironman_specificity-dose",
+      "familyId": "ironman_specificity",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Aucune étude identifiée ne certifie les 4x15 ou 6x10 spécifiques à tous.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "IM-01",
+        "IM-02",
+        "IM-03",
+        "DUR-01",
+        "BRICK-01"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-ironman_specificity-individualization",
+      "familyId": "ironman_specificity",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : historique posture et symptômes; références disciplines, tolérance à fatigue; nutrition/hydratation; calendrier entier et schéma compétition",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "IM-01",
+        "IM-02",
+        "IM-03",
+        "DUR-01",
+        "BRICK-01"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-ironman_specificity-interaction",
+      "familyId": "ironman_specificity",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : 2 calendriers 16 sem: ratios et schéma course; 4x15 postural vs 6x10; longues séances et enchaînements",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "IM-01",
+        "IM-02",
+        "IM-03",
+        "DUR-01",
+        "BRICK-01"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-taper-mechanism",
+      "familyId": "taper",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Réduire progressivement la charge avant compétition tout en maintenant des qualités de travail peut améliorer la performance de groupe.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "TAPER-01",
+        "TAPER-02"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-taper-dose",
+      "familyId": "taper",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Réduction 41–60% sur 2 semaines = synthèse moyenne de méta-analyse, non cible automatique.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "TAPER-01",
+        "TAPER-02"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-taper-individualization",
+      "familyId": "taper",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : fatigue accumulée; historique réponse affûtage; date/heure/type de compétition; contraintes calendrier",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "TAPER-01",
+        "TAPER-02"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-taper-interaction",
+      "familyId": "taper",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : différencier décharge ordinaire et taper; préserver intensity/frequency selon contexte; schéma course événement",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "TAPER-01",
+        "TAPER-02"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-nutrition-mechanism",
+      "familyId": "nutrition",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "L’apport de glucides à l’effort favorise généralement la performance pour efforts prolongés. | Le gut training peut améliorer la tolérance; les adaptations aiguës train-low ne garantissent pas performance.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "NUT-01",
+        "NUT-02",
+        "NUT-03",
+        "NUT-04",
+        "NUT-05"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-nutrition-dose",
+      "familyId": "nutrition",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Doses étudiées dépendent durée, formulation et entraînement intestinal; seuil de 120g/h non universel.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "NUT-01",
+        "NUT-02",
+        "NUT-03",
+        "NUT-04",
+        "NUT-05"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-nutrition-individualization",
+      "familyId": "nutrition",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : historique GI et quantités tolérées; durée et intensité effort; énergie disponible et signes REDs; stratégie alimentaire, environnement",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "NUT-01",
+        "NUT-02",
+        "NUT-03",
+        "NUT-04",
+        "NUT-05"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-nutrition-interaction",
+      "familyId": "nutrition",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : consignes LCW ambiguës; fiches jeûne/sleep-low et mineurs; ne pas délivrer nutrition thérapeutique universelle",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "NUT-01",
+        "NUT-02",
+        "NUT-03",
+        "NUT-04",
+        "NUT-05"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-heat_hypoxia-mechanism",
+      "familyId": "heat_hypoxia",
+      "topic": "mechanism",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Expositions contrôlées à la chaleur peuvent favoriser l’acclimatation; sécurité et hydratation personnalisée essentielles.",
+      "status": "partial_scientific_context_not_workout_verified",
+      "primaryReferenceIds": [
+        "HEAT-01",
+        "HEAT-02",
+        "HEAT-03",
+        "HEAT-04"
+      ],
+      "remainingGap": "Vérification protocoles primaires et lien à la structure de la séance spécifique.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-heat_hypoxia-dose",
+      "familyId": "heat_hypoxia",
+      "topic": "dose",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Consensus chaleur 1–2 semaines est une plage d’exposition générale, pas une prescription sans contexte.",
+      "status": "exact_recipe_dose_unresolved",
+      "primaryReferenceIds": [
+        "HEAT-01",
+        "HEAT-02",
+        "HEAT-03",
+        "HEAT-04"
+      ],
+      "remainingGap": "Texte intégral, comparateur et intervention exacte (durée, intensité, répétitions, récupération, fréquence) requis.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-heat_hypoxia-individualization",
+      "familyId": "heat_hypoxia",
+      "topic": "individualization",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Données requises : température/humidité, état de santé; historique de chaleur et signes d’intolérance; pertes sudorales approximatives; surveillance, accès refroidissement",
+      "status": "individual_evidence_missing",
+      "primaryReferenceIds": [
+        "HEAT-01",
+        "HEAT-02",
+        "HEAT-03",
+        "HEAT-04"
+      ],
+      "remainingGap": "Références tests datées, tolérance et historique réels; décisions coach et observations nécessaires.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-heat_hypoxia-interaction",
+      "familyId": "heat_hypoxia",
+      "topic": "interaction",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "Interférences et avertissements à vérifier : bloc chaleur à haut risque et contre-indications; LCW unité hydrique suspecte; dissocier hypoxie, preuve non couverte dans cette revue",
+      "status": "microcycle_interaction_unvalidated",
+      "primaryReferenceIds": [
+        "HEAT-01",
+        "HEAT-02",
+        "HEAT-03",
+        "HEAT-04"
+      ],
+      "remainingGap": "Charge multisport, périodes de récupération et réaction mesurée non établies.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-cross-source-safety",
+      "familyId": null,
+      "topic": "safety",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "LCW +500 mL/h de sommeil : unité incohérente, quarantaine. Train-low, hydratation et chaleur exigent un protocole individuel et une revue sécurité, sans correction inventée.",
+      "status": "P0_unresolved_requires_human_approval",
+      "primaryReferenceIds": [
+        "NUT-04",
+        "NUT-01",
+        "HEAT-01",
+        "HEAT-03"
+      ],
+      "remainingGap": "Confirmer texte original et unité hydrique auprès du coach, revoir risques et contre-indications.",
+      "workoutDoseValidated": false
+    },
+    {
+      "questionId": "Q-unresolved-intent",
+      "familyId": null,
+      "topic": "unresolved",
+      "answerAsOf": "2026-10-29",
+      "workingAnswer": "A_10K_PROGRESSIVE_60 et A_SEMI_PROGRESSIVE_FINISH restent sans mécanisme primaire attribuable par la seule construction negative split.",
+      "status": "unresolved_no_auto_family",
+      "primaryReferenceIds": [],
+      "remainingGap": "Coach doit fournir intention principale et adaptation ciblée, sans inférence du titre.",
+      "workoutDoseValidated": false
+    }
+  ]
+}

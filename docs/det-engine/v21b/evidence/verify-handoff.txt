@@ -1,0 +1,1 @@
+PASS: checksums, 15 families, 46 sources, 26 unbound claims, zero auto promotion
