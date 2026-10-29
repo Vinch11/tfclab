@@ -2,6 +2,8 @@
 
 **DRAFT — NO-GO.** Branche `experiment/physiology-validation`, parent `main` `e31ffaba7d1fcefff8a60910713fd1fe9f18f89b`. #420 non intégrée et non modifiée. Ne pas poursuivre automatiquement après clôture de cette mission.
 
+PR draft créée : [#424](https://github.com/Vinch11/tfclab/pull/424). Commit initial de preuves : `38109dfc8617827a018129d10620733bd9e493c6`.
+
 ## Dix unités de travail
 
 | Unité | Périmètre exécuté |

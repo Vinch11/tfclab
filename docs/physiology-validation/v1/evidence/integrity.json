@@ -23,5 +23,10 @@
   "automatic_retries": 0,
   "node": "v24.19.0",
   "vitest": "4.1.12",
-  "typescript": "5.9.3"
+  "typescript": "5.9.3",
+  "pull_request_url": "https://github.com/Vinch11/tfclab/pull/424",
+  "pull_request_draft": true,
+  "evidence_commit": "38109dfc8617827a018129d10620733bd9e493c6",
+  "closure_at_utc": "2026-10-29T14:12:51.678699+00:00",
+  "elapsed_minutes_at_closure": 20.86
 }
