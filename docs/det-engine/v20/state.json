@@ -3,7 +3,7 @@
   "baseline": "596bb96407ee381db73316fb3cb6efe6007508e9",
   "branch": "experiment/det-engine",
   "PR": 420,
-  "status": "in_progress_no_go",
+  "status": "completed_no_go",
   "startedAt": "2026-10-29T06:03:25+00:00",
   "hardDeadline": "2026-10-29T07:03:25+00:00",
   "maxSeconds": 3600,
@@ -108,8 +108,13 @@
     {
       "unit": 10,
       "name": "closure_preservation_commit_and_draft_pr",
-      "status": "active",
-      "startedAt": "2026-10-29T06:50:12.856Z"
+      "status": "completed",
+      "startedAt": "2026-10-29T06:50:12.856Z",
+      "evidence": [
+        "docs/det-engine/v20/acceptance.json",
+        "docs/det-engine/v20/source-checksums.json"
+      ],
+      "finishedAt": "2026-10-29T06:56:10.526Z"
     }
   ],
   "active": null,
@@ -125,5 +130,10 @@
     "status": "passed",
     "evidence": "docs/det-engine/v20/evidence/validation-2",
     "finishedAt": "2026-10-29T06:44:57.645Z"
-  }
+  },
+  "technicalFinishedAt": "2026-10-29T06:56:10.799612+00:00",
+  "elapsedTechnicalSeconds": 3165,
+  "stopReason": "ten_bounded_units_completed; independent_sports_review_required; no automatic_renewal",
+  "codeCheckpointCommit": "e4555c09dee4674ad7d988117430282ece8f4afc",
+  "recommendation": "NO-GO"
 }

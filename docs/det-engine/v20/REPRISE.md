@@ -13,3 +13,5 @@ Preuve acceptée : `evidence/validation-2`, avec audit indépendant et rejeu ide
 Les réparations Nolio sont exclusivement expérimentales et ne sont pas branchées au sender actuel. Les deux plans de 16 semaines, leurs deux variantes aéro et leurs conditions restent des propositions à examiner. Aucun plan complet approuvé, aucune condition individuelle prétendue satisfaite, aucune dose scientifiquement optimale démontrée.
 
 Après clôture, ne pas relancer les unités ni les anciennes campagnes sous ce budget. Une nouvelle autorisation doit utiliser un nouveau registre, préserver ces preuves et conserver les interdictions de production, Nolio réel, migration, fusion, déploiement ou dépense.
+
+Clôture technique : 2026-10-29T06:56:10.799612+00:00, 3165 secondes depuis le début, dix unités achevées sous le plafond commun de 3 600 secondes. La livraison GitHub finale suit dans la même échéance, sans nouvelle exécution technique ni renouvellement.

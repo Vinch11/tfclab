@@ -20,3 +20,5 @@
 Les 96 variantes sont les doses candidates V19 vérifiées telles quelles. Elles ne prouvent pas que leur dose totale était historiquement déterminée : la récupération restait précisément l’arbitrage. Les 51 IDs ne sont pas augmentés en comptant les variantes, profils ou occurrences hebdomadaires comme de nouvelles séances indépendantes.
 
 [Arbitrages](PROPOSAL_ARBITRATIONS.md), [revue scientifique](SCIENTIFIC_REVIEW_SCOPE.md), [cas scientifiques ciblés](SCIENTIFIC_CASES.md), [Nolio](NOLIO_INTEGRITY.md), [physiologie](PHYSIOLOGICAL_FIDELITY.md), [Ironman](IRONMAN_FEASIBILITY.md), [preuves](VALIDATION.md), [consultation coach](coach-review.html), [reprise](REPRISE.md).
+
+Clôture technique : 2026-10-29T06:56:10.799612+00:00, 3165 secondes depuis le début, dix unités achevées sous le plafond commun de 3 600 secondes. La livraison GitHub finale suit dans la même échéance, sans nouvelle exécution technique ni renouvellement.
