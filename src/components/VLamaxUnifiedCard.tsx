@@ -232,8 +232,8 @@ export function VLamaxUnifiedCard({
   
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <p className="px-4 pt-3 text-xs text-muted-foreground">{scientificReferenceLabel(vlamaxEffectif.scientificQualification, vlamax, isOnRunTab ? "run" : "bike")}</p>
-      <p className="px-4 text-xs text-muted-foreground">{VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(vlamaxEffectif.scientificQualification, vlamax, isOnRunTab ? "run" : "bike")}</p>
+      <p className="px-4 pt-3 text-xs text-muted-foreground">{scientificReferenceLabel(vlamaxEffectif.scientificQualification, vlamax, isOnRunTab ? "run" : "bike", athleteId)}</p>
+      <p className="px-4 text-xs text-muted-foreground">{VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(vlamaxEffectif.scientificQualification, vlamax, isOnRunTab ? "run" : "bike", athleteId)}</p>
       {/* ═══ HEADER: Valeur + Zone + Confiance ═══ */}
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">

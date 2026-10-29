@@ -63,7 +63,8 @@ it("V2.2: an explicit unknown date/method on the selected snapshot remains unkno
   const input = { ...buildPilotDiagnosticInput(QA_PROFILES.find(p => p.id === "B-MARATHON")!), vlamaxRun: 0.42, vlamaxSource: "lab" };
   const diagnostic = computeDiagnostic(input);
   diagnostic._rawInput.physiologicalEvidence = { vlamax_run: { value: 0.42, unit: "mmol/L/s", discipline: "run", method: null, date: null, scientificOrigin: "unknown", storageSource: "lab_import", confidence: null, confidenceBasis: "unknown", errorMargin: null } };
-  expect(diagnosticPhysiologicalEvidence(diagnostic).vlamaxEffective).toMatchObject({ scientificOrigin: "unknown", date: null, method: null, storageSource: "lab_import" });
+  expect(diagnosticPhysiologicalEvidence(diagnostic).vlamax_run).toMatchObject({ scientificOrigin: "unknown", date: null, method: null, storageSource: "lab_import" });
+  expect(diagnosticPhysiologicalEvidence(diagnostic).vlamaxEffective).toMatchObject({ scientificOrigin: "unknown", date: null, method: null, storageSource: null });
 });
 it("V2.2: records the remaining legacy display ambiguity without certifying its scientific origin", () => {
   const input = { ...buildPilotDiagnosticInput(QA_PROFILES.find(p => p.id === "B-IM")!), vlamax: 0.42, vlamaxSource: null };

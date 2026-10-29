@@ -30,6 +30,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ScoreEnvelopeDisplayProps {
+  athleteId?: string;
+  discipline?: string;
   envelope: ScoreEnvelope;
   mode?: "athlete" | "staff";
   compact?: boolean;
@@ -41,13 +43,15 @@ interface ScoreEnvelopeDisplayProps {
  * Affichage d'un ScoreEnvelope avec mode Athlète ou Staff
  */
 export function ScoreEnvelopeDisplay({
+  athleteId,
+  discipline,
   envelope,
   mode = "athlete",
   compact = false,
   showRecommendations = true,
   className,
 }: ScoreEnvelopeDisplayProps) {
-  envelope = qualifyScoreEnvelope(envelope);
+  envelope = qualifyScoreEnvelope(envelope, athleteId, discipline);
   const [expanded, setExpanded] = useState(false);
   
   const athleteView = formatEnvelopeForAthlete(envelope);
@@ -121,7 +125,7 @@ export function ScoreEnvelopeDisplay({
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-muted-foreground">{envelope.label}</span>
             <Badge variant="outline" className={cn("text-xs", confBadgeClass)}>
-              {athleteView.confidenceText}
+              {envelope.metricId === "vlamax" ? "Score heuristique interne" : athleteView.confidenceText}
             </Badge>
           </div>
           
@@ -140,6 +144,7 @@ export function ScoreEnvelopeDisplay({
           </div>
           
           <p className="text-xs text-muted-foreground mt-2">
+            {envelope.metricId === "vlamax" && <span>{envelope.uncertaintyNote}<br /></span>}
             {athleteView.simpleMessage}
           </p>
         </CardContent>

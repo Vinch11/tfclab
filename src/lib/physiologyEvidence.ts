@@ -1,4 +1,4 @@
-import { qualifyReference, type ReferenceEvidence, type ScientificQualification } from "@/lib/scientificQualification";
+import { qualifiedScientificOrigin, qualifyReference, type ReferenceEvidence, type ScientificQualification } from "@/lib/scientificQualification";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
 export type ScientificOrigin = "direct_measurement" | "field_estimate" | "model_inference" | "coach_declared" | "unknown";
@@ -19,7 +19,7 @@ export interface PhysiologicalEvidence extends Partial<Omit<ReferenceEvidence, "
 export type PhysiologicalEvidenceMap = Record<string, PhysiologicalEvidence>;
 const MARKER = "TFCL_PHYSIOLOGY_V1:";
 export function physiologyNarrative(notes: string | null | undefined): string {
-  return (notes ?? "").split("\n").filter(line => !line.startsWith(MARKER)).join("\n").trim();
+  return (typeof notes === "string" ? notes : "").split("\n").filter(line => !line.startsWith(MARKER)).join("\n").trim();
 }
 
 export function preservePhysiologyNotes(previous: string | null | undefined, next: string | null | undefined, changes: Partial<DbSnapshot> = {}): string {
@@ -67,7 +67,7 @@ interface Envelope {
   parameters: Record<string, Pick<PhysiologicalEvidence, "value" | "unit" | "discipline"> & Partial<PhysiologicalEvidence>>;
 }
 
-const metadataLines = (notes: string | null | undefined) => (notes ?? "").split("\n").filter(line => line.startsWith(MARKER));
+const metadataLines = (notes: string | null | undefined) => (typeof notes === "string" ? notes : "").split("\n").filter(line => line.startsWith(MARKER));
 const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
 function parseEnvelope(line: string): Envelope | null {
   try {
@@ -137,7 +137,7 @@ function readSnapshotPhysiologyEvidence(snapshot: Partial<DbSnapshot> | null | u
     if (!parameter) continue;
     const qualification = qualifyReference(parameter, { subjectId: snapshot.athlete_id ?? "", quantity: "vlamax", discipline: field === "vlamax_run" ? "run" : "bike", value: parameter.value, unit: "mmol/L/s" });
     parameter.scientificQualification = qualification;
-    parameter.scientificOrigin = qualification.status === "unknown" ? "unknown" : qualification.nature === "declared" ? "coach_declared" : qualification.nature === "estimated" ? "field_estimate" : "model_inference";
+    parameter.scientificOrigin = qualifiedScientificOrigin(qualification);
   }
   return result;
 }
@@ -171,7 +171,7 @@ export function diagnosticPhysiologicalEvidence(diagnostic: import("@/engines/di
     const parameter = evidence[field];
     if (!parameter) continue;
     const q = qualifyReference(parameter, { subjectId: diagnostic._rawInput.athleteId, quantity: "vlamax", discipline, value: field === "vlamax_run" ? diagnostic._rawInput.vlamaxRun : diagnostic._rawInput.vlamax, unit: "mmol/L/s" });
-    evidence[field] = { ...parameter, scientificQualification: q, scientificOrigin: q.status === "unknown" ? "unknown" : q.nature === "declared" ? "coach_declared" : q.nature === "estimated" ? "field_estimate" : "model_inference" };
+    evidence[field] = { ...parameter, scientificQualification: q, scientificOrigin: qualifiedScientificOrigin(q) };
   }
   const cost = validRunningEconomyCost(diagnostic._rawInput.runningEconomyCostMlKgKm);
   if (cost !== null && !evidence.runningEconomyCostMlKgKm) evidence.runningEconomyCostMlKgKm = {
@@ -187,7 +187,7 @@ export function diagnosticPhysiologicalEvidence(diagnostic: import("@/engines/di
   if (vlamax.value !== null) evidence.vlamaxEffective = {
     value: vlamax.value, unit: "mmol/L/s", discipline,
     method: qualification.method, date: qualification.observedAt,
-    scientificOrigin: qualification.status === "unknown" ? "unknown" : qualification.nature === "declared" ? "coach_declared" : qualification.nature === "estimated" ? "field_estimate" : "model_inference",
+    scientificOrigin: qualifiedScientificOrigin(qualification),
     storageSource: matchingVLamax ? matchingVLamax.storageSource : null, confidence: vlamax.confidence, confidenceBasis: "heuristic",
     errorMargin: vlamax.errorMargin ?? null, scientificQualification: qualification,
   };

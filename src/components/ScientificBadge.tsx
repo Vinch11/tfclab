@@ -45,6 +45,8 @@ export interface ScientificMetadata {
 }
 
 interface ScientificBadgeProps {
+  athleteId?: string;
+  discipline?: string;
   metadata: ScientificMetadata;
   metricName: string;
   compact?: boolean;
@@ -139,6 +141,8 @@ export const PEDAGOGICAL_TEXTS: Record<string, {
 // =============================================
 
 export function ScientificBadge({
+  athleteId,
+  discipline,
   metadata,
   metricName,
   compact = false,
@@ -149,7 +153,7 @@ export function ScientificBadge({
   const navigate = useNavigate();
   
   if (/vla.?max/i.test(metricName)) {
-    const q = requalifyReference(metadata.qualification, metadata.qualification?.value ?? null);
+    const q = requalifyReference(metadata.qualification, metadata.qualification?.value ?? null, discipline, athleteId);
     metadata = { ...metadata, origin: q?.status !== "documented_context" ? "UNKNOWN" : q.nature === "estimated" ? "ESTIMATED" : q.nature === "declared" ? "UNKNOWN" : "DERIVED",
       method: q?.method ?? UNKNOWN_VLAMAX_LABEL, limitations: `${q?.label ?? UNKNOWN_VLAMAX_LABEL}. ${VLA_HEURISTIC_NOTICE}` };
   }

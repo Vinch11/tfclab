@@ -76,7 +76,7 @@ test("V2.3 synthetic qualification survives reload and rejects incompatible disc
     const render = (snapshot: typeof base & { coach_notes?: string }) => {
       localStorage.setItem(key, JSON.stringify(snapshot));
       const vlamax = computeVLamaxEffectif({ athleteId: base.athlete_id, objectif: "IM", snapshots: [mapSnapshotToV2(snapshot)], tests: [] });
-      document.body.innerHTML = '<button id="documented">Documented synthetic source</button><button id="wrong">Incompatible discipline</button><div id="report">' + buildVLamaxZoneConfidenceHTML({ athlete: { goal: "IM" }, vlamax }) + '</div>';
+      document.body.innerHTML = '<button id="documented">Documented synthetic source</button><button id="wrong">Incompatible discipline</button><div id="report">' + buildVLamaxZoneConfidenceHTML({ athlete: { id: base.athlete_id, goal: "IM" }, vlamax }) + '</div>';
       document.querySelector("#documented")!.addEventListener("click", () => render({ ...base, coach_notes: appendPhysiologyEvidence("Synthetic only", { version: 1, date: null, storageSource: "synthetic", confidence: null, confidenceBasis: "unknown", parameters: { vlamax: evidence } }) }));
       document.querySelector("#wrong")!.addEventListener("click", () => render({ ...base, coach_notes: appendPhysiologyEvidence("Synthetic only", { version: 1, date: null, storageSource: "synthetic", confidence: null, confidenceBasis: "unknown", parameters: { vlamax: { ...evidence, discipline: "run" } } }) }));
     };

@@ -99,10 +99,10 @@ export function LabAthleteValidator() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FlaskConical className="w-5 h-5 text-primary" />
-          Valider mon athlète (mesure labo)
+          Comparer une référence physiologique déclarée
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          Saisis les valeurs <strong>mesurées en laboratoire</strong> (VLamax + MLSS, +CE pour la course). Le moteur calcule l'écart instantané vs les modèles TFCL.
+          Le lactate sanguin peut être mesuré ; la VLamax est calculée ou estimée à partir d’un protocole et de mesures. Une référence saisie ou importée n’est pas automatiquement validée scientifiquement. La comparaison aux modèles ne valide pas un individu.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">

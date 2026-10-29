@@ -196,6 +196,8 @@ interface DashboardGaugesLegacyProps {
 
 // Mode ScoreEnvelope: données enrichies
 interface DashboardGaugesEnvelopeProps {
+  athleteId?: string;
+  discipline?: string;
   vlamaxEnvelope: ScoreEnvelope;
   tteEnvelope: ScoreEnvelope;
   potentielPhysiologiqueEnvelope: ScoreEnvelope;
@@ -220,7 +222,7 @@ function isEnvelopeMode(props: DashboardGaugesProps): props is DashboardGaugesEn
 export function DashboardGauges(props: DashboardGaugesProps) {
   // Mode avec ScoreEnvelope (nouveau)
   if (isEnvelopeMode(props)) {
-    const { vlamaxEnvelope, tteEnvelope, potentielPhysiologiqueEnvelope, ftp, ftpKg, vo2max, mode = "athlete" } = props;
+    const { athleteId, discipline, vlamaxEnvelope, tteEnvelope, potentielPhysiologiqueEnvelope, ftp, ftpKg, vo2max, mode = "athlete" } = props;
     
     return (
       <div className="glass-card p-3 sm:p-5 md:p-6">
@@ -233,19 +235,25 @@ export function DashboardGauges(props: DashboardGaugesProps) {
         
         {/* Cartes ScoreEnvelope unifiées — always 3 cols */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-6">
-          <ScoreEnvelopeCard 
+          <ScoreEnvelopeCard
+            athleteId={athleteId}
+            discipline={discipline}
             envelope={vlamaxEnvelope} 
             mode={mode} 
             showHelp={true}
             compact={false}
           />
-          <ScoreEnvelopeCard 
+          <ScoreEnvelopeCard
+            athleteId={athleteId}
+            discipline={discipline}
             envelope={tteEnvelope} 
             mode={mode} 
             showHelp={true}
             compact={false}
           />
-          <ScoreEnvelopeCard 
+          <ScoreEnvelopeCard
+            athleteId={athleteId}
+            discipline={discipline}
             envelope={potentielPhysiologiqueEnvelope} 
             mode={mode} 
             showHelp={true}

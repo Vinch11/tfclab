@@ -3659,7 +3659,7 @@ function buildRoadmapHTML(payload: ExportPayload): string {
 // VLAMAX ZONE × CONFIANCE — SVG CHART (PDF)
 // =============================================
 
-export function buildVLamaxZoneConfidenceHTML(payload: Pick<ExportPayload, "vlamax"> & { athlete: Pick<DbAthlete, "goal"> }): string {
+export function buildVLamaxZoneConfidenceHTML(payload: Pick<ExportPayload, "vlamax"> & { athlete: Pick<DbAthlete, "goal"> & Partial<Pick<DbAthlete, "id">> }): string {
   const v2 = payload.vlamax.v2;
   if (!v2 || v2.effective === null) {
     return `
@@ -3719,7 +3719,7 @@ export function buildVLamaxZoneConfidenceHTML(payload: Pick<ExportPayload, "vlam
   ];
 
   // Source label
-  const sourceLabel = scientificReferenceLabel(v2.scientificQualification, v2.effective);
+  const sourceLabel = scientificReferenceLabel(v2.scientificQualification, v2.effective, isRun ? "run" : "bike", payload.athlete.id);
 
   // Badges
   const badges: string[] = [];
@@ -3818,7 +3818,7 @@ export function buildVLamaxZoneConfidenceHTML(payload: Pick<ExportPayload, "vlam
           </div>
           <div class="card" style="padding:10px;">
             <div style="font-size:10px;color:#6E6B78;">Qualification</div>
-            <div style="font-size:12px;font-weight:600;">${sourceLabel}<br>${VLA_HEURISTIC_NOTICE}<br>${htmlEscape(scientificUncertaintyLabel(v2.scientificQualification, v2.effective))}</div>
+            <div style="font-size:12px;font-weight:600;">${sourceLabel}<br>${VLA_HEURISTIC_NOTICE}<br>${htmlEscape(scientificUncertaintyLabel(v2.scientificQualification, v2.effective, isRun ? "run" : "bike", payload.athlete.id))}</div>
           </div>
           <div class="card" style="padding:10px;">
             <div style="font-size:10px;color:#6E6B78;">Plage heuristique</div>
@@ -3848,7 +3848,7 @@ export function buildVLamaxZoneConfidenceHTML(payload: Pick<ExportPayload, "vlam
 // Affiche % MLSS effectif (observé > prédit), source, prédiction, cross-validation
 // =============================================
 export function buildRunMLSSCoherenceHTML(payload: {
-  athlete: Pick<DbAthlete, "goal">;
+  athlete: Pick<DbAthlete, "goal"> & Partial<Pick<DbAthlete, "id">>;
   effectiveSnapshot: Partial<DbSnapshot> | null;
   runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"];
 }): string {
@@ -4471,7 +4471,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     }
   };
   
-  const vlamaxStatus = { icon: "📋", label: scientificReferenceLabel(vlamax.scientificQualification, vlamax.value), cssClass: "badgeWarning" };
+  const vlamaxStatus = { icon: "📋", label: scientificReferenceLabel(vlamax.scientificQualification, vlamax.value, resolveCompassSportFocus(payload.effectiveSnapshot, payload.athlete, "bike") === "run" ? "run" : "bike", payload.athlete.id), cssClass: "badgeWarning" };
   const tteStatus = getSourceStatus(tte.source, tte.confidence);
 
   const coverHTML = `
@@ -8420,7 +8420,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           </div>
         </div>
         <div style="text-align:right;">
-          <div class="muted">${VLA_HEURISTIC_NOTICE}<br>${htmlEscape(scientificUncertaintyLabel(vlamax.scientificQualification, vlamax.value))}<br>VLamax: ${htmlEscape(scientificReferenceLabel(vlamax.scientificQualification, vlamax.value))} • TTE: ${tte.source === "observed" ? "mesuré" : "estimé"}</div>
+          <div class="muted">${VLA_HEURISTIC_NOTICE}<br>${htmlEscape(scientificUncertaintyLabel(vlamax.scientificQualification, vlamax.value, resolveCompassSportFocus(payload.effectiveSnapshot, payload.athlete, "bike") === "run" ? "run" : "bike", payload.athlete.id))}<br>VLamax: ${htmlEscape(scientificReferenceLabel(vlamax.scientificQualification, vlamax.value, resolveCompassSportFocus(payload.effectiveSnapshot, payload.athlete, "bike") === "run" ? "run" : "bike", payload.athlete.id))} • TTE: ${tte.source === "observed" ? "mesuré" : "estimé"}</div>
           <div class="muted" style="margin-top:6px;">⚠️ Ce rapport guide la décision mais ne remplace pas un avis médical.</div>
         </div>
       </div>

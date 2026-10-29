@@ -1,0 +1,83 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+8:56:20 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+ ❯ src/lib/plan/__tests__/lovableBuild.test.ts (5 tests | 2 failed) 7681ms
+     × recomputes the committed declaration from the catalogue and all three source components 1321ms
+     × ignores only Lovable's injected Tailwind metadata, without changing any fingerprint 853ms
+stdout | src/lib/__tests__/vlamaxResolver.labLockAndConfidence.test.ts > resolveVlamaxForGoal — verrouille une mesure labo au lieu de la diluer > la confiance d'une mesure labo verrouillée est élevée (0.92), pas hardcodée à 0.7 en aval
+[sport_main] snapshot goal=703, plan sport=run → utilisation run
+
+ ❯ src/lib/__tests__/vlamaxResolver.labLockAndConfidence.test.ts (4 tests | 2 failed) 19ms
+     × une mesure labo CAP reste exacte (verrouillée), pas diluée par le blend pace/VMA 13ms
+     × la confiance d'une mesure labo verrouillée est élevée (0.92), pas hardcodée à 0.7 en aval 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/__tests__/vlamaxResolver.labLockAndConfidence.test.ts > resolveVlamaxForGoal — verrouille une mesure labo au lieu de la diluer > une mesure labo CAP reste exacte (verrouillée), pas diluée par le blend pace/VMA
+AssertionError: expected 0.32 to be 0.7 // Object.is equality
+
+- Expected
++ Received
+
+- 0.7
++ 0.32
+
+ ❯ src/lib/__tests__/vlamaxResolver.labLockAndConfidence.test.ts:28:26
+     26|       { goal: "Marathon" }
+     27|     );
+     28|     expect(result.value).toBe(0.70);
+       |                          ^
+     29|     expect(result.reason).toBe("ok");
+     30|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/lib/__tests__/vlamaxResolver.labLockAndConfidence.test.ts > resolveVlamaxForGoal — verrouille une mesure labo au lieu de la diluer > la confiance d'une mesure labo verrouillée est élevée (0.92), pas hardcodée à 0.7 en aval
+AssertionError: expected 0.5 to be close to 0.92, received difference is 0.42000000000000004, but expected 0.005
+ ❯ src/lib/__tests__/vlamaxResolver.labLockAndConfidence.test.ts:42:31
+     40|       { goal: "703" }
+     41|     );
+     42|     expect(result.confidence).toBeCloseTo(0.92, 2);
+       |                               ^
+     43|   });
+     44|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/lib/plan/__tests__/lovableBuild.test.ts > Lovable build fingerprints its actual checkout, without Git or preparation script > recomputes the committed declaration from the catalogue and all three source components
+Error: PLAN_RELEASE_DECLARATION_STALE:releaseId
+ ❯ assertSameDeclaration scripts/preproduction/plan-release-source.mjs:34:102
+     32| export function assertSameDeclaration(expected, actual) {
+     33|   for (const key of ["manifestVersion", "releaseId", "contractHash", "…
+     34|     if (JSON.stringify(canonical(expected[key])) !== JSON.stringify(ca…
+       |                                                                                                      ^
+     35|   }
+     36| }
+ ❯ checkedPlanRelease scripts/preproduction/plan-release-source.mjs:61:3
+ ❯ src/lib/plan/__tests__/lovableBuild.test.ts:18:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/lib/plan/__tests__/lovableBuild.test.ts > Lovable build fingerprints its actual checkout, without Git or preparation script > ignores only Lovable's injected Tailwind metadata, without changing any fingerprint
+Error: PLAN_RELEASE_DECLARATION_STALE:releaseId
+ ❯ assertSameDeclaration scripts/preproduction/plan-release-source.mjs:34:102
+     32| export function assertSameDeclaration(expected, actual) {
+     33|   for (const key of ["manifestVersion", "releaseId", "contractHash", "…
+     34|     if (JSON.stringify(canonical(expected[key])) !== JSON.stringify(ca…
+       |                                                                                                      ^
+     35|   }
+     36| }
+ ❯ checkedPlanRelease scripts/preproduction/plan-release-source.mjs:61:3
+ ❯ src/lib/plan/__tests__/lovableBuild.test.ts:31:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed | 404 passed (406)
+      Tests  4 failed | 3222 passed | 1 skipped | 6 todo (3233)
+   Start at  20:56:20
+   Duration  304.63s (transform 18.86s, setup 27.75s, import 112.99s, tests 222.06s, environment 154.27s)

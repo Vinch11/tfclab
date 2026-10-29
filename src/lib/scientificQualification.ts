@@ -22,9 +22,12 @@ export interface ScientificQualification {
   individualValidityEstablished: false; individualDoseApproved: false;
   reasons: string[];
 }
+const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const identifiable = (v: unknown): v is string => typeof v === "string" && /^[a-z][a-z0-9+.-]*:\S+$/i.test(v);
 const date = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0, 10) === v;
 export function qualifyReference(e: ReferenceEvidence | null | undefined, context: { subjectId: string; quantity: string; discipline: string; value: number | null; unit: string }): ScientificQualification {
+  e = record(e) ? e as unknown as ReferenceEvidence : null;
   const reasons: string[] = [];
   if (!e || e.subjectId !== context.subjectId || !context.subjectId || e.quantity !== context.quantity || e.discipline !== context.discipline || !["run", "bike", "swim"].includes(e.discipline) || e.unit !== context.unit || !Number.isFinite(e.value) || e.value !== context.value) reasons.push("missing_or_incompatible_subject_quantity_discipline_unit_value");
   if ((typeof e?.method !== "string" || !e.method.trim()) || !date(e.date) || !identifiable(e.sourceRef)) reasons.push("missing_method_observation_date_or_identifiable_source");
@@ -56,25 +59,58 @@ export const UNKNOWN_VLAMAX_LABEL = "VLamax — provenance scientifique inconnue
 export const VLA_HEURISTIC_NOTICE = "Score et marge heuristiques internes ; ni probabilité de validité individuelle ni précision expérimentale démontrée.";
 
 /** Stored/cached display labels and admissibility flags are never authoritative. */
-export function requalifyReference(q: ScientificQualification | null | undefined, value: number | null, discipline = q?.discipline ?? "unknown"): ScientificQualification {
-  return qualifyReference(q?.evidence, { subjectId: q?.subjectId ?? "", quantity: "vlamax", discipline, unit: "mmol/L/s", value });
+export function requalifyReference(q: ScientificQualification | null | undefined, value: number | null, discipline = "unknown", subjectId?: string | null): ScientificQualification {
+  return qualifyReference(record(q) ? q.evidence as ReferenceEvidence : null, { subjectId: typeof subjectId === "string" ? subjectId : "", quantity: "vlamax", discipline, unit: "mmol/L/s", value });
 }
-export function scientificReferenceLabel(q: ScientificQualification | null | undefined, value: number | null, discipline?: string): string {
-  return requalifyReference(q, value, discipline).label;
+export function scientificReferenceLabel(q: ScientificQualification | null | undefined, value: number | null, discipline?: string, subjectId?: string | null): string {
+  return requalifyReference(q, value, discipline, subjectId).label;
 }
 
-export function scientificUncertaintyLabel(q: ScientificQualification | null | undefined, value: number | null, discipline?: string): string {
-  const checked = requalifyReference(q, value, discipline);
+export function scientificUncertaintyLabel(q: ScientificQualification | null | undefined, value: number | null, discipline?: string, subjectId?: string | null): string {
+  const checked = requalifyReference(q, value, discipline, subjectId);
   return checked.uncertainty ? `Incertitude rapportée : ± ${checked.uncertainty.absoluteBound} ${checked.uncertainty.unit} ; ${checked.uncertainty.basis} ; source ${checked.uncertainty.sourceRef} (non vérifiée indépendamment)` : "Incertitude scientifique inconnue";
 }
 
-/** Presentation overlay only: the historical payload is neither mutated nor migrated. */
-export function qualifyScoreEnvelope(envelope: ScoreEnvelope): ScoreEnvelope {
+/** Mapping method and nature are distinct; an estimated model is not a field test. */
+export function qualifiedScientificOrigin(q: ScientificQualification): "field_estimate" | "model_inference" | "coach_declared" | "unknown" {
+  if (q.status !== "documented_context") return "unknown";
+  switch (q.evidence?.methodKind) {
+    case "field_protocol": return "field_estimate";
+    case "physiological_model": case "blood_lactate_protocol": return "model_inference";
+    case "coach_declaration": return "coach_declared";
+    default: return "unknown";
+  }
+}
+export function hasDocumentedLactateReference(e: ReferenceEvidence | null | undefined, subjectId: string | null | undefined, discipline: string, value: number | null): boolean {
+  const q = qualifyReference(e, { subjectId: subjectId ?? "", quantity: "vlamax", discipline, value, unit: "mmol/L/s" });
+  return q.status === "documented_context" && q.evidence?.methodKind === "blood_lactate_protocol";
+}
+
+/** Validate JSON shapes at the presentation boundary without changing the stored object. */
+export function qualifyScoreEnvelope(input: unknown, subjectId?: string | null, discipline = "unknown"): ScoreEnvelope {
+  const e = record(input) ? input : {};
+  const strings = (v: unknown): string[] => Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  const sources = ["MEASURED", "ESTIMATED", "MODELLED", "DERIVED", "UNKNOWN"] as const;
+  const labels = ["FAIBLE", "MODÉRÉE", "ÉLEVÉE"] as const;
+  const envelope: ScoreEnvelope = {
+    metricId: typeof e.metricId === "string" ? e.metricId : "unknown",
+    label: typeof e.label === "string" ? e.label : "Donnée — provenance inconnue",
+    value: finite(e.value) ? e.value : null,
+    range: record(e.range) && finite(e.range.low) && finite(e.range.high) && e.range.low <= e.range.high ? { low: e.range.low, high: e.range.high } : null,
+    unit: typeof e.unit === "string" ? e.unit : undefined,
+    source: sources.includes(e.source as ScoreEnvelope["source"]) ? e.source as ScoreEnvelope["source"] : "UNKNOWN",
+    confidence: finite(e.confidence) && e.confidence >= 0 && e.confidence <= 1 ? e.confidence : 0,
+    confidenceLabel: labels.includes(e.confidenceLabel as ScoreEnvelope["confidenceLabel"]) ? e.confidenceLabel as ScoreEnvelope["confidenceLabel"] : "FAIBLE",
+    uncertaintyNote: typeof e.uncertaintyNote === "string" ? e.uncertaintyNote : "Incertitude inconnue",
+    contextNote: typeof e.contextNote === "string" ? e.contextNote : "",
+    why: strings(e.why), recommendations: strings(e.recommendations),
+  };
+  if (typeof e.metricId !== "string" || !e.metricId.trim()) return { ...envelope, label: "Donnée — provenance inconnue", source: "UNKNOWN" };
   if (envelope.metricId !== "vlamax") return envelope;
-  const q = requalifyReference(envelope.scientificQualification, envelope.value);
+  const q = requalifyReference(envelope.unit === "mmol/L/s" ? e.scientificQualification as ScientificQualification : null, envelope.value, discipline, subjectId);
   return { ...envelope, scientificQualification: q, label: q.label,
-    source: q.status !== "documented_context" || q.nature === "declared" ? "UNKNOWN" : q.nature === "estimated" ? "ESTIMATED" : q.evidence?.methodKind === "physiological_model" ? "MODELLED" : "DERIVED",
-    uncertaintyNote: `${VLA_HEURISTIC_NOTICE} ${scientificUncertaintyLabel(q, envelope.value)}`,
+    source: q.status !== "documented_context" || q.nature === "declared" ? "UNKNOWN" : q.evidence?.methodKind === "physiological_model" ? "MODELLED" : q.nature === "estimated" ? "ESTIMATED" : "DERIVED",
+    uncertaintyNote: `${VLA_HEURISTIC_NOTICE} ${scientificUncertaintyLabel(q, envelope.value, discipline, subjectId)}`,
     why: envelope.why.map(text => text.startsWith("[Note interne/historique") ? text : `[Note interne/historique, pas une preuve de mesure] ${text}`),
   };
 }

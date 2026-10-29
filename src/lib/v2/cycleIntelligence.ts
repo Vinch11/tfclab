@@ -1,3 +1,4 @@
+import { snapshotPhysiologyEvidence } from "@/lib/physiologyEvidence";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL Cycle Intelligence Engine™
@@ -81,6 +82,7 @@ export interface CycleIntelligenceResult {
 }
 
 export interface SnapshotData {
+  vlamaxQualification?: import("@/lib/scientificQualification").ScientificQualification;
   id: string;
   date: string;
   vo2max: number | null;
@@ -519,6 +521,8 @@ export function snapshotToEngineData(snapshot: Record<string, unknown>): Snapsho
   // que le reste de l'app utilise.
   const vlamaxResolved = resolveVlamaxForGoal(
     {
+      athlete_id: snapshot.athlete_id as string | null,
+      physiologicalEvidence: snapshotPhysiologyEvidence(snapshot),
       vlamax: snapshot.vlamax as number | null,
       vlamax_run: snapshot.vlamax_run as number | null,
       sport_main: snapshot.sport_main as string | null,
@@ -533,13 +537,14 @@ export function snapshotToEngineData(snapshot: Record<string, unknown>): Snapsho
       vlamax_protocol: (snapshot.vlamax_protocol as string) ?? null,
       vo2max: (snapshot.vo2max as number) ?? null,
     },
-    { goal: snapshot.objectif as string | null, objectif: snapshot.objectif as string | null }
+    { id: snapshot.athlete_id as string | null, goal: snapshot.objectif as string | null, objectif: snapshot.objectif as string | null }
   );
   return {
     id: (snapshot.id as string) || "",
     date: (snapshot.date as string) || "",
     vo2max: (snapshot.vo2max as number) ?? null,
     vlamax: vlamaxResolved.value,
+    vlamaxQualification: vlamaxResolved.scientificQualification,
     ftp: (snapshot.ftp as number) ?? null,
     weight_kg: (snapshot.weight_kg as number) ?? null,
     tte_observed_min: (snapshot.tte_observed_min as number) ?? null,

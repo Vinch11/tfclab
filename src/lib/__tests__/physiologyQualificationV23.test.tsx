@@ -100,7 +100,7 @@ it("the actual staff export does not resurrect a cached laboratory label or an e
 it("renders documented lactate-derived qualification and a separately reported uncertainty", () => {
   const q = qualifyReference({ ...documented, documentedUncertainty: { absoluteBound: 0.1, unit: "mmol/L/s", basis: "Synthetic documentary fixture", sourceRef: "fixture:uncertainty" } }, context);
   const v2 = { ...legacy().v2, scientificQualification: q };
-  render(<VLamaxV2DisplayCard objectif="Ironman" vlamax={0.42} staffMode v2Result={v2} />);
+  render(<VLamaxV2DisplayCard objectif="Ironman" vlamax={0.42} athleteId={context.subjectId} sport="bike" staffMode v2Result={v2} />);
   expect(screen.getAllByText(/dérivée de mesures de lactate sanguin/).length).toBeGreaterThan(0);
   expect(screen.getByText(/Incertitude rapportée : ± 0.1/)).toBeTruthy();
   expect(screen.queryByText("Test labo")).toBeNull();

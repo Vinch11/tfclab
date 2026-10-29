@@ -140,6 +140,7 @@ function ChartTooltip({ active, payload }: CustomTooltipProps) {
 // =============================================
 
 interface VLamaxZoneConfidenceChartProps {
+  athleteId?: string;
   /** Résultat V2 complet */
   v2Result: VLamaxV2Result | null;
   /** Sport pour les bornes dynamiques */
@@ -151,6 +152,7 @@ interface VLamaxZoneConfidenceChartProps {
 }
 
 export function VLamaxZoneConfidenceChart({
+  athleteId,
   v2Result,
   sport = "velo",
   isStable = false,
@@ -371,8 +373,8 @@ export function VLamaxZoneConfidenceChart({
           ))}
         </div>
 
-        <p className="text-xs text-muted-foreground">{scientificReferenceLabel(v2Result.scientificQualification, v2Result.effective)}</p>
-        <p className="text-xs text-muted-foreground">{VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(v2Result.scientificQualification, v2Result.effective)}</p>
+        <p className="text-xs text-muted-foreground">{scientificReferenceLabel(v2Result.scientificQualification, v2Result.effective, sport === "cap" ? "run" : sport === "natation" ? "swim" : "bike", athleteId)}</p>
+        <p className="text-xs text-muted-foreground">{VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(v2Result.scientificQualification, v2Result.effective, sport === "cap" ? "run" : sport === "natation" ? "swim" : "bike", athleteId)}</p>
         {/* Résumé athlète */}
         <div className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg">
           <div className="flex items-center gap-2">
