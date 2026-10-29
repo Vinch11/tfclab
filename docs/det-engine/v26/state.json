@@ -1,0 +1,65 @@
+{
+  "version": "det-v26-state-1",
+  "status": "running",
+  "startedAt": "2026-10-29T19:14:13.001358+00:00",
+  "deadline": "2026-10-29T20:13:13.001358+00:00",
+  "budgetMinutes": 60,
+  "maxUnits": 10,
+  "units": [
+    {
+      "unit": 1,
+      "purpose": "Verify heads, instructions, immutable baseline",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "purpose": "Trace fixed candidate preferences and explicit physiology in full canonical library",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "purpose": "Preregister ten sensitivity cases and implement prospective canonical search",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "purpose": "Implement layered prescription/search, candidate #425 preflight and coach/Nolio sidecars",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "purpose": "Independent invariants, 25 new executable tests and bounded regression/replay runner",
+      "status": "complete"
+    },
+    {
+      "unit": 6,
+      "purpose": "Bind two existing V21C comparisons to exact candidate/source hashes; preserve mismatch and approvals=false",
+      "status": "complete"
+    },
+    {
+      "unit": 7,
+      "purpose": "Final validation of strengthened evidence and counterfactual sensitivity",
+      "status": "complete_with_isolated_finding"
+    },
+    {
+      "unit": 8,
+      "purpose": "Reject adoption of an alternative refused by whole-block validation; one bounded safety validation within original deadline",
+      "status": "complete"
+    },
+    {
+      "unit": 9,
+      "purpose": "Generate and verify full coach dossiers; commit/push experimental additions and update draft PR",
+      "status": "in_progress"
+    }
+  ],
+  "baseline": "013489126054a94d4c5395e0b5e49d457d25ab47",
+  "pr425": "4d8c788fa94c870c6dd327583c1e256b32f2bdf8",
+  "automaticRestart": false,
+  "integration": "DRAFT NO-GO",
+  "validationAttempts": 3,
+  "safetyValidationLimit": 1,
+  "safetyFinding": "V26 reduced availability incorrectly selected an existing but rejected floor alternative; no production or export enabled",
+  "safetyValidationUsed": true,
+  "finalAcceptedEvidence": "evidence/validation-safety",
+  "creditQuotaAccessible": false
+}

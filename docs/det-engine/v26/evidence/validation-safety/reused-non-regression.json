@@ -1,0 +1,109 @@
+{
+  "reason": "Only new V26 composition/adoption tests changed. All prior modules and six legacy test configurations remain byte-identical; TypeScript is rerun.",
+  "sourceCommands": "docs/det-engine/v26/evidence/validation-3/commands.json",
+  "sourceCommandsSha256": "19a49705722ba778dbfd02f2aa64c8f3e9b5eaa641435ff8a0801714584abd6d",
+  "receipts": [
+    {
+      "name": "coach_floor_non_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.coach-floor.config.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 23665,
+      "logBytes": 842,
+      "outputCapturedDirectly": true,
+      "reusedFrom": "docs/det-engine/v26/evidence/validation-3/coach_floor_non_regression.txt",
+      "logSha256": "46b35b6951e08f7baeee45b89544ccc01272e437069d35637a0de770db750cf6"
+    },
+    {
+      "name": "v25_non_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v25.config.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 17520,
+      "logBytes": 834,
+      "outputCapturedDirectly": true,
+      "reusedFrom": "docs/det-engine/v26/evidence/validation-3/v25_non_regression.txt",
+      "logSha256": "827aec06932c5985e4454d43371724e1a90801c3495ba513f96a621538a0a31d"
+    },
+    {
+      "name": "v24_non_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v24.config.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 20399,
+      "logBytes": 834,
+      "outputCapturedDirectly": true,
+      "reusedFrom": "docs/det-engine/v26/evidence/validation-3/v24_non_regression.txt",
+      "logSha256": "d962d67e70753876fe86a5651d49d91d460930eebb1b30a2809739c48c168918"
+    },
+    {
+      "name": "v23_non_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v23.config.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 19605,
+      "logBytes": 834,
+      "outputCapturedDirectly": true,
+      "reusedFrom": "docs/det-engine/v26/evidence/validation-3/v23_non_regression.txt",
+      "logSha256": "bd23298d1fe948b17b6a26462fcff4d5c9bf7e59dde22e95440435238aadb989"
+    },
+    {
+      "name": "v22_non_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v22.config.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 20940,
+      "logBytes": 834,
+      "outputCapturedDirectly": true,
+      "reusedFrom": "docs/det-engine/v26/evidence/validation-3/v22_non_regression.txt",
+      "logSha256": "47092ae5eb5e93a83744579534aefddd6b477e85312002ba082ecbfd95a7b2bf"
+    },
+    {
+      "name": "multiobjective_non_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v22-regression.config.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 57870,
+      "logBytes": 861,
+      "outputCapturedDirectly": true,
+      "reusedFrom": "docs/det-engine/v26/evidence/validation-3/multiobjective_non_regression.txt",
+      "logSha256": "7147cfc837248e85b5f316c67e9fc7941c83c4ea5cd24713e33a37d8657e8146"
+    }
+  ]
+}

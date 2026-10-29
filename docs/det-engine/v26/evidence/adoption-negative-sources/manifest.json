@@ -1,0 +1,8 @@
+{
+  "recordedAt": "2026-10-29T19:42:30.836096+00:00",
+  "files": {
+    "experimental/det-engine/v26-prescription.ts": "46171d5983096da3f3b618b80fa4b26cb2441a196bf87fd913bc25433f0262ff",
+    "experimental/det-engine/v26-study.test.ts": "4223bc65a37820f8b2995c28456004243cfc550c455eed05275c3316f4453871",
+    "scripts/det-engine/v26-adoption-guard.py": "39b9d8c5163463e47ce0159f0c1dea339c9ff730207e5dd00d51da6513d3dcba"
+  }
+}
