@@ -1,0 +1,14 @@
+docs/det-engine/v24/evidence/development-2.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/development-4.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/pr424-diagnostic-source.diff:10: trailing whitespace.
++ 
+docs/det-engine/v24/evidence/validation-1/build.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-1/multiobjective_non_regression.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-1/replay.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-1/v22_non_regression.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-1/v23_non_regression.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-2/build.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-2/multiobjective_non_regression.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-2/replay.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-2/v22_non_regression.txt:14: new blank line at EOF.
+docs/det-engine/v24/evidence/validation-2/v23_non_regression.txt:14: new blank line at EOF.

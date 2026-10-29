@@ -1,0 +1,478 @@
+{
+  "boundary": {
+    "rawInput": {
+      "athleteId": "synthetic:v22:A_aerobic",
+      "athleteName": "Synthetic V22 A_aerobic",
+      "age": 35,
+      "sex": "M",
+      "weightKg": 72,
+      "objectif": "IM",
+      "ambition": "finisher",
+      "sportFocus": "tri",
+      "vo2max": 40,
+      "ftp": 265,
+      "ftpKg": 3.6805555555555554,
+      "pmax5s": 800,
+      "p30sW": 550,
+      "p60sW": 420,
+      "map5minW": 320,
+      "vma": 15,
+      "css": 115,
+      "vlamax": 0.3,
+      "vlamaxRun": 0.3,
+      "vlamaxSource": "synthetic_estimate",
+      "vlamaxProtocol": null,
+      "vlamaxIsReference": false,
+      "tteObservedMin": 65,
+      "tteObservedMinRun": null,
+      "tteMode": "observed",
+      "tss7d": null,
+      "fatigueState": null,
+      "runEconomyScore": 3,
+      "runHrDriftPct": null,
+      "paceThresholdSecPerKm": 290,
+      "runningPower1s": null,
+      "runningPower5s": null,
+      "runningPower30s": null,
+      "runningPower60s": null,
+      "runningPower5min": null,
+      "runningPowerThreshold": null,
+      "sprint15sDistance": null,
+      "bikeCadenceRpm": null,
+      "bikeHrDriftFlag": false,
+      "protocolQuality": null,
+      "wprimeKj": null,
+      "cpDataQuality": null,
+      "fatmax": null,
+      "forceDevMode": false,
+      "giIssuesFlag": false,
+      "targetRaceDurationMin": null,
+      "snapshotDate": null,
+      "vlamaxEffectifPrecomputed": {
+        "value": 0.3,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "Synthetic V22 field estimate; no blood lactate measurement",
+          "date": "2026-10-27"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.26,
+          "high": 0.34
+        },
+        "variationWarning": false,
+        "rawValue": 0.3,
+        "v2": {
+          "raw": 0.3,
+          "effective": 0.3,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.26,
+            "high": 0.34
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.300 · Effectif: 0.30 ± 0.04 · Fiabilité: Modérée · Sources: Synthetic V22 field estimate; no blood lactate measurement",
+          "calibrationLog": {
+            "date": "2026-10-29T12:00:00.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.3,
+            "effectiveValue": 0.3,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: Synthetic V22 field estimate; no blood lactate measurement",
+            "sources": [
+              "Synthetic V22 field estimate; no blood lactate measurement"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "tteEffectifPrecomputed": {
+        "tte_min": 65,
+        "source": "observed",
+        "confidence": 0.95,
+        "label": "65 min (mesuré)",
+        "target": 50,
+        "status": "ok",
+        "status_message": "TTE ≥ cible (50 min) ✓"
+      }
+    },
+    "rawInputHash": "a106b556f0a866666952703a76378294bdf5ed2a03fff810b451b10e1ecfafa4",
+    "production": {
+      "observedPct": 82.8,
+      "prediction": {
+        "mlssPct": 95,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+          "vlamaxContribution": 10.11,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "crossValidation": {
+        "observed": 82.8,
+        "predicted": 95,
+        "deltaPct": -12.2,
+        "isCoherent": false,
+        "severity": "critical",
+        "explanation": "Écart majeur (−12.2%) : pace_threshold suspect, refaire test seuil.",
+        "predictionConfidence": 0.75
+      },
+      "effectivePct": 82.8,
+      "effectiveSource": "observed"
+    },
+    "candidate": {
+      "observedPct": 82.8,
+      "prediction": null,
+      "crossValidation": null,
+      "effectivePct": 82.8,
+      "effectiveSource": "observed"
+    },
+    "scoreUnchanged": 3,
+    "refsNative": {
+      "ftpWatts": 265,
+      "mlssSpeedKmh": 12.413793103448276,
+      "runReference": {
+        "paceThresholdSecPerKm": 290,
+        "origin": "TFCLab transmitted raw synthetic threshold pace",
+        "runMLSS": {
+          "observedPct": 82.8,
+          "prediction": {
+            "mlssPct": 95,
+            "confidence": 0.75,
+            "trace": {
+              "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+              "vlamaxContribution": 10.11,
+              "ceContribution": -10.5,
+              "rmseExpected": 2.64
+            }
+          },
+          "crossValidation": {
+            "observed": 82.8,
+            "predicted": 95,
+            "deltaPct": -12.2,
+            "isCoherent": false,
+            "severity": "critical",
+            "explanation": "Écart majeur (−12.2%) : pace_threshold suspect, refaire test seuil.",
+            "predictionConfidence": 0.75
+          },
+          "effectivePct": 82.8,
+          "effectiveSource": "observed"
+        },
+        "predictionIsNotMeasuredMLSS": true
+      },
+      "vlamaxEffective": {
+        "value": 0.3,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "Synthetic V22 field estimate; no blood lactate measurement",
+          "date": "2026-10-27"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.26,
+          "high": 0.34
+        },
+        "variationWarning": false,
+        "rawValue": 0.3,
+        "v2": {
+          "raw": 0.3,
+          "effective": 0.3,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.26,
+            "high": 0.34
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.300 · Effectif: 0.30 ± 0.04 · Fiabilité: Modérée · Sources: Synthetic V22 field estimate; no blood lactate measurement",
+          "calibrationLog": {
+            "date": "2026-10-29T12:00:00.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.3,
+            "effectiveValue": 0.3,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: Synthetic V22 field estimate; no blood lactate measurement",
+            "sources": [
+              "Synthetic V22 field estimate; no blood lactate measurement"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "tteEffective": {
+        "tte_min": 65,
+        "source": "observed",
+        "confidence": 0.95,
+        "label": "65 min (mesuré)",
+        "target": 50,
+        "status": "ok",
+        "status_message": "TTE ≥ cible (50 min) ✓"
+      },
+      "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+    },
+    "refsCandidate": {
+      "ftpWatts": 265,
+      "mlssSpeedKmh": 12.413793103448276,
+      "runReference": {
+        "paceThresholdSecPerKm": 290,
+        "origin": "TFCLab transmitted raw synthetic threshold pace",
+        "runMLSS": {
+          "observedPct": 82.8,
+          "prediction": null,
+          "crossValidation": null,
+          "effectivePct": 82.8,
+          "effectiveSource": "observed"
+        },
+        "predictionIsNotMeasuredMLSS": true
+      },
+      "vlamaxEffective": {
+        "value": 0.3,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "Synthetic V22 field estimate; no blood lactate measurement",
+          "date": "2026-10-27"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.26,
+          "high": 0.34
+        },
+        "variationWarning": false,
+        "rawValue": 0.3,
+        "v2": {
+          "raw": 0.3,
+          "effective": 0.3,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.26,
+            "high": 0.34
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.300 · Effectif: 0.30 ± 0.04 · Fiabilité: Modérée · Sources: Synthetic V22 field estimate; no blood lactate measurement",
+          "calibrationLog": {
+            "date": "2026-10-29T12:00:00.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.3,
+            "effectiveValue": 0.3,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: Synthetic V22 field estimate; no blood lactate measurement",
+            "sources": [
+              "Synthetic V22 field estimate; no blood lactate measurement"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "tteEffective": {
+        "tte_min": 65,
+        "source": "observed",
+        "confidence": 0.95,
+        "label": "65 min (mesuré)",
+        "target": 50,
+        "status": "ok",
+        "status_message": "TTE ≥ cible (50 min) ✓"
+      },
+      "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+    },
+    "productionSourceUnchanged": true,
+    "candidateMerged": false
+  },
+  "external": {
+    "label": "separate PR424 QA case, never a replacement measurement for A",
+    "raw": {
+      "athleteId": "pilot:B-MARATHON",
+      "athleteName": "QA Synthetic",
+      "age": 35,
+      "sex": "M",
+      "weightKg": 72,
+      "objectif": "MARATHON",
+      "ambition": "world_class",
+      "sportFocus": "run",
+      "vo2max": 58,
+      "ftp": 280,
+      "ftpKg": 3.888888888888889,
+      "pmax5s": 950,
+      "p30sW": 620,
+      "p60sW": 480,
+      "map5minW": 380,
+      "vma": 18,
+      "css": 90,
+      "vlamax": 0.55,
+      "vlamaxRun": 0.5,
+      "vlamaxSource": "synthetic_estimate",
+      "vlamaxProtocol": null,
+      "vlamaxIsReference": false,
+      "tteObservedMin": null,
+      "tteObservedMinRun": 45,
+      "tteMode": "synthetic_estimate",
+      "tss7d": null,
+      "fatigueState": null,
+      "runEconomyScore": 65,
+      "runHrDriftPct": null,
+      "paceThresholdSecPerKm": null,
+      "runningPower1s": null,
+      "runningPower5s": null,
+      "runningPower30s": null,
+      "runningPower60s": null,
+      "runningPower5min": null,
+      "runningPowerThreshold": null,
+      "sprint15sDistance": null,
+      "bikeCadenceRpm": null,
+      "bikeHrDriftFlag": false,
+      "protocolQuality": null,
+      "wprimeKj": null,
+      "cpDataQuality": null,
+      "fatmax": null,
+      "forceDevMode": false,
+      "giIssuesFlag": false,
+      "targetRaceDurationMin": null,
+      "runningEconomyCostMlKgKm": 200
+    },
+    "rawInputHash": "21abc552fe9a1eb0cc423963724bc52d5beeb3ea2a5cf2d3c96aa3d07f5b5b2b",
+    "production": {
+      "observedPct": null,
+      "prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "crossValidation": null,
+      "effectivePct": 93.7,
+      "effectiveSource": "predicted"
+    },
+    "candidate": {
+      "observedPct": null,
+      "prediction": {
+        "mlssPct": 83.2,
+        "confidence": 0.85,
+        "trace": {
+          "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": 0,
+          "rmseExpected": 2.64
+        }
+      },
+      "crossValidation": null,
+      "effectivePct": 83.2,
+      "effectiveSource": "predicted"
+    },
+    "missingCE": null,
+    "fixtureNotAReplacement": true
+  },
+  "transport": [
+    {
+      "state": "corrected_candidate",
+      "input": {
+        "state": "corrected_candidate",
+        "speed": 12.413793103448276,
+        "unit": "km/h",
+        "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d",
+        "sourceHash": "89a67b6389c36747c9ebc184b550d81d0c95d151cbe34280cd42e6b94f3a5304",
+        "rawInputHash": "a106b556f0a866666952703a76378294bdf5ed2a03fff810b451b10e1ecfafa4",
+        "observedAt": "2026-10-29",
+        "conflictUnresolved": false,
+        "source": "unmerged virtual replay; original supplied threshold pace retained, no CE invented for A"
+      },
+      "decision": {
+        "status": "candidate_reference_for_coach_review",
+        "candidateSpeedKmh": 12.413793103448276,
+        "reasons": [],
+        "productionReferenceReplaced": false,
+        "assumedMerged": false,
+        "individualDoseApproved": false,
+        "capacityIncreased": false
+      }
+    },
+    {
+      "state": "uncertain",
+      "input": {
+        "state": "uncertain",
+        "speed": 12.413793103448276,
+        "unit": "km/h",
+        "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d",
+        "sourceHash": "89a67b6389c36747c9ebc184b550d81d0c95d151cbe34280cd42e6b94f3a5304",
+        "rawInputHash": "a106b556f0a866666952703a76378294bdf5ed2a03fff810b451b10e1ecfafa4",
+        "observedAt": "2026-10-29",
+        "conflictUnresolved": false,
+        "source": "unmerged virtual replay; original supplied threshold pace retained, no CE invented for A"
+      },
+      "decision": {
+        "status": "hold_reference",
+        "candidateSpeedKmh": null,
+        "reasons": [
+          "reference_uncertain"
+        ],
+        "productionReferenceReplaced": false,
+        "assumedMerged": false,
+        "individualDoseApproved": false,
+        "capacityIncreased": false
+      }
+    },
+    {
+      "state": "absent",
+      "input": {
+        "state": "absent",
+        "speed": 12.413793103448276,
+        "unit": "km/h",
+        "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d",
+        "sourceHash": "89a67b6389c36747c9ebc184b550d81d0c95d151cbe34280cd42e6b94f3a5304",
+        "rawInputHash": "a106b556f0a866666952703a76378294bdf5ed2a03fff810b451b10e1ecfafa4",
+        "observedAt": "2026-10-29",
+        "conflictUnresolved": false,
+        "source": "unmerged virtual replay; original supplied threshold pace retained, no CE invented for A"
+      },
+      "decision": {
+        "status": "hold_reference",
+        "candidateSpeedKmh": null,
+        "reasons": [
+          "run_reference_absent"
+        ],
+        "productionReferenceReplaced": false,
+        "assumedMerged": false,
+        "individualDoseApproved": false,
+        "capacityIncreased": false
+      }
+    }
+  ]
+}

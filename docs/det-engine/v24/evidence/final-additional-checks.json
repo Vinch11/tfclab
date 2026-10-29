@@ -1,0 +1,11 @@
+{
+  "pass": true,
+  "testedSourcePinsUnchanged": true,
+  "unchangedTargetZonePhysiologyAndStateDecisions": 240,
+  "antiRepetitionLedgersMatchAllRawIssues": true,
+  "requestedDossiersPresent": 8,
+  "changedPathsAllV24": 82,
+  "productionOrPriorFileChanges": 0,
+  "approvals": 0,
+  "fullIronmanValidation": false
+}

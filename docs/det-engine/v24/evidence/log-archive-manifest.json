@@ -1,0 +1,18 @@
+[
+  {
+    "logicalOriginalPath": "evidence/development-1.txt",
+    "archive": "evidence/development-1.txt.gz",
+    "rawBytes": 262393,
+    "rawSha256": "47b924d4e5ddaef3e8d5939d09457319c7bf0b2d1515ce62c3e27bb18a00503a",
+    "archiveSha256": "a51db0663194f08cc35ab7e5c72b5cac6b64e3a0ee252309517239221716ecf5",
+    "contentUnchanged": true
+  },
+  {
+    "logicalOriginalPath": "evidence/development-3.txt",
+    "archive": "evidence/development-3.txt.gz",
+    "rawBytes": 343479,
+    "rawSha256": "e40027773e5f1883cc75d969ca3219b75984f28f28bb77727e3879a279c03204",
+    "archiveSha256": "20bd5b3c845fe0fd6e2fe0cfbf7b489d651463f40cd121a85aada56bd0b45051",
+    "contentUnchanged": true
+  }
+]

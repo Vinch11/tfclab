@@ -1,0 +1,4700 @@
+[
+  {
+    "caseId": "B_sustainability",
+    "original": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "A_RUN_Z2_EASY",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "minutes": 90,
+        "previousSourceId": "A_RUN_Z2_EASY",
+        "previousMinutes": 80,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "rejectedV23": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "title": "Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé",
+        "minutes": 130,
+        "previousSourceId": "SEILER_BIKE_Z1_LONG",
+        "previousMinutes": 120,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "minutes": 85,
+        "previousSourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "previousMinutes": 85,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "title": "Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé",
+        "minutes": 145,
+        "previousSourceId": "SEILER_BIKE_Z1_LONG",
+        "previousMinutes": 130,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "minutes": 85,
+        "previousSourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "previousMinutes": 85,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 3,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "retainedV24": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "A_RUN_Z2_EASY",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "minutes": 90,
+        "previousSourceId": "A_RUN_Z2_EASY",
+        "previousMinutes": 80,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "rawV23Issues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 jeudi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Endurance facile\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "rawOriginalIssues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Endurance facile\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "rawRetainedIssues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "v24CandidateWitnessAdditions": [
+      {
+        "model": "pull_on_support_day",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 samedi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "catch_on_support_day",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 samedi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "protect_peak_ride_only",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "space_peak_bike_block_and_long_run",
+        "additions": [],
+        "accepted": true
+      }
+    ]
+  },
+  {
+    "caseId": "B_lower_run_capacity",
+    "original": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "A_RUN_Z2_EASY",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "minutes": 90,
+        "previousSourceId": "A_RUN_Z2_EASY",
+        "previousMinutes": 80,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "rejectedV23": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "title": "Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé",
+        "minutes": 130,
+        "previousSourceId": "SEILER_BIKE_Z1_LONG",
+        "previousMinutes": 120,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "minutes": 85,
+        "previousSourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "previousMinutes": 85,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "title": "Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé",
+        "minutes": 145,
+        "previousSourceId": "SEILER_BIKE_Z1_LONG",
+        "previousMinutes": 130,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "minutes": 85,
+        "previousSourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "previousMinutes": 85,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 3,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "retainedV24": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "A_RUN_Z2_EASY",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "minutes": 90,
+        "previousSourceId": "A_RUN_Z2_EASY",
+        "previousMinutes": 80,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "rawV23Issues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 jeudi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Endurance facile\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "rawOriginalIssues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Endurance facile\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "rawRetainedIssues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "v24CandidateWitnessAdditions": [
+      {
+        "model": "pull_on_support_day",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 samedi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "catch_on_support_day",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 samedi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "protect_peak_ride_only",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "space_peak_bike_block_and_long_run",
+        "additions": [],
+        "accepted": true
+      }
+    ]
+  },
+  {
+    "caseId": "B_adverse_recovery",
+    "original": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "A_RUN_Z2_EASY",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "minutes": 90,
+        "previousSourceId": "A_RUN_Z2_EASY",
+        "previousMinutes": 80,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "rejectedV23": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "title": "Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé",
+        "minutes": 130,
+        "previousSourceId": "SEILER_BIKE_Z1_LONG",
+        "previousMinutes": 120,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "minutes": 85,
+        "previousSourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "previousMinutes": 85,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "title": "Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé",
+        "minutes": 145,
+        "previousSourceId": "SEILER_BIKE_Z1_LONG",
+        "previousMinutes": 130,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "minutes": 85,
+        "previousSourceId": "C_BIKE_AERO_POSITION_DRILLS",
+        "previousMinutes": 85,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 3,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "retainedV24": [
+      {
+        "week": 2,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 3,
+        "sourceId": "A_RUN_Z2_EASY",
+        "title": "Endurance fondamentale, économie, récupération active",
+        "minutes": 90,
+        "previousSourceId": "A_RUN_Z2_EASY",
+        "previousMinutes": 80,
+        "sameRecipeId": true,
+        "sameReservedDose": false,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 4,
+        "sourceId": "A_RUN_EASY_45_PRO",
+        "title": "Endurance facile",
+        "minutes": 45,
+        "previousSourceId": "A_RUN_EASY_45_PRO",
+        "previousMinutes": 45,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 2,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 1,
+        "sourceId": "C_SWIM_CATCH_FOCUS",
+        "title": "Technique catch — amélioration prise d'eau et phase propulsive",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_CATCH_FOCUS",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 2,
+        "sourceId": "C_SWIM_TRI_CATCH_PULL",
+        "title": "Technique catch & pull (efficacité propulsion triathlon)",
+        "minutes": 35,
+        "previousSourceId": "C_SWIM_TRI_CATCH_PULL",
+        "previousMinutes": 35,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 5,
+        "sourceId": "A_STR_STABILITY_CORE",
+        "title": "Stabilité et gainage – prévention blessure",
+        "minutes": 25,
+        "previousSourceId": "A_STR_STABILITY_CORE",
+        "previousMinutes": 25,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      },
+      {
+        "week": 3,
+        "day": 6,
+        "sourceId": "A_SWIM_CONTINUOUS_2K",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "minutes": 40,
+        "previousSourceId": "A_SWIM_CONTINUOUS_2K",
+        "previousMinutes": 40,
+        "sameRecipeId": true,
+        "sameReservedDose": true,
+        "rule": "anti_repetition",
+        "severity": "warning",
+        "meaning": "same normalized title as first physical session on same weekday; no overload or spacing calculation"
+      }
+    ],
+    "rawV23Issues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 jeudi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Endurance facile\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "rawOriginalIssues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 vendredi: \"Endurance facile\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "rawRetainedIssues": [
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 2,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mardi: attendu bike+strength, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "mercredi: attendu run+swim, observé bike+swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "vendredi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 3,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "mercredi: attendu strength+swim, observé strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observé run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "samedi: attendu bike, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 4,
+        "severity": "warning",
+        "message": "dimanche: attendu run, observé swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 4,
+        "severity": "error",
+        "message": "🏁 Jour de course absent — S4 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_incoherence",
+        "severity": "warning",
+        "message": "📅 Course \"IM\" datée S16, au-delà des 4 semaines réelles de ce plan — vérifiez la date de la course ou la durée du plan.",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 jeudi: \"Endurance fondamentale, économie, récupération active\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 vendredi: \"Endurance facile\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mardi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 mercredi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 samedi: \"Stabilité et gainage – prévention blessure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "anti_repetition",
+        "week": 3,
+        "severity": "warning",
+        "message": "S3 dimanche: \"Nage continue 2000m — endurance aérobie, régularité allure\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 2,
+        "severity": "warning",
+        "message": "S2: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 4,
+        "severity": "warning",
+        "message": "S4: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "catalogue_prescription_unverified",
+        "severity": "warning",
+        "message": "S4 séance 3 [ENR_RECUP_MOBILITE_YOGA] : intensity_not_declared",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "v24CandidateWitnessAdditions": [
+      {
+        "model": "pull_on_support_day",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 samedi: \"Technique catch & pull (efficacité propulsion triathlon)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "catch_on_support_day",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 1,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 2,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 2,
+              "severity": "warning",
+              "message": "S2 samedi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S1 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mardi: \"Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 mercredi: \"Position aéro prolongée (confort + puissance en position)\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "anti_repetition",
+              "week": 3,
+              "severity": "warning",
+              "message": "S3 samedi: \"Technique catch — amélioration prise d'eau et phase propulsive\" identique à la séance de S2 — varier format/durée/intensité (Règle #1 Anti-Répétition)",
+              "control": "plan_validator_complete_context"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "protect_peak_ride_only",
+        "additions": [
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "mardi: attendu bike+strength, observé bike",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          },
+          {
+            "issue": {
+              "code": "layout_drift",
+              "week": 3,
+              "severity": "warning",
+              "message": "samedi: attendu bike, observé strength+swim",
+              "control": "weekly_quotas"
+            },
+            "added": 1
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "model": "space_peak_bike_block_and_long_run",
+        "additions": [],
+        "accepted": true
+      }
+    ]
+  }
+]
