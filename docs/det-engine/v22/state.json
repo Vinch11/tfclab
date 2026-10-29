@@ -4,7 +4,7 @@
   "startedAt": "2026-10-29T13:18:08Z",
   "hardDeadline": "2026-10-29T14:18:08Z",
   "maxUnits": 10,
-  "status": "in_progress_no_go",
+  "status": "closed_no_go",
   "budgetRenewal": false,
   "automaticRestart": false,
   "units": [
@@ -99,8 +99,24 @@
     {
       "unit": 10,
       "name": "experimental_commit_push_and_draft_pr_closure",
-      "status": "in_progress"
+      "status": "completed",
+      "evidence": [
+        "evidence/publication-receipt.json",
+        "final-integrity.json"
+      ]
     }
   ],
-  "validationAttempts": 1
+  "validationAttempts": 1,
+  "publicationStatus": "published_draft_no_go",
+  "closedAt": "2026-10-29T13:59:52.381766+00:00",
+  "elapsedSecondsAtReceipt": 2504,
+  "publishedEvidenceCommit": "db86221aa3159e04940e4d23982b08bb1bb45f1b",
+  "actualIndividualApprovals": 0,
+  "remainingBlockers": [
+    "A running-reference critical conflict",
+    "C missing individual anchors",
+    "source variants and full recipes unresolved",
+    "historical complete-preparation checks on a four-week prefix",
+    "individual dose progression and force/swim/postural evidence not demonstrated"
+  ]
 }
