@@ -77,5 +77,10 @@
   "legacyTestsSkipped": 5,
   "newPhysicalSubstitutions": 0,
   "historicalRawIssuesRemoved": 0,
-  "coachFloorPermissionAlreadyGranted": true
+  "coachFloorPermissionAlreadyGranted": true,
+  "latestReadOnly425HeadAtClosure": "9f67b70240d21f4d07ef29828a64d01b2060fadf",
+  "tested425ContractHead": "4d8c788fa94c870c6dd327583c1e256b32f2bdf8",
+  "latest425CodeImported": false,
+  "latest425ContractIndependentlyValidated": false,
+  "remoteClosureNote": "REMOTE_CLOSURE_NOTE.md"
 }
