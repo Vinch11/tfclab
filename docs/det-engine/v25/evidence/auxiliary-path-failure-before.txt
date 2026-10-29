@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/workspace/tfclab/scripts/det-engine/v25-independent.py", line 14, in <module>
+    old=load('docs/det-engine/v24/evidence/validation-3/build/results.json.gz');registered=load(E/'build/registered-cases.json');assert registered==load('docs/det-engine/v24/evidence/validation-3/build/registered-cases.json')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tfclab/scripts/det-engine/v25-independent.py", line 6, in load
+    def load(p):return json.loads(raw(p))
+                                  ^^^^^^
+  File "/workspace/tfclab/scripts/det-engine/v25-independent.py", line 5, in raw
+    p=pathlib.Path(p);b=p.read_bytes();return gzip.decompress(b)if p.suffix=='.gz'else b
+                        ^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1019, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'docs/det-engine/v24/evidence/validation-3/build/results.json.gz'

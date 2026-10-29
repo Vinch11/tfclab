@@ -1,0 +1,7 @@
+{
+  "authoredCodeAndDossiersExit": 0,
+  "rawArtifactsExit": 2,
+  "rawArtifactWhitespace": "original tool logs retain final blank lines; source diffs retain blank context lines",
+  "rawLog": "evidence/raw-artifact-whitespace-check.txt",
+  "rawLogsNotRewritten": true
+}

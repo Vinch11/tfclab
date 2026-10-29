@@ -1,0 +1,101 @@
+{
+  "version": "det-v25-session-1",
+  "baseline": "24024f6f9f7bc91b4c9a8bdce676d21625eff29b",
+  "startedAt": "2026-10-29T15:39:05Z",
+  "hardDeadline": "2026-10-29T16:39:05Z",
+  "maxUnits": 10,
+  "budgetRenewal": false,
+  "automaticRestart": false,
+  "status": "closed_pending_publication_no_go",
+  "units": [
+    {
+      "unit": 1,
+      "name": "remote_baselines_and_preregistered_contract_fixtures",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "name": "separate_recipe_goal_floor_capacity_contract",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "name": "typed_cost_transfer_with_verified_source_binding",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "name": "bounded_recovery_state_machine_and_human_approval_boundary",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "name": "first_end_to_end_eight_cases_and_15_preregistered_contract_cases",
+      "status": "complete",
+      "evidence": "evidence/development-1",
+      "testsPassed": 31
+    },
+    {
+      "unit": 6,
+      "name": "source_context_scope_human_boundaries_and_negative_guards",
+      "status": "complete",
+      "claimBindingCorrection": {
+        "diagnosis": "file identity alone did not bind the transferred CE value; a 65 score could be mislabeled as cost against the same artifact",
+        "falsifiableBefore": "evidence/claim-binding-negative-before.txt",
+        "correction": "bind exact quantity/unit/value/method/input identity/synthetic scope to a verified literal source claim; preserve native outputs"
+      },
+      "invalidRecoverySubjectGuard": "Reject nonpositive/nonfinite dose, invalid explicit envelope or missing source identity before any favourable recovery evaluation. No physiological threshold added."
+    },
+    {
+      "unit": 7,
+      "name": "full_contract_validation_deterministic_replay_and_250_legacy_tests",
+      "status": "complete"
+    },
+    {
+      "unit": 8,
+      "name": "independent_checks_nine_coach_dossiers_and_fixture_freeze",
+      "status": "complete"
+    },
+    {
+      "unit": 9,
+      "name": "guarded_experimental_publication_and_draft_pr_update",
+      "status": "in_progress"
+    },
+    {
+      "unit": 10,
+      "name": "bounded_closure_guard_and_publication_receipt",
+      "status": "guard_verified_awaiting_publication_receipt"
+    }
+  ],
+  "validationAttempts": 3,
+  "validationHistory": [
+    {
+      "id": 1,
+      "status": "passed_37_new_tests_250_legacy_and_types",
+      "scope": "before additional claim/value binding guard; retained for provenance, superseded by validation-2"
+    },
+    {
+      "id": 2,
+      "status": "passed_39_new_tests_250_legacy_and_types",
+      "scope": "exact claim binding verified; superseded only by structural invalid-subject guard in validation-3"
+    },
+    {
+      "id": 3,
+      "status": "passed_40_new_tests_250_legacy_replay_and_types",
+      "scope": "final tested engine, no changes to original calendars or scientific prescriptions"
+    }
+  ],
+  "acceptedValidation": "evidence/validation-3",
+  "lastSavedAt": "2026-10-29T16:15:08.314147+00:00",
+  "recommendation": "DRAFT_NO_GO",
+  "postValidationAuxiliaryCorrection": {
+    "manifest": "evidence/auxiliary-path-correction/manifest.json",
+    "beforeFailure": "evidence/auxiliary-path-failure-before.txt",
+    "scope": "two documentary Python helpers pointed at nonexistent V24/V20 validation-3 archives after a broad text replacement; corrected to their actual validation-2 paths",
+    "preservedOriginalSources": true,
+    "engineOrTestCodeChangedAfterValidation": false,
+    "allLiveEngineAndTestPinsVerified": true
+  },
+  "developmentClosedAt": "2026-10-29T16:16:11.289817+00:00",
+  "resumeRequiresNewBudget": true
+}

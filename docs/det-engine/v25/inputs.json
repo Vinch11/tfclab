@@ -1,0 +1,141 @@
+{
+  "version": "det-v25-preregistered-1",
+  "registeredAt": "2026-10-29T15:41:55.695492+00:00",
+  "clock": "2026-10-29T12:00:00Z",
+  "cohortInputs": {
+    "docs/det-engine/v22/inputs.json": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97",
+    "docs/det-engine/v23/inputs.json": "b566cf0e7db6bf82898f7accb63ba68e97a7bc7cbdec96fecdf41000b921dedc"
+  },
+  "floorCases": [
+    {
+      "id": "95_over_90",
+      "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 95,
+      "capacity": 90
+    },
+    {
+      "id": "90_floor_candidate",
+      "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 90,
+      "capacity": 90
+    },
+    {
+      "id": "75_below_goal_min",
+      "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 75,
+      "capacity": 90
+    },
+    {
+      "id": "missing_component_reduction",
+      "sourceId": "A_RUN_Z2_EASY",
+      "minutes": 20,
+      "capacity": 90
+    },
+    {
+      "id": "unknown_capacity",
+      "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 90,
+      "capacity": null
+    }
+  ],
+  "physiologyCases": [
+    {
+      "id": "typed_cost_from_separate_424_fixture",
+      "status": "documented_candidate",
+      "quantity": "running_oxygen_cost",
+      "unit": "ml_O2/kg/km",
+      "value": 200,
+      "uncertainty": {
+        "status": "documented",
+        "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+        "individualErrorBound": null
+      },
+      "method": {
+        "kind": "synthetic_fixture",
+        "id": "PR424-economy-contract-test",
+        "admissibility": "experimental_context_only"
+      }
+    },
+    {
+      "id": "uncertain_cost",
+      "status": "uncertain",
+      "quantity": "running_oxygen_cost",
+      "unit": "ml_O2/kg/km",
+      "value": 200
+    },
+    {
+      "id": "absent_cost",
+      "status": "absent",
+      "quantity": "running_oxygen_cost",
+      "unit": "ml_O2/kg/km",
+      "value": null
+    },
+    {
+      "id": "score_is_not_cost",
+      "status": "documented_candidate",
+      "quantity": "run_economy_score",
+      "unit": "score_0_100",
+      "value": 65
+    }
+  ],
+  "recoveryCases": [
+    {
+      "id": "unknown",
+      "response": "unknown",
+      "recovered": null
+    },
+    {
+      "id": "adverse",
+      "response": "adverse",
+      "recovered": false
+    },
+    {
+      "id": "favourable_insufficient_capacity",
+      "response": "favourable",
+      "recovered": true,
+      "capacityMinutes": 120
+    },
+    {
+      "id": "favourable_missing_reference",
+      "response": "favourable",
+      "recovered": true,
+      "referenceUsable": false
+    },
+    {
+      "id": "persistent_pain",
+      "response": "favourable",
+      "recovered": true,
+      "pain": true,
+      "restriction": true
+    },
+    {
+      "id": "favourable_documented",
+      "response": "favourable",
+      "recovered": true
+    }
+  ],
+  "recoveryCommon": {
+    "subject": "B_sustainability:native_floor_conditional:S2:bike:0",
+    "sourceId": "SEILER_BIKE_Z1_LONG",
+    "sport": "bike",
+    "targetMinutes": 130,
+    "currentCapacityMinutes": 180,
+    "observedAt": "2026-11-09T08:00:00Z",
+    "reassessmentAt": "2026-11-09T18:00:00Z",
+    "validThrough": "2026-11-10T23:59:59Z",
+    "synthetic": true,
+    "pain": false,
+    "symptoms": false,
+    "restriction": false,
+    "previousToleranceDocumented": true,
+    "previousCompletedMinutes": 120,
+    "referenceUsable": true,
+    "microcycleCompatible": true,
+    "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response",
+    "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+    "asOf": "2026-11-09T19:00:00Z",
+    "prospectiveSimulation": "Future synthetic observations after planned S1, never current real evidence. Same fixed sequence for all recovery scenarios."
+  },
+  "coachDecisionPolicy": "No offline fixture may generate approved_by_coach; every fixture and test context is synthetic. No signature verifier or real human decision is available.",
+  "physiologyRawPolicy": "New contract fixtures split the explicit cost out of the archived #424 legacy raw input; only the typed envelope carries it. Originals A/B/C are unchanged."
+}

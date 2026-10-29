@@ -1,0 +1,9 @@
+{
+  "exit": 1,
+  "expectedReason": "V25_BUDGET_OR_CLOSURE",
+  "stateUnchanged": true,
+  "stateBeforeAfterSha256": "e2552190000213c275d1151b9325f873e001798e95e6729d52319083ff42c3e0",
+  "validationAttempts": 3,
+  "newValidationDirectoryCreated": false,
+  "automaticRestart": false
+}
