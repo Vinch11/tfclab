@@ -1,0 +1,29 @@
+{
+  "schema": "v28-strength-rest-conventions-2",
+  "registeredAt": "2026-10-29T21:26:20.934665+00:00",
+  "contextVersion": "v28-strength-rest-conventions-2",
+  "syntheticOnly": true,
+  "reason": "Independent guard rejected the implicit between-exercise/between-round final-rest choices in validation-1. Both occurrences must be declared; this registration changes no source or athlete capability.",
+  "originalInputArtifact": "docs/det-engine/v28/inputs.json",
+  "sourceId": "A_STR_STABILITY_CORE",
+  "variants": [
+    {
+      "id": "strength_between_explicit",
+      "exerciseRestPolicy": "between_only",
+      "roundRestPolicy": "between_only"
+    },
+    {
+      "id": "strength_after_each_explicit",
+      "exerciseRestPolicy": "after_each",
+      "roundRestPolicy": "after_each"
+    },
+    {
+      "id": "strength_occurrence_unknown",
+      "exerciseRestPolicy": null,
+      "roundRestPolicy": null
+    }
+  ],
+  "individualEvidence": false,
+  "coachAuthorization": false,
+  "noPolicySelectedBySlotFit": true
+}

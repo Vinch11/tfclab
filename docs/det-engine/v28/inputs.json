@@ -1,0 +1,137 @@
+{
+  "schema": "det-v28-inputs-1",
+  "clock": "2026-10-29T12:00:00Z",
+  "syntheticOnly": true,
+  "contextVersion": "v28-fixtures-1",
+  "contextDate": "2026-10-29",
+  "bInputsUnchanged": true,
+  "coachPolicyBAlreadyAuthorized": false,
+  "aero": [
+    {
+      "id": "aero_between",
+      "policy": "between_only",
+      "availableMinutes": 85
+    },
+    {
+      "id": "aero_after_each",
+      "policy": "after_each",
+      "availableMinutes": 85
+    },
+    {
+      "id": "aero_unknown",
+      "policy": null,
+      "availableMinutes": 85
+    }
+  ],
+  "swim": [
+    {
+      "id": "catch_pull_declared_timing",
+      "sourceId": "C_SWIM_TRI_CATCH_PULL",
+      "availableMinutes": 55,
+      "params": {
+        "secondsPer100ByLiteral": {
+          "300m facile": 120,
+          "50m rattrapé": 140,
+          "50m poing fermé": 130,
+          "100m nage complète propre": 110,
+          "200m souple": 120
+        },
+        "restPolicy": "between_only",
+        "transitionSeconds": 5,
+        "recoveryIncludesTransition": true
+      }
+    },
+    {
+      "id": "catch_focus_declared_timing",
+      "sourceId": "C_SWIM_CATCH_FOCUS",
+      "availableMinutes": 55,
+      "params": {
+        "secondsPer100ByLiteral": {
+          "300m facile": 120,
+          "50m scull avant": 180,
+          "50m catch-up drill": 150,
+          "100m Z2 focus catch": 110,
+          "200m facile": 120
+        },
+        "restPolicy": "between_only",
+        "unstatedRestSeconds": 10,
+        "transitionSeconds": 5,
+        "recoveryIncludesTransition": true
+      }
+    },
+    {
+      "id": "continuous_generic_declared_timing",
+      "sourceId": "A_SWIM_CONTINUOUS_2K",
+      "availableMinutes": 55,
+      "params": {
+        "secondsPer100ByLiteral": {
+          "400m facile multi-nages": 145,
+          "2000m continu Z2 (splits réguliers, focus respiration bilatérale)": 110,
+          "200m dos facile": 150
+        },
+        "transitionSeconds": 5,
+        "recoveryIncludesTransition": true
+      }
+    },
+    {
+      "id": "css_only_not_drill_or_other_stroke_pace",
+      "sourceId": "C_SWIM_CATCH_FOCUS",
+      "availableMinutes": 35,
+      "params": {
+        "cssCrawl": 105
+      }
+    },
+    {
+      "id": "css_absent",
+      "sourceId": "A_SWIM_CONTINUOUS_2K",
+      "availableMinutes": 40,
+      "params": {
+        "cssCrawl": null
+      }
+    }
+  ],
+  "strength": {
+    "id": "strength_explicit_tempo",
+    "sourceId": "A_STR_STABILITY_CORE",
+    "availableMinutes": 35,
+    "secondsPerRep": 2,
+    "sideCount": 2,
+    "sideChangeSeconds": 5,
+    "exerciseRestSeconds": 10,
+    "roundRestSeconds": 60,
+    "betweenExerciseTransitionsIncludedInRest": true,
+    "sideExecution": "sequential",
+    "loadMode": "bodyweight",
+    "competenceDeclared": true
+  },
+  "syntheticContext": {
+    "equipment": {
+      "setting": "outdoor"
+    },
+    "competence": true,
+    "pain": false,
+    "recovery": "unknown",
+    "referenceState": "native",
+    "individualToleranceVerified": false,
+    "coachApproved": false
+  },
+  "negativeScenarios": [
+    "missing_parameter",
+    "proposed_parameter",
+    "wrong_source_hash",
+    "wrong_scenario_scope",
+    "wrong_units",
+    "negative_time",
+    "final_rest_unknown",
+    "variant_conflict",
+    "phase_peak",
+    "indoor_without_fan",
+    "missing_capacity",
+    "pain",
+    "stale_reference",
+    "adverse_recovery",
+    "source_altered",
+    "fake_coach_authorization"
+  ],
+  "allNewParametersAreNotBData": true
+}

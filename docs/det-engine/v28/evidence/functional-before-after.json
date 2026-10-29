@@ -1,0 +1,35 @@
+[
+  {
+    "scenarioId": "strength_between_explicit",
+    "sourceId": "A_STR_STABILITY_CORE",
+    "sourceHash": "655e2541ae16c7652d4edd0c8e9992ab16a625a906729e9c397b8b1ba7afb677",
+    "beforeFunction": "strengthExecutionV27, executed inside assessExecutionV27 with the same source; V27 has no explicit tempo/rest parameter contract",
+    "beforeCompleteDuration": null,
+    "afterCompleteDuration": 1834,
+    "afterTechnicallyComplete": true,
+    "individualApproval": false,
+    "syntheticParametersOnly": true
+  },
+  {
+    "scenarioId": "strength_after_each_explicit",
+    "sourceId": "A_STR_STABILITY_CORE",
+    "sourceHash": "655e2541ae16c7652d4edd0c8e9992ab16a625a906729e9c397b8b1ba7afb677",
+    "beforeFunction": "strengthExecutionV27, executed inside assessExecutionV27 with the same source; V27 has no explicit tempo/rest parameter contract",
+    "beforeCompleteDuration": null,
+    "afterCompleteDuration": 1924,
+    "afterTechnicallyComplete": true,
+    "individualApproval": false,
+    "syntheticParametersOnly": true
+  },
+  {
+    "scenarioId": "strength_occurrence_unknown",
+    "sourceId": "A_STR_STABILITY_CORE",
+    "sourceHash": "655e2541ae16c7652d4edd0c8e9992ab16a625a906729e9c397b8b1ba7afb677",
+    "beforeFunction": "strengthExecutionV27, executed inside assessExecutionV27 with the same source; V27 has no explicit tempo/rest parameter contract",
+    "beforeCompleteDuration": null,
+    "afterCompleteDuration": null,
+    "afterTechnicallyComplete": false,
+    "individualApproval": false,
+    "syntheticParametersOnly": true
+  }
+]

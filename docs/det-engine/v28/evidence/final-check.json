@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "documents": 8,
+  "originalCalendarsUnchanged": 3,
+  "previousFilesUnchanged": 5289,
+  "syntheticCompleteSourceCount": 4,
+  "originalBTechnicalExecutions": 3,
+  "individualApprovals": 0,
+  "changedPathsAllowed": 150,
+  "guardSourceSha256": "83a26920d68587629737ccac511719e3dd0fe5e6c24d6c0c3187cc03a243c7a3"
+}

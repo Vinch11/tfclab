@@ -1,0 +1,65 @@
+{
+  "version": "det-v28-state-1",
+  "status": "running",
+  "firstObservedAt": "2026-10-29T21:10:41+00:00",
+  "deadline": "2026-10-29T22:10:20+00:00",
+  "maxUnits": 10,
+  "budgetMinutes": 60,
+  "automaticRestart": false,
+  "baseline": "aaefc53771c6a12639b0e3669c58d922be162291",
+  "observedPhysiologySha": "429a84c1c35255843251a478ef3f48ab0dd907c6",
+  "units": [
+    {
+      "unit": 1,
+      "purpose": "Verify heads, preserve immutable baseline and preregister explicit synthetic parameters",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "purpose": "Implement source-bound parameter contract and reuse V27 multimodal IR",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "purpose": "Implement phase/variant alternatives and separate whole-block review",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "purpose": "Exercise preregistered synthetic and negative scenarios; preserve initial field mapping failure",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "purpose": "Independent arithmetical checks, source pins and deterministic validation",
+      "status": "complete"
+    },
+    {
+      "unit": 6,
+      "purpose": "Reject implicit strength final rest with independent red guard and unit witness; require new preregistered explicit conventions",
+      "status": "complete"
+    },
+    {
+      "unit": 7,
+      "purpose": "Revalidate explicit rest correction, independent multimodal arithmetic and full non-regression",
+      "status": "complete"
+    },
+    {
+      "unit": 8,
+      "purpose": "Generate eight readable review dossiers, provenance receipts and final publication guards",
+      "status": "complete"
+    },
+    {
+      "unit": 9,
+      "purpose": "Commit/push experimental V28 additions and update draft PR with verified results",
+      "status": "in_progress"
+    }
+  ],
+  "validationAttempts": 3,
+  "rejectedEvidence": [
+    "evidence/validation-1: implicit strength exercise/round final rest occurrence",
+    "evidence/validation-2: implicit peripheral transitions and boundary rest composition"
+  ],
+  "acceptedEvidence": "evidence/validation-3",
+  "creditQuotaAccessible": false
+}

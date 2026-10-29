@@ -1,0 +1,1 @@
+PASS: every complete strength scenario declares exercise and round final recovery occurrence

@@ -1,0 +1,16 @@
+{
+  "schema": "v28-strength-boundaries-3",
+  "registeredAt": "2026-10-29T21:29:49.999715+00:00",
+  "contextVersion": "v28-strength-boundaries-3",
+  "syntheticOnly": true,
+  "sourceId": "A_STR_STABILITY_CORE",
+  "priorRegistration": "docs/det-engine/v28/strength-rest-policy-registration.json",
+  "reason": "Independent guard rejects implicit zero peripheral transitions and undeclared composition at final-exercise/round boundaries. These are new explicit synthetic editorial parameters, not source facts or athlete observations.",
+  "peripheralTransitionSeconds": 5,
+  "roundTransitionsIncludedInRest": true,
+  "boundaryRestComposition": "additive_separate_segments",
+  "scope": "One transition warm-up to circuit and one circuit to cool-down, each5s; movement between rounds included in the declared round recovery. If both final exercise and round rests are requested, they are distinct consecutive additive segments. No inferred overlap or zero transition.",
+  "originalRepetitionsDurationsAndRestrictionsUnchanged": true,
+  "coachAuthorization": false,
+  "individualEvidence": false
+}

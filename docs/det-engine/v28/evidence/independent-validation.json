@@ -1,0 +1,63 @@
+{
+  "schema": "v28-independent-1",
+  "passed": true,
+  "previousFilesUnchanged": 5289,
+  "unchangedOriginalCalendars": 3,
+  "unchangedOriginalReservations": 90,
+  "BOriginalTechnicalExecutions": 3,
+  "BOriginalUniqueSourceIds": 1,
+  "syntheticScenarios": 11,
+  "syntheticCompleteTimingScenarios": 7,
+  "syntheticTechnicallyCompleteScenarios": 6,
+  "syntheticTechnicallyCompleteSourceIds": [
+    "A_STR_STABILITY_CORE",
+    "C_BIKE_AERO_POSITION_DRILLS",
+    "C_SWIM_CATCH_FOCUS",
+    "C_SWIM_TRI_CATCH_PULL"
+  ],
+  "syntheticCompleteSourceCount": 4,
+  "syntheticFullBlockReviewAccepted": 1,
+  "syntheticFractionalMinuteBlockRefusals": 5,
+  "individualApprovals": 0,
+  "humanSportingReviews": 0,
+  "automaticSubstitutions": 0,
+  "A_runRefusals": 7,
+  "C_individualRefusals": 26,
+  "longBikeVariantConflictsPreserved": 4,
+  "newCoachPolicyAuthorizations": 0,
+  "idsPreserved": 920,
+  "variantsPreserved": 2425,
+  "historicalConfigurationsPreservedNotRerun": 600,
+  "priorNolioFixturesPreserved": 15,
+  "independentNegativeChecks": [
+    {
+      "mutation": "invent_final_rest",
+      "rejected": true
+    },
+    {
+      "mutation": "invent_individual_approval",
+      "rejected": true
+    },
+    {
+      "mutation": "alter_source",
+      "rejected": true
+    },
+    {
+      "mutation": "invent_rep_tempo",
+      "rejected": true
+    },
+    {
+      "mutation": "borrow_css_for_drill",
+      "rejected": true
+    }
+  ],
+  "logicalReplay": {
+    "inputs.json.gz": "00f333ec68e7d12026f9cb355a59d9119fbbba2fc6cbaabcbdd2eca7a168d686",
+    "strengthRegistration.json.gz": "9b499034a7fd23af3c2738145a65d2818bb4c41b3c8ac3db39957663e00634ae",
+    "strengthBoundary.json.gz": "2086f6f4be7bd81bae6f0e043239bcab98835c5c4eba917eddff830c773d7a65",
+    "originals.json.gz": "5c34186dfe8e1ed9238b4173881661707072eaf7bebcf361fee1a98473fcea62",
+    "scenarios.json.gz": "51db9710fa25083bf2ada5cc9a3c0ebb49bb8de9393ea8243bdc2458e2671891",
+    "phases.json.gz": "4095c91d43017496d62aa1f5a7f7dd58c2dc00493a7734f87af4c7a00b69edaf"
+  },
+  "verifierSha256": "ce96daee3d4ca68a90a8252feb5b3126bd63cb15aeab73e41b504387f98d5b01"
+}
