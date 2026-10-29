@@ -1,0 +1,9 @@
+{
+  "createdAt": "2026-10-29T06:51:25.757106+00:00",
+  "purpose": "closure copy of original immutable authorization; not a renewal",
+  "startedAt": "2026-10-29T06:03:25+00:00",
+  "hardDeadline": "2026-10-29T07:03:25+00:00",
+  "maxSeconds": 3600,
+  "maxUnits": 10,
+  "automaticRenewal": false
+}

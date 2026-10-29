@@ -1,0 +1,14 @@
+✔ all four demonstrated pace-target losses are repaired from exact frozen source bounds (4.861979ms)
+✔ source comments, times, repeated order and repetition count remain intact in nested structures (0.811737ms)
+✔ changed source fingerprint, unresolved targets and real output requests refuse (0.406715ms)
+✔ a structural change by a normalizer is refused, not repaired by hiding it (0.600979ms)
+✔ no positive pace floor is invented and repeated normalization preserves the output payload (1.51502ms)
+✔ missing numeric target bounds and fractional seconds remain explicit refusals (0.608089ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16.748957

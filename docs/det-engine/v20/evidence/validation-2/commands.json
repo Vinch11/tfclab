@@ -1,0 +1,149 @@
+[
+  {
+    "name": "nolio_contracts",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v20-nolio.test.mjs"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 478,
+    "logBytes": 727,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "types",
+    "bin": "node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 40721,
+    "logBytes": 0,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "build_review",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v20-review-build.mjs",
+      "docs/det-engine/v20/evidence/validation-2/build/review"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1701,
+    "logBytes": 776,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "build_nolio",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v20-nolio-build.mjs",
+      "docs/det-engine/v20/evidence/validation-2/build/nolio"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 899,
+    "logBytes": 379,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "build_studies",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v20.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 10356,
+    "logBytes": 830,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "build_independent",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v20-independent.py",
+      "docs/det-engine/v20/evidence/validation-2/build",
+      "docs/det-engine/v20/evidence/validation-2/build/independent.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 678,
+    "logBytes": 734,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "replay_review",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v20-review-build.mjs",
+      "docs/det-engine/v20/evidence/validation-2/replay/review"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1841,
+    "logBytes": 776,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "replay_nolio",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v20-nolio-build.mjs",
+      "docs/det-engine/v20/evidence/validation-2/replay/nolio"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 966,
+    "logBytes": 379,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "replay_studies",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v20.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 10556,
+    "logBytes": 831,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "replay_independent",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v20-independent.py",
+      "docs/det-engine/v20/evidence/validation-2/replay",
+      "docs/det-engine/v20/evidence/validation-2/replay/independent.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 640,
+    "logBytes": 734,
+    "outputCapturedDirectly": true
+  }
+]

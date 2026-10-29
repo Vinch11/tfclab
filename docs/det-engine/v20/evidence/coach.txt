@@ -1,0 +1,1 @@
+{"sourceDossiers":51,"candidateViews":96,"allViewsActuallyDisplayed":true,"sourceInstructionsAndVariantsPreserved":true,"networkCalls":0,"noPrescriptionOrSyncControl":true}

@@ -1,0 +1,28 @@
+{
+  "proposalRows": 418,
+  "completeVariants": 96,
+  "distinctIds": 51,
+  "manuallySelectedScientificBriefIds": [
+    "C_IM_AERO_HOLD",
+    "B_BIKE_VO2_3MIN",
+    "C_BIKE_FORCE",
+    "D_TAPER_RUN_OPENER",
+    "D_TAPER_BIKE_OPENER",
+    "D_TAPER_SHAKEOUT",
+    "ENR_TAPER_OPENERS_BIKE",
+    "C_TR_SKILLS_TECH",
+    "A_TR_EASY_TRAIL_STRIDES",
+    "B_TR_HILL_SPRINTS_10x10",
+    "V3_RUN_10K_TEMPO_CRUISE",
+    "S2R_WALK_RUN_1_2",
+    "B_BIKE_SST_3x20",
+    "COGGAN_BIKE_SST_EXTENDED"
+  ],
+  "selectedScientificSources": 14,
+  "scientificExpertReviewClaimed": false,
+  "relativeLinksChecked": 49,
+  "missingLinks": [],
+  "arbitrationReplayIdentical": true,
+  "preexistingFilesUnchanged": 3954,
+  "initialDocumentCheckCorrection": "uppercase-only ID regex omitted lowercase x in two real IDs; corrected parser, no source or expected count changed"
+}

@@ -1,0 +1,4013 @@
+{
+  "syntheticOnly": true,
+  "scientificValidation": false,
+  "individualPrescriptionApproved": false,
+  "rows": [
+    {
+      "id": "low_vlamax",
+      "effective": {
+        "value": 0.2,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+          "date": "2026-10-27"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.2,
+          "high": 0.24
+        },
+        "variationWarning": false,
+        "rawValue": 0.2,
+        "v2": {
+          "raw": 0.2,
+          "effective": 0.2,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+          "calibrationLog": {
+            "date": "2026-10-29T06:03:25.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.2,
+            "effectiveValue": 0.2,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "sources": [
+              "preregistered synthetic stored field-test estimate, not raw acquisition"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "diagnosticEffectifs": {
+        "vlamax": {
+          "value": 0.2,
+          "source": "test",
+          "confidence": 0.75,
+          "label": "VLamax (test terrain)",
+          "details": {
+            "testType": "sprint",
+            "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+            "date": "2026-10-27"
+          },
+          "isLocked": false,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "variationWarning": false,
+          "rawValue": 0.2,
+          "v2": {
+            "raw": 0.2,
+            "effective": 0.2,
+            "source": "test_terrain",
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "range": {
+              "low": 0.2,
+              "high": 0.24
+            },
+            "label": "VLamax (test terrain)",
+            "isLocked": false,
+            "variationWarning": false,
+            "sport": "velo",
+            "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "calibrationLog": {
+              "date": "2026-10-29T06:03:25.000Z",
+              "source": "test_terrain",
+              "rawValue": 0.2,
+              "effectiveValue": 0.2,
+              "previousValue": null,
+              "variationPct": null,
+              "confidence": 0.75,
+              "errorMargin": 0.04,
+              "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+              "sources": [
+                "preregistered synthetic stored field-test estimate, not raw acquisition"
+              ],
+              "smoothingApplied": false
+            }
+          }
+        },
+        "tte": {
+          "tte_min": 39,
+          "source": "estimated",
+          "confidence": 0.5,
+          "label": "~39 min (approx.)",
+          "target": 50,
+          "status": "critical",
+          "status_message": "TTE insuffisant (-11 min vs cible 50)"
+        },
+        "fatigue": {
+          "score": 48,
+          "level": {
+            "min": 30,
+            "max": 55,
+            "label": "Fatigue modérée",
+            "shortLabel": "🟡 Modérée",
+            "description": "Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+            "color": "warning",
+            "colorClass": "text-amber-600 dark:text-amber-400",
+            "badgeClass": "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
+          },
+          "contributions": {
+            "chargeRecente": 40,
+            "fatiguePercue": 45,
+            "tte": 70,
+            "fraicheur": 50,
+            "modulateurs": 25
+          },
+          "contributionsWeighted": {
+            "chargeRecente": 16,
+            "fatiguePercue": 7,
+            "tte": 18,
+            "fraicheur": 6,
+            "modulateurs": 2
+          },
+          "confidence": 0.375,
+          "reasonsMissing": [
+            "TSS 7 jours",
+            "Fatigue perçue (check-in)"
+          ],
+          "messageAthlete": "Fatigue modérée – Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+          "messageStaff": "Fatigue fonctionnelle : 48% (Fatigue modérée)\n\nDécomposition :\n• Charge récente : +16% (indice brut: 40%)\n• Fatigue perçue : +7% (indice brut: 45%)\n• TTE effectif : +18% (indice brut: 70%)\n• Disponibilité métabolique : +6% (indice brut: 50%)\n• Facteurs individuels : +2% (indice brut: 25%)",
+          "recommendations": [
+            "Réduire l'intensité des prochaines séances",
+            "Prioriser la récupération : sommeil, nutrition, hydratation",
+            "Le TTE est impacté – éviter les efforts prolongés"
+          ],
+          "inputsUsed": {
+            "tss7d": null,
+            "tss7dHabituel": null,
+            "fatiguePercue": null,
+            "tteEffectif": 39,
+            "tteTarget": 50,
+            "potentielPhysiologique": null,
+            "age": 35,
+            "vlamax": 0.2
+          }
+        }
+      },
+      "limiters": [
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "strategy": {
+        "source": "lorang",
+        "primaryAction": "Focus Volume Z2 / Endurance",
+        "confidence": "high",
+        "levers": [
+          {
+            "id": "z2_volume",
+            "label": "Volume Z2 / Endurance",
+            "priority": 1,
+            "reason": "TTE 34% sous la cible (39min vs 59min) — développer la durabilité",
+            "adaptations": [
+              "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+              "2×20-30min au seuil pour augmenter le TTE",
+              "Z2 + bloc tempo final 20-30min",
+              "Progression charge +10%/semaine max"
+            ]
+          },
+          {
+            "id": "threshold_work",
+            "label": "Travail au Seuil",
+            "priority": 2,
+            "reason": "FTP/kg 12% sous la cible (3.9 vs 4.4) — développer la puissance soutenue",
+            "adaptations": [
+              "2×20min au seuil (FTP/allure seuil)",
+              "Sweet Spot 88-93% FTP / allure semi",
+              "Intervalles tempo 10-20min",
+              "Progression : durée au seuil +5min/semaine"
+            ]
+          },
+          {
+            "id": "force_max",
+            "label": "Force Max",
+            "priority": 2,
+            "reason": "Économie faible — renforcement musculaire nécessaire",
+            "adaptations": [
+              "Gym lourde 85–95% 1RM",
+              "3–5 répétitions par série",
+              "2–3 séries max",
+              "1–2x/semaine (hors semaines de course)"
+            ]
+          }
+        ],
+        "trainingFocus": {
+          "do": [],
+          "avoid": []
+        },
+        "recommendedWeekType": "endurance"
+      },
+      "trace": {
+        "version": 1,
+        "diagnostic": {
+          "executed": true,
+          "confidenceGlobal": 0.375,
+          "dataCompleteness": 1,
+          "limiters": [
+            {
+              "metric": "TTE",
+              "priority": 1,
+              "status": "limiting",
+              "value": 39,
+              "target": 59,
+              "weightedImpact": 30.508474576271187
+            },
+            {
+              "metric": "FTP/kg",
+              "priority": 2,
+              "status": "limiting",
+              "value": 3.888888888888889,
+              "target": 4.41,
+              "weightedImpact": 10.04409171075838
+            },
+            {
+              "metric": "VO2max",
+              "priority": 3,
+              "status": "acceptable",
+              "value": 58,
+              "target": 62.4,
+              "weightedImpact": 5.394230769230768
+            }
+          ],
+          "uncertainty": [
+            "Confiance diagnostique limitée (38%)."
+          ]
+        },
+        "decision": {
+          "executed": true,
+          "source": "lorang",
+          "confidence": "high",
+          "primaryAction": "Focus Volume Z2 / Endurance",
+          "levers": [
+            {
+              "id": "z2_volume",
+              "label": "Volume Z2 / Endurance",
+              "priority": 1,
+              "reason": "TTE 34% sous la cible (39min vs 59min) — développer la durabilité",
+              "adaptations": [
+                "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+                "2×20-30min au seuil pour augmenter le TTE",
+                "Z2 + bloc tempo final 20-30min",
+                "Progression charge +10%/semaine max"
+              ]
+            },
+            {
+              "id": "threshold_work",
+              "label": "Travail au Seuil",
+              "priority": 2,
+              "reason": "FTP/kg 12% sous la cible (3.9 vs 4.4) — développer la puissance soutenue",
+              "adaptations": [
+                "2×20min au seuil (FTP/allure seuil)",
+                "Sweet Spot 88-93% FTP / allure semi",
+                "Intervalles tempo 10-20min",
+                "Progression : durée au seuil +5min/semaine"
+              ]
+            },
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            }
+          ],
+          "prohibitions": [
+            {
+              "id": "vo2_heavy_blocks",
+              "label": "Blocs VO2 lourds",
+              "reason": "Incompatible avec le travail de force max"
+            }
+          ],
+          "trainingFocus": {
+            "do": [],
+            "avoid": []
+          },
+          "weekType": "endurance"
+        },
+        "transmission": {
+          "identifiedLimitersRaw": {
+            "status": "consumed",
+            "origin": "diagnostic.limiter.gapAnalysis",
+            "consumers": [
+              "workoutCatalogBuilder.scoreWorkout",
+              "edge.buildStructuredDiagnosticBlock",
+              "server.reconciler"
+            ],
+            "detail": "Ordre transmis: TTE > FTP/kg > VO2max"
+          },
+          "activeLevers": {
+            "status": "consumed",
+            "origin": "decision.strategy.levers",
+            "consumers": [
+              "edge.buildStructuredDiagnosticBlock"
+            ],
+            "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+          },
+          "prohibitions": {
+            "status": "consumed",
+            "origin": "planConfigBuilder + decision.strategy.prohibitions",
+            "consumers": [
+              "workoutCatalogBuilder.prohibitions",
+              "edge.buildStructuredDiagnosticBlock"
+            ]
+          },
+          "strategyContext": {
+            "status": "consumed",
+            "origin": "decision.strategy (lorang)",
+            "consumers": [
+              "edge.buildStructuredDiagnosticBlock"
+            ],
+            "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+          },
+          "prescriptionIntent": {
+            "status": "not_verified",
+            "origin": "plan final généré",
+            "consumers": [],
+            "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+          }
+        }
+      },
+      "refs": {
+        "ftpWatts": 280,
+        "mlssSpeedKmh": 16.363636363636363,
+        "runReference": {
+          "paceThresholdSecPerKm": 220,
+          "origin": "TFCLab transmitted raw synthetic threshold pace",
+          "runMLSS": {
+            "observedPct": 90.9,
+            "prediction": {
+              "mlssPct": 93.7,
+              "confidence": 0.75,
+              "trace": {
+                "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                "vlamaxContribution": 16.85,
+                "ceContribution": -10.5,
+                "rmseExpected": 2.64
+              }
+            },
+            "crossValidation": {
+              "observed": 90.9,
+              "predicted": 93.7,
+              "deltaPct": -2.8,
+              "isCoherent": true,
+              "severity": "ok",
+              "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+              "predictionConfidence": 0.75
+            },
+            "effectivePct": 90.9,
+            "effectiveSource": "observed"
+          },
+          "predictionIsNotMeasuredMLSS": true
+        },
+        "vlamaxEffective": {
+          "value": 0.2,
+          "source": "test",
+          "confidence": 0.75,
+          "label": "VLamax (test terrain)",
+          "details": {
+            "testType": "sprint",
+            "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+            "date": "2026-10-27"
+          },
+          "isLocked": false,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "variationWarning": false,
+          "rawValue": 0.2,
+          "v2": {
+            "raw": 0.2,
+            "effective": 0.2,
+            "source": "test_terrain",
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "range": {
+              "low": 0.2,
+              "high": 0.24
+            },
+            "label": "VLamax (test terrain)",
+            "isLocked": false,
+            "variationWarning": false,
+            "sport": "velo",
+            "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "calibrationLog": {
+              "date": "2026-10-29T06:03:25.000Z",
+              "source": "test_terrain",
+              "rawValue": 0.2,
+              "effectiveValue": 0.2,
+              "previousValue": null,
+              "variationPct": null,
+              "confidence": 0.75,
+              "errorMargin": 0.04,
+              "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+              "sources": [
+                "preregistered synthetic stored field-test estimate, not raw acquisition"
+              ],
+              "smoothingApplied": false
+            }
+          }
+        },
+        "tteEffective": {
+          "tte_min": 39,
+          "source": "estimated",
+          "confidence": 0.5,
+          "label": "~39 min (approx.)",
+          "target": 50,
+          "status": "critical",
+          "status_message": "TTE insuffisant (-11 min vs cible 50)"
+        },
+        "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+      },
+      "catalogue": [
+        "SEILER_SWIM_Z1_VOLUME",
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "B_IM_RUN_NEG_SPLIT_LR",
+        "A_SWIM_END_CSS_PRO",
+        "SEILER_BIKE_Z1_LONG",
+        "B_IM_RUN_LATE_RACE_FRACTIONS",
+        "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "COGGAN_BIKE_FTP_RAMP_TEST",
+        "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+        "A_RUN_Z2_EASY",
+        "A_SWIM_PULL_LONG_DISTANCE",
+        "D_SWIM_TRI_REGEN_1000",
+        "C_STR_CIRCUIT_CARDIO_TRI",
+        "C_SWIM_TRI_SIGHTING_DRILLS",
+        "C_STR_RUN_DRILLS_PRO",
+        "C_SWIM_TECH_DRILLS",
+        "C_SWIM_TRI_CATCH_PULL",
+        "A_STR_AERO_STRENGTH",
+        "A_BIKE_LONG_IM_PRO",
+        "C_STR_ISOMETRIC_UPPER",
+        "A_STR_ENDURANCE_CIRCUIT",
+        "C_BRICK_TRANSITION_DRILL",
+        "V3_BIKE_CADENCE_DRILLS",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "C_STR_ANKLE_FOOT_COMPLEX",
+        "C_STR_RUN_FORM_STRIDES",
+        "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "C_STR_CYCLIST_NECK_BACK",
+        "C_BIKE_CADENCE_SKILLS_PRO",
+        "C_RUN_HILL_SKILLS",
+        "A_SWIM_CONTINUOUS_2K",
+        "C_SWIM_KICK_SET",
+        "V2_RUN_EDUCATIFS_TECHNIQUES",
+        "V2_STR_HANCHE_COUREUR",
+        "A_SWIM_PULL_ENDURANCE",
+        "V2_BIKE_SINGLE_LEG",
+        "RECOVERY_YOGA_MOBILITY_TRI",
+        "D_DELOAD_RUN",
+        "ECONOMY_RUN_FATIGUE_FORM",
+        "A_BIKE_Z2_LONG",
+        "D_SEMI_RECOVERY_30",
+        "TPL_IM_BIKE_FOUNDATION_4H30",
+        "D_RECOVERY_VAR_8_PRO",
+        "D_MOBILITY_HIPS_DEEP",
+        "C_STR_GLUTE_REACTIVATION",
+        "D_RECOVERY_VAR_7_PRO",
+        "D_MOBILITY_THORACIC",
+        "C_STR_HIP_MOBILITY_PRO",
+        "D_RECOVERY_VAR_10_PRO",
+        "D_RECOVERY_VAR_9_PRO",
+        "REST_ACTIVE_WALK",
+        "D_RECOVERY_VAR_6_PRO",
+        "D_RECOVERY_VAR_1_PRO",
+        "D_RUN_RECOVERY_30_PRO",
+        "ENR_RECUP_ACTIVE_MULTI",
+        "C_STR_SINGLE_LEG_RUNNER",
+        "C_STR_THORACIC_POSTURAL_RESET",
+        "D_MOBILITY_ROUTINE",
+        "A_RUN_EASY_STRIDES_PRO",
+        "D_RECOVERY_VAR_3_PRO",
+        "SEILER_RUN_BLACK_HOLE_AUDIT",
+        "BRICK_STAGE1_INTRO",
+        "RMT_INSPIRATORY_INTRO",
+        "C_SWIM_TRI_BILATERAL_BREATHING",
+        "V3_BIKE_RAMP_TEST",
+        "A_SWIM_TRI_OPEN_WATER_SIMU",
+        "V3_BIKE_FATMAX_LONG",
+        "C_STR_UPPER_BODY_TRI",
+        "C_SWIM_TRI_KICK_EFFICIENCY",
+        "BRICK_ACTIVATION_PRE_RACE",
+        "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+        "TPL_SEMI_VMA_COURTE_30_30",
+        "V2_BIKE_FATMAX_LONG",
+        "C_RESP_INSPIRATORY_MUSCLE",
+        "C_BIKE_FORCE",
+        "D_YOGA_POWER_LIGHT",
+        "D_YOGA_ATHLETE",
+        "TT_5K_TEST",
+        "RECOVERY_HRV_GUIDED_DAY",
+        "C_STR_TIBIAL_SHIN_SPLINTS",
+        "V3_BIKE_FORCE_SFR",
+        "BILLAT_RUN_ECONOMY_STRIDES",
+        "TPL_IM_BIKE_FORCE_K3",
+        "REST_FULL_DAY",
+        "V2_RECUP_VELO_REGENERATION",
+        "V2_RECUP_FOAM_ROLLING",
+        "FATMAX_BIKE_FATFLUSH",
+        "D_PRE_RACE_ACTIVATION_RUN",
+        "D_ACTIVATION_GLUTES",
+        "D_FOAM_ROLLING",
+        "D_BREATHWORK_NASAL_ENDURANCE",
+        "ECONOMY_RUN_POSE_DRILLS",
+        "BILLAT_RUN_TLIM_TEST",
+        "V3_TEST_COOPER",
+        "V3_TEST_LACTATE_STEP",
+        "C_10K_STRIDES_SPEED",
+        "C_SEMI_HILL_STRENGTH",
+        "C_MAR_HILL_STRENGTH",
+        "BFR_LEGS_RECOVERY_STRENGTH",
+        "RMT_EXPIRATORY_CORE",
+        "SEILER_RUN_Z1_EASY_LONG",
+        "A_SWIM_TRI_EASY_TECH_1500",
+        "C_STR_ISOMETRIC_LOWER",
+        "C_SWIM_CATCH_FOCUS",
+        "B_SWIM_TRI_NEGATIVE_SPLIT",
+        "C_SWIM_TECH_DRILLS_PRO",
+        "C_STR_KETTLEBELL_FLOW",
+        "C_SWIM_LEGS_ENDURANCE",
+        "D_SWIM_EASY_PRO",
+        "D_SWIM_REGEN",
+        "A_SWIM_AEROBIC",
+        "V2_SWIM_TECHNIQUE_CATCH",
+        "C_SWIM_BILATERAL_BREATH",
+        "OWS_NAVIGATION_SIGHTING",
+        "OWS_WETSUIT_SPECIFIC",
+        "C_SWIM_OPEN_WATER_SKILLS",
+        "C_SWIM_TURNS_STARTS",
+        "A_RUN_DURABILITY_LONG",
+        "C_STR_FULL_BODY_PRO",
+        "D_ACTIVATION_ANKLE_FOOT",
+        "D_RECOVERY_VAR_4_PRO",
+        "C_STR_ANKLE_PROPRIO_PRO",
+        "V2_RECUP_NAGE_DETENTE",
+        "C_STR_HIP_MOBILITY_DYNAMIC",
+        "V2_SWIM_TECHNIQUE_ROTATION",
+        "V3_RECUP_YOGA_ATHLETE",
+        "ENR_RECUP_MOBILITE_YOGA",
+        "C_STR_BEGINNER_FOUNDATION_FULL",
+        "C_STR_TOTAL_BODY_45",
+        "V3_RECUP_FOAM_ROLL",
+        "D_RECOVERY_VAR_2_PRO",
+        "D_SWIM_RECOVERY_EASY",
+        "A_STR_STABILITY_CORE",
+        "D_SWIM_TECHNIQUE_LIGHT",
+        "D_RECOVERY_VAR_5_PRO",
+        "A_IM_BIKE_STEADY_LONG",
+        "A_RUN_FARTLEK_LIBRE",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "V3_BIKE_Z2_PROGRESSIF",
+        "D_10K_RECOVERY_30",
+        "A_RUN_EASY_45_PRO",
+        "A_SWIM_AEROBIC_MULTI_NAGES",
+        "B_703_RUN_NEG_SPLIT",
+        "A_BIKE_END_90_PRO",
+        "A_10K_LONG_RUN_75",
+        "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "EXPE_HORS_VILLE_SL_DPLUS",
+        "B_TR_DESCENT_TOLERANCE_8x2",
+        "B_TR_HILL_REPS_SHORT",
+        "B_TR50_DESCENT_SPEED",
+        "URBAN_COTES_URBAINES_VMA",
+        "B_TR_FARTLEK_TRAIL_10x1_2",
+        "B_TR_DESCENTE_ECCENTRIC",
+        "B_TR_DESCENT_TOLERANCE",
+        "URBAN_ESCALIERS_PYRAMIDE",
+        "V3_TRAIL_ULTRA_NIGHT",
+        "EXPE_HORS_VILLE_NOCTURNE"
+      ],
+      "sourceTimedSubset": [
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "SEILER_BIKE_Z1_LONG",
+        "A_RUN_Z2_EASY",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "V3_BIKE_FATMAX_LONG",
+        "V2_BIKE_FATMAX_LONG",
+        "A_IM_BIKE_STEADY_LONG",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "A_RUN_EASY_45_PRO",
+        "V3_TRAIL_ULTRA_NIGHT"
+      ],
+      "editorialOffers": [
+        "C_BIKE_FORCE",
+        "TPL_IM_BIKE_FORCE_K3",
+        "C_10K_STRIDES_SPEED"
+      ],
+      "prescriptions": [
+        {
+          "legacyId": "D_BIKE_RECOVERY",
+          "sourceRecipeStatus": "complete",
+          "durationSeconds": 1800,
+          "sourceInstructions": [
+            {
+              "part": "Main",
+              "text": "30–60 min Z1, très facile",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "references": {
+            "ftpWatts": 280,
+            "mlssSpeedKmh": 16.363636363636363,
+            "runReference": {
+              "paceThresholdSecPerKm": 220,
+              "origin": "TFCLab transmitted raw synthetic threshold pace",
+              "runMLSS": {
+                "observedPct": 90.9,
+                "prediction": {
+                  "mlssPct": 93.7,
+                  "confidence": 0.75,
+                  "trace": {
+                    "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                    "vlamaxContribution": 16.85,
+                    "ceContribution": -10.5,
+                    "rmseExpected": 2.64
+                  }
+                },
+                "crossValidation": {
+                  "observed": 90.9,
+                  "predicted": 93.7,
+                  "deltaPct": -2.8,
+                  "isCoherent": true,
+                  "severity": "ok",
+                  "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+                  "predictionConfidence": 0.75
+                },
+                "effectivePct": 90.9,
+                "effectiveSource": "observed"
+              },
+              "predictionIsNotMeasuredMLSS": true
+            },
+            "vlamaxEffective": {
+              "value": 0.2,
+              "source": "test",
+              "confidence": 0.75,
+              "label": "VLamax (test terrain)",
+              "details": {
+                "testType": "sprint",
+                "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+                "date": "2026-10-27"
+              },
+              "isLocked": false,
+              "errorMargin": 0.04,
+              "range": {
+                "low": 0.2,
+                "high": 0.24
+              },
+              "variationWarning": false,
+              "rawValue": 0.2,
+              "v2": {
+                "raw": 0.2,
+                "effective": 0.2,
+                "source": "test_terrain",
+                "confidence": 0.75,
+                "errorMargin": 0.04,
+                "range": {
+                  "low": 0.2,
+                  "high": 0.24
+                },
+                "label": "VLamax (test terrain)",
+                "isLocked": false,
+                "variationWarning": false,
+                "sport": "velo",
+                "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+                "calibrationLog": {
+                  "date": "2026-10-29T06:03:25.000Z",
+                  "source": "test_terrain",
+                  "rawValue": 0.2,
+                  "effectiveValue": 0.2,
+                  "previousValue": null,
+                  "variationPct": null,
+                  "confidence": 0.75,
+                  "errorMargin": 0.04,
+                  "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+                  "sources": [
+                    "preregistered synthetic stored field-test estimate, not raw acquisition"
+                  ],
+                  "smoothingApplied": false
+                }
+              }
+            },
+            "tteEffective": {
+              "tte_min": 39,
+              "source": "estimated",
+              "confidence": 0.5,
+              "label": "~39 min (approx.)",
+              "target": 50,
+              "status": "critical",
+              "status_message": "TTE insuffisant (-11 min vs cible 50)"
+            },
+            "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+          },
+          "capacityState": "not_attested",
+          "individualPrescriptionApproved": false,
+          "scientificValidation": false,
+          "sourceDurationUnchanged": true,
+          "status": "prospective_candidate_not_approved",
+          "sourceZone": "Z1",
+          "domain": "recovery",
+          "bindingOrigin": "preregistered synthetic coach convention, not a new scientific fact",
+          "target": {
+            "unit": "W",
+            "min": 0,
+            "max": 154
+          },
+          "anchor": 280,
+          "rule": "src/lib/zones/tfclDoctrine.ts",
+          "doseOptimalityClaim": false
+        },
+        {
+          "legacyId": "D_RUN_REGEN",
+          "sourceRecipeStatus": "complete",
+          "durationSeconds": 1200,
+          "sourceInstructions": [
+            {
+              "part": "Main",
+              "text": "20–45 min Z1, relâché",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "references": {
+            "ftpWatts": 280,
+            "mlssSpeedKmh": 16.363636363636363,
+            "runReference": {
+              "paceThresholdSecPerKm": 220,
+              "origin": "TFCLab transmitted raw synthetic threshold pace",
+              "runMLSS": {
+                "observedPct": 90.9,
+                "prediction": {
+                  "mlssPct": 93.7,
+                  "confidence": 0.75,
+                  "trace": {
+                    "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                    "vlamaxContribution": 16.85,
+                    "ceContribution": -10.5,
+                    "rmseExpected": 2.64
+                  }
+                },
+                "crossValidation": {
+                  "observed": 90.9,
+                  "predicted": 93.7,
+                  "deltaPct": -2.8,
+                  "isCoherent": true,
+                  "severity": "ok",
+                  "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+                  "predictionConfidence": 0.75
+                },
+                "effectivePct": 90.9,
+                "effectiveSource": "observed"
+              },
+              "predictionIsNotMeasuredMLSS": true
+            },
+            "vlamaxEffective": {
+              "value": 0.2,
+              "source": "test",
+              "confidence": 0.75,
+              "label": "VLamax (test terrain)",
+              "details": {
+                "testType": "sprint",
+                "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+                "date": "2026-10-27"
+              },
+              "isLocked": false,
+              "errorMargin": 0.04,
+              "range": {
+                "low": 0.2,
+                "high": 0.24
+              },
+              "variationWarning": false,
+              "rawValue": 0.2,
+              "v2": {
+                "raw": 0.2,
+                "effective": 0.2,
+                "source": "test_terrain",
+                "confidence": 0.75,
+                "errorMargin": 0.04,
+                "range": {
+                  "low": 0.2,
+                  "high": 0.24
+                },
+                "label": "VLamax (test terrain)",
+                "isLocked": false,
+                "variationWarning": false,
+                "sport": "velo",
+                "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+                "calibrationLog": {
+                  "date": "2026-10-29T06:03:25.000Z",
+                  "source": "test_terrain",
+                  "rawValue": 0.2,
+                  "effectiveValue": 0.2,
+                  "previousValue": null,
+                  "variationPct": null,
+                  "confidence": 0.75,
+                  "errorMargin": 0.04,
+                  "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+                  "sources": [
+                    "preregistered synthetic stored field-test estimate, not raw acquisition"
+                  ],
+                  "smoothingApplied": false
+                }
+              }
+            },
+            "tteEffective": {
+              "tte_min": 39,
+              "source": "estimated",
+              "confidence": 0.5,
+              "label": "~39 min (approx.)",
+              "target": 50,
+              "status": "critical",
+              "status_message": "TTE insuffisant (-11 min vs cible 50)"
+            },
+            "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+          },
+          "capacityState": "not_attested",
+          "individualPrescriptionApproved": false,
+          "scientificValidation": false,
+          "sourceDurationUnchanged": true,
+          "status": "prospective_candidate_not_approved",
+          "sourceZone": "Z1",
+          "domain": "recovery",
+          "bindingOrigin": "preregistered synthetic coach convention, not a new scientific fact",
+          "target": {
+            "unit": "m/s",
+            "min": 0,
+            "max": 3.4090909090909096
+          },
+          "anchor": 16.363636363636363,
+          "rule": "src/lib/zones/tfclDoctrine.ts",
+          "doseOptimalityClaim": false
+        }
+      ],
+      "prospectiveNolioFixtures": [
+        {
+          "legacyId": "D_BIKE_RECOVERY",
+          "originalV19SyntheticTarget": {
+            "type": "step",
+            "step_duration_type": "duration",
+            "step_duration_value": 1800,
+            "intensity_type": "active",
+            "target_type": "power",
+            "target_unit": "W",
+            "target_value_min": 0,
+            "target_value_max": 137.5,
+            "notes": "30–60 min Z1, très facile"
+          },
+          "sourcePrescription": {
+            "id_partner": 224706035783834,
+            "athlete_id": 1,
+            "sport_id": 14,
+            "name": "Récupération, circulation, fraîcheur",
+            "date_start": "2026-11-02",
+            "description": "# Récupération, circulation, fraîcheur\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nDurée annoncée : 30–60 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nCatégorie historique : D\n\nDiscipline source : cyclisme\n\nObjectif : Récupération, circulation, fraîcheur\n\nNécessité annoncée : Obligatoire\n\nPlacement annoncé : Taper / lendemain charge\n\nPhases opérationnelles : [\n  \"taper\"\n]\n\nRestrictions : aucun\n\nPlage de durée annoncée (min) : [\n  30,\n  60\n]\n\nMesure de référence : puissance\n\nContexte de mesure : cyclisme\n\n## Déroulement original\n\n### Main\n\n30–60 min Z1, très facile\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : parfait\n\nhalf : parfait\n\nmarathon : optionnel\n\nsemi : optionnel\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\"\n]\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 30 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1800 s, à partir de « 30–60 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+            "duration": 1800,
+            "structured_workout": [
+              {
+                "type": "step",
+                "step_duration_type": "duration",
+                "step_duration_value": 1800,
+                "intensity_type": "active",
+                "target_type": "power",
+                "target_unit": "W",
+                "target_value_min": 0,
+                "target_value_max": 154,
+                "notes": "30–60 min Z1, très facile"
+              }
+            ]
+          },
+          "result": {
+            "status": "experimental_source_fidelity_pass",
+            "payload": {
+              "id_partner": 224706035783834,
+              "athlete_id": 1,
+              "sport_id": 14,
+              "name": "Récupération, circulation, fraîcheur",
+              "date_start": "2026-11-02",
+              "description": "# Récupération, circulation, fraîcheur\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nDurée annoncée : 30–60 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nCatégorie historique : D\n\nDiscipline source : cyclisme\n\nObjectif : Récupération, circulation, fraîcheur\n\nNécessité annoncée : Obligatoire\n\nPlacement annoncé : Taper / lendemain charge\n\nPhases opérationnelles : [\n  \"taper\"\n]\n\nRestrictions : aucun\n\nPlage de durée annoncée (min) : [\n  30,\n  60\n]\n\nMesure de référence : puissance\n\nContexte de mesure : cyclisme\n\n## Déroulement original\n\n### Main\n\n30–60 min Z1, très facile\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : parfait\n\nhalf : parfait\n\nmarathon : optionnel\n\nsemi : optionnel\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\"\n]\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 30 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1800 s, à partir de « 30–60 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+              "duration": 1800,
+              "structured_workout": [
+                {
+                  "type": "step",
+                  "step_duration_type": "duration",
+                  "step_duration_value": 1800,
+                  "intensity_type": "active",
+                  "target_type": "power",
+                  "target_value_max": 154,
+                  "target_value_min": 0,
+                  "comment": "30–60 min Z1, très facile"
+                }
+              ]
+            },
+            "sourcePayloadHash": "312e0c77095135e931fa504dca099b44b83947b7a24e1e82f42bc5ecf41315fb",
+            "actions": [],
+            "documentedFieldMapping": [
+              {
+                "path": "structured_workout[0].notes",
+                "action": "copy_exactly_to_documented_comment",
+                "sourceTextUnchanged": true
+              },
+              {
+                "path": "structured_workout[0].target_unit",
+                "action": "omit_redundant_W_tag_power_unit_is_documented_W",
+                "numericTargetUnchanged": true
+              }
+            ],
+            "sourceTargetsResolvedByInputNotByThisFunction": true,
+            "sourceDoseAndInstructionLayoutPreserved": true,
+            "usesProductionSender": false,
+            "reapplyingProductionNormalizerMayUndoRepair": true,
+            "remoteAcceptanceVerified": false,
+            "individualPrescriptionApproved": false,
+            "scientificValidation": false,
+            "realExportPermitted": false,
+            "productionSenderChanged": false
+          },
+          "intensityDifferenceOrigin": "new preregistered TFCLab references, not dose optimization or new capacity"
+        },
+        {
+          "legacyId": "D_RUN_REGEN",
+          "originalV19SyntheticTarget": {
+            "type": "step",
+            "step_duration_type": "duration",
+            "step_duration_value": 1200,
+            "intensity_type": "active",
+            "target_type": "pace",
+            "target_value_min": 0,
+            "target_value_max": 2.5,
+            "notes": "20–45 min Z1, relâché"
+          },
+          "sourcePrescription": {
+            "id_partner": 237885225166052,
+            "athlete_id": 1,
+            "sport_id": 2,
+            "name": "Régénération, prévention blessures",
+            "date_start": "2026-11-02",
+            "description": "# Régénération, prévention blessures\n\nIdentifiant historique : D_RUN_REGEN\n\nDurée annoncée : 20–45 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_RUN_REGEN\n\nCatégorie historique : D\n\nDiscipline source : course\n\nObjectif : Régénération, prévention blessures\n\nNécessité annoncée : Recommandé\n\nPlacement annoncé : lendemain séance B / taper\n\nPhases opérationnelles : [\n  \"base\",\n  \"build\",\n  \"peak\",\n  \"taper\"\n]\n\nRestrictions : si douleur\n\nPlage de durée annoncée (min) : [\n  20,\n  45\n]\n\nMesure de référence : cardiaque\n\nContexte de mesure : tout sport\n\n## Déroulement original\n\n### Main\n\n20–45 min Z1, relâché\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : brick très facile ok\n\nhalf : ok\n\nmarathon : ok\n\nsemi : ok\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\",\n  \"marathon\",\n  \"semi\"\n]\n\nPhases avant enrichissement : [\n  \"taper\"\n]. L'élargissement logiciel ne vaut pas validation sportive.\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 20 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1200 s, à partir de « 20–45 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+            "duration": 1200,
+            "structured_workout": [
+              {
+                "type": "step",
+                "step_duration_type": "duration",
+                "step_duration_value": 1200,
+                "intensity_type": "active",
+                "target_type": "pace",
+                "target_value_min": 0,
+                "target_value_max": 3.4090909090909096,
+                "notes": "20–45 min Z1, relâché"
+              }
+            ]
+          },
+          "result": {
+            "status": "experimental_source_fidelity_pass",
+            "payload": {
+              "id_partner": 237885225166052,
+              "athlete_id": 1,
+              "sport_id": 2,
+              "name": "Régénération, prévention blessures",
+              "date_start": "2026-11-02",
+              "description": "# Régénération, prévention blessures\n\nIdentifiant historique : D_RUN_REGEN\n\nDurée annoncée : 20–45 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_RUN_REGEN\n\nCatégorie historique : D\n\nDiscipline source : course\n\nObjectif : Régénération, prévention blessures\n\nNécessité annoncée : Recommandé\n\nPlacement annoncé : lendemain séance B / taper\n\nPhases opérationnelles : [\n  \"base\",\n  \"build\",\n  \"peak\",\n  \"taper\"\n]\n\nRestrictions : si douleur\n\nPlage de durée annoncée (min) : [\n  20,\n  45\n]\n\nMesure de référence : cardiaque\n\nContexte de mesure : tout sport\n\n## Déroulement original\n\n### Main\n\n20–45 min Z1, relâché\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : brick très facile ok\n\nhalf : ok\n\nmarathon : ok\n\nsemi : ok\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\",\n  \"marathon\",\n  \"semi\"\n]\n\nPhases avant enrichissement : [\n  \"taper\"\n]. L'élargissement logiciel ne vaut pas validation sportive.\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 20 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1200 s, à partir de « 20–45 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+              "duration": 1200,
+              "structured_workout": [
+                {
+                  "type": "step",
+                  "step_duration_type": "duration",
+                  "step_duration_value": 1200,
+                  "intensity_type": "active",
+                  "target_type": "pace",
+                  "target_value_max": 3.4090909090909096,
+                  "target_value_min": 0,
+                  "comment": "20–45 min Z1, relâché"
+                }
+              ]
+            },
+            "sourcePayloadHash": "084c284557740b699e8f20484a247bf790cf8090668f20e14377010a3804e3a1",
+            "actions": [
+              {
+                "step": 0,
+                "field": "target_type",
+                "source": "pace",
+                "historical": "no_target",
+                "experimental": "pace",
+                "reason": "restore_explicit_source_target_semantics",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              },
+              {
+                "step": 0,
+                "field": "target_value_min",
+                "source": 0,
+                "historical": null,
+                "experimental": 0,
+                "reason": "retain_exact_source_bound_without_machine_rounding",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              },
+              {
+                "step": 0,
+                "field": "target_value_max",
+                "source": 3.4090909090909096,
+                "historical": null,
+                "experimental": 3.4090909090909096,
+                "reason": "retain_exact_source_bound_without_machine_rounding",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              }
+            ],
+            "documentedFieldMapping": [
+              {
+                "path": "structured_workout[0].notes",
+                "action": "copy_exactly_to_documented_comment",
+                "sourceTextUnchanged": true
+              }
+            ],
+            "sourceTargetsResolvedByInputNotByThisFunction": true,
+            "sourceDoseAndInstructionLayoutPreserved": true,
+            "usesProductionSender": false,
+            "reapplyingProductionNormalizerMayUndoRepair": true,
+            "remoteAcceptanceVerified": false,
+            "individualPrescriptionApproved": false,
+            "scientificValidation": false,
+            "realExportPermitted": false,
+            "productionSenderChanged": false
+          },
+          "intensityDifferenceOrigin": "new preregistered TFCLab references, not dose optimization or new capacity"
+        }
+      ]
+    },
+    {
+      "id": "high_vlamax",
+      "effective": {
+        "value": 0.9,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+          "date": "2026-10-27"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.86,
+          "high": 0.94
+        },
+        "variationWarning": false,
+        "rawValue": 0.9,
+        "v2": {
+          "raw": 0.9,
+          "effective": 0.9,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.86,
+            "high": 0.94
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.900 · Effectif: 0.90 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+          "calibrationLog": {
+            "date": "2026-10-29T06:03:25.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.9,
+            "effectiveValue": 0.9,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "sources": [
+              "preregistered synthetic stored field-test estimate, not raw acquisition"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "diagnosticEffectifs": {
+        "vlamax": {
+          "value": 0.9,
+          "source": "test",
+          "confidence": 0.75,
+          "label": "VLamax (test terrain)",
+          "details": {
+            "testType": "sprint",
+            "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+            "date": "2026-10-27"
+          },
+          "isLocked": false,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.86,
+            "high": 0.94
+          },
+          "variationWarning": false,
+          "rawValue": 0.9,
+          "v2": {
+            "raw": 0.9,
+            "effective": 0.9,
+            "source": "test_terrain",
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "range": {
+              "low": 0.86,
+              "high": 0.94
+            },
+            "label": "VLamax (test terrain)",
+            "isLocked": false,
+            "variationWarning": false,
+            "sport": "velo",
+            "details": "Brut: 0.900 · Effectif: 0.90 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "calibrationLog": {
+              "date": "2026-10-29T06:03:25.000Z",
+              "source": "test_terrain",
+              "rawValue": 0.9,
+              "effectiveValue": 0.9,
+              "previousValue": null,
+              "variationPct": null,
+              "confidence": 0.75,
+              "errorMargin": 0.04,
+              "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+              "sources": [
+                "preregistered synthetic stored field-test estimate, not raw acquisition"
+              ],
+              "smoothingApplied": false
+            }
+          }
+        },
+        "tte": {
+          "tte_min": 39,
+          "source": "estimated",
+          "confidence": 0.5,
+          "label": "~39 min (approx.)",
+          "target": 50,
+          "status": "critical",
+          "status_message": "TTE insuffisant (-11 min vs cible 50)"
+        },
+        "fatigue": {
+          "score": 50,
+          "level": {
+            "min": 30,
+            "max": 55,
+            "label": "Fatigue modérée",
+            "shortLabel": "🟡 Modérée",
+            "description": "Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+            "color": "warning",
+            "colorClass": "text-amber-600 dark:text-amber-400",
+            "badgeClass": "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
+          },
+          "contributions": {
+            "chargeRecente": 40,
+            "fatiguePercue": 45,
+            "tte": 70,
+            "fraicheur": 50,
+            "modulateurs": 45
+          },
+          "contributionsWeighted": {
+            "chargeRecente": 16,
+            "fatiguePercue": 7,
+            "tte": 18,
+            "fraicheur": 6,
+            "modulateurs": 4
+          },
+          "confidence": 0.375,
+          "reasonsMissing": [
+            "TSS 7 jours",
+            "Fatigue perçue (check-in)"
+          ],
+          "messageAthlete": "Fatigue modérée – Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+          "messageStaff": "Fatigue fonctionnelle : 50% (Fatigue modérée)\n\nDécomposition :\n• Charge récente : +16% (indice brut: 40%)\n• Fatigue perçue : +7% (indice brut: 45%)\n• TTE effectif : +18% (indice brut: 70%)\n• Disponibilité métabolique : +6% (indice brut: 50%)\n• Facteurs individuels : +4% (indice brut: 45%)",
+          "recommendations": [
+            "Réduire l'intensité des prochaines séances",
+            "Prioriser la récupération : sommeil, nutrition, hydratation",
+            "Le TTE est impacté – éviter les efforts prolongés"
+          ],
+          "inputsUsed": {
+            "tss7d": null,
+            "tss7dHabituel": null,
+            "fatiguePercue": null,
+            "tteEffectif": 39,
+            "tteTarget": 50,
+            "potentielPhysiologique": null,
+            "age": 35,
+            "vlamax": 0.9
+          }
+        }
+      },
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "strategy": {
+        "source": "lorang",
+        "primaryAction": "Focus Volume Z2 / Endurance",
+        "confidence": "high",
+        "levers": [
+          {
+            "id": "z2_volume",
+            "label": "Volume Z2 / Endurance",
+            "priority": 1,
+            "reason": "TTE 34% sous la cible (39min vs 59min) — développer la durabilité",
+            "adaptations": [
+              "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+              "2×20-30min au seuil pour augmenter le TTE",
+              "Z2 + bloc tempo final 20-30min",
+              "Progression charge +10%/semaine max"
+            ]
+          },
+          {
+            "id": "sfr_force_endurance",
+            "label": "SFR / Force Endurance",
+            "priority": 1,
+            "reason": "VLamax élevée — travail basse cadence pour réduire sollicitation glycolytique",
+            "adaptations": [
+              "Cadence 40–60 rpm",
+              "Zone Sweet Spot / Tempo",
+              "Blocs de 10–20 min",
+              "2–3x/semaine en phase Build"
+            ]
+          },
+          {
+            "id": "threshold_work",
+            "label": "Travail au Seuil",
+            "priority": 2,
+            "reason": "FTP/kg 12% sous la cible (3.9 vs 4.4) — développer la puissance soutenue",
+            "adaptations": [
+              "2×20min au seuil (FTP/allure seuil)",
+              "Sweet Spot 88-93% FTP / allure semi",
+              "Intervalles tempo 10-20min",
+              "Progression : durée au seuil +5min/semaine"
+            ]
+          },
+          {
+            "id": "force_max",
+            "label": "Force Max",
+            "priority": 2,
+            "reason": "Économie faible — renforcement musculaire nécessaire",
+            "adaptations": [
+              "Gym lourde 85–95% 1RM",
+              "3–5 répétitions par série",
+              "2–3 séries max",
+              "1–2x/semaine (hors semaines de course)"
+            ]
+          }
+        ],
+        "trainingFocus": {
+          "do": [],
+          "avoid": []
+        },
+        "recommendedWeekType": "endurance"
+      },
+      "trace": {
+        "version": 1,
+        "diagnostic": {
+          "executed": true,
+          "confidenceGlobal": 0.375,
+          "dataCompleteness": 1,
+          "limiters": [
+            {
+              "metric": "VLamax",
+              "priority": 1,
+              "status": "limiting",
+              "value": 0.9,
+              "target": 0.26,
+              "weightedImpact": 233.84615384615387
+            },
+            {
+              "metric": "TTE",
+              "priority": 2,
+              "status": "limiting",
+              "value": 39,
+              "target": 59,
+              "weightedImpact": 30.508474576271187
+            },
+            {
+              "metric": "FTP/kg",
+              "priority": 3,
+              "status": "limiting",
+              "value": 3.888888888888889,
+              "target": 4.41,
+              "weightedImpact": 10.04409171075838
+            },
+            {
+              "metric": "VO2max",
+              "priority": 4,
+              "status": "acceptable",
+              "value": 58,
+              "target": 62.4,
+              "weightedImpact": 5.394230769230768
+            }
+          ],
+          "uncertainty": [
+            "Confiance diagnostique limitée (38%)."
+          ]
+        },
+        "decision": {
+          "executed": true,
+          "source": "lorang",
+          "confidence": "high",
+          "primaryAction": "Focus Volume Z2 / Endurance",
+          "levers": [
+            {
+              "id": "z2_volume",
+              "label": "Volume Z2 / Endurance",
+              "priority": 1,
+              "reason": "TTE 34% sous la cible (39min vs 59min) — développer la durabilité",
+              "adaptations": [
+                "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+                "2×20-30min au seuil pour augmenter le TTE",
+                "Z2 + bloc tempo final 20-30min",
+                "Progression charge +10%/semaine max"
+              ]
+            },
+            {
+              "id": "sfr_force_endurance",
+              "label": "SFR / Force Endurance",
+              "priority": 1,
+              "reason": "VLamax élevée — travail basse cadence pour réduire sollicitation glycolytique",
+              "adaptations": [
+                "Cadence 40–60 rpm",
+                "Zone Sweet Spot / Tempo",
+                "Blocs de 10–20 min",
+                "2–3x/semaine en phase Build"
+              ]
+            },
+            {
+              "id": "threshold_work",
+              "label": "Travail au Seuil",
+              "priority": 2,
+              "reason": "FTP/kg 12% sous la cible (3.9 vs 4.4) — développer la puissance soutenue",
+              "adaptations": [
+                "2×20min au seuil (FTP/allure seuil)",
+                "Sweet Spot 88-93% FTP / allure semi",
+                "Intervalles tempo 10-20min",
+                "Progression : durée au seuil +5min/semaine"
+              ]
+            },
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            }
+          ],
+          "prohibitions": [
+            {
+              "id": "sprints",
+              "label": "Sprints",
+              "reason": "Augmenterait la VLamax, contre-productif pour l'objectif"
+            },
+            {
+              "id": "micro_intervals",
+              "label": "Micro-intervalles explosifs",
+              "reason": "Sollicite le système glycolytique rapide"
+            },
+            {
+              "id": "erratic_pacing",
+              "label": "Pacing erratique",
+              "reason": "Surconsommation glycogène par variations d'intensité"
+            },
+            {
+              "id": "vo2_heavy_blocks",
+              "label": "Blocs VO2 lourds",
+              "reason": "Incompatible avec le travail de force max"
+            }
+          ],
+          "trainingFocus": {
+            "do": [],
+            "avoid": []
+          },
+          "weekType": "endurance"
+        },
+        "transmission": {
+          "identifiedLimitersRaw": {
+            "status": "consumed",
+            "origin": "diagnostic.limiter.gapAnalysis",
+            "consumers": [
+              "workoutCatalogBuilder.scoreWorkout",
+              "edge.buildStructuredDiagnosticBlock",
+              "server.reconciler"
+            ],
+            "detail": "Ordre transmis: VLamax > TTE > FTP/kg > VO2max"
+          },
+          "activeLevers": {
+            "status": "consumed",
+            "origin": "decision.strategy.levers",
+            "consumers": [
+              "edge.buildStructuredDiagnosticBlock"
+            ],
+            "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+          },
+          "prohibitions": {
+            "status": "consumed",
+            "origin": "planConfigBuilder + decision.strategy.prohibitions",
+            "consumers": [
+              "workoutCatalogBuilder.prohibitions",
+              "edge.buildStructuredDiagnosticBlock"
+            ]
+          },
+          "strategyContext": {
+            "status": "consumed",
+            "origin": "decision.strategy (lorang)",
+            "consumers": [
+              "edge.buildStructuredDiagnosticBlock"
+            ],
+            "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+          },
+          "prescriptionIntent": {
+            "status": "not_verified",
+            "origin": "plan final généré",
+            "consumers": [],
+            "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+          }
+        }
+      },
+      "refs": {
+        "ftpWatts": 280,
+        "mlssSpeedKmh": 16.363636363636363,
+        "runReference": {
+          "paceThresholdSecPerKm": 220,
+          "origin": "TFCLab transmitted raw synthetic threshold pace",
+          "runMLSS": {
+            "observedPct": 90.9,
+            "prediction": {
+              "mlssPct": 93.7,
+              "confidence": 0.75,
+              "trace": {
+                "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                "vlamaxContribution": 16.85,
+                "ceContribution": -10.5,
+                "rmseExpected": 2.64
+              }
+            },
+            "crossValidation": {
+              "observed": 90.9,
+              "predicted": 93.7,
+              "deltaPct": -2.8,
+              "isCoherent": true,
+              "severity": "ok",
+              "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+              "predictionConfidence": 0.75
+            },
+            "effectivePct": 90.9,
+            "effectiveSource": "observed"
+          },
+          "predictionIsNotMeasuredMLSS": true
+        },
+        "vlamaxEffective": {
+          "value": 0.9,
+          "source": "test",
+          "confidence": 0.75,
+          "label": "VLamax (test terrain)",
+          "details": {
+            "testType": "sprint",
+            "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+            "date": "2026-10-27"
+          },
+          "isLocked": false,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.86,
+            "high": 0.94
+          },
+          "variationWarning": false,
+          "rawValue": 0.9,
+          "v2": {
+            "raw": 0.9,
+            "effective": 0.9,
+            "source": "test_terrain",
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "range": {
+              "low": 0.86,
+              "high": 0.94
+            },
+            "label": "VLamax (test terrain)",
+            "isLocked": false,
+            "variationWarning": false,
+            "sport": "velo",
+            "details": "Brut: 0.900 · Effectif: 0.90 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "calibrationLog": {
+              "date": "2026-10-29T06:03:25.000Z",
+              "source": "test_terrain",
+              "rawValue": 0.9,
+              "effectiveValue": 0.9,
+              "previousValue": null,
+              "variationPct": null,
+              "confidence": 0.75,
+              "errorMargin": 0.04,
+              "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+              "sources": [
+                "preregistered synthetic stored field-test estimate, not raw acquisition"
+              ],
+              "smoothingApplied": false
+            }
+          }
+        },
+        "tteEffective": {
+          "tte_min": 39,
+          "source": "estimated",
+          "confidence": 0.5,
+          "label": "~39 min (approx.)",
+          "target": 50,
+          "status": "critical",
+          "status_message": "TTE insuffisant (-11 min vs cible 50)"
+        },
+        "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+      },
+      "catalogue": [
+        "B_IM_RUN_LATE_RACE_FRACTIONS",
+        "A_RUN_Z2_EASY",
+        "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "A_SWIM_PULL_LONG_DISTANCE",
+        "SEILER_SWIM_Z1_VOLUME",
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "C_SWIM_TRI_SIGHTING_DRILLS",
+        "B_IM_RUN_NEG_SPLIT_LR",
+        "C_SWIM_TECH_DRILLS",
+        "A_BIKE_LONG_IM_PRO",
+        "B_SWIM_TRI_NEGATIVE_SPLIT",
+        "V3_BIKE_CADENCE_DRILLS",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "SEILER_BIKE_Z1_LONG",
+        "SEILER_RUN_Z1_EASY_LONG",
+        "C_SWIM_KICK_SET",
+        "V2_RUN_EDUCATIFS_TECHNIQUES",
+        "V2_BIKE_SINGLE_LEG",
+        "ECONOMY_RUN_FATIGUE_FORM",
+        "A_BIKE_Z2_LONG",
+        "TPL_IM_BIKE_FOUNDATION_4H30",
+        "A_RUN_EASY_STRIDES_PRO",
+        "BRICK_STAGE1_INTRO",
+        "V3_BIKE_FATMAX_LONG",
+        "V3_BIKE_Z2_PROGRESSIF",
+        "V2_BIKE_FATMAX_LONG",
+        "C_BIKE_FORCE",
+        "SEILER_RUN_BLACK_HOLE_AUDIT",
+        "COGGAN_BIKE_FTP_RAMP_TEST",
+        "C_STR_CIRCUIT_CARDIO_RUN",
+        "V3_BIKE_FORCE_SFR",
+        "TPL_IM_BIKE_FORCE_K3",
+        "A_SWIM_END_CSS_PRO",
+        "V3_BIKE_RAMP_TEST",
+        "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+        "D_BIKE_REGEN_60_PRO",
+        "ECONOMY_RUN_POSE_DRILLS",
+        "D_SWIM_TRI_REGEN_1000",
+        "BILLAT_RUN_ECONOMY_STRIDES",
+        "C_STR_CIRCUIT_CARDIO_TRI",
+        "C_STR_RUN_DRILLS_PRO",
+        "A_STR_AERO_STRENGTH",
+        "C_STR_ISOMETRIC_UPPER",
+        "C_BRICK_TRANSITION_DRILL",
+        "C_STR_ANKLE_FOOT_COMPLEX",
+        "C_STR_RUN_FORM_STRIDES",
+        "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "C_STR_CYCLIST_NECK_BACK",
+        "C_BIKE_CADENCE_SKILLS_PRO",
+        "C_RUN_HILL_SKILLS",
+        "A_SWIM_CONTINUOUS_2K",
+        "V2_STR_HANCHE_COUREUR",
+        "A_SWIM_PULL_ENDURANCE",
+        "RECOVERY_YOGA_MOBILITY_TRI",
+        "D_DELOAD_RUN",
+        "D_SEMI_RECOVERY_30",
+        "D_RECOVERY_VAR_8_PRO",
+        "D_MOBILITY_HIPS_DEEP",
+        "BILLAT_RUN_TLIM_TEST",
+        "C_STR_GLUTE_REACTIVATION",
+        "D_RECOVERY_VAR_7_PRO",
+        "D_MOBILITY_THORACIC",
+        "C_STR_HIP_MOBILITY_PRO",
+        "D_RECOVERY_VAR_10_PRO",
+        "V3_TEST_COOPER",
+        "D_RECOVERY_VAR_9_PRO",
+        "REST_ACTIVE_WALK",
+        "D_RECOVERY_VAR_6_PRO",
+        "D_RECOVERY_VAR_1_PRO",
+        "D_RUN_RECOVERY_30_PRO",
+        "ENR_RECUP_ACTIVE_MULTI",
+        "C_STR_SINGLE_LEG_RUNNER",
+        "C_STR_THORACIC_POSTURAL_RESET",
+        "D_MOBILITY_ROUTINE",
+        "D_RECOVERY_VAR_3_PRO",
+        "C_10K_STRIDES_SPEED",
+        "RMT_INSPIRATORY_INTRO",
+        "C_SWIM_TRI_BILATERAL_BREATHING",
+        "A_SWIM_TRI_OPEN_WATER_SIMU",
+        "C_STR_UPPER_BODY_TRI",
+        "C_SWIM_TRI_KICK_EFFICIENCY",
+        "BRICK_ACTIVATION_PRE_RACE",
+        "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+        "TPL_SEMI_VMA_COURTE_30_30",
+        "C_SWIM_TRI_DRAFTING_PACK",
+        "C_RESP_INSPIRATORY_MUSCLE",
+        "D_YOGA_POWER_LIGHT",
+        "D_YOGA_ATHLETE",
+        "TT_5K_TEST",
+        "RECOVERY_HRV_GUIDED_DAY",
+        "C_STR_TIBIAL_SHIN_SPLINTS",
+        "REST_FULL_DAY",
+        "V2_RECUP_FOAM_ROLLING",
+        "FATMAX_BIKE_FATFLUSH",
+        "D_PRE_RACE_ACTIVATION_RUN",
+        "D_ACTIVATION_GLUTES",
+        "D_FOAM_ROLLING",
+        "D_BREATHWORK_NASAL_ENDURANCE",
+        "V3_TEST_LACTATE_STEP",
+        "C_SEMI_HILL_STRENGTH",
+        "C_MAR_HILL_STRENGTH",
+        "BFR_LEGS_RECOVERY_STRENGTH",
+        "RMT_EXPIRATORY_CORE",
+        "V2_SWIM_TECHNIQUE_CATCH",
+        "OWS_WETSUIT_SPECIFIC",
+        "V2_SWIM_TECHNIQUE_ROTATION",
+        "C_BIKE_CADENCE",
+        "B_703_RUN_NEG_SPLIT",
+        "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "A_10K_EASY_60",
+        "A_SEMI_LONG_RUN_90",
+        "A_RUN_LONG_PROG_PRO",
+        "C_SWIM_TRI_CATCH_PULL",
+        "A_STR_ENDURANCE_CIRCUIT",
+        "A_SWIM_TRI_EASY_TECH_1500",
+        "C_STR_ISOMETRIC_LOWER",
+        "C_SWIM_CATCH_FOCUS",
+        "C_SWIM_TECH_DRILLS_PRO",
+        "C_STR_KETTLEBELL_FLOW",
+        "C_SWIM_LEGS_ENDURANCE",
+        "D_SWIM_EASY_PRO",
+        "D_SWIM_REGEN",
+        "A_SWIM_AEROBIC",
+        "C_SWIM_BILATERAL_BREATH",
+        "OWS_NAVIGATION_SIGHTING",
+        "C_SWIM_OPEN_WATER_SKILLS",
+        "C_SWIM_TURNS_STARTS",
+        "A_RUN_DURABILITY_LONG",
+        "C_STR_FULL_BODY_PRO",
+        "D_ACTIVATION_ANKLE_FOOT",
+        "D_RECOVERY_VAR_4_PRO",
+        "C_STR_ANKLE_PROPRIO_PRO",
+        "V2_RECUP_NAGE_DETENTE",
+        "C_STR_HIP_MOBILITY_DYNAMIC",
+        "V3_RECUP_YOGA_ATHLETE",
+        "ENR_RECUP_MOBILITE_YOGA",
+        "V3_RECUP_FOAM_ROLL",
+        "D_RECOVERY_VAR_2_PRO",
+        "D_SWIM_RECOVERY_EASY",
+        "A_STR_STABILITY_CORE",
+        "D_SWIM_TECHNIQUE_LIGHT",
+        "D_RECOVERY_VAR_5_PRO",
+        "A_IM_BIKE_STEADY_LONG",
+        "A_RUN_FARTLEK_LIBRE",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "D_10K_RECOVERY_30",
+        "A_RUN_EASY_45_PRO",
+        "A_SWIM_AEROBIC_MULTI_NAGES",
+        "EXPE_HORS_VILLE_SL_DPLUS",
+        "B_TR_DESCENT_TOLERANCE_8x2",
+        "B_TR_HILL_REPS_SHORT",
+        "B_TR50_DESCENT_SPEED",
+        "URBAN_COTES_URBAINES_VMA",
+        "B_TR_FARTLEK_TRAIL_10x1_2",
+        "B_TR_DESCENTE_ECCENTRIC",
+        "B_TR_DESCENT_TOLERANCE",
+        "URBAN_ESCALIERS_PYRAMIDE",
+        "V3_TRAIL_ULTRA_NIGHT",
+        "EXPE_HORS_VILLE_NOCTURNE"
+      ],
+      "sourceTimedSubset": [
+        "A_RUN_Z2_EASY",
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "SEILER_BIKE_Z1_LONG",
+        "V3_BIKE_FATMAX_LONG",
+        "V2_BIKE_FATMAX_LONG",
+        "A_10K_EASY_60",
+        "A_SEMI_LONG_RUN_90",
+        "A_IM_BIKE_STEADY_LONG",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "A_RUN_EASY_45_PRO",
+        "V3_TRAIL_ULTRA_NIGHT"
+      ],
+      "editorialOffers": [
+        "C_BIKE_FORCE",
+        "TPL_IM_BIKE_FORCE_K3",
+        "C_10K_STRIDES_SPEED"
+      ],
+      "prescriptions": [
+        {
+          "legacyId": "D_BIKE_RECOVERY",
+          "sourceRecipeStatus": "complete",
+          "durationSeconds": 1800,
+          "sourceInstructions": [
+            {
+              "part": "Main",
+              "text": "30–60 min Z1, très facile",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "references": {
+            "ftpWatts": 280,
+            "mlssSpeedKmh": 16.363636363636363,
+            "runReference": {
+              "paceThresholdSecPerKm": 220,
+              "origin": "TFCLab transmitted raw synthetic threshold pace",
+              "runMLSS": {
+                "observedPct": 90.9,
+                "prediction": {
+                  "mlssPct": 93.7,
+                  "confidence": 0.75,
+                  "trace": {
+                    "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                    "vlamaxContribution": 16.85,
+                    "ceContribution": -10.5,
+                    "rmseExpected": 2.64
+                  }
+                },
+                "crossValidation": {
+                  "observed": 90.9,
+                  "predicted": 93.7,
+                  "deltaPct": -2.8,
+                  "isCoherent": true,
+                  "severity": "ok",
+                  "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+                  "predictionConfidence": 0.75
+                },
+                "effectivePct": 90.9,
+                "effectiveSource": "observed"
+              },
+              "predictionIsNotMeasuredMLSS": true
+            },
+            "vlamaxEffective": {
+              "value": 0.9,
+              "source": "test",
+              "confidence": 0.75,
+              "label": "VLamax (test terrain)",
+              "details": {
+                "testType": "sprint",
+                "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+                "date": "2026-10-27"
+              },
+              "isLocked": false,
+              "errorMargin": 0.04,
+              "range": {
+                "low": 0.86,
+                "high": 0.94
+              },
+              "variationWarning": false,
+              "rawValue": 0.9,
+              "v2": {
+                "raw": 0.9,
+                "effective": 0.9,
+                "source": "test_terrain",
+                "confidence": 0.75,
+                "errorMargin": 0.04,
+                "range": {
+                  "low": 0.86,
+                  "high": 0.94
+                },
+                "label": "VLamax (test terrain)",
+                "isLocked": false,
+                "variationWarning": false,
+                "sport": "velo",
+                "details": "Brut: 0.900 · Effectif: 0.90 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+                "calibrationLog": {
+                  "date": "2026-10-29T06:03:25.000Z",
+                  "source": "test_terrain",
+                  "rawValue": 0.9,
+                  "effectiveValue": 0.9,
+                  "previousValue": null,
+                  "variationPct": null,
+                  "confidence": 0.75,
+                  "errorMargin": 0.04,
+                  "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+                  "sources": [
+                    "preregistered synthetic stored field-test estimate, not raw acquisition"
+                  ],
+                  "smoothingApplied": false
+                }
+              }
+            },
+            "tteEffective": {
+              "tte_min": 39,
+              "source": "estimated",
+              "confidence": 0.5,
+              "label": "~39 min (approx.)",
+              "target": 50,
+              "status": "critical",
+              "status_message": "TTE insuffisant (-11 min vs cible 50)"
+            },
+            "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+          },
+          "capacityState": "not_attested",
+          "individualPrescriptionApproved": false,
+          "scientificValidation": false,
+          "sourceDurationUnchanged": true,
+          "status": "prospective_candidate_not_approved",
+          "sourceZone": "Z1",
+          "domain": "recovery",
+          "bindingOrigin": "preregistered synthetic coach convention, not a new scientific fact",
+          "target": {
+            "unit": "W",
+            "min": 0,
+            "max": 154
+          },
+          "anchor": 280,
+          "rule": "src/lib/zones/tfclDoctrine.ts",
+          "doseOptimalityClaim": false
+        },
+        {
+          "legacyId": "D_RUN_REGEN",
+          "sourceRecipeStatus": "complete",
+          "durationSeconds": 1200,
+          "sourceInstructions": [
+            {
+              "part": "Main",
+              "text": "20–45 min Z1, relâché",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "references": {
+            "ftpWatts": 280,
+            "mlssSpeedKmh": 16.363636363636363,
+            "runReference": {
+              "paceThresholdSecPerKm": 220,
+              "origin": "TFCLab transmitted raw synthetic threshold pace",
+              "runMLSS": {
+                "observedPct": 90.9,
+                "prediction": {
+                  "mlssPct": 93.7,
+                  "confidence": 0.75,
+                  "trace": {
+                    "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                    "vlamaxContribution": 16.85,
+                    "ceContribution": -10.5,
+                    "rmseExpected": 2.64
+                  }
+                },
+                "crossValidation": {
+                  "observed": 90.9,
+                  "predicted": 93.7,
+                  "deltaPct": -2.8,
+                  "isCoherent": true,
+                  "severity": "ok",
+                  "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+                  "predictionConfidence": 0.75
+                },
+                "effectivePct": 90.9,
+                "effectiveSource": "observed"
+              },
+              "predictionIsNotMeasuredMLSS": true
+            },
+            "vlamaxEffective": {
+              "value": 0.9,
+              "source": "test",
+              "confidence": 0.75,
+              "label": "VLamax (test terrain)",
+              "details": {
+                "testType": "sprint",
+                "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+                "date": "2026-10-27"
+              },
+              "isLocked": false,
+              "errorMargin": 0.04,
+              "range": {
+                "low": 0.86,
+                "high": 0.94
+              },
+              "variationWarning": false,
+              "rawValue": 0.9,
+              "v2": {
+                "raw": 0.9,
+                "effective": 0.9,
+                "source": "test_terrain",
+                "confidence": 0.75,
+                "errorMargin": 0.04,
+                "range": {
+                  "low": 0.86,
+                  "high": 0.94
+                },
+                "label": "VLamax (test terrain)",
+                "isLocked": false,
+                "variationWarning": false,
+                "sport": "velo",
+                "details": "Brut: 0.900 · Effectif: 0.90 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+                "calibrationLog": {
+                  "date": "2026-10-29T06:03:25.000Z",
+                  "source": "test_terrain",
+                  "rawValue": 0.9,
+                  "effectiveValue": 0.9,
+                  "previousValue": null,
+                  "variationPct": null,
+                  "confidence": 0.75,
+                  "errorMargin": 0.04,
+                  "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+                  "sources": [
+                    "preregistered synthetic stored field-test estimate, not raw acquisition"
+                  ],
+                  "smoothingApplied": false
+                }
+              }
+            },
+            "tteEffective": {
+              "tte_min": 39,
+              "source": "estimated",
+              "confidence": 0.5,
+              "label": "~39 min (approx.)",
+              "target": 50,
+              "status": "critical",
+              "status_message": "TTE insuffisant (-11 min vs cible 50)"
+            },
+            "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+          },
+          "capacityState": "not_attested",
+          "individualPrescriptionApproved": false,
+          "scientificValidation": false,
+          "sourceDurationUnchanged": true,
+          "status": "prospective_candidate_not_approved",
+          "sourceZone": "Z1",
+          "domain": "recovery",
+          "bindingOrigin": "preregistered synthetic coach convention, not a new scientific fact",
+          "target": {
+            "unit": "m/s",
+            "min": 0,
+            "max": 3.4090909090909096
+          },
+          "anchor": 16.363636363636363,
+          "rule": "src/lib/zones/tfclDoctrine.ts",
+          "doseOptimalityClaim": false
+        }
+      ],
+      "prospectiveNolioFixtures": [
+        {
+          "legacyId": "D_BIKE_RECOVERY",
+          "originalV19SyntheticTarget": {
+            "type": "step",
+            "step_duration_type": "duration",
+            "step_duration_value": 1800,
+            "intensity_type": "active",
+            "target_type": "power",
+            "target_unit": "W",
+            "target_value_min": 0,
+            "target_value_max": 137.5,
+            "notes": "30–60 min Z1, très facile"
+          },
+          "sourcePrescription": {
+            "id_partner": 224706035783834,
+            "athlete_id": 1,
+            "sport_id": 14,
+            "name": "Récupération, circulation, fraîcheur",
+            "date_start": "2026-11-02",
+            "description": "# Récupération, circulation, fraîcheur\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nDurée annoncée : 30–60 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nCatégorie historique : D\n\nDiscipline source : cyclisme\n\nObjectif : Récupération, circulation, fraîcheur\n\nNécessité annoncée : Obligatoire\n\nPlacement annoncé : Taper / lendemain charge\n\nPhases opérationnelles : [\n  \"taper\"\n]\n\nRestrictions : aucun\n\nPlage de durée annoncée (min) : [\n  30,\n  60\n]\n\nMesure de référence : puissance\n\nContexte de mesure : cyclisme\n\n## Déroulement original\n\n### Main\n\n30–60 min Z1, très facile\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : parfait\n\nhalf : parfait\n\nmarathon : optionnel\n\nsemi : optionnel\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\"\n]\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 30 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1800 s, à partir de « 30–60 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+            "duration": 1800,
+            "structured_workout": [
+              {
+                "type": "step",
+                "step_duration_type": "duration",
+                "step_duration_value": 1800,
+                "intensity_type": "active",
+                "target_type": "power",
+                "target_unit": "W",
+                "target_value_min": 0,
+                "target_value_max": 154,
+                "notes": "30–60 min Z1, très facile"
+              }
+            ]
+          },
+          "result": {
+            "status": "experimental_source_fidelity_pass",
+            "payload": {
+              "id_partner": 224706035783834,
+              "athlete_id": 1,
+              "sport_id": 14,
+              "name": "Récupération, circulation, fraîcheur",
+              "date_start": "2026-11-02",
+              "description": "# Récupération, circulation, fraîcheur\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nDurée annoncée : 30–60 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nCatégorie historique : D\n\nDiscipline source : cyclisme\n\nObjectif : Récupération, circulation, fraîcheur\n\nNécessité annoncée : Obligatoire\n\nPlacement annoncé : Taper / lendemain charge\n\nPhases opérationnelles : [\n  \"taper\"\n]\n\nRestrictions : aucun\n\nPlage de durée annoncée (min) : [\n  30,\n  60\n]\n\nMesure de référence : puissance\n\nContexte de mesure : cyclisme\n\n## Déroulement original\n\n### Main\n\n30–60 min Z1, très facile\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : parfait\n\nhalf : parfait\n\nmarathon : optionnel\n\nsemi : optionnel\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\"\n]\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 30 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1800 s, à partir de « 30–60 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+              "duration": 1800,
+              "structured_workout": [
+                {
+                  "type": "step",
+                  "step_duration_type": "duration",
+                  "step_duration_value": 1800,
+                  "intensity_type": "active",
+                  "target_type": "power",
+                  "target_value_max": 154,
+                  "target_value_min": 0,
+                  "comment": "30–60 min Z1, très facile"
+                }
+              ]
+            },
+            "sourcePayloadHash": "312e0c77095135e931fa504dca099b44b83947b7a24e1e82f42bc5ecf41315fb",
+            "actions": [],
+            "documentedFieldMapping": [
+              {
+                "path": "structured_workout[0].notes",
+                "action": "copy_exactly_to_documented_comment",
+                "sourceTextUnchanged": true
+              },
+              {
+                "path": "structured_workout[0].target_unit",
+                "action": "omit_redundant_W_tag_power_unit_is_documented_W",
+                "numericTargetUnchanged": true
+              }
+            ],
+            "sourceTargetsResolvedByInputNotByThisFunction": true,
+            "sourceDoseAndInstructionLayoutPreserved": true,
+            "usesProductionSender": false,
+            "reapplyingProductionNormalizerMayUndoRepair": true,
+            "remoteAcceptanceVerified": false,
+            "individualPrescriptionApproved": false,
+            "scientificValidation": false,
+            "realExportPermitted": false,
+            "productionSenderChanged": false
+          },
+          "intensityDifferenceOrigin": "new preregistered TFCLab references, not dose optimization or new capacity"
+        },
+        {
+          "legacyId": "D_RUN_REGEN",
+          "originalV19SyntheticTarget": {
+            "type": "step",
+            "step_duration_type": "duration",
+            "step_duration_value": 1200,
+            "intensity_type": "active",
+            "target_type": "pace",
+            "target_value_min": 0,
+            "target_value_max": 2.5,
+            "notes": "20–45 min Z1, relâché"
+          },
+          "sourcePrescription": {
+            "id_partner": 237885225166052,
+            "athlete_id": 1,
+            "sport_id": 2,
+            "name": "Régénération, prévention blessures",
+            "date_start": "2026-11-02",
+            "description": "# Régénération, prévention blessures\n\nIdentifiant historique : D_RUN_REGEN\n\nDurée annoncée : 20–45 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_RUN_REGEN\n\nCatégorie historique : D\n\nDiscipline source : course\n\nObjectif : Régénération, prévention blessures\n\nNécessité annoncée : Recommandé\n\nPlacement annoncé : lendemain séance B / taper\n\nPhases opérationnelles : [\n  \"base\",\n  \"build\",\n  \"peak\",\n  \"taper\"\n]\n\nRestrictions : si douleur\n\nPlage de durée annoncée (min) : [\n  20,\n  45\n]\n\nMesure de référence : cardiaque\n\nContexte de mesure : tout sport\n\n## Déroulement original\n\n### Main\n\n20–45 min Z1, relâché\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : brick très facile ok\n\nhalf : ok\n\nmarathon : ok\n\nsemi : ok\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\",\n  \"marathon\",\n  \"semi\"\n]\n\nPhases avant enrichissement : [\n  \"taper\"\n]. L'élargissement logiciel ne vaut pas validation sportive.\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 20 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1200 s, à partir de « 20–45 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+            "duration": 1200,
+            "structured_workout": [
+              {
+                "type": "step",
+                "step_duration_type": "duration",
+                "step_duration_value": 1200,
+                "intensity_type": "active",
+                "target_type": "pace",
+                "target_value_min": 0,
+                "target_value_max": 3.4090909090909096,
+                "notes": "20–45 min Z1, relâché"
+              }
+            ]
+          },
+          "result": {
+            "status": "experimental_source_fidelity_pass",
+            "payload": {
+              "id_partner": 237885225166052,
+              "athlete_id": 1,
+              "sport_id": 2,
+              "name": "Régénération, prévention blessures",
+              "date_start": "2026-11-02",
+              "description": "# Régénération, prévention blessures\n\nIdentifiant historique : D_RUN_REGEN\n\nDurée annoncée : 20–45 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_RUN_REGEN\n\nCatégorie historique : D\n\nDiscipline source : course\n\nObjectif : Régénération, prévention blessures\n\nNécessité annoncée : Recommandé\n\nPlacement annoncé : lendemain séance B / taper\n\nPhases opérationnelles : [\n  \"base\",\n  \"build\",\n  \"peak\",\n  \"taper\"\n]\n\nRestrictions : si douleur\n\nPlage de durée annoncée (min) : [\n  20,\n  45\n]\n\nMesure de référence : cardiaque\n\nContexte de mesure : tout sport\n\n## Déroulement original\n\n### Main\n\n20–45 min Z1, relâché\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : brick très facile ok\n\nhalf : ok\n\nmarathon : ok\n\nsemi : ok\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\",\n  \"marathon\",\n  \"semi\"\n]\n\nPhases avant enrichissement : [\n  \"taper\"\n]. L'élargissement logiciel ne vaut pas validation sportive.\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 20 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1200 s, à partir de « 20–45 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+              "duration": 1200,
+              "structured_workout": [
+                {
+                  "type": "step",
+                  "step_duration_type": "duration",
+                  "step_duration_value": 1200,
+                  "intensity_type": "active",
+                  "target_type": "pace",
+                  "target_value_max": 3.4090909090909096,
+                  "target_value_min": 0,
+                  "comment": "20–45 min Z1, relâché"
+                }
+              ]
+            },
+            "sourcePayloadHash": "084c284557740b699e8f20484a247bf790cf8090668f20e14377010a3804e3a1",
+            "actions": [
+              {
+                "step": 0,
+                "field": "target_type",
+                "source": "pace",
+                "historical": "no_target",
+                "experimental": "pace",
+                "reason": "restore_explicit_source_target_semantics",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              },
+              {
+                "step": 0,
+                "field": "target_value_min",
+                "source": 0,
+                "historical": null,
+                "experimental": 0,
+                "reason": "retain_exact_source_bound_without_machine_rounding",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              },
+              {
+                "step": 0,
+                "field": "target_value_max",
+                "source": 3.4090909090909096,
+                "historical": null,
+                "experimental": 3.4090909090909096,
+                "reason": "retain_exact_source_bound_without_machine_rounding",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              }
+            ],
+            "documentedFieldMapping": [
+              {
+                "path": "structured_workout[0].notes",
+                "action": "copy_exactly_to_documented_comment",
+                "sourceTextUnchanged": true
+              }
+            ],
+            "sourceTargetsResolvedByInputNotByThisFunction": true,
+            "sourceDoseAndInstructionLayoutPreserved": true,
+            "usesProductionSender": false,
+            "reapplyingProductionNormalizerMayUndoRepair": true,
+            "remoteAcceptanceVerified": false,
+            "individualPrescriptionApproved": false,
+            "scientificValidation": false,
+            "realExportPermitted": false,
+            "productionSenderChanged": false
+          },
+          "intensityDifferenceOrigin": "new preregistered TFCLab references, not dose optimization or new capacity"
+        }
+      ]
+    },
+    {
+      "id": "ftp_sensitivity",
+      "effective": {
+        "value": 0.2,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+          "date": "2026-10-27"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.2,
+          "high": 0.24
+        },
+        "variationWarning": false,
+        "rawValue": 0.2,
+        "v2": {
+          "raw": 0.2,
+          "effective": 0.2,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+          "calibrationLog": {
+            "date": "2026-10-29T06:03:25.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.2,
+            "effectiveValue": 0.2,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "sources": [
+              "preregistered synthetic stored field-test estimate, not raw acquisition"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "diagnosticEffectifs": {
+        "vlamax": {
+          "value": 0.2,
+          "source": "test",
+          "confidence": 0.75,
+          "label": "VLamax (test terrain)",
+          "details": {
+            "testType": "sprint",
+            "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+            "date": "2026-10-27"
+          },
+          "isLocked": false,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "variationWarning": false,
+          "rawValue": 0.2,
+          "v2": {
+            "raw": 0.2,
+            "effective": 0.2,
+            "source": "test_terrain",
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "range": {
+              "low": 0.2,
+              "high": 0.24
+            },
+            "label": "VLamax (test terrain)",
+            "isLocked": false,
+            "variationWarning": false,
+            "sport": "velo",
+            "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "calibrationLog": {
+              "date": "2026-10-29T06:03:25.000Z",
+              "source": "test_terrain",
+              "rawValue": 0.2,
+              "effectiveValue": 0.2,
+              "previousValue": null,
+              "variationPct": null,
+              "confidence": 0.75,
+              "errorMargin": 0.04,
+              "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+              "sources": [
+                "preregistered synthetic stored field-test estimate, not raw acquisition"
+              ],
+              "smoothingApplied": false
+            }
+          }
+        },
+        "tte": {
+          "tte_min": 41,
+          "source": "estimated",
+          "confidence": 0.5,
+          "label": "~41 min (approx.)",
+          "target": 50,
+          "status": "critical",
+          "status_message": "TTE insuffisant (-9 min vs cible 50)"
+        },
+        "fatigue": {
+          "score": 43,
+          "level": {
+            "min": 30,
+            "max": 55,
+            "label": "Fatigue modérée",
+            "shortLabel": "🟡 Modérée",
+            "description": "Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+            "color": "warning",
+            "colorClass": "text-amber-600 dark:text-amber-400",
+            "badgeClass": "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
+          },
+          "contributions": {
+            "chargeRecente": 40,
+            "fatiguePercue": 45,
+            "tte": 50,
+            "fraicheur": 50,
+            "modulateurs": 25
+          },
+          "contributionsWeighted": {
+            "chargeRecente": 16,
+            "fatiguePercue": 7,
+            "tte": 13,
+            "fraicheur": 6,
+            "modulateurs": 2
+          },
+          "confidence": 0.375,
+          "reasonsMissing": [
+            "TSS 7 jours",
+            "Fatigue perçue (check-in)"
+          ],
+          "messageAthlete": "Fatigue modérée – Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+          "messageStaff": "Fatigue fonctionnelle : 43% (Fatigue modérée)\n\nDécomposition :\n• Charge récente : +16% (indice brut: 40%)\n• Fatigue perçue : +7% (indice brut: 45%)\n• TTE effectif : +13% (indice brut: 50%)\n• Disponibilité métabolique : +6% (indice brut: 50%)\n• Facteurs individuels : +2% (indice brut: 25%)",
+          "recommendations": [
+            "Surveiller les sensations sur les séances intensives"
+          ],
+          "inputsUsed": {
+            "tss7d": null,
+            "tss7dHabituel": null,
+            "fatiguePercue": null,
+            "tteEffectif": 41,
+            "tteTarget": 50,
+            "potentielPhysiologique": null,
+            "age": 35,
+            "vlamax": 0.2
+          }
+        }
+      },
+      "limiters": [
+        "TTE",
+        "VO2max"
+      ],
+      "strategy": {
+        "source": "lorang",
+        "primaryAction": "Focus Volume Z2 / Endurance",
+        "confidence": "high",
+        "levers": [
+          {
+            "id": "z2_volume",
+            "label": "Volume Z2 / Endurance",
+            "priority": 1,
+            "reason": "TTE 31% sous la cible (41min vs 59min) — développer la durabilité",
+            "adaptations": [
+              "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+              "2×20-30min au seuil pour augmenter le TTE",
+              "Z2 + bloc tempo final 20-30min",
+              "Progression charge +10%/semaine max"
+            ]
+          },
+          {
+            "id": "force_max",
+            "label": "Force Max",
+            "priority": 2,
+            "reason": "Économie faible — renforcement musculaire nécessaire",
+            "adaptations": [
+              "Gym lourde 85–95% 1RM",
+              "3–5 répétitions par série",
+              "2–3 séries max",
+              "1–2x/semaine (hors semaines de course)"
+            ]
+          }
+        ],
+        "trainingFocus": {
+          "do": [],
+          "avoid": []
+        },
+        "recommendedWeekType": "endurance"
+      },
+      "trace": {
+        "version": 1,
+        "diagnostic": {
+          "executed": true,
+          "confidenceGlobal": 0.375,
+          "dataCompleteness": 1,
+          "limiters": [
+            {
+              "metric": "TTE",
+              "priority": 1,
+              "status": "limiting",
+              "value": 41,
+              "target": 59,
+              "weightedImpact": 27.45762711864407
+            },
+            {
+              "metric": "VO2max",
+              "priority": 2,
+              "status": "acceptable",
+              "value": 58,
+              "target": 62.4,
+              "weightedImpact": 5.394230769230768
+            }
+          ],
+          "uncertainty": [
+            "Confiance diagnostique limitée (38%)."
+          ]
+        },
+        "decision": {
+          "executed": true,
+          "source": "lorang",
+          "confidence": "high",
+          "primaryAction": "Focus Volume Z2 / Endurance",
+          "levers": [
+            {
+              "id": "z2_volume",
+              "label": "Volume Z2 / Endurance",
+              "priority": 1,
+              "reason": "TTE 31% sous la cible (41min vs 59min) — développer la durabilité",
+              "adaptations": [
+                "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+                "2×20-30min au seuil pour augmenter le TTE",
+                "Z2 + bloc tempo final 20-30min",
+                "Progression charge +10%/semaine max"
+              ]
+            },
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            }
+          ],
+          "prohibitions": [
+            {
+              "id": "vo2_heavy_blocks",
+              "label": "Blocs VO2 lourds",
+              "reason": "Incompatible avec le travail de force max"
+            }
+          ],
+          "trainingFocus": {
+            "do": [],
+            "avoid": []
+          },
+          "weekType": "endurance"
+        },
+        "transmission": {
+          "identifiedLimitersRaw": {
+            "status": "consumed",
+            "origin": "diagnostic.limiter.gapAnalysis",
+            "consumers": [
+              "workoutCatalogBuilder.scoreWorkout",
+              "edge.buildStructuredDiagnosticBlock",
+              "server.reconciler"
+            ],
+            "detail": "Ordre transmis: TTE > VO2max"
+          },
+          "activeLevers": {
+            "status": "consumed",
+            "origin": "decision.strategy.levers",
+            "consumers": [
+              "edge.buildStructuredDiagnosticBlock"
+            ],
+            "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+          },
+          "prohibitions": {
+            "status": "consumed",
+            "origin": "planConfigBuilder + decision.strategy.prohibitions",
+            "consumers": [
+              "workoutCatalogBuilder.prohibitions",
+              "edge.buildStructuredDiagnosticBlock"
+            ]
+          },
+          "strategyContext": {
+            "status": "consumed",
+            "origin": "decision.strategy (lorang)",
+            "consumers": [
+              "edge.buildStructuredDiagnosticBlock"
+            ],
+            "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+          },
+          "prescriptionIntent": {
+            "status": "not_verified",
+            "origin": "plan final généré",
+            "consumers": [],
+            "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+          }
+        }
+      },
+      "refs": {
+        "ftpWatts": 320,
+        "mlssSpeedKmh": 16.363636363636363,
+        "runReference": {
+          "paceThresholdSecPerKm": 220,
+          "origin": "TFCLab transmitted raw synthetic threshold pace",
+          "runMLSS": {
+            "observedPct": 90.9,
+            "prediction": {
+              "mlssPct": 93.7,
+              "confidence": 0.75,
+              "trace": {
+                "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                "vlamaxContribution": 16.85,
+                "ceContribution": -10.5,
+                "rmseExpected": 2.64
+              }
+            },
+            "crossValidation": {
+              "observed": 90.9,
+              "predicted": 93.7,
+              "deltaPct": -2.8,
+              "isCoherent": true,
+              "severity": "ok",
+              "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+              "predictionConfidence": 0.75
+            },
+            "effectivePct": 90.9,
+            "effectiveSource": "observed"
+          },
+          "predictionIsNotMeasuredMLSS": true
+        },
+        "vlamaxEffective": {
+          "value": 0.2,
+          "source": "test",
+          "confidence": 0.75,
+          "label": "VLamax (test terrain)",
+          "details": {
+            "testType": "sprint",
+            "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+            "date": "2026-10-27"
+          },
+          "isLocked": false,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "variationWarning": false,
+          "rawValue": 0.2,
+          "v2": {
+            "raw": 0.2,
+            "effective": 0.2,
+            "source": "test_terrain",
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "range": {
+              "low": 0.2,
+              "high": 0.24
+            },
+            "label": "VLamax (test terrain)",
+            "isLocked": false,
+            "variationWarning": false,
+            "sport": "velo",
+            "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "calibrationLog": {
+              "date": "2026-10-29T06:03:25.000Z",
+              "source": "test_terrain",
+              "rawValue": 0.2,
+              "effectiveValue": 0.2,
+              "previousValue": null,
+              "variationPct": null,
+              "confidence": 0.75,
+              "errorMargin": 0.04,
+              "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+              "sources": [
+                "preregistered synthetic stored field-test estimate, not raw acquisition"
+              ],
+              "smoothingApplied": false
+            }
+          }
+        },
+        "tteEffective": {
+          "tte_min": 41,
+          "source": "estimated",
+          "confidence": 0.5,
+          "label": "~41 min (approx.)",
+          "target": 50,
+          "status": "critical",
+          "status_message": "TTE insuffisant (-9 min vs cible 50)"
+        },
+        "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+      },
+      "catalogue": [
+        "SEILER_SWIM_Z1_VOLUME",
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "B_IM_RUN_NEG_SPLIT_LR",
+        "A_SWIM_END_CSS_PRO",
+        "SEILER_BIKE_Z1_LONG",
+        "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "B_IM_RUN_LATE_RACE_FRACTIONS",
+        "COGGAN_BIKE_FTP_RAMP_TEST",
+        "D_SWIM_TRI_REGEN_1000",
+        "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+        "C_STR_RUN_DRILLS_PRO",
+        "SEILER_RUN_Z1_EASY_LONG",
+        "A_SWIM_PULL_LONG_DISTANCE",
+        "C_STR_ANKLE_FOOT_COMPLEX",
+        "C_STR_RUN_FORM_STRIDES",
+        "C_STR_CIRCUIT_CARDIO_TRI",
+        "C_SWIM_TRI_SIGHTING_DRILLS",
+        "C_SWIM_TECH_DRILLS",
+        "C_SWIM_TRI_CATCH_PULL",
+        "A_STR_AERO_STRENGTH",
+        "A_BIKE_LONG_IM_PRO",
+        "C_STR_ISOMETRIC_UPPER",
+        "A_STR_ENDURANCE_CIRCUIT",
+        "C_BRICK_TRANSITION_DRILL",
+        "V3_BIKE_CADENCE_DRILLS",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "C_STR_CYCLIST_NECK_BACK",
+        "C_BIKE_CADENCE_SKILLS_PRO",
+        "C_RUN_HILL_SKILLS",
+        "SEILER_RUN_BLACK_HOLE_AUDIT",
+        "A_SWIM_CONTINUOUS_2K",
+        "C_SWIM_KICK_SET",
+        "V2_RUN_EDUCATIFS_TECHNIQUES",
+        "V2_STR_HANCHE_COUREUR",
+        "A_SWIM_PULL_ENDURANCE",
+        "V2_BIKE_SINGLE_LEG",
+        "RECOVERY_YOGA_MOBILITY_TRI",
+        "D_DELOAD_RUN",
+        "ECONOMY_RUN_FATIGUE_FORM",
+        "A_BIKE_Z2_LONG",
+        "D_SEMI_RECOVERY_30",
+        "TPL_IM_BIKE_FOUNDATION_4H30",
+        "RMT_INSPIRATORY_INTRO",
+        "D_RECOVERY_VAR_8_PRO",
+        "D_MOBILITY_HIPS_DEEP",
+        "V3_BIKE_RAMP_TEST",
+        "C_STR_GLUTE_REACTIVATION",
+        "D_RECOVERY_VAR_7_PRO",
+        "D_MOBILITY_THORACIC",
+        "C_STR_HIP_MOBILITY_PRO",
+        "D_RECOVERY_VAR_10_PRO",
+        "D_RECOVERY_VAR_9_PRO",
+        "REST_ACTIVE_WALK",
+        "D_RECOVERY_VAR_6_PRO",
+        "D_RECOVERY_VAR_1_PRO",
+        "D_RUN_RECOVERY_30_PRO",
+        "ENR_RECUP_ACTIVE_MULTI",
+        "C_STR_SINGLE_LEG_RUNNER",
+        "C_STR_THORACIC_POSTURAL_RESET",
+        "TPL_SEMI_VMA_COURTE_30_30",
+        "D_MOBILITY_ROUTINE",
+        "A_RUN_EASY_STRIDES_PRO",
+        "D_RECOVERY_VAR_3_PRO",
+        "D_YOGA_POWER_LIGHT",
+        "D_YOGA_ATHLETE",
+        "TT_5K_TEST",
+        "C_STR_TIBIAL_SHIN_SPLINTS",
+        "BRICK_STAGE1_INTRO",
+        "BILLAT_RUN_ECONOMY_STRIDES",
+        "C_SWIM_TRI_BILATERAL_BREATHING",
+        "A_SWIM_TRI_OPEN_WATER_SIMU",
+        "V3_BIKE_FATMAX_LONG",
+        "C_STR_UPPER_BODY_TRI",
+        "C_SWIM_TRI_KICK_EFFICIENCY",
+        "BRICK_ACTIVATION_PRE_RACE",
+        "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+        "V2_BIKE_FATMAX_LONG",
+        "C_RESP_INSPIRATORY_MUSCLE",
+        "C_BIKE_FORCE",
+        "RECOVERY_HRV_GUIDED_DAY",
+        "V3_BIKE_FORCE_SFR",
+        "TPL_IM_BIKE_FORCE_K3",
+        "REST_FULL_DAY",
+        "V2_RECUP_VELO_REGENERATION",
+        "V2_RECUP_FOAM_ROLLING",
+        "FATMAX_BIKE_FATFLUSH",
+        "D_PRE_RACE_ACTIVATION_RUN",
+        "D_ACTIVATION_GLUTES",
+        "D_FOAM_ROLLING",
+        "D_BREATHWORK_NASAL_ENDURANCE",
+        "BILLAT_RUN_TLIM_TEST",
+        "V3_TEST_COOPER",
+        "ECONOMY_RUN_POSE_DRILLS",
+        "V3_TEST_LACTATE_STEP",
+        "C_10K_STRIDES_SPEED",
+        "C_SEMI_HILL_STRENGTH",
+        "C_MAR_HILL_STRENGTH",
+        "BFR_LEGS_RECOVERY_STRENGTH",
+        "RMT_EXPIRATORY_CORE",
+        "A_RUN_Z2_EASY",
+        "A_SWIM_TRI_EASY_TECH_1500",
+        "C_STR_ISOMETRIC_LOWER",
+        "C_SWIM_CATCH_FOCUS",
+        "B_SWIM_TRI_NEGATIVE_SPLIT",
+        "C_SWIM_TECH_DRILLS_PRO",
+        "C_STR_KETTLEBELL_FLOW",
+        "C_SWIM_LEGS_ENDURANCE",
+        "D_SWIM_EASY_PRO",
+        "D_SWIM_REGEN",
+        "A_SWIM_AEROBIC",
+        "V2_SWIM_TECHNIQUE_CATCH",
+        "C_SWIM_BILATERAL_BREATH",
+        "OWS_NAVIGATION_SIGHTING",
+        "OWS_WETSUIT_SPECIFIC",
+        "C_SWIM_OPEN_WATER_SKILLS",
+        "C_SWIM_TURNS_STARTS",
+        "A_RUN_DURABILITY_LONG",
+        "C_STR_FULL_BODY_PRO",
+        "D_ACTIVATION_ANKLE_FOOT",
+        "D_RECOVERY_VAR_4_PRO",
+        "C_STR_ANKLE_PROPRIO_PRO",
+        "V2_RECUP_NAGE_DETENTE",
+        "C_STR_HIP_MOBILITY_DYNAMIC",
+        "V2_SWIM_TECHNIQUE_ROTATION",
+        "V3_RECUP_YOGA_ATHLETE",
+        "ENR_RECUP_MOBILITE_YOGA",
+        "C_STR_BEGINNER_FOUNDATION_FULL",
+        "C_STR_TOTAL_BODY_45",
+        "V3_RECUP_FOAM_ROLL",
+        "D_RECOVERY_VAR_2_PRO",
+        "D_SWIM_RECOVERY_EASY",
+        "A_STR_STABILITY_CORE",
+        "D_SWIM_TECHNIQUE_LIGHT",
+        "D_RECOVERY_VAR_5_PRO",
+        "A_IM_BIKE_STEADY_LONG",
+        "A_RUN_FARTLEK_LIBRE",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "V3_BIKE_Z2_PROGRESSIF",
+        "D_10K_RECOVERY_30",
+        "A_RUN_EASY_45_PRO",
+        "A_SWIM_AEROBIC_MULTI_NAGES",
+        "B_703_RUN_NEG_SPLIT",
+        "A_BIKE_END_90_PRO",
+        "A_10K_LONG_RUN_75",
+        "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "EXPE_HORS_VILLE_SL_DPLUS",
+        "B_TR_DESCENT_TOLERANCE_8x2",
+        "B_TR_HILL_REPS_SHORT",
+        "B_TR50_DESCENT_SPEED",
+        "URBAN_COTES_URBAINES_VMA",
+        "B_TR_FARTLEK_TRAIL_10x1_2",
+        "B_TR_DESCENTE_ECCENTRIC",
+        "B_TR_DESCENT_TOLERANCE",
+        "URBAN_ESCALIERS_PYRAMIDE",
+        "V3_TRAIL_ULTRA_NIGHT",
+        "EXPE_HORS_VILLE_NOCTURNE"
+      ],
+      "sourceTimedSubset": [
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "SEILER_BIKE_Z1_LONG",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "V3_BIKE_FATMAX_LONG",
+        "V2_BIKE_FATMAX_LONG",
+        "A_RUN_Z2_EASY",
+        "A_IM_BIKE_STEADY_LONG",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "A_RUN_EASY_45_PRO",
+        "V3_TRAIL_ULTRA_NIGHT"
+      ],
+      "editorialOffers": [
+        "C_BIKE_FORCE",
+        "TPL_IM_BIKE_FORCE_K3",
+        "C_10K_STRIDES_SPEED"
+      ],
+      "prescriptions": [
+        {
+          "legacyId": "D_BIKE_RECOVERY",
+          "sourceRecipeStatus": "complete",
+          "durationSeconds": 1800,
+          "sourceInstructions": [
+            {
+              "part": "Main",
+              "text": "30–60 min Z1, très facile",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "references": {
+            "ftpWatts": 320,
+            "mlssSpeedKmh": 16.363636363636363,
+            "runReference": {
+              "paceThresholdSecPerKm": 220,
+              "origin": "TFCLab transmitted raw synthetic threshold pace",
+              "runMLSS": {
+                "observedPct": 90.9,
+                "prediction": {
+                  "mlssPct": 93.7,
+                  "confidence": 0.75,
+                  "trace": {
+                    "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                    "vlamaxContribution": 16.85,
+                    "ceContribution": -10.5,
+                    "rmseExpected": 2.64
+                  }
+                },
+                "crossValidation": {
+                  "observed": 90.9,
+                  "predicted": 93.7,
+                  "deltaPct": -2.8,
+                  "isCoherent": true,
+                  "severity": "ok",
+                  "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+                  "predictionConfidence": 0.75
+                },
+                "effectivePct": 90.9,
+                "effectiveSource": "observed"
+              },
+              "predictionIsNotMeasuredMLSS": true
+            },
+            "vlamaxEffective": {
+              "value": 0.2,
+              "source": "test",
+              "confidence": 0.75,
+              "label": "VLamax (test terrain)",
+              "details": {
+                "testType": "sprint",
+                "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+                "date": "2026-10-27"
+              },
+              "isLocked": false,
+              "errorMargin": 0.04,
+              "range": {
+                "low": 0.2,
+                "high": 0.24
+              },
+              "variationWarning": false,
+              "rawValue": 0.2,
+              "v2": {
+                "raw": 0.2,
+                "effective": 0.2,
+                "source": "test_terrain",
+                "confidence": 0.75,
+                "errorMargin": 0.04,
+                "range": {
+                  "low": 0.2,
+                  "high": 0.24
+                },
+                "label": "VLamax (test terrain)",
+                "isLocked": false,
+                "variationWarning": false,
+                "sport": "velo",
+                "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+                "calibrationLog": {
+                  "date": "2026-10-29T06:03:25.000Z",
+                  "source": "test_terrain",
+                  "rawValue": 0.2,
+                  "effectiveValue": 0.2,
+                  "previousValue": null,
+                  "variationPct": null,
+                  "confidence": 0.75,
+                  "errorMargin": 0.04,
+                  "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+                  "sources": [
+                    "preregistered synthetic stored field-test estimate, not raw acquisition"
+                  ],
+                  "smoothingApplied": false
+                }
+              }
+            },
+            "tteEffective": {
+              "tte_min": 41,
+              "source": "estimated",
+              "confidence": 0.5,
+              "label": "~41 min (approx.)",
+              "target": 50,
+              "status": "critical",
+              "status_message": "TTE insuffisant (-9 min vs cible 50)"
+            },
+            "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+          },
+          "capacityState": "not_attested",
+          "individualPrescriptionApproved": false,
+          "scientificValidation": false,
+          "sourceDurationUnchanged": true,
+          "status": "prospective_candidate_not_approved",
+          "sourceZone": "Z1",
+          "domain": "recovery",
+          "bindingOrigin": "preregistered synthetic coach convention, not a new scientific fact",
+          "target": {
+            "unit": "W",
+            "min": 0,
+            "max": 176
+          },
+          "anchor": 320,
+          "rule": "src/lib/zones/tfclDoctrine.ts",
+          "doseOptimalityClaim": false
+        },
+        {
+          "legacyId": "D_RUN_REGEN",
+          "sourceRecipeStatus": "complete",
+          "durationSeconds": 1200,
+          "sourceInstructions": [
+            {
+              "part": "Main",
+              "text": "20–45 min Z1, relâché",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "references": {
+            "ftpWatts": 320,
+            "mlssSpeedKmh": 16.363636363636363,
+            "runReference": {
+              "paceThresholdSecPerKm": 220,
+              "origin": "TFCLab transmitted raw synthetic threshold pace",
+              "runMLSS": {
+                "observedPct": 90.9,
+                "prediction": {
+                  "mlssPct": 93.7,
+                  "confidence": 0.75,
+                  "trace": {
+                    "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                    "vlamaxContribution": 16.85,
+                    "ceContribution": -10.5,
+                    "rmseExpected": 2.64
+                  }
+                },
+                "crossValidation": {
+                  "observed": 90.9,
+                  "predicted": 93.7,
+                  "deltaPct": -2.8,
+                  "isCoherent": true,
+                  "severity": "ok",
+                  "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+                  "predictionConfidence": 0.75
+                },
+                "effectivePct": 90.9,
+                "effectiveSource": "observed"
+              },
+              "predictionIsNotMeasuredMLSS": true
+            },
+            "vlamaxEffective": {
+              "value": 0.2,
+              "source": "test",
+              "confidence": 0.75,
+              "label": "VLamax (test terrain)",
+              "details": {
+                "testType": "sprint",
+                "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+                "date": "2026-10-27"
+              },
+              "isLocked": false,
+              "errorMargin": 0.04,
+              "range": {
+                "low": 0.2,
+                "high": 0.24
+              },
+              "variationWarning": false,
+              "rawValue": 0.2,
+              "v2": {
+                "raw": 0.2,
+                "effective": 0.2,
+                "source": "test_terrain",
+                "confidence": 0.75,
+                "errorMargin": 0.04,
+                "range": {
+                  "low": 0.2,
+                  "high": 0.24
+                },
+                "label": "VLamax (test terrain)",
+                "isLocked": false,
+                "variationWarning": false,
+                "sport": "velo",
+                "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+                "calibrationLog": {
+                  "date": "2026-10-29T06:03:25.000Z",
+                  "source": "test_terrain",
+                  "rawValue": 0.2,
+                  "effectiveValue": 0.2,
+                  "previousValue": null,
+                  "variationPct": null,
+                  "confidence": 0.75,
+                  "errorMargin": 0.04,
+                  "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+                  "sources": [
+                    "preregistered synthetic stored field-test estimate, not raw acquisition"
+                  ],
+                  "smoothingApplied": false
+                }
+              }
+            },
+            "tteEffective": {
+              "tte_min": 41,
+              "source": "estimated",
+              "confidence": 0.5,
+              "label": "~41 min (approx.)",
+              "target": 50,
+              "status": "critical",
+              "status_message": "TTE insuffisant (-9 min vs cible 50)"
+            },
+            "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+          },
+          "capacityState": "not_attested",
+          "individualPrescriptionApproved": false,
+          "scientificValidation": false,
+          "sourceDurationUnchanged": true,
+          "status": "prospective_candidate_not_approved",
+          "sourceZone": "Z1",
+          "domain": "recovery",
+          "bindingOrigin": "preregistered synthetic coach convention, not a new scientific fact",
+          "target": {
+            "unit": "m/s",
+            "min": 0,
+            "max": 3.4090909090909096
+          },
+          "anchor": 16.363636363636363,
+          "rule": "src/lib/zones/tfclDoctrine.ts",
+          "doseOptimalityClaim": false
+        }
+      ],
+      "prospectiveNolioFixtures": [
+        {
+          "legacyId": "D_BIKE_RECOVERY",
+          "originalV19SyntheticTarget": {
+            "type": "step",
+            "step_duration_type": "duration",
+            "step_duration_value": 1800,
+            "intensity_type": "active",
+            "target_type": "power",
+            "target_unit": "W",
+            "target_value_min": 0,
+            "target_value_max": 137.5,
+            "notes": "30–60 min Z1, très facile"
+          },
+          "sourcePrescription": {
+            "id_partner": 224706035783834,
+            "athlete_id": 1,
+            "sport_id": 14,
+            "name": "Récupération, circulation, fraîcheur",
+            "date_start": "2026-11-02",
+            "description": "# Récupération, circulation, fraîcheur\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nDurée annoncée : 30–60 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nCatégorie historique : D\n\nDiscipline source : cyclisme\n\nObjectif : Récupération, circulation, fraîcheur\n\nNécessité annoncée : Obligatoire\n\nPlacement annoncé : Taper / lendemain charge\n\nPhases opérationnelles : [\n  \"taper\"\n]\n\nRestrictions : aucun\n\nPlage de durée annoncée (min) : [\n  30,\n  60\n]\n\nMesure de référence : puissance\n\nContexte de mesure : cyclisme\n\n## Déroulement original\n\n### Main\n\n30–60 min Z1, très facile\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : parfait\n\nhalf : parfait\n\nmarathon : optionnel\n\nsemi : optionnel\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\"\n]\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 30 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1800 s, à partir de « 30–60 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+            "duration": 1800,
+            "structured_workout": [
+              {
+                "type": "step",
+                "step_duration_type": "duration",
+                "step_duration_value": 1800,
+                "intensity_type": "active",
+                "target_type": "power",
+                "target_unit": "W",
+                "target_value_min": 0,
+                "target_value_max": 176,
+                "notes": "30–60 min Z1, très facile"
+              }
+            ]
+          },
+          "result": {
+            "status": "experimental_source_fidelity_pass",
+            "payload": {
+              "id_partner": 224706035783834,
+              "athlete_id": 1,
+              "sport_id": 14,
+              "name": "Récupération, circulation, fraîcheur",
+              "date_start": "2026-11-02",
+              "description": "# Récupération, circulation, fraîcheur\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nDurée annoncée : 30–60 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_BIKE_RECOVERY\n\nCatégorie historique : D\n\nDiscipline source : cyclisme\n\nObjectif : Récupération, circulation, fraîcheur\n\nNécessité annoncée : Obligatoire\n\nPlacement annoncé : Taper / lendemain charge\n\nPhases opérationnelles : [\n  \"taper\"\n]\n\nRestrictions : aucun\n\nPlage de durée annoncée (min) : [\n  30,\n  60\n]\n\nMesure de référence : puissance\n\nContexte de mesure : cyclisme\n\n## Déroulement original\n\n### Main\n\n30–60 min Z1, très facile\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : parfait\n\nhalf : parfait\n\nmarathon : optionnel\n\nsemi : optionnel\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\"\n]\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 30 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1800 s, à partir de « 30–60 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+              "duration": 1800,
+              "structured_workout": [
+                {
+                  "type": "step",
+                  "step_duration_type": "duration",
+                  "step_duration_value": 1800,
+                  "intensity_type": "active",
+                  "target_type": "power",
+                  "target_value_max": 176,
+                  "target_value_min": 0,
+                  "comment": "30–60 min Z1, très facile"
+                }
+              ]
+            },
+            "sourcePayloadHash": "6e00a98398a97fc1e37173f6b1fcaa714d52d9d8c38fcccb1ba8d5f9e195b881",
+            "actions": [],
+            "documentedFieldMapping": [
+              {
+                "path": "structured_workout[0].notes",
+                "action": "copy_exactly_to_documented_comment",
+                "sourceTextUnchanged": true
+              },
+              {
+                "path": "structured_workout[0].target_unit",
+                "action": "omit_redundant_W_tag_power_unit_is_documented_W",
+                "numericTargetUnchanged": true
+              }
+            ],
+            "sourceTargetsResolvedByInputNotByThisFunction": true,
+            "sourceDoseAndInstructionLayoutPreserved": true,
+            "usesProductionSender": false,
+            "reapplyingProductionNormalizerMayUndoRepair": true,
+            "remoteAcceptanceVerified": false,
+            "individualPrescriptionApproved": false,
+            "scientificValidation": false,
+            "realExportPermitted": false,
+            "productionSenderChanged": false
+          },
+          "intensityDifferenceOrigin": "new preregistered TFCLab references, not dose optimization or new capacity"
+        },
+        {
+          "legacyId": "D_RUN_REGEN",
+          "originalV19SyntheticTarget": {
+            "type": "step",
+            "step_duration_type": "duration",
+            "step_duration_value": 1200,
+            "intensity_type": "active",
+            "target_type": "pace",
+            "target_value_min": 0,
+            "target_value_max": 2.5,
+            "notes": "20–45 min Z1, relâché"
+          },
+          "sourcePrescription": {
+            "id_partner": 237885225166052,
+            "athlete_id": 1,
+            "sport_id": 2,
+            "name": "Régénération, prévention blessures",
+            "date_start": "2026-11-02",
+            "description": "# Régénération, prévention blessures\n\nIdentifiant historique : D_RUN_REGEN\n\nDurée annoncée : 20–45 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_RUN_REGEN\n\nCatégorie historique : D\n\nDiscipline source : course\n\nObjectif : Régénération, prévention blessures\n\nNécessité annoncée : Recommandé\n\nPlacement annoncé : lendemain séance B / taper\n\nPhases opérationnelles : [\n  \"base\",\n  \"build\",\n  \"peak\",\n  \"taper\"\n]\n\nRestrictions : si douleur\n\nPlage de durée annoncée (min) : [\n  20,\n  45\n]\n\nMesure de référence : cardiaque\n\nContexte de mesure : tout sport\n\n## Déroulement original\n\n### Main\n\n20–45 min Z1, relâché\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : brick très facile ok\n\nhalf : ok\n\nmarathon : ok\n\nsemi : ok\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\",\n  \"marathon\",\n  \"semi\"\n]\n\nPhases avant enrichissement : [\n  \"taper\"\n]. L'élargissement logiciel ne vaut pas validation sportive.\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 20 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1200 s, à partir de « 20–45 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+            "duration": 1200,
+            "structured_workout": [
+              {
+                "type": "step",
+                "step_duration_type": "duration",
+                "step_duration_value": 1200,
+                "intensity_type": "active",
+                "target_type": "pace",
+                "target_value_min": 0,
+                "target_value_max": 3.4090909090909096,
+                "notes": "20–45 min Z1, relâché"
+              }
+            ]
+          },
+          "result": {
+            "status": "experimental_source_fidelity_pass",
+            "payload": {
+              "id_partner": 237885225166052,
+              "athlete_id": 1,
+              "sport_id": 2,
+              "name": "Régénération, prévention blessures",
+              "date_start": "2026-11-02",
+              "description": "# Régénération, prévention blessures\n\nIdentifiant historique : D_RUN_REGEN\n\nDurée annoncée : 20–45 min. Durée complète et capacité individuelle à confirmer lorsque signalé.\n\nIntensité personnalisée : non résolue — repères individuels et contexte nécessaires ; les zones originales ci-dessous restent inchangées.\n\nIdentifiant historique : D_RUN_REGEN\n\nCatégorie historique : D\n\nDiscipline source : course\n\nObjectif : Régénération, prévention blessures\n\nNécessité annoncée : Recommandé\n\nPlacement annoncé : lendemain séance B / taper\n\nPhases opérationnelles : [\n  \"base\",\n  \"build\",\n  \"peak\",\n  \"taper\"\n]\n\nRestrictions : si douleur\n\nPlage de durée annoncée (min) : [\n  20,\n  45\n]\n\nMesure de référence : cardiaque\n\nContexte de mesure : tout sport\n\n## Déroulement original\n\n### Main\n\n20–45 min Z1, relâché\n\nZones sources : Z1\n\n## Variantes originales\n\nironman : brick très facile ok\n\nhalf : ok\n\nmarathon : ok\n\nsemi : ok\n\nObjectifs compatibles annoncés : [\n  \"ironman\",\n  \"half\",\n  \"marathon\",\n  \"semi\"\n]\n\nPhases avant enrichissement : [\n  \"taper\"\n]. L'élargissement logiciel ne vaut pas validation sportive.\n\n## Points à vérifier avant prescription\n\nLe domaine physiologique n’est pas explicitement établi.\n\nLe minutage complet du protocole reste à établir.\n\nLa tolérance individuelle à cette dose n’est pas renseignée.\n\nL’intention physiologique n’a pas de métadonnée explicite relue.\n\nLa récupération devra être observée ; aucune adaptation acquise n’est présumée.\n\nAucune référence attribuée à cette fiche n’a été identifiée.\n\nPrérequis en texte libre conservés, sans attestation individuelle.\n\nConversion technique uniquement. Aucune validation scientifique ou approbation individuelle créée.\n\n## Chronologie expérimentale V18\n\nRecette générique chronométrée entièrement compilée. Témoin technique : 20 min ; ce choix respecte les seules bornes sources et n’est ni une dose optimale ni une approbation individuelle.\n\n- Partie 1 : 1200 s, à partir de « 20–45 min ».\n\nLes variantes par objectif, intensités individuelles, prérequis et réponses de récupération restent à valider séparément. Aucune référence scientifique ou adaptation acquise n’est créée par la compilation.\n\nV20 synthetic TFCLab reference confrontation; not an approved prescription.",
+              "duration": 1200,
+              "structured_workout": [
+                {
+                  "type": "step",
+                  "step_duration_type": "duration",
+                  "step_duration_value": 1200,
+                  "intensity_type": "active",
+                  "target_type": "pace",
+                  "target_value_max": 3.4090909090909096,
+                  "target_value_min": 0,
+                  "comment": "20–45 min Z1, relâché"
+                }
+              ]
+            },
+            "sourcePayloadHash": "084c284557740b699e8f20484a247bf790cf8090668f20e14377010a3804e3a1",
+            "actions": [
+              {
+                "step": 0,
+                "field": "target_type",
+                "source": "pace",
+                "historical": "no_target",
+                "experimental": "pace",
+                "reason": "restore_explicit_source_target_semantics",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              },
+              {
+                "step": 0,
+                "field": "target_value_min",
+                "source": 0,
+                "historical": null,
+                "experimental": 0,
+                "reason": "retain_exact_source_bound_without_machine_rounding",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              },
+              {
+                "step": 0,
+                "field": "target_value_max",
+                "source": 3.4090909090909096,
+                "historical": null,
+                "experimental": 3.4090909090909096,
+                "reason": "retain_exact_source_bound_without_machine_rounding",
+                "sourceProvenance": "V20 preregistered actual TFCLab outputs with explicit synthetic coach binding"
+              }
+            ],
+            "documentedFieldMapping": [
+              {
+                "path": "structured_workout[0].notes",
+                "action": "copy_exactly_to_documented_comment",
+                "sourceTextUnchanged": true
+              }
+            ],
+            "sourceTargetsResolvedByInputNotByThisFunction": true,
+            "sourceDoseAndInstructionLayoutPreserved": true,
+            "usesProductionSender": false,
+            "reapplyingProductionNormalizerMayUndoRepair": true,
+            "remoteAcceptanceVerified": false,
+            "individualPrescriptionApproved": false,
+            "scientificValidation": false,
+            "realExportPermitted": false,
+            "productionSenderChanged": false
+          },
+          "intensityDifferenceOrigin": "new preregistered TFCLab references, not dose optimization or new capacity"
+        }
+      ]
+    },
+    {
+      "id": "missing_anchors",
+      "effective": {
+        "value": 0.2,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+          "date": "2026-10-27"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.2,
+          "high": 0.24
+        },
+        "variationWarning": false,
+        "rawValue": 0.2,
+        "v2": {
+          "raw": 0.2,
+          "effective": 0.2,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+          "calibrationLog": {
+            "date": "2026-10-29T06:03:25.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.2,
+            "effectiveValue": 0.2,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "sources": [
+              "preregistered synthetic stored field-test estimate, not raw acquisition"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "diagnosticEffectifs": {
+        "vlamax": {
+          "value": 0.2,
+          "source": "test",
+          "confidence": 0.75,
+          "label": "VLamax (test terrain)",
+          "details": {
+            "testType": "sprint",
+            "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+            "date": "2026-10-27"
+          },
+          "isLocked": false,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "variationWarning": false,
+          "rawValue": 0.2,
+          "v2": {
+            "raw": 0.2,
+            "effective": 0.2,
+            "source": "test_terrain",
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "range": {
+              "low": 0.2,
+              "high": 0.24
+            },
+            "label": "VLamax (test terrain)",
+            "isLocked": false,
+            "variationWarning": false,
+            "sport": "velo",
+            "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "calibrationLog": {
+              "date": "2026-10-29T06:03:25.000Z",
+              "source": "test_terrain",
+              "rawValue": 0.2,
+              "effectiveValue": 0.2,
+              "previousValue": null,
+              "variationPct": null,
+              "confidence": 0.75,
+              "errorMargin": 0.04,
+              "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+              "sources": [
+                "preregistered synthetic stored field-test estimate, not raw acquisition"
+              ],
+              "smoothingApplied": false
+            }
+          }
+        },
+        "tte": {
+          "tte_min": 0,
+          "source": "unknown",
+          "confidence": 0.2,
+          "label": "— (données manquantes)",
+          "target": 50,
+          "status": "warning",
+          "status_message": "Aucune donnée TTE disponible (ni mesurée, ni TSS 7j, ni FTP)"
+        },
+        "fatigue": {
+          "score": 43,
+          "level": {
+            "min": 30,
+            "max": 55,
+            "label": "Fatigue modérée",
+            "shortLabel": "🟡 Modérée",
+            "description": "Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+            "color": "warning",
+            "colorClass": "text-amber-600 dark:text-amber-400",
+            "badgeClass": "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
+          },
+          "contributions": {
+            "chargeRecente": 40,
+            "fatiguePercue": 45,
+            "tte": 50,
+            "fraicheur": 50,
+            "modulateurs": 25
+          },
+          "contributionsWeighted": {
+            "chargeRecente": 16,
+            "fatiguePercue": 7,
+            "tte": 13,
+            "fraicheur": 6,
+            "modulateurs": 2
+          },
+          "confidence": 0.30000000000000004,
+          "reasonsMissing": [
+            "TSS 7 jours",
+            "Fatigue perçue (check-in)",
+            "TTE effectif"
+          ],
+          "messageAthlete": "Fatigue modérée – Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+          "messageStaff": "Fatigue fonctionnelle : 43% (Fatigue modérée)\n\nDécomposition :\n• Charge récente : +16% (indice brut: 40%)\n• Fatigue perçue : +7% (indice brut: 45%)\n• TTE effectif : +13% (indice brut: 50%)\n• Disponibilité métabolique : +6% (indice brut: 50%)\n• Facteurs individuels : +2% (indice brut: 25%)",
+          "recommendations": [
+            "Surveiller les sensations sur les séances intensives"
+          ],
+          "inputsUsed": {
+            "tss7d": null,
+            "tss7dHabituel": null,
+            "fatiguePercue": null,
+            "tteEffectif": 0,
+            "tteTarget": 50,
+            "potentielPhysiologique": null,
+            "age": 35,
+            "vlamax": 0.2
+          }
+        }
+      },
+      "limiters": [
+        "TTE",
+        "VO2max"
+      ],
+      "strategy": {
+        "source": "lorang",
+        "primaryAction": "Focus Volume Z2 / Endurance",
+        "confidence": "high",
+        "levers": [
+          {
+            "id": "z2_volume",
+            "label": "Volume Z2 / Endurance",
+            "priority": 1,
+            "reason": "TTE 100% sous la cible (0min vs 59min) — développer la durabilité",
+            "adaptations": [
+              "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+              "2×20-30min au seuil pour augmenter le TTE",
+              "Z2 + bloc tempo final 20-30min",
+              "Progression charge +10%/semaine max"
+            ]
+          },
+          {
+            "id": "force_max",
+            "label": "Force Max",
+            "priority": 2,
+            "reason": "Économie faible — renforcement musculaire nécessaire",
+            "adaptations": [
+              "Gym lourde 85–95% 1RM",
+              "3–5 répétitions par série",
+              "2–3 séries max",
+              "1–2x/semaine (hors semaines de course)"
+            ]
+          }
+        ],
+        "trainingFocus": {
+          "do": [],
+          "avoid": []
+        },
+        "recommendedWeekType": "endurance"
+      },
+      "trace": {
+        "version": 1,
+        "diagnostic": {
+          "executed": true,
+          "confidenceGlobal": 0.2,
+          "dataCompleteness": 0.79,
+          "limiters": [
+            {
+              "metric": "TTE",
+              "priority": 1,
+              "status": "limiting",
+              "value": 0,
+              "target": 59,
+              "weightedImpact": 90
+            },
+            {
+              "metric": "VO2max",
+              "priority": 2,
+              "status": "acceptable",
+              "value": 58,
+              "target": 62.4,
+              "weightedImpact": 5.394230769230768
+            }
+          ],
+          "uncertainty": [
+            "Confiance diagnostique limitée (20%)."
+          ]
+        },
+        "decision": {
+          "executed": true,
+          "source": "lorang",
+          "confidence": "high",
+          "primaryAction": "Focus Volume Z2 / Endurance",
+          "levers": [
+            {
+              "id": "z2_volume",
+              "label": "Volume Z2 / Endurance",
+              "priority": 1,
+              "reason": "TTE 100% sous la cible (0min vs 59min) — développer la durabilité",
+              "adaptations": [
+                "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+                "2×20-30min au seuil pour augmenter le TTE",
+                "Z2 + bloc tempo final 20-30min",
+                "Progression charge +10%/semaine max"
+              ]
+            },
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            }
+          ],
+          "prohibitions": [
+            {
+              "id": "vo2_heavy_blocks",
+              "label": "Blocs VO2 lourds",
+              "reason": "Incompatible avec le travail de force max"
+            }
+          ],
+          "trainingFocus": {
+            "do": [],
+            "avoid": []
+          },
+          "weekType": "endurance"
+        },
+        "transmission": {
+          "identifiedLimitersRaw": {
+            "status": "consumed",
+            "origin": "diagnostic.limiter.gapAnalysis",
+            "consumers": [
+              "workoutCatalogBuilder.scoreWorkout",
+              "edge.buildStructuredDiagnosticBlock",
+              "server.reconciler"
+            ],
+            "detail": "Ordre transmis: TTE > VO2max"
+          },
+          "activeLevers": {
+            "status": "consumed",
+            "origin": "decision.strategy.levers",
+            "consumers": [
+              "edge.buildStructuredDiagnosticBlock"
+            ],
+            "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+          },
+          "prohibitions": {
+            "status": "consumed",
+            "origin": "planConfigBuilder + decision.strategy.prohibitions",
+            "consumers": [
+              "workoutCatalogBuilder.prohibitions",
+              "edge.buildStructuredDiagnosticBlock"
+            ]
+          },
+          "strategyContext": {
+            "status": "consumed",
+            "origin": "decision.strategy (lorang)",
+            "consumers": [
+              "edge.buildStructuredDiagnosticBlock"
+            ],
+            "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+          },
+          "prescriptionIntent": {
+            "status": "not_verified",
+            "origin": "plan final généré",
+            "consumers": [],
+            "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+          }
+        }
+      },
+      "refs": {
+        "ftpWatts": null,
+        "mlssSpeedKmh": null,
+        "runReference": {
+          "paceThresholdSecPerKm": null,
+          "origin": "unknown_no_anchor_invented",
+          "runMLSS": {
+            "observedPct": null,
+            "prediction": {
+              "mlssPct": 93.7,
+              "confidence": 0.75,
+              "trace": {
+                "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                "vlamaxContribution": 16.85,
+                "ceContribution": -10.5,
+                "rmseExpected": 2.64
+              }
+            },
+            "crossValidation": null,
+            "effectivePct": 93.7,
+            "effectiveSource": "predicted"
+          },
+          "predictionIsNotMeasuredMLSS": true
+        },
+        "vlamaxEffective": {
+          "value": 0.2,
+          "source": "test",
+          "confidence": 0.75,
+          "label": "VLamax (test terrain)",
+          "details": {
+            "testType": "sprint",
+            "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+            "date": "2026-10-27"
+          },
+          "isLocked": false,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "variationWarning": false,
+          "rawValue": 0.2,
+          "v2": {
+            "raw": 0.2,
+            "effective": 0.2,
+            "source": "test_terrain",
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "range": {
+              "low": 0.2,
+              "high": 0.24
+            },
+            "label": "VLamax (test terrain)",
+            "isLocked": false,
+            "variationWarning": false,
+            "sport": "velo",
+            "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+            "calibrationLog": {
+              "date": "2026-10-29T06:03:25.000Z",
+              "source": "test_terrain",
+              "rawValue": 0.2,
+              "effectiveValue": 0.2,
+              "previousValue": null,
+              "variationPct": null,
+              "confidence": 0.75,
+              "errorMargin": 0.04,
+              "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+              "sources": [
+                "preregistered synthetic stored field-test estimate, not raw acquisition"
+              ],
+              "smoothingApplied": false
+            }
+          }
+        },
+        "tteEffective": {
+          "tte_min": 0,
+          "source": "unknown",
+          "confidence": 0.2,
+          "label": "— (données manquantes)",
+          "target": 50,
+          "status": "warning",
+          "status_message": "Aucune donnée TTE disponible (ni mesurée, ni TSS 7j, ni FTP)"
+        },
+        "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+      },
+      "catalogue": [
+        "SEILER_SWIM_Z1_VOLUME",
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "B_IM_RUN_NEG_SPLIT_LR",
+        "A_SWIM_END_CSS_PRO",
+        "SEILER_BIKE_Z1_LONG",
+        "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "B_IM_RUN_LATE_RACE_FRACTIONS",
+        "COGGAN_BIKE_FTP_RAMP_TEST",
+        "D_SWIM_TRI_REGEN_1000",
+        "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+        "C_STR_RUN_DRILLS_PRO",
+        "SEILER_RUN_Z1_EASY_LONG",
+        "A_SWIM_PULL_LONG_DISTANCE",
+        "C_STR_ANKLE_FOOT_COMPLEX",
+        "C_STR_RUN_FORM_STRIDES",
+        "C_STR_CIRCUIT_CARDIO_TRI",
+        "C_SWIM_TRI_SIGHTING_DRILLS",
+        "C_SWIM_TECH_DRILLS",
+        "C_SWIM_TRI_CATCH_PULL",
+        "A_STR_AERO_STRENGTH",
+        "A_BIKE_LONG_IM_PRO",
+        "C_STR_ISOMETRIC_UPPER",
+        "A_STR_ENDURANCE_CIRCUIT",
+        "C_BRICK_TRANSITION_DRILL",
+        "V3_BIKE_CADENCE_DRILLS",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "C_STR_CYCLIST_NECK_BACK",
+        "C_BIKE_CADENCE_SKILLS_PRO",
+        "C_RUN_HILL_SKILLS",
+        "SEILER_RUN_BLACK_HOLE_AUDIT",
+        "A_SWIM_CONTINUOUS_2K",
+        "C_SWIM_KICK_SET",
+        "V2_RUN_EDUCATIFS_TECHNIQUES",
+        "V2_STR_HANCHE_COUREUR",
+        "A_SWIM_PULL_ENDURANCE",
+        "V2_BIKE_SINGLE_LEG",
+        "RECOVERY_YOGA_MOBILITY_TRI",
+        "D_DELOAD_RUN",
+        "ECONOMY_RUN_FATIGUE_FORM",
+        "A_BIKE_Z2_LONG",
+        "D_SEMI_RECOVERY_30",
+        "TPL_IM_BIKE_FOUNDATION_4H30",
+        "RMT_INSPIRATORY_INTRO",
+        "D_RECOVERY_VAR_8_PRO",
+        "D_MOBILITY_HIPS_DEEP",
+        "V3_BIKE_RAMP_TEST",
+        "C_STR_GLUTE_REACTIVATION",
+        "D_RECOVERY_VAR_7_PRO",
+        "D_MOBILITY_THORACIC",
+        "C_STR_HIP_MOBILITY_PRO",
+        "D_RECOVERY_VAR_10_PRO",
+        "D_RECOVERY_VAR_9_PRO",
+        "REST_ACTIVE_WALK",
+        "D_RECOVERY_VAR_6_PRO",
+        "D_RECOVERY_VAR_1_PRO",
+        "D_RUN_RECOVERY_30_PRO",
+        "ENR_RECUP_ACTIVE_MULTI",
+        "C_STR_SINGLE_LEG_RUNNER",
+        "C_STR_THORACIC_POSTURAL_RESET",
+        "TPL_SEMI_VMA_COURTE_30_30",
+        "D_MOBILITY_ROUTINE",
+        "A_RUN_EASY_STRIDES_PRO",
+        "D_RECOVERY_VAR_3_PRO",
+        "D_YOGA_POWER_LIGHT",
+        "D_YOGA_ATHLETE",
+        "TT_5K_TEST",
+        "C_STR_TIBIAL_SHIN_SPLINTS",
+        "BRICK_STAGE1_INTRO",
+        "BILLAT_RUN_ECONOMY_STRIDES",
+        "C_SWIM_TRI_BILATERAL_BREATHING",
+        "A_SWIM_TRI_OPEN_WATER_SIMU",
+        "V3_BIKE_FATMAX_LONG",
+        "C_STR_UPPER_BODY_TRI",
+        "C_SWIM_TRI_KICK_EFFICIENCY",
+        "BRICK_ACTIVATION_PRE_RACE",
+        "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+        "V2_BIKE_FATMAX_LONG",
+        "C_RESP_INSPIRATORY_MUSCLE",
+        "C_BIKE_FORCE",
+        "RECOVERY_HRV_GUIDED_DAY",
+        "V3_BIKE_FORCE_SFR",
+        "TPL_IM_BIKE_FORCE_K3",
+        "REST_FULL_DAY",
+        "V2_RECUP_VELO_REGENERATION",
+        "V2_RECUP_FOAM_ROLLING",
+        "FATMAX_BIKE_FATFLUSH",
+        "D_PRE_RACE_ACTIVATION_RUN",
+        "D_ACTIVATION_GLUTES",
+        "D_FOAM_ROLLING",
+        "D_BREATHWORK_NASAL_ENDURANCE",
+        "BILLAT_RUN_TLIM_TEST",
+        "V3_TEST_COOPER",
+        "ECONOMY_RUN_POSE_DRILLS",
+        "V3_TEST_LACTATE_STEP",
+        "C_10K_STRIDES_SPEED",
+        "C_SEMI_HILL_STRENGTH",
+        "C_MAR_HILL_STRENGTH",
+        "BFR_LEGS_RECOVERY_STRENGTH",
+        "RMT_EXPIRATORY_CORE",
+        "A_RUN_Z2_EASY",
+        "A_SWIM_TRI_EASY_TECH_1500",
+        "C_STR_ISOMETRIC_LOWER",
+        "C_SWIM_CATCH_FOCUS",
+        "B_SWIM_TRI_NEGATIVE_SPLIT",
+        "C_SWIM_TECH_DRILLS_PRO",
+        "C_STR_KETTLEBELL_FLOW",
+        "C_SWIM_LEGS_ENDURANCE",
+        "D_SWIM_EASY_PRO",
+        "D_SWIM_REGEN",
+        "A_SWIM_AEROBIC",
+        "V2_SWIM_TECHNIQUE_CATCH",
+        "C_SWIM_BILATERAL_BREATH",
+        "OWS_NAVIGATION_SIGHTING",
+        "OWS_WETSUIT_SPECIFIC",
+        "C_SWIM_OPEN_WATER_SKILLS",
+        "C_SWIM_TURNS_STARTS",
+        "A_RUN_DURABILITY_LONG",
+        "C_STR_FULL_BODY_PRO",
+        "D_ACTIVATION_ANKLE_FOOT",
+        "D_RECOVERY_VAR_4_PRO",
+        "C_STR_ANKLE_PROPRIO_PRO",
+        "V2_RECUP_NAGE_DETENTE",
+        "C_STR_HIP_MOBILITY_DYNAMIC",
+        "V2_SWIM_TECHNIQUE_ROTATION",
+        "V3_RECUP_YOGA_ATHLETE",
+        "ENR_RECUP_MOBILITE_YOGA",
+        "C_STR_BEGINNER_FOUNDATION_FULL",
+        "C_STR_TOTAL_BODY_45",
+        "V3_RECUP_FOAM_ROLL",
+        "D_RECOVERY_VAR_2_PRO",
+        "D_SWIM_RECOVERY_EASY",
+        "A_STR_STABILITY_CORE",
+        "D_SWIM_TECHNIQUE_LIGHT",
+        "D_RECOVERY_VAR_5_PRO",
+        "A_IM_BIKE_STEADY_LONG",
+        "A_RUN_FARTLEK_LIBRE",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "V3_BIKE_Z2_PROGRESSIF",
+        "D_10K_RECOVERY_30",
+        "A_RUN_EASY_45_PRO",
+        "A_SWIM_AEROBIC_MULTI_NAGES",
+        "B_703_RUN_NEG_SPLIT",
+        "A_BIKE_END_90_PRO",
+        "A_10K_LONG_RUN_75",
+        "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "EXPE_HORS_VILLE_SL_DPLUS",
+        "B_TR_DESCENT_TOLERANCE_8x2",
+        "B_TR_HILL_REPS_SHORT",
+        "B_TR50_DESCENT_SPEED",
+        "URBAN_COTES_URBAINES_VMA",
+        "B_TR_FARTLEK_TRAIL_10x1_2",
+        "B_TR_DESCENTE_ECCENTRIC",
+        "B_TR_DESCENT_TOLERANCE",
+        "URBAN_ESCALIERS_PYRAMIDE",
+        "V3_TRAIL_ULTRA_NIGHT",
+        "EXPE_HORS_VILLE_NOCTURNE"
+      ],
+      "sourceTimedSubset": [
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "SEILER_BIKE_Z1_LONG",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "V3_BIKE_FATMAX_LONG",
+        "V2_BIKE_FATMAX_LONG",
+        "A_RUN_Z2_EASY",
+        "A_IM_BIKE_STEADY_LONG",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "A_RUN_EASY_45_PRO",
+        "V3_TRAIL_ULTRA_NIGHT"
+      ],
+      "editorialOffers": [
+        "C_BIKE_FORCE",
+        "TPL_IM_BIKE_FORCE_K3",
+        "C_10K_STRIDES_SPEED"
+      ],
+      "prescriptions": [
+        {
+          "legacyId": "D_BIKE_RECOVERY",
+          "sourceRecipeStatus": "complete",
+          "durationSeconds": 1800,
+          "sourceInstructions": [
+            {
+              "part": "Main",
+              "text": "30–60 min Z1, très facile",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "references": {
+            "ftpWatts": null,
+            "mlssSpeedKmh": null,
+            "runReference": {
+              "paceThresholdSecPerKm": null,
+              "origin": "unknown_no_anchor_invented",
+              "runMLSS": {
+                "observedPct": null,
+                "prediction": {
+                  "mlssPct": 93.7,
+                  "confidence": 0.75,
+                  "trace": {
+                    "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                    "vlamaxContribution": 16.85,
+                    "ceContribution": -10.5,
+                    "rmseExpected": 2.64
+                  }
+                },
+                "crossValidation": null,
+                "effectivePct": 93.7,
+                "effectiveSource": "predicted"
+              },
+              "predictionIsNotMeasuredMLSS": true
+            },
+            "vlamaxEffective": {
+              "value": 0.2,
+              "source": "test",
+              "confidence": 0.75,
+              "label": "VLamax (test terrain)",
+              "details": {
+                "testType": "sprint",
+                "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+                "date": "2026-10-27"
+              },
+              "isLocked": false,
+              "errorMargin": 0.04,
+              "range": {
+                "low": 0.2,
+                "high": 0.24
+              },
+              "variationWarning": false,
+              "rawValue": 0.2,
+              "v2": {
+                "raw": 0.2,
+                "effective": 0.2,
+                "source": "test_terrain",
+                "confidence": 0.75,
+                "errorMargin": 0.04,
+                "range": {
+                  "low": 0.2,
+                  "high": 0.24
+                },
+                "label": "VLamax (test terrain)",
+                "isLocked": false,
+                "variationWarning": false,
+                "sport": "velo",
+                "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+                "calibrationLog": {
+                  "date": "2026-10-29T06:03:25.000Z",
+                  "source": "test_terrain",
+                  "rawValue": 0.2,
+                  "effectiveValue": 0.2,
+                  "previousValue": null,
+                  "variationPct": null,
+                  "confidence": 0.75,
+                  "errorMargin": 0.04,
+                  "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+                  "sources": [
+                    "preregistered synthetic stored field-test estimate, not raw acquisition"
+                  ],
+                  "smoothingApplied": false
+                }
+              }
+            },
+            "tteEffective": {
+              "tte_min": 0,
+              "source": "unknown",
+              "confidence": 0.2,
+              "label": "— (données manquantes)",
+              "target": 50,
+              "status": "warning",
+              "status_message": "Aucune donnée TTE disponible (ni mesurée, ni TSS 7j, ni FTP)"
+            },
+            "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+          },
+          "capacityState": "not_attested",
+          "individualPrescriptionApproved": false,
+          "scientificValidation": false,
+          "sourceDurationUnchanged": true,
+          "status": "unresolved",
+          "reason": "effective_reference_missing",
+          "target": null
+        },
+        {
+          "legacyId": "D_RUN_REGEN",
+          "sourceRecipeStatus": "complete",
+          "durationSeconds": 1200,
+          "sourceInstructions": [
+            {
+              "part": "Main",
+              "text": "20–45 min Z1, relâché",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "references": {
+            "ftpWatts": null,
+            "mlssSpeedKmh": null,
+            "runReference": {
+              "paceThresholdSecPerKm": null,
+              "origin": "unknown_no_anchor_invented",
+              "runMLSS": {
+                "observedPct": null,
+                "prediction": {
+                  "mlssPct": 93.7,
+                  "confidence": 0.75,
+                  "trace": {
+                    "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+                    "vlamaxContribution": 16.85,
+                    "ceContribution": -10.5,
+                    "rmseExpected": 2.64
+                  }
+                },
+                "crossValidation": null,
+                "effectivePct": 93.7,
+                "effectiveSource": "predicted"
+              },
+              "predictionIsNotMeasuredMLSS": true
+            },
+            "vlamaxEffective": {
+              "value": 0.2,
+              "source": "test",
+              "confidence": 0.75,
+              "label": "VLamax (test terrain)",
+              "details": {
+                "testType": "sprint",
+                "testName": "preregistered synthetic stored field-test estimate, not raw acquisition",
+                "date": "2026-10-27"
+              },
+              "isLocked": false,
+              "errorMargin": 0.04,
+              "range": {
+                "low": 0.2,
+                "high": 0.24
+              },
+              "variationWarning": false,
+              "rawValue": 0.2,
+              "v2": {
+                "raw": 0.2,
+                "effective": 0.2,
+                "source": "test_terrain",
+                "confidence": 0.75,
+                "errorMargin": 0.04,
+                "range": {
+                  "low": 0.2,
+                  "high": 0.24
+                },
+                "label": "VLamax (test terrain)",
+                "isLocked": false,
+                "variationWarning": false,
+                "sport": "velo",
+                "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: preregistered synthetic stored field-test estimate, not raw acquisition",
+                "calibrationLog": {
+                  "date": "2026-10-29T06:03:25.000Z",
+                  "source": "test_terrain",
+                  "rawValue": 0.2,
+                  "effectiveValue": 0.2,
+                  "previousValue": null,
+                  "variationPct": null,
+                  "confidence": 0.75,
+                  "errorMargin": 0.04,
+                  "reason": "Test terrain: preregistered synthetic stored field-test estimate, not raw acquisition",
+                  "sources": [
+                    "preregistered synthetic stored field-test estimate, not raw acquisition"
+                  ],
+                  "smoothingApplied": false
+                }
+              }
+            },
+            "tteEffective": {
+              "tte_min": 0,
+              "source": "unknown",
+              "confidence": 0.2,
+              "label": "— (données manquantes)",
+              "target": 50,
+              "status": "warning",
+              "status_message": "Aucune donnée TTE disponible (ni mesurée, ni TSS 7j, ni FTP)"
+            },
+            "provenance": "actual TFCLab prepareTrainingPlanContext results on preregistered synthetic inputs"
+          },
+          "capacityState": "not_attested",
+          "individualPrescriptionApproved": false,
+          "scientificValidation": false,
+          "sourceDurationUnchanged": true,
+          "status": "unresolved",
+          "reason": "effective_reference_missing",
+          "target": null
+        }
+      ],
+      "prospectiveNolioFixtures": [
+        {
+          "legacyId": "D_BIKE_RECOVERY",
+          "status": "refused_missing_effective_anchor",
+          "payload": null
+        },
+        {
+          "legacyId": "D_RUN_REGEN",
+          "status": "refused_missing_effective_anchor",
+          "payload": null
+        }
+      ]
+    }
+  ]
+}

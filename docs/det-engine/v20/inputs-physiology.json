@@ -1,0 +1,46 @@
+{
+  "version": "v20-physiology-preregistered-1",
+  "registeredAt": "2026-10-29T06:14:17.816570+00:00",
+  "asOf": "2026-10-29T06:03:25Z",
+  "seed": "QA_PROFILES:B-IM",
+  "objective": "IM",
+  "ambition": "finisher",
+  "trainingLevel": "trained",
+  "weeklyHours": 10,
+  "weeksAvailable": 16,
+  "cases": [
+    {
+      "id": "low_vlamax",
+      "vlamax": 0.2,
+      "ftpDeltaW": 0,
+      "missingAnchors": false
+    },
+    {
+      "id": "high_vlamax",
+      "vlamax": 0.9,
+      "ftpDeltaW": 0,
+      "missingAnchors": false
+    },
+    {
+      "id": "ftp_sensitivity",
+      "vlamax": 0.2,
+      "ftpDeltaW": 40,
+      "missingAnchors": false
+    },
+    {
+      "id": "missing_anchors",
+      "vlamax": 0.2,
+      "ftpDeltaW": 0,
+      "missingAnchors": true
+    }
+  ],
+  "fieldTestDate": "2026-10-27",
+  "testWorkouts": [
+    "D_BIKE_RECOVERY",
+    "D_RUN_REGEN"
+  ],
+  "anchorResolution": "existing TFCLab estimateRunThresholdPaceSecPerKm(vma, diagnostic.runMLSS.effectivePct), unit conversion only; no new percentage",
+  "doseConvention": "retain the complete source witness duration; do not infer tolerance from level, FTP or model predictions",
+  "syntheticOnly": true,
+  "individualApproval": false
+}

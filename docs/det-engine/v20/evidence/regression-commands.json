@@ -1,0 +1,38 @@
+[
+  {
+    "name": "historical",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 22465,
+    "logBytes": 848,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "experimental",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 47464,
+    "logBytes": 857,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "v19_nolio",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 725,
+    "logBytes": 935,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "v19_public_format",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 173,
+    "logBytes": 558,
+    "outputCapturedDirectly": true
+  }
+]

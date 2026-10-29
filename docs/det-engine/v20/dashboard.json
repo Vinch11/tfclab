@@ -1,0 +1,83 @@
+{
+  "review": {
+    "sourceRecords": 920,
+    "candidateInstances": 418,
+    "candidateDistinctIds": 210,
+    "completeCandidateInstances": 96,
+    "completeCandidateDistinctIds": 51,
+    "sourceComponentDoseUnchangedHeadlineCorrections": 2,
+    "recoveryOccurrenceConventionsRequiringArbitration": 416,
+    "scientificRowsPreserved": 210,
+    "unlabelledRecoveryIntensityCandidates": 59,
+    "pairedWitnessParametersDiffer": [
+      "TPL_IM_BIKE_FORCE_K3",
+      "TPL_703_RUN_TEMPO_2x20"
+    ],
+    "perSport": {
+      "swim": {
+        "ids": 43,
+        "candidates": 86,
+        "complete": 0,
+        "sourceDoseHeadlineOnly": 0
+      },
+      "bike": {
+        "ids": 50,
+        "candidates": 100,
+        "complete": 39,
+        "sourceDoseHeadlineOnly": 0
+      },
+      "run": {
+        "ids": 116,
+        "candidates": 230,
+        "complete": 57,
+        "sourceDoseHeadlineOnly": 2
+      },
+      "brick": {
+        "ids": 1,
+        "candidates": 2,
+        "complete": 0,
+        "sourceDoseHeadlineOnly": 0
+      }
+    },
+    "scientificPromotions": 0,
+    "individualPrescriptionsApproved": 0
+  },
+  "arbitrations": {
+    "candidateInstances": 418,
+    "sourceIds": 210,
+    "recoveryPolicyEdits": 466,
+    "proposalInstancesWithWarmupRecoveryEdit": 72,
+    "pairedSourceIdsWithSamePrefixThroughLastMain": 37,
+    "pairedScopeNotDemonstratedOrDifferent": 173,
+    "arbitrationAutomaticallyResolved": 0
+  },
+  "nolio": {
+    "fixtures": 15,
+    "source": 13,
+    "editorial": 2,
+    "historicalTargetLosses": [
+      "D_RUN_REGEN",
+      "D_IM_BRICK_REGEN",
+      "D_MAR_REGEN",
+      "D_TR_RECUP_ACTIVE"
+    ],
+    "repairedTargetLosses": [
+      "D_RUN_REGEN",
+      "D_IM_BRICK_REGEN",
+      "D_MAR_REGEN",
+      "D_TR_RECUP_ACTIVE"
+    ],
+    "experimentalFidelityPass": 15,
+    "restoredOrPreservedExactSourceBounds": true,
+    "productionSenderModified": false,
+    "realNolioCalls": 0,
+    "scientificPromotions": 0
+  },
+  "physiologicalProfiles": 4,
+  "prospectiveSerializationFixtures": 6,
+  "ironmanProfiles": 2,
+  "ironmanAlternatives": 4,
+  "sourceIdsInScientificReview": 51,
+  "completeVariants": 96,
+  "scientificPromotions": 0
+}
