@@ -1,0 +1,82 @@
+{
+  "version": "coach-floor-session-1",
+  "baseline": "ec72f8808f47c64f9f7361ac8e31108351348fdc",
+  "startedAt": "2026-10-29T17:25:06Z",
+  "hardDeadline": "2026-10-29T18:25:06Z",
+  "maxUnits": 10,
+  "budgetRenewal": false,
+  "automaticRestart": false,
+  "status": "closed_pending_publication_no_go",
+  "units": [
+    {
+      "unit": 1,
+      "name": "baseline_and_explicit_coach_policy_record",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "name": "bounded_opt_in_source_and_variant_contract",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "name": "strict_Z1_variant_execution_without_inventing_targets",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "name": "complementary_policy_validation_preserving_raw_historical_issues",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "name": "eight_case_replay_and_negative_tests",
+      "status": "complete_with_recorded_negative_failures"
+    },
+    {
+      "unit": 6,
+      "name": "isolation_raw_result_recomputation_and_structural_preflight",
+      "status": "complete"
+    },
+    {
+      "unit": 7,
+      "name": "full_policy_replay_v25_counterfactuals_and_non_regression",
+      "status": "complete"
+    },
+    {
+      "unit": 8,
+      "name": "independent_before_after_verification_and_seven_coach_dossiers",
+      "status": "complete"
+    },
+    {
+      "unit": 9,
+      "name": "guarded_experimental_commit_push_and_draft_pr_update",
+      "status": "in_progress"
+    },
+    {
+      "unit": 10,
+      "name": "bounded_closure_guard_and_publication_receipt",
+      "status": "guard_verified_awaiting_publication_receipt"
+    }
+  ],
+  "developmentAttempts": [
+    {
+      "id": 1,
+      "evidence": "evidence/development-1",
+      "failure": "numeric targets were shared between reference and alternative; tampering could affect both",
+      "correction": "deep clone target data and bind the immutable reference digest"
+    },
+    {
+      "id": 2,
+      "evidence": "evidence/development-2",
+      "failure": "legacy revalidation assumes a complete session graph and threw for the missing-discipline negative test",
+      "correction": "refuse an incomplete graph before invoking the unchanged legacy helper"
+    }
+  ],
+  "validationAttempts": 1,
+  "acceptedValidation": "evidence/validation-1",
+  "recommendation": "DRAFT_NO_GO_INDIVIDUAL_PRESCRIPTION_NOT_APPROVED",
+  "lastSavedAt": "2026-10-29T17:51:56.933507+00:00",
+  "developmentClosedAt": "2026-10-29T17:54:47.547816+00:00",
+  "resumeRequiresNewBudget": true
+}

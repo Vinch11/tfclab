@@ -1,0 +1,203 @@
+{
+  "newTests": 29,
+  "nonRegressionTests": 290,
+  "policyAuthorizations": 1,
+  "alternatives": 6,
+  "individualDoseApprovals": 0,
+  "individualExpertReviews": 0,
+  "profiles": [
+    {
+      "caseId": "A_aerobic",
+      "alternative": true,
+      "policyApplied": true,
+      "minutesBefore": 95,
+      "minutesAfter": 90,
+      "week3TotalBefore": 505,
+      "week3TotalAfter": 500,
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "capacityBefore": 1,
+      "capacityAfter": 0,
+      "rawHistoricalBefore": [
+        4,
+        36
+      ],
+      "rawHistoricalAfter": [
+        5,
+        36
+      ],
+      "authorizedFloorWitnesses": 3,
+      "individualDoseApproved": false
+    },
+    {
+      "caseId": "B_sustainability",
+      "alternative": true,
+      "policyApplied": true,
+      "minutesBefore": 95,
+      "minutesAfter": 90,
+      "week3TotalBefore": 505,
+      "week3TotalAfter": 500,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "capacityBefore": 1,
+      "capacityAfter": 0,
+      "rawHistoricalBefore": [
+        4,
+        34
+      ],
+      "rawHistoricalAfter": [
+        5,
+        34
+      ],
+      "authorizedFloorWitnesses": 3,
+      "individualDoseApproved": false
+    },
+    {
+      "caseId": "C_uncertain",
+      "alternative": false,
+      "policyApplied": false,
+      "states": {
+        "not_admissible": 26,
+        "conditional_pending_reassessment": 4
+      },
+      "capacityBefore": 0,
+      "capacityAfter": 0,
+      "rawHistoricalBefore": [
+        4,
+        37
+      ],
+      "rawHistoricalAfter": null,
+      "reasons": [
+        [
+          "source_not_authorized_or_recipe_changed",
+          "ironman_variant_changed",
+          "planning_floor_not_authorized",
+          "goal_variant_not_demonstrated"
+        ]
+      ]
+    },
+    {
+      "caseId": "B_changed_relevant_limiter",
+      "alternative": true,
+      "policyApplied": true,
+      "minutesBefore": 95,
+      "minutesAfter": 90,
+      "week3TotalBefore": 505,
+      "week3TotalAfter": 500,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "capacityBefore": 1,
+      "capacityAfter": 0,
+      "rawHistoricalBefore": [
+        4,
+        36
+      ],
+      "rawHistoricalAfter": [
+        5,
+        36
+      ],
+      "authorizedFloorWitnesses": 3,
+      "individualDoseApproved": false
+    },
+    {
+      "caseId": "B_missing_bike_reference",
+      "alternative": true,
+      "policyApplied": true,
+      "minutesBefore": 95,
+      "minutesAfter": 90,
+      "week3TotalBefore": 505,
+      "week3TotalAfter": 500,
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "capacityBefore": 1,
+      "capacityAfter": 0,
+      "rawHistoricalBefore": [
+        4,
+        35
+      ],
+      "rawHistoricalAfter": [
+        5,
+        35
+      ],
+      "authorizedFloorWitnesses": 3,
+      "individualDoseApproved": false
+    },
+    {
+      "caseId": "B_lower_run_capacity",
+      "alternative": false,
+      "policyApplied": false,
+      "states": {
+        "conditional_pending_reassessment": 29,
+        "not_admissible": 1
+      },
+      "capacityBefore": 3,
+      "capacityAfter": 3,
+      "rawHistoricalBefore": [
+        4,
+        34
+      ],
+      "rawHistoricalAfter": null,
+      "reasons": [
+        [
+          "declared_capacity_unknown_or_not_authorized",
+          "dose_exceeds_current_documented_envelope"
+        ]
+      ]
+    },
+    {
+      "caseId": "B_adverse_recovery",
+      "alternative": true,
+      "policyApplied": true,
+      "minutesBefore": 95,
+      "minutesAfter": 90,
+      "week3TotalBefore": 505,
+      "week3TotalAfter": 500,
+      "states": {
+        "conditional_pending_reassessment": 29,
+        "not_admissible": 1
+      },
+      "capacityBefore": 1,
+      "capacityAfter": 0,
+      "rawHistoricalBefore": [
+        4,
+        34
+      ],
+      "rawHistoricalAfter": [
+        5,
+        34
+      ],
+      "authorizedFloorWitnesses": 3,
+      "individualDoseApproved": false
+    },
+    {
+      "caseId": "B_insufficient_differentiation",
+      "alternative": true,
+      "policyApplied": true,
+      "minutesBefore": 95,
+      "minutesAfter": 90,
+      "week3TotalBefore": 505,
+      "week3TotalAfter": 500,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "capacityBefore": 1,
+      "capacityAfter": 0,
+      "rawHistoricalBefore": [
+        4,
+        36
+      ],
+      "rawHistoricalAfter": [
+        5,
+        36
+      ],
+      "authorizedFloorWitnesses": 3,
+      "individualDoseApproved": false
+    }
+  ]
+}

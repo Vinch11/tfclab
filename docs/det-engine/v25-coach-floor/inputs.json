@@ -1,0 +1,25 @@
+{
+  "version": "coach-floor-preregistered-1",
+  "registeredAt": "2026-10-29T17:28:39.311931+00:00",
+  "clock": "2026-10-29T12:00:00Z",
+  "policyFileSha256": "83651c3f3329fbaa7546e542666bf649cf41a87c348456aa5840febcde4a3803",
+  "cohort": "same eight V23/V24/V25 cases, complete inputs unchanged",
+  "negativeCases": [
+    "opt_in_disabled",
+    "minutes_75",
+    "truncated_source",
+    "capacity_unknown",
+    "other_planning_floor",
+    "other_source",
+    "other_goal",
+    "other_week",
+    "real_athlete_context",
+    "modified_policy",
+    "Z2_execution_target",
+    "numeric_target_invented",
+    "missing_discipline",
+    "extra_hard_failure_lost"
+  ],
+  "strictIntensity": "goal-variant Z1 only; numeric targets may only be retained from already calculated Z1 candidates; absent/conflicted references stay refused",
+  "activation": "experimental alternative only, never individual approval or production authorization"
+}

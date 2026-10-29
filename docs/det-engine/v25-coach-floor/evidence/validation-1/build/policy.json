@@ -1,0 +1,42 @@
+{
+  "version": "coach-floor-policy-1",
+  "id": "explicit-coach-experimental-im-run-95-to-90",
+  "authority": "explicit_user_transmitted_coach_policy",
+  "provenance": {
+    "source": "User message: CODEX — DET-ENGINE : DÉCISION COACH APRÈS V25",
+    "recordedAt": "2026-10-29T17:28:38.351017+00:00",
+    "statedDecisionDate": null,
+    "signature": null,
+    "coachIdentityVerified": false,
+    "quote": "Le coach autorise explicitement, pour les tests expérimentaux uniquement, une dérogation au plancher conventionnel de programmation. Cette autorisation porte exclusivement sur la règle de planification, et non sur la sécurité ou l’admissibilité individuelle de la séance."
+  },
+  "baseline": "ec72f8808f47c64f9f7361ac8e31108351348fdc",
+  "scope": {
+    "syntheticOnly": true,
+    "objective": "IM",
+    "sport": "run",
+    "role": "long",
+    "week": 3,
+    "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+    "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+    "goalVariant": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+    "requiredZone": "Z1",
+    "planningFloor": 95,
+    "declaredCapacity": 90,
+    "candidateMinutes": 90,
+    "allowedCaseIds": [
+      "A_aerobic",
+      "B_sustainability",
+      "C_uncertain",
+      "B_changed_relevant_limiter",
+      "B_missing_bike_reference",
+      "B_lower_run_capacity",
+      "B_adverse_recovery",
+      "B_insufficient_differentiation"
+    ]
+  },
+  "individualDoseApproved": false,
+  "sportingSafetyApproved": false,
+  "overrideOtherRules": false,
+  "productionAuthorized": false
+}
