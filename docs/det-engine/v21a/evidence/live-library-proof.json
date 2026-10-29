@@ -1,0 +1,249 @@
+{
+  "pass": true,
+  "readOnlyExtraction": true,
+  "oldV16ControllerInvoked": false,
+  "records": 920,
+  "uniqueIds": 920,
+  "groups": [
+    {
+      "file": "src/lib/workoutLibrary.ts",
+      "export": "WorkoutLibrary:initial",
+      "count": 304
+    },
+    {
+      "file": "src/lib/workoutLibrary.ts",
+      "export": "ProPackWorkouts",
+      "count": 107
+    },
+    {
+      "file": "src/lib/templateDerivedWorkouts.ts",
+      "export": "TemplateDerivedWorkouts",
+      "count": 50
+    },
+    {
+      "file": "src/lib/enrichedWorkouts.ts",
+      "export": "EnrichedWorkouts",
+      "count": 56
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsV2.ts",
+      "export": "EnrichedWorkoutsV2",
+      "count": 52
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsV3.ts",
+      "export": "EnrichedWorkoutsV3",
+      "count": 67
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsTrail.ts",
+      "export": "EnrichedWorkoutsTrail",
+      "count": 68
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsV4.ts",
+      "export": "EnrichedWorkoutsV4",
+      "count": 19
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsV5.ts",
+      "export": "EnrichedWorkoutsV5",
+      "count": 11
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsV6.ts",
+      "export": "EnrichedWorkoutsV6",
+      "count": 9
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsFatMax.ts",
+      "export": "EnrichedWorkoutsFatMax",
+      "count": 14
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsRecovery.ts",
+      "export": "EnrichedWorkoutsRecovery",
+      "count": 28
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsSwim.ts",
+      "export": "EnrichedWorkoutsSwim",
+      "count": 17
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsSwimV2.ts",
+      "export": "EnrichedWorkoutsSwimV2",
+      "count": 18
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsStrengthV2.ts",
+      "export": "EnrichedWorkoutsStrengthV2",
+      "count": 32
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsHedgehog.ts",
+      "export": "EnrichedWorkoutsHedgehog",
+      "count": 4
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsIMRunDurability.ts",
+      "export": "EnrichedWorkoutsIMRunDurability",
+      "count": 6
+    },
+    {
+      "file": "src/lib/enrichedWorkouts703PodiumDurability.ts",
+      "export": "EnrichedWorkouts703PodiumDurability",
+      "count": 9
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsLCW.ts",
+      "export": "EnrichedWorkoutsLCW",
+      "count": 5
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsRunHills.ts",
+      "export": "EnrichedWorkoutsRunHills",
+      "count": 4
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsStartToRun.ts",
+      "export": "EnrichedWorkoutsStartToRun",
+      "count": 28
+    },
+    {
+      "file": "src/lib/enrichedWorkoutsShortFormats.ts",
+      "export": "EnrichedWorkoutsShortFormats",
+      "count": 12
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "src/lib/enrichedWorkouts.ts",
+      "sha256": "106eee0323857ffe02fa5fd7899b5dffb0b66744657be2e1fe501f770bfdf5ec"
+    },
+    {
+      "path": "src/lib/enrichedWorkouts703PodiumDurability.ts",
+      "sha256": "70a7b52acfd0adcc3e30e8ddc1323c40866fe3e7084ba1a03ece92f288f2b375"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsFatMax.ts",
+      "sha256": "f0f84ebec2e0854936ef6497899cac1df49d42b7ae2fae4315a5a21df32f7aa7"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsHedgehog.ts",
+      "sha256": "d6373820e25023794d25c876442ff074b6c5f412191f5a37eaa680eff2c24192"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsIMRunDurability.ts",
+      "sha256": "130bc45f1d1f800628bbc5c513ce098d37384ec5bc5ca898826499144b27dc47"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsLCW.ts",
+      "sha256": "ef3733c209b0a7816f92f52a3ca3bd3d250fcf4a2dcd06d7ee2cb1265c58f52f"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsRecovery.ts",
+      "sha256": "05dcbe0b1ba669b5d4bfb9a7184d01b33451fb4d1b3303f641c5885b637d3031"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsRunHills.ts",
+      "sha256": "29f22f0c0f13f8112f1276aa7b047371ea2a2fd62c9c778543f93f97b2e8bb40"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsShortFormats.ts",
+      "sha256": "d100de5a2484679034ab5fa61849d69e9ab7ff3aa2b9c0ba4d740d4e7d3592c9"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsStartToRun.ts",
+      "sha256": "ac466d60e91fe3fe779ceb54b14b20c486d1a808409f5425f42dcb1349fe355b"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsStrengthV2.ts",
+      "sha256": "f1486331b0d56bf8bd956d3d8023814f6f69cd90f77066368735b0c1d5b37a93"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsSwim.ts",
+      "sha256": "2b50a0672cac4ae2990fcd128941f4d59fd0d0bc30da5ed7cab76182d10cbd54"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsSwimV2.ts",
+      "sha256": "842c2a230a6ce6c4717a4d31f024c3c2ee1e1183613df53ec8698ed6bd5aff8b"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsTrail.ts",
+      "sha256": "aafb7bc130e106384308cb8085ce59f67983e3b90feb9b2dbd1ecf1c210f33e1"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsV2.ts",
+      "sha256": "6148eb2f6069ec9f27b6f11291958e0c97928afa61f29fb74a2422c8137cb83e"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsV3.ts",
+      "sha256": "3861ed42c47a1cddbbdf5efbed7fff7a25ceea7cec704e4f6ea16a3df2e47648"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsV4.ts",
+      "sha256": "50fd70dd565d0da337f011c68b6c726151f7ab641b5fb062dacd4bae0ef223df"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsV5.ts",
+      "sha256": "a4ed447049d35c077d6cdf743efabcef7a5139806fc2d10866dde50dfaf32a1b"
+    },
+    {
+      "path": "src/lib/enrichedWorkoutsV6.ts",
+      "sha256": "88a44fd11c352b4a82fd786ac6c6efbfc9839733c336a0e071b84c3a00128b0c"
+    },
+    {
+      "path": "src/lib/plan/intentFamily.ts",
+      "sha256": "3bb5239a4613f064c3c86a6ada1bc1ebf7bda0971d723c25e73844ff007c0606"
+    },
+    {
+      "path": "src/lib/plan/phaseWidener.ts",
+      "sha256": "33521cee396936a31a375ca9670dffe456d9ce581eaedcfb02bcfd78ab580112"
+    },
+    {
+      "path": "src/lib/templateDerivedWorkouts.ts",
+      "sha256": "6bed9f336037345f343520771bc5bebc3d980e3df21992f80e1e6034963b924e"
+    },
+    {
+      "path": "src/lib/trainingZonesDefinition.ts",
+      "sha256": "b2463211d6b66942630f6ca0e8912cf93376416ac33a858fa6aeeeee51b7de8a"
+    },
+    {
+      "path": "src/lib/workoutGoalsEnricher.ts",
+      "sha256": "558dfe196e140b92d236580dd7ed988dc45c95183d35a1953315dfde420c7157"
+    },
+    {
+      "path": "src/lib/workoutLibrary.ts",
+      "sha256": "738fb692dbdcb040e3bcffabe61f32072e1fdb11f0c19e9c73ad97690cb7f919"
+    },
+    {
+      "path": "src/lib/workoutPhysiologyMetadata.ts",
+      "sha256": "a7228a4039d36307ca760907a47cc8b0c8f2d5da2b8dd8a2d4db006708ed0a86"
+    },
+    {
+      "path": "src/lib/workoutSafetyPrerequisites.ts",
+      "sha256": "8bd3e90898638b45dfa0aae978bda0f89016780ff991f76af6a3eecbacf29474"
+    },
+    {
+      "path": "src/lib/zonesConfig.ts",
+      "sha256": "6d372e6bd4444711552a62f1ee6e331691d233b84e03da59cecb9caf40443bee"
+    },
+    {
+      "path": "supabase/functions/_shared/intentEvidence.ts",
+      "sha256": "f50e9aaaacbe1a8a392edfc228059c78d784a6e8d3c5b364c2e3813e1f139c35"
+    }
+  ],
+  "rawDigest": "2340a381a0a66a689de5aba96db452960b85b85ee3e457fbe0734f716705f1c8",
+  "effectiveDigest": "69feeaf2a677eaa6248f421657e72f57d539818680a06da6c1d56d2d656d590a",
+  "unaggregatedDefinitions": [
+    {
+      "file": "src/lib/libraryDurationIndex.ts",
+      "inAggregation": false
+    },
+    {
+      "file": "src/lib/workoutCatalogBuilder.ts",
+      "inAggregation": false
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "version": "det-v21a-research-preparation-1",
+  "baseline": "f295567769af8edc558a24313fd2faa2756cc498",
+  "workouts": 920,
+  "uniqueIds": 920,
+  "variants": 2425,
+  "variantClassification": {
+    "ambiguous": 1073,
+    "descriptive": 1346,
+    "explicit_parameter_only": 6
+  },
+  "sports": {
+    "bike": 168,
+    "run": 416,
+    "swim": 119,
+    "brick": 55,
+    "strength": 127,
+    "trail": 3,
+    "mixed": 32
+  },
+  "rawPhysiology": 2,
+  "effectivePhysiology": 25,
+  "familyMemberships": 3568,
+  "unresolvedIds": [
+    "A_10K_PROGRESSIVE_60",
+    "A_SEMI_PROGRESSIVE_FINISH"
+  ],
+  "referenceOccurrences": {
+    "workout_historical": 380,
+    "module_comment_unattributed": 95
+  },
+  "mentionStatus": {
+    "unverified_source_mention": 174,
+    "author_or_method_attribution_only": 206,
+    "unverified_module_mention": 95
+  },
+  "contextReferenceRecords": 14,
+  "sourceBundleFiles": 31,
+  "primaryImpactCohort": "v14_native_primary",
+  "cohorts": [
+    {
+      "cohort": "v14_native_primary",
+      "planKey": "IM_aerobic_history:native_floor_conditional",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "primary pair"
+    },
+    {
+      "cohort": "v14_alternatives_separate",
+      "planKey": "IM_aerobic_history:hold_current_envelope",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "comparative models, not additional athletes"
+    },
+    {
+      "cohort": "v14_alternatives_separate",
+      "planKey": "IM_aerobic_history:blockwise_reassessment",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "comparative models, not additional athletes"
+    },
+    {
+      "cohort": "v14_native_primary",
+      "planKey": "IM_balanced_history:native_floor_conditional",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "primary pair"
+    },
+    {
+      "cohort": "v14_alternatives_separate",
+      "planKey": "IM_balanced_history:hold_current_envelope",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "comparative models, not additional athletes"
+    },
+    {
+      "cohort": "v14_alternatives_separate",
+      "planKey": "IM_balanced_history:blockwise_reassessment",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "comparative models, not additional athletes"
+    },
+    {
+      "cohort": "v7_review_dossiers_separate",
+      "planKey": "ironman:IM:trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v7/reviews/ironman.json.gz",
+      "slots": 110,
+      "purpose": "earlier heterogeneous synthetic review, no independent athlete or effectiveness sample"
+    },
+    {
+      "cohort": "v7_review_dossiers_separate",
+      "planKey": "trail-court:synthetic-v4:TrailShort:highly_trained",
+      "source": "docs/det-engine/v7/reviews/trail-court.json.gz",
+      "slots": 56,
+      "purpose": "earlier heterogeneous synthetic review, no independent athlete or effectiveness sample"
+    },
+    {
+      "cohort": "v7_review_dossiers_separate",
+      "planKey": "trail-montagne:synthetic-v4:TrailMountain:highly_trained",
+      "source": "docs/det-engine/v7/reviews/trail-montagne.json.gz",
+      "slots": 74,
+      "purpose": "earlier heterogeneous synthetic review, no independent athlete or effectiveness sample"
+    },
+    {
+      "cohort": "v7_review_dossiers_separate",
+      "planKey": "ultra:synthetic-v4:TrailUltra:trained",
+      "source": "docs/det-engine/v7/reviews/ultra.json.gz",
+      "slots": 92,
+      "purpose": "earlier heterogeneous synthetic review, no independent athlete or effectiveness sample"
+    }
+  ],
+  "top5Mechanisms": [
+    "recovery",
+    "technique",
+    "aerobic_endurance",
+    "economy",
+    "durability"
+  ],
+  "usageUnknownIds": [],
+  "newScientificReviews": 0,
+  "newEvidenceLinks": 0,
+  "scientificPromotions": 0,
+  "doseChanges": 0,
+  "notAnAthletePopulationSample": true,
+  "historical600Reexecuted": false,
+  "nolioCalls": 0
+}

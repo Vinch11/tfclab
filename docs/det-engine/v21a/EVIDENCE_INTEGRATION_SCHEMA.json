@@ -1,0 +1,380 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tfcl:det-engine:evidence-attachment:1.0.0",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": "tfcl-evidence-attachment-1.0.0"
+    },
+    "packetId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "legacyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceEffectiveSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "familyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "variantGoal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "variantSourceHash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "recipeContentSha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "legacyId",
+        "sourceEffectiveSha256",
+        "familyId",
+        "variantGoal",
+        "variantSourceHash",
+        "recipeContentSha256"
+      ],
+      "additionalProperties": false
+    },
+    "claim": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "enum": [
+            "family_context",
+            "workout_mechanism",
+            "exact_recipe_dose"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "scientific_publication",
+            "documented_coaching_principle",
+            "tfcl_convention",
+            "candidate_hypothesis"
+          ]
+        },
+        "finding": {
+          "enum": [
+            "unassessed",
+            "supports_with_limits",
+            "does_not_support",
+            "mixed",
+            "not_applicable"
+          ]
+        }
+      },
+      "required": [
+        "text",
+        "scope",
+        "origin",
+        "finding"
+      ],
+      "additionalProperties": false
+    },
+    "reference": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authors": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "year": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1800,
+          "maximum": 2200
+        },
+        "doi": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pmid": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "referenceKind": {
+          "enum": [
+            "publication",
+            "interview",
+            "source_mention",
+            "none"
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "authors",
+        "year",
+        "doi",
+        "pmid",
+        "url",
+        "referenceKind"
+      ],
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "source_mention_only",
+            "metadata_verified",
+            "abstract_reviewed",
+            "full_text_reviewed"
+          ]
+        },
+        "retrievalUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "responseSha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "accessedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reviewer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "accessLimits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "status",
+        "retrievalUrl",
+        "responseSha256",
+        "accessedAt",
+        "reviewer",
+        "accessLimits"
+      ],
+      "additionalProperties": false
+    },
+    "applicability": {
+      "type": "object",
+      "properties": {
+        "population": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "intervention": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "comparator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "outcomes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "directness": {
+          "enum": [
+            "unassessed",
+            "context_only",
+            "indirect_transfer",
+            "protocol_specific_candidate"
+          ]
+        },
+        "doseAndRecoveryCompared": {
+          "type": "boolean"
+        },
+        "individualDataNeeded": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "population",
+        "intervention",
+        "comparator",
+        "outcomes",
+        "limitations",
+        "directness",
+        "doseAndRecoveryCompared",
+        "individualDataNeeded"
+      ],
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "draft",
+            "reviewed"
+          ]
+        },
+        "reviewer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "decisionRationale": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "individualAthleteApproved": {
+          "const": false
+        }
+      },
+      "required": [
+        "status",
+        "reviewer",
+        "decisionRationale",
+        "individualAthleteApproved"
+      ],
+      "additionalProperties": false
+    },
+    "supersedesPacketId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "prescriptionImpact": {
+      "const": "none_research_annotation_only"
+    },
+    "automaticPromotion": {
+      "const": false
+    },
+    "evidenceAssessment": {
+      "type": "object",
+      "properties": {
+        "studyDesign": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "certaintyFramework": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "certaintyJudgment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rationale": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "assessedBy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "studyDesign",
+        "certaintyFramework",
+        "certaintyJudgment",
+        "rationale",
+        "assessedBy"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "packetId",
+    "binding",
+    "claim",
+    "reference",
+    "verification",
+    "applicability",
+    "review",
+    "supersedesPacketId",
+    "prescriptionImpact",
+    "automaticPromotion",
+    "evidenceAssessment"
+  ],
+  "additionalProperties": false
+}

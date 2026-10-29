@@ -1,0 +1,22 @@
+test_01_unreviewed_transport_is_not_truth (__main__.Contracts.test_01_unreviewed_transport_is_not_truth) ... ok
+test_02_unknown_id (__main__.Contracts.test_02_unknown_id) ... ok
+test_03_stale_hash (__main__.Contracts.test_03_stale_hash) ... ok
+test_04_unmapped_family (__main__.Contracts.test_04_unmapped_family) ... ok
+test_05_variant_binding (__main__.Contracts.test_05_variant_binding) ... ok
+test_06_orphan_variant_hash (__main__.Contracts.test_06_orphan_variant_hash) ... ok
+test_07_exact_dose_requires_recipe_and_comparison (__main__.Contracts.test_07_exact_dose_requires_recipe_and_comparison) ... ok
+test_08_variant_not_silently_same_recipe (__main__.Contracts.test_08_variant_not_silently_same_recipe) ... ok
+test_09_verification_without_retrieval_rejected (__main__.Contracts.test_09_verification_without_retrieval_rejected) ... ok
+test_10_review_without_intervenant_rejected (__main__.Contracts.test_10_review_without_intervenant_rejected) ... ok
+test_11_no_automatic_promotion (__main__.Contracts.test_11_no_automatic_promotion) ... ok
+test_12_no_unknown_fields_or_invented_certainty (__main__.Contracts.test_12_no_unknown_fields_or_invented_certainty) ... ok
+test_13_title_change_does_not_generate_reference_or_level (__main__.Contracts.test_13_title_change_does_not_generate_reference_or_level) ... ok
+test_14_warmup_recovery_not_target (__main__.Contracts.test_14_warmup_recovery_not_target) ... ok
+test_15_muscular_endurance_not_aerobic (__main__.Contracts.test_15_muscular_endurance_not_aerobic) ... ok
+test_16_without_fatigue_not_durability (__main__.Contracts.test_16_without_fatigue_not_durability) ... ok
+test_17_intensity_not_invented (__main__.Contracts.test_17_intensity_not_invented) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.762s
+
+OK

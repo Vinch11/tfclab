@@ -1,0 +1,1297 @@
+{
+  "version": "det-v21a-research-preparation-1",
+  "baseline": "f295567769af8edc558a24313fd2faa2756cc498",
+  "workouts": 920,
+  "uniqueIds": 920,
+  "variants": 2425,
+  "variantClassification": {
+    "ambiguous": 1073,
+    "descriptive": 1346,
+    "explicit_parameter_only": 6
+  },
+  "sports": {
+    "bike": 168,
+    "run": 416,
+    "swim": 119,
+    "brick": 55,
+    "strength": 127,
+    "trail": 3,
+    "mixed": 32
+  },
+  "rawPhysiology": 2,
+  "effectivePhysiology": 25,
+  "familyMemberships": 3554,
+  "unresolvedIds": [
+    "A_10K_PROGRESSIVE_60",
+    "A_SEMI_PROGRESSIVE_FINISH"
+  ],
+  "referenceOccurrences": {
+    "workout_historical": 380,
+    "module_comment_unattributed": 95
+  },
+  "mentionStatus": {
+    "unverified_source_mention": 174,
+    "author_or_method_attribution_only": 206,
+    "unverified_module_mention": 95
+  },
+  "contextReferenceRecords": 16,
+  "uniqueContextUrls": 14,
+  "sourceBundleFiles": 31,
+  "primaryImpactCohort": "v2_historical_complete_plans",
+  "cohorts": [
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:untrained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 57,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:untrained:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 56,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:untrained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 25,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:untrained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 64,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:untrained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:untrained:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 26,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:light:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 26,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:light:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 64,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:light:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 26,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:light:competitor:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:light:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 63,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:light:elite:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 29,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:light:world_class:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 74,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:light:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 25,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:trained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 64,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 30,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:trained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 26,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:trained:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 63,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:highly_trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 27,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Sprint:highly_trained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 38,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:untrained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 64,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:untrained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 90,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:untrained:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 63,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:untrained:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 38,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:light:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 64,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:light:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 90,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:light:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:light:world_class:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 43,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:trained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 73,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:trained:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Olympic:trained:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 103,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:untrained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 59,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:untrained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:untrained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 60,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:untrained:competitor:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 75,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:untrained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:untrained:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 75,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:untrained:world_class:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 45,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:light:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 75,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:light:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:light:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 95,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:light:competitor:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 57,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:light:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 73,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:light:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 56,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:light:world_class:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 75,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:trained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 60,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 95,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 56,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:highly_trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 75,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:highly_trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 57,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Marathon:highly_trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 73,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:untrained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 15,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:untrained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 30,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:untrained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:untrained:competitor:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 14,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:untrained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 30,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:untrained:elite:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 45,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:untrained:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 14,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:untrained:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 45,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 14,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 30,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 57,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 18,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:competitor:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 56,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:elite:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 19,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:world_class:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 56,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:light:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 19,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:trained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 30,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 44,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 18,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:highly_trained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 45,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:highly_trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 14,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:highly_trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 36,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "Semi:highly_trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 57,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:untrained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 21,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:untrained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 15,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:untrained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 36,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:untrained:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 22,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:untrained:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 14,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 22,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 36,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 18,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 28,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:competitor:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 47,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 18,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:elite:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 27,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 47,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:world_class:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 19,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:light:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 27,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:trained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 36,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 15,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 28,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 46,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:highly_trained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 14,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:highly_trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 22,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:highly_trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 47,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "5K:highly_trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 18,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:untrained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 52,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:untrained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 36,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:untrained:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 22,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:untrained:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 51,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:untrained:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 51,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 22,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 47,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 65,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:competitor:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 27,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:competitor:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 47,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:elite:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 66,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:elite:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 27,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:world_class:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 46,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:light:world_class:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 66,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:trained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 22,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 36,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 65,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 28,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:highly_trained:finisher:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 37,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:highly_trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 51,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:highly_trained:age_group:unknown",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 27,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "10K:highly_trained:age_group:known_synthetic",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 47,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:untrained:age_group:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 58,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:untrained:competitor:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 115,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:untrained:world_class:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 57,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:light:finisher:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 115,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:light:age_group:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 75,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:light:world_class:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 76,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:trained:finisher:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 115,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:trained:finisher:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 62,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:trained:age_group:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 114,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:trained:age_group:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 146,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:trained:competitor:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 81,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:trained:competitor:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 113,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:trained:world_class:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 150,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:highly_trained:finisher:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 57,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:highly_trained:finisher:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 84,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:highly_trained:age_group:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 147,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:highly_trained:age_group:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 75,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:highly_trained:competitor:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 150,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:highly_trained:elite:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 112,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "703:highly_trained:world_class:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 77,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:untrained:finisher:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 144,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:untrained:age_group:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 114,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:untrained:competitor:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 92,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:untrained:elite:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 143,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:untrained:world_class:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 115,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:light:finisher:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 86,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:light:age_group:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 150,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:light:competitor:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 150,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:light:elite:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 187,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:trained:finisher:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 111,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:trained:age_group:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 183,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:trained:age_group:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 113,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:trained:competitor:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 162,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:trained:elite:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 162,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:highly_trained:finisher:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 112,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:highly_trained:finisher:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 143,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:highly_trained:age_group:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 112,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:highly_trained:competitor:unknown:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 202,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:highly_trained:elite:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 202,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v2_historical_complete_plans",
+      "planKey": "IM:highly_trained:world_class:known_synthetic:lcw_3day",
+      "source": "docs/det-engine/v2/final/candidate.json.gz",
+      "slots": 157,
+      "purpose": "archived technically assembled candidate, not sports approval; refused partial traces excluded"
+    },
+    {
+      "cohort": "v14_native_primary",
+      "planKey": "IM_aerobic_history:native_floor_conditional",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "primary pair"
+    },
+    {
+      "cohort": "v14_alternatives_separate",
+      "planKey": "IM_aerobic_history:hold_current_envelope",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "comparative models, not additional athletes"
+    },
+    {
+      "cohort": "v14_alternatives_separate",
+      "planKey": "IM_aerobic_history:blockwise_reassessment",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "comparative models, not additional athletes"
+    },
+    {
+      "cohort": "v14_native_primary",
+      "planKey": "IM_balanced_history:native_floor_conditional",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "primary pair"
+    },
+    {
+      "cohort": "v14_alternatives_separate",
+      "planKey": "IM_balanced_history:hold_current_envelope",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "comparative models, not additional athletes"
+    },
+    {
+      "cohort": "v14_alternatives_separate",
+      "planKey": "IM_balanced_history:blockwise_reassessment",
+      "source": "docs/det-engine/v14/evidence/final/calendars.json.gz",
+      "slots": 105,
+      "purpose": "comparative models, not additional athletes"
+    },
+    {
+      "cohort": "v7_review_dossiers_separate",
+      "planKey": "ironman:IM:trained:finisher:known_synthetic",
+      "source": "docs/det-engine/v7/reviews/ironman.json.gz",
+      "slots": 110,
+      "purpose": "earlier heterogeneous synthetic review, no independent athlete or effectiveness sample"
+    },
+    {
+      "cohort": "v7_review_dossiers_separate",
+      "planKey": "trail-court:synthetic-v4:TrailShort:highly_trained",
+      "source": "docs/det-engine/v7/reviews/trail-court.json.gz",
+      "slots": 56,
+      "purpose": "earlier heterogeneous synthetic review, no independent athlete or effectiveness sample"
+    },
+    {
+      "cohort": "v7_review_dossiers_separate",
+      "planKey": "trail-montagne:synthetic-v4:TrailMountain:highly_trained",
+      "source": "docs/det-engine/v7/reviews/trail-montagne.json.gz",
+      "slots": 74,
+      "purpose": "earlier heterogeneous synthetic review, no independent athlete or effectiveness sample"
+    },
+    {
+      "cohort": "v7_review_dossiers_separate",
+      "planKey": "ultra:synthetic-v4:TrailUltra:trained",
+      "source": "docs/det-engine/v7/reviews/ultra.json.gz",
+      "slots": 92,
+      "purpose": "earlier heterogeneous synthetic review, no independent athlete or effectiveness sample"
+    }
+  ],
+  "top5Mechanisms": [
+    "recovery",
+    "strength",
+    "technique",
+    "aerobic_endurance",
+    "economy"
+  ],
+  "usageUnknownIds": [],
+  "newScientificReviews": 0,
+  "newEvidenceLinks": 0,
+  "scientificPromotions": 0,
+  "doseChanges": 0,
+  "notAnAthletePopulationSample": true,
+  "historical600Reexecuted": false,
+  "nolioCalls": 0
+}

@@ -1,0 +1,11 @@
+{
+  "scripts/det-engine/v21a-build.py": "1b348554e224dd63c2bce82b584ac3febc955279c13efbc284d0ef2fc8764730",
+  "scripts/det-engine/v21a-evidence.py": "3f4712f6e4e858d34387a1e0009f0b4eb7097fc5099a5e2bbfa6f4b8f55587b7",
+  "scripts/det-engine/v21a-families.json": "8c02fe68640ff32d98b8dd573bf018fc2e313e8d711098f4eae226322f3a4485",
+  "scripts/det-engine/v21a-handoff.py": "6eebf5d5dccb7280294e402d7152d679d0d9170c8ed85f4d7a427ed02311a2fb",
+  "scripts/det-engine/v21a-independent.py": "3de422ec24c524a570eabf7e70ddb7ac5b4c01da1f3996bd5847fea092ced184",
+  "scripts/det-engine/v21a-report.py": "c4e209a8973c7518d63dacf402e4c2ba310963ca5eb65be766dc00f53d82166e",
+  "scripts/det-engine/v21a-session.py": "702781c103f9562540c4e1fe5e61f32bfb03de9cc9b48f4499fdb357dc2633b4",
+  "scripts/det-engine/v21a-tests.py": "5ef827e6bc98098fbb2fb24c1f29be38f8334f0539e75a47d9a5d97a3d1dfd20",
+  "docs/det-engine/v21a/EVIDENCE_INTEGRATION_SCHEMA.json": "ac28644733372a4c34dda320af660a5d64d4cfcf96bcec0c616bfb1f632cac95"
+}
