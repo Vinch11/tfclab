@@ -81,3 +81,7 @@ it.each(["null", "[]", '{"version":1,"parameters":[]}', '{"version":1,"parameter
   expect(runningEconomyCostFromSnapshot({ coach_notes: notes })).toBeNull();
   expect(preservePhysiologyNotes(notes, undefined)).toBe(notes);
 });
+it("does not assign global snapshot confidence to a scalar whose evidence was invalidated", () => {
+  const notes = preservePhysiologyNotes(envelope(), undefined, { vma: 19 });
+  expect(snapshotPhysiologyEvidence({ vma: 19, confidence: 0.9, coach_notes: notes }).vma.confidence).toBeNull();
+});

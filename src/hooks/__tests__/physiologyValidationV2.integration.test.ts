@@ -185,7 +185,7 @@ describe("V2.1 — successive edits and bounded provenance persistence", () => {
     await act(async () => { expect(await hook.result.current.updateSnapshot(saved.id, { vma: 19 })).toBe(true); });
     await act(async () => { expect(await hook.result.current.updateSnapshot(saved.id, { vma: 18, coach_notes: "Edited twice" })).toBe(true); });
     const read = hook.result.current.snapshots.find(s => s.id === saved.id)!;
-    expect(snapshotPhysiologyEvidence(read).vma.date).toBeNull();
+    expect(snapshotPhysiologyEvidence(read).vma).toMatchObject({ date: null, confidence: null, confidenceBasis: "unknown" });
     expect(snapshotPhysiologyEvidence(read).vo2max.date).toBe("2026-10-20");
     const before = structuredClone(transport.rows.snapshots);
     await act(async () => { expect(await hook.result.current.updateSnapshot(saved.id, { coach_notes: "TFCL_PHYSIOLOGY_V1:broken" })).toBe(false); });

@@ -18,7 +18,7 @@ Les preuves scalaires originales et les preuves des valeurs effectives restent d
 
 1. Enveloppe JSON versionnée dans `coach_notes`, champ existant. Aucun traitement automatique de masse.
 2. Date/confiance/source de stockage propres à un paramètre prioritaires, y compris `null` explicite. Date invalide → inconnue ; marge non négative et confiance finie dans [0,1].
-3. Modifier une valeur retire sa preuve périmée ; revenir à l'ancienne valeur ne restaure pas son ancienne provenance. Les preuves des paramètres inchangés restent disponibles.
+3. Modifier une valeur retire sa preuve périmée ; revenir à l'ancienne valeur ne restaure pas son ancienne provenance. Les preuves des paramètres inchangés restent disponibles. La confiance globale du snapshot reste stockée et consultable, sans être réattribuée à un paramètre sans preuve, notamment après une édition.
 4. Notes seules : texte coach modifiable sans perte des métadonnées valides. Mise à jour scalaire sans notes : invalidation également exécutée.
 5. Taille de la **chaîne finale**, pas du seul texte visible : 2 000 accepté, 2 001 refusé avant toute écriture et sans état local divergent. Aucune troncature.
 6. Nouvelle enveloppe malformée/dupliquée : refus explicite. Ancienne enveloppe illisible, `null`, tableau ou paramètre invalide : récupération prudente, pas de coût déduit ; chaîne originale préservée lors d'une simple lecture.

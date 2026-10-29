@@ -37,7 +37,7 @@ Ce fichier de configuration ne change pas la CI : la spec est aussi découverte 
 
 ESLint se reproduit avec la procédure intacte de `.github/workflows/ci.yml` : lister les fichiers TS/TSX modifiés entre la base ci-dessus et la tête, hors `supabase/functions`, exécuter ESLint JSON sur la tête et sur les fichiers existant dans un worktree de base partageant les mêmes dépendances ; comparer les sommes `errorCount`. Les fichiers nouveaux ont une base de zéro. Les JSON archivés omettent seulement le texte source et les suggestions de correction pour limiter leur taille, pas les erreurs.
 
-Pour les preuves rouges, créer un worktree détaché du SHA initial, y copier **seulement** `physiologyReviewV21.test.ts` et le test d'intégration V2 étendu ; exécuter ces deux fichiers. Les 17 échecs attendus et 5 passes sont archivés. Ne pas appliquer les corrections au worktree de référence.
+Pour les preuves rouges, créer un worktree détaché du SHA initial, y copier **seulement les versions du commit `fdc65c27abf84ba0aa1bf444f22ea3f9340aea65`** de `physiologyReviewV21.test.ts` et du test d'intégration V2 étendu ; exécuter ces deux fichiers. Les 17 échecs attendus et 5 passes sont archivés. La nouvelle assertion sur la confiance globale est reproduite séparément contre ce même commit (`global-confidence-before.txt`) ; elle ajoute un échec si l'on copie les tests de clôture au lieu des versions figées. Ne pas appliquer les corrections au worktree de référence.
 
 ## Budget unique — dix unités maximum
 

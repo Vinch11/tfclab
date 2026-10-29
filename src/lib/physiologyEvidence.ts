@@ -96,7 +96,7 @@ function readSnapshotPhysiologyEvidence(snapshot: Partial<DbSnapshot> | null | u
     const value = snapshot[field as keyof DbSnapshot];
     if (!finite(value)) continue;
     result[field] = { value, unit, discipline, method: null, date: null, scientificOrigin: "unknown",
-      storageSource: snapshot.source ?? null, storageDate: snapshot.date ?? null, confidence: finite(snapshot.confidence) && snapshot.confidence >= 0 && snapshot.confidence <= 1 ? snapshot.confidence : null,
+      storageSource: snapshot.source ?? null, storageDate: snapshot.date ?? null, confidence: null, // Global snapshot confidence is not per-parameter scientific evidence.
       confidenceBasis: "unknown", errorMargin: null };
   }
   const lines = metadataLines(snapshot.coach_notes);
