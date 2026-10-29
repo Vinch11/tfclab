@@ -1,0 +1,102 @@
+{
+  "version": "det-v23-session-1",
+  "baseline": "e449f302f4ebd8d7c5713bafe0596d4e61d70aae",
+  "startedAt": "2026-10-29T14:05:37Z",
+  "hardDeadline": "2026-10-29T15:05:37Z",
+  "maxUnits": 10,
+  "budgetRenewal": false,
+  "automaticRestart": false,
+  "status": "in_progress_no_go",
+  "units": [
+    {
+      "unit": 1,
+      "name": "baseline_and_decision_breakpoint",
+      "status": "completed",
+      "evidence": [
+        "inputs.json"
+      ]
+    },
+    {
+      "unit": 2,
+      "name": "preregistered_cases_and_stimulus_programming_bridge",
+      "status": "completed",
+      "evidence": [
+        "evidence/development-1",
+        "evidence/development-2"
+      ]
+    },
+    {
+      "unit": 3,
+      "name": "current_capacity_contract_and_rejected_alternatives",
+      "status": "completed",
+      "evidence": [
+        "experimental/det-engine/v23-capacity.ts"
+      ]
+    },
+    {
+      "unit": 4,
+      "name": "reproduce_run_reference_semantic_unit_conflict",
+      "status": "completed",
+      "evidence": [
+        "experimental/det-engine/v23-conflict.ts"
+      ]
+    },
+    {
+      "unit": 5,
+      "name": "four_week_scope_and_recovery_hold",
+      "status": "completed",
+      "evidence": [
+        "experimental/det-engine/v23-scope.ts",
+        "experimental/det-engine/v23-prescription.ts"
+      ]
+    },
+    {
+      "unit": 6,
+      "name": "counterfactual_functional_tests_and_reproducibility",
+      "status": "completed",
+      "evidence": [
+        "evidence/validation-1"
+      ]
+    },
+    {
+      "unit": 7,
+      "name": "independent_eight_case_validation",
+      "status": "completed",
+      "evidence": [
+        "evidence/independent-1.json"
+      ]
+    },
+    {
+      "unit": 8,
+      "name": "coach_comparison_and_parallel_physiology_handoff",
+      "status": "completed",
+      "evidence": [
+        "DECISION_CHAIN_DIAGNOSIS.md",
+        "PHYSIOLOGICAL_STIMULUS_SELECTION.md",
+        "INDIVIDUAL_CAPACITY_CONTRACT.md",
+        "RUN_REFERENCE_CONFLICT.md",
+        "FOUR_WEEK_VALIDATION_SCOPE.md",
+        "BEFORE_AFTER_PROFILES.md",
+        "COACH_COMPARISON.md",
+        "V23_RESULTS.md",
+        "REPRISE.md",
+        "RUN_REFERENCE_HANDOFF.json"
+      ]
+    },
+    {
+      "unit": 9,
+      "name": "final_independent_integrity_and_budget_review",
+      "status": "completed",
+      "evidence": [
+        "evidence/independent-final.json",
+        "evidence/document-validation.json"
+      ]
+    },
+    {
+      "unit": 10,
+      "name": "experimental_commit_push_and_draft_pr_closure",
+      "status": "in_progress"
+    }
+  ],
+  "validationAttempts": 1
+}

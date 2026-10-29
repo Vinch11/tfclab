@@ -1,0 +1,11 @@
+{
+  "requiredDocuments": 9,
+  "markdownTableChecks": true,
+  "decisionChains": 8,
+  "sourceSlotTraces": 240,
+  "capacityAlternatives": 9,
+  "rejectedPriorityTrials": 3,
+  "adverseHoldApplied": 1,
+  "handoffSourceHashes": 6,
+  "actualApprovals": 0
+}

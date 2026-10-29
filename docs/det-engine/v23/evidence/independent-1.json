@@ -1,0 +1,678 @@
+{
+  "version": "det-v23-independent-1",
+  "independentPass": true,
+  "oldFiles": 4592,
+  "oldUnchanged": 4590,
+  "experimentalSourceExtensions": [
+    "experimental/det-engine/v14-calendar.ts",
+    "experimental/det-engine/v22-prescription.ts"
+  ],
+  "archivedV2ThroughV22Untouched": true,
+  "preservedIds": 920,
+  "preservedVariants": 2425,
+  "preservedHistoricalCasesByHashes": 600,
+  "preservedPriorCandidates": 96,
+  "preservedPriorViews": 418,
+  "preservedNolioFixtures": 15,
+  "cases": [
+    {
+      "caseId": "A_aerobic",
+      "retainedScheduleUnchanged": true,
+      "priorityTrialRejected": false,
+      "trialDayMoves": 0,
+      "retainedStatus": "incomplete_or_refused",
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "blockErrors": 0,
+      "scopeErrorsRetained": 4,
+      "historicalWarnings": 36,
+      "capacityConflicts": 1,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "byDiscipline": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_sustainability",
+      "retainedScheduleUnchanged": true,
+      "priorityTrialRejected": true,
+      "trialDayMoves": 6,
+      "retainedStatus": "complete_conditional_candidate",
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "blockErrors": 0,
+      "scopeErrorsRetained": 4,
+      "historicalWarnings": 35,
+      "capacityConflicts": 1,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "byDiscipline": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "C_uncertain",
+      "retainedScheduleUnchanged": true,
+      "priorityTrialRejected": false,
+      "trialDayMoves": 0,
+      "retainedStatus": "incomplete_or_refused",
+      "states": {
+        "not_admissible": 26,
+        "conditional_pending_reassessment": 4
+      },
+      "blockErrors": 0,
+      "scopeErrorsRetained": 4,
+      "historicalWarnings": 37,
+      "capacityConflicts": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 455,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 205,
+            "run": 115,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 465,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 215,
+            "run": 115,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 480,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 230,
+            "run": 115,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 265,
+          "byDiscipline": {
+            "swim": 80,
+            "bike": 105,
+            "run": 50,
+            "strength": 30
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_changed_relevant_limiter",
+      "retainedScheduleUnchanged": true,
+      "priorityTrialRejected": false,
+      "trialDayMoves": 0,
+      "retainedStatus": "complete_conditional_candidate",
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "blockErrors": 0,
+      "scopeErrorsRetained": 4,
+      "historicalWarnings": 36,
+      "capacityConflicts": 1,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "byDiscipline": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_missing_bike_reference",
+      "retainedScheduleUnchanged": true,
+      "priorityTrialRejected": false,
+      "trialDayMoves": 0,
+      "retainedStatus": "incomplete_or_refused",
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "blockErrors": 0,
+      "scopeErrorsRetained": 4,
+      "historicalWarnings": 35,
+      "capacityConflicts": 1,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "byDiscipline": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_lower_run_capacity",
+      "retainedScheduleUnchanged": true,
+      "priorityTrialRejected": true,
+      "trialDayMoves": 6,
+      "retainedStatus": "incomplete_or_refused",
+      "states": {
+        "conditional_pending_reassessment": 29,
+        "not_admissible": 1
+      },
+      "blockErrors": 0,
+      "scopeErrorsRetained": 4,
+      "historicalWarnings": 35,
+      "capacityConflicts": 3,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "byDiscipline": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_adverse_recovery",
+      "retainedScheduleUnchanged": true,
+      "priorityTrialRejected": true,
+      "trialDayMoves": 6,
+      "retainedStatus": "incomplete_or_refused",
+      "states": {
+        "conditional_pending_reassessment": 29,
+        "not_admissible": 1
+      },
+      "blockErrors": 0,
+      "scopeErrorsRetained": 4,
+      "historicalWarnings": 35,
+      "capacityConflicts": 1,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "byDiscipline": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_insufficient_differentiation",
+      "retainedScheduleUnchanged": true,
+      "priorityTrialRejected": false,
+      "trialDayMoves": 0,
+      "retainedStatus": "complete_conditional_candidate",
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "blockErrors": 0,
+      "scopeErrorsRetained": 4,
+      "historicalWarnings": 36,
+      "capacityConflicts": 1,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "byDiscipline": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "byDiscipline": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequency": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    }
+  ],
+  "checkedSlots": 240,
+  "checkedCalendarDays": 224,
+  "rejectedPriorityTrials": 3,
+  "retainedCalendarChanges": 0,
+  "rejectedCapacityAlternatives": 9,
+  "currentEnvelopeConflictsExplicit": 9,
+  "adverseRecoveryHoldsApplied": 1,
+  "noNewRetainedHistoricalFailuresOrWarnings": true,
+  "replayLogicalFiles": {
+    "registered-cases.json": "ca31c66322198d9e22508f3b83f824ee6b5e4a551ec01a933fc1a21866354b35",
+    "results.json.gz": "7451027c9f4a103b993e3bf45e34b7b4de98298f5fb5733a781d78d2080bfc3c"
+  },
+  "actualIndividualApprovals": 0,
+  "actualHumanSportingReviews": 0
+}

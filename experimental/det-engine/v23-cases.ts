@@ -1,0 +1,4 @@
+import{registeredCases,prepareV22Case}from'./v22-profiles';import{normalizeV22Evidence}from'./v22-evidence';
+/** Immutable originals plus separately preregistered counterfactual input deltas. */
+export function v23Cases(v22:any,v23:any){const originals=registeredCases(v22);return[...originals.map((input:any)=>({id:input.id,input,counterfactual:null})),...v23.counterfactuals.map((c:any)=>{const seed=structuredClone(originals.find((x:any)=>x.id===c.base));const input={...seed,raw:{...seed.raw,...c.rawOverrides}};return{id:c.id,input,counterfactual:c};})];}
+export function prepareV23Case(c:any,v22:any){const n=normalizeV22Evidence(c.input),v=prepareV22Case(n,v22);if(c.counterfactual?.capacityOverrides){v.profile.longCaps={...v.profile.longCaps,...c.counterfactual.capacityOverrides.longCaps};}return{...v,input:c.input,caseId:c.id,counterfactual:c.counterfactual};}

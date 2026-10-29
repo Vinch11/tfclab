@@ -10,6 +10,7 @@ import{assessConditional,type Condition,type DecisionInput}from'./v14-state';
 import{prospectivePool,targetedTiming,explicitDose,sourceSport}from'./v14-sources';
 import{sourceContext}from'./v13-source-context';
 export const DAY_NAMES=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+export interface CandidateProgrammingPriorities {version:'v23-observed-foundation-priority-1';bySport:Record<string,{families:string[];priority:number;protectLongSessionDay:boolean;intentId:string}>;extraMinutes:'none_without_documented_dose_reason';}
 export interface ProspectiveRole{key:string;sport:string;index:number;kind:'long'|'endurance'|'technical'|'support';floor:number;currentCapacity:number;target:number;purpose:string;}
 export interface ProspectiveSlot{key:string;week:number;day:number;role:ProspectiveRole;card:RepairWorkoutMetadata;minutes:number;timing:ReturnType<typeof targetedTiming>;recipe:ReturnType<typeof explicitDose>;input:DecisionInput;decision:ReturnType<typeof assessConditional>;originalCatalogue:ReturnType<typeof checkSessionCatalogue>;fallback:{status:'candidate_only';targetMax:number;action:string;preservesObjective:false;mustRevalidateWholeWeek:true;};}
 export function rolesForWeek(p:V10Profile,week:number,model:ProgressionModel){
@@ -45,17 +46,20 @@ function conditionsFor(p:V10Profile,week:number,role:ProspectiveRole,card:Repair
  if(role.kind==='long'||role.kind==='technical'||role.sport==='strength')add('whole_week_interaction','interaction',['combined swim/bike/run/muscle exposures and spacing reviewed','nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed'],'hold the affected exposure and revalidate the whole microcycle; disclose specificity loss');
  return cs;
 }
-export function buildProspectiveCalendar(p:V10Profile,model:ProgressionModel,options?:{horizonWeeks?:number;dosePolicy?:'reserve_source_minima'}){
+export function buildProspectiveCalendar(p:V10Profile,model:ProgressionModel,options?:{horizonWeeks?:number;dosePolicy?:'reserve_source_minima';programming?:CandidateProgrammingPriorities}){
  if(p.family!=='ironman'||p.config.objective!=='IM'||p.config.weeksAvailable!==16)throw Error('IRONMAN_16_WEEK_CONTEXT_REQUIRED');
  if(!V14_SPEC.models.includes(model))throw Error('UNKNOWN_PROGRESSION_MODEL');
  const horizon=options?.horizonWeeks??16;if(!Number.isInteger(horizon)||horizon<1||horizon>16)throw Error('INVALID_PROSPECTIVE_HORIZON');
  if(options?.dosePolicy!==undefined&&options.dosePolicy!=='reserve_source_minima')throw Error('UNKNOWN_PROSPECTIVE_DOSE_POLICY');
+ const programming=options?.programming;if(programming&&(programming.version!=='v23-observed-foundation-priority-1'||programming.extraMinutes!=='none_without_documented_dose_reason'||Object.values(programming.bySport).some(x=>!Number.isFinite(x.priority)||x.priority<0||!x.families.length)))throw Error('INVALID_CANDIDATE_PROGRAMMING_POLICY');
  const weeks:Array<{week:number;phase:string;type:string;budget:number;reservedMinutes:number;roles:ProspectiveRole[];slots:ProspectiveSlot[];unassigned:Array<{role:ProspectiveRole;reasons:unknown[]}>;events:Array<{day:number;sport:string;durationMin:null;title:string}>;days:Array<{day:number;kind:'training'|'rest'|'event';slotKeys:string[]}>;placement:{complete:boolean;nodes:number;reason:string|null};}> =[];
  let lastLongDays:number[]=[];
  for(let week=1;week<=horizon;week++){
   const q=p.prep.weeklyQuotas[week],roles=rolesForWeek(p,week,model),pool=prospectivePool(p,week),slots:ProspectiveSlot[]=[],unassigned:Array<{role:ProspectiveRole;reasons:unknown[]}>=[];
-  for(const role of roles){const reasons:unknown[]=[];let chosen:ProspectiveSlot|null=null;
-   for(const id of preferences(role,p,week)){if(slots.some(s=>s.card.id===id)){reasons.push({source:id,reason:'distinct_source_required_by_existing_final_validation'});continue;}const card=pool.find(c=>c.id===id&&sourceSport(c)===role.sport);if(!card){reasons.push({source:id,reason:'not_in_original_eligible_context_pool'});continue;}
+  const selectionOrder=programming?[...roles].sort((a,b)=>(programming.bySport[a.sport]?.priority??1000)-(programming.bySport[b.sport]?.priority??1000)||roles.indexOf(a)-roles.indexOf(b)):roles;
+  for(const role of selectionOrder){const reasons:unknown[]=[];let chosen:ProspectiveSlot|null=null;
+   const originalPreferences=preferences(role,p,week),priority=programming?.bySport[role.sport];const candidatePreferences=priority?[...originalPreferences].sort((a,b)=>Number(priority.families.includes(pool.find(c=>c.id===b)?.intentFamily??''))-Number(priority.families.includes(pool.find(c=>c.id===a)?.intentFamily??''))||originalPreferences.indexOf(a)-originalPreferences.indexOf(b)):originalPreferences;
+   for(const id of candidatePreferences){if(slots.some(s=>s.card.id===id)){reasons.push({source:id,reason:'distinct_source_required_by_existing_final_validation'});continue;}const card=pool.find(c=>c.id===id&&sourceSport(c)===role.sport);if(!card){reasons.push({source:id,reason:'not_in_original_eligible_context_pool'});continue;}
     const timing=targetedTiming(card);let minutes=options?.dosePolicy==='reserve_source_minima'?Math.max(role.floor,timing.necessaryRange[0]):Math.max(role.target,timing.necessaryRange[0]);
     if(model==='hold_current_envelope')minutes=Math.max(Math.min(minutes,role.currentCapacity),timing.necessaryRange[0]);
     const eligibility=catalogueEligibility(card,{objective:p.config.objective,phase:q.phase,weekType:q.weekType}),domain=role.sport==='strength'?null:getDoctrineDomain('moderate_lt1');
@@ -72,9 +76,10 @@ export function buildProspectiveCalendar(p:V10Profile,model:ProgressionModel,opt
    if(chosen)slots.push(chosen);else unassigned.push({role,reasons});
   }
   const events=declaredRaceSlotsForWeek(p.config,week).map(e=>({day:DAY_NAMES.indexOf(e.dayName),sport:e.sport,durationMin:null,title:'🏁 Jour J — compétition Ironman déclarée, durée inconnue'}));
-  const days=Array.from({length:7},(_,day)=>({day,slots:[]as ProspectiveSlot[]}));let nodes=0;const ordered=[...slots].sort((a,b)=>Number(b.role.kind==='long')-Number(a.role.kind==='long')||a.key.localeCompare(b.key));
+  const protectedSlot=(s:ProspectiveSlot)=>q.weekType==='load'&&s.role.kind==='long'&&programming?.bySport[s.role.sport]?.protectLongSessionDay===true;
+  const days=Array.from({length:7},(_,day)=>({day,slots:[]as ProspectiveSlot[]}));let nodes=0;const ordered=[...slots].sort((a,b)=>Number(b.role.kind==='long')-Number(a.role.kind==='long')||(programming?(programming.bySport[a.role.sport]?.priority??1000)-(programming.bySport[b.role.sport]?.priority??1000):0)||a.key.localeCompare(b.key));
   function visit(k:number):boolean{if(++nodes>V14_SPEC.nodeBudget)return false;if(k===ordered.length)return days.filter(d=>!d.slots.length&&!events.some(e=>e.day===d.day)).length>=p.minRest&&slots.every(s=>relativeCalendarContext(s.card,week,s.day,q.weekType,slots,weeks.flatMap(w=>w.slots)).status!=='fail');
-   const slot=ordered[k];for(const day of [...p.availableDays].sort((a,b)=>days[a].slots.length-days[b].slots.length||a-b)){
+   const slot=ordered[k];for(const day of [...p.availableDays].sort((a,b)=>days[a].slots.length-days[b].slots.length||(programming?Number(days[a].slots.some(protectedSlot))-Number(days[b].slots.some(protectedSlot)):0)||a-b)){
     if(days[day].slots.length>=p.maxDaily||days[day].slots.some(s=>s.role.sport===slot.role.sport)||events.some(e=>e.day===day)||!sourceContext(slot.card,p,week,day,q.weekType).compatible)continue;
     if(needsPreviousTrainingDay(slot.card.when,q.weekType)&&day>0&&!p.availableDays.some(available=>available===day-1))continue;
     const absolute=(week-1)*7+day;if(slot.role.kind==='long'&&(lastLongDays.some(d=>Math.abs(absolute-d)<=1)||days.some(d=>Math.abs(d.day-day)<=1&&d.slots.some(s=>s.role.kind==='long'))))continue;

@@ -1,11 +1,11 @@
 import{evaluateV18ReviewOffer}from'./v18-selection';import{deriveV22StimulusRequests}from'./v22-intents';
-import{buildProspectiveCalendar}from'./v14-calendar';import{validateProspectiveCalendar}from'./v14-validation';
+import{buildProspectiveCalendar,type CandidateProgrammingPriorities}from'./v14-calendar';import{validateProspectiveCalendar}from'./v14-validation';
 import{assessConditional}from'./v14-state';import{resolvePhysiologicalReferences}from'./v20-physio';
 import{resolveV22Targets}from'./v22-intensity';import{deriveTrainingZones}from'@/lib/zones/deriveTrainingZones';
 import type{V10Profile}from'./v10-profiles';
 /** Reuse the V14 selector/calendar and candidate conditions; no replacement solver or new dose formula. */
-export function buildV22Prescription(prepared:any,p:V10Profile,spec:any,canonical:Map<string,any>){
- const refs=resolvePhysiologicalReferences(prepared),calendar=buildProspectiveCalendar(p,'native_floor_conditional',{horizonWeeks:4,dosePolicy:'reserve_source_minima'});
+export function buildV22Prescription(prepared:any,p:V10Profile,spec:any,canonical:Map<string,any>,programming?:CandidateProgrammingPriorities){
+ const refs=resolvePhysiologicalReferences(prepared),calendar=buildProspectiveCalendar(p,'native_floor_conditional',{horizonWeeks:4,dosePolicy:'reserve_source_minima',...(programming?{programming}:{})});
  const decisions=calendar.weeks.flatMap(w=>w.slots.map(s=>{
   const source=canonical.get(s.card.id),src=source?.sourceV18Recipe,original=source?.originalCanonical.original.effective;
   const reasons:string[]=[],pending:string[]=[];
@@ -37,4 +37,13 @@ export function buildV22Prescription(prepared:any,p:V10Profile,spec:any,canonica
  const all=calendar.weeks.flatMap(w=>w.slots);calendar.currentlyAdmissibleSlots=all.filter(s=>s.decision.state==='currently_admissible').length;calendar.conditionalSlots=all.filter(s=>s.decision.state==='conditional_pending_reassessment').length;calendar.notAdmissibleSlots=all.filter(s=>s.decision.state==='not_admissible').length;calendar.prospectiveCalendarComplete=calendar.prospectiveCalendarComplete&&!calendar.notAdmissibleSlots;
  const rawValidation=validateProspectiveCalendar(calendar,p);
  return{profile:p.id,calendar,decisions,stimulusRequests:deriveV22StimulusRequests(prepared,p),rawValidation,structuralCalendarComplete:calendar.weeks.length===4&&calendar.weeks.every(w=>w.days.length===7&&!w.unassigned.length&&w.placement.complete&&w.reservedMinutes<=w.budget),historicalControlsPass:rawValidation.historical.blocking===0,currentlyExecutablePlan:false,actualCoverage:{weeks:calendar.weeks.length,days:calendar.weeks.length*7,rawV14CoverageLabelIsKnown16WeekAssumption:true},status:calendar.prospectiveCalendarComplete?'complete_conditional_candidate':'incomplete_or_refused',reassessmentEvents:calendar.weeks.map(w=>({beforeWeek:w.week,trainingDose:null,requires:'dated source-specific recovery, symptoms and capacity assessment; no new test dosage invented',automaticRelease:false})),deferredSpecificity:[{kind:'targeted_high_intensity',reason:'no individually documented interval tolerance; actual TFCL lever retained, no universal HIIT quota'},{kind:'maximal_strength',reason:'movement competence and actual loading evidence missing; support sessions do not prove force gain'},{kind:'brick_nutrition_heat_posture',reason:'no new capacity or tolerance invented'}],refs,expertReviewed:false,automaticRelease:false,scientificIndividualValidation:false};
+}
+
+/** Revalidate an explicit evidence update; never infer capacity or silently release a plan. */
+export function revalidateV22Reservation(result:ReturnType<typeof buildV22Prescription>,p:V10Profile){
+ const c=result.calendar,all=c.weeks.flatMap(w=>w.slots);
+ for(const s of all)s.decision=assessConditional(s.input);
+ for(const d of result.decisions){const s=all.find(s=>s.key===d.slotKey)!;d.state=s.decision.state;d.hardFailures=[...new Set([...d.hardFailures,...s.input.hardFailures])];d.rationale.conditions=s.decision.conditions;}
+ c.currentlyAdmissibleSlots=all.filter(s=>s.decision.state==='currently_admissible').length;c.conditionalSlots=all.filter(s=>s.decision.state==='conditional_pending_reassessment').length;c.notAdmissibleSlots=all.filter(s=>s.decision.state==='not_admissible').length;
+ c.prospectiveCalendarComplete=result.structuralCalendarComplete&&c.notAdmissibleSlots===0;result.rawValidation=validateProspectiveCalendar(c,p);result.historicalControlsPass=result.rawValidation.historical.blocking===0;result.status=c.prospectiveCalendarComplete?'complete_conditional_candidate':'incomplete_or_refused';return result;
 }
