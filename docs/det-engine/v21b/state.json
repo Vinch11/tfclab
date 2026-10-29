@@ -4,7 +4,7 @@
   "startedAt": "2026-10-29T11:27:23Z",
   "hardDeadline": "2026-10-29T12:27:23Z",
   "maxUnits": 10,
-  "status": "in_progress_no_go",
+  "status": "completed_no_go",
   "automaticRestart": false,
   "budgetRenewal": false,
   "units": [
@@ -104,9 +104,14 @@
     {
       "unit": 10,
       "name": "final_integrity_commits_push_and_draft_pr",
-      "status": "active",
+      "status": "completed",
       "startedAt": "2026-10-29T11:56:05.032261+00:00",
-      "evidence": []
+      "evidence": [
+        "final-integrity.json",
+        "evidence/independent-coach-final.json",
+        "evidence/whitespace-check.json"
+      ],
+      "completedAt": "2026-10-29T11:58:29.508708+00:00"
     }
   ],
   "acceptedData": "evidence/coach-consolidated",
@@ -120,5 +125,15 @@
       "historicalFilesChanged": false,
       "doseChanged": false
     }
-  ]
+  ],
+  "finishedAt": "2026-10-29T11:58:29.508708+00:00",
+  "elapsedSeconds": 1867,
+  "closedWithinBudget": true,
+  "sourceCheckpointCommit": "ae7d7cbb8edbd6b7e054d2d77a4417da5bc69e67",
+  "delivery": {
+    "checkpointPushed": true,
+    "closurePushAndPrUpdate": "performed_after_closure_commit_within_same_unit",
+    "automaticRestart": false,
+    "quotaMeterExposed": false
+  }
 }
