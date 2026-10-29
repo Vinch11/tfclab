@@ -15,6 +15,7 @@ import {
   validateOrNull 
 } from "@/lib/validationSchemas";
 import { enrichSnapshotWithRunEconomy } from "@/lib/runningEconomySimple";
+import { preservePhysiologyNotes } from "@/lib/physiologyEvidence";
 // Types DB from generated types (extended with active_snapshot_id and birth_date)
 export interface DbAthlete {
   id: string;
@@ -384,7 +385,7 @@ export function useCloudData() {
     let finalSport = providedSport;
     if (!providedSport && deduced) {
       finalSport = deduced;
-    } else if (providedSport === "bike" && deduced === "run") {
+    } else if (providedSport === "bike" && deduced === "run" && validated.source !== "lab_import") {
       finalSport = "run";
     }
 
@@ -437,6 +438,9 @@ export function useCloudData() {
   const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
     // Strip non-DB fields before sending to Supabase
     const { id: _id, created_at: _ca, updated_at: _ua, ...cleanUpdates } = updates as any;
+    if (Object.prototype.hasOwnProperty.call(cleanUpdates, "coach_notes")) {
+      cleanUpdates.coach_notes = preservePhysiologyNotes(snapshots.find(s => s.id === id)?.coach_notes, cleanUpdates.coach_notes);
+    }
     const { error } = await supabase.from("snapshots").update(cleanUpdates).eq("id", id);
     if (error) {
       const detail = error.details || error.message || "Erreur inconnue";
@@ -444,7 +448,7 @@ export function useCloudData() {
       console.error("Update snapshot error:", error.message, error.details, error.code, JSON.stringify(cleanUpdates));
       return false;
     }
-    setSnapshots((prev) => prev.map((s) => (s.id === id ? enrichSnapshotWithRunEconomy({ ...s, ...updates }) as DbSnapshot : s)));
+    setSnapshots((prev) => prev.map((s) => (s.id === id ? enrichSnapshotWithRunEconomy({ ...s, ...cleanUpdates }) as DbSnapshot : s)));
     toast.success("Profil mis à jour");
     return true;
   };

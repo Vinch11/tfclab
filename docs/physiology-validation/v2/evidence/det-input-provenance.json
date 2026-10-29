@@ -1,0 +1,14 @@
+{
+  "det_head": "4ec5547875768f8430606401bb750445e381f71f",
+  "inputs_sha256": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97",
+  "handoff_sha256": "f1b0f92574bf5b30427de3be5d9424035c3e49300d6f03b0f0b1988a9ef80f1b",
+  "copied_synthetic_only": true,
+  "det_checkout_clean": true,
+  "initial_inspection_head": "efa50b520d993a32de95d609eadb5e0001e0ebca",
+  "final_head_changes_since_initial": [
+    "docs/det-engine/v23/CYCLE_LOG.jsonl",
+    "docs/det-engine/v23/evidence/publication-receipt.json",
+    "docs/det-engine/v23/state.json"
+  ],
+  "contracts_unchanged_since_initial": true
+}

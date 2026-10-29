@@ -1,3 +1,4 @@
+import { runningEconomyCostFromSnapshot, snapshotPhysiologyEvidence } from "@/lib/physiologyEvidence";
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 import { applyCoachProfileOverrides } from "@/lib/plan/coachProfileOverrides";
@@ -1233,6 +1234,8 @@ export default function AITrainingPlanPage() {
       snapshotDate: activeSnap.date ?? null,
       fatigueState: activeSnap.fatigue_state,
       runEconomyScore: activeSnap.run_economy_score,
+      runningEconomyCostMlKgKm: runningEconomyCostFromSnapshot(activeSnap),
+      physiologicalEvidence: snapshotPhysiologyEvidence(activeSnap, refs),
       runHrDriftPct: activeSnap.run_hr_drift_pct,
       paceThresholdSecPerKm: activeSnap.pace_threshold_sec_per_km,
       runningPower1s: activeSnap.running_power_1s,

@@ -5,6 +5,7 @@
 import { LabExtract, ExtractedField, SnapshotDelta } from "./types";
 import { DbSnapshot } from "@/hooks/useCloudData";
 import { deriveMetabolicProfile } from "@/types/snapshot";
+import { appendPhysiologyEvidence, validRunningEconomyCost } from "@/lib/physiologyEvidence";
 
 /**
  * Map LabExtract to DbSnapshot fields
@@ -14,14 +15,8 @@ export function mapExtractToSnapshot(
   athleteGoal: string
 ): Partial<DbSnapshot> {
   // Determine sport_main
-  let sportMain: string = "bike";
-  if (extract.performance.sport === "run" || extract.performance.vma_kmh) {
-    sportMain = "run";
-  } else if (extract.performance.sport === "tri") {
-    sportMain = "tri";
-  } else if (extract.performance.ftp_w || extract.performance.pmax_w) {
-    sportMain = "bike";
-  }
+  const sportMain = extract.performance.sport;
+  const knownSegment = sportMain === "run" || sportMain === "bike";
   
   // Build notes
   const notes: string[] = [
@@ -56,6 +51,7 @@ export function mapExtractToSnapshot(
   const snapshot: Partial<DbSnapshot> = {
     date: extract.meta.reportDate || new Date().toISOString().slice(0, 10),
     source: "lab_import",
+    sport_main: sportMain,
     
     // Performance - ensure integers where needed
     vo2max: extract.performance.vo2max_ml_kg_min,
@@ -71,7 +67,9 @@ export function mapExtractToSnapshot(
     fc_max: extract.cardio.hr_max != null ? Math.round(extract.cardio.hr_max) : null,
     
     // VLamax (only if explicitly in report)
-    vlamax: extract.vlamax.value,
+    vlamax: sportMain === "bike" ? extract.vlamax.value : null,
+    vlamax_run: sportMain === "run" ? extract.vlamax.value : null,
+    vlamax_source: knownSegment ? extract.vlamax.source : null,
     
     // Metabolic
     metabolic_profile: profile,
@@ -83,6 +81,30 @@ export function mapExtractToSnapshot(
     // Notes
     coach_notes: notes.join(" | "),
   };
+
+  const parameters: Parameters<typeof appendPhysiologyEvidence>[1]["parameters"] = {};
+  const definitions = {
+    vo2max: ["ml O2/kg/min", knownSegment ? sportMain : "unknown"],
+    vma: ["km/h", "run"], ftp: ["W", "bike"],
+    vlamax: ["mmol/L/s", "bike"], vlamax_run: ["mmol/L/s", "run"],
+    weight_kg: ["kg", "unknown"], fat_pct: ["%", "unknown"], fc_max: ["bpm", "unknown"],
+  } as const;
+  for (const [field, [unit, discipline]] of Object.entries(definitions)) {
+    const value = snapshot[field as keyof DbSnapshot];
+    if (typeof value === "number" && Number.isFinite(value)) parameters[field] = { value, unit, discipline };
+  }
+  const cost = validRunningEconomyCost(extract.economy.running_cost_ml_kg_km);
+  if (sportMain === "run" && cost !== null) {
+    parameters.runningEconomyCostMlKgKm = { value: cost, unit: "ml O2/kg/km", discipline: "run" };
+  }
+  if (!knownSegment && extract.vlamax.value != null) {
+    parameters.unassignedVlamax = { value: extract.vlamax.value, unit: "mmol/L/s", discipline: "unknown", method: extract.vlamax.source };
+    notes.push("VLamax non affectée : discipline du test à préciser (vélo/course).");
+  }
+  snapshot.coach_notes = appendPhysiologyEvidence(notes.join(" | "), {
+    version: 1, date: extract.meta.reportDate, storageSource: "lab_import",
+    confidence: confidence01, confidenceBasis: "extraction", parameters,
+  });
   
   return snapshot;
 }

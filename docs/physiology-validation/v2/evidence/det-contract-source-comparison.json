@@ -1,0 +1,50 @@
+{
+  "det_head": "4ec5547875768f8430606401bb750445e381f71f",
+  "files": [
+    {
+      "path": "src/engines/diagnostic/types.ts",
+      "v2_sha256": "f79d59490e02c92cfdd847e7394d176346beeb0366efb1b0abea8e5494b0dfb2",
+      "det_sha256": "f129287dc95188efbe832bc45684b96d9a51c94209e7ad123b3cafbbb2d197dd"
+    },
+    {
+      "path": "src/engines/diagnostic/computeDiagnostic.ts",
+      "v2_sha256": "49e48666ffe36da191d9c1691281ada50715f195da8e39d1f969748c720aa848",
+      "det_sha256": "40340ceef5134c6ee3f479f006be0ead3435a89e3686ef3b9d5b38a6a74ba716"
+    },
+    {
+      "path": "src/engines/plan/planConfigBuilder.ts",
+      "v2_sha256": "9ad524e01642667161d3875296d43018868bd3ee9bc5ba00d3626e469d3ac397",
+      "det_sha256": "4241ed91bb72fdef5ed84758396e7380477871e38ff714acaf3a99131f8d1682"
+    },
+    {
+      "path": "src/lib/v2/runMLSSPredictor.ts",
+      "v2_sha256": "80246e0b0d9c8192dd9e3de65150b5e0c93cb5b665359634299aa9fd32d26459",
+      "det_sha256": "80246e0b0d9c8192dd9e3de65150b5e0c93cb5b665359634299aa9fd32d26459"
+    },
+    {
+      "path": "src/lib/physiologyEvidence.ts",
+      "v2_sha256": "4166fb5ad9fe0ea91d872ce8a58e8be671916aafb1efe2dd332ca6ee78e7c528",
+      "det_sha256": null
+    },
+    {
+      "path": "src/lib/v2/runMLSSTracePersistence.ts",
+      "v2_sha256": "9393a66e2c40e1626ead77a9da51d14741b72a0c1254cfb079ef23b90dfaf7f8",
+      "det_sha256": "6175314c71860b2bf425ac09c4f57595e5f5cbc48665b4271a076be0cdcc6718"
+    },
+    {
+      "path": "experimental/det-engine/v22-evidence.ts",
+      "v2_sha256": null,
+      "det_sha256": "834e3ef7e0c26d70b4ebeda41da095cdcdab3c07c41873d61450f98abd70b6ad"
+    },
+    {
+      "path": "experimental/det-engine/v22-prescription.ts",
+      "v2_sha256": null,
+      "det_sha256": "16bb0941793881ff8499710d506b9dd5949b942692abc5ff7b6d68f205bcfd9a"
+    },
+    {
+      "path": "experimental/det-engine/v23-conflict.ts",
+      "v2_sha256": null,
+      "det_sha256": "17f7842268b8ebfe3dc297d7e0ea17761bc66906d09d284602277cf197af62b8"
+    }
+  ]
+}

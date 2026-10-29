@@ -1,3 +1,4 @@
+import { runningEconomyCostFromSnapshot } from "@/lib/physiologyEvidence";
 /**
  * computeEssentielsData — Calcule les valeurs et interprétations des 8 piliers TFCL
  * pour un athlète donné. Source unique partagée entre la page UI et l'export PDF.
@@ -139,7 +140,7 @@ export function computeEssentielsData(args: {
 
   // Résolveur unifié CE : mesure > estimation VMA/allure > null.
   const ceResolved = resolveRunningEconomyFromSnapshot(effectiveSnapshot as any);
-  const ce = ceResolved?.mlKgKm ?? null; // ml O₂/kg/km — unité attendue par runMLSSPredictor
+  const ce = runningEconomyCostFromSnapshot(effectiveSnapshot); // ml O₂/kg/km — unité attendue par runMLSSPredictor
   const ceCategory = ceResolved
     ? { category: ceResolved.category, label: ceResolved.categoryLabel }
     : null;
@@ -264,8 +265,8 @@ export function computeEssentielsData(args: {
         direction: "band",
       },
       {
-        label: ceIsEstimated ? "Économie de course (estimée)" : "Économie de course",
-        value: ce,
+        label: ce === null ? "Coût O₂ estimé (voie distincte)" : "Coût O₂ explicite",
+        value: ce ?? ceResolved?.mlKgKm ?? null,
         unit: "ml O₂/kg/km",
         decimals: 1,
         target: [185, 205],
@@ -275,17 +276,17 @@ export function computeEssentielsData(args: {
     ],
     status: mlssRun ? (mlssRun.mlssPct >= 82 && mlssRun.mlssPct <= 92 ? "ok" : "warn") : "missing",
     interpretation: mlssRun
-      ? `Ton MLSS Run est prédit à ${mlssRun.mlssPct.toFixed(1)}% de la VMA (±2.64%). C'est l'allure plafond soutenable ~45-60 min sans dérive lactique.${ceCategory ? ` Économie : ${ceCategory.label.toLowerCase()} (${ce!.toFixed(0)} ml O₂/kg/km${ceIsEstimated ? ", estimée VMA" : ""}).` : ""}`
+      ? `MLSS prédit à ${mlssRun.mlssPct.toFixed(1)}% VO₂max depuis un coût O₂ explicite de ${ce!.toFixed(0)} ml O₂/kg/km. Le RMSE historique de 2,64 points ne constitue pas une marge individuelle certifiée.`
       : ce == null
-        ? "Économie de course manquante. Renseigne ta VMA dans le snapshot pour activer l'estimation simple (formule Léger), ou importe un test labo."
+        ? "Coût O₂ explicite manquant : la prédiction Modèle C est indisponible. Le score économie et son estimation VMA restent des informations distinctes."
         : "Données insuffisantes : la prédiction MLSS Run nécessite à la fois VLamax et l'économie de course.",
     definition:
-      "Maximum Lactate Steady State : intensité la plus élevée à laquelle la lactatémie reste stable (~3-5 mmol/L). Model C : MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200). Calibré sur cohorte N=44 (RMSE 2.64%). Économie de course : coût énergétique en O₂ par km — plus c'est bas, mieux c'est. Catégories : Économe <195, Standard 195-210, Coûteux >210.",
+      "Maximum Lactate Steady State : intensité la plus élevée à laquelle la lactatémie reste stable (~3-5 mmol/L). Model C : MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200). Calibration interne annoncée N=14+3 (RMSE historique 2,64 points), validation indépendante à documenter. Économie de course : coût énergétique en O₂ par km — plus c'est bas, mieux c'est. Catégories : Économe <195, Standard 195-210, Coûteux >210.",
     whyMatters:
       "Le MLSS est la frontière entre aérobie pure et fatigue glycolytique. Tempo, sweet-spot et seuil sont calibrés autour de cette valeur. Une erreur de 5% → 30 min de fatigue inutile en compétition.",
     howToAct:
       "↑ MLSS : ↓ VLamax (FatMax, volume aérobie) + ↑ économie de course (drills, force, plyo). Tempo runs 20-40 min à MLSS − 3%, 1-2x/semaine.",
-    source: "predictRunMLSSPctFromVLaCE (Model C), validé sur literature_cohort_validation",
+    source: "predictRunMLSSPctFromVLaCE (Modèle C), calibration interne référencée ; pas de validation individuelle déduite",
   });
 
   // 4. TTE / Durabilité

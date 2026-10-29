@@ -68,7 +68,7 @@ export function RunMLSSCoherenceCard({
 
   const sourceLabel =
     effectiveSource === "observed"
-      ? "Observé (test seuil)"
+      ? "Proxy seuil / VMA"
       : effectiveSource === "predicted"
       ? "Estimé Modèle C"
       : "Indisponible";
@@ -94,7 +94,7 @@ export function RunMLSSCoherenceCard({
       {/* Valeur effective */}
       <div className="flex items-baseline justify-between gap-3">
         <div>
-          <div className="text-xs text-muted-foreground">MLSS run (% VO₂max)</div>
+          <div className="text-xs text-muted-foreground">{effectiveSource === "observed" ? "Seuil / VMA (% de vitesse)" : "MLSS prédit (% VO₂max)"}</div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-semibold tabular-nums">
               {effectivePct !== null ? `${effectivePct.toFixed(1)}%` : "—"}
@@ -120,7 +120,7 @@ export function RunMLSSCoherenceCard({
             <div className="text-xs text-muted-foreground">Modèle C</div>
             <div className="font-medium tabular-nums">{prediction.mlssPct.toFixed(1)}%</div>
             <div className="text-[10px] text-muted-foreground">
-              conf. {Math.round(prediction.confidence * 100)}%
+              confiance heuristique {Math.round(prediction.confidence * 100)} / 100
             </div>
           </div>
         </div>
@@ -131,7 +131,8 @@ export function RunMLSSCoherenceCard({
         <div className="flex items-start gap-2 rounded-md border border-dashed bg-muted/20 p-2 text-xs text-muted-foreground">
           <Info className="mt-0.5 h-3 w-3 shrink-0" />
           <div>
-            Pas de test seuil disponible — estimation depuis VLamax run + CE (Modèle C, RMSE 2.6%).
+            Pas de test seuil disponible — estimation depuis VLamax run + coût O₂ (Modèle C).
+            Le RMSE historique de 2,64 points ne constitue pas une marge individuelle certifiée.
             Réaliser un test seuil pour ancrer la valeur.
           </div>
         </div>
@@ -154,7 +155,7 @@ export function RunMLSSCoherenceCard({
           <div className="flex-1">
             <div className="font-medium">
               {crossValidation.severity === "ok"
-                ? "Cohérence validée"
+                ? "Cohérence interne"
                 : crossValidation.severity === "warning"
                 ? `Écart modéré (Δ${crossValidation.deltaPct > 0 ? "+" : ""}${crossValidation.deltaPct}%)`
                 : `Incohérence (Δ${crossValidation.deltaPct > 0 ? "+" : ""}${crossValidation.deltaPct}%)`}

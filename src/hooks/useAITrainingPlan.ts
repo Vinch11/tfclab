@@ -271,8 +271,10 @@ export interface PlanAthleteData {
   /** Run MLSS effectif (% VMA au seuil) — observé si pace_threshold dispo, sinon prédit Modèle C (VLamax run + CE) */
   runMLSSEffectivePct?: number | null;
   runMLSSEffectiveSource?: "observed" | "predicted" | "none" | null;
-  /** Économie de course (Score G, 1-5) utile pour qualifier la prédiction MLSS */
+  /** Score économie 0–100 ; ne représente pas un coût O2. */
   runEconomyScore?: number | null;
+  runningEconomyCostMlKgKm?: number | null;
+  physiologicalEvidence?: import("@/lib/physiologyEvidence").PhysiologicalEvidenceMap;
 }
 
 export interface RaceGoal {

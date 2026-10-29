@@ -97,7 +97,9 @@ export function getEffectiveRefs(
     }
     // 2. Profil
     const profileVal = profileRefs[profileKey];
-    if (profileVal != null && typeof profileVal === "number") {
+    if (typeof profileVal === "number" && Number.isFinite(profileVal) &&
+        (minValid === undefined || profileVal >= minValid) &&
+        (maxValid === undefined || profileVal <= maxValid)) {
       return { value: profileVal, source: "profile" };
     }
     // 3. Null
@@ -170,7 +172,7 @@ export function getMissingFields(
 export function getSourceLabel(source: RefSource): string {
   switch (source) {
     case "snapshot":
-      return "Mesuré (snapshot)";
+      return "Stocké (snapshot)";
     case "profile":
       return "Renseigné (profil)";
     case "none":

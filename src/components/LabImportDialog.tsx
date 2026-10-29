@@ -271,7 +271,7 @@ export function LabImportDialog({
           `Test labo importé (${editedExtract.meta.reportType})`,
           editedExtract.performance.sport,
           editedExtract.meta.sourceConfidence,
-          editedExtract.vlamax.value,
+          ["run", "bike"].includes(editedExtract.performance.sport) ? editedExtract.vlamax.value : null,
           JSON.parse(JSON.stringify({ labExtract: editedExtract })),
           `Import PDF - ${editedExtract.meta.reportDate || "Date inconnue"}`
         );

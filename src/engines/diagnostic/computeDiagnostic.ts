@@ -1,4 +1,5 @@
 import { canGuidePrescription } from "@/lib/limiterPrescription";
+import { validRunningEconomyCost } from "@/lib/physiologyEvidence";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL DIAGNOSTIC ENGINE™ — Orchestrateur
@@ -388,8 +389,8 @@ function computeBikeInjuryRiskFromInput(
 }
 
 // ─── Run MLSS (Modèle C) ────────────────────────────────────────────────
-function computeRunMLSSFromInput(
-  input: DiagnosticInput
+export function computeRunMLSSFromInput(
+  input: Pick<DiagnosticInput, "sportFocus" | "vlamaxRun" | "vma" | "paceThresholdSecPerKm" | "runningEconomyCostMlKgKm">
 ): AthleteDiagnostic["runMLSS"] {
   if (input.sportFocus === "bike") return null;
 
@@ -413,13 +414,13 @@ function computeRunMLSSFromInput(
   // 2. Predicted MLSS_pct via Modèle C (VLamax run + CE)
   const prediction = predictRunMLSSPctFromVLaCE(
     input.vlamaxRun,
-    input.runEconomyScore
+    validRunningEconomyCost(input.runningEconomyCostMlKgKm)
   );
 
   // 3. Cross-validation
   const crossValidation =
     observedPct !== null && prediction
-      ? crossValidateRunMLSS(observedPct, input.vlamaxRun, input.runEconomyScore)
+      ? crossValidateRunMLSS(observedPct, input.vlamaxRun, validRunningEconomyCost(input.runningEconomyCostMlKgKm))
       : null;
 
   // 4. Effective value (observed wins, predicted as fallback)

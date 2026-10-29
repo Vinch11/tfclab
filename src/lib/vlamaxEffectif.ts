@@ -100,6 +100,7 @@ export interface VLamaxEffectif {
 
 // Types pour les données cloud
 interface TestCloud {
+  sport?: string | null;
   athlete_id: string;
   vlamax: number | null;
   date?: string;
@@ -140,7 +141,17 @@ function isLabMeasuredVlamaxSnapshot(s: SnapshotCloud): boolean {
  * doivent être exclus du pipeline `sport=velo` pour éviter qu'un sprint CAP
  * récent (ex. "Sprint 15s CAP" 0.71) ne masque la VLamax vélo réelle.
  */
+function explicitTestDiscipline(t: TestCloud): "run" | "bike" | "unassigned" | null {
+  const value = t.sport ?? t.raw?.labExtract?.performance?.sport;
+  if (typeof value !== "string" || !value.trim()) return null; // legacy, unspecified
+  const sport = value.toLowerCase();
+  if (["run", "cap", "course", "course à pied", "running"].includes(sport)) return "run";
+  if (["bike", "velo", "vélo", "cyclisme", "cycling"].includes(sport)) return "bike";
+  return "unassigned"; // mixed/unknown/swim is not a bike/run lactate measurement
+}
+
 function isCapSpecificVlamaxTest(t: TestCloud): boolean {
+  if (explicitTestDiscipline(t) === "run") return true;
   const type = (t.type || "").toLowerCase();
   if (type.includes("cap") || type.includes("run")) return true;
   const haystack = `${t.name || ""} ${t.note || ""} ${t.raw?.source || ""} ${t.raw?.protocol || ""}`.toLowerCase();
@@ -334,10 +345,10 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   // =============================================
   const athleteTestsAll = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
   const athleteTests = sport === "cap"
-    ? athleteTestsAll.filter(isLabMeasuredVlamaxTest)
+    ? athleteTestsAll.filter(t => isLabMeasuredVlamaxTest(t) && !["bike", "unassigned"].includes(explicitTestDiscipline(t)))
     // Pour sport=velo/natation : exclure les tests CAP-spécifiques (Sprint 15s CAP, etc.)
     // qui mesurent la glycolyse en course et polluent la VLamax vélo.
-    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t));
+    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t) && (sport !== "velo" || explicitTestDiscipline(t) !== "unassigned"));
   
   if (athleteTests.length > 0) {
     const sortedTests = [...athleteTests].sort((a, b) => {

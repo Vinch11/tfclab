@@ -1,3 +1,4 @@
+import { physiologyNarrative } from "@/lib/physiologyEvidence";
 // =============================================
 // PROFIL PHYSIOLOGIQUE MANAGER - Gestion des Profils Two For Coaching Lab™ (Cloud)
 // Anciennement "Snapshot Manager"
@@ -211,7 +212,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_power_60s: (s as any).running_power_60s != null ? String((s as any).running_power_60s) : "",
       run_power_5min: (s as any).running_power_5min != null ? String((s as any).running_power_5min) : "",
 
-      coach_notes: s.coach_notes || "",
+      coach_notes: physiologyNarrative(s.coach_notes),
     });
   };
 
@@ -1693,7 +1694,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <p className="text-sm text-muted-foreground">{s.coach_notes}</p>
+                  <p className="text-sm text-muted-foreground">{physiologyNarrative(s.coach_notes)}</p>
                 </AccordionContent>
               </AccordionItem>
             )}

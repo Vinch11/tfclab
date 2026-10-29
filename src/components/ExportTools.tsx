@@ -1,3 +1,4 @@
+import { runningEconomyCostFromSnapshot, snapshotPhysiologyEvidence, physiologyNarrative } from "@/lib/physiologyEvidence";
 import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
@@ -1562,6 +1563,9 @@ function buildExportPayload(
       tss7d: effectiveSnapshot.tss_7d ?? null,
       fatigueState: effectiveSnapshot.fatigue_state ?? null,
       runEconomyScore: effectiveSnapshot.run_economy_score ?? null,
+      runningEconomyCostMlKgKm: runningEconomyCostFromSnapshot(effectiveSnapshot),
+      physiologicalEvidence: snapshotPhysiologyEvidence(effectiveSnapshot, effectiveRefs),
+      snapshotDate: effectiveSnapshot.date ?? null,
       runHrDriftPct: effectiveSnapshot.run_hr_drift_pct ?? null,
       paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
       runningPower1s: effectiveSnapshot.running_power_1s ?? null,
@@ -3851,8 +3855,14 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 // RUN MLSS COHÉRENCE — Modèle C (RMSE 2.64% sur N=14 run)
 // Affiche % MLSS effectif (observé > prédit), source, prédiction, cross-validation
 // =============================================
-function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
+export function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
   const runMLSS = payload.runMLSS;
+  const evidence = snapshotPhysiologyEvidence(payload.effectiveSnapshot);
+  const cost = evidence.runningEconomyCostMlKgKm;
+  const costEvidenceHTML = `<div class="card" style="font-size:11px;">
+    <b>Coût O₂ course :</b> ${cost ? `${cost.value} ${htmlEscape(cost.unit)}` : "inconnu — aucune conversion du score économie"}.<br>
+    ${cost ? `Date du test : ${htmlEscape(cost.date ?? "inconnue")} ; méthode : ${htmlEscape(cost.method ?? "inconnue")} ; origine scientifique : ${htmlEscape(cost.scientificOrigin)} ; stockage : ${htmlEscape(cost.storageSource ?? "inconnu")}.<br>Confiance : ${cost.confidence ?? "inconnue"} (${htmlEscape(cost.confidenceBasis)}) ; marge : ${cost.errorMargin ?? "inconnue"}.` : "La voie seuil/VMA reste utilisable si renseignée."}
+  </div>`;
   const goal = payload.athlete.goal || "";
   const isRun = goal.includes("km") || goal.includes("Marathon") || goal.includes("Semi") || goal.includes("Trail") || goal.includes("Ultra") || (payload.effectiveSnapshot?.sport_main === "run");
 
@@ -3864,7 +3874,8 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
         <div class="card" style="font-size:11px;color:#6E6B78;">
           Section non pertinente pour cet objectif (cycliste/triathlon non-run-focus).
         </div>
-      </section>`;
+        ${costEvidenceHTML}
+    </section>`;
   }
 
   if (!runMLSS) {
@@ -3874,7 +3885,8 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
         <div class="alert alertWarning" style="font-size:11px;">
           <b>Données insuffisantes</b> — Ajoutez VLamax run et économie de course (CE) pour activer la prédiction Modèle C.
         </div>
-      </section>`;
+        ${costEvidenceHTML}
+    </section>`;
   }
 
   const effectivePct = runMLSS.effectivePct;
@@ -3884,9 +3896,9 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
   const crossValidation = runMLSS.crossValidation;
 
   const sourceLabel = effectiveSource === "observed"
-    ? "🎯 Observé (test seuil 30 min terrain)"
+    ? "🎯 Proxy vitesse seuil / VMA"
     : effectiveSource === "predicted"
-      ? "🧪 Prédit (Modèle C — RMSE 2.64 %)"
+      ? "🧪 Prédit (Modèle C ; confiance heuristique)"
       : "—";
 
   const sourceBadgeClass = effectiveSource === "observed" ? "badgeSuccess" : effectiveSource === "predicted" ? "badgeWarning" : "badgeError";
@@ -3902,7 +3914,7 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
     <div class="card" style="padding:10px;">
       <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
       <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${prediction.mlssPct.toFixed(1)}% VMA</div>
-      <div style="font-size:10px;color:#6E6B78;margin-top:2px;">RMSE ±${prediction.trace.rmseExpected.toFixed(2)}%</div>
+      <div style="font-size:10px;color:#6E6B78;margin-top:2px;">RMSE historique ${prediction.trace.rmseExpected.toFixed(2)} points ; pas une marge individuelle</div>
     </div>` : `
     <div class="card" style="padding:10px;">
       <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
@@ -3953,6 +3965,7 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
         <b>📚 Modèle C (TFCL™ N=14 run) :</b> <code>MLSS_pct = 1 − 0.337·VLa_run − 0.0021·(CE − 200)</code>.
         Quand un test seuil 30 min est disponible, l'observé prime. Sinon, la prédiction Modèle C ancre Z5 dans le plan IA (à confirmer par un test terrain).
       </div>
+      ${costEvidenceHTML}
     </section>
   `;
 }
@@ -7516,7 +7529,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="muted" style="font-size:11px;margin-top:4px;">État déclaré : <code>${currentFatigueState}</code></div>
           </div>
         </div>
-        ${effectiveSnapshot.coach_notes ? `<div class="mt muted">Notes coach : ${htmlEscape(effectiveSnapshot.coach_notes)}</div>` : ''}
+        ${effectiveSnapshot.coach_notes ? `<div class="mt muted">Notes coach : ${htmlEscape(physiologyNarrative(effectiveSnapshot.coach_notes))}</div>` : ''}
       </div>
     </section>
   ` : '';

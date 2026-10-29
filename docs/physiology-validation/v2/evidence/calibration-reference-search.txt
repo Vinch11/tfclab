@@ -1,0 +1,54 @@
+AUDIT_SCIENTIFIQUE_P0.md:42:| F8 | 4 — runMLSSPredictor.ts | 🔴 | "Modèle C" calibré sur **N=14 profils labo + 3 edge cases (poids 0.3)** — régression à 2 coefficients sur échantillon très réduit. Les 4 sources citées (Tønnessen 2015, Joyner 1991, INSCYD whitepapers, Hauser 2014) sont des références générales de physiologie ; **rien dans le fichier ne précise si ce sont elles qui fournissent les N=14 profils**, ni leur protocole de recrutement. |
+AUDIT_SCIENTIFIQUE_P0_PLAN.md:326:"Modèle C", N=14+3, cf. F8). Il prend VLamax run + économie de course en
+AUDIT_SCIENTIFIQUE_P0_PLAN.md:333:- Son propre fondement (N=14) est lui-même limité (cf. F8) — le "mieux
+AUDIT_SCIENTIFIQUE_P0_PLAN.md:375:   exacte du N=14+3 de calibration (F8) — qui sont ces profils, quel
+scripts/audit/04-memory-index-snapshot.md:15:- [Mader α N=44](mem://logic/mader-alpha-calibration-n44) — α=1.98 calibré sur 44 profils labo bike, forward+inverse alignés.
+scripts/audit/04-memory-index-snapshot.md:16:- [Run MLSS Predictor](mem://logic/run-mlss-predictor-modele-c) — Modèle C: MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200), RMSE 2.64%.
+scripts/audit/04-memory-index-snapshot.md:102:- [Run MLSS Cohort Protocol](mem://features/run-mlss-cohort-validation-protocol) — Coach-driven dual-tier (lab/field) cohort enrollment, weighted RMSE vs baseline 2.64%.
+scripts/audit/04-memory-index-snapshot.md:104:- [VLamax CAP Anchor Calibration](mem://features/vlamax-cap-anchor-calibration-p4) — N=15 (3 coach + 12 lit). Sprint anchors recalibrés: VLamax = -0.5066 + 0.01420·sprint_m, RMSE 0.073.
+scripts/audit/04-memory-index-snapshot.md:117:- [Metabolic Simulator Deprecated](mem://logic/metabolic-simulator-deprecated) — Interdit d'importer `predict*`/`calibrate*` depuis `metabolicSimulator`. Utiliser `maderMetabolicModel` (calibré N=44).
+src/types/athlete.ts:127:// Les zones effectives sont désormais dérivées de Mader α=1.98 (MLSS calibré N=44)
+src/test/__audit__/auditProfiles.test.ts:22: *    MLSS_%VO2max (α=1.98, N=44 profils) → LT1 (×0.85) → FatMax (LT1 − (8+15×VLa))
+src/lib/essentiels/computeEssentielsData.ts:226:    source: "Mader-Heck calibré N=44 (RMSE 2.64%), VLamax engine v2 (4 méthodes fusionnées)",
+src/lib/essentiels/computeEssentielsData.ts:279:      ? `Ton MLSS Run est prédit à ${mlssRun.mlssPct.toFixed(1)}% de la VMA (±2.64%). C'est l'allure plafond soutenable ~45-60 min sans dérive lactique.${ceCategory ? ` Économie : ${ceCategory.label.toLowerCase()} (${ce!.toFixed(0)} ml O₂/kg/km${ceIsEstimated ? ", estimée VMA" : ""}).` : ""}`
+src/lib/essentiels/computeEssentielsData.ts:284:      "Maximum Lactate Steady State : intensité la plus élevée à laquelle la lactatémie reste stable (~3-5 mmol/L). Model C : MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200). Calibré sur cohorte N=44 (RMSE 2.64%). Économie de course : coût énergétique en O₂ par km — plus c'est bas, mieux c'est. Catégories : Économe <195, Standard 195-210, Coûteux >210.",
+src/lib/physiologicalTargets.ts:26: * - Karsten et al. 2014, J Sports Sci: TTE @ CP = 41 ± 17 min (cycling, N=14)
+src/lib/diagnostic/buildDiagnosticProtocolHTML.ts:173:          "VLamax_run ≈ −0.5066 + 0.01420 × distance_15s (RMSE 0.073, N=15).",
+src/lib/diagnostic/buildDiagnosticProtocolHTML.ts:203:        "Pas de lactate portable : conserver le protocole, la VLamax reste estimée par la distance 15s lancé (RMSE 0.073).",
+src/lib/audit/buildScientificAuditHTML.ts:251:<div class="legend">Source : <span class="mono">VLAMAX_MODEL_TRACE</span> — fusion 4 méthodes (Mader MLSS, Mader TTE, Score G, W' implied). RMSE bike calibré N=44 (α=1.98).</div>
+src/lib/audit/buildScientificAuditHTML.ts:258:<div class="legend">Source : <span class="mono">RUN_MLSS_MODEL_C_TRACE</span> — formule MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200). RMSE 2.64% (N=14+3).</div>
+src/lib/audit/buildScientificAuditHTML.ts:296:  <tr><td>VLamax bike</td><td>Mader-Heck (1991, 1985) — α=1.98</td><td>N=44 labo, forward+inverse alignés</td></tr>
+src/lib/audit/buildScientificAuditHTML.ts:297:  <tr><td>VLamax run</td><td>Fusion 4 méthodes (sprint, ratio seuil/VMA, CAP anchor, Score G)</td><td>N=15 CAP anchor (3 coach + 12 lit), RMSE 0.073</td></tr>
+src/lib/audit/buildScientificAuditHTML.ts:298:  <tr><td>MLSS bike</td><td>Mader-Heck findMLSSPower</td><td>Calibré N=44</td></tr>
+src/lib/audit/buildScientificAuditHTML.ts:299:  <tr><td>MLSS run</td><td>Modèle C : 1 − 0.337·VLa − 0.0021·(CE−200)</td><td>N=14+3, RMSE 2.64%</td></tr>
+src/lib/performanceReport/computePerformanceReport.ts:6: *  - modèle Mader-Heck calibré (`@/lib/v2/maderMetabolicModel`, α = 1.98, N=44)
+src/lib/raceSimulation/buildRaceSimulationHTML.ts:539:    Modèles : Pacing Envelope TFCL™ · Mader-Heck (N=44) · Jeukendrup · Simulator V4 Refined.
+src/lib/v2/maderMetabolicModel.ts:157: * N=44 profils de labo que `findMLSSPower`).
+src/lib/v2/maderMetabolicModel.ts:287: * Refit on N=44 laboratory profiles (17 initial + 27 stratified additions
+src/lib/v2/maderMetabolicModel.ts:687:  // (round-trip calibrate→predict must converge). Refit Nov 2026 sur N=44.
+src/lib/v2/__tests__/vlamaxRunV2Enhanced.formulaIntegrity.test.ts:12: * n'est calibrée sur cohorte réelle (contrairement au MLSS α=1.98, N=44
+src/lib/v2/vlamaxRunV2Enhanced.ts:13: * mesures labo. Contrairement au MLSS (maderMetabolicModel.ts, α=1.98, N=44 profils
+src/lib/v2/__tests__/calibrateVLamaxFromMLSS.test.ts:5: * Validation profiles based on N=44 laboratory dataset (Nov 2026 refit).
+src/lib/v2/__tests__/calibrateVLamaxFromMLSS.test.ts:10: * α=1.98 (calibrated on N=44, RMSE 3.7%) replaces the previous α=2.5.
+src/lib/v2/__tests__/runMLSSPredictor.test.ts:7:describe("predictRunMLSSPctFromVLaCE — Modèle C (N=14 run)", () => {
+src/lib/v2/__tests__/runMLSSPredictor.test.ts:53:    expect(r.trace.rmseExpected).toBe(2.64);
+src/lib/v2/vlamaxCapEstimator.ts:140:  // CORRECTIF (cf. mini-rapport) : la calibration P4 (N=15) reflète des protocoles
+src/lib/v2/vlamaxCapEstimator.ts:273:      // Contrainte physiologique calibrée (RMSE 2.64%) — poids fort
+src/lib/v2/__tests__/runMLSSPredictorGuardFail.test.ts:5: * (calibré à 2.64% sur N=17 — voir mem://logic/run-mlss-predictor-modele-c).
+src/lib/v2/__tests__/runMLSSPredictorGuardFail.test.ts:44:const BASELINE_RMSE = 2.64;
+src/lib/v2/profilExpressFormulas.ts:49: * (RMSE 0.073, N=15), cf. buildDiagnosticProtocolHTML.ts
+src/lib/v2/pacingEnvelopeEngine.ts:252://     ou Mader α N=44). RMSE cible : ±3 pts %CS vs benchmarks littérature.
+src/lib/v2/runMLSSTracePersistence.ts:8: * Objectif : traçabilité longitudinale du Modèle C (RMSE 2.64 %, N=14+3),
+src/lib/miniReport/buildMiniReportHTML.ts:331:  Rapport généré par <strong>Potentiel Physiologique TFCL™</strong> — Modèles : VLamax-Sprint (P4, N=15) · Run MLSS C (N=44) · Mader-Heck.<br/>
+src/lib/v2/runMLSSPredictor.ts:4: * Formule fittée sur N=14 profils labo run + 3 edge cases (poids 0.3) :
+src/lib/v2/runMLSSPredictor.ts:7: * Performance : RMSE 2.64% (vs Modèle A Mader-Heck adapté: 4.1%, Modèle B linéaire simple: 3.8%).
+src/lib/v2/runMLSSPredictor.ts:13: * @see mem://logic/mader-alpha-calibration-n44 — équivalent bike (forme analytique différente)
+src/lib/v2/runMLSSPredictor.ts:76:      rmseExpected: 2.64,
+src/lib/miniReport/computeMiniProfile.ts:12: *   - VLamax estimée (calibration P4 : N=15, RMSE 0.073)
+src/lib/miniReport/computeMiniProfile.ts:14: *   - MLSS estimée (modèle C : N=44, RMSE 2.64%)
+src/lib/miniReport/computeMiniProfile.ts:86: * Calibration P4 (N=15) : VLamax = −0.5066 + 0.01420·sprint_m
+src/lib/miniReport/computeMiniProfile.ts:140:// 4. MLSS (% VMA) — Modèle C calibré N=44
+src/lib/v2/runMLSSCohortValidation.ts:5: * Élargit la cohorte de validation Modèle C au-delà de N=14 (calibration interne)
+src/lib/v2/runMLSSCohortValidation.ts:77:  // Comparaison vs RMSE calibration interne (2.64% sur N=14+3)
+src/lib/v2/runMLSSCohortValidation.ts:99:const COHORT_BASELINE_RMSE = 2.64; // %VO2max, calibration N=14+3
+src/lib/v2/fatmaxTFCL.ts:170: *   MLSS_%VO2max = 100 × (1 − 1.98 × VLamax / VO2max_absolu)   [calibré, N=44]

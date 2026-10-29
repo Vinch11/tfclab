@@ -1,3 +1,4 @@
+import { runningEconomyCostFromSnapshot, snapshotPhysiologyEvidence } from "@/lib/physiologyEvidence";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
@@ -758,6 +759,9 @@ const Index = () => {
       tss7d: effectiveCloudSnapshot.tss_7d ?? null,
       fatigueState: effectiveCloudSnapshot.fatigue_state ?? null,
       runEconomyScore: effectiveCloudSnapshot.run_economy_score ?? null,
+      runningEconomyCostMlKgKm: runningEconomyCostFromSnapshot(effectiveCloudSnapshot),
+      physiologicalEvidence: snapshotPhysiologyEvidence(effectiveCloudSnapshot),
+      snapshotDate: effectiveCloudSnapshot.date ?? null,
       runHrDriftPct: effectiveCloudSnapshot.run_hr_drift_pct ?? null,
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       runningPower1s: effectiveCloudSnapshot.running_power_1s ?? null,
