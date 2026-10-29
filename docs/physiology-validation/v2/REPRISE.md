@@ -2,6 +2,8 @@
 
 Branche indépendante : **`experiment/physiology-validation-v2`**. Parent : `main` **`e31ffaba7d1fcefff8a60910713fd1fe9f18f89b`**, dernier main confirmé au démarrage. #424 sert de preuve de départ, sans être fusionnée/modifiée. #420 lu jusqu'au SHA final V23 **`4ec5547875768f8430606401bb750445e381f71f`**, sans écriture.
 
+PR indépendante publiée : [#425 — DRAFT / NO-GO](https://github.com/Vinch11/tfclab/pull/425). Commit de correction et preuves : `ddb47f08b8c4ccbee86a2425f97b371bcc239fa4`.
+
 ## Dix unités de travail
 
 | Unité | Travail accompli |

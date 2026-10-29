@@ -39,5 +39,10 @@
   "deployment_attested": false,
   "node": "v24.19.0",
   "vitest": "4.1.12",
-  "typescript": "5.9.3"
+  "typescript": "5.9.3",
+  "pull_request": "https://github.com/Vinch11/tfclab/pull/425",
+  "draft": true,
+  "implementation_commit": "ddb47f08b8c4ccbee86a2425f97b371bcc239fa4",
+  "published_closure_at_utc": "2026-10-29T15:18:11.529049+00:00",
+  "elapsed_minutes_through_publication": 39.19
 }
