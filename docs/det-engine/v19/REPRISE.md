@@ -11,3 +11,5 @@ Preuve technique consolidée : `docs/det-engine/v19/cycle-2/evidence/validation-
 La clôture des deux cycles est enregistrée dans l’état global, avec heures et durée réelles. Maximum 120 minutes communes, deux cycles de 60 minutes au plus ; la deuxième échéance est 00:55:36.478 UTC. Le budget ne se renouvelle pas. Un compteur de crédits n’est pas exposé et aucune consommation exacte n’est revendiquée.
 
 Aucune relance automatique n’existe. Ne pas lancer un troisième cycle ou réexécuter les unités clôturées sous ce budget. Une reprise ultérieure requiert une nouvelle autorisation et un nouveau registre, en conservant intégralement les présents artefacts. Aucun moteur, catalogue ou validateur de production ne peut être modifié dans ce mandat.
+
+Clôture technique : 2026-10-29T00:47:13.797Z. Cycle 1 : 3030 s ; cycle 2 : 3097 s ; total des cycles 6127 s, sous le plafond commun de 7 200 s. Le registre est clôturé sans relance. La livraison GitHub finale reste comprise dans l’échéance globale initiale ; aucune nouvelle exécution technique n’est autorisée par ce registre.

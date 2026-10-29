@@ -1,0 +1,27 @@
+{
+  "version": "v19-final-integrity-1",
+  "branch": "experiment/det-engine",
+  "status": "completed_no_go",
+  "rootFiles": {
+    "docs/det-engine/v19/README.md": "f06339c846be51b06a7c6ee5457c8d4d250ca9be61a2c9b973ac28042a216f59",
+    "docs/det-engine/v19/FINAL_RESULTS.md": "045b4f4a41fdd0c2c7abddad9f37d0675797f6b21421bdc6064d22f33f515077",
+    "docs/det-engine/v19/REPRISE.md": "e2a6853983b856637e4a261455bebe1ef2057b4d64a62a3724657cc1689fc838",
+    "docs/det-engine/v19/state.json": "dbfe7a7b43ed5878b1117be5764df0e7e6b43b5fd214c07445665fc4bbad1136",
+    "docs/det-engine/v19/budget-contract.json": "13f4701c593fa9360dc1c04c2230e046ba2f9277dfb2ce5e548e3dc0614906ee",
+    "docs/det-engine/v19/baseline-files.json": "dc0530546b2e092d9edc0f48ffabfe863d5ff3de011f27922c1cd0e62030f474"
+  },
+  "sealedManifests": {
+    "docs/det-engine/v19/cycle-1/checksums.json": "e2b41dd35779e0e541da1ea56f6cec518fe1b43211d3fcc1720f1517df00c0c3",
+    "docs/det-engine/v19/cycle-1/source-checksums.json": "18092185010b08fc281e0d71871cca73b5a7f5d608e97aec77d8d50be0fa0336",
+    "docs/det-engine/v19/cycle-2/checksums.json": "f040c8ea354a0f3bd71e1513bd96271637e137b014e7af992d81ce3b612a5487",
+    "docs/det-engine/v19/cycle-2/source-checksums.json": "d6e9829278e3a2ad463af1794b828a20729ede14c489025c537cefd9633d7ef9"
+  },
+  "preexistingFilesVerified": 3635,
+  "technicalCycleSeconds": 6127,
+  "maxTotalSecondsIncludingDelivery": 7200,
+  "hardDeadlineUnchanged": "2026-10-29T01:04:37Z",
+  "realNolioCalls": 0,
+  "productionChanges": 0,
+  "paidExternalCalls": 0,
+  "scientificPromotions": 0
+}
