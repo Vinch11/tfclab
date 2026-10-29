@@ -1,0 +1,134 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vitest.config" without a file extension (experimental/physiology-validation/v1/vitest.config.ts:2:18). Add the file extension
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+1:59:45 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-full
+
+ ❯ experimental/physiology-validation/v1/confirmed-defects.test.ts (11 tests | 6 failed) 17ms
+     × rejects invalid profile FTP -1 7ms
+     × rejects invalid profile FTP 501 1ms
+     × rejects invalid profile FTP NaN 0ms
+     × rejects invalid profile FTP Infinity 0ms
+     × labels a snapshot as storage, including Profil Express estimates 2ms
+     × preserves explicit report sport and VLamax scientific source 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  experimental/physiology-validation/v1/confirmed-defects.test.ts > F1 — profile fallback uses the existing snapshot admission bounds > rejects invalid profile FTP -1
+AssertionError: expected -1 to be null
+
+- Expected:
+null
+
++ Received:
+-1
+
+ ❯ experimental/physiology-validation/v1/confirmed-defects.test.ts:18:24
+     16|   it.each([-1, 501, NaN, Infinity])("rejects invalid profile FTP %s", …
+     17|     const result = refs.getEffectiveRefs(athlete({ ftp: value, weightK…
+     18|     expect(result.ftp).toBeNull();
+       |                        ^
+     19|     expect(result.sources.ftp).toBe("none");
+     20|     expect(original.computeFtpKg(result)).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  experimental/physiology-validation/v1/confirmed-defects.test.ts > F1 — profile fallback uses the existing snapshot admission bounds > rejects invalid profile FTP 501
+AssertionError: expected 501 to be null
+
+- Expected:
+null
+
++ Received:
+501
+
+ ❯ experimental/physiology-validation/v1/confirmed-defects.test.ts:18:24
+     16|   it.each([-1, 501, NaN, Infinity])("rejects invalid profile FTP %s", …
+     17|     const result = refs.getEffectiveRefs(athlete({ ftp: value, weightK…
+     18|     expect(result.ftp).toBeNull();
+       |                        ^
+     19|     expect(result.sources.ftp).toBe("none");
+     20|     expect(original.computeFtpKg(result)).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  experimental/physiology-validation/v1/confirmed-defects.test.ts > F1 — profile fallback uses the existing snapshot admission bounds > rejects invalid profile FTP NaN
+AssertionError: expected NaN to be null
+
+- Expected:
+null
+
++ Received:
+NaN
+
+ ❯ experimental/physiology-validation/v1/confirmed-defects.test.ts:18:24
+     16|   it.each([-1, 501, NaN, Infinity])("rejects invalid profile FTP %s", …
+     17|     const result = refs.getEffectiveRefs(athlete({ ftp: value, weightK…
+     18|     expect(result.ftp).toBeNull();
+       |                        ^
+     19|     expect(result.sources.ftp).toBe("none");
+     20|     expect(original.computeFtpKg(result)).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  experimental/physiology-validation/v1/confirmed-defects.test.ts > F1 — profile fallback uses the existing snapshot admission bounds > rejects invalid profile FTP Infinity
+AssertionError: expected Infinity to be null
+
+- Expected:
+null
+
++ Received:
+Infinity
+
+ ❯ experimental/physiology-validation/v1/confirmed-defects.test.ts:18:24
+     16|   it.each([-1, 501, NaN, Infinity])("rejects invalid profile FTP %s", …
+     17|     const result = refs.getEffectiveRefs(athlete({ ftp: value, weightK…
+     18|     expect(result.ftp).toBeNull();
+       |                        ^
+     19|     expect(result.sources.ftp).toBe("none");
+     20|     expect(original.computeFtpKg(result)).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  experimental/physiology-validation/v1/confirmed-defects.test.ts > F2 — storage provenance must not claim a direct measurement > labels a snapshot as storage, including Profil Express estimates
+AssertionError: expected 'Mesuré (snapshot)' to be 'Stocké (snapshot)' // Object.is equality
+
+Expected: "Stocké (snapshot)"
+Received: "Mesuré (snapshot)"
+
+ ❯ experimental/physiology-validation/v1/confirmed-defects.test.ts:40:45
+     38| describe("F2 — storage provenance must not claim a direct measurement"…
+     39|   it("labels a snapshot as storage, including Profil Express estimates…
+     40|     expect(refs.getSourceLabel("snapshot")).toBe("Stocké (snapshot)");
+       |                                             ^
+     41|   });
+     42|   it("preserves profile and absent labels", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  experimental/physiology-validation/v1/confirmed-defects.test.ts > F3 — explicit running laboratory VLamax reaches the running snapshot field > preserves explicit report sport and VLamax scientific source
+AssertionError: expected undefined to be 0.42 // Object.is equality
+
+- Expected:
+0.42
+
++ Received:
+undefined
+
+ ❯ experimental/physiology-validation/v1/confirmed-defects.test.ts:58:32
+     56|     extract.vlamax = { value: 0.42, source: "lab" };
+     57|     const payload = mapper(extract, "Marathon");
+     58|     expect(payload.vlamax_run).toBe(0.42);
+       |                                ^
+     59|     expect(payload.vlamax).toBeNull();
+     60|     expect(payload.sport_main).toBe("run");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 5 passed (11)
+   Start at  13:59:45
+   Duration  729ms (transform 163ms, setup 124ms, import 113ms, tests 17ms, environment 298ms)

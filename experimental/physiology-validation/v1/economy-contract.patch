@@ -1,0 +1,19 @@
+--- a/src/engines/diagnostic/computeDiagnostic.ts
++++ b/src/engines/diagnostic/computeDiagnostic.ts
+@@ -415,3 +415,3 @@
+     input.vlamaxRun,
+-    input.runEconomyScore
++    input.runningEconomyCostMlKgKm
+   );
+@@ -421,3 +421,3 @@
+     observedPct !== null && prediction
+-      ? crossValidateRunMLSS(observedPct, input.vlamaxRun, input.runEconomyScore)
++      ? crossValidateRunMLSS(observedPct, input.vlamaxRun, input.runningEconomyCostMlKgKm)
+       : null;
+--- a/src/engines/diagnostic/types.ts
++++ b/src/engines/diagnostic/types.ts
+@@ -86,2 +86,4 @@
+   runEconomyScore: number | null;
++  /** Explicit oxygen cost (ml O2/kg/km), never the 0–100 economy score. */
++  runningEconomyCostMlKgKm?: number | null;
+   runHrDriftPct: number | null;

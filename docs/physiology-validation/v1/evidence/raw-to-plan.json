@@ -1,0 +1,925 @@
+{
+  "syntheticOnly": true,
+  "raw": {
+    "ftp": {
+      "ok": true,
+      "vlamax": null,
+      "raw": {
+        "p20": 300,
+        "ftp_calc": 285
+      },
+      "note": "FTP estimé: 285 W (stocké dans références)"
+    },
+    "css": {
+      "ok": true,
+      "vlamax": null,
+      "raw": {
+        "t400": 440,
+        "t200": 220,
+        "css_sec100": 110
+      },
+      "note": "CSS: 110.0 sec/100m (stocké)"
+    },
+    "cooper": {
+      "ok": true,
+      "vlamax": null,
+      "raw": {
+        "distance": 3000,
+        "vo2max_est": 55.8
+      },
+      "note": "VO2max estimé: 55.8 mL/kg/min"
+    },
+    "vma": {
+      "ok": true,
+      "vlamax": null,
+      "raw": {
+        "vma": 18,
+        "vo2_est": 63
+      },
+      "note": "VMA enregistrée + VO2max estimé: 63.0"
+    }
+  },
+  "snapshot": {
+    "id": "raw",
+    "athlete_id": "synthetic:v1-chain",
+    "date": "2026-10-28",
+    "source": "synthetic_field_estimates",
+    "ftp": 285,
+    "css": 110,
+    "vma": 18,
+    "vo2max": 55.8,
+    "weight_kg": 70
+  },
+  "effective": {
+    "weightKg": 70,
+    "fatPct": null,
+    "fcMax": null,
+    "vma": 18,
+    "ftp": 285,
+    "css": 110,
+    "vo2max": 55.8,
+    "sources": {
+      "weightKg": "snapshot",
+      "fatPct": "none",
+      "fcMax": "none",
+      "vma": "snapshot",
+      "ftp": "snapshot",
+      "css": "snapshot",
+      "vo2max": "snapshot"
+    },
+    "snapshotUsed": {
+      "id": "raw",
+      "athlete_id": "synthetic:v1-chain",
+      "date": "2026-10-28",
+      "source": "synthetic_field_estimates",
+      "ftp": 285,
+      "css": 110,
+      "vma": 18,
+      "vo2max": 55.8,
+      "weight_kg": 70
+    }
+  },
+  "diagnostic": {
+    "athleteId": "synthetic:v1-chain",
+    "objectif": "IRONMAN",
+    "ambition": "elite",
+    "sportFocus": "tri",
+    "effectifs": {
+      "vlamax": {
+        "value": 0.55,
+        "source": "snapshot",
+        "confidence": 0.95,
+        "label": "VLamax (mesurée labo)",
+        "details": {
+          "testType": "LACTATE_LAB",
+          "date": "2026-10-29",
+          "protocol": "Mesure lactate (Staff mode)"
+        },
+        "isLocked": true,
+        "errorMargin": 0.02,
+        "range": {
+          "low": 0.53,
+          "high": 0.57
+        },
+        "variationWarning": false,
+        "rawValue": 0.55,
+        "v2": {
+          "raw": 0.55,
+          "effective": 0.55,
+          "source": "test_labo",
+          "confidence": 0.95,
+          "errorMargin": 0.02,
+          "range": {
+            "low": 0.53,
+            "high": 0.57
+          },
+          "label": "VLamax (mesurée labo)",
+          "isLocked": true,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.550 · Effectif: 0.55 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "calibrationLog": {
+            "date": "2026-10-29T14:00:00.000Z",
+            "source": "test_labo",
+            "rawValue": 0.55,
+            "effectiveValue": 0.55,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.95,
+            "errorMargin": 0.02,
+            "reason": "VLamax mesurée — valeur verrouillée",
+            "sources": [
+              "Mesure lactate (Staff mode)"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "tte": {
+        "tte_min": 39,
+        "source": "estimated",
+        "confidence": 0.5,
+        "label": "~39 min (approx.)",
+        "target": 50,
+        "status": "critical",
+        "status_message": "TTE insuffisant (-11 min vs cible 50)"
+      },
+      "fatigue": {
+        "score": 50,
+        "level": {
+          "min": 30,
+          "max": 55,
+          "label": "Fatigue modérée",
+          "shortLabel": "🟡 Modérée",
+          "description": "Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+          "color": "warning",
+          "colorClass": "text-amber-600 dark:text-amber-400",
+          "badgeClass": "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
+        },
+        "contributions": {
+          "chargeRecente": 40,
+          "fatiguePercue": 45,
+          "tte": 70,
+          "fraicheur": 50,
+          "modulateurs": 45
+        },
+        "contributionsWeighted": {
+          "chargeRecente": 16,
+          "fatiguePercue": 7,
+          "tte": 18,
+          "fraicheur": 6,
+          "modulateurs": 4
+        },
+        "confidence": 0.375,
+        "reasonsMissing": [
+          "TSS 7 jours",
+          "Fatigue perçue (check-in)"
+        ],
+        "messageAthlete": "Fatigue modérée – Fatigue gérable. Charge en cours d'absorption. Capacité légèrement réduite mais fonctionnelle.",
+        "messageStaff": "Fatigue fonctionnelle : 50% (Fatigue modérée)\n\nDécomposition :\n• Charge récente : +16% (indice brut: 40%)\n• Fatigue perçue : +7% (indice brut: 45%)\n• TTE effectif : +18% (indice brut: 70%)\n• Disponibilité métabolique : +6% (indice brut: 50%)\n• Facteurs individuels : +4% (indice brut: 45%)",
+        "recommendations": [
+          "Réduire l'intensité des prochaines séances",
+          "Prioriser la récupération : sommeil, nutrition, hydratation",
+          "Le TTE est impacté – éviter les efforts prolongés"
+        ],
+        "inputsUsed": {
+          "tss7d": null,
+          "tss7dHabituel": null,
+          "fatiguePercue": null,
+          "tteEffectif": 39,
+          "tteTarget": 50,
+          "potentielPhysiologique": null,
+          "age": 35,
+          "vlamax": 0.55
+        }
+      }
+    },
+    "limiter": {
+      "primaryLimiter": "glycolytic",
+      "limiterLabel": "Métabolisme glycolytique",
+      "limiterEmoji": "⚡",
+      "limiterExplanation": "VLamax trop haute : consommation glycogène excessive.",
+      "fatigueWarning": {
+        "active": false,
+        "level": null,
+        "message": null
+      },
+      "insufficientData": false,
+      "insufficientDataMessage": null,
+      "missingMetrics": [
+        "W'",
+        "FatMax"
+      ],
+      "aerobicWeaknessDetail": "none",
+      "aerobicWeaknessLabel": null,
+      "primaryLever": "decrease_vlamax",
+      "leverLabel": "↓ VLamax",
+      "leverEmoji": "📉",
+      "secondaryLimiter": "specific_endurance",
+      "secondaryLimiterLabel": "Endurance spécifique",
+      "secondaryLever": "increase_tte",
+      "secondaryLeverLabel": "↑ TTE",
+      "severity": "severe",
+      "gapAnalysis": [
+        {
+          "metric": "FTP/kg",
+          "value": 4.071428571428571,
+          "target": 4.41,
+          "gap": -0.33857142857142897,
+          "gapPercent": -7.677356656948503,
+          "status": "acceptable",
+          "weight": 0.85,
+          "weightedImpact": 6.525753158406228
+        },
+        {
+          "metric": "VO2max",
+          "value": 55.8,
+          "target": 62.4,
+          "gap": -6.600000000000001,
+          "gapPercent": -10.57692307692308,
+          "status": "limiting",
+          "weight": 0.765,
+          "weightedImpact": 8.091346153846155
+        },
+        {
+          "metric": "VLamax",
+          "value": 0.55,
+          "target": 0.26,
+          "gap": 0.29000000000000004,
+          "gapPercent": 111.53846153846155,
+          "status": "limiting",
+          "weight": 0.95,
+          "weightedImpact": 105.96153846153847
+        },
+        {
+          "metric": "W' (kJ)",
+          "measurementDiscipline": "bike",
+          "prescriptionApplicable": true,
+          "value": null,
+          "target": 20,
+          "gap": 0,
+          "gapPercent": 0,
+          "status": "unknown",
+          "weight": 0.4,
+          "weightedImpact": 0
+        },
+        {
+          "metric": "TTE",
+          "value": 39,
+          "target": 59,
+          "gap": -20,
+          "gapPercent": -33.89830508474576,
+          "status": "limiting",
+          "weight": 0.9,
+          "weightedImpact": 30.508474576271187
+        },
+        {
+          "metric": "FatMax",
+          "value": null,
+          "target": 65,
+          "gap": 0,
+          "gapPercent": 0,
+          "status": "unknown",
+          "weight": 0.95,
+          "weightedImpact": 0
+        },
+        {
+          "metric": "Économie",
+          "value": 3,
+          "target": 70,
+          "gap": -67,
+          "gapPercent": -95.71428571428572,
+          "status": "limiting",
+          "weight": 0.75,
+          "weightedImpact": 0
+        }
+      ],
+      "categoryRanking": [
+        {
+          "category": "glycolytic",
+          "metrics": [
+            {
+              "metric": "VLamax",
+              "value": 0.55,
+              "target": 0.26,
+              "gap": 0.29000000000000004,
+              "gapPercent": 111.53846153846155,
+              "status": "limiting",
+              "weight": 0.95,
+              "weightedImpact": 105.96153846153847
+            }
+          ],
+          "worstGap": 0.29000000000000004,
+          "sumImpact": 105.96153846153847,
+          "dominantImpact": 105.96153846153847,
+          "totalImpact": 105.96153846153847
+        },
+        {
+          "category": "metabolic_endurance",
+          "metrics": [
+            {
+              "metric": "TTE",
+              "value": 39,
+              "target": 59,
+              "gap": -20,
+              "gapPercent": -33.89830508474576,
+              "status": "limiting",
+              "weight": 0.9,
+              "weightedImpact": 30.508474576271187
+            }
+          ],
+          "worstGap": -20,
+          "sumImpact": 30.508474576271187,
+          "dominantImpact": 30.508474576271187,
+          "totalImpact": 30.508474576271187
+        },
+        {
+          "category": "aerobic_power",
+          "metrics": [
+            {
+              "metric": "VO2max",
+              "value": 55.8,
+              "target": 62.4,
+              "gap": -6.600000000000001,
+              "gapPercent": -10.57692307692308,
+              "status": "limiting",
+              "weight": 0.765,
+              "weightedImpact": 8.091346153846155
+            }
+          ],
+          "worstGap": -6.600000000000001,
+          "sumImpact": 8.091346153846155,
+          "dominantImpact": 8.091346153846155,
+          "totalImpact": 8.091346153846155
+        },
+        {
+          "category": "neuromuscular",
+          "metrics": [
+            {
+              "metric": "Économie",
+              "value": 3,
+              "target": 70,
+              "gap": -67,
+              "gapPercent": -95.71428571428572,
+              "status": "limiting",
+              "weight": 0.75,
+              "weightedImpact": 0
+            }
+          ],
+          "worstGap": -67,
+          "sumImpact": 0,
+          "dominantImpact": 0,
+          "totalImpact": 0
+        }
+      ],
+      "isRobust": true,
+      "robustnessScore": 100,
+      "robustnessNote": "Décision claire — facteur limitant nettement identifié",
+      "confidence": 0.6666666666666666,
+      "confidenceLabel": "Élevée",
+      "targetsUsed": {
+        "vlamax": {
+          "min": 0.25,
+          "max": 0.38,
+          "optimal": 0.3
+        },
+        "tte_min": 60,
+        "ftp_kg_min": 4.5,
+        "charge_optimale": 600,
+        "nutrition_bike_gph": {
+          "min": 95,
+          "max": 120
+        },
+        "nutrition_run_gph": {
+          "min": 65,
+          "max": 80
+        }
+      },
+      "version": "1.2.0"
+    },
+    "readiness": {
+      "potential": {
+        "score": 39,
+        "confidence": 1,
+        "sources": {
+          "aerobic": {
+            "value": 89.42307692307692,
+            "type": "modeled"
+          },
+          "tolerance": {
+            "value": 66.10169491525424,
+            "type": "modeled"
+          },
+          "metabolic": {
+            "value": 0,
+            "type": "modeled"
+          },
+          "robustness": {
+            "value": 4.285714285714278,
+            "type": "modeled"
+          }
+        },
+        "mainStrength": null,
+        "mainLimitation": "Métabolisme glycolytique",
+        "explanation": "À Développer"
+      },
+      "availability": {
+        "score": 80,
+        "confidence": 0.5,
+        "factors": [],
+        "alerts": [],
+        "recommendation": "Module disponibilité retiré"
+      },
+      "readiness": {
+        "score": 39,
+        "rawScore": 39,
+        "category": "preparation_required",
+        "categoryLabel": "Préparation requise",
+        "categoryEmoji": "🔴",
+        "confidenceGlobal": 1,
+        "confidenceLabel": "Indicatif"
+      },
+      "flags": {
+        "healthAlert": false,
+        "injuryRiskHigh": false,
+        "fatigueCritical": false,
+        "dataIncomplete": false
+      },
+      "penalties": {
+        "total": 0,
+        "reasons": []
+      },
+      "explanation": {
+        "why": "À Développer",
+        "watchouts": [
+          "Métabolisme glycolytique"
+        ],
+        "suggestedFocus": []
+      },
+      "weights": {
+        "potential": 1,
+        "availability": 0
+      },
+      "timestamp": "2026-10-29T14:00:00.000Z",
+      "version": "stub-2.1",
+      "disclaimer": "Potentiel Physiologique module removed — scores based on physiological potential only."
+    },
+    "targets": {
+      "current": {
+        "vlamax": {
+          "min": 0.2,
+          "max": 0.34,
+          "optimal": 0.26
+        },
+        "tte_min": 60,
+        "ftp_kg_min": 4.5,
+        "charge_optimale": 600,
+        "nutrition_bike_gph": {
+          "min": 95,
+          "max": 120
+        },
+        "nutrition_run_gph": {
+          "min": 65,
+          "max": 80
+        }
+      },
+      "vlamaxRange": {
+        "min": 0.2,
+        "max": 0.34,
+        "optimal": 0.26
+      },
+      "adjustedForAge": false
+    },
+    "injuryRisk": {
+      "run": {
+        "score": 41,
+        "level": "MODERE",
+        "levelLabel": "Modéré",
+        "levelColor": "info",
+        "confidence": 0.95,
+        "drivers": [
+          {
+            "label": "Fatigue fonctionnelle",
+            "value": "50%",
+            "component": 50,
+            "weight": 0.3,
+            "impact": "medium"
+          },
+          {
+            "label": "VLamax",
+            "value": "0.55",
+            "component": 50,
+            "weight": 0.2,
+            "impact": "medium"
+          },
+          {
+            "label": "TTE effectif",
+            "value": "39 min",
+            "component": 22,
+            "weight": 0.2,
+            "impact": "low"
+          },
+          {
+            "label": "Charge CAP",
+            "value": "undefined TSS",
+            "component": 50,
+            "weight": 0.2,
+            "impact": "medium"
+          },
+          {
+            "label": "Âge",
+            "value": "35 ans",
+            "component": 20,
+            "weight": 0.1,
+            "impact": "low"
+          }
+        ],
+        "why": "Risque CAP modéré (41%). Facteurs à surveiller : charge globale. Vigilance recommandée sur la densité de qualité.",
+        "guardrails": [
+          "Surveiller densité de qualité CAP",
+          "Privilégier Z2 sur sorties longues",
+          "Éviter triade long + seuil + vitesse dans la même semaine"
+        ],
+        "coachOptions": [],
+        "inputsUsed": {
+          "fatiguePct": 50,
+          "vlamaxValue": 0.55,
+          "tteValue": 39,
+          "loadValue": null,
+          "age": 35,
+          "objectif": "IRONMAN"
+        },
+        "disclaimer": "Indicateur d'aide à la décision. Ne remplace pas un avis médical ni le jugement du coach."
+      },
+      "bike": {
+        "sport": "VELO",
+        "score": 56,
+        "level": "ELEVE",
+        "levelLabel": "Élevé",
+        "levelColor": "warning",
+        "confidence": 0.95,
+        "drivers": [
+          {
+            "id": "fatigue",
+            "label": "Fatigue Quantifiée TFCL™",
+            "value": "50%",
+            "component": 50,
+            "weight": 0.4,
+            "impact": "medium",
+            "explanation": "Fatigue contrôlée → risque normal"
+          },
+          {
+            "id": "vlamax",
+            "label": "VLamax Vélo",
+            "value": "0.55 mmol/L/s",
+            "component": 60,
+            "weight": 0.35,
+            "impact": "high",
+            "explanation": "VLamax > 0.34 (cible IRONMAN) → dépendance glycolyse élevée → risque métabolique accru"
+          },
+          {
+            "id": "tte",
+            "label": "TTE effectif",
+            "value": "39 min",
+            "component": 60,
+            "weight": 0.25,
+            "impact": "high",
+            "explanation": "TTE < 45 min → fatigue précoce → technique dégradée"
+          }
+        ],
+        "why": "Risque Vélo élevé (56%). Facteurs critiques : VLamax Vélo (0.55 mmol/L/s), TTE effectif (39 min). Limiter sorties très longues.",
+        "guardrails": [
+          "Limiter sorties > 4h",
+          "Privilégier cadence modérée (éviter force basse cadence)",
+          "Insérer journée easy entre qualités",
+          "Surveiller douleurs genou/tendon"
+        ],
+        "coachRecommendations": [
+          "Raccourcir sorties longues à 3h max",
+          "Privilégier cadence > 85 rpm",
+          "Insérer 2 jours recovery après long ride"
+        ],
+        "inputsUsed": {
+          "vlamaxValue": 0.55,
+          "ifscScore": null,
+          "tteMin": 39,
+          "fatiguePct": 50,
+          "tss7d": null,
+          "longRideDurationMin": null,
+          "age": 35,
+          "objectif": "IRONMAN"
+        },
+        "disclaimer": "Cet indice n'est pas un diagnostic médical.\nIl vise à éclairer les décisions d'entraînement."
+      }
+    },
+    "runMLSS": {
+      "observedPct": 90.9,
+      "prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "crossValidation": {
+        "observed": 90.9,
+        "predicted": 93.7,
+        "deltaPct": -2.8,
+        "isCoherent": true,
+        "severity": "ok",
+        "explanation": "Cohérence VLamax/CE/seuil validée par le Modèle C.",
+        "predictionConfidence": 0.75
+      },
+      "effectivePct": 90.9,
+      "effectiveSource": "observed"
+    },
+    "raceChronoEstimate": null,
+    "synthesis": {
+      "headline": "Limiteur principal : Métabolisme glycolytique — Axe prioritaire",
+      "priorities": {
+        "L1": {
+          "limiter": "glycolytic",
+          "lever": "decrease_vlamax",
+          "label": "Métabolisme glycolytique"
+        },
+        "L2": {
+          "limiter": "specific_endurance",
+          "lever": "increase_tte",
+          "label": "Endurance spécifique"
+        }
+      },
+      "globalScore": 39,
+      "globalCategory": "critical",
+      "alerts": [],
+      "strengths": []
+    },
+    "_rawInput": {
+      "athleteId": "synthetic:v1-chain",
+      "athleteName": "QA Synthetic",
+      "age": 35,
+      "sex": "M",
+      "weightKg": 70,
+      "objectif": "IRONMAN",
+      "ambition": "elite",
+      "sportFocus": "tri",
+      "vo2max": 55.8,
+      "ftp": 285,
+      "ftpKg": 4.071428571428571,
+      "pmax5s": 950,
+      "p30sW": 620,
+      "p60sW": 480,
+      "map5minW": 380,
+      "vma": 18,
+      "css": 110,
+      "vlamax": 0.55,
+      "vlamaxRun": 0.5,
+      "vlamaxSource": "synthetic_estimate",
+      "vlamaxProtocol": null,
+      "vlamaxIsReference": false,
+      "tteObservedMin": 45,
+      "tteObservedMinRun": null,
+      "tteMode": "synthetic_estimate",
+      "tss7d": null,
+      "fatigueState": null,
+      "runEconomyScore": 3,
+      "runHrDriftPct": null,
+      "paceThresholdSecPerKm": 220,
+      "runningPower1s": null,
+      "runningPower5s": null,
+      "runningPower30s": null,
+      "runningPower60s": null,
+      "runningPower5min": null,
+      "runningPowerThreshold": null,
+      "sprint15sDistance": null,
+      "bikeCadenceRpm": null,
+      "bikeHrDriftFlag": false,
+      "protocolQuality": null,
+      "wprimeKj": null,
+      "cpDataQuality": null,
+      "fatmax": null,
+      "forceDevMode": false,
+      "giIssuesFlag": false,
+      "targetRaceDurationMin": null,
+      "snapshotDate": "2026-10-28"
+    },
+    "meta": {
+      "timestamp": "2026-10-29T14:00:00.000Z",
+      "version": "1.0.0",
+      "confidenceGlobal": 0.375,
+      "dataCompleteness": 1,
+      "disclaimer": "Two For Coaching Lab éclaire la décision, il ne remplace pas le coach. Ce diagnostic est une aide à la décision, non une prescription."
+    }
+  },
+  "athleteData": {
+    "nom": "QA Synthetic",
+    "sex": "M",
+    "age": 35,
+    "ftp": 285,
+    "weightKg": 70,
+    "vlamax": 0.55,
+    "vlamaxRun": 0.5,
+    "vo2max": 55.8,
+    "vma": 18,
+    "css": 110,
+    "fcMax": null,
+    "tte": 39,
+    "pmax5s": 950,
+    "p30s": 620,
+    "p60s": 480,
+    "map5min": 380,
+    "paceThresholdSecPerKm": 220,
+    "runEconomyScore": 3,
+    "runMLSSEffectivePct": 90.9,
+    "runMLSSEffectiveSource": "observed"
+  },
+  "limiters": [
+    "VLamax",
+    "TTE",
+    "VO2max",
+    "FTP/kg"
+  ],
+  "trace": {
+    "version": 1,
+    "diagnostic": {
+      "executed": true,
+      "confidenceGlobal": 0.375,
+      "dataCompleteness": 1,
+      "limiters": [
+        {
+          "metric": "VLamax",
+          "priority": 1,
+          "status": "limiting",
+          "value": 0.55,
+          "target": 0.26,
+          "weightedImpact": 105.96153846153847
+        },
+        {
+          "metric": "TTE",
+          "priority": 2,
+          "status": "limiting",
+          "value": 39,
+          "target": 59,
+          "weightedImpact": 30.508474576271187
+        },
+        {
+          "metric": "VO2max",
+          "priority": 3,
+          "status": "limiting",
+          "value": 55.8,
+          "target": 62.4,
+          "weightedImpact": 8.091346153846155
+        },
+        {
+          "metric": "FTP/kg",
+          "priority": 4,
+          "status": "acceptable",
+          "value": 4.071428571428571,
+          "target": 4.41,
+          "weightedImpact": 6.525753158406228
+        }
+      ],
+      "uncertainty": [
+        "Confiance diagnostique limitée (38%)."
+      ]
+    },
+    "decision": {
+      "executed": true,
+      "source": "lorang",
+      "calculationIssues": [],
+      "confidence": "high",
+      "primaryAction": "Focus Volume Z2 / Endurance",
+      "levers": [
+        {
+          "id": "z2_volume",
+          "label": "Volume Z2 / Endurance",
+          "priority": 1,
+          "reason": "TTE 34% sous la cible (39min vs 59min) — développer la durabilité",
+          "adaptations": [
+            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+            "2×20-30min au seuil pour augmenter le TTE",
+            "Z2 + bloc tempo final 20-30min",
+            "Progression charge +10%/semaine max"
+          ]
+        },
+        {
+          "id": "sfr_force_endurance",
+          "label": "SFR / Force Endurance",
+          "priority": 1,
+          "reason": "VLamax élevée — travail basse cadence pour réduire sollicitation glycolytique",
+          "adaptations": [
+            "Cadence 40–60 rpm",
+            "Zone Sweet Spot / Tempo",
+            "Blocs de 10–20 min",
+            "2–3x/semaine en phase Build"
+          ]
+        },
+        {
+          "id": "vo2_intervals",
+          "label": "Intervalles VO₂max",
+          "priority": 2,
+          "reason": "VO₂max 11% sous la cible (55.8 vs 62.4 ml/min/kg) — développer le plafond aérobie",
+          "adaptations": [
+            "5×4min Z5 r3min (classique Billat)",
+            "3×8min Z4-Z5 r4min",
+            "6×3min Z5 r3min",
+            "2x/semaine max en phase Build"
+          ]
+        },
+        {
+          "id": "force_max",
+          "label": "Force Max",
+          "priority": 2,
+          "reason": "Économie faible — renforcement musculaire nécessaire",
+          "adaptations": [
+            "Gym lourde 85–95% 1RM",
+            "3–5 répétitions par série",
+            "2–3 séries max",
+            "1–2x/semaine (hors semaines de course)"
+          ]
+        }
+      ],
+      "prohibitions": [
+        {
+          "id": "sprints",
+          "label": "Sprints",
+          "reason": "Augmenterait la VLamax, contre-productif pour l'objectif"
+        },
+        {
+          "id": "micro_intervals",
+          "label": "Micro-intervalles explosifs",
+          "reason": "Sollicite le système glycolytique rapide"
+        },
+        {
+          "id": "erratic_pacing",
+          "label": "Pacing erratique",
+          "reason": "Surconsommation glycogène par variations d'intensité"
+        },
+        {
+          "id": "vo2_heavy_blocks",
+          "label": "Blocs VO2 lourds",
+          "reason": "Incompatible avec le travail de force max"
+        }
+      ],
+      "trainingFocus": {
+        "do": [
+          "Réduction charge 40-50%",
+          "Qualité sommeil prioritaire",
+          "Récupération active légère",
+          "Préservation système nerveux"
+        ],
+        "avoid": [
+          "Séances clés exigeantes",
+          "Volume élevé",
+          "Stress additionnel"
+        ]
+      },
+      "weekType": "endurance"
+    },
+    "transmission": {
+      "identifiedLimitersRaw": {
+        "status": "consumed",
+        "origin": "diagnostic.limiter.gapAnalysis",
+        "consumers": [
+          "workoutCatalogBuilder.scoreWorkout",
+          "edge.buildStructuredDiagnosticBlock",
+          "server.reconciler"
+        ],
+        "detail": "Ordre transmis: VLamax > TTE > VO2max > FTP/kg"
+      },
+      "activeLevers": {
+        "status": "consumed",
+        "origin": "decision.strategy.levers",
+        "consumers": [
+          "edge.buildStructuredDiagnosticBlock"
+        ],
+        "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+      },
+      "prohibitions": {
+        "status": "consumed",
+        "origin": "planConfigBuilder + decision.strategy.prohibitions",
+        "consumers": [
+          "workoutCatalogBuilder.prohibitions",
+          "edge.buildStructuredDiagnosticBlock"
+        ]
+      },
+      "strategyContext": {
+        "status": "consumed",
+        "origin": "decision.strategy (lorang)",
+        "consumers": [
+          "edge.buildStructuredDiagnosticBlock"
+        ],
+        "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+      },
+      "prescriptionIntent": {
+        "status": "not_verified",
+        "origin": "plan final généré",
+        "consumers": [],
+        "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+      }
+    }
+  },
+  "limitation": "assembly between library and DbSnapshot is explicit in this test, not a browser/DB save replay"
+}

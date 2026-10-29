@@ -1,0 +1,446 @@
+{
+  "baseline": "e31ffaba7d1fcefff8a60910713fd1fe9f18f89b",
+  "files": [
+    {
+      "path": "src/components/AthleteRefsPanel.tsx",
+      "git_blob_sha": "94958fb10f1caf440d2b1d6c84a3ad30aa8dd419",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/components/ExportTools.tsx",
+      "git_blob_sha": "080c27c26ff138f3d795e446451bfdc2244c2434",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/components/SnapshotManager.tsx",
+      "git_blob_sha": "33c3aab04c60714dc4e4b1fb9d0dd5bcd9897652",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/components/__tests__/ExportTools.fatmaxLabel.test.ts",
+      "git_blob_sha": "318157e841f88b868592acff13b5753182018516",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/components/__tests__/ExportTools.thresholdPaceFallback.test.ts",
+      "git_blob_sha": "75d7fb69d2d73cfa32e27321505c8d3b8f018e50",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/components/coach/panels/PhysiologicalProfilePanel.tsx",
+      "git_blob_sha": "b6df5f4dbd66c9649831718eb8d4ffbe7f0a07fc",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/engines/diagnostic/__tests__/computeDiagnostic.deadReliabilityField.test.ts",
+      "git_blob_sha": "2d0040a5000605fee93c72c08379a4f6efa0f6ab",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/engines/diagnostic/__tests__/computeDiagnostic.test.ts",
+      "git_blob_sha": "7239e3eda84e8247260dae3d4fa3b785979593c2",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/engines/diagnostic/computeDiagnostic.ts",
+      "git_blob_sha": "7d1d83c0bc234b057406935abd9ecfc69e244150",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/engines/diagnostic/index.ts",
+      "git_blob_sha": "9177c7042cd6829522b7be0583667477eb8c6c53",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/engines/diagnostic/raceTimeEstimator.ts",
+      "git_blob_sha": "edb9607044a48c8ab17a4538b4c6107f653abe61",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/engines/diagnostic/types.ts",
+      "git_blob_sha": "c9f868e8fc31cd64f05f61bde6b4a126f5b3b964",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/engines/plan/__tests__/planConfigBuilder.test.ts",
+      "git_blob_sha": "8174128f35c08c05a8c181c87f25af7da8b22e28",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/engines/plan/__tests__/prepareTrainingPlanContext.test.ts",
+      "git_blob_sha": "eba2d176ce35766da03c736be8d3592f91b7d234",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/engines/plan/planConfigBuilder.ts",
+      "git_blob_sha": "3132af98b21dfc464a26bb67c2867b5754172a86",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/engines/plan/prepareTrainingPlanContext.ts",
+      "git_blob_sha": "3d58d114c43e71866cc46040a3397b9a342d4e49",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/__tests__/cpVlamaxContamination.test.ts",
+      "git_blob_sha": "ab872a22ba0b044fa531d7db079841d07eaba122",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/__tests__/potentielPhysiologiqueEffectif.adapter.test.ts",
+      "git_blob_sha": "bf7656e1375b732c52da21983fd5cc1bd1796d4a",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/__tests__/potentielPhysiologiqueEffectifRich.test.ts",
+      "git_blob_sha": "07969e6dec080df62c1c8a39b005a4fd89e03fb2",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/__tests__/runDurabilityProxy.test.ts",
+      "git_blob_sha": "3263fae10dc25475402a5eec844a4530a17d0f75",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/__tests__/testingWeekSnapshotMerge.test.ts",
+      "git_blob_sha": "0d59e48dd836002fb2a59e46c29d4be17decc9d6",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/__tests__/tteEffectif.test.ts",
+      "git_blob_sha": "aa63c75ffd97e41fbfbc8344e236c1810aa4e81a",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/__tests__/tteEffectifSportAware.test.ts",
+      "git_blob_sha": "62e6f2382c94d5edeec8a0b44aabc68407da7ca8",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/__tests__/vlamaxEffectif.test.ts",
+      "git_blob_sha": "3611cb6909166acecdb1b8f0eda3b81d513ee759",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/__tests__/vlamaxResolver.labLockAndConfidence.test.ts",
+      "git_blob_sha": "7e8b8961077fe4a257b021cc7e0e00645334a3d4",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/calibration/calibrationLayer.ts",
+      "git_blob_sha": "14ffb83b0a14f7fd379b5f1afaa06ce60337c394",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/calibration/index.ts",
+      "git_blob_sha": "9fa10e38ae4f32599eb3f7f5012b248445527545",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/calibration/runMLSSContinuous.ts",
+      "git_blob_sha": "a6c10eacbd8e6d84d595da70a0358c4c42bea9bd",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/calibration/testCalibrationSection.ts",
+      "git_blob_sha": "d818f76af8d74fc0dd113e36f75e0d56559a3aaf",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/calibration/useCalibration.ts",
+      "git_blob_sha": "ca15a3411fbbfb0fa0687c284d76d1c91d04a7cd",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/calibration/vlamaxContinuous.ts",
+      "git_blob_sha": "572a779e38df498530694022b884220e1dde9a7b",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/coachingCompass/__tests__/computeCoachingCompass.fatmaxWprimeAxes.test.ts",
+      "git_blob_sha": "68db7479f698e4d256cbf5f2403c900a7fd5d4b9",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/effectiveRefs.ts",
+      "git_blob_sha": "8f768f3051efe1c0a486971ab87d91d1fff94cb1",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/labImport/snapshotMapper.ts",
+      "git_blob_sha": "0c3e8c04a2bbbcfc5c140093137cc6945e82e066",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/mapSnapshotToV2.ts",
+      "git_blob_sha": "0e3310780eb19699c827c3ee24a88fadbb418693",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/runningEconomySnapshot.ts",
+      "git_blob_sha": "0c1fff4102f857115378012849ab1761b77170d6",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/testingWeekSnapshotMerge.ts",
+      "git_blob_sha": "24e90c50ace62d9bf4ba07623f42e24195880e79",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/thresholds/computeLactateThresholdsTFCL.ts",
+      "git_blob_sha": "e3d2b33c77c2101ae28d6f3b43adf4158e42ce03",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/tteEffectif.ts",
+      "git_blob_sha": "ce77bf52008fe85c553378e27bc199225f961345",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/__tests__/calibrateVLamaxFromMLSS.test.ts",
+      "git_blob_sha": "8554ae77484c5b6ec4d9c253888583d3e80c0bbc",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/criticalPowerModel.raceSimWiring.test.ts",
+      "git_blob_sha": "0ec7fb2cbba2e327c5bd58aacb061adef1333b0f",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/criticalPowerModel.symmetricFtpBound.test.ts",
+      "git_blob_sha": "a4c1fdf9d21da8e8a2fd73ec6ce2e89f3e414a0f",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/fatmaxTFCL.mlssAnchoredFormula.test.ts",
+      "git_blob_sha": "810ec8b7dcaafb1c1d3d89d985946263f170ac31",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/literatureReferences.test.ts",
+      "git_blob_sha": "d2dec02b59ce8803a61950d72bee2b0fb93b3a82",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/maderInverseFitJoint.test.ts",
+      "git_blob_sha": "1e0996a3db682406a807636852651a15da89623f",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/maderMetabolicModel.glycogenDepletion.test.ts",
+      "git_blob_sha": "6d77a45c3a5a13c3578ddd35a2ac7acc04303515",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/maderMetabolicModel.test.ts",
+      "git_blob_sha": "b7021d31e6b61f7331032c2476440a5b3986b9be",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/profilExpress.test.ts",
+      "git_blob_sha": "ce110e019723a0047042fb6265bf3ab8ab40b165",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/profilExpressFormulas.test.ts",
+      "git_blob_sha": "8c82e917e83a367cf3196240f89e270c5a678ff2",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/runMLSSPredictor.test.ts",
+      "git_blob_sha": "e935a5eda020652d50d28182c82819901634cb44",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/runMLSSPredictorGuardFail.test.ts",
+      "git_blob_sha": "8d1ee6e1a3d11b4eb2413ed3e3056b14fc034638",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/unifiedLimiterDetection.test.ts",
+      "git_blob_sha": "004d1e0370dd48e5dcd7c055ace149cb8da0995b",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/vlamaxCap.convergence.test.ts",
+      "git_blob_sha": "20db9ed0389f7cbd863709eaf4dee11c06967fac",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/vlamaxCapAnchorCalibration.test.ts",
+      "git_blob_sha": "cc281b76315b73c8e6fa80d43d8ef1246f6ec184",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/vlamaxCapEstimator.test.ts",
+      "git_blob_sha": "3bd32e3c884d090ca3b06f6b7a9fa418522df740",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/vlamaxRunV2Enhanced.formulaIntegrity.test.ts",
+      "git_blob_sha": "face9376f5610bd3df91f284236c12b9eac21333",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/__tests__/vlamaxRunV2Enhanced.test.ts",
+      "git_blob_sha": "e2bb3d4d5a0a3297b4255f49b14f4c2af4a08045",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/lib/v2/criticalPowerModel.ts",
+      "git_blob_sha": "51338634dbb8e51b7d2510111f6c8c72ea94e77d",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/fatmaxTFCL.ts",
+      "git_blob_sha": "07b77661d835d951d633dab6d6d6e32763ea8859",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/literatureReferences.ts",
+      "git_blob_sha": "5bb9c5f52346eb89eb0880e1f2f691235341a0a5",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/maderInverseFitJoint.ts",
+      "git_blob_sha": "f4e85fd8bd27cb967487c0ed3ef8cd22dafa9887",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/maderMetabolicModel.ts",
+      "git_blob_sha": "85b069719d2ebb36c47b4811efec0b13029fc241",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/maderPowerDurationCurve.ts",
+      "git_blob_sha": "09cca1282070915c4852c3c4173f1c0afbd368f5",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/profilExpress.ts",
+      "git_blob_sha": "cdecdb6364712992486def8229bac78a913596fa",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/profilExpressFormulas.ts",
+      "git_blob_sha": "21da30f7e4e725cbbc4e9a920631c6cc3bf404d0",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/runMLSSCohortCSVImporter.ts",
+      "git_blob_sha": "13781861fabf8feb10fd57e7c0369d52cac060d5",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/runMLSSCohortValidation.ts",
+      "git_blob_sha": "c6fe65d58b199b05a0ceac6947d0eafd4ce04398",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/runMLSSPredictor.ts",
+      "git_blob_sha": "9545cfdf44d485eadc1c1236b9ab1662ffd8ccf4",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/runMLSSTracePersistence.ts",
+      "git_blob_sha": "71e1d26c0f7f956e856dda7e8b556fce749aea20",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/scientificConfig.ts",
+      "git_blob_sha": "07eb5490e88ccfd01e01ffb4b7d60b83ec755335",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/scientificGovernance.ts",
+      "git_blob_sha": "cf7bad1a12f88bb69b36d4c447b7e0f453081ff3",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/validationFramework.ts",
+      "git_blob_sha": "5cf73341f2451644e4420a27d7b5ee1b1c21c085",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxBikeV2Enhanced.ts",
+      "git_blob_sha": "0127f08527eae65784d56f64e36577c6cd35d588",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxCapAnchorCalibration.ts",
+      "git_blob_sha": "28306e539ae22b283f7fca14fd8b879d02a22caa",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxCapEstimator.ts",
+      "git_blob_sha": "30ff208dbac01372914ccc4676bb0048450d3a21",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxRunV2Enhanced.ts",
+      "git_blob_sha": "38e70cf2f30fe054cffd651abe3fde33dcbdf3c2",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxRunV2Trace.ts",
+      "git_blob_sha": "1528b02f61e08bccaae6ba69f27769b5f11570d1",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxTargets.ts",
+      "git_blob_sha": "669ba8d1d1c2cb8a3ecf0075d0009b7a65ccd316",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxTracePersistence.ts",
+      "git_blob_sha": "b5416309400b557b71d474defe1568b8e62fda47",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxV2.ts",
+      "git_blob_sha": "6035d01bd08bbe0a18177a603293848216be5ee1",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/v2/vlamaxV2Engine.ts",
+      "git_blob_sha": "4262694b16929c8d758c4be0e8a7aca37762a5b7",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/vlamaxEffectif.ts",
+      "git_blob_sha": "6ca5c2813d285eaac075c8adc6e0aaa06e70c401",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/vlamaxResolver.ts",
+      "git_blob_sha": "a8ba884e8cfc8622971c78d9d05b7aeff759f595",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/lib/zones/__tests__/deriveTrainingZones.test.ts",
+      "git_blob_sha": "7ed41fae55b7e151cadaee540f687392bf67f68f",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/qa/sports-plan-lab/__tests__/globalLimiterTransmission.test.ts",
+      "git_blob_sha": "6548130eda57bf4aa79f79c08f2aaa5c38c6b9a6",
+      "executed_existing_test": true
+    },
+    {
+      "path": "src/types/snapshot.ts",
+      "git_blob_sha": "e4e46661478b71cd1ee6a8383363c91ccf5d9a8c",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/types/snapshotNolio.ts",
+      "git_blob_sha": "b3977c593fe36926add175215cb2c8606cb4c7ed",
+      "executed_existing_test": false
+    },
+    {
+      "path": "src/types/testLibrary.ts",
+      "git_blob_sha": "bab554f2f07c2b5aac88150aa2dd5957a2fbbc8c",
+      "executed_existing_test": false
+    }
+  ],
+  "scope": "targeted source inventory, not every repository file read"
+}

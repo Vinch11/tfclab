@@ -1,0 +1,21 @@
+{
+  "lab": {
+    "pmlssW": 280,
+    "uncertaintyW": 26,
+    "uncertaintyPct": 9.1,
+    "lowW": 254,
+    "highW": 306,
+    "quality": "lab",
+    "rationale": "Intervalle ±26 W (±9.1%) propagé depuis les sensibilités VO2max (±3.3 ml/kg/min → ±7% PMLSS) et VLamax (±0.11 mmol/L/s → ±5% PMLSS) publiées par Poffé et al. 2024 (N=29, r=0.99 vs MLSS gold-standard)."
+  },
+  "estimated": {
+    "pmlssW": 280,
+    "uncertaintyW": 37,
+    "uncertaintyPct": 13.2,
+    "lowW": 243,
+    "highW": 317,
+    "quality": "estimated",
+    "rationale": "Intervalle ±37 W (±13.2%) propagé depuis les sensibilités VO2max (±3.3 ml/kg/min → ±7% PMLSS) et VLamax (±0.11 mmol/L/s → ±5% PMLSS) publiées par Poffé et al. 2024 (N=29, r=0.99 vs MLSS gold-standard)."
+  },
+  "scope": "software propagation convention, not TFCLab experimental accuracy"
+}
