@@ -1,3 +1,4 @@
+import { hasDocumentedLactateReference, qualifyReference, type ReferenceEvidence, type ScientificQualification } from "./scientificQualification";
 /**
  * VLAMAX RESOLVER — Source unique de vérité pour choisir
  * la VLamax adaptée à l'objectif de l'athlète.
@@ -48,9 +49,12 @@ export interface VlamaxResolution {
    * dans `SnapshotLike` aujourd'hui.
    */
   confidence?: number;
+  scientificQualification?: ScientificQualification;
 }
 
 interface SnapshotLike {
+  athlete_id?: string | null;
+  physiologicalEvidence?: Record<string, ReferenceEvidence>;
   vlamax?: number | null;
   vlamax_run?: number | null;
   sport_main?: string | null;
@@ -68,11 +72,11 @@ interface SnapshotLike {
 }
 
 function isLabMeasuredVlamaxRun(s: SnapshotLike): boolean {
-  const haystack = `${s.vlamax_source || ""} ${s.vlamax_protocol || ""}`.toLowerCase();
-  return /(labo|lactat|prise de sang|blood lactate|lab measurement)/.test(haystack);
+  return hasDocumentedLactateReference(s.physiologicalEvidence?.vlamax_run, s.athlete_id, "run", s.vlamax_run ?? null);
 }
 
 interface AthleteLike {
+  id?: string | null;
   goal?: string | null;
   objectif?: string | null;
 }
@@ -85,7 +89,7 @@ interface AthleteLike {
  * (ex: cartes spécifiques, calibration bike, page Running Profile) — dans ces
  * cas lire directement snapshot.vlamax / snapshot.vlamax_run.
  */
-export function resolveVlamaxForGoal(
+function resolveInternal(
   snapshot?: SnapshotLike | null,
   athlete?: AthleteLike | null
 ): VlamaxResolution {
@@ -102,7 +106,7 @@ export function resolveVlamaxForGoal(
   //   - ou en dernier fallback si l'estimateur renvoie `insufficient`.
   if (sport === "run") {
     const rawRun = snapshot.vlamax_run ?? null;
-    const isLab = rawRun != null && isLabMeasuredVlamaxRun(snapshot);
+    const isLab = rawRun != null && isLabMeasuredVlamaxRun({ ...snapshot, athlete_id: athlete?.id });
 
     // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : une
     // mesure labo passait ici par estimateVLamaxCap comme une simple entrée
@@ -119,6 +123,7 @@ export function resolveVlamaxForGoal(
         sport,
         reason: "ok",
         confidence: computeConfidenceScore("test_labo"),
+        scientificQualification: qualifyReference(snapshot.physiologicalEvidence?.vlamax_run, { subjectId: athlete?.id ?? "", quantity: "vlamax", discipline: "run", value: rawRun, unit: "mmol/L/s" }),
       };
     }
 
@@ -164,6 +169,14 @@ export function resolveVlamaxForGoal(
     };
   }
   return { value: v, source: "bike", sport: sport ?? null, reason: "ok" };
+}
+
+/** Current subject comes from the caller, never from a cached qualification. */
+export function resolveVlamaxForGoal(snapshot?: SnapshotLike | null, athlete?: AthleteLike | null): VlamaxResolution {
+  const result = resolveInternal(snapshot, athlete);
+  const discipline = result.source === "run" ? "run" : "bike";
+  const evidence = snapshot?.physiologicalEvidence?.[discipline === "run" ? "vlamax_run" : "vlamax"];
+  return { ...result, scientificQualification: qualifyReference(evidence, { subjectId: athlete?.id ?? "", quantity: "vlamax", discipline, value: result.value, unit: "mmol/L/s" }) };
 }
 
 /**

@@ -22,9 +22,9 @@ export function getConfidenceEmoji(confidence: number): string {
 
 /** Badge source basé sur la confiance */
 export function getSourceBadge(confidence: number): string {
-  if (confidence >= 0.8) return "🧪 Mesuré";
-  if (confidence >= 0.6) return "🏃 Terrain";
-  return "📐 Estimé";
+  if (confidence >= 0.8) return "Score heuristique élevé";
+  if (confidence >= 0.6) return "Score heuristique modéré";
+  return "Score heuristique exploratoire";
 }
 
 /** Couleur CSS pour le label qualitatif */

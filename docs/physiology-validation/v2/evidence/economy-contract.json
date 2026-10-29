@@ -1,0 +1,86 @@
+{
+  "syntheticOnly": true,
+  "input": {
+    "athleteId": "pilot:B-MARATHON",
+    "athleteName": "QA Synthetic",
+    "age": 35,
+    "sex": "M",
+    "weightKg": 72,
+    "objectif": "MARATHON",
+    "ambition": "world_class",
+    "sportFocus": "run",
+    "vo2max": 58,
+    "ftp": 280,
+    "ftpKg": 3.888888888888889,
+    "pmax5s": 950,
+    "p30sW": 620,
+    "p60sW": 480,
+    "map5minW": 380,
+    "vma": 18,
+    "css": 90,
+    "vlamax": 0.55,
+    "vlamaxRun": 0.5,
+    "vlamaxSource": "synthetic_estimate",
+    "vlamaxProtocol": null,
+    "vlamaxIsReference": false,
+    "tteObservedMin": null,
+    "tteObservedMinRun": 45,
+    "tteMode": "synthetic_estimate",
+    "tss7d": null,
+    "fatigueState": null,
+    "runEconomyScore": 65,
+    "runHrDriftPct": null,
+    "paceThresholdSecPerKm": null,
+    "runningPower1s": null,
+    "runningPower5s": null,
+    "runningPower30s": null,
+    "runningPower60s": null,
+    "runningPower5min": null,
+    "runningPowerThreshold": null,
+    "sprint15sDistance": null,
+    "bikeCadenceRpm": null,
+    "bikeHrDriftFlag": false,
+    "protocolQuality": null,
+    "wprimeKj": null,
+    "cpDataQuality": null,
+    "fatmax": null,
+    "forceDevMode": false,
+    "giIssuesFlag": false,
+    "targetRaceDurationMin": null,
+    "runningEconomyCostMlKgKm": 200
+  },
+  "before": {
+    "observedPct": null,
+    "prediction": {
+      "mlssPct": 83.2,
+      "confidence": 0.85,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": 0,
+        "rmseExpected": 2.64
+      }
+    },
+    "crossValidation": null,
+    "effectivePct": 83.2,
+    "effectiveSource": "predicted"
+  },
+  "after": {
+    "observedPct": null,
+    "prediction": {
+      "mlssPct": 83.2,
+      "confidence": 0.85,
+      "trace": {
+        "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+        "vlamaxContribution": 16.85,
+        "ceContribution": 0,
+        "rmseExpected": 2.64
+      }
+    },
+    "crossValidation": null,
+    "effectivePct": 83.2,
+    "effectiveSource": "predicted"
+  },
+  "limitersUnchanged": true,
+  "scope": "V2 actual diagnostic; no equation or automatic CE conversion added"
+}

@@ -1,0 +1,4 @@
+src/lib/__tests__/physiologyQualificationV23.test.tsx(59,183): error TS2322: Type 'ReferenceEvidence' is not assignable to type 'Pick<PhysiologicalEvidence, "value" | "unit" | "discipline"> & Partial<PhysiologicalEvidence>'.
+  Type 'ReferenceEvidence' is not assignable to type 'Pick<PhysiologicalEvidence, "value" | "unit" | "discipline">'.
+    Types of property 'discipline' are incompatible.
+      Type 'string' is not assignable to type '"unknown" | "run" | "bike" | "swim"'.

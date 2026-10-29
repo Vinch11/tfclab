@@ -1,3 +1,5 @@
+import { DECLARED_CAP_REFERENCE_LABEL, DECLARED_QUALITY_LABELS, cohortReferenceLabel, cohortStatisticalNote, qualifyCohortReference, entriesToCSV } from "@/lib/v2/vlamaxCapCohortPresentation";
+import type { ScientificQualification } from "@/lib/scientificQualification";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * VLAMAX CAP COHORT VALIDATION PAGE
@@ -12,7 +14,7 @@
  * Finding 5) un vrai garde-fou de régression, alimenté par les tests labo
  * (mesure lactate) que les coaches saisissent au fil du temps.
  *
- *  - Saisie : VLamax CAP mesurée labo (référence) + au moins un des deux
+ *  - Saisie : VLamax CAP dérivée de lactate (source déclarée) (référence) + au moins un des deux
  *    signaux à tester (Sprint 15s ou Puissance Max CAP), + VMA/pace seuil
  *    pour la formule de repli.
  *  - Persistance : calibration_evidence (evidence_type=VLAMAX_CAP_ANCHOR),
@@ -66,9 +68,9 @@ import { estimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
 
 const VERDICT_STYLES = {
   insufficient: { label: "N insuffisant", icon: HelpCircle, cls: "bg-muted text-muted-foreground border" },
-  consistent: { label: "Cohérent", icon: CheckCircle2, cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30" },
-  drifting: { label: "Dérive modérée", icon: AlertTriangle, cls: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30" },
-  incoherent: { label: "Incohérent", icon: XCircle, cls: "bg-destructive/15 text-destructive border border-destructive/30" },
+  consistent: { label: "Accord aux références déclarées", icon: CheckCircle2, cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30" },
+  drifting: { label: "Écart descriptif modéré", icon: AlertTriangle, cls: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30" },
+  incoherent: { label: "Écart descriptif important", icon: XCircle, cls: "bg-destructive/15 text-destructive border border-destructive/30" },
 } as const;
 
 interface FormState {
@@ -126,6 +128,7 @@ export default function VlamaxCapCohortPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [entries, setEntries] = useState<AnchorTestEntry[]>([]);
+  const [qualifications, setQualifications] = useState<Map<string, ScientificQualification>>(new Map());
   const [loading, setLoading] = useState(false);
 
   const athleteNameMap = useMemo(() => {
@@ -186,6 +189,7 @@ export default function VlamaxCapCohortPage() {
         )
         .filter((x): x is AnchorTestEntry => x !== null);
       setEntries(built);
+      setQualifications(new Map((data ?? []).map(r => [r.id, qualifyCohortReference(r)])));
     } catch (e) {
       if (import.meta.env.DEV) console.error("[vlamax cap anchor load]", e);
       toast.error("Échec du chargement de la cohorte");
@@ -219,7 +223,7 @@ export default function VlamaxCapCohortPage() {
     const paceSec = paceMmSsToSec(form.paceThresholdMinPerKm);
     const q = parseInt(form.protocolQuality, 10) as 2 | 3 | 4 | 5;
 
-    if (!Number.isFinite(measured) || measured <= 0) return toast.error("VLamax mesurée invalide");
+    if (!Number.isFinite(measured) || measured <= 0) return toast.error("VLamax de référence déclarée invalide");
     const hasSprint = Number.isFinite(sprint) && sprint > 0;
     const hasPower = Number.isFinite(power) && power > 0;
     if (!hasSprint && !hasPower) return toast.error("Renseigner au moins Sprint 15s ou Puissance Max CAP");
@@ -251,7 +255,7 @@ export default function VlamaxCapCohortPage() {
         raw_values: rawValues as any,
       });
       if (error) throw error;
-      toast.success("Test ajouté à la cohorte");
+      toast.success("Référence déclarée ajoutée à la cohorte");
       setForm({ ...DEFAULT_FORM, athleteId: form.athleteId, date: form.date });
       void refresh();
     } catch (e: any) {
@@ -274,12 +278,12 @@ export default function VlamaxCapCohortPage() {
 
   const handleExportCSV = () => {
     if (!entries.length) return;
-    const csv = entriesToCSV(entries);
+    const csv = entriesToCSV(entries, qualifications);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `vlamax_cap_anchor_cohort_${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `vlamax_cap_anchor_cohort_v2_${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -296,11 +300,11 @@ export default function VlamaxCapCohortPage() {
         <div className="flex items-start gap-2 sm:gap-3">
           <FlaskConical className="h-5 w-5 sm:h-6 sm:w-6 text-primary mt-1 shrink-0" />
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg sm:text-2xl font-bold break-words leading-tight">Cohorte VLamax CAP — Validation des ancrages Sprint/Puissance</h1>
+            <h1 className="text-lg sm:text-2xl font-bold break-words leading-tight">Cohorte VLamax CAP — Comparaison aux références déclarées</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Testez les ancrages d'interpolation de l'estimateur VLamax CAP (Sprint 15s,
-              Puissance Max CAP) contre vos mesures labo réelles. RMSE recalculé en direct,
-              dual-tier labo/terrain — aucun calcul de l'app n'est modifié par cette page.
+              Comparez les prédictions Sprint/Puissance à des références déclarées. Le lactate sanguin peut être mesuré ; la VLamax est calculée ou estimée.
+              Une saisie, une note ou une qualité déclarée ne prouve pas une méthode laboratoire. Les RMSE décrivent un accord statistique, sans validation scientifique indépendante.
+              Les regroupements historiques et les calculs restent inchangés.
             </p>
           </div>
         </div>
@@ -309,7 +313,7 @@ export default function VlamaxCapCohortPage() {
         {report && (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Verdict de généralisation</CardTitle>
+              <CardTitle className="text-base">Accord statistique descriptif</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {(() => {
@@ -327,8 +331,8 @@ export default function VlamaxCapCohortPage() {
               })()}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <TierStatBlock title="Labo" stats={report.byTier.lab} />
-                <TierStatBlock title="Terrain" stats={report.byTier.field} />
+                <TierStatBlock title="Qualité déclarée 4–5" stats={report.byTier.lab} />
+                <TierStatBlock title="Qualité déclarée 2–3" stats={report.byTier.field} />
                 <TierStatBlock title="Combiné" stats={report.byTier.combined} highlight />
               </div>
 
@@ -341,10 +345,10 @@ export default function VlamaxCapCohortPage() {
               {(report.notes.length > 0 || report.anchorSuggestions.length > 0) && (
                 <ul className="text-xs text-muted-foreground space-y-1 pt-1 border-t border-border/40">
                   {report.notes.map((n, i) => (
-                    <li key={`note-${i}`}>· {n}</li>
+                    <li key={`note-${i}`}>· {cohortStatisticalNote(n)}</li>
                   ))}
                   {report.anchorSuggestions.map((n, i) => (
-                    <li key={`sugg-${i}`} className="text-amber-700 dark:text-amber-400 font-medium">⚠ {n}</li>
+                    <li key={`sugg-${i}`} className="text-amber-700 dark:text-amber-400 font-medium">⚠ {cohortStatisticalNote(n)} — aucune application automatique</li>
                   ))}
                 </ul>
               )}
@@ -355,7 +359,7 @@ export default function VlamaxCapCohortPage() {
         {/* Saisie d'un nouveau test */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Ajouter un test</CardTitle>
+            <CardTitle className="text-base">Ajouter une référence déclarée</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -373,25 +377,25 @@ export default function VlamaxCapCohortPage() {
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field label="Date du test">
+                <Field label="Date d’observation déclarée">
                   <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
                 </Field>
-                <Field label="Qualité protocole" hint="4-5 = labo, 2-3 = terrain">
+                <Field label="Qualité déclarée du protocole" hint="Groupes historiques 4–5 / 2–3 : aucune méthode scientifique déduite">
                   <Select
                     value={form.protocolQuality}
                     onValueChange={(v) => setForm({ ...form, protocolQuality: v as FormState["protocolQuality"] })}
                   >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="5">5 — Labo gold standard</SelectItem>
-                      <SelectItem value="4">4 — Labo / instrumenté</SelectItem>
-                      <SelectItem value="3">3 — Terrain validé</SelectItem>
-                      <SelectItem value="2">2 — Terrain estimé</SelectItem>
+                      <SelectItem value="5">5 — Qualité déclarée 5</SelectItem>
+                      <SelectItem value="4">4 — Qualité déclarée 4</SelectItem>
+                      <SelectItem value="3">3 — Qualité déclarée 3</SelectItem>
+                      <SelectItem value="2">2 — Qualité déclarée 2</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
 
-                <Field label="VLamax CAP mesurée labo (mmol/L/s)" hint="Référence — lactate post-sprint">
+                <Field label="VLamax CAP de référence déclarée (mmol/L/s)" hint="La saisie seule ne documente ni protocole ni mesures lactate">
                   <Input type="number" step="0.01" placeholder="0.45" value={form.vlamaxRunMeasured} onChange={(e) => setForm({ ...form, vlamaxRunMeasured: e.target.value })} />
                 </Field>
                 <Field label="Sprint 15s — distance (m)" hint="Au moins un des deux signaux requis">
@@ -416,7 +420,7 @@ export default function VlamaxCapCohortPage() {
               {/* Live preview */}
               {livePreview && (
                 <div className="rounded-md bg-muted/40 border border-border/50 p-3 text-sm flex flex-wrap items-center gap-x-4 gap-y-1">
-                  <span><span className="text-muted-foreground">Mesuré (labo) :</span> <strong>{livePreview.measured}</strong></span>
+                  <span><span className="text-muted-foreground">{DECLARED_CAP_REFERENCE_LABEL} :</span> <strong>{livePreview.measured}</strong></span>
                   <span><span className="text-muted-foreground">Prédit estimateur :</span> <strong>{livePreview.predicted}</strong></span>
                   <span>
                     <span className="text-muted-foreground">Δ :</span>{" "}
@@ -433,7 +437,7 @@ export default function VlamaxCapCohortPage() {
 
               <div className="flex justify-end gap-2">
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? "Enregistrement…" : "Ajouter à la cohorte"}
+                  {submitting ? "Enregistrement…" : "Ajouter la référence à la cohorte"}
                 </Button>
               </div>
             </form>
@@ -448,14 +452,14 @@ export default function VlamaxCapCohortPage() {
             </CardTitle>
             <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!entries.length}>
               <Download className="h-3.5 w-3.5 mr-1.5" />
-              Export CSV
+              Export CSV v2
             </Button>
           </CardHeader>
           <CardContent>
             {loading && <p className="text-sm text-muted-foreground py-4 text-center">Chargement…</p>}
             {!loading && !entries.length && (
               <p className="text-sm text-muted-foreground py-4 text-center">
-                Aucun test enregistré pour le moment.
+                Aucune référence enregistrée pour le moment.
               </p>
             )}
             {!loading && entries.length > 0 && (
@@ -463,12 +467,13 @@ export default function VlamaxCapCohortPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Date déclarée</TableHead>
                       <TableHead>Athlète</TableHead>
-                      <TableHead>Tier</TableHead>
+                      <TableHead>Qualité déclarée</TableHead>
                       <TableHead className="text-right">Sprint 15s</TableHead>
                       <TableHead className="text-right">Pmax CAP</TableHead>
-                      <TableHead className="text-right">Mesuré</TableHead>
+                      <TableHead className="text-right">VLamax de référence déclarée</TableHead>
+                      <TableHead>Qualification scientifique</TableHead>
                       <TableHead className="text-right">Prédit</TableHead>
                       <TableHead className="text-right">Δ</TableHead>
                       <TableHead></TableHead>
@@ -486,12 +491,13 @@ export default function VlamaxCapCohortPage() {
                             e.tier === "field" ? "border-secondary text-secondary-foreground" :
                             "border-muted text-muted-foreground"
                           )}>
-                            {e.tier} q{e.protocolQuality}
+                            {DECLARED_QUALITY_LABELS[e.tier]} · q{e.protocolQuality}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-mono text-xs">{e.sprint15sDistance ?? "—"}</TableCell>
                         <TableCell className="text-right font-mono text-xs">{e.runningPowerMax ?? "—"}</TableCell>
                         <TableCell className="text-right font-mono text-xs">{e.vlamaxRunMeasured}</TableCell>
+                        <TableCell className="text-xs">{cohortReferenceLabel(qualifications.get(e.id), e)}</TableCell>
                         <TableCell className="text-right font-mono text-xs">{e.predictedVLamax ?? "—"}</TableCell>
                         <TableCell className={cn(
                           "text-right font-mono text-xs font-semibold",
@@ -523,44 +529,6 @@ export default function VlamaxCapCohortPage() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // Export CSV (pour publication / analyse externe)
 // ═══════════════════════════════════════════════════════════════════════════════
-
-function entriesToCSV(entries: AnchorTestEntry[]): string {
-  const headers = [
-    "date",
-    "athlete_id",
-    "athlete_name",
-    "tier",
-    "protocol_quality",
-    "vlamax_measured_mmolLs",
-    "sprint15s_distance_m",
-    "running_power_max_w",
-    "vma_kmh",
-    "pace_threshold_sec_per_km",
-    "predicted_vlamax",
-    "delta_vlamax",
-    "notes",
-  ];
-  const rows = entries.map((e) =>
-    [
-      e.date,
-      e.athleteId,
-      e.athleteName ?? "",
-      e.tier,
-      e.protocolQuality,
-      e.vlamaxRunMeasured,
-      e.sprint15sDistance ?? "",
-      e.runningPowerMax ?? "",
-      e.vma ?? "",
-      e.paceThresholdSecPerKm ?? "",
-      e.predictedVLamax ?? "",
-      e.deltaVLamax ?? "",
-      (e.notes ?? "").replace(/[\r\n]/g, " ").replace(/"/g, "'"),
-    ]
-      .map((v) => `"${v}"`)
-      .join(","),
-  );
-  return [headers.join(","), ...rows].join("\n");
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sub-components
@@ -604,7 +572,7 @@ function TierStatBlock({
       <div className={cn("font-bold tabular-nums", compact ? "text-lg" : "text-2xl")}>
         {stats.rmse != null ? stats.rmse : "—"}
       </div>
-      <div className="text-[10px] text-muted-foreground">RMSE pondéré (mmol/L/s) · n={stats.n}</div>
+      <div className="text-[10px] text-muted-foreground">RMSE pondéré (mmol/L/s) · n={stats.n} · écarts aux références déclarées</div>
       {!compact && stats.bias != null && (
         <div className="text-[11px] mt-1.5">
           biais {stats.bias > 0 ? "+" : ""}{stats.bias} · MAE {stats.mae}

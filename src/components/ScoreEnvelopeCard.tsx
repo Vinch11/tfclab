@@ -1,3 +1,4 @@
+import { qualifyScoreEnvelope } from "@/lib/scientificQualification";
 /**
  * ScoreEnvelopeCard - Composant unifié combinant ScoreEnvelopeDisplay + MetricHelpButton
  * Pour un affichage cohérent des métriques partout dans l'app
@@ -17,6 +18,8 @@ import { cn } from "@/lib/utils";
 // =============================================
 
 interface ScoreEnvelopeCardProps {
+  athleteId?: string;
+  discipline?: string;
   envelope: ScoreEnvelope;
   mode?: "athlete" | "staff";
   showHelp?: boolean;
@@ -39,6 +42,8 @@ interface ScoreEnvelopeCardGroupProps {
 // =============================================
 
 export function ScoreEnvelopeCard({
+  athleteId,
+  discipline,
   envelope,
   mode = "athlete",
   showHelp = true,
@@ -46,12 +51,15 @@ export function ScoreEnvelopeCard({
   showRecommendations = true,
   className,
 }: ScoreEnvelopeCardProps) {
+  envelope = qualifyScoreEnvelope(envelope, athleteId, discipline);
   
   // Mode compact inline (pas de card wrapper supplémentaire)
   if (compact) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <ScoreEnvelopeDisplay
+          athleteId={athleteId}
+          discipline={discipline}
           envelope={envelope}
           mode={mode}
           compact={true}
@@ -67,7 +75,7 @@ export function ScoreEnvelopeCard({
     envelope.source,
     envelope.confidence,
     envelope.confidenceLabel,
-    { academySection: envelope.metricId }
+    { academySection: envelope.metricId, qualification: envelope.scientificQualification }
   );
 
   return (
@@ -99,6 +107,8 @@ export function ScoreEnvelopeCard({
         {/* Badge scientifique avec transparence */}
         <div className="mt-3 pt-2 border-t border-border/50">
           <ScientificBadge 
+            athleteId={athleteId}
+            discipline={discipline}
             metadata={scientificMetadata}
             metricName={envelope.metricId}
             compact={true}
@@ -241,7 +251,7 @@ function ScoreEnvelopeCardContent({
         <div className="flex justify-between text-xs">
           <span className="text-muted-foreground">Confiance</span>
           <span className={cn("font-medium", getConfidenceColor().split(" ")[0])}>
-            {confidenceLabel} ({Math.round(confidence * 100)}%)
+            Score heuristique interne : {confidenceLabel} ({Math.round(confidence * 100)} / 100)
           </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">

@@ -1,0 +1,24 @@
+# Risques et décision V2.3.1
+
+**GO pour une nouvelle revue indépendante de C8**, sous réserve de lecture du SHA final et de ses preuves. Cette décision porte sur la soumission des cinq corrections à une nouvelle revue ; elle ne déclare pas C8 définitivement clos et n'autorise pas la fusion. PR #425 maintenue **DRAFT / NO-GO global**.
+
+| Domaine | Décision maintenue |
+| --- | --- |
+| Validation scientifique indépendante | **NO-GO** : les protocoles et références documentaires ne constituent pas une validation hors échantillon ou individuelle. N=44/N=15/Modèle C non requalifiés par cette mission. |
+| DET | **NO-GO** : aucun fichier ou règle DET modifié ; intégration/admissibilité individuelle non approuvées. |
+| Production | **NO-GO** : Supabase réel et RLS NON VALIDÉS ; aucune connexion, migration, fusion, activation ou dose approuvée. |
+
+## Risques résiduels explicites
+
+- **API V2 héritée R1 de la revue** : `src/lib/v2/vlamaxV2.ts`, exportée par le barrel `src/lib/v2/index.ts`, peut toujours produire « Mesuré (Lactate labo) » du seul champ `vlamax_labo`. Aucune consommation active de ce moteur distinct depuis un écran courant n'a été identifiée lors de la revue précédente ; cette absence n'est pas une preuve formelle d'inaccessibilité. Elle reste un risque de réintroduction à qualifier dans la nouvelle revue, hors correction des cinq voies ciblées. Aucun coefficient de ce moteur n'est modifié. Ne pas raccorder cette API brute à une admission scientifique.
+- **Identité absente** : les consommateurs sans identité externe affichent désormais unknown, même si le cache contient un sujet cohérent en lui-même. Ce comportement est volontaire. Les intégrateurs doivent fournir sujet et discipline depuis le contexte courant, pas depuis la qualification.
+- **Contexte documentaire non vérifié** : une chaîne de source identifiable n'authentifie pas le rapport externe. individualValidityEstablished et individualDoseApproved restent false. Une source peut mentir ; cette mission ne crée pas de vérification expérimentale ou cryptographique.
+- **Changements de sélection CAP attendus** : les anciens profils avec un texte laboratoire non étayé peuvent changer de valeur, de limiteur ou de score indicatif, comme le démontre le comparatif. Ils restent consultables ; aucune réécriture historique. Toute décision sportive demeure à revoir dans son contexte.
+- **JSON** : le normaliseur couvre les formes JSON ; il ne revendique pas une tolérance à des getters/proxies malveillants ou cycles JavaScript non sérialisables. Il ne remplace pas la validation des calculs métier.
+- **Navigateurs/persistance** : le smoke local utilise Chromium et localStorage avec hôtes externes bloqués. Il ne valide ni RLS ni sauvegarde Supabase, ni tous les navigateurs et exports natifs.
+
+La variante athlète de ScoreEnvelopeDisplay, risque R2 de la revue, affiche maintenant le score comme heuristique et la notice d'incertitude, au lieu de « Données fiables » pour une VLamax inconnue. Les variantes sans identité restent conservatrices. Les surfaces héritées exportées doivent toujours être examinées lors de la revue exhaustive de clôture.
+
+## Pour réexaminer la clôture technique
+
+Rejouer les contre-exemples sur le SHA final ; examiner les contextes externes de sujet/discipline, les replis bruts classifiés, les changements aval et les usages éventuels de l'API héritée R1. Confirmer les quatre checks sur ce même SHA. Un éventuel GO technique ne lèverait pas les trois NO-GO ci-dessus et ne vaudrait pas autorisation de production.

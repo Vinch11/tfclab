@@ -1,0 +1,34 @@
+{
+  "scope": "code-history anchors, not independent calibration observations",
+  "commits": [
+    {
+      "sha": "af3fae770c36fd1a350b8bf8604725bc0905c328",
+      "date": "2026-05-04T13:10:37Z",
+      "files": [
+        "src/lib/v2/maderMetabolicModel.ts"
+      ]
+    },
+    {
+      "sha": "767fdaf89b9a88c201918cd3d3f2403644892014",
+      "date": "2026-05-04T13:18:53Z",
+      "files": [
+        "src/lib/v2/runMLSSPredictor.ts"
+      ]
+    },
+    {
+      "sha": "612cf7153e1a8acd92d9d5f8a31e70de9209f559",
+      "date": "2026-06-25T09:17:34Z",
+      "files": [
+        "src/lib/diagnostic/buildDiagnosticProtocolHTML.ts"
+      ]
+    },
+    {
+      "sha": "648208b4e2f363c7118590ef862715fc00dbf5d9",
+      "date": "2026-05-04T20:36:48Z",
+      "files": [
+        "src/lib/v2/__tests__/runMLSSPredictorGuardFail.test.ts"
+      ]
+    }
+  ],
+  "git_web_code_search_empty_is_inconclusive": true
+}

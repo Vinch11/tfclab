@@ -1,0 +1,13 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (../tfclab-full/node_modules/@vitejs/plugin-react-swc/index.js:95:25). Use `import.meta.dirname` instead
+  - `__filename` (../tfclab-full/node_modules/@vitejs/plugin-react-swc/index.js:96:38). Use `import.meta.filename` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+9:42:29 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 9 skipped (10)
+   Start at  21:42:29
+   Duration  9.33s (transform 5.84s, setup 245ms, import 7.63s, tests 510ms, environment 598ms)

@@ -1,0 +1,69 @@
+2026-10-29T15:43:51.695Z pw:webserver HTTP GET: http://localhost:8080/
+2026-10-29T15:43:51.713Z pw:webserver Error while checking if http://localhost:8080/ is available: connect ECONNREFUSED ::1:8080
+connect ECONNREFUSED 127.0.0.1:8080
+2026-10-29T15:43:51.713Z pw:webserver Starting WebServer process npm run dev...
+2026-10-29T15:43:51.728Z pw:webserver Process started
+2026-10-29T15:43:51.728Z pw:webserver Waiting for availability...
+2026-10-29T15:43:51.728Z pw:webserver HTTP GET: http://localhost:8080/
+2026-10-29T15:43:51.754Z pw:webserver Error while checking if http://localhost:8080/ is available: connect ECONNREFUSED ::1:8080
+connect ECONNREFUSED 127.0.0.1:8080
+2026-10-29T15:43:51.754Z pw:webserver Waiting 100ms
+2026-10-29T15:43:51.855Z pw:webserver HTTP GET: http://localhost:8080/
+2026-10-29T15:43:51.860Z pw:webserver Error while checking if http://localhost:8080/ is available: connect ECONNREFUSED ::1:8080
+connect ECONNREFUSED 127.0.0.1:8080
+2026-10-29T15:43:51.860Z pw:webserver Waiting 250ms
+[WebServer]
+[WebServer] > vite_react_shadcn_ts@0.0.0 dev
+[WebServer] > vite
+[WebServer]
+2026-10-29T15:43:52.113Z pw:webserver HTTP GET: http://localhost:8080/
+2026-10-29T15:43:52.115Z pw:webserver Error while checking if http://localhost:8080/ is available: connect ECONNREFUSED ::1:8080
+connect ECONNREFUSED 127.0.0.1:8080
+2026-10-29T15:43:52.115Z pw:webserver Waiting 500ms
+2026-10-29T15:43:52.616Z pw:webserver HTTP GET: http://localhost:8080/
+2026-10-29T15:43:52.623Z pw:webserver Error while checking if http://localhost:8080/ is available: connect ECONNREFUSED ::1:8080
+connect ECONNREFUSED 127.0.0.1:8080
+2026-10-29T15:43:52.623Z pw:webserver Waiting 1000ms
+[WebServer] (node:11603) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer]
+[WebServer]   VITE v5.4.21  ready in 949 ms
+[WebServer]
+[WebServer]   ➜  Local:   http://localhost:8080/
+[WebServer]   ➜  Network: http://172.26.91.243:8080/
+[WebServer]   ➜  Network: http://172.31.6.14:8080/
+2026-10-29T15:43:53.623Z pw:webserver HTTP GET: http://localhost:8080/
+2026-10-29T15:43:54.401Z pw:webserver HTTP Status: 200
+2026-10-29T15:43:54.403Z pw:webserver WebServer available
+
+Running 1 test using 1 worker
+
+(node:11667) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [local-synthetic-chromium] › e2e/physiology-review.spec.ts:3:1 › synthetic import, edit, local save, reload and actual staff report codec (30.4s)
+2026-10-29T15:44:29.587Z pw:webserver Terminating the WebServer
+2026-10-29T15:44:29.785Z pw:webserver Terminated the WebServer
+
+
+  1) [local-synthetic-chromium] › e2e/physiology-review.spec.ts:3:1 › synthetic import, edit, local save, reload and actual staff report codec
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+      - navigating to "http://localhost:8080/auth", waiting until "load"
+
+
+       7 |     return ["localhost", "127.0.0.1"].includes(url.hostname) ? route.continue() : route.abort();
+       8 |   });
+    >  9 |   await page.goto("/auth");
+         |              ^
+      10 |   await page.evaluate(async () => {
+      11 |     const { createEmptyLabExtract } = await import("/src/lib/labImport/types.ts");
+      12 |     const { mapExtractToSnapshot, applyFieldEdits } = await import("/src/lib/labImport/snapshotMapper.ts");
+        at /workspace/tfclab-v2/e2e/physiology-review.spec.ts:9:14
+
+    Error Context: test-results/physiology-review-syntheti-ed941-d-actual-staff-report-codec-local-synthetic-chromium/error-context.md
+
+  1 failed
+    [local-synthetic-chromium] › e2e/physiology-review.spec.ts:3:1 › synthetic import, edit, local save, reload and actual staff report codec

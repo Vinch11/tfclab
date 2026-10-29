@@ -334,14 +334,14 @@ export function generateVLamaxScenarios(params: {
   const { centralValue, confidence, source = 'estimation' } = params;
   
   // Données labo = très fiable, scénario unique
-  const isLabMeasured = source === 'test_labo' && confidence >= 0.9;
+  const isLegacyLabCategory = source === 'test_labo' && confidence >= 0.9;
   
-  if (isLabMeasured) {
+  if (isLegacyLabCategory) {
     const labScenario: VLamaxScenario = {
       value: centralValue,
       range: [centralValue - 0.02, centralValue + 0.02], // ±0.02 pour erreur de mesure
       successProbability: 0.98,
-      label: 'VLamax mesurée (labo lactate)',
+      label: 'Référence stockée — plage heuristique, qualification inconnue',
     };
     
     return {

@@ -629,7 +629,7 @@ function AthleteProfileBadge({ profile }: { profile: AthleteProfileData | null }
   const getSourceLabel = (source: "test" | "snapshot" | "unknown") => {
     switch (source) {
       case "test": return "Test terrain";
-      case "snapshot": return "Mesure labo";
+      case "snapshot": return "Référence stockée ; qualification inconnue";
       default: return "Inconnue";
     }
   };
@@ -921,7 +921,7 @@ function GoalDateSuggester() {
         vlamaxDate = testsWithVlamax[0].date;
       }
     } else if (vlamax !== null) {
-      vlamaxConfidence = 0.95; // Snapshot = mesure directe
+      vlamaxConfidence = 0.95; // Convention numérique interne héritée ; aucune preuve de mesure directe
       vlamaxSource = "snapshot";
       vlamaxDate = activeSnapshot?.date ?? null;
     }

@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL, VLA_HEURISTIC_NOTICE, scientificReferenceLabel, scientificUncertaintyLabel } from "@/lib/scientificQualification";
 /**
  * WorkoutRecommendationsPanel — Two For Coaching Lab
  * Affiche les recommandations Wahoo/Zwift basées sur les indices physiologiques
@@ -58,6 +59,7 @@ import {
 // =============================================
 
 interface WorkoutRecommendationsPanelProps {
+  athleteId?: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
   fatigueEffectif: FatigueEffectif;
@@ -214,6 +216,8 @@ Indices liés: ${recommendation.linked_indices.join(", ")}
 // =============================================
 
 interface IndicesSummaryProps {
+  athleteId?: string;
+  discipline?: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
   fatigueEffectif: FatigueEffectif;
@@ -221,6 +225,8 @@ interface IndicesSummaryProps {
 }
 
 function IndicesSummary({
+  athleteId,
+  discipline,
   vlamaxEffectif,
   tteEffectif,
   fatigueEffectif,
@@ -236,7 +242,7 @@ function IndicesSummary({
         <p className="text-sm font-mono font-bold">
           {vlamaxEffectif.value?.toFixed(2) || "—"}
         </p>
-        <p className="text-[10px] text-muted-foreground">{vlamaxEffectif.label}</p>
+        <p className="text-[10px] text-muted-foreground">{scientificReferenceLabel(vlamaxEffectif.scientificQualification, vlamaxEffectif.value, discipline, athleteId)} — {VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(vlamaxEffectif.scientificQualification, vlamaxEffectif.value, discipline, athleteId)}</p>
       </div>
 
       <div className="text-center">
@@ -274,6 +280,7 @@ function IndicesSummary({
 // =============================================
 
 export function WorkoutRecommendationsPanel({
+  athleteId,
   vlamaxEffectif,
   tteEffectif,
   fatigueEffectif,
@@ -343,6 +350,8 @@ export function WorkoutRecommendationsPanel({
       <CardContent className="space-y-4">
         {/* Résumé des indices */}
         <IndicesSummary
+          athleteId={athleteId}
+          discipline={sportFocus === "run" ? "run" : "bike"}
           vlamaxEffectif={vlamaxEffectif}
           tteEffectif={tteEffectif}
           fatigueEffectif={fatigueEffectif}

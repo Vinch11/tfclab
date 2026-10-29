@@ -99,10 +99,10 @@ export function LabAthleteValidator() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FlaskConical className="w-5 h-5 text-primary" />
-          Valider mon athlète (mesure labo)
+          Comparer une référence physiologique déclarée
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          Saisis les valeurs <strong>mesurées en laboratoire</strong> (VLamax + MLSS, +CE pour la course). Le moteur calcule l'écart instantané vs les modèles TFCL.
+          Le lactate sanguin peut être mesuré ; la VLamax est calculée ou estimée à partir d’un protocole et de mesures. Une référence saisie ou importée n’est pas automatiquement validée scientifiquement. La comparaison aux modèles ne valide pas un individu.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -119,7 +119,7 @@ export function LabAthleteValidator() {
             <Input value={athleteName} onChange={(e) => setAthleteName(e.target.value)} placeholder="Nom" />
           </div>
           <div>
-            <Label className="text-xs">VLamax mesurée</Label>
+            <Label className="text-xs">VLamax de référence déclarée</Label>
             <Input type="number" step="0.01" value={vlamax} onChange={(e) => setVlamax(e.target.value)} placeholder="ex: 0.55" />
             <p className="text-[10px] text-muted-foreground mt-1">mmol/L/s</p>
           </div>

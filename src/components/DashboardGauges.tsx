@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL } from "@/lib/scientificQualification";
 // =============================================
 // DASHBOARD GAUGES - Résumé visuel compact avec ScoreEnvelope
 // =============================================
@@ -195,6 +196,8 @@ interface DashboardGaugesLegacyProps {
 
 // Mode ScoreEnvelope: données enrichies
 interface DashboardGaugesEnvelopeProps {
+  athleteId?: string;
+  discipline?: string;
   vlamaxEnvelope: ScoreEnvelope;
   tteEnvelope: ScoreEnvelope;
   potentielPhysiologiqueEnvelope: ScoreEnvelope;
@@ -219,7 +222,7 @@ function isEnvelopeMode(props: DashboardGaugesProps): props is DashboardGaugesEn
 export function DashboardGauges(props: DashboardGaugesProps) {
   // Mode avec ScoreEnvelope (nouveau)
   if (isEnvelopeMode(props)) {
-    const { vlamaxEnvelope, tteEnvelope, potentielPhysiologiqueEnvelope, ftp, ftpKg, vo2max, mode = "athlete" } = props;
+    const { athleteId, discipline, vlamaxEnvelope, tteEnvelope, potentielPhysiologiqueEnvelope, ftp, ftpKg, vo2max, mode = "athlete" } = props;
     
     return (
       <div className="glass-card p-3 sm:p-5 md:p-6">
@@ -232,19 +235,25 @@ export function DashboardGauges(props: DashboardGaugesProps) {
         
         {/* Cartes ScoreEnvelope unifiées — always 3 cols */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-6">
-          <ScoreEnvelopeCard 
+          <ScoreEnvelopeCard
+            athleteId={athleteId}
+            discipline={discipline}
             envelope={vlamaxEnvelope} 
             mode={mode} 
             showHelp={true}
             compact={false}
           />
-          <ScoreEnvelopeCard 
+          <ScoreEnvelopeCard
+            athleteId={athleteId}
+            discipline={discipline}
             envelope={tteEnvelope} 
             mode={mode} 
             showHelp={true}
             compact={false}
           />
-          <ScoreEnvelopeCard 
+          <ScoreEnvelopeCard
+            athleteId={athleteId}
+            discipline={discipline}
             envelope={potentielPhysiologiqueEnvelope} 
             mode={mode} 
             showHelp={true}
@@ -280,7 +289,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
             <div className="text-center min-w-0">
               <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-                VLamax: {vlamaxEnvelope.source === "MEASURED" ? "🧪" : vlamaxEnvelope.source === "ESTIMATED" ? "🏃" : "📐"} {vlamaxEnvelope.source === "MEASURED" ? "Labo" : vlamaxEnvelope.source === "ESTIMATED" ? "Terrain" : "Estim."}
+                VLamax : {vlamaxEnvelope.source === "UNKNOWN" || vlamaxEnvelope.source === "MEASURED" ? "qualification inconnue" : "valeur dérivée, non mesurée directement"}
               </span>
             </div>
             <div className="text-center min-w-0">
@@ -344,7 +353,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
           unit="mmol/L/s"
           icon={<Zap className={cn("w-3 h-3 sm:w-4 sm:h-4", vlamaxVal > 0 ? "text-current" : "text-muted-foreground")} />}
           color={vlamaxVal > 0 ? getVlamaxColor() : "primary"}
-          sublabel={vlamax.label}
+          sublabel={UNKNOWN_VLAMAX_LABEL}
           inverted={true}
         />
         
@@ -399,7 +408,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
         <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
           <div className="text-center min-w-0">
             <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-              VLamax: {vlamax.label || "📐 Estim."}
+              VLamax: {UNKNOWN_VLAMAX_LABEL}
             </span>
           </div>
           <div className="text-center min-w-0">

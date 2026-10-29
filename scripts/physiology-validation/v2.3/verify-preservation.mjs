@@ -1,0 +1,25 @@
+import fs from 'node:fs';
+import cp from 'node:child_process';
+import ts from 'typescript';
+import crypto from 'node:crypto';
+const sha='4d8c788fa94c870c6dd327583c1e256b32f2bdf8';
+const original=p=>cp.execFileSync('git',['show',sha+':'+p],{encoding:'utf8'});
+const file='src/lib/v2/vlamaxV2Engine.ts',previous=original(file),current=fs.readFileSync(file,'utf8');
+const parse=s=>ts.createSourceFile(file,s,ts.ScriptTarget.Latest,true),a=parse(previous),b=parse(current);
+const funcs=s=>Object.fromEntries(s.statements.filter(ts.isFunctionDeclaration).map(n=>[n.name.text,n.getText(s)]));
+const fa=funcs(a),fb=funcs(b),names=['clampVLamax','applyEWMA','shouldSmooth','computeConfidenceScore','computeErrorMargin','detectVariation'];
+for(const name of names)if(!fa[name]||fa[name]!==fb[name])throw Error(name+' changed');
+const vars=s=>{const o={};const walk=n=>{if(ts.isVariableDeclaration(n)&&ts.isIdentifier(n.name)&&n.initializer)o[n.name.text]=n.initializer.getText(s);ts.forEachChild(n,walk);};walk(s);return o;};
+const va=vars(a),vb=vars(b),keys=['PHYSIOLOGICAL_BOUNDS','BASE_ERROR_MARGINS','VARIATION_THRESHOLD','EWMA_ALPHA','clamped','smooth','effective','confidence','errorMargin','bounds','range','variation','isLocked'],verified=[];
+for(const k of keys)if(va[k]!==undefined){if(va[k]!==vb[k])throw Error(k+' changed');verified.push(k);}
+const p='src/lib/v2/vlamaxCapEstimator.ts',old=original(p),now=fs.readFileSync(p,'utf8');
+if(old.replace('`VLamax mesurée: ${vlamaxRunMeasured.toFixed(2)}. `','`Référence VLamax déclarée: ${vlamaxRunMeasured.toFixed(2)} ; méthode à qualifier. `')!==now)throw Error('Unexpected estimator modification');
+const scenario='src/lib/v2/scenarioEngine.ts';
+if(original(scenario).replace('const isLabMeasured =','const isLegacyLabCategory =').replace('if (isLabMeasured)','if (isLegacyLabCategory)').replace("'VLamax mesurée (labo lactate)'","'Référence stockée — plage heuristique, qualification inconnue'")!==fs.readFileSync(scenario,'utf8'))throw Error('Scenario mathematics changed');
+const pacing='src/lib/v2/pacingDisciplineRules.ts';
+if(original(pacing).replace('"VLamax mesurée" : "VLamax défaut"','"VLamax de référence, qualification séparée" : "VLamax défaut"')!==fs.readFileSync(pacing,'utf8'))throw Error('Sporting rules changed');
+const orig=JSON.parse(fs.readFileSync('docs/physiology-validation/v2.2/evidence/preserved-scientific-core.json','utf8'));
+const core=orig.files.map(r=>({path:r.path,referenceSha256:r.sha256,currentSha256:crypto.createHash('sha256').update(fs.readFileSync(r.path)).digest('hex')}));
+if(core.filter(r=>r.referenceSha256!==r.currentSha256).length!==1)throw Error('Unexpected core difference');
+fs.writeFileSync('docs/physiology-validation/v2.3/evidence/scientific-numeric-preservation.json',JSON.stringify({reference:sha,exactFunctions:names,exactNumericInitializers:verified,estimatorOnlyDocumentedStringChange:true,scenarioOnlyIdentifierAndLabelChange:true,sportingRulesOnlyLabelChange:true,core},null,2)+'\n');
+console.log('Unchanged mathematical functions:',names.length,'; unchanged numeric initializers:',verified.length,'; 11 core files byte-identical, 1 documentary label only.');

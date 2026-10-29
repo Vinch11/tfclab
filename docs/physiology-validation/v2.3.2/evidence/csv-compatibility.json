@@ -1,0 +1,20 @@
+{
+  "rows": 15,
+  "oldToNew": {
+    "date": "record_date_declared",
+    "athlete_id": "athlete_id",
+    "athlete_name": "athlete_name",
+    "tier": "legacy_internal_quality_tier_NOT_scientific_method",
+    "protocol_quality": "protocol_quality_declared",
+    "vlamax_measured_mmolLs": "vlamax_reference_declared_mmolLs",
+    "sprint15s_distance_m": "sprint15s_distance_m",
+    "running_power_max_w": "running_power_max_w",
+    "vma_kmh": "vma_kmh",
+    "pace_threshold_sec_per_km": "pace_threshold_sec_per_km",
+    "predicted_vlamax": "predicted_vlamax",
+    "delta_vlamax": "delta_vlamax"
+  },
+  "allMappedValuesExact": true,
+  "allUnknownWithoutEvidence": true,
+  "notes": "V1 replaced quotes and newlines; V2 preserves original raw notes losslessly with CSV escaping. No stored note rewritten."
+}

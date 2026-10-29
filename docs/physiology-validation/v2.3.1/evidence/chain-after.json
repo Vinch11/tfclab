@@ -1,0 +1,807 @@
+{
+  "syntheticOnly": true,
+  "rows": [
+    {
+      "text": "",
+      "resolver": {
+        "value": 0.42,
+        "source": "run",
+        "sport": "run",
+        "reason": "ok",
+        "confidence": 0.4,
+        "scientificQualification": {
+          "value": 0.42,
+          "evidence": null,
+          "status": "unknown",
+          "nature": "unknown",
+          "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+          "subjectId": null,
+          "quantity": "vlamax",
+          "discipline": "run",
+          "unit": "mmol/L/s",
+          "method": null,
+          "observedAt": null,
+          "sourceRef": null,
+          "uncertainty": null,
+          "uncertaintyStatus": "unknown",
+          "admissibility": "not_established",
+          "individualValidityEstablished": false,
+          "individualDoseApproved": false,
+          "reasons": [
+            "missing_or_incompatible_subject_quantity_discipline_unit_value",
+            "missing_method_observation_date_or_identifiable_source",
+            "method_kind_not_documented"
+          ]
+        }
+      },
+      "cycle": {
+        "id": "synthetic:snapshot",
+        "date": "2026-10-20",
+        "vo2max": null,
+        "vlamax": 0.42,
+        "vlamaxQualification": {
+          "value": 0.42,
+          "evidence": null,
+          "status": "unknown",
+          "nature": "unknown",
+          "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+          "subjectId": null,
+          "quantity": "vlamax",
+          "discipline": "run",
+          "unit": "mmol/L/s",
+          "method": null,
+          "observedAt": null,
+          "sourceRef": null,
+          "uncertainty": null,
+          "uncertaintyStatus": "unknown",
+          "admissibility": "not_established",
+          "individualValidityEstablished": false,
+          "individualDoseApproved": false,
+          "reasons": [
+            "missing_or_incompatible_subject_quantity_discipline_unit_value",
+            "missing_method_observation_date_or_identifiable_source",
+            "method_kind_not_documented"
+          ]
+        },
+        "ftp": null,
+        "weight_kg": null,
+        "tte_observed_min": null,
+        "tss_7d": null,
+        "run_hr_drift_pct": null,
+        "run_economy_score": null,
+        "pace_threshold_sec_per_km": 235,
+        "vma": 18,
+        "objectif": "10 km",
+        "fatigue_state": null
+      },
+      "diagnostic": {
+        "value": 0.42,
+        "confidence": 0.5,
+        "category": "estimation",
+        "qualification": {
+          "value": 0.42,
+          "evidence": null,
+          "status": "unknown",
+          "nature": "unknown",
+          "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+          "subjectId": null,
+          "quantity": "vlamax",
+          "discipline": "run",
+          "unit": "mmol/L/s",
+          "method": null,
+          "observedAt": null,
+          "sourceRef": null,
+          "uncertainty": null,
+          "uncertaintyStatus": "unknown",
+          "admissibility": "not_established",
+          "individualValidityEstablished": false,
+          "individualDoseApproved": false,
+          "reasons": [
+            "missing_or_incompatible_subject_quantity_discipline_unit_value",
+            "missing_method_observation_date_or_identifiable_source",
+            "method_kind_not_documented"
+          ]
+        },
+        "limiter": {
+          "primaryLimiter": "aerobic_engine",
+          "limiterLabel": "Moteur aérobie",
+          "limiterEmoji": "🫁",
+          "limiterExplanation": "Le plafond aérobie (VO2max / VMA ou FTP) limite la performance. → Capacité (VO₂max) ET Expression (FTP/kg) insuffisantes",
+          "fatigueWarning": {
+            "active": false,
+            "level": null,
+            "message": null
+          },
+          "insufficientData": false,
+          "insufficientDataMessage": null,
+          "missingMetrics": [
+            "W'",
+            "FatMax"
+          ],
+          "aerobicWeaknessDetail": "both_low",
+          "aerobicWeaknessLabel": "Capacité (VO₂max) ET Expression (FTP/kg) insuffisantes",
+          "primaryLever": "increase_vo2max",
+          "leverLabel": "↑ VO2max",
+          "leverEmoji": "📈",
+          "secondaryLimiter": "specific_endurance",
+          "secondaryLimiterLabel": "Endurance spécifique",
+          "secondaryLever": "increase_tte",
+          "secondaryLeverLabel": "↑ TTE",
+          "severity": "moderate",
+          "gapAnalysis": [
+            {
+              "metric": "FTP/kg",
+              "value": 3.888888888888889,
+              "target": 4.8,
+              "gap": -0.911111111111111,
+              "gapPercent": -18.98148148148148,
+              "status": "limiting",
+              "weight": 0.9,
+              "weightedImpact": 17.083333333333332
+            },
+            {
+              "metric": "VO2max",
+              "value": 58,
+              "target": 70.1,
+              "gap": -12.099999999999994,
+              "gapPercent": -17.261055634807413,
+              "status": "limiting",
+              "weight": 0.81,
+              "weightedImpact": 13.981455064194007
+            },
+            {
+              "metric": "VLamax",
+              "value": 0.42,
+              "target": 0.36,
+              "gap": 0.06,
+              "gapPercent": 16.666666666666664,
+              "status": "acceptable",
+              "weight": 0.85,
+              "weightedImpact": 14.166666666666666
+            },
+            {
+              "metric": "W' (kJ)",
+              "measurementDiscipline": "bike",
+              "prescriptionApplicable": false,
+              "prescriptionNote": "Indicateur cycliste conservé au bilan ; ne guide pas la prescription CAP.",
+              "value": null,
+              "target": 24,
+              "gap": 0,
+              "gapPercent": 0,
+              "status": "unknown",
+              "weight": 0.55,
+              "weightedImpact": 0
+            },
+            {
+              "metric": "TTE",
+              "value": 45,
+              "target": 60,
+              "gap": -15,
+              "gapPercent": -25,
+              "status": "limiting",
+              "weight": 0.85,
+              "weightedImpact": 21.25
+            },
+            {
+              "metric": "FatMax",
+              "value": null,
+              "target": 60,
+              "gap": 0,
+              "gapPercent": 0,
+              "status": "unknown",
+              "weight": 0.8,
+              "weightedImpact": 0
+            },
+            {
+              "metric": "Économie",
+              "value": 3,
+              "target": 70,
+              "gap": -67,
+              "gapPercent": -95.71428571428572,
+              "status": "limiting",
+              "weight": 0.7,
+              "weightedImpact": 0
+            }
+          ],
+          "categoryRanking": [
+            {
+              "category": "aerobic_power",
+              "metrics": [
+                {
+                  "metric": "FTP/kg",
+                  "value": 3.888888888888889,
+                  "target": 4.8,
+                  "gap": -0.911111111111111,
+                  "gapPercent": -18.98148148148148,
+                  "status": "limiting",
+                  "weight": 0.9,
+                  "weightedImpact": 17.083333333333332
+                },
+                {
+                  "metric": "VO2max",
+                  "value": 58,
+                  "target": 70.1,
+                  "gap": -12.099999999999994,
+                  "gapPercent": -17.261055634807413,
+                  "status": "limiting",
+                  "weight": 0.81,
+                  "weightedImpact": 13.981455064194007
+                }
+              ],
+              "worstGap": -12.099999999999994,
+              "sumImpact": 31.064788397527337,
+              "dominantImpact": 17.083333333333332,
+              "totalImpact": 22.675915359010936
+            },
+            {
+              "category": "metabolic_endurance",
+              "metrics": [
+                {
+                  "metric": "TTE",
+                  "value": 45,
+                  "target": 60,
+                  "gap": -15,
+                  "gapPercent": -25,
+                  "status": "limiting",
+                  "weight": 0.85,
+                  "weightedImpact": 21.25
+                }
+              ],
+              "worstGap": -15,
+              "sumImpact": 21.25,
+              "dominantImpact": 21.25,
+              "totalImpact": 21.25
+            },
+            {
+              "category": "neuromuscular",
+              "metrics": [
+                {
+                  "metric": "Économie",
+                  "value": 3,
+                  "target": 70,
+                  "gap": -67,
+                  "gapPercent": -95.71428571428572,
+                  "status": "limiting",
+                  "weight": 0.7,
+                  "weightedImpact": 0
+                }
+              ],
+              "worstGap": -67,
+              "sumImpact": 0,
+              "dominantImpact": 0,
+              "totalImpact": 0
+            }
+          ],
+          "isRobust": true,
+          "robustnessScore": 70.83333333333334,
+          "robustnessNote": "Décision claire — facteur limitant nettement identifié",
+          "confidence": 0.6666666666666666,
+          "confidenceLabel": "Élevée",
+          "targetsUsed": {
+            "vlamax": {
+              "min": 0.25,
+              "max": 0.4,
+              "optimal": 0.3
+            },
+            "tte_min": 61,
+            "ftp_kg_min": 4.9,
+            "charge_optimale": 562,
+            "nutrition_bike_gph": {
+              "min": 95,
+              "max": 116
+            },
+            "nutrition_run_gph": {
+              "min": 63,
+              "max": 84
+            }
+          },
+          "version": "1.2.0"
+        },
+        "readiness": {
+          "potential": {
+            "score": 61,
+            "confidence": 0.9,
+            "sources": {
+              "aerobic": {
+                "value": 81.01851851851852,
+                "type": "modeled"
+              },
+              "tolerance": {
+                "value": 75,
+                "type": "modeled"
+              },
+              "metabolic": {
+                "value": 83.33333333333334,
+                "type": "modeled"
+              },
+              "robustness": {
+                "value": 4.285714285714278,
+                "type": "modeled"
+              }
+            },
+            "mainStrength": null,
+            "mainLimitation": "Moteur aérobie",
+            "explanation": "En Progression"
+          },
+          "availability": {
+            "score": 80,
+            "confidence": 0.5,
+            "factors": [],
+            "alerts": [],
+            "recommendation": "Module disponibilité retiré"
+          },
+          "readiness": {
+            "score": 61,
+            "rawScore": 61,
+            "category": "in_progress",
+            "categoryLabel": "En progression",
+            "categoryEmoji": "🟠",
+            "confidenceGlobal": 0.9,
+            "confidenceLabel": "Indicatif"
+          },
+          "flags": {
+            "healthAlert": false,
+            "injuryRiskHigh": false,
+            "fatigueCritical": false,
+            "dataIncomplete": false
+          },
+          "penalties": {
+            "total": 0,
+            "reasons": []
+          },
+          "explanation": {
+            "why": "En Progression",
+            "watchouts": [
+              "Moteur aérobie"
+            ],
+            "suggestedFocus": []
+          },
+          "weights": {
+            "potential": 1,
+            "availability": 0
+          },
+          "timestamp": "2026-10-29T20:58:02.599Z",
+          "version": "stub-2.1",
+          "disclaimer": "Potentiel Physiologique module removed — scores based on physiological potential only."
+        }
+      },
+      "planning": {
+        "value": 0.42,
+        "unit": "mmol/L/s",
+        "discipline": "run",
+        "method": null,
+        "date": null,
+        "scientificOrigin": "unknown",
+        "storageSource": null,
+        "confidence": 0.5,
+        "confidenceBasis": "heuristic",
+        "errorMargin": 0.06,
+        "scientificQualification": {
+          "value": 0.42,
+          "evidence": null,
+          "status": "unknown",
+          "nature": "unknown",
+          "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+          "subjectId": null,
+          "quantity": "vlamax",
+          "discipline": "run",
+          "unit": "mmol/L/s",
+          "method": null,
+          "observedAt": null,
+          "sourceRef": null,
+          "uncertainty": null,
+          "uncertaintyStatus": "unknown",
+          "admissibility": "not_established",
+          "individualValidityEstablished": false,
+          "individualDoseApproved": false,
+          "reasons": [
+            "missing_or_incompatible_subject_quantity_discipline_unit_value",
+            "missing_method_observation_date_or_identifiable_source",
+            "method_kind_not_documented"
+          ]
+        }
+      }
+    },
+    {
+      "text": "Aucune mesure labo, valeur coach inconnue",
+      "resolver": {
+        "value": 0.42,
+        "source": "run",
+        "sport": "run",
+        "reason": "ok",
+        "confidence": 0.4,
+        "scientificQualification": {
+          "value": 0.42,
+          "evidence": null,
+          "status": "unknown",
+          "nature": "unknown",
+          "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+          "subjectId": null,
+          "quantity": "vlamax",
+          "discipline": "run",
+          "unit": "mmol/L/s",
+          "method": null,
+          "observedAt": null,
+          "sourceRef": null,
+          "uncertainty": null,
+          "uncertaintyStatus": "unknown",
+          "admissibility": "not_established",
+          "individualValidityEstablished": false,
+          "individualDoseApproved": false,
+          "reasons": [
+            "missing_or_incompatible_subject_quantity_discipline_unit_value",
+            "missing_method_observation_date_or_identifiable_source",
+            "method_kind_not_documented"
+          ]
+        }
+      },
+      "cycle": {
+        "id": "synthetic:snapshot",
+        "date": "2026-10-20",
+        "vo2max": null,
+        "vlamax": 0.42,
+        "vlamaxQualification": {
+          "value": 0.42,
+          "evidence": null,
+          "status": "unknown",
+          "nature": "unknown",
+          "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+          "subjectId": null,
+          "quantity": "vlamax",
+          "discipline": "run",
+          "unit": "mmol/L/s",
+          "method": null,
+          "observedAt": null,
+          "sourceRef": null,
+          "uncertainty": null,
+          "uncertaintyStatus": "unknown",
+          "admissibility": "not_established",
+          "individualValidityEstablished": false,
+          "individualDoseApproved": false,
+          "reasons": [
+            "missing_or_incompatible_subject_quantity_discipline_unit_value",
+            "missing_method_observation_date_or_identifiable_source",
+            "method_kind_not_documented"
+          ]
+        },
+        "ftp": null,
+        "weight_kg": null,
+        "tte_observed_min": null,
+        "tss_7d": null,
+        "run_hr_drift_pct": null,
+        "run_economy_score": null,
+        "pace_threshold_sec_per_km": 235,
+        "vma": 18,
+        "objectif": "10 km",
+        "fatigue_state": null
+      },
+      "diagnostic": {
+        "value": 0.42,
+        "confidence": 0.5,
+        "category": "estimation",
+        "qualification": {
+          "value": 0.42,
+          "evidence": null,
+          "status": "unknown",
+          "nature": "unknown",
+          "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+          "subjectId": null,
+          "quantity": "vlamax",
+          "discipline": "run",
+          "unit": "mmol/L/s",
+          "method": null,
+          "observedAt": null,
+          "sourceRef": null,
+          "uncertainty": null,
+          "uncertaintyStatus": "unknown",
+          "admissibility": "not_established",
+          "individualValidityEstablished": false,
+          "individualDoseApproved": false,
+          "reasons": [
+            "missing_or_incompatible_subject_quantity_discipline_unit_value",
+            "missing_method_observation_date_or_identifiable_source",
+            "method_kind_not_documented"
+          ]
+        },
+        "limiter": {
+          "primaryLimiter": "aerobic_engine",
+          "limiterLabel": "Moteur aérobie",
+          "limiterEmoji": "🫁",
+          "limiterExplanation": "Le plafond aérobie (VO2max / VMA ou FTP) limite la performance. → Capacité (VO₂max) ET Expression (FTP/kg) insuffisantes",
+          "fatigueWarning": {
+            "active": false,
+            "level": null,
+            "message": null
+          },
+          "insufficientData": false,
+          "insufficientDataMessage": null,
+          "missingMetrics": [
+            "W'",
+            "FatMax"
+          ],
+          "aerobicWeaknessDetail": "both_low",
+          "aerobicWeaknessLabel": "Capacité (VO₂max) ET Expression (FTP/kg) insuffisantes",
+          "primaryLever": "increase_vo2max",
+          "leverLabel": "↑ VO2max",
+          "leverEmoji": "📈",
+          "secondaryLimiter": "specific_endurance",
+          "secondaryLimiterLabel": "Endurance spécifique",
+          "secondaryLever": "increase_tte",
+          "secondaryLeverLabel": "↑ TTE",
+          "severity": "moderate",
+          "gapAnalysis": [
+            {
+              "metric": "FTP/kg",
+              "value": 3.888888888888889,
+              "target": 4.8,
+              "gap": -0.911111111111111,
+              "gapPercent": -18.98148148148148,
+              "status": "limiting",
+              "weight": 0.9,
+              "weightedImpact": 17.083333333333332
+            },
+            {
+              "metric": "VO2max",
+              "value": 58,
+              "target": 70.1,
+              "gap": -12.099999999999994,
+              "gapPercent": -17.261055634807413,
+              "status": "limiting",
+              "weight": 0.81,
+              "weightedImpact": 13.981455064194007
+            },
+            {
+              "metric": "VLamax",
+              "value": 0.42,
+              "target": 0.36,
+              "gap": 0.06,
+              "gapPercent": 16.666666666666664,
+              "status": "acceptable",
+              "weight": 0.85,
+              "weightedImpact": 14.166666666666666
+            },
+            {
+              "metric": "W' (kJ)",
+              "measurementDiscipline": "bike",
+              "prescriptionApplicable": false,
+              "prescriptionNote": "Indicateur cycliste conservé au bilan ; ne guide pas la prescription CAP.",
+              "value": null,
+              "target": 24,
+              "gap": 0,
+              "gapPercent": 0,
+              "status": "unknown",
+              "weight": 0.55,
+              "weightedImpact": 0
+            },
+            {
+              "metric": "TTE",
+              "value": 45,
+              "target": 60,
+              "gap": -15,
+              "gapPercent": -25,
+              "status": "limiting",
+              "weight": 0.85,
+              "weightedImpact": 21.25
+            },
+            {
+              "metric": "FatMax",
+              "value": null,
+              "target": 60,
+              "gap": 0,
+              "gapPercent": 0,
+              "status": "unknown",
+              "weight": 0.8,
+              "weightedImpact": 0
+            },
+            {
+              "metric": "Économie",
+              "value": 3,
+              "target": 70,
+              "gap": -67,
+              "gapPercent": -95.71428571428572,
+              "status": "limiting",
+              "weight": 0.7,
+              "weightedImpact": 0
+            }
+          ],
+          "categoryRanking": [
+            {
+              "category": "aerobic_power",
+              "metrics": [
+                {
+                  "metric": "FTP/kg",
+                  "value": 3.888888888888889,
+                  "target": 4.8,
+                  "gap": -0.911111111111111,
+                  "gapPercent": -18.98148148148148,
+                  "status": "limiting",
+                  "weight": 0.9,
+                  "weightedImpact": 17.083333333333332
+                },
+                {
+                  "metric": "VO2max",
+                  "value": 58,
+                  "target": 70.1,
+                  "gap": -12.099999999999994,
+                  "gapPercent": -17.261055634807413,
+                  "status": "limiting",
+                  "weight": 0.81,
+                  "weightedImpact": 13.981455064194007
+                }
+              ],
+              "worstGap": -12.099999999999994,
+              "sumImpact": 31.064788397527337,
+              "dominantImpact": 17.083333333333332,
+              "totalImpact": 22.675915359010936
+            },
+            {
+              "category": "metabolic_endurance",
+              "metrics": [
+                {
+                  "metric": "TTE",
+                  "value": 45,
+                  "target": 60,
+                  "gap": -15,
+                  "gapPercent": -25,
+                  "status": "limiting",
+                  "weight": 0.85,
+                  "weightedImpact": 21.25
+                }
+              ],
+              "worstGap": -15,
+              "sumImpact": 21.25,
+              "dominantImpact": 21.25,
+              "totalImpact": 21.25
+            },
+            {
+              "category": "neuromuscular",
+              "metrics": [
+                {
+                  "metric": "Économie",
+                  "value": 3,
+                  "target": 70,
+                  "gap": -67,
+                  "gapPercent": -95.71428571428572,
+                  "status": "limiting",
+                  "weight": 0.7,
+                  "weightedImpact": 0
+                }
+              ],
+              "worstGap": -67,
+              "sumImpact": 0,
+              "dominantImpact": 0,
+              "totalImpact": 0
+            }
+          ],
+          "isRobust": true,
+          "robustnessScore": 70.83333333333334,
+          "robustnessNote": "Décision claire — facteur limitant nettement identifié",
+          "confidence": 0.6666666666666666,
+          "confidenceLabel": "Élevée",
+          "targetsUsed": {
+            "vlamax": {
+              "min": 0.25,
+              "max": 0.4,
+              "optimal": 0.3
+            },
+            "tte_min": 61,
+            "ftp_kg_min": 4.9,
+            "charge_optimale": 562,
+            "nutrition_bike_gph": {
+              "min": 95,
+              "max": 116
+            },
+            "nutrition_run_gph": {
+              "min": 63,
+              "max": 84
+            }
+          },
+          "version": "1.2.0"
+        },
+        "readiness": {
+          "potential": {
+            "score": 61,
+            "confidence": 0.9,
+            "sources": {
+              "aerobic": {
+                "value": 81.01851851851852,
+                "type": "modeled"
+              },
+              "tolerance": {
+                "value": 75,
+                "type": "modeled"
+              },
+              "metabolic": {
+                "value": 83.33333333333334,
+                "type": "modeled"
+              },
+              "robustness": {
+                "value": 4.285714285714278,
+                "type": "modeled"
+              }
+            },
+            "mainStrength": null,
+            "mainLimitation": "Moteur aérobie",
+            "explanation": "En Progression"
+          },
+          "availability": {
+            "score": 80,
+            "confidence": 0.5,
+            "factors": [],
+            "alerts": [],
+            "recommendation": "Module disponibilité retiré"
+          },
+          "readiness": {
+            "score": 61,
+            "rawScore": 61,
+            "category": "in_progress",
+            "categoryLabel": "En progression",
+            "categoryEmoji": "🟠",
+            "confidenceGlobal": 0.9,
+            "confidenceLabel": "Indicatif"
+          },
+          "flags": {
+            "healthAlert": false,
+            "injuryRiskHigh": false,
+            "fatigueCritical": false,
+            "dataIncomplete": false
+          },
+          "penalties": {
+            "total": 0,
+            "reasons": []
+          },
+          "explanation": {
+            "why": "En Progression",
+            "watchouts": [
+              "Moteur aérobie"
+            ],
+            "suggestedFocus": []
+          },
+          "weights": {
+            "potential": 1,
+            "availability": 0
+          },
+          "timestamp": "2026-10-29T20:58:02.603Z",
+          "version": "stub-2.1",
+          "disclaimer": "Potentiel Physiologique module removed — scores based on physiological potential only."
+        }
+      },
+      "planning": {
+        "value": 0.42,
+        "unit": "mmol/L/s",
+        "discipline": "run",
+        "method": null,
+        "date": null,
+        "scientificOrigin": "unknown",
+        "storageSource": null,
+        "confidence": 0.5,
+        "confidenceBasis": "heuristic",
+        "errorMargin": 0.06,
+        "scientificQualification": {
+          "value": 0.42,
+          "evidence": null,
+          "status": "unknown",
+          "nature": "unknown",
+          "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+          "subjectId": null,
+          "quantity": "vlamax",
+          "discipline": "run",
+          "unit": "mmol/L/s",
+          "method": null,
+          "observedAt": null,
+          "sourceRef": null,
+          "uncertainty": null,
+          "uncertaintyStatus": "unknown",
+          "admissibility": "not_established",
+          "individualValidityEstablished": false,
+          "individualDoseApproved": false,
+          "reasons": [
+            "missing_or_incompatible_subject_quantity_discipline_unit_value",
+            "missing_method_observation_date_or_identifiable_source",
+            "method_kind_not_documented"
+          ]
+        }
+      }
+    }
+  ]
+}

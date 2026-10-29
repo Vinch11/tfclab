@@ -93,7 +93,7 @@ export function ScenarioComparisonCard<T>({
                     variant="outline" 
                     className={cn("text-[10px]", getScenarioBadgeClass(level))}
                   >
-                    {formatProbability(def.successProbability)} succès
+                    Score heuristique interne : {formatProbability(def.successProbability)} (pas une probabilité de validité individuelle)
                   </Badge>
                 </div>
                 

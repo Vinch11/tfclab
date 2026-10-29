@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL, VLA_HEURISTIC_NOTICE, scientificReferenceLabel, scientificUncertaintyLabel } from "@/lib/scientificQualification";
 /**
  * VLamaxUnifiedCard — Carte VLamax consolidée (Phase 1 UX)
  * Remplace: VLamaxV2DisplayCard, VLamaxExplainedCard, VLamaxRunExplainedCard,
@@ -231,6 +232,8 @@ export function VLamaxUnifiedCard({
   
   return (
     <Card className={cn("overflow-hidden", className)}>
+      <p className="px-4 pt-3 text-xs text-muted-foreground">{scientificReferenceLabel(vlamaxEffectif.scientificQualification, vlamax, isOnRunTab ? "run" : "bike", athleteId)}</p>
+      <p className="px-4 text-xs text-muted-foreground">{VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(vlamaxEffectif.scientificQualification, vlamax, isOnRunTab ? "run" : "bike", athleteId)}</p>
       {/* ═══ HEADER: Valeur + Zone + Confiance ═══ */}
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -246,7 +249,7 @@ export function VLamaxUnifiedCard({
               {profileConfig.label}
             </Badge>
             <Badge variant="outline" className={cn("text-xs", getConfidenceBadgeClass(vlamaxEffectif.confidence * 100))}>
-              {getConfidenceLabel(vlamaxEffectif.confidence)}
+              Score heuristique {getConfidenceLabel(vlamaxEffectif.confidence)}
             </Badge>
           </div>
         </div>
@@ -282,11 +285,11 @@ export function VLamaxUnifiedCard({
               variant="outline" 
               className={cn("text-[10px] gap-1", getV2SourceBgColor(v2Result.source), getV2SourceColor(v2Result.source))}
             >
-              {getV2SourceEmoji(v2Result.source)} {getV2SourceLabel(v2Result.source)}
+              {getV2SourceEmoji(v2Result.source)} {getV2SourceLabel(v2Result.source, v2Result.scientificQualification)}
             </Badge>
           )}
           {staffMode && v2Result && (
-            <span className="text-xs text-muted-foreground">± {v2Result.errorMargin.toFixed(2)}</span>
+            <span className="text-xs text-muted-foreground">marge heuristique interne ± {v2Result.errorMargin.toFixed(2)}</span>
           )}
         </div>
         
@@ -409,7 +412,7 @@ export function VLamaxUnifiedCard({
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-2 space-y-2 text-xs text-muted-foreground">
             <p>
-              <strong>VLamax</strong> (Vitesse maximale de production de lactate) mesure la capacité 
+              <strong>VLamax</strong> (Vitesse maximale de production de lactate) caractérise la capacité
               du système glycolytique à produire de l'énergie rapidement.
             </p>
             <div className="grid grid-cols-2 gap-2">

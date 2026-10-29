@@ -1,0 +1,1 @@
+Unchanged mathematical functions: 6 ; unchanged numeric initializers: 13 ; 11 core files byte-identical, 1 documentary label only.

@@ -1,0 +1,30 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+3:45:16 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+ ❯ src/lib/fitImport/__tests__/analyzer.test.ts (11 tests | 1 failed) 14212ms
+     × n'estime jamais l'allure seuil pour une séance vélo (garde-fou sport croisé) 5509ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/fitImport/__tests__/analyzer.test.ts > analyzeFitSession — course : détection réelle du type de test (plus de blanket UNKNOWN) > n'estime jamais l'allure seuil pour une séance vélo (garde-fou sport croisé)
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/lib/fitImport/__tests__/analyzer.test.ts:172:3
+    170|   });
+    171|
+    172|   it("n'estime jamais l'allure seuil pour une séance vélo (garde-fou s…
+       |   ^
+    173|     const bikeTest = buildSteadyPowerSession({ sport: "cycling", watts…
+    174|     const result = analyzeFitSession(bikeTest);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 399 passed (400)
+      Tests  1 failed | 3130 passed | 1 skipped | 6 todo (3138)
+   Start at  15:45:16
+   Duration  213.71s (transform 25.78s, setup 34.65s, import 128.60s, tests 196.58s, environment 178.26s)

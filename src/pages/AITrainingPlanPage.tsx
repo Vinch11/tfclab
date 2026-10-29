@@ -1,3 +1,4 @@
+import { runningEconomyCostFromSnapshot, snapshotPhysiologyEvidence } from "@/lib/physiologyEvidence";
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 import { applyCoachProfileOverrides } from "@/lib/plan/coachProfileOverrides";
@@ -115,7 +116,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { mapSnapshotToV2, mapTestToV2 } from "@/lib/mapSnapshotToV2";
 import { predictRaceDurationMin, AMBITION_LEVEL_TO_PREDICTOR } from "@/lib/raceTimePredictor";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -1164,13 +1165,7 @@ export default function AITrainingPlanPage() {
       athleteId: athlete.id,
       objectif: obj,
       activeSnapshotId: athlete.active_snapshot_id,
-      tests: athleteTests.map(t => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
+      tests: athleteTests.map(mapTestToV2),
       snapshots: athleteSnapshots.map(mapSnapshotToV2),
     });
 
@@ -1233,6 +1228,8 @@ export default function AITrainingPlanPage() {
       snapshotDate: activeSnap.date ?? null,
       fatigueState: activeSnap.fatigue_state,
       runEconomyScore: activeSnap.run_economy_score,
+      runningEconomyCostMlKgKm: runningEconomyCostFromSnapshot(activeSnap),
+      physiologicalEvidence: snapshotPhysiologyEvidence(activeSnap, refs),
       runHrDriftPct: activeSnap.run_hr_drift_pct,
       paceThresholdSecPerKm: activeSnap.pace_threshold_sec_per_km,
       runningPower1s: activeSnap.running_power_1s,

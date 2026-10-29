@@ -1,0 +1,1898 @@
+{
+  "totalErrors": 252,
+  "files": [
+    {
+      "file": "src/components/ExportTools.tsx",
+      "errorCount": 55,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1510,
+          "column": 49,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1560,
+          "column": 48,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1643,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1644,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1645,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1647,
+          "column": 44,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1648,
+          "column": 41,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1649,
+          "column": 31,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1748,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1761,
+          "column": 60,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1852,
+          "column": 38,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1993,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2122,
+          "column": 42,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2332,
+          "column": 60,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2351,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2357,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2360,
+          "column": 10,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2374,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2375,
+          "column": 42,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2381,
+          "column": 68,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2382,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2399,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2429,
+          "column": 44,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2430,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2462,
+          "column": 68,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 3277,
+          "column": 57,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 3392,
+          "column": 30,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 3394,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4033,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4034,
+          "column": 17,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4035,
+          "column": 15,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4035,
+          "column": 23,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4037,
+          "column": 42,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4057,
+          "column": 49,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4058,
+          "column": 20,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4066,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4195,
+          "column": 49,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 7696,
+          "column": 75,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8305,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8306,
+          "column": 46,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8336,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8664,
+          "column": 44,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8665,
+          "column": 61,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8716,
+          "column": 92,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8717,
+          "column": 15,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8726,
+          "column": 26,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8790,
+          "column": 14,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8800,
+          "column": 16,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8806,
+          "column": 14,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8809,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8810,
+          "column": 17,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8811,
+          "column": 15,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8811,
+          "column": 23,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 8813,
+          "column": 14,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 9892,
+          "column": 45,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/LabImportDialog.tsx",
+      "errorCount": 1,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 259,
+          "column": 12,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/RunMLSSCoherenceCard.tsx",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/components/SnapshotManager.tsx",
+      "errorCount": 26,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 169,
+          "column": 25,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 208,
+          "column": 27,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 208,
+          "column": 72,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 209,
+          "column": 27,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 209,
+          "column": 72,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 210,
+          "column": 28,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 210,
+          "column": 74,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 211,
+          "column": 28,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 211,
+          "column": 74,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 212,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 212,
+          "column": 76,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 308,
+          "column": 24,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 403,
+          "column": 24,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 816,
+          "column": 111,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 871,
+          "column": 46,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1510,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1512,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1657,
+          "column": 59,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1715,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1717,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1724,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1726,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1774,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1775,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1776,
+          "column": 84,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1776,
+          "column": 98,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/essentiels/PillarVisuals.tsx",
+      "errorCount": 6,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 111,
+          "column": 28,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 191,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 198,
+          "column": 78,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 278,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 279,
+          "column": 111,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 401,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/engines/diagnostic/computeDiagnostic.ts",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/engines/diagnostic/types.ts",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/engines/plan/planConfigBuilder.ts",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/engines/plan/prepareTrainingPlanContext.ts",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/hooks/useAITrainingPlan.ts",
+      "errorCount": 6,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 915,
+          "column": 68,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 960,
+          "column": 21,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1058,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1104,
+          "column": 68,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1113,
+          "column": 45,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1327,
+          "column": 65,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/hooks/useCloudData.ts",
+      "errorCount": 3,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 367,
+          "column": 24,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 377,
+          "column": 41,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 439,
+          "column": 87,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/hooks/useDerivedTrainingZones.ts",
+      "errorCount": 5,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 45,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 45,
+          "column": 68,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 51,
+          "column": 24,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 64,
+          "column": 60,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 76,
+          "column": 24,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/vlamaxEffectif.test.ts",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/lib/calibration/runMLSSContinuous.ts",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/lib/effectiveRefs.ts",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/lib/essentiels/computeEssentielsData.ts",
+      "errorCount": 8,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 87,
+          "column": 12,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 88,
+          "column": 14,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 89,
+          "column": 10,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 114,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 128,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 130,
+          "column": 53,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 141,
+          "column": 77,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 443,
+          "column": 72,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/lib/labImport/snapshotMapper.ts",
+      "errorCount": 0,
+      "messages": []
+    },
+    {
+      "file": "src/lib/mapSnapshotToV2.ts",
+      "errorCount": 4,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 21,
+          "column": 23,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 45,
+          "column": 26,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 46,
+          "column": 28,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 47,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/lib/v2/runMLSSTracePersistence.ts",
+      "errorCount": 4,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 157,
+          "column": 39,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 158,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 159,
+          "column": 60,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 161,
+          "column": 25,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/lib/vlamaxEffectif.ts",
+      "errorCount": 2,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 110,
+          "column": 9,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 421,
+          "column": 16,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/pages/AITrainingPlanPage.tsx",
+      "errorCount": 56,
+      "messages": [
+        {
+          "ruleId": "no-empty",
+          "severity": 2,
+          "line": 862,
+          "column": 15,
+          "message": "Empty block statement."
+        },
+        {
+          "ruleId": "no-empty",
+          "severity": 2,
+          "line": 954,
+          "column": 15,
+          "message": "Empty block statement."
+        },
+        {
+          "ruleId": "no-empty",
+          "severity": 2,
+          "line": 1034,
+          "column": 13,
+          "message": "Empty block statement."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1120,
+          "column": 59,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1127,
+          "column": 23,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1178,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1179,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1180,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1181,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1182,
+          "column": 41,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1183,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1184,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1185,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1186,
+          "column": 38,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1187,
+          "column": 42,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1194,
+          "column": 45,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1230,
+          "column": 41,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1269,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1294,
+          "column": 19,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1295,
+          "column": 17,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1295,
+          "column": 25,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1426,
+          "column": 85,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1446,
+          "column": 85,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1605,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1626,
+          "column": 79,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1627,
+          "column": 97,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1803,
+          "column": 12,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1814,
+          "column": 17,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1899,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1906,
+          "column": 41,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1997,
+          "column": 41,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2042,
+          "column": 14,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "no-empty",
+          "severity": 2,
+          "line": 2191,
+          "column": 21,
+          "message": "Empty block statement."
+        },
+        {
+          "ruleId": "no-empty",
+          "severity": 2,
+          "line": 2200,
+          "column": 17,
+          "message": "Empty block statement."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2213,
+          "column": 21,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2285,
+          "column": 29,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2300,
+          "column": 14,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2306,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2313,
+          "column": 19,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2554,
+          "column": 69,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2556,
+          "column": 65,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2632,
+          "column": 64,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "no-empty",
+          "severity": 2,
+          "line": 2899,
+          "column": 19,
+          "message": "Empty block statement."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2923,
+          "column": 47,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2936,
+          "column": 54,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2936,
+          "column": 104,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 3051,
+          "column": 19,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 3161,
+          "column": 18,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "no-empty",
+          "severity": 2,
+          "line": 3212,
+          "column": 19,
+          "message": "Empty block statement."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 3246,
+          "column": 19,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 3262,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4269,
+          "column": 85,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4371,
+          "column": 83,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "no-empty",
+          "severity": 2,
+          "line": 4517,
+          "column": 37,
+          "message": "Empty block statement."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4605,
+          "column": 101,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 4801,
+          "column": 25,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/pages/Index.tsx",
+      "errorCount": 56,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 406,
+          "column": 66,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 408,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 458,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 463,
+          "column": 14,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 470,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 497,
+          "column": 80,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 527,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 591,
+          "column": 56,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 607,
+          "column": 56,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 670,
+          "column": 47,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 671,
+          "column": 48,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 672,
+          "column": 48,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 673,
+          "column": 49,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 674,
+          "column": 53,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 681,
+          "column": 57,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 683,
+          "column": 44,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 687,
+          "column": 45,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 753,
+          "column": 53,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 789,
+          "column": 49,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 790,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 791,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 792,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 793,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 794,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 795,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 796,
+          "column": 51,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 797,
+          "column": 52,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 798,
+          "column": 56,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 811,
+          "column": 73,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 812,
+          "column": 46,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 989,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 993,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 994,
+          "column": 58,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 995,
+          "column": 61,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1033,
+          "column": 111,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1780,
+          "column": 62,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1847,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 1991,
+          "column": 60,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2004,
+          "column": 57,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2020,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2280,
+          "column": 63,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2317,
+          "column": 215,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2465,
+          "column": 37,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2470,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2471,
+          "column": 53,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2472,
+          "column": 50,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2473,
+          "column": 47,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2474,
+          "column": 47,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2521,
+          "column": 28,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2525,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2547,
+          "column": 55,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2548,
+          "column": 56,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2549,
+          "column": 56,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2550,
+          "column": 57,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2551,
+          "column": 61,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 2553,
+          "column": 48,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/pages/RunningProfilePage.tsx",
+      "errorCount": 20,
+      "messages": [
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 173,
+          "column": 20,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 174,
+          "column": 42,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 175,
+          "column": 40,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 176,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 177,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 178,
+          "column": 33,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 179,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 180,
+          "column": 34,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 181,
+          "column": 35,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 183,
+          "column": 27,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 184,
+          "column": 30,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 185,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 186,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 194,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 195,
+          "column": 32,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 204,
+          "column": 56,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 347,
+          "column": 36,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 349,
+          "column": 75,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 632,
+          "column": 85,
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "ruleId": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "line": 650,
+          "column": 76,
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    }
+  ]
+}

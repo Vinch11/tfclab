@@ -872,8 +872,8 @@ function AthleteProfilePanel({
 
 function getSourceLabel(source: VLamaxSource): string {
   switch (source) {
-    case "test": return "test";
-    case "snapshot": return "mesuré";
+    case "test": return "test déclaré ; qualification à établir";
+    case "snapshot": return "stocké ; qualification inconnue";
     case "estimated": return "estimé";
     case "unknown": return "inconnu";
     default: return source;
@@ -903,7 +903,7 @@ function MetricBox({ label, value, unit, source, confidence }: {
       {unit && <p className="text-[10px] text-muted-foreground">{unit}</p>}
       {source && (
         <p className="text-[10px] text-muted-foreground/70 mt-0.5">
-          {source === "test_labo" ? "🧪 Labo" : source === "test_terrain" ? "🏃 Terrain" : source === "observed" ? "📋 Observé" : "📐 Estim."}
+          {source === "test_labo" ? "Référence stockée, qualification inconnue" : source === "test_terrain" ? "🏃 Terrain" : source === "observed" ? "📋 Observé" : "📐 Estim."}
         </p>
       )}
     </div>

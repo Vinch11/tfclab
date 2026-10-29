@@ -1,0 +1,14 @@
+src/pages/RunningProfilePage.tsx:181:        // ✅ VLamax CAP mesurée (sprint lactate / test terrain)
+src/components/SnapshotManager.tsx:255:      source: staffMode && vlamax ? "staff" : "manual", // ✅ Marquer source "staff" si VLamax mesurée
+src/lib/physiologicalTargets.ts:745: * CAP/Run mobilise moins de masse musculaire que le vélo → VLamax mesurée ~+0.05–0.10 mmol/L/s
+src/lib/vlamaxEffectif.ts:11:// 1. VLamax mesurée lactate (Staff mode) → confiance 0.95
+src/lib/vlamaxEffectif.ts:199:  // CAP — VLamax mesurée (sprint lactate / test CAP terrain)
+src/lib/vlamaxEffectif.ts:332:  // A) SOURCE SNAPSHOT STAFF (VLamax mesurée lactate — bike/global)
+src/components/PersonalizedRulesSection.tsx:28:  // Format: "Marathon — VLamax mesurée + TTE défaut [confiance high]"
+src/lib/v2/profileTerminology.ts:224:Un snapshot suggère une capture instantanée parfaite. Or, le profil combine des données mesurées, estimées et contextualisées.
+src/lib/profileAudit.ts:223:  // ─── RÈGLE 7: Pas de VLamax mesurée + pas de test ──────────────
+src/lib/v2/vlamaxV2Engine.ts:23:  | "test_labo"          // Mesure lactate lab → confiance 0.90-0.95
+src/lib/v2/vlamaxCapEstimator.ts:27:  vlamaxRunMeasured?: number | null;     // VLamax CAP mesurée (mmol/L/s)
+src/lib/v2/runMLSSCohortValidation.ts:13: *   - LAB    : protocol_quality ≥ 4 (test seuil 30 min validé + VLamax mesurée + CE mesurée)
+src/components/ExportTools.tsx:5576:            <b>Actions recommandées:</b> Ajoutez les données manquantes dans le snapshot (TSS 7d, TTE mesuré) ou via les tests VLamax pour améliorer la précision du score.
+src/components/SnapshotEditor.tsx:63:  staffMode?: boolean; // ✅ Mode Staff pour VLamax mesurée
