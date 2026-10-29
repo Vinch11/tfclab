@@ -1,0 +1,75 @@
+{
+  "schema": "det-v29-state-1",
+  "status": "running",
+  "firstObservedAt": "2026-10-29T21:52:08+00:00",
+  "deadline": "2026-10-29T22:51:50+00:00",
+  "maxUnits": 10,
+  "budgetMinutes": 60,
+  "automaticRestart": false,
+  "baseline": "59e1b079ad8c11726d3ca92007fbecb75c5047aa",
+  "observedPhysiologySha": "429a84c1c35255843251a478ef3f48ab0dd907c6",
+  "units": [
+    {
+      "unit": 1,
+      "purpose": "Verify heads and duration semantics; freeze V28 evidence and V29 logistic test registration",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "purpose": "Implement integer timeline ledger, included components and explicit margin accounting",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "purpose": "Bind unchanged V28 evidence to complementary calendar and source/individual contracts",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "purpose": "Implement whole-block integer reservation checks, timetable negatives and local Nolio preparation",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "purpose": "Exercise negative source/parameter/duration contexts and remove an unjustified cross-discipline anchor prerequisite",
+      "status": "complete"
+    },
+    {
+      "unit": 6,
+      "purpose": "Execute pinned build/replay, existing non-regression and independent exact-second checks",
+      "status": "complete"
+    },
+    {
+      "unit": 7,
+      "purpose": "Repair local text fidelity and distinguish native exercise-volume budget from declared availability; preserve red evidence and complete final validation",
+      "status": "complete"
+    },
+    {
+      "unit": 8,
+      "purpose": "Independent verifier, coach reports, release boundaries and preserved archive checks",
+      "status": "complete"
+    },
+    {
+      "unit": 9,
+      "purpose": "Publish verified V29 additions and update draft PR420 without merging",
+      "status": "in_progress"
+    }
+  ],
+  "validationAttempts": 3,
+  "rejectedEvidence": [
+    "evidence/validation-1: timing checks passed, declared bodyweight load omitted from local text",
+    "evidence/validation-2: transport passed; native training-volume ceiling was incorrectly reused as a reservation ceiling"
+  ],
+  "environmentInterruption": {
+    "attempt": 3,
+    "completedCommandsPreserved": [
+      "build",
+      "replay"
+    ],
+    "partialLogPreserved": "evidence/validation-3/v28_non_regression.txt.interrupted",
+    "resume": "scripts/det-engine/v29-resume-validation.mjs",
+    "sameBudgetAndAttempt": true
+  },
+  "closingPhysiologySha": "18c20998eed1539f5c5fc2f8831d41245b237fe5",
+  "acceptedEvidence": "evidence/validation-3"
+}

@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-29T22:36:04Z",
+  "pullRequests": [
+    {
+      "number": 420,
+      "head": "experiment/det-engine",
+      "headSha": "59e1b079ad8c11726d3ca92007fbecb75c5047aa",
+      "draft": true,
+      "merged": false,
+      "title": "DET-ENGINE V28 — exécution paramétrique des séances — DRAFT / NO-GO",
+      "bodySha256NotClaimed": true
+    },
+    {
+      "number": 425,
+      "head": "experiment/physiology-validation-v2",
+      "headSha": "18c20998eed1539f5c5fc2f8831d41245b237fe5",
+      "draft": true,
+      "merged": false,
+      "title": "DRAFT — NO-GO — C8 techniquement clos ; recette Supabase non exécutée",
+      "bodySha256NotClaimed": true
+    }
+  ],
+  "physiologyCodeImported": false
+}

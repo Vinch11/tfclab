@@ -1,0 +1,77 @@
+{
+  "schema": "det-v29-independent-1",
+  "passed": true,
+  "previousFilesUnchanged": 5442,
+  "originalCalendarsUnchanged": 3,
+  "originalReservationsUnchanged": 90,
+  "v28ScenariosUnchanged": 11,
+  "technicallyCompleteScenarios": 6,
+  "losslessTransportedTimelines": 7,
+  "transportedFractionalSourceIds": [
+    "A_STR_STABILITY_CORE",
+    "A_SWIM_CONTINUOUS_2K",
+    "C_SWIM_CATCH_FOCUS",
+    "C_SWIM_TRI_CATCH_PULL"
+  ],
+  "transportedFractionalGoalCompatibleSourceIds": [
+    "A_STR_STABILITY_CORE",
+    "C_SWIM_CATCH_FOCUS",
+    "C_SWIM_TRI_CATCH_PULL"
+  ],
+  "compatibleReservedSlots": 6,
+  "technicallyCompleteAndSlotCompatible": 5,
+  "noNewComplementaryBlockDefects": 5,
+  "v28WholeBlockNoNewDefects": 1,
+  "wholeBlockSportingApprovals": 0,
+  "individualApprovals": 0,
+  "newOriginalBCalendarInsertions": 0,
+  "BOriginalExecutionsUnchanged": 3,
+  "reproducedFloatingWitnesses": 2,
+  "newPathFloatToleranceUsed": false,
+  "weeklyAvailabilityFailures": 0,
+  "localExactTextPayloads": 5,
+  "internalExactWorkouts": 7,
+  "officialStructuredNolioPayloads": 0,
+  "realNolioCalls": 0,
+  "A_runRefusals": 7,
+  "C_individualRefusals": 26,
+  "longBikeVariantConflictsPreserved": 4,
+  "newCoachPolicyAuthorizations": 0,
+  "preservedIds": 920,
+  "preservedVariants": 2425,
+  "preservedHistoricalConfigurationsNotRerun": 600,
+  "preservedNolioFixtures": 15,
+  "independentNegativeChecks": [
+    {
+      "mutation": "margin_as_exercise",
+      "rejected": true
+    },
+    {
+      "mutation": "rounded_execution",
+      "rejected": true
+    },
+    {
+      "mutation": "double_event",
+      "rejected": true
+    },
+    {
+      "mutation": "changed_source",
+      "rejected": true
+    },
+    {
+      "mutation": "false_individual_approval",
+      "rejected": true
+    },
+    {
+      "mutation": "clear_variant_failure",
+      "rejected": true
+    }
+  ],
+  "logicalReplay": {
+    "registration.json.gz": "a58c919fac897f120601be542108df42385ffa5b80cb90fc4c5c314483dadfaa",
+    "originals.json.gz": "6e9296856062dd69d30b42588c1e2066aede485029fd45bf076f8b158812de8a",
+    "scenarios.json.gz": "12f0aeb9571c99b2a77ebcd08fc81f463701601e2e5eb66ef3b4adf86612fc8c",
+    "schedules.json.gz": "bc5629fff43a4367a7a7379005366be556aeb0653f4ac31ca5b83775bc881465"
+  },
+  "verifierSha256": "90794cba2ed6a7b1fd8f3226f4f0505b4066a839ff53af4d7ab3eff2ffe7ac63"
+}
