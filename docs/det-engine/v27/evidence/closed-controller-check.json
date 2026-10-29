@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "expectedRefusal": "V27_BUDGET_OR_CLOSURE",
+  "exitCode": 1,
+  "elapsedSeconds": 0.042,
+  "stateUnchanged": true,
+  "noNewValidationDirectory": true,
+  "stateSha256": "158836161963e514b02153567860b6b65ffceb68b149e19ed4e11dc8242b756b"
+}

@@ -1,6 +1,6 @@
 {
   "version": "det-v27-state-1",
-  "status": "running",
+  "status": "closed_no_go",
   "startedAt": "2026-10-29T20:17:57.822287+00:00",
   "firstObservedAt": "2026-10-29T20:17:42+00:00",
   "deadline": "2026-10-29T21:17:20+00:00",
@@ -53,10 +53,23 @@
     {
       "unit": 9,
       "purpose": "Commit and push experimental additions, update draft PR with verified results",
-      "status": "in_progress"
+      "status": "complete"
+    },
+    {
+      "unit": 10,
+      "purpose": "Close budget, verify publication and reject any automatic controller restart",
+      "status": "complete"
     }
   ],
   "validationAttempts": 3,
   "acceptedEvidence": "evidence/validation-3",
-  "creditQuotaAccessible": false
+  "creditQuotaAccessible": false,
+  "closedAt": "2026-10-29T21:06:21.909991+00:00",
+  "elapsedSeconds": 2920,
+  "implementationCommit": "59d05f8e520620faaceeac6ee35a415360fdd832",
+  "individualDoseApprovals": 0,
+  "humanSportingReviews": 0,
+  "newTestsPassed": 32,
+  "legacyTestsPassed": 351,
+  "legacySkipsUnchanged": 5
 }
