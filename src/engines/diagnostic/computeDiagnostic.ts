@@ -193,6 +193,7 @@ function computeVLamaxFromInput(input: DiagnosticInput): VLamaxEffectif {
   const isRunFocus = input.sportFocus === "run";
   const snapshotObj = {
     id: "diagnostic-snapshot",
+    physiologicalEvidence: input.physiologicalEvidence,
     athlete_id: input.athleteId,
     date: new Date().toISOString().split("T")[0],
     vlamax: input.vlamax,

@@ -1,3 +1,4 @@
+import { snapshotPhysiologyEvidence } from "@/lib/physiologyEvidence";
 /**
  * mapSnapshotToV2 — Single source of truth for mapping DbSnapshot fields
  * to the V2 Enhanced engine input format.
@@ -15,6 +16,7 @@ import type { DbSnapshot } from "@/hooks/useCloudData";
 export function mapSnapshotToV2(s: DbSnapshot) {
   return {
     id: s.id,
+    physiologicalEvidence: snapshotPhysiologyEvidence(s),
     athlete_id: s.athlete_id,
     date: s.date,
     vlamax: s.vlamax,

@@ -121,7 +121,7 @@ export function PersonalizedRulesSection({ rules, variant = "full", className }:
           <div className="rounded-md bg-primary/5 border border-primary/20 p-2.5">
             <p className="text-[11px] text-foreground leading-relaxed">
               <strong>📖 Comment lire :</strong> les règles marquées « confiance élevée »
-              utilisent VLamax et TTE mesurés sur l'athlète. « Confiance moyenne » = un seul
+              utilisent des références VLamax et TTE disponibles ; cela ne prouve pas leur méthode scientifique. « Confiance moyenne » = un seul
               paramètre observé. « Confiance faible » = valeurs littérature par défaut
               (Mader-Heck VLamax 0.45, Skiba TTE = 0.85 × durée course).
             </p>

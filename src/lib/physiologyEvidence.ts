@@ -1,7 +1,9 @@
+import { qualifyReference, type ReferenceEvidence, type ScientificQualification } from "@/lib/scientificQualification";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
 export type ScientificOrigin = "direct_measurement" | "field_estimate" | "model_inference" | "coach_declared" | "unknown";
-export interface PhysiologicalEvidence {
+export interface PhysiologicalEvidence extends Partial<Omit<ReferenceEvidence, "value" | "unit" | "discipline" | "method" | "date">> {
+  scientificQualification?: ScientificQualification;
   value: number;
   unit: string;
   discipline: "run" | "bike" | "swim" | "unknown";
@@ -116,6 +118,7 @@ function readSnapshotPhysiologyEvidence(snapshot: Partial<DbSnapshot> | null | u
       const basis = ownOr(parameter, "confidenceBasis", envelope.confidenceBasis);
       const storageSource = ownOr(parameter, "storageSource", envelope.storageSource ?? snapshot.source ?? null);
       result[field] = {
+        ...Object.fromEntries(["subjectId", "quantity", "sourceRef", "nature", "methodKind", "primaryMeasurementSourceRef", "documentedUncertainty"].filter(key => parameter[key] !== undefined).map(key => [key, parameter[key]])),
         value: parameter.value, unit: parameter.unit,
         discipline: ["run", "bike", "swim"].includes(parameter.discipline) ? parameter.discipline : "unknown",
         method: typeof parameter.method === "string" ? parameter.method : null,
@@ -129,6 +132,13 @@ function readSnapshotPhysiologyEvidence(snapshot: Partial<DbSnapshot> | null | u
       };
     }
   } catch { /* Unreadable metadata is unknown; never extract a cost from free text. */ }
+  for (const field of ["vlamax", "vlamax_run"]) {
+    const parameter = result[field];
+    if (!parameter) continue;
+    const qualification = qualifyReference(parameter, { subjectId: snapshot.athlete_id ?? "", quantity: "vlamax", discipline: field === "vlamax_run" ? "run" : "bike", value: parameter.value, unit: "mmol/L/s" });
+    parameter.scientificQualification = qualification;
+    parameter.scientificOrigin = qualification.status === "unknown" ? "unknown" : qualification.nature === "declared" ? "coach_declared" : qualification.nature === "estimated" ? "field_estimate" : "model_inference";
+  }
   return result;
 }
 
@@ -157,6 +167,12 @@ export function runningEconomyCostFromSnapshot(snapshot: Partial<DbSnapshot> | n
 export function diagnosticPhysiologicalEvidence(diagnostic: import("@/engines/diagnostic/types").AthleteDiagnostic): PhysiologicalEvidenceMap {
   const { vlamax, tte } = diagnostic.effectifs;
   const evidence = { ...(diagnostic._rawInput.physiologicalEvidence ?? {}) };
+  for (const [field, discipline] of [["vlamax", "bike"], ["vlamax_run", "run"]] as const) {
+    const parameter = evidence[field];
+    if (!parameter) continue;
+    const q = qualifyReference(parameter, { subjectId: diagnostic._rawInput.athleteId, quantity: "vlamax", discipline, value: field === "vlamax_run" ? diagnostic._rawInput.vlamaxRun : diagnostic._rawInput.vlamax, unit: "mmol/L/s" });
+    evidence[field] = { ...parameter, scientificQualification: q, scientificOrigin: q.status === "unknown" ? "unknown" : q.nature === "declared" ? "coach_declared" : q.nature === "estimated" ? "field_estimate" : "model_inference" };
+  }
   const cost = validRunningEconomyCost(diagnostic._rawInput.runningEconomyCostMlKgKm);
   if (cost !== null && !evidence.runningEconomyCostMlKgKm) evidence.runningEconomyCostMlKgKm = {
     value: cost, unit: "ml O2/kg/km", discipline: "run", method: null, date: null,
@@ -167,13 +183,13 @@ export function diagnosticPhysiologicalEvidence(diagnostic: import("@/engines/di
   const matchingVLamax = vlamax.source === "snapshot" && vlamax.v2?.source === "test_labo"
     && storedVLamax?.value === vlamax.value && storedVLamax.discipline === discipline
     && storedVLamax.unit === "mmol/L/s" ? storedVLamax : null;
+  const qualification = qualifyReference(vlamax.scientificQualification?.evidence ?? matchingVLamax, { subjectId: diagnostic._rawInput.athleteId, quantity: "vlamax", discipline, value: vlamax.value, unit: "mmol/L/s" });
   if (vlamax.value !== null) evidence.vlamaxEffective = {
     value: vlamax.value, unit: "mmol/L/s", discipline,
-    method: matchingVLamax ? matchingVLamax.method : vlamax.details?.protocol ?? null,
-    date: matchingVLamax ? matchingVLamax.date : testDate(vlamax.details?.date),
-    scientificOrigin: matchingVLamax?.scientificOrigin ?? (vlamax.v2?.source === "test_labo" ? "unknown" : ["test_terrain", "semaine_reference"].includes(vlamax.v2?.source) ? "field_estimate" : "model_inference"),
+    method: qualification.method, date: qualification.observedAt,
+    scientificOrigin: qualification.status === "unknown" ? "unknown" : qualification.nature === "declared" ? "coach_declared" : qualification.nature === "estimated" ? "field_estimate" : "model_inference",
     storageSource: matchingVLamax ? matchingVLamax.storageSource : null, confidence: vlamax.confidence, confidenceBasis: "heuristic",
-    errorMargin: vlamax.errorMargin ?? null,
+    errorMargin: vlamax.errorMargin ?? null, scientificQualification: qualification,
   };
   if (tte.source !== "unknown") evidence.tteEffective = {
     value: tte.tte_min, unit: "min", discipline, method: tte.source, date: null,

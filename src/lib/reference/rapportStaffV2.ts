@@ -52,7 +52,7 @@ export interface AxePhysiologique {
   nom: string;
   valeur: number | null;
   unite: string;
-  source: "mesuré" | "estimé" | "modélisé";
+  source: "mesuré" | "estimé" | "modélisé" | "inconnue";
   plageTFCL: {
     p10: number;
     p25: number;
@@ -193,7 +193,7 @@ function generateContexte(
   if (input.vlamax) {
     sourcesUtilisees.push("VLamax");
     if (input.vlamaxSource === "test_labo") {
-      donneesMesurees.push("VLamax (lactate)");
+      donneesEstimees.push("VLamax stockée — qualification scientifique inconnue");
     } else if (input.vlamaxSource === "test_terrain") {
       donneesEstimees.push("VLamax (test terrain)");
     } else {
@@ -216,10 +216,10 @@ function generateContexte(
   
   if (confidenceScore >= 0.75) {
     confidenceLabel = "Élevée";
-    confidenceExplication = "Données multiples cohérentes. Interprétation fiable.";
+    confidenceExplication = "Score heuristique interne élevé ; aucune validité individuelle déduite.";
   } else if (confidenceScore >= 0.55) {
     confidenceLabel = "Moyenne";
-    confidenceExplication = "Données partielles. Interprétation avec réserve.";
+    confidenceExplication = "Score heuristique interne ; données partielles, interprétation avec réserve.";
   } else {
     confidenceLabel = "Faible";
     confidenceExplication = "Données limitées. Confirmation recommandée.";
@@ -270,7 +270,7 @@ function generatePositionnement(
       nom: "VLamax",
       valeur: vlamaxDisplay.value,
       unite: vlamaxDisplay.unit,
-      source: input.vlamaxSource === "test_labo" ? "mesuré" : 
+      source: input.vlamaxSource === "test_labo" ? "inconnue" :
               input.vlamaxSource === "test_terrain" ? "estimé" : "modélisé",
       plageTFCL: vlamaxDisplay.range,
       percentile: vlamaxDisplay.percentile,

@@ -12,7 +12,7 @@
  * Finding 5) un vrai garde-fou de régression, alimenté par les tests labo
  * (mesure lactate) que les coaches saisissent au fil du temps.
  *
- *  - Saisie : VLamax CAP mesurée labo (référence) + au moins un des deux
+ *  - Saisie : VLamax CAP dérivée de lactate (source déclarée) (référence) + au moins un des deux
  *    signaux à tester (Sprint 15s ou Puissance Max CAP), + VMA/pace seuil
  *    pour la formule de repli.
  *  - Persistance : calibration_evidence (evidence_type=VLAMAX_CAP_ANCHOR),
@@ -219,7 +219,7 @@ export default function VlamaxCapCohortPage() {
     const paceSec = paceMmSsToSec(form.paceThresholdMinPerKm);
     const q = parseInt(form.protocolQuality, 10) as 2 | 3 | 4 | 5;
 
-    if (!Number.isFinite(measured) || measured <= 0) return toast.error("VLamax mesurée invalide");
+    if (!Number.isFinite(measured) || measured <= 0) return toast.error("VLamax de référence déclarée invalide");
     const hasSprint = Number.isFinite(sprint) && sprint > 0;
     const hasPower = Number.isFinite(power) && power > 0;
     if (!hasSprint && !hasPower) return toast.error("Renseigner au moins Sprint 15s ou Puissance Max CAP");
@@ -391,7 +391,7 @@ export default function VlamaxCapCohortPage() {
                   </Select>
                 </Field>
 
-                <Field label="VLamax CAP mesurée labo (mmol/L/s)" hint="Référence — lactate post-sprint">
+                <Field label="VLamax CAP dérivée de lactate (source déclarée) (mmol/L/s)" hint="Référence — lactate post-sprint">
                   <Input type="number" step="0.01" placeholder="0.45" value={form.vlamaxRunMeasured} onChange={(e) => setForm({ ...form, vlamaxRunMeasured: e.target.value })} />
                 </Field>
                 <Field label="Sprint 15s — distance (m)" hint="Au moins un des deux signaux requis">

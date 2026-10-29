@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL, VLA_HEURISTIC_NOTICE, requalifyReference, type ScientificQualification } from "@/lib/scientificQualification";
 /**
  * ScientificBadge - Badge de transparence scientifique
  * Affiche l'origine des données (Mesurée, Estimée, Modélisée)
@@ -34,6 +35,7 @@ import type { ScoreSource, ConfidenceLabel } from "@/lib/scoreEnvelope";
 export type DataOrigin = "MEASURED" | "ESTIMATED" | "MODELLED" | "DERIVED" | "UNKNOWN";
 
 export interface ScientificMetadata {
+  qualification?: ScientificQualification;
   origin: DataOrigin;
   method: string;
   confidence: number;
@@ -107,7 +109,7 @@ export const PEDAGOGICAL_TEXTS: Record<string, {
   academySection: string;
 }> = {
   vlamax: {
-    short: "La VLamax représente la vitesse maximale de production du lactate. Dans Two For Coaching Lab, elle est estimée à partir de tests terrain et de modèles physiologiques reconnus lorsque la mesure directe n'est pas disponible.",
+    short: "La VLamax représente la vitesse maximale de production du lactate. Dans Two For Coaching Lab, elle est estimée à partir de tests terrain et de modèles physiologiques reconnus Une VLamax dérivée de lactate sanguin n'est pas une mesure directe du flux glycolytique.",
     academySection: "vlamax"
   },
   tte: {
@@ -146,6 +148,11 @@ export function ScientificBadge({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
   
+  if (/vla.?max/i.test(metricName)) {
+    const q = requalifyReference(metadata.qualification, metadata.qualification?.value ?? null);
+    metadata = { ...metadata, origin: q?.status !== "documented_context" ? "UNKNOWN" : q.nature === "estimated" ? "ESTIMATED" : q.nature === "declared" ? "UNKNOWN" : "DERIVED",
+      method: q?.method ?? UNKNOWN_VLAMAX_LABEL, limitations: `${q?.label ?? UNKNOWN_VLAMAX_LABEL}. ${VLA_HEURISTIC_NOTICE}` };
+  }
   const config = ORIGIN_CONFIG[metadata.origin] || ORIGIN_CONFIG.UNKNOWN;
   const pedagogicalText = PEDAGOGICAL_TEXTS[metricName.toLowerCase()];
   const needsCaution = showWarning && metadata.confidence < 0.6;
@@ -308,7 +315,7 @@ function ScientificDialog({
 
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Fiabilité</span>
-              <span className="text-sm font-medium">{metadata.confidenceLabel}</span>
+              <span className="text-sm font-medium">{/vla.?max/i.test(metricName) ? "Score heuristique interne : " : ""}{metadata.confidenceLabel}</span>
             </div>
 
             <div>
@@ -398,6 +405,7 @@ export function createScientificMetadata(
   confidence: number,
   confidenceLabel: ConfidenceLabel,
   options?: {
+    qualification?: ScientificQualification;
     method?: string;
     limitations?: string;
     academySection?: string;
@@ -431,6 +439,7 @@ export function createScientificMetadata(
 
   return {
     origin,
+    qualification: options?.qualification,
     method: options?.method || sourceDefaults.method,
     confidence,
     confidenceLabel,

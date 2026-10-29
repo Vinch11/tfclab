@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL } from "@/lib/scientificQualification";
 // =============================================
 // DASHBOARD GAUGES - Résumé visuel compact avec ScoreEnvelope
 // =============================================
@@ -280,7 +281,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
             <div className="text-center min-w-0">
               <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-                VLamax: {vlamaxEnvelope.source === "MEASURED" ? "🧪" : vlamaxEnvelope.source === "ESTIMATED" ? "🏃" : "📐"} {vlamaxEnvelope.source === "MEASURED" ? "Labo" : vlamaxEnvelope.source === "ESTIMATED" ? "Terrain" : "Estim."}
+                VLamax : {vlamaxEnvelope.source === "UNKNOWN" || vlamaxEnvelope.source === "MEASURED" ? "qualification inconnue" : "valeur dérivée, non mesurée directement"}
               </span>
             </div>
             <div className="text-center min-w-0">
@@ -344,7 +345,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
           unit="mmol/L/s"
           icon={<Zap className={cn("w-3 h-3 sm:w-4 sm:h-4", vlamaxVal > 0 ? "text-current" : "text-muted-foreground")} />}
           color={vlamaxVal > 0 ? getVlamaxColor() : "primary"}
-          sublabel={vlamax.label}
+          sublabel={UNKNOWN_VLAMAX_LABEL}
           inverted={true}
         />
         
@@ -399,7 +400,7 @@ export function DashboardGauges(props: DashboardGaugesProps) {
         <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
           <div className="text-center min-w-0">
             <span className="text-[8px] sm:text-[9px] text-muted-foreground truncate block">
-              VLamax: {vlamax.label || "📐 Estim."}
+              VLamax: {UNKNOWN_VLAMAX_LABEL}
             </span>
           </div>
           <div className="text-center min-w-0">

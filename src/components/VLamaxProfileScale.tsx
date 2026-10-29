@@ -133,7 +133,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: 
         </CardTitle>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Badge variant="outline" className="text-[11px]">{sportLabel}</Badge>
-          <span>VLamax mesurée : <strong className="text-foreground">{vlamax.toFixed(2)}</strong> mmol/L/s</span>
+          <span>VLamax de référence — qualification à établir : <strong className="text-foreground">{vlamax.toFixed(2)}</strong> mmol/L/s</span>
           {ageAdjusted && (
             <Badge variant="outline" className="text-[10px]">Seuils ajustés âge ({age} ans)</Badge>
           )}

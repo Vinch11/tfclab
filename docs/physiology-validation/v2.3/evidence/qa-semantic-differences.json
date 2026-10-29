@@ -1,0 +1,2759 @@
+{
+  "profiles": 37,
+  "numericDifferences": 0,
+  "decisionDifferences": 0,
+  "changes": [
+    {
+      "id": "B-70.3",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.details.protocol",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Catégorie interne héritée ; méthode scientifique non établie"
+        },
+        {
+          "path": "effectifs.vlamax.v2.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.550 · Effectif: 0.55 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "after": "Brut: 0.550 · Effectif: 0.55 ; marge heuristique interne ± 0.02 (pas une précision expérimentale) · Score heuristique interne: Élevée · Sources internes déclarées (non vérifiées): Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.reason",
+          "before": "VLamax mesurée — valeur verrouillée",
+          "after": "Référence verrouillée — catégorie interne, méthode à qualifier"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.sources.0",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.55,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.55,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-SEMI",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.300 · Effectif: 0.30 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.300 · Effectif: 0.30 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-SPRINT",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.details.protocol",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Catégorie interne héritée ; méthode scientifique non établie"
+        },
+        {
+          "path": "effectifs.vlamax.v2.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.550 · Effectif: 0.55 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "after": "Brut: 0.550 · Effectif: 0.55 ; marge heuristique interne ± 0.02 (pas une précision expérimentale) · Score heuristique interne: Élevée · Sources internes déclarées (non vérifiées): Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.reason",
+          "before": "VLamax mesurée — valeur verrouillée",
+          "after": "Référence verrouillée — catégorie interne, méthode à qualifier"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.sources.0",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.55,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.55,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-IM",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.details.protocol",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Catégorie interne héritée ; méthode scientifique non établie"
+        },
+        {
+          "path": "effectifs.vlamax.v2.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.550 · Effectif: 0.55 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "after": "Brut: 0.550 · Effectif: 0.55 ; marge heuristique interne ± 0.02 (pas une précision expérimentale) · Score heuristique interne: Élevée · Sources internes déclarées (non vérifiées): Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.reason",
+          "before": "VLamax mesurée — valeur verrouillée",
+          "after": "Référence verrouillée — catégorie interne, méthode à qualifier"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.sources.0",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.55,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.55,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-MARATHON",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.300 · Effectif: 0.30 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.300 · Effectif: 0.30 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-10K",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.300 · Effectif: 0.30 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.300 · Effectif: 0.30 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-5K",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.300 · Effectif: 0.30 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.300 · Effectif: 0.30 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-OLYMPIC",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.details.protocol",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Catégorie interne héritée ; méthode scientifique non établie"
+        },
+        {
+          "path": "effectifs.vlamax.v2.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.550 · Effectif: 0.55 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "after": "Brut: 0.550 · Effectif: 0.55 ; marge heuristique interne ± 0.02 (pas une précision expérimentale) · Score heuristique interne: Élevée · Sources internes déclarées (non vérifiées): Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.reason",
+          "before": "VLamax mesurée — valeur verrouillée",
+          "after": "Référence verrouillée — catégorie interne, méthode à qualifier"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.sources.0",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.55,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.55,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-STARTTORUN",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.300 · Effectif: 0.30 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.300 · Effectif: 0.30 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-TRAIL-SHORT",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.300 · Effectif: 0.30 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.300 · Effectif: 0.30 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-TRAIL-MOUNTAIN",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.300 · Effectif: 0.30 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.300 · Effectif: 0.30 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-TRAIL-ULTRA",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.300 · Effectif: 0.30 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.300 · Effectif: 0.30 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.3,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-5K-BEGINNER",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.520 · Effectif: 0.52 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.520 · Effectif: 0.52 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.52,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.52,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-10K-TO-70.3",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.481 · Effectif: 0.48 ± 0.06 · Fiabilité: Limitée · Sources: FTP/kg: 3.33",
+          "after": "Brut: 0.481 · Effectif: 0.48 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): FTP/kg: 3.33"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.48,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.48,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-01",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-02",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-03",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-04",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (non disponible)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-05",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.details.protocol",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Catégorie interne héritée ; méthode scientifique non établie"
+        },
+        {
+          "path": "effectifs.vlamax.v2.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.500 · Effectif: 0.50 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "after": "Brut: 0.500 · Effectif: 0.50 ; marge heuristique interne ± 0.02 (pas une précision expérimentale) · Score heuristique interne: Élevée · Sources internes déclarées (non vérifiées): Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.reason",
+          "before": "VLamax mesurée — valeur verrouillée",
+          "after": "Référence verrouillée — catégorie interne, méthode à qualifier"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.sources.0",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.5,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.5,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-06",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-07",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-08",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (non disponible)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-09",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-10",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (non disponible)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-11",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-12",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (non disponible)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-13",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-14",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (non disponible)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-15",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.details.protocol",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Catégorie interne héritée ; méthode scientifique non établie"
+        },
+        {
+          "path": "effectifs.vlamax.v2.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.500 · Effectif: 0.50 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "after": "Brut: 0.500 · Effectif: 0.50 ; marge heuristique interne ± 0.02 (pas une précision expérimentale) · Score heuristique interne: Élevée · Sources internes déclarées (non vérifiées): Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.reason",
+          "before": "VLamax mesurée — valeur verrouillée",
+          "after": "Référence verrouillée — catégorie interne, méthode à qualifier"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.sources.0",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.5,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.5,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-16",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (non disponible)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-17",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.details.protocol",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Catégorie interne héritée ; méthode scientifique non établie"
+        },
+        {
+          "path": "effectifs.vlamax.v2.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.750 · Effectif: 0.75 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "after": "Brut: 0.750 · Effectif: 0.75 ; marge heuristique interne ± 0.02 (pas une précision expérimentale) · Score heuristique interne: Élevée · Sources internes déclarées (non vérifiées): Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.reason",
+          "before": "VLamax mesurée — valeur verrouillée",
+          "after": "Référence verrouillée — catégorie interne, méthode à qualifier"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.sources.0",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.75,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.75,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-18",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-19",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-20",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (non disponible)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": null,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-EXTRA-MARATHON",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-EXTRA-CYCLING",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.details.protocol",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Catégorie interne héritée ; méthode scientifique non établie"
+        },
+        {
+          "path": "effectifs.vlamax.v2.label",
+          "before": "VLamax (mesurée labo)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.750 · Effectif: 0.75 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+          "after": "Brut: 0.750 · Effectif: 0.75 ; marge heuristique interne ± 0.02 (pas une précision expérimentale) · Score heuristique interne: Élevée · Sources internes déclarées (non vérifiées): Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.reason",
+          "before": "VLamax mesurée — valeur verrouillée",
+          "after": "Référence verrouillée — catégorie interne, méthode à qualifier"
+        },
+        {
+          "path": "effectifs.vlamax.v2.calibrationLog.sources.0",
+          "before": "Mesure lactate (Staff mode)",
+          "after": "Référence stockée (catégorie interne héritée)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.75,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.75,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "bike",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "V2-EXTRA-ULTRA",
+      "changes": [
+        {
+          "path": "effectifs.vlamax.label",
+          "before": "VLamax (estimée)",
+          "after": "VLamax — provenance scientifique inconnue (référence consultable)"
+        },
+        {
+          "path": "effectifs.vlamax.v2.details",
+          "before": "Brut: 0.360 · Effectif: 0.36 ± 0.06 · Fiabilité: Limitée · Sources: CAP: Seuil/VMA",
+          "after": "Brut: 0.360 · Effectif: 0.36 ; marge heuristique interne ± 0.06 (pas une précision expérimentale) · Score heuristique interne: Limitée · Sources internes déclarées (non vérifiées): CAP: Seuil/VMA"
+        },
+        {
+          "path": "effectifs.vlamax.v2.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        },
+        {
+          "path": "effectifs.vlamax.scientificQualification",
+          "before": null,
+          "after": {
+            "value": 0.36,
+            "evidence": null,
+            "status": "unknown",
+            "nature": "unknown",
+            "label": "VLamax — provenance scientifique inconnue (référence consultable)",
+            "subjectId": null,
+            "quantity": "vlamax",
+            "discipline": "run",
+            "unit": "mmol/L/s",
+            "method": null,
+            "observedAt": null,
+            "sourceRef": null,
+            "uncertainty": null,
+            "uncertaintyStatus": "unknown",
+            "admissibility": "not_established",
+            "individualValidityEstablished": false,
+            "individualDoseApproved": false,
+            "reasons": [
+              "missing_or_incompatible_subject_quantity_discipline_unit_value",
+              "missing_method_observation_date_or_identifiable_source",
+              "method_kind_not_documented"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

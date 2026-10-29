@@ -55,7 +55,8 @@ describe("V2.2 independent oracles: source identity, physical dimensions and ack
     const diagnostic = computeDiagnostic(buildPilotDiagnosticInput(QA_PROFILES.find(p => p.id === "B-MARATHON")!));
     diagnostic.effectifs.vlamax.v2.source = "estimation";
     diagnostic._rawInput.physiologicalEvidence = { vlamax_run: { value: diagnostic.effectifs.vlamax.value!, unit: "mmol/L/s", discipline: "run", method: "coach text", date: "2026-10-20", scientificOrigin: "coach_declared", storageSource: "snapshot", confidence: null, confidenceBasis: "unknown", errorMargin: null } };
-    expect(diagnosticPhysiologicalEvidence(diagnostic).vlamaxEffective.scientificOrigin).toBe("model_inference");
+    expect(diagnosticPhysiologicalEvidence(diagnostic).vlamaxEffective.scientificOrigin).toBe("unknown");
+    expect(diagnosticPhysiologicalEvidence(diagnostic).vlamaxEffective.scientificQualification?.admissibility).toBe("not_established");
   });
 });
 it("V2.2: an explicit unknown date/method on the selected snapshot remains unknown", () => {

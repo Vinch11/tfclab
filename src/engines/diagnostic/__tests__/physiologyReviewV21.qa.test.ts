@@ -1,3 +1,4 @@
+import { assertQualificationCompatibility, referenceDiagnostic } from "@/test/qualificationV23Compatibility";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -22,7 +23,9 @@ describe("V2.1 — retained QA and consequences of the 25 MLSS removals", () => 
       const reference = v2.find(r => r.id === profile.id)!;
       const original = before.find(r => r.id === profile.id)!;
       const stableBlocks = Object.fromEntries(["effectifs", "limiter", "readiness", "targets"].map(key => [key, hash(d[key])]));
-      expect(stableBlocks, profile.id).toEqual(reference.stableBlocks);
+      assertQualificationCompatibility(profile.id, d);
+      expect(hash(referenceDiagnostic(profile.id).effectifs), profile.id).toBe(reference.stableBlocks.effectifs);
+      for (const key of ["limiter", "readiness", "targets"]) expect(stableBlocks[key], profile.id).toBe(reference.stableBlocks[key]);
       expect(d.runMLSS, profile.id).toEqual(reference.runMLSS);
       expect(d.synthesis.alerts, profile.id).toEqual(reference.alerts);
       const html = buildRunMLSSCoherenceHTML({ athlete: { goal: profile.planConfig.objective }, effectiveSnapshot: null, runMLSS: d.runMLSS });

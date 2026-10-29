@@ -1,3 +1,4 @@
+import { qualifyScoreEnvelope } from "@/lib/scientificQualification";
 /**
  * Composant universel d'affichage des ScoreEnvelope
  * Modes: ATHLETE (simple) et STAFF (détaillé)
@@ -46,6 +47,7 @@ export function ScoreEnvelopeDisplay({
   showRecommendations = true,
   className,
 }: ScoreEnvelopeDisplayProps) {
+  envelope = qualifyScoreEnvelope(envelope);
   const [expanded, setExpanded] = useState(false);
   
   const athleteView = formatEnvelopeForAthlete(envelope);
@@ -168,7 +170,7 @@ export function ScoreEnvelopeDisplay({
               {sourceIcon} {sourceLabel}
             </Badge>
             <Badge variant="outline" className={cn("text-xs", confBadgeClass)}>
-              {Math.round(envelope.confidence * 100)}%
+              {Math.round(envelope.confidence * 100)} / 100 (heuristique)
             </Badge>
           </div>
         </div>
@@ -193,8 +195,8 @@ export function ScoreEnvelopeDisplay({
         {/* Barre de confiance */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Confiance: {envelope.confidenceLabel}</span>
-            <span>{Math.round(envelope.confidence * 100)}%</span>
+            <span>Score heuristique interne : {envelope.confidenceLabel}</span>
+            <span>{Math.round(envelope.confidence * 100)} / 100 (heuristique)</span>
           </div>
           <Progress 
             value={envelope.confidence * 100} 

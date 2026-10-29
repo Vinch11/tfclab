@@ -511,7 +511,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
   const confidenceLabel = (c: number) =>
     c >= 0.8 ? "Fiable" : c >= 0.5 ? "Modérée" : "Faible";
   const sourceLabel = (s: string) =>
-    s === "snapshot" ? "📋 Mesuré" : s === "estimation" ? "📐 Estimé" : "❓ Inconnu";
+    s === "snapshot" ? "📋 Stocké ; qualification inconnue" : s === "estimation" ? "📐 Estimé" : "❓ Inconnu";
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 

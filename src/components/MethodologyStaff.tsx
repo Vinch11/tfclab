@@ -226,7 +226,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
           <div className="p-4 rounded-lg bg-secondary border border-border space-y-4">
             <h4 className="font-semibold text-foreground mb-2">💡 Pourquoi la VLamax n'est pas saisissable directement ?</h4>
             <p className="text-sm text-muted-foreground">
-              La VLamax est une donnée physiologique complexe qui doit soit être <strong className="text-foreground">mesurée en laboratoire</strong>, 
+              La VLamax est une donnée physiologique complexe qui doit soit être <strong className="text-foreground">dérivée de mesures lactate documentées</strong>,
               soit <strong className="text-foreground">estimée à partir de tests de terrain</strong>.
             </p>
             <p className="text-sm text-muted-foreground">
@@ -234,7 +234,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
               Two For Coaching Lab calcule automatiquement la VLamax à partir des données du snapshot (FTP, Pmax 5s, poids).
             </p>
             <p className="text-sm text-muted-foreground">
-              En <strong className="text-foreground">mode Staff</strong>, il est possible de renseigner une VLamax mesurée (lactate) qui devient alors la référence principale.
+              En <strong className="text-foreground">mode Staff</strong>, il est possible de renseigner une VLamax dérivée de lactate — source à documenter qui devient alors la référence principale.
             </p>
           </div>
 
@@ -246,7 +246,7 @@ export function MethodologyStaff({ onGoToTab }: MethodologyStaffProps) {
                   #1
                 </Badge>
                 <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">VLamax mesurée (lactate)</strong> — Confiance ~95% • Mode Staff uniquement
+                  <strong className="text-foreground">VLamax dérivée de lactate — source à documenter</strong> — Score heuristique interne ~95/100, pas une probabilité individuelle • Mode Staff uniquement
                 </p>
               </div>
               <div className="flex items-center gap-3">

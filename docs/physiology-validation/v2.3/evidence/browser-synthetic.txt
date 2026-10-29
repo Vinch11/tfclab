@@ -1,0 +1,13 @@
+[WebServer] (node:28195) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 2 workers
+
+(node:28259) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28258) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [local-synthetic-chromium] › e2e/physiology-review.spec.ts:3:1 › synthetic import, edit, local save, reload and actual staff report codec (15.8s)
+  ✓  1 [local-synthetic-chromium] › e2e/physiology-review.spec.ts:55:1 › V2.3 synthetic qualification survives reload and rejects incompatible discipline without changing the scalar (16.9s)
+
+  2 passed (20.9s)

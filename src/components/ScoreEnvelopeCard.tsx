@@ -1,3 +1,4 @@
+import { qualifyScoreEnvelope } from "@/lib/scientificQualification";
 /**
  * ScoreEnvelopeCard - Composant unifié combinant ScoreEnvelopeDisplay + MetricHelpButton
  * Pour un affichage cohérent des métriques partout dans l'app
@@ -46,6 +47,7 @@ export function ScoreEnvelopeCard({
   showRecommendations = true,
   className,
 }: ScoreEnvelopeCardProps) {
+  envelope = qualifyScoreEnvelope(envelope);
   
   // Mode compact inline (pas de card wrapper supplémentaire)
   if (compact) {
@@ -67,7 +69,7 @@ export function ScoreEnvelopeCard({
     envelope.source,
     envelope.confidence,
     envelope.confidenceLabel,
-    { academySection: envelope.metricId }
+    { academySection: envelope.metricId, qualification: envelope.scientificQualification }
   );
 
   return (
@@ -241,7 +243,7 @@ function ScoreEnvelopeCardContent({
         <div className="flex justify-between text-xs">
           <span className="text-muted-foreground">Confiance</span>
           <span className={cn("font-medium", getConfidenceColor().split(" ")[0])}>
-            {confidenceLabel} ({Math.round(confidence * 100)}%)
+            Score heuristique interne : {confidenceLabel} ({Math.round(confidence * 100)} / 100)
           </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">

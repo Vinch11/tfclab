@@ -1,3 +1,4 @@
+import { assertQualificationCompatibility, referenceDiagnostic } from "@/test/qualificationV23Compatibility";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -27,7 +28,9 @@ describe("37 unchanged QA fixtures — baseline main versus V2", () => {
         runMLSS: d.runMLSS, alerts: d.synthesis.alerts };
       if (!capture) {
         const before = baseline.find(r => r.id === row.id);
-        expect(row.stableBlocks, row.id).toEqual(before.stableBlocks);
+        assertQualificationCompatibility(profile.id, d);
+        expect(hash(referenceDiagnostic(profile.id).effectifs), row.id).toBe(before.stableBlocks.effectifs);
+        for (const key of ["limiter", "readiness", "targets"]) expect(row.stableBlocks[key], row.id).toBe(before.stableBlocks[key]);
         expect(d.runMLSS?.prediction ?? null).toBeNull(); // existing QA inputs have scores, no explicit O2 cost
         expect(d.runMLSS?.observedPct ?? null, row.id).toBe(before.runMLSS?.observedPct ?? null);
       }

@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL, VLA_HEURISTIC_NOTICE, scientificReferenceLabel, scientificUncertaintyLabel } from "@/lib/scientificQualification";
 /**
  * VLamaxV2DisplayCard — Carte d'affichage VLamax calibrée TFCL V2 Staff-Grade
  * Affiche:
@@ -146,6 +147,7 @@ export function VLamaxV2DisplayCard({
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 cursor-help">
+              <span className="text-xs">{scientificReferenceLabel(v2Result?.scientificQualification, vlamax)}</span>
               <Zap className="h-4 w-4 text-amber-500" />
               <span className="font-mono font-bold">{displayValue}</span>
               {v2Result?.isLocked && <Lock className="h-3 w-3 text-blue-500" />}
@@ -176,6 +178,8 @@ export function VLamaxV2DisplayCard({
 
   return (
     <Card className="overflow-hidden">
+      <p className="px-4 pt-3 text-xs text-muted-foreground">{scientificReferenceLabel(v2Result?.scientificQualification, vlamax)}</p>
+      <p className="px-4 text-xs text-muted-foreground">{VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(v2Result?.scientificQualification, vlamax)}</p>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Zap className="h-4 w-4 text-amber-500" />
@@ -208,10 +212,10 @@ export function VLamaxV2DisplayCard({
                 )}
               >
                 <span>{getV2SourceEmoji(v2Result.source)}</span>
-                {getV2SourceLabel(v2Result.source)}
+                {getV2SourceLabel(v2Result.source, v2Result.scientificQualification)}
               </Badge>
               <span className="text-muted-foreground">
-                ± {v2Result.errorMargin.toFixed(2)}
+                marge heuristique interne ± {v2Result.errorMargin.toFixed(2)}
               </span>
             </div>
           )}

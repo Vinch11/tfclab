@@ -119,7 +119,7 @@ export function LabAthleteValidator() {
             <Input value={athleteName} onChange={(e) => setAthleteName(e.target.value)} placeholder="Nom" />
           </div>
           <div>
-            <Label className="text-xs">VLamax mesurée</Label>
+            <Label className="text-xs">VLamax de référence déclarée</Label>
             <Input type="number" step="0.01" value={vlamax} onChange={(e) => setVlamax(e.target.value)} placeholder="ex: 0.55" />
             <p className="text-[10px] text-muted-foreground mt-1">mmol/L/s</p>
           </div>

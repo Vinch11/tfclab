@@ -96,7 +96,7 @@ export function NegativeSplitPreviewCard({ raceObjective, vlamaxValue, tteMin, r
             variant={delta.vlamaxSource === "observed" ? "default" : "outline"}
             className="text-[10px] font-normal"
           >
-            VLamax : {delta.vlamaxSource === "observed" ? `mesurée ${delta.vlamaxUsed}` : `défaut ${delta.vlamaxUsed}`}
+            VLamax : {delta.vlamaxSource === "observed" ? `référence ${delta.vlamaxUsed} — qualification séparée` : `défaut ${delta.vlamaxUsed}`}
           </Badge>
           <Badge
             variant={delta.tteSource === "observed" ? "default" : "outline"}

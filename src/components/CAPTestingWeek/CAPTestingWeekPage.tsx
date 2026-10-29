@@ -291,7 +291,7 @@ export function CAPTestingWeekPage() {
                       <div>
                         <div className="font-medium">
                           {vlamaxDisplay.source === "measured"
-                            ? "VLamax CAP mesurée"
+                            ? "VLamax CAP de référence — qualification à établir"
                             : "VLamax CAP estimée"}
                         </div>
                         <div className="text-xs text-muted-foreground">

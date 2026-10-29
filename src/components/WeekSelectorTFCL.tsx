@@ -406,7 +406,7 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
                   {athleteTruth.vlamax_run.value?.toFixed(2) || "—"}
                 </div>
                 <div className="text-[10px] text-muted-foreground">VLamax</div>
-                <div className="text-[9px] text-muted-foreground/70">{athleteTruth.vlamax_run.source === "estimation" ? "📐 Estimation" : athleteTruth.vlamax_run.source === "test_terrain" ? "🏃 Test terrain" : athleteTruth.vlamax_run.source === "test_labo" ? "🧪 Labo" : athleteTruth.vlamax_run.source}</div>
+                <div className="text-[9px] text-muted-foreground/70">{athleteTruth.vlamax_run.source === "estimation" ? "📐 Estimation" : athleteTruth.vlamax_run.source === "test_terrain" ? "🏃 Test terrain" : athleteTruth.vlamax_run.source === "test_labo" ? "Référence stockée, qualification inconnue" : athleteTruth.vlamax_run.source}</div>
               </div>
               <div className="text-center p-3 rounded-lg bg-muted/50">
                 <div className="text-lg font-bold font-mono text-primary">

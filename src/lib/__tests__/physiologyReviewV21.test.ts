@@ -67,17 +67,17 @@ it("a stored laboratory category alone does not establish direct measurement", (
   d._rawInput.physiologicalEvidence = {};
   expect(diagnosticPhysiologicalEvidence(d).vlamaxEffective.scientificOrigin).toBe("unknown");
 });
-it("keeps known per-parameter origin, method and test date for a selected snapshot value", () => {
+it("keeps known per-parameter origin, method and test date for an explicitly documented declaration", () => {
   const input = { ...buildPilotDiagnosticInput(QA_PROFILES.find(p => p.id === "B-MARATHON")!), vlamaxRun: 0.42, vlamaxSource: "lab" };
+  input.physiologicalEvidence = { vlamax_run: {
+    value: 0.42, unit: "mmol/L/s", discipline: "run", method: "declared-method", date: "2026-10-20", scientificOrigin: "coach_declared", storageSource: "synthetic", confidence: null, confidenceBasis: "unknown", errorMargin: null,
+    subjectId: input.athleteId, quantity: "vlamax", nature: "declared", methodKind: "coach_declaration", sourceRef: "fixture:synthetic-v21-declaration",
+  } };
   const d = computeDiagnostic(input);
   expect(d.effectifs.vlamax.source).toBe("snapshot");
-  d._rawInput.physiologicalEvidence = { vlamax_run: {
-    value: d.effectifs.vlamax.value!, unit: "mmol/L/s", discipline: "run", method: "declared-method",
-    date: "2026-10-20", scientificOrigin: "coach_declared", storageSource: "synthetic", confidence: null,
-    confidenceBasis: "unknown", errorMargin: null,
-  } };
   expect(diagnosticPhysiologicalEvidence(d).vlamaxEffective).toMatchObject({ scientificOrigin: "coach_declared", method: "declared-method", date: "2026-10-20", confidenceBasis: "heuristic" });
 });
+
 it.each(["null", "[]", '{"version":1,"parameters":[]}', '{"version":1,"parameters":{"cost":null}}'])("ignores malformed historical envelope %s without changing source text", payload => {
   const notes = `History\nTFCL_PHYSIOLOGY_V1:${payload}`;
   expect(runningEconomyCostFromSnapshot({ coach_notes: notes })).toBeNull();

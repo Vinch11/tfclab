@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL, VLA_HEURISTIC_NOTICE, scientificReferenceLabel, scientificUncertaintyLabel } from "@/lib/scientificQualification";
 /**
  * WorkoutRecommendationsPanel — Two For Coaching Lab
  * Affiche les recommandations Wahoo/Zwift basées sur les indices physiologiques
@@ -236,7 +237,7 @@ function IndicesSummary({
         <p className="text-sm font-mono font-bold">
           {vlamaxEffectif.value?.toFixed(2) || "—"}
         </p>
-        <p className="text-[10px] text-muted-foreground">{vlamaxEffectif.label}</p>
+        <p className="text-[10px] text-muted-foreground">{scientificReferenceLabel(vlamaxEffectif.scientificQualification, vlamaxEffectif.value)} — {VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(vlamaxEffectif.scientificQualification, vlamaxEffectif.value)}</p>
       </div>
 
       <div className="text-center">

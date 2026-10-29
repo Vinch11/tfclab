@@ -220,6 +220,8 @@ export function computeEssentielsData(args: {
     source: "Mader-Heck calibré N=44 (RMSE 2.64%), VLamax engine v2 (4 méthodes fusionnées)",
   });
 
+  pillars[0].interpretation += ` ${vlamaxEff.scientificQualification?.label ?? "Provenance scientifique inconnue"}. Score et marge internes heuristiques, pas une précision expérimentale.`;
+
   // 2. Coaching Compass
   pillars.push({
     id: "compass",
