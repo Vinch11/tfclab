@@ -1,0 +1,29 @@
+--- a/src/engines/diagnostic/computeDiagnostic.ts
++++ b/src/engines/diagnostic/computeDiagnostic.ts
+@@ -413,13 +413,13 @@
+   // 2. Predicted MLSS_pct via Modèle C (VLamax run + CE)
+   const prediction = predictRunMLSSPctFromVLaCE(
+     input.vlamaxRun,
+-    input.runEconomyScore
++    input.runningEconomyCostMlKgKm
+   );
+ 
+   // 3. Cross-validation
+   const crossValidation =
+     observedPct !== null && prediction
+-      ? crossValidateRunMLSS(observedPct, input.vlamaxRun, input.runEconomyScore)
++      ? crossValidateRunMLSS(observedPct, input.vlamaxRun, input.runningEconomyCostMlKgKm)
+       : null;
+ 
+   // 4. Effective value (observed wins, predicted as fallback)
+--- a/src/engines/diagnostic/types.ts
++++ b/src/engines/diagnostic/types.ts
+@@ -84,6 +84,8 @@
+   
+   // Course à pied
+   runEconomyScore: number | null;
++  /** Explicit oxygen cost (ml O2/kg/km), never the 0–100 economy score. */
++  runningEconomyCostMlKgKm?: number | null;
+   runHrDriftPct: number | null;
+   paceThresholdSecPerKm: number | null;
+   runningPower1s: number | null;

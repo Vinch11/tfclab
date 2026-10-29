@@ -1,0 +1,95 @@
+{
+  "main_commit": "e31ffaba7d1fcefff8a60910713fd1fe9f18f89b",
+  "det_commit": "0f5079d93c03fb5d3c488ea11a3ba3253460068a",
+  "shared_source_comparison": [
+    {
+      "path": "src/lib/effectiveRefs.ts",
+      "main_blob": "8f768f3051efe1c0a486971ab87d91d1fff94cb1",
+      "det_blob": "8f768f3051efe1c0a486971ab87d91d1fff94cb1",
+      "identical": true
+    },
+    {
+      "path": "src/lib/mapSnapshotToV2.ts",
+      "main_blob": "0e3310780eb19699c827c3ee24a88fadbb418693",
+      "det_blob": "0e3310780eb19699c827c3ee24a88fadbb418693",
+      "identical": true
+    },
+    {
+      "path": "src/lib/vlamaxEffectif.ts",
+      "main_blob": "6ca5c2813d285eaac075c8adc6e0aaa06e70c401",
+      "det_blob": "6ca5c2813d285eaac075c8adc6e0aaa06e70c401",
+      "identical": true
+    },
+    {
+      "path": "src/lib/tteEffectif.ts",
+      "main_blob": "ce77bf52008fe85c553378e27bc199225f961345",
+      "det_blob": "ce77bf52008fe85c553378e27bc199225f961345",
+      "identical": true
+    },
+    {
+      "path": "src/engines/diagnostic/computeDiagnostic.ts",
+      "main_blob": "7d1d83c0bc234b057406935abd9ecfc69e244150",
+      "det_blob": "0cf4280cdfae974e8f0a50face02816f72bc2298",
+      "identical": false
+    },
+    {
+      "path": "src/engines/plan/prepareTrainingPlanContext.ts",
+      "main_blob": "3d58d114c43e71866cc46040a3397b9a342d4e49",
+      "det_blob": "d98eab5087baf477857b8ef4c94514bae4ab418f",
+      "identical": false
+    },
+    {
+      "path": "src/engines/plan/planConfigBuilder.ts",
+      "main_blob": "3132af98b21dfc464a26bb67c2867b5754172a86",
+      "det_blob": "b30ff43d4b42805ef0e7f6db135a5f279deb591c",
+      "identical": false
+    },
+    {
+      "path": "src/lib/zones/tfclDoctrine.ts",
+      "main_blob": "88d10a70bd0157fa07360241092135a9d43a814c",
+      "det_blob": "88d10a70bd0157fa07360241092135a9d43a814c",
+      "identical": true
+    },
+    {
+      "path": "src/lib/zones/deriveTrainingZones.ts",
+      "main_blob": "5e7d7a7c12c914610ce845b14ebc9a3de63ea05c",
+      "det_blob": "5e7d7a7c12c914610ce845b14ebc9a3de63ea05c",
+      "identical": true
+    }
+  ],
+  "production_paths_differing": [
+    "src/components/CoachProfileForm.tsx",
+    "src/components/LimiterHierarchyEditor.tsx",
+    "src/components/PlanPrevalidationPanel.tsx",
+    "src/components/TFCLDecisionMatrixCard.tsx",
+    "src/components/__tests__/CoachProfileForm.limiterSelection.test.tsx",
+    "src/components/__tests__/PlanPrevalidation.test.tsx",
+    "src/components/__tests__/TFCLDecisionMatrixCard.objectives.test.tsx",
+    "src/engines/decision/computeDecision.ts",
+    "src/engines/decision/index.ts",
+    "src/engines/decision/types.ts",
+    "src/engines/diagnostic/computeDiagnostic.ts",
+    "src/engines/plan/planConfigBuilder.ts",
+    "src/engines/plan/planValidator.ts",
+    "src/engines/plan/prepareTrainingPlanContext.ts",
+    "src/hooks/__tests__/useAITrainingPlan.prevalidation.test.tsx",
+    "src/hooks/useAITrainingPlan.ts",
+    "src/lib/coachingCompass/computeCoachingCompass.ts",
+    "src/lib/coachingCompass/types.ts",
+    "src/lib/limiterPrescription.ts",
+    "src/lib/plan/__tests__/coachLimiterPolicyStorage.test.ts",
+    "src/lib/plan/__tests__/disciplineCoachLimiters.test.ts",
+    "src/lib/plan/__tests__/geminiContractMaintenance.test.ts",
+    "src/lib/plan/__tests__/post419Contracts.test.ts",
+    "src/lib/plan/__tests__/prevalidation.physiologicalFailure.test.ts",
+    "src/lib/plan/coachLimiterPolicyStorage.ts",
+    "src/lib/plan/coachProfileOverrides.ts",
+    "src/lib/plan/planSchema.ts",
+    "src/lib/plan/prevalidateTrainingPlan.ts",
+    "src/lib/v2/__tests__/tfclDecisionMatrix.objectiveAliases.test.ts",
+    "src/lib/v2/lorangStrategyEngine.ts",
+    "src/lib/v2/tfclDecisionMatrix.ts",
+    "src/lib/v2/unifiedLimiterDetection.ts",
+    "src/pages/AITrainingPlanPage.tsx"
+  ]
+}

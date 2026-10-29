@@ -1,0 +1,46 @@
+{
+  "syntheticOnly": true,
+  "merged": {
+    "athleteId": "synthetic:merge",
+    "fields": {
+      "ftp": 280,
+      "vma": 18
+    },
+    "fieldOrigins": {
+      "ftp": {
+        "date": "2026-10-10",
+        "source": "bike_test"
+      },
+      "vma": {
+        "date": "2026-10-20",
+        "source": "cap_test"
+      }
+    },
+    "contributingSnapshots": [
+      {
+        "id": "bike",
+        "athlete_id": "synthetic:merge",
+        "date": "2026-10-10",
+        "source": "bike_test",
+        "ftp": 280
+      },
+      {
+        "id": "run",
+        "athlete_id": "synthetic:merge",
+        "date": "2026-10-20",
+        "source": "cap_test",
+        "vma": 18
+      }
+    ]
+  },
+  "payload": {
+    "athlete_id": "synthetic:merge",
+    "coach_id": "",
+    "date": "2026-10-29",
+    "source": "testing_week_consolidated",
+    "coach_notes": "Snapshot consolidé — semaine de test complète. Sources : bike_test (2026-10-10), cap_test (2026-10-20).",
+    "ftp": 280,
+    "vma": 18
+  },
+  "limitation": "fieldOrigins exists in preview; payload retains source/date list in notes, not a structured per-field mapping"
+}

@@ -1,0 +1,15 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../../vitest.config" without a file extension (experimental/physiology-validation/v1/vitest.config.ts:2:18). Add the file extension
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+1:58:26 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-full
+
+ ❯ experimental/physiology-validation/v1/confirmed-defects.test.ts (11 tests | 6 failed) 25ms
+     × rejects invalid profile FTP -1 9ms
+     × rejects invalid profile FTP 501 1ms
+     × rejects invalid profile FTP NaN 1ms
+     × rejects invalid profile FTP Infinity 1ms
+     × labels a snapshot as storage, including Profil Express estimates 4ms
+     × preserves explicit report sport and VLamax scientific source 1ms

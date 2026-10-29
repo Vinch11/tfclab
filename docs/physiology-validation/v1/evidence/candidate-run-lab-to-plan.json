@@ -1,0 +1,146 @@
+{
+  "syntheticOnly": true,
+  "snapshot": {
+    "date": "2026-10-20",
+    "source": "lab_import",
+    "vo2max": 60,
+    "vma": null,
+    "ftp": null,
+    "pmax_5s": null,
+    "weight_kg": 70,
+    "fat_pct": null,
+    "fc_max": null,
+    "vlamax": null,
+    "metabolic_profile": "Mixte",
+    "metabolic_score": 66,
+    "confidence": 0,
+    "coach_notes": "Import labo (PDF)",
+    "sport_main": "run",
+    "vlamax_source": "lab",
+    "vlamax_run": 0.42,
+    "id": "lab",
+    "athlete_id": "synthetic:v1-lab"
+  },
+  "effective": {
+    "value": 0.42,
+    "source": "snapshot",
+    "confidence": 0.95,
+    "label": "VLamax (mesurée labo)",
+    "details": {
+      "testType": "LACTATE_LAB",
+      "date": "2026-10-20",
+      "protocol": "Test CAP (sprint lactate)"
+    },
+    "isLocked": true,
+    "errorMargin": 0.02,
+    "range": {
+      "low": 0.4,
+      "high": 0.44
+    },
+    "variationWarning": false,
+    "rawValue": 0.42,
+    "v2": {
+      "raw": 0.42,
+      "effective": 0.42,
+      "source": "test_labo",
+      "confidence": 0.95,
+      "errorMargin": 0.02,
+      "range": {
+        "low": 0.4,
+        "high": 0.44
+      },
+      "label": "VLamax (mesurée labo)",
+      "isLocked": true,
+      "variationWarning": false,
+      "sport": "cap",
+      "details": "Brut: 0.420 · Effectif: 0.42 ± 0.02 · Fiabilité: Élevée · Sources: Test CAP (sprint lactate)",
+      "calibrationLog": {
+        "date": "2026-10-29T14:00:00.000Z",
+        "source": "test_labo",
+        "rawValue": 0.42,
+        "effectiveValue": 0.42,
+        "previousValue": null,
+        "variationPct": null,
+        "confidence": 0.95,
+        "errorMargin": 0.02,
+        "reason": "VLamax CAP mesurée (Test CAP (sprint lactate)) — valeur verrouillée",
+        "sources": [
+          "Test CAP (sprint lactate)"
+        ],
+        "smoothingApplied": false
+      }
+    }
+  },
+  "diagnosticEffectif": {
+    "value": 0.42,
+    "source": "snapshot",
+    "confidence": 0.95,
+    "label": "VLamax (mesurée labo)",
+    "details": {
+      "testType": "LACTATE_LAB",
+      "date": "2026-10-20",
+      "protocol": "Test CAP (sprint lactate)"
+    },
+    "isLocked": true,
+    "errorMargin": 0.02,
+    "range": {
+      "low": 0.4,
+      "high": 0.44
+    },
+    "variationWarning": false,
+    "rawValue": 0.42,
+    "v2": {
+      "raw": 0.42,
+      "effective": 0.42,
+      "source": "test_labo",
+      "confidence": 0.95,
+      "errorMargin": 0.02,
+      "range": {
+        "low": 0.4,
+        "high": 0.44
+      },
+      "label": "VLamax (mesurée labo)",
+      "isLocked": true,
+      "variationWarning": false,
+      "sport": "cap",
+      "details": "Brut: 0.420 · Effectif: 0.42 ± 0.02 · Fiabilité: Élevée · Sources: Test CAP (sprint lactate)",
+      "calibrationLog": {
+        "date": "2026-10-29T14:00:00.000Z",
+        "source": "test_labo",
+        "rawValue": 0.42,
+        "effectiveValue": 0.42,
+        "previousValue": null,
+        "variationPct": null,
+        "confidence": 0.95,
+        "errorMargin": 0.02,
+        "reason": "VLamax CAP mesurée (Test CAP (sprint lactate)) — valeur verrouillée",
+        "sources": [
+          "Test CAP (sprint lactate)"
+        ],
+        "smoothingApplied": false
+      }
+    }
+  },
+  "transmittedAthlete": {
+    "nom": "QA Synthetic",
+    "sex": "M",
+    "age": 35,
+    "ftp": 280,
+    "weightKg": 72,
+    "vlamax": 0.42,
+    "vlamaxRun": 0.42,
+    "vo2max": 58,
+    "vma": 18,
+    "css": 90,
+    "fcMax": null,
+    "tte": 45,
+    "pmax5s": 950,
+    "p30s": 620,
+    "p60s": 480,
+    "map5min": 380,
+    "paceThresholdSecPerKm": 220,
+    "runEconomyScore": 3,
+    "runMLSSEffectivePct": 90.9,
+    "runMLSSEffectiveSource": "observed"
+  }
+}

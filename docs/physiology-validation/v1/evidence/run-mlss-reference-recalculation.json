@@ -1,0 +1,9 @@
+{
+  "dataset": "src/lib/v2/__tests__/runMLSSPredictorGuardFail.test.ts",
+  "n": 17,
+  "unweighted_rmse_percentage_points": 1.5607313519440724,
+  "unweighted_bias_percentage_points": 0.4764705882352955,
+  "weighted_rmse_14_plus_3_edge_cases_weight_0_3": 1.4653721152804862,
+  "claimed_calibration_rmse": 2.64,
+  "scope": "independent arithmetic on existing frozen reference fixture; not external experimental validation"
+}
