@@ -116,7 +116,11 @@
   ],
   "closedAt": "2026-10-29T13:11:01.732879+00:00",
   "elapsedSecondsAtLocalClosure": 2606,
-  "publicationStatus": "authorized_pending_git_push_and_pr_receipt",
+  "publicationStatus": "published_draft_no_go",
   "recommendation": "NO_GO",
-  "remainingScientificReview": "Human sporting approval and individual dose evidence absent; full primary protocol gaps remain."
+  "remainingScientificReview": "Human sporting approval and individual dose evidence absent; full primary protocol gaps remain.",
+  "publishedEvidenceCommit": "12cd41b51d63a2e7c76cbc9962a07bdaef0786f3",
+  "deliveryReceiptAt": "2026-10-29T13:13:05.190951+00:00",
+  "elapsedSecondsAtDeliveryReceipt": 2729,
+  "publicationReceipt": "evidence/publication-receipt.json"
 }
