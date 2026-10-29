@@ -1,6 +1,6 @@
 {
   "version": "det-v26-state-1",
-  "status": "running",
+  "status": "closed_no_go",
   "startedAt": "2026-10-29T19:14:13.001358+00:00",
   "deadline": "2026-10-29T20:13:13.001358+00:00",
   "budgetMinutes": 60,
@@ -49,7 +49,12 @@
     {
       "unit": 9,
       "purpose": "Generate and verify full coach dossiers; commit/push experimental additions and update draft PR",
-      "status": "in_progress"
+      "status": "complete"
+    },
+    {
+      "unit": 10,
+      "purpose": "Close persistent supervisor, verify release fingerprints and draft publication, refuse closed-controller restart",
+      "status": "complete"
     }
   ],
   "baseline": "013489126054a94d4c5395e0b5e49d457d25ab47",
@@ -61,5 +66,16 @@
   "safetyFinding": "V26 reduced availability incorrectly selected an existing but rejected floor alternative; no production or export enabled",
   "safetyValidationUsed": true,
   "finalAcceptedEvidence": "evidence/validation-safety",
-  "creditQuotaAccessible": false
+  "creditQuotaAccessible": false,
+  "closedAt": "2026-10-29T19:52:28.011036+00:00",
+  "sessionFirstObservedAt": "2026-10-29T19:13:31+00:00",
+  "implementationCommit": "141fe2d6206dc9d869de97ec91a1395701ba17a1",
+  "expertSportingReviews": 0,
+  "individualDoseApprovals": 0,
+  "newTestsPassed": 32,
+  "legacyTestsPassed": 319,
+  "legacyTestsSkipped": 5,
+  "newPhysicalSubstitutions": 0,
+  "historicalRawIssuesRemoved": 0,
+  "coachFloorPermissionAlreadyGranted": true
 }
