@@ -1,0 +1,106 @@
+{
+  "version": "det-v22-session-1",
+  "baseline": "0f5079d93c03fb5d3c488ea11a3ba3253460068a",
+  "startedAt": "2026-10-29T13:18:08Z",
+  "hardDeadline": "2026-10-29T14:18:08Z",
+  "maxUnits": 10,
+  "status": "in_progress_no_go",
+  "budgetRenewal": false,
+  "automaticRestart": false,
+  "units": [
+    {
+      "unit": 1,
+      "name": "baseline_and_existing_prescription_functions",
+      "status": "completed",
+      "evidence": [
+        "evidence/baseline-1",
+        "evidence/baseline-tests.txt"
+      ]
+    },
+    {
+      "unit": 2,
+      "name": "preregistered_three_profile_baseline",
+      "status": "completed",
+      "evidence": [
+        "inputs.json",
+        "evidence/preregistration.json"
+      ]
+    },
+    {
+      "unit": 3,
+      "name": "extend_existing_allocator_for_swim_technique_and_evidence_transport",
+      "status": "completed",
+      "evidence": [
+        "evidence/development-2",
+        "experimental/det-engine/v22-evidence.ts"
+      ]
+    },
+    {
+      "unit": 4,
+      "name": "reuse_existing_prospective_builder_with_bounded_horizon_and_source_minima",
+      "status": "completed",
+      "evidence": [
+        "evidence/prospective-2"
+      ]
+    },
+    {
+      "unit": 5,
+      "name": "source_constrained_intensities_and_documented_reassessment",
+      "status": "completed",
+      "evidence": [
+        "feedback-inputs.json",
+        "experimental/det-engine/v22-intensity.ts",
+        "experimental/det-engine/v22-reassessment.ts"
+      ]
+    },
+    {
+      "unit": 6,
+      "name": "functional_contracts_and_non_regression",
+      "status": "completed",
+      "evidence": [
+        "evidence/validation-1",
+        "evidence/regression-tests.txt"
+      ]
+    },
+    {
+      "unit": 7,
+      "name": "independent_calendar_integrity_and_lossless_artifact_archival",
+      "status": "completed",
+      "evidence": [
+        "evidence/independent-after-archive.json",
+        "evidence/result-archives.json"
+      ]
+    },
+    {
+      "unit": 8,
+      "name": "coach_calendars_and_capability_comparison",
+      "status": "completed",
+      "evidence": [
+        "ENGINE_CAPABILITIES.md",
+        "THREE_PHYSIOLOGICAL_PROFILES.md",
+        "PRESCRIPTION_DECISION_TRACES.md",
+        "FOUR_WEEK_PLANS.md",
+        "BEFORE_AFTER_COMPARISON.md",
+        "ENGINE_IMPROVEMENTS.md",
+        "SPORTING_VALIDATION.md",
+        "V22_RESULTS.md",
+        "REPRISE.md"
+      ]
+    },
+    {
+      "unit": 9,
+      "name": "final_document_integrity_and_reproducibility_review",
+      "status": "completed",
+      "evidence": [
+        "evidence/document-validation.json",
+        "evidence/independent-after-archive.json"
+      ]
+    },
+    {
+      "unit": 10,
+      "name": "experimental_commit_push_and_draft_pr_closure",
+      "status": "in_progress"
+    }
+  ],
+  "validationAttempts": 1
+}

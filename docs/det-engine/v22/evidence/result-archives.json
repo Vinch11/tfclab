@@ -1,0 +1,114 @@
+[
+  {
+    "originalPath": "docs/det-engine/v22/evidence/development-1/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/development-1/results.json.gz",
+    "uncompressedSha256": "fd60d76547e88a6a84bac40b6e2cbb24021d1b77f6da2c069884843c58a221a5",
+    "uncompressedBytes": 18451900,
+    "compressedBytes": 3638890,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/development-2/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/development-2/results.json.gz",
+    "uncompressedSha256": "6d89e8538e57d161b7c618ab1e12a73d7ac66b62e262ee15a8bb4a6f76ca204a",
+    "uncompressedBytes": 18404038,
+    "compressedBytes": 3634297,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/development-final/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/development-final/results.json.gz",
+    "uncompressedSha256": "6d89e8538e57d161b7c618ab1e12a73d7ac66b62e262ee15a8bb4a6f76ca204a",
+    "uncompressedBytes": 18404038,
+    "compressedBytes": 3634297,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/development-qualified/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/development-qualified/results.json.gz",
+    "uncompressedSha256": "6d89e8538e57d161b7c618ab1e12a73d7ac66b62e262ee15a8bb4a6f76ca204a",
+    "uncompressedBytes": 18404038,
+    "compressedBytes": 3634297,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/final/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/final/results.json.gz",
+    "uncompressedSha256": "9e99bf47b9e24485dff76d7cd5780c31f7f2313c411f91411c6028358b3b479f",
+    "uncompressedBytes": 11160722,
+    "compressedBytes": 725304,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/prospective-1/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/prospective-1/results.json.gz",
+    "uncompressedSha256": "8b38d5aec0a1cd9cd9446358918940f0568d97a55eabaee9e46bfa84c1346466",
+    "uncompressedBytes": 9483318,
+    "compressedBytes": 606115,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/prospective-2/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/prospective-2/results.json.gz",
+    "uncompressedSha256": "384c22ebf3ef53cce6b9823f0d75ce6fd023fbe3175fc3cc36040b76973914be",
+    "uncompressedBytes": 11160359,
+    "compressedBytes": 725180,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/qualified/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/qualified/results.json.gz",
+    "uncompressedSha256": "044d899af97342955a95dafed5406f970c001dfe17e911b8813f2d0bcc50b402",
+    "uncompressedBytes": 12234580,
+    "compressedBytes": 788876,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/validation-1/build/allocator/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/validation-1/build/allocator/results.json.gz",
+    "uncompressedSha256": "6d89e8538e57d161b7c618ab1e12a73d7ac66b62e262ee15a8bb4a6f76ca204a",
+    "uncompressedBytes": 18404038,
+    "compressedBytes": 3634297,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/validation-1/build/baseline/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/validation-1/build/baseline/results.json.gz",
+    "uncompressedSha256": "e7d11781fd18ada8472f5a4651d1254915d16b9f6ac6e21f219133bf2c23dbc0",
+    "uncompressedBytes": 17608181,
+    "compressedBytes": 3569302,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/validation-1/build/prospective/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/validation-1/build/prospective/results.json.gz",
+    "uncompressedSha256": "044d899af97342955a95dafed5406f970c001dfe17e911b8813f2d0bcc50b402",
+    "uncompressedBytes": 12234580,
+    "compressedBytes": 788876,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/validation-1/replay/allocator/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/validation-1/replay/allocator/results.json.gz",
+    "uncompressedSha256": "6d89e8538e57d161b7c618ab1e12a73d7ac66b62e262ee15a8bb4a6f76ca204a",
+    "uncompressedBytes": 18404038,
+    "compressedBytes": 3634297,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/validation-1/replay/baseline/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/validation-1/replay/baseline/results.json.gz",
+    "uncompressedSha256": "e7d11781fd18ada8472f5a4651d1254915d16b9f6ac6e21f219133bf2c23dbc0",
+    "uncompressedBytes": 17608181,
+    "compressedBytes": 3569302,
+    "originalBytesPreserved": true
+  },
+  {
+    "originalPath": "docs/det-engine/v22/evidence/validation-1/replay/prospective/results.json",
+    "archivePath": "docs/det-engine/v22/evidence/validation-1/replay/prospective/results.json.gz",
+    "uncompressedSha256": "044d899af97342955a95dafed5406f970c001dfe17e911b8813f2d0bcc50b402",
+    "uncompressedBytes": 12234580,
+    "compressedBytes": 788876,
+    "originalBytesPreserved": true
+  }
+]

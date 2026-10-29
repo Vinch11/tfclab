@@ -1,0 +1,14 @@
+{
+  "version":"det-v22-feedback-preregistered-1",
+  "syntheticOnly":true,
+  "registeredBeforeFeedbackExecution":true,
+  "scope":"Do not change original physiological cases. Examine a recovery observation within the already declared bike180-minute envelope, not an acquired capacity gain.",
+  "target":{"week":2,"sport":"bike","kind":"long","sourceId":"SEILER_BIKE_Z1_LONG"},
+  "scenarios":[
+    {"id":"unknown","response":"unknown","recovered":null,"symptoms":null,"quality":"missing","documentedConditions":[]},
+    {"id":"adverse","response":"adverse","recovered":false,"symptoms":true,"quality":"usable","documentedConditions":["recovery","whole_week_interaction"]},
+    {"id":"recovered_within_existing_envelope","response":"favourable","recovered":true,"symptoms":false,"quality":"usable","documentedConditions":["recovery","whole_week_interaction"],"basis":"Synthetic dated same-source recovery and whole-microcycle interaction review; no new capacity, no real human review."}
+  ],
+  "noAdditionalSourceFinalRestOrSwimProof":true,
+  "noActualOperationalRelease":true
+}

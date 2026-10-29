@@ -1,0 +1,272 @@
+[
+  {
+    "profile": "A_aerobic",
+    "week": 1,
+    "type": "load",
+    "minutes": 465,
+    "budget": 480,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "A_RUN_Z2_EASY",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "A_aerobic",
+    "week": 2,
+    "type": "load",
+    "minutes": 485,
+    "budget": 528,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "A_RUN_Z2_EASY",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "A_aerobic",
+    "week": 3,
+    "type": "load",
+    "minutes": 505,
+    "budget": 580,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "SEILER_RUN_Z1_EASY_LONG",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "A_aerobic",
+    "week": 4,
+    "type": "recovery",
+    "minutes": 285,
+    "budget": 420,
+    "frequencies": {
+      "swim": 3,
+      "bike": 1,
+      "run": 1,
+      "strength": 1
+    },
+    "sourceIds": [
+      "D_SWIM_RECOVERY_EASY",
+      "D_SWIM_TECHNIQUE_LIGHT",
+      "D_RECOVERY_VAR_4_PRO",
+      "SEILER_BIKE_Z1_LONG",
+      "A_RUN_Z2_EASY",
+      "ENR_RECUP_MOBILITE_YOGA"
+    ]
+  },
+  {
+    "profile": "B_sustainability",
+    "week": 1,
+    "type": "load",
+    "minutes": 465,
+    "budget": 480,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "A_RUN_Z2_EASY",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "B_sustainability",
+    "week": 2,
+    "type": "load",
+    "minutes": 485,
+    "budget": 528,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "A_RUN_Z2_EASY",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "B_sustainability",
+    "week": 3,
+    "type": "load",
+    "minutes": 505,
+    "budget": 580,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "SEILER_RUN_Z1_EASY_LONG",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "B_sustainability",
+    "week": 4,
+    "type": "recovery",
+    "minutes": 285,
+    "budget": 420,
+    "frequencies": {
+      "swim": 3,
+      "bike": 1,
+      "run": 1,
+      "strength": 1
+    },
+    "sourceIds": [
+      "D_SWIM_RECOVERY_EASY",
+      "D_SWIM_TECHNIQUE_LIGHT",
+      "D_RECOVERY_VAR_4_PRO",
+      "SEILER_BIKE_Z1_LONG",
+      "A_RUN_Z2_EASY",
+      "ENR_RECUP_MOBILITE_YOGA"
+    ]
+  },
+  {
+    "profile": "C_uncertain",
+    "week": 1,
+    "type": "load",
+    "minutes": 455,
+    "budget": 480,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "A_RUN_Z2_EASY",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "C_uncertain",
+    "week": 2,
+    "type": "load",
+    "minutes": 465,
+    "budget": 528,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "A_RUN_Z2_EASY",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "C_uncertain",
+    "week": 3,
+    "type": "load",
+    "minutes": 480,
+    "budget": 580,
+    "frequencies": {
+      "swim": 3,
+      "bike": 2,
+      "run": 2,
+      "strength": 1
+    },
+    "sourceIds": [
+      "A_SWIM_CONTINUOUS_2K",
+      "C_SWIM_CATCH_FOCUS",
+      "C_SWIM_TRI_CATCH_PULL",
+      "SEILER_BIKE_Z1_LONG",
+      "C_BIKE_AERO_POSITION_DRILLS",
+      "A_RUN_Z2_EASY",
+      "A_RUN_EASY_45_PRO",
+      "A_STR_STABILITY_CORE"
+    ]
+  },
+  {
+    "profile": "C_uncertain",
+    "week": 4,
+    "type": "recovery",
+    "minutes": 265,
+    "budget": 420,
+    "frequencies": {
+      "swim": 3,
+      "bike": 1,
+      "run": 1,
+      "strength": 1
+    },
+    "sourceIds": [
+      "D_SWIM_RECOVERY_EASY",
+      "D_SWIM_TECHNIQUE_LIGHT",
+      "D_RECOVERY_VAR_4_PRO",
+      "SEILER_BIKE_Z1_LONG",
+      "A_RUN_Z2_EASY",
+      "ENR_RECUP_MOBILITE_YOGA"
+    ]
+  }
+]

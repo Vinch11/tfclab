@@ -1,0 +1,241 @@
+{
+  "version": "det-v22-independent-1",
+  "independentPass": true,
+  "oldFiles": 4517,
+  "oldUnchanged": 4514,
+  "optInExperimentalSourceChanges": [
+    "experimental/det-engine/v10-allocation.ts",
+    "experimental/det-engine/v10-profiles.ts",
+    "experimental/det-engine/v14-calendar.ts"
+  ],
+  "archivesV2ThroughV21CIntact": true,
+  "preservedIds": 920,
+  "preservedVariants": 2425,
+  "historicalCasesPreservedByHashes": 600,
+  "priorCandidateChronologies": 96,
+  "priorCandidateViews": 418,
+  "priorNolioFixtures": 15,
+  "profiles": [
+    {
+      "profile": "A_aerobic",
+      "status": "incomplete_or_refused",
+      "structuralComplete": true,
+      "currentlyExecutable": false,
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "budget": 480,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "budget": 528,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "budget": 580,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "budget": 420,
+          "sports": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          },
+          "restDays": 1
+        }
+      ],
+      "historicalErrorsBefore": 8,
+      "historicalErrorsAfter": 4,
+      "historicalWarningsBefore": 36,
+      "historicalWarningsAfter": 36,
+      "newHistoricalBlockingOrWarnings": 0,
+      "canonicalReasons": {
+        "recipe_not_fully_compiled": 20,
+        "no_source_bounded_duration_assignment": 20,
+        "unconfirmed_prerequisite:ventilateur": 4
+      }
+    },
+    {
+      "profile": "B_sustainability",
+      "status": "complete_conditional_candidate",
+      "structuralComplete": true,
+      "currentlyExecutable": false,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "budget": 480,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "budget": 528,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "budget": 580,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "budget": 420,
+          "sports": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          },
+          "restDays": 1
+        }
+      ],
+      "historicalErrorsBefore": 8,
+      "historicalErrorsAfter": 4,
+      "historicalWarningsBefore": 36,
+      "historicalWarningsAfter": 35,
+      "newHistoricalBlockingOrWarnings": 0,
+      "canonicalReasons": {
+        "recipe_not_fully_compiled": 20,
+        "no_source_bounded_duration_assignment": 20,
+        "unconfirmed_prerequisite:ventilateur": 4
+      }
+    },
+    {
+      "profile": "C_uncertain",
+      "status": "incomplete_or_refused",
+      "structuralComplete": true,
+      "currentlyExecutable": false,
+      "states": {
+        "not_admissible": 26,
+        "conditional_pending_reassessment": 4
+      },
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 455,
+          "budget": 480,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 2,
+          "minutes": 465,
+          "budget": 528,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 3,
+          "minutes": 480,
+          "budget": 580,
+          "sports": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          },
+          "restDays": 1
+        },
+        {
+          "week": 4,
+          "minutes": 265,
+          "budget": 420,
+          "sports": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          },
+          "restDays": 1
+        }
+      ],
+      "historicalErrorsBefore": 6,
+      "historicalErrorsAfter": 4,
+      "historicalWarningsBefore": 37,
+      "historicalWarningsAfter": 37,
+      "newHistoricalBlockingOrWarnings": 0,
+      "canonicalReasons": {
+        "recipe_not_fully_compiled": 19,
+        "no_source_bounded_duration_assignment": 19,
+        "unconfirmed_prerequisite:ventilateur": 4
+      }
+    }
+  ],
+  "checkedSlots": 90,
+  "numericDomainViewsChecked": 42,
+  "deterministicLogicalFiles": {
+    "allocator/results.json": "6d89e8538e57d161b7c618ab1e12a73d7ac66b62e262ee15a8bb4a6f76ca204a",
+    "baseline/registered-full-inputs.json": "aaeb842fa08981fe18671cafd1b5e132419e95c8bf151c9e429559d803bd6133",
+    "baseline/results.json": "e7d11781fd18ada8472f5a4651d1254915d16b9f6ac6e21f219133bf2c23dbc0",
+    "prospective/results.json": "044d899af97342955a95dafed5406f970c001dfe17e911b8813f2d0bcc50b402"
+  },
+  "expertHumanReviews": 0,
+  "actualIndividualDoseApprovals": 0,
+  "fullIronmanReadiness": false,
+  "noNewHistoricalCriticalOrWarnings": true
+}

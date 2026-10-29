@@ -1,0 +1,7 @@
+import fs from'node:fs';import{it,expect,vi}from'vitest';import{registeredCases,prepareV22Case}from'./v22-profiles';import{buildMesocycle}from'./v11-mesocycle';import{priorityIntent,allocate}from'./v10-allocation';import{resolvePhysiologicalReferences}from'./v20-physio';
+it('runs unchanged allocation and four-week construction on raw preregistered cases',()=>{
+ const spec=JSON.parse(fs.readFileSync('docs/det-engine/v22/inputs.json','utf8'));vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date(spec.clock));vi.spyOn(console,'log').mockImplementation(()=>{});vi.spyOn(console,'warn').mockImplementation(()=>{});vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN');});
+ const cases=registeredCases(spec);const out=process.env.TFCL_DET_V22_BASELINE;if(out){if(fs.existsSync(out)||!out.startsWith('docs/det-engine/v22/evidence/'))throw Error('FRESH_OUTPUT_REQUIRED');fs.mkdirSync(out);fs.writeFileSync(out+'/registered-full-inputs.json',JSON.stringify(cases,null,2)+'\n');}
+ const results=cases.map((c:any)=>{const{prepared,profile:p}=prepareV22Case(c,spec),intent=priorityIntent(p),allocation=allocate(p),block=buildMesocycle(p);return{id:c.id,raw:c.raw,form:c.form,prepared,profile:p,refs:resolvePhysiologicalReferences(prepared),intent,allocation,block};});
+ expect(results).toHaveLength(3);expect(results.every((r:any)=>r.prepared.trace.diagnostic.executed)).toBe(true);if(out)fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2)+'\n');vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();
+});
