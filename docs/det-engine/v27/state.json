@@ -1,0 +1,62 @@
+{
+  "version": "det-v27-state-1",
+  "status": "running",
+  "startedAt": "2026-10-29T20:17:57.822287+00:00",
+  "firstObservedAt": "2026-10-29T20:17:42+00:00",
+  "deadline": "2026-10-29T21:17:20+00:00",
+  "maxUnits": 10,
+  "budgetMinutes": 60,
+  "automaticRestart": false,
+  "baseline": "ec65f318b943f4a65f5df059288e1abd9e874ae4",
+  "physiologyReference": "9f67b70240d21f4d07ef29828a64d01b2060fadf",
+  "units": [
+    {
+      "unit": 1,
+      "purpose": "Verify clean branch, remote heads, immutable source baseline",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "purpose": "Identify exact B sources, source/variant conflicts, equipment predicate and incomplete modal timing",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "purpose": "Implement independent execution flags, variant/context contracts and parameter-bound timelines",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "purpose": "Replay A/B/C, search same-role alternatives and simulate only execution-ready Nolio text",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "purpose": "Bounded final tests, non-regression and deterministic replay",
+      "status": "complete"
+    },
+    {
+      "unit": 6,
+      "purpose": "Conserve independent before/after witness for explicit goal membership; strengthen alternative eligibility without touching historical validator",
+      "status": "complete"
+    },
+    {
+      "unit": 7,
+      "purpose": "Reuse existing integrated90-minute timing proof and preserve explicit provenance; final validation and independent checks",
+      "status": "complete"
+    },
+    {
+      "unit": 8,
+      "purpose": "Generate 13 readable coach dossiers and independently guard all30 session source/condition views",
+      "status": "complete"
+    },
+    {
+      "unit": 9,
+      "purpose": "Commit and push experimental additions, update draft PR with verified results",
+      "status": "in_progress"
+    }
+  ],
+  "validationAttempts": 3,
+  "acceptedEvidence": "evidence/validation-3",
+  "creditQuotaAccessible": false
+}

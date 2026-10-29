@@ -1,0 +1,3 @@
+import fs from 'node:fs';import zlib from 'node:zlib';import {loadV26Data} from './v26-test-data';
+export function loadV27Data(){const d=loadV26Data();return{...d,v27:JSON.parse(fs.readFileSync('docs/det-engine/v27/inputs.json','utf8')),baseline26:JSON.parse(zlib.gunzipSync(fs.readFileSync('docs/det-engine/v26/evidence/validation-safety/build/originals.json.gz')).toString())};}
+export function findV27Slot(d:any,id:string,week=1,profileIndex=1){const result=d.baseline26[profileIndex].retained,w=result.calendar.weeks[week-1],slot=w.slots.find((s:any)=>s.card.id===id);if(!slot)throw Error('FIXTURE_SOURCE_SLOT_MISSING:'+id);return{slot,week:w,decision:result.decisions.find((x:any)=>x.slotKey===slot.key),v:d.prepared[profileIndex],spec:d.a,record:d.canonical.get(id)};}

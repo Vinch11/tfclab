@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/workspace/tfclab/scripts/det-engine/v27-independent.py", line 33, in <module>
+    power=e['intensity']['sourcePower'];assert power['min']==265*55/100 and power['max']==265*72/100;assert 'explicit_FCmax_reference_missing' in e['intensity']['reasons']
+                                               ~~~~~^^^^^^^
+TypeError: 'NoneType' object is not subscriptable

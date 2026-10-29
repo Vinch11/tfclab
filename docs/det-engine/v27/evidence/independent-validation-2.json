@@ -1,0 +1,97 @@
+{
+  "version": "det-v27-independent-1",
+  "passed": true,
+  "previousFilesUnchanged": 5135,
+  "unchangedCalendars": 3,
+  "unchangedSessionReservations": 90,
+  "BTechnicalExecutions": 3,
+  "uniqueNewExecutableSourceIds": 1,
+  "NolioTextFixtures": 3,
+  "NolioExplicitRefusals": 87,
+  "individualDoseApprovals": 0,
+  "humanSportingReviews": 0,
+  "A_runRefusalsPreserved": 7,
+  "C_individualRefusalsPreserved": 26,
+  "explicitBikeVariantConflicts": 4,
+  "syntheticSwimCompleteTimingScenarios": 3,
+  "syntheticSwimDataAppliedToB": false,
+  "automaticReplacements": 0,
+  "alternativeOffersExamined": 938,
+  "wholePlanAlternativeTrials": 0,
+  "preservedIds": 920,
+  "preservedVariants": 2425,
+  "historicalConfigurationsPreservedNotRerun": 600,
+  "preservedNolioFixtures": 15,
+  "logicalReplay": {
+    "registered-inputs.json": "b06e9d5c42e15bcb7d1b8a3011ab4c1825c983cdd9780e8bb3338af670827dac",
+    "original-cases.json": "2c14abbfa93f68e21a73da06062ede86cb0d887c7c38ae1d0376a9cda260b26b",
+    "results.json.gz": "855ce98e036a4134b0b058562075fbc9da3cb203df7009ba292dc034d677b39b",
+    "fixtures.json.gz": "610900d841a00d51d8f514eb8cd46b0aae80b6adab0962632e5f701b4169fcd4"
+  },
+  "profiles": [
+    {
+      "caseId": "A_aerobic",
+      "slots": 30,
+      "technicalExecutable": 0,
+      "flags": {
+        "recipe_structurally_complete": 7,
+        "objective_variant_compatible": 19,
+        "full_duration_verified": 10,
+        "intensity_anchor_resolved": 3,
+        "technical_prerequisites_satisfied": 19,
+        "current_capacity_documented": 30,
+        "individual_tolerance_verified": 0,
+        "recovery_compatible": 0,
+        "coach_review_required": 30,
+        "individual_prescription_approved": 0
+      },
+      "rawHistorical": [
+        5,
+        36
+      ]
+    },
+    {
+      "caseId": "B_sustainability",
+      "slots": 30,
+      "technicalExecutable": 3,
+      "flags": {
+        "recipe_structurally_complete": 7,
+        "objective_variant_compatible": 19,
+        "full_duration_verified": 10,
+        "intensity_anchor_resolved": 9,
+        "technical_prerequisites_satisfied": 19,
+        "current_capacity_documented": 30,
+        "individual_tolerance_verified": 0,
+        "recovery_compatible": 0,
+        "coach_review_required": 30,
+        "individual_prescription_approved": 0
+      },
+      "rawHistorical": [
+        5,
+        34
+      ]
+    },
+    {
+      "caseId": "C_uncertain",
+      "slots": 30,
+      "technicalExecutable": 0,
+      "flags": {
+        "recipe_structurally_complete": 7,
+        "objective_variant_compatible": 18,
+        "full_duration_verified": 11,
+        "intensity_anchor_resolved": 0,
+        "technical_prerequisites_satisfied": 19,
+        "current_capacity_documented": 30,
+        "individual_tolerance_verified": 0,
+        "recovery_compatible": 0,
+        "coach_review_required": 30,
+        "individual_prescription_approved": 0
+      },
+      "rawHistorical": [
+        4,
+        37
+      ]
+    }
+  ],
+  "verifierSha256": "b4cb48aa06c19757d7b2ce6ef67d7f6788a35de3da6dfd9f42b68b33bc52c7c0"
+}

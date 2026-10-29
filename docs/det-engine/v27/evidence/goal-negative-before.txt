@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/workspace/tfclab/scripts/det-engine/v27-goal-guard.py", line 12, in <module>
+    assert not bad,('unsupported_goal_in_technical_alternative',bad)
+           ^^^^^^^
+AssertionError: ('unsupported_goal_in_technical_alternative', [{'slot': 'B_sustainability:native_floor_conditional:S1:run:0', 'source': 'A_TR_EF_SENTIER', 'declaredGoals': ['trail_short', 'trail_mountain', 'trail_ultra', 'trail_long']}, {'slot': 'B_sustainability:native_floor_conditional:S2:run:0', 'source': 'A_TR_EF_SENTIER', 'declaredGoals': ['trail_short', 'trail_mountain', 'trail_ultra', 'trail_long']}, {'slot': 'B_sustainability:native_floor_conditional:S4:run:0', 'source': 'A_TR_EF_SENTIER', 'declaredGoals': ['trail_short', 'trail_mountain', 'trail_ultra', 'trail_long']}])
