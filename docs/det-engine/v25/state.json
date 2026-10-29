@@ -6,7 +6,7 @@
   "maxUnits": 10,
   "budgetRenewal": false,
   "automaticRestart": false,
-  "status": "closed_pending_publication_no_go",
+  "status": "closed_no_go",
   "units": [
     {
       "unit": 1,
@@ -59,12 +59,13 @@
     {
       "unit": 9,
       "name": "guarded_experimental_publication_and_draft_pr_update",
-      "status": "in_progress"
+      "status": "complete",
+      "publishedImplementationCommit": "14727e42f6f5960612c542b51d0e2a5e6cd6e2eb"
     },
     {
       "unit": 10,
       "name": "bounded_closure_guard_and_publication_receipt",
-      "status": "guard_verified_awaiting_publication_receipt"
+      "status": "complete"
     }
   ],
   "validationAttempts": 3,
@@ -97,5 +98,18 @@
     "allLiveEngineAndTestPinsVerified": true
   },
   "developmentClosedAt": "2026-10-29T16:16:11.289817+00:00",
-  "resumeRequiresNewBudget": true
+  "resumeRequiresNewBudget": true,
+  "closedAt": "2026-10-29T16:20:32.518215+00:00",
+  "elapsedMinutesAtClosureCheckpoint": 41.459,
+  "publishedImplementationCommit": "14727e42f6f5960612c542b51d0e2a5e6cd6e2eb",
+  "prDraftVerified": true,
+  "prMerged": false,
+  "actualIndividualApprovals": 0,
+  "humanExpertReviews": 0,
+  "nextHumanDecisions": [
+    "review the limited planning-floor exception independently of dose approval",
+    "review typed individual run evidence with #424",
+    "document real recovery reassessment and a separate authenticated coach decision"
+  ],
+  "closureEvidence": "evidence/publication-receipt.json and final documentation-only closure commit; discover its SHA with git log on this file"
 }
