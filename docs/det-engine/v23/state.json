@@ -6,7 +6,7 @@
   "maxUnits": 10,
   "budgetRenewal": false,
   "automaticRestart": false,
-  "status": "in_progress_no_go",
+  "status": "closed_no_go",
   "units": [
     {
       "unit": 1,
@@ -95,8 +95,23 @@
     {
       "unit": 10,
       "name": "experimental_commit_push_and_draft_pr_closure",
-      "status": "in_progress"
+      "status": "completed",
+      "evidence": [
+        "evidence/publication-receipt.json",
+        "final-integrity.json"
+      ]
     }
   ],
-  "validationAttempts": 1
+  "validationAttempts": 1,
+  "publicationStatus": "published_draft_no_go",
+  "publishedEvidenceCommit": "efa50b520d993a32de95d609eadb5e0001e0ebca",
+  "closedAt": "2026-10-29T14:41:55.876470+00:00",
+  "elapsedSecondsAtReceipt": 2179,
+  "actualIndividualApprovals": 0,
+  "remainingBlockers": [
+    "No retained physical/dose differentiation; priority trial adds an unchanged historical warning",
+    "Run economy score versus oxygen-cost semantic boundary requires parallel review",
+    "95-minute future run exceeds documented90; native floor prevents90-minute alternative",
+    "Individual source execution, variants, recovery and coach review remain unapproved"
+  ]
 }
