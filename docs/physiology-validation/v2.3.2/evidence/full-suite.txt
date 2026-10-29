@@ -1,0 +1,58 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+9:40:41 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+ ❯ src/lib/fitImport/__tests__/analyzer.test.ts (11 tests | 3 failed) 28690ms
+     × calcule bien FTP/TTE pour une séance vélo équivalente (même profil de puissance) 6522ms
+     × ne calcule aucune TTE quand aucun FTP existant n'est fourni, même si un FTP est fraîchement estimé dans cette séance 6748ms
+     × n'estime jamais l'allure seuil pour une séance vélo (garde-fou sport croisé) 7429ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/fitImport/__tests__/analyzer.test.ts > analyzeFitSession — sport course vs vélo > calcule bien FTP/TTE pour une séance vélo équivalente (même profil de puissance)
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/lib/fitImport/__tests__/analyzer.test.ts:72:3
+     70|   });
+     71|
+     72|   it("calcule bien FTP/TTE pour une séance vélo équivalente (même prof…
+       |   ^
+     73|     const bikeTest = buildSteadyPowerSession({ sport: "cycling", watts…
+     74|     const result = analyzeFitSession(bikeTest);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/lib/fitImport/__tests__/analyzer.test.ts > analyzeFitSession — TTE uniquement au FTP déjà validé, jamais à un FTP frais > ne calcule aucune TTE quand aucun FTP existant n'est fourni, même si un FTP est fraîchement estimé dans cette séance
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/lib/fitImport/__tests__/analyzer.test.ts:101:3
+     99|  */
+    100| describe("analyzeFitSession — TTE uniquement au FTP déjà validé, jamai…
+    101|   it("ne calcule aucune TTE quand aucun FTP existant n'est fourni, mêm…
+       |   ^
+    102|     const bikeTest = buildSteadyPowerSession({ sport: "cycling", watts…
+    103|     const result = analyzeFitSession(bikeTest); // pas d'existingFtp
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/lib/fitImport/__tests__/analyzer.test.ts > analyzeFitSession — course : détection réelle du type de test (plus de blanket UNKNOWN) > n'estime jamais l'allure seuil pour une séance vélo (garde-fou sport croisé)
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/lib/fitImport/__tests__/analyzer.test.ts:172:3
+    170|   });
+    171|
+    172|   it("n'estime jamais l'allure seuil pour une séance vélo (garde-fou s…
+       |   ^
+    173|     const bikeTest = buildSteadyPowerSession({ sport: "cycling", watts…
+    174|     const result = analyzeFitSession(bikeTest);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 407 passed (408)
+      Tests  3 failed | 3240 passed | 1 skipped | 6 todo (3250)
+   Start at  21:40:41
+   Duration  273.31s (transform 23.12s, setup 21.47s, import 98.71s, tests 229.86s, environment 123.99s)

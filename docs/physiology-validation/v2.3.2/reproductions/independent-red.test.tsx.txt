@@ -1,0 +1,62 @@
+import {it,expect,vi,afterEach} from 'vitest';
+import {render,cleanup,fireEvent} from '@testing-library/react';
+import {writeFileSync} from 'node:fs';
+import {qualifyReference,requalifyReference,qualifyScoreEnvelope} from '@/lib/scientificQualification';
+import {resolveVlamaxForGoal} from '@/lib/vlamaxResolver';
+import {snapshotToEngineData} from '@/lib/v2/cycleIntelligence';
+import {computeDiagnostic} from '@/engines/diagnostic/computeDiagnostic';
+import {buildPlanAthleteDataFromDiagnostic} from '@/engines/plan/planConfigBuilder';
+import {buildPilotDiagnosticInput} from '@/lib/plan/qa/preparePilotTrainingPlanContext';
+import {QA_PROFILES} from '@/lib/plan/qa/syntheticProfiles';
+import {toVLamaxEnvelope} from '@/lib/vlamaxEffectif';
+import {VLamaxUnifiedCard} from '@/components/VLamaxUnifiedCard';
+import {ScoreEnvelopeDisplay} from '@/components/ScoreEnvelopeDisplay';
+import {LabAthleteValidator} from '@/components/calibration/LabAthleteValidator';
+import Cohort from '@/pages/VlamaxCapCohortPage';
+vi.mock('@/integrations/supabase/client',()=>({supabase:{from:()=>{throw Error('SUPABASE_FORBIDDEN')}}}));
+vi.mock('@/contexts/AuthContext',()=>({useAuth:()=>({user:null})}));
+vi.mock('@/contexts/AthleteContext',()=>({useAthletes:()=>({athletes:[]})}));
+vi.mock('@/components/SidebarLayout',()=>({SidebarLayout:({children}:any)=><>{children}</>}));
+afterEach(()=>{cleanup();vi.unstubAllGlobals()});
+const ctx={subjectId:'synthetic:final-A',quantity:'vlamax',discipline:'bike',value:0.42,unit:'mmol/L/s'};
+const evidence={...ctx,discipline:'bike' as const,method:'Synthetic model calculation',date:'2026-10-20',sourceRef:'fixture:final-A',methodKind:'physiological_model' as const,nature:'estimated' as const};
+const base=()=>({...buildPilotDiagnosticInput(QA_PROFILES.find(p=>p.id==='B-IM')!),athleteId:ctx.subjectId,vlamax:0.42,vlamaxSource:null});
+it('A1 independent negative wording cannot select laboratory or change downstream input',()=>{
+ vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN')});
+ const raw={athlete_id:ctx.subjectId,sport_main:'run',objectif:'10 km',vlamax_run:0.7,vma:18,pace_threshold_sec_per_km:235};
+ const text='Aucune mesure labo, valeur coach inconnue';
+ const a=resolveVlamaxForGoal(raw,{id:ctx.subjectId,goal:'10 km'}),b=resolveVlamaxForGoal({...raw,vlamax_protocol:text},{id:ctx.subjectId,goal:'10 km'});
+ expect(b.value).toBe(0.42);expect(b.confidence).toBe(0.4);expect(b.value).toBe(a.value);
+ expect(snapshotToEngineData({...raw,vlamax_protocol:text}).vlamax).toBe(0.42);
+ const d=computeDiagnostic({...base(),sportFocus:'run',objectif:'10 km',vlamax:null,vlamaxRun:0.7,vma:18,paceThresholdSecPerKm:235,vlamaxProtocol:text});
+ expect(d.effectifs.vlamax.value).toBe(0.42);expect(d.effectifs.vlamax.confidence).toBe(0.5);
+ const p=buildPlanAthleteDataFromDiagnostic(d).physiologicalEvidence!.vlamaxEffective;expect(p.value).toBe(0.42);expect(p.scientificQualification!.admissibility).toBe('not_established');
+});
+it.each([[ctx.subjectId,'synthetic:final-B'],['synthetic:final-B',ctx.subjectId],[ctx.subjectId,undefined]])('A2 independent actor %s -> %s is not inherited',(owner,viewer)=>{
+ const q=qualifyReference({...evidence,subjectId:owner},{...ctx,subjectId:owner});
+ expect(requalifyReference(q,0.42,'bike',viewer).status).toBe('unknown');
+ const r=render(<VLamaxUnifiedCard athleteId={viewer} objectif="Ironman" vlamaxEffectif={{...computeDiagnostic(base()).effectifs.vlamax,scientificQualification:q}}/>);
+ expect(r.container.textContent).toContain('provenance scientifique inconnue');
+});
+it('A3 independent estimated model stays a model in actual plan data',()=>{
+ const p={...evidence,scientificOrigin:'model_inference' as const,storageSource:'fixture',confidence:null,confidenceBasis:'unknown' as const,errorMargin:null};
+ const d=computeDiagnostic({...base(),physiologicalEvidence:{vlamax:p}});
+ const e=buildPlanAthleteDataFromDiagnostic(d).physiologicalEvidence!;
+ expect(e.vlamax.scientificOrigin).toBe('model_inference');expect(e.vlamaxEffective.scientificOrigin).toBe('model_inference');
+});
+it.each([null,{},[null],123])('A4 independent corrupted reasons %j render conservatively without mutation',why=>{
+ const env={...toVLamaxEnvelope(computeDiagnostic(base()).effectifs.vlamax,'IM'),why};const before=JSON.stringify(env);
+ expect(()=>qualifyScoreEnvelope(env)).not.toThrow();expect(()=>render(<ScoreEnvelopeDisplay envelope={env as never} mode="staff"/>)).not.toThrow();expect(JSON.stringify(env)).toBe(before);
+});
+it('A5 originally targeted form now distinguishes lactate from VLamax',()=>{
+ const r=render(<LabAthleteValidator/>);expect(r.container.textContent).toContain('VLamax est calculée ou estimée');expect(r.container.textContent).not.toContain('mesurées en laboratoire');
+});
+it('A5 NEW COUNTEREXAMPLE: active cohort still promotes raw declaration to measured laboratory reference',()=>{
+ const r=render(<Cohort/>);
+ const vla=r.container.querySelector('input[placeholder="0.45"]')!,sprint=r.container.querySelector('input[placeholder="85"]')!;
+ fireEvent.change(vla,{target:{value:'0.70'}});fireEvent.change(sprint,{target:{value:'85'}});
+ const text=r.container.textContent!;
+ writeFileSync('/workspace/c8-final-review/active-counterexample.txt',text+'\n');
+ expect(text).not.toContain('Mesuré (labo) :');expect(text).toContain('0.7');expect(text).toContain('4-5 = labo');
+ // Observational assertion: confirms the defect, not compliance or experimental validity.
+});
