@@ -1,0 +1,1032 @@
+{
+  "acute_cycle_3_3": {
+    "studyKey": "acute_cycle_3_3",
+    "pmid": "34822448",
+    "pmcid": "PMC8623252",
+    "doi": "10.3390/metabo11110790",
+    "title": "Central and Peripheral Oxygen Distribution in Two Different Modes of Interval Training",
+    "studyType": "primary",
+    "access": "full_main_text_and_xml_tables_examined",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8623252/fullTextXML",
+    "retrievedAt": "2026-10-29T12:30:17.114105+00:00",
+    "artifactSha256": "1ac644ed8df8f228fa1d74fd3c60d97e054635f68be44a873cd6512746fe1351",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-1/acute_cycle_3_3.response.gz",
+    "fullMainTextReviewed": true,
+    "xmlTableCount": 1,
+    "population": "24 healthy recreationally active men, 24.3 ± 3.6 years; cardiac output available in 17; not an Ironman cohort",
+    "work": "Five 3-min work phases versus 30 short work phases of 30 s, arranged in five 6-min sections; matched work rate and time",
+    "recovery": "Long condition: each complete section has 3 min work and 3 min active recovery. Short condition starts with 30 s active recovery to align work-phase sampling. This does not settle a TFCL source's missing final rest.",
+    "intensityAnchor": "cycle_ramp_power_at_80pct_VO2peak_then_reduced_5pct",
+    "frequency": "Three experimental visits within two weeks, at least 48 h apart; acute protocols, not a weekly training prescription",
+    "protocolComplete": true,
+    "limits": "Recreational males; acute mechanistic contrast; equal work rates; not an individual optimum, not FTP-based prescription",
+    "manualReviewUnchanged": {
+      "key": "acute_cycle_3_3",
+      "scope": "primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "bike",
+      "design": "acute_randomized_crossover",
+      "population": "24 healthy recreationally active men, 24.3 ± 3.6 years; cardiac output available in 17; not an Ironman cohort",
+      "work": "Five 3-min work phases versus 30 short work phases of 30 s, arranged in five 6-min sections; matched work rate and time",
+      "repetitions": 5,
+      "workSeconds": 180,
+      "restSeconds": 180,
+      "cadenceRpm": null,
+      "intensityAnchor": "cycle_ramp_power_at_80pct_VO2peak_then_reduced_5pct",
+      "restAnchor": "cycle_ramp_power_at_85pct_GET",
+      "intensityDetail": "Power corresponding to 80% VO2peak on a 20 W/min ramp, then reduced by 5% for delayed oxygen kinetics; not 80% FTP. Relief power corresponds to 85% GET.",
+      "recovery": "Long condition: each complete section has 3 min work and 3 min active recovery. Short condition starts with 30 s active recovery to align work-phase sampling. This does not settle a TFCL source's missing final rest.",
+      "warmupCooldown": "3 min baseline observation and 5 min warm-up at the active-recovery intensity; no TFCL 20-min warm-up plus accelerations or 10-min cool-down established",
+      "frequency": "Three experimental visits within two weeks, at least 48 h apart; acute protocols, not a weekly training prescription",
+      "outcomes": "Higher work-phase cardiopulmonary responses and time above target for long intervals, broadly similar section-average VO2; lactate 6.2 versus 4.2 mmol/L; no chronic adaptation measured",
+      "limits": "Recreational males; acute mechanistic contrast; equal work rates; not an individual optimum, not FTP-based prescription",
+      "protocolCompleteForReportedContrast": true,
+      "primarySupportsChronicGain": false,
+      "sourceSections": [
+        "2. Methods",
+        "3. Results",
+        "4. Discussion",
+        "5. Conclusions"
+      ],
+      "targetIds": [
+        "B_BIKE_VO2_3MIN",
+        "BILLAT_BIKE_VO2MAX_4MIN",
+        "SEILER_BIKE_4X4MIN"
+      ],
+      "reasonForTargets": "Explicit cycling interval recipes in the source, including 3/3 or 4/3–4 patterns; compare the actual anchors and whole session, not the VO2 label."
+    },
+    "sourceAccessRecord": {
+      "key": "acute_cycle_3_3",
+      "pmcid": "PMC8623252",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8623252/fullTextXML",
+      "attemptedAt": "2026-10-29T12:30:14.702547+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/xml",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8623252/fullTextXML",
+      "responseSha256": "1ac644ed8df8f228fa1d74fd3c60d97e054635f68be44a873cd6512746fe1351",
+      "bytes": 79487,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/acute_cycle_3_3.response.gz",
+      "retrievedAt": "2026-10-29T12:30:17.114105+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    }
+  },
+  "chronic_run_4_4": {
+    "studyKey": "chronic_run_4_4",
+    "pmid": "36314990",
+    "pmcid": "PMC10099854",
+    "doi": "10.1111/sms.14251",
+    "title": "Aerobic  high‐intensity  intervals are superior to improve V̇O 2max  compared with sprint intervals in  well‐trained  men",
+    "studyType": "primary",
+    "access": "full_main_text_and_xml_tables_examined",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10099854/fullTextXML",
+    "retrievedAt": "2026-10-29T12:30:18.125950+00:00",
+    "artifactSha256": "548d03290714bf7309b21762baea4ced4cbce90f1d931088b82338b1b2473bc9",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-1/chronic_run_4_4.response.gz",
+    "fullMainTextReviewed": true,
+    "xmlTableCount": 4,
+    "population": "48 aerobically well-trained healthy men randomized; 31 analyzed (10 HIIT, 12 short-rest SIT, 9 long-rest SIT); accustomed to treadmill but not specialized competitive runners",
+    "work": "HIIT 4×4 min compared with approximately 8×20 s exhaustive running and 10×30 s maximal running; treadmill approximately 3 degrees",
+    "recovery": "Three 3-min active recoveries between the four work bouts; a separately stated final 3-min cool-down at the same 70% HRmax intensity",
+    "intensityAnchor": "running_MAS_at_3deg_adjusted_to_HR_response",
+    "frequency": "3 sessions/week for 8 weeks; other high-intensity endurance prohibited during intervention; other usual physical activities allowed",
+    "protocolComplete": true,
+    "limits": "Male selected sample, no direct bike transfer, protocol-specific training volume, no individual TFCL dose established; some SIT intolerance reported",
+    "manualReviewUnchanged": {
+      "key": "chronic_run_4_4",
+      "scope": "primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "run",
+      "design": "eight_week_randomized_training_trial",
+      "population": "48 aerobically well-trained healthy men randomized; 31 analyzed (10 HIIT, 12 short-rest SIT, 9 long-rest SIT); accustomed to treadmill but not specialized competitive runners",
+      "work": "HIIT 4×4 min compared with approximately 8×20 s exhaustive running and 10×30 s maximal running; treadmill approximately 3 degrees",
+      "repetitions": 4,
+      "workSeconds": 240,
+      "restSeconds": 180,
+      "cadenceRpm": null,
+      "intensityAnchor": "running_MAS_at_3deg_adjusted_to_HR_response",
+      "restAnchor": "70pct_HRmax_running",
+      "intensityDetail": "About 95% MAS, adjusted to reach 90–95% HRmax within 3 min; MAS measured at 3 degrees. This is neither cycling FTP nor proof that any HR percentage certifies measured VO2max.",
+      "recovery": "Three 3-min active recoveries between the four work bouts; a separately stated final 3-min cool-down at the same 70% HRmax intensity",
+      "warmupCooldown": "10-min warm-up around 70% HRmax; 3-min final cool-down; HIIT total 38 min. The study explicitly separates final cool-down from between-bout recovery.",
+      "frequency": "3 sessions/week for 8 weeks; other high-intensity endurance prohibited during intervention; other usual physical activities allowed",
+      "outcomes": "HIIT VO2max increased more than the two SIT groups; different anaerobic and performance responses. Attrition and compliance affect interpretation; not a universal protocol ranking.",
+      "limits": "Male selected sample, no direct bike transfer, protocol-specific training volume, no individual TFCL dose established; some SIT intolerance reported",
+      "protocolCompleteForReportedContrast": true,
+      "primarySupportsChronicGain": true,
+      "sourceSections": [
+        "2.1 Subjects",
+        "2.4 Training interventions",
+        "3.1 Withdrawal and compliance",
+        "3.2 Maximal oxygen uptake",
+        "4. Discussion"
+      ],
+      "targetIds": [
+        "TPL_SEMI_VMA_MOYENNE_1MIN",
+        "SEILER_BIKE_4X4MIN",
+        "BILLAT_BIKE_VO2MAX_4MIN"
+      ],
+      "reasonForTargets": "Running 1-min VMA recipe is a different dose; bike 4-min recipes are explicit transfer counterexamples despite a superficially similar interval label."
+    },
+    "sourceAccessRecord": {
+      "key": "chronic_run_4_4",
+      "pmcid": "PMC10099854",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10099854/fullTextXML",
+      "attemptedAt": "2026-10-29T12:30:17.114330+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/xml",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10099854/fullTextXML",
+      "responseSha256": "548d03290714bf7309b21762baea4ced4cbce90f1d931088b82338b1b2473bc9",
+      "bytes": 149949,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/chronic_run_4_4.response.gz",
+      "retrievedAt": "2026-10-29T12:30:18.125950+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    }
+  },
+  "low_cadence_primary": {
+    "studyKey": "low_cadence_primary",
+    "pmid": "24550843",
+    "pmcid": "PMC3907705",
+    "doi": "10.3389/fphys.2014.00034",
+    "title": "Low cadence interval training at moderate intensity does not improve cycling performance in highly trained veteran cyclists",
+    "studyType": "primary",
+    "access": "full_main_text_and_xml_tables_examined",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC3907705/fullTextXML",
+    "retrievedAt": "2026-10-29T12:32:19.749308+00:00",
+    "artifactSha256": "78b7b3061100b8071789526b29ad7fef2bc2abf0738eec0ec23473fb8f236021",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-2/low_cadence_primary.response.gz",
+    "fullMainTextReviewed": true,
+    "xmlTableCount": 5,
+    "population": "22 well-trained male veteran cyclists randomized, age 47 ± 6; low-cadence group 11, reported training-diary control 10; strength outcomes only 7/9; table sample labels require caution",
+    "work": "5×6 min at 40 rpm versus added freely chosen cadence moderate cycling",
+    "recovery": "Methods say 3-min active rest in-between 5 efforts, but also report 30 min active rest weekly across two sessions: 24 min if strictly n−1 versus reported 30. Do not choose the missing final rest to reconcile the paper.",
+    "intensityAnchor": "73to82pct_measured_HRmax",
+    "frequency": "2 sessions/week for 12 weeks in addition to usual training; freely chosen cadence group adds 90 min moderate cycling weekly",
+    "protocolComplete": false,
+    "limits": "Veteran male sample; cadence, HR anchors and duration differ; internal recovery-volume ambiguity; prior training history incompletely known; subgroup strength tests",
+    "manualReviewUnchanged": {
+      "key": "low_cadence_primary",
+      "scope": "primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "bike",
+      "design": "twelve_week_randomized_training_trial",
+      "population": "22 well-trained male veteran cyclists randomized, age 47 ± 6; low-cadence group 11, reported training-diary control 10; strength outcomes only 7/9; table sample labels require caution",
+      "work": "5×6 min at 40 rpm versus added freely chosen cadence moderate cycling",
+      "repetitions": 5,
+      "workSeconds": 360,
+      "restSeconds": 180,
+      "cadenceRpm": 40,
+      "intensityAnchor": "73to82pct_measured_HRmax",
+      "restAnchor": "60to72pct_HRmax_freely_chosen_cadence",
+      "intensityDetail": "73–82% measured HRmax, not TFCL Z3 or a fixed FTP percentage; 40 rpm differs from 50–60 rpm source recipes",
+      "recovery": "Methods say 3-min active rest in-between 5 efforts, but also report 30 min active rest weekly across two sessions: 24 min if strictly n−1 versus reported 30. Do not choose the missing final rest to reconcile the paper.",
+      "warmupCooldown": "15-min warm-up stated. Weekly warm-up plus cool-down 50 min reported; no silently reconstructed personal cool-down duration.",
+      "frequency": "2 sessions/week for 12 weeks in addition to usual training; freely chosen cadence group adds 90 min moderate cycling weekly",
+      "outcomes": "No significant low-cadence-group improvement in aerobic capacity, cycling performance or leg strength; freely chosen cadence group improved some measures. Not proof every low-cadence method is ineffective.",
+      "limits": "Veteran male sample; cadence, HR anchors and duration differ; internal recovery-volume ambiguity; prior training history incompletely known; subgroup strength tests",
+      "protocolCompleteForReportedContrast": false,
+      "primarySupportsChronicGain": false,
+      "sourceSections": [
+        "Training procedures",
+        "Results",
+        "Discussion"
+      ],
+      "targetIds": [
+        "C_BIKE_FORCE",
+        "C_BIKE_FORCE_LOW_CAD",
+        "TPL_IM_BIKE_FORCE_K3",
+        "ENR_BIKE_TEMPO_CADENCE_BASSE",
+        "V2_BIKE_SFR_CLASSIQUE",
+        "V2_BIKE_GRIMPEUR_TEMPO",
+        "V2_BIKE_CADENCE_HAUTE"
+      ],
+      "reasonForTargets": "Source cadence, work/rest and power labels are explicit. The high-cadence and climbing recipes are contrast cases, not automatically supported by freely chosen cadence results."
+    },
+    "sourceAccessRecord": {
+      "key": "low_cadence_primary",
+      "pmcid": "PMC3907705",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC3907705/fullTextXML",
+      "attemptedAt": "2026-10-29T12:32:17.905769+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/xml",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC3907705/fullTextXML",
+      "responseSha256": "78b7b3061100b8071789526b29ad7fef2bc2abf0738eec0ec23473fb8f236021",
+      "bytes": 69074,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-2/low_cadence_primary.response.gz",
+      "retrievedAt": "2026-10-29T12:32:19.749308+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    }
+  },
+  "longterm_recovery_review": {
+    "studyKey": "longterm_recovery_review",
+    "pmid": "38443585",
+    "pmcid": "PMC10914654",
+    "doi": "10.1186/s40798-024-00673-0",
+    "title": "Effects of Passive or Active Recovery Regimes Applied During Long-Term Interval Training on Physical Fitness in Healthy Trained and Untrained Individuals: A Systematic Review",
+    "studyType": "systematic_review_not_primary",
+    "access": "full_main_text_and_xml_tables_examined",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10914654/fullTextXML",
+    "retrievedAt": "2026-10-29T12:30:17.310883+00:00",
+    "artifactSha256": "b51cf237a153c3059437d3c791f3ef3a199ced6e86fc5984a893ae05280914d0",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-1/longterm_recovery_review.response.gz",
+    "fullMainTextReviewed": true,
+    "xmlTableCount": 5,
+    "population": "24 included studies; 501 participants in active-recovery programs and 229 in passive-recovery programs; trained/untrained, 14–48 years",
+    "work": "Heterogeneous interval-training programs, 3–15 weeks; no single common workout prescription",
+    "recovery": "Active/passive during repeated efforts or sets; does not test presence of an undocumented final rest in TFCL recipes",
+    "intensityAnchor": "heterogeneous_not_interchangeable",
+    "frequency": "Heterogeneous trial frequencies and durations; no universal schedule inferred",
+    "protocolComplete": false,
+    "limits": "Heterogeneous populations, interventions and outcomes; primarily separate programs rather than uniform head-to-head comparison; no final-rest rule",
+    "manualReviewUnchanged": {
+      "key": "longterm_recovery_review",
+      "scope": "systematic_review_not_primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "mixed",
+      "design": "systematic_review_without_pooled_meta_analysis",
+      "population": "24 included studies; 501 participants in active-recovery programs and 229 in passive-recovery programs; trained/untrained, 14–48 years",
+      "work": "Heterogeneous interval-training programs, 3–15 weeks; no single common workout prescription",
+      "repetitions": null,
+      "workSeconds": null,
+      "restSeconds": null,
+      "cadenceRpm": null,
+      "intensityAnchor": "heterogeneous_not_interchangeable",
+      "restAnchor": "active_or_passive_as_individual_trials",
+      "intensityDetail": "Different studies use different heart-rate, speed, power, all-out or resistance-exercise anchors; no new TFCL domain equivalence",
+      "recovery": "Active/passive during repeated efforts or sets; does not test presence of an undocumented final rest in TFCL recipes",
+      "warmupCooldown": "Not a common standardized intervention; individual source trials required",
+      "frequency": "Heterogeneous trial frequencies and durations; no universal schedule inferred",
+      "outcomes": "Training improvements occur under both recovery modes; not a pooled non-inferiority/equivalence proof. Inconsistent participant counts occur in some tables, so primary trials remain necessary.",
+      "limits": "Heterogeneous populations, interventions and outcomes; primarily separate programs rather than uniform head-to-head comparison; no final-rest rule",
+      "protocolCompleteForReportedContrast": false,
+      "primarySupportsChronicGain": false,
+      "sourceSections": [
+        "Methods",
+        "Results Tables 2, 4, 5",
+        "Discussion",
+        "Conclusions"
+      ],
+      "targetIds": [],
+      "reasonForTargets": "Cross-cutting recovery context, never exact-recipe-dose evidence."
+    },
+    "sourceAccessRecord": {
+      "key": "longterm_recovery_review",
+      "pmcid": "PMC10914654",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10914654/fullTextXML",
+      "attemptedAt": "2026-10-29T12:30:14.698739+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/xml",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10914654/fullTextXML",
+      "responseSha256": "b51cf237a153c3059437d3c791f3ef3a199ced6e86fc5984a893ae05280914d0",
+      "bytes": 188461,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/longterm_recovery_review.response.gz",
+      "retrievedAt": "2026-10-29T12:30:17.310883+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    }
+  },
+  "posture_160_primary": {
+    "studyKey": "posture_160_primary",
+    "pmid": "34540268",
+    "pmcid": "PMC8407214",
+    "doi": "10.1136/bmjsem-2021-001096",
+    "title": "Discomfort, pain and fatigue levels of 160 cyclists after a kinematic bike-fitting method: an experimental study",
+    "studyType": "primary",
+    "access": "full_main_text_and_xml_tables_examined",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8407214/fullTextXML",
+    "retrievedAt": "2026-10-29T12:44:27.146081+00:00",
+    "artifactSha256": "b2f327e3e37d91c362873c0fa07884c8b30079226f7feaf6274c118c181bdb6e",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-4/posture_160_primary.response.gz",
+    "fullMainTextReviewed": true,
+    "xmlTableCount": 3,
+    "population": "160 adult amateur mountain-bike cyclists, 120 men and 40 women; no randomized control group; recreational/competitive mix",
+    "work": "120-s fitting observations at 100 W and 70–90 rpm, adjustments until at least 15 of 18 kinematic measurements in manufacturer reference ranges; not an aero interval workout",
+    "recovery": "Subjects dismount and rest while adjustments are made; no training recovery duration or final-rest count specified",
+    "intensityAnchor": "absolute_100W_during_fitting",
+    "frequency": "One fitting intervention, usual mileage maintained, subjective scales repeated after 30 days",
+    "protocolComplete": false,
+    "limits": "Mountain-bike population, uncontrolled design, subjective outcomes, no long aero-position tolerance or interval dose tested",
+    "manualReviewUnchanged": {
+      "key": "posture_160_primary",
+      "scope": "primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "bike",
+      "design": "uncontrolled_pre_post_bike_fitting_study",
+      "population": "160 adult amateur mountain-bike cyclists, 120 men and 40 women; no randomized control group; recreational/competitive mix",
+      "work": "120-s fitting observations at 100 W and 70–90 rpm, adjustments until at least 15 of 18 kinematic measurements in manufacturer reference ranges; not an aero interval workout",
+      "repetitions": null,
+      "workSeconds": 120,
+      "restSeconds": null,
+      "cadenceRpm": null,
+      "intensityAnchor": "absolute_100W_during_fitting",
+      "restAnchor": "rest_while_bike_adjusted_not_timed_training_recovery",
+      "intensityDetail": "100 W during fitting assessment, not a TFCL Z2 or individual FTP/VO2 target",
+      "recovery": "Subjects dismount and rest while adjustments are made; no training recovery duration or final-rest count specified",
+      "warmupCooldown": "No 4×15 or 6×10 aero training protocol; fitting measurements only",
+      "frequency": "One fitting intervention, usual mileage maintained, subjective scales repeated after 30 days",
+      "outcomes": "Improved self-reported discomfort/pain/fatigue after fitting; no controlled causal endurance or injury effect; some table units and mean-difference fields appear inconsistent and are not corrected by inference",
+      "limits": "Mountain-bike population, uncontrolled design, subjective outcomes, no long aero-position tolerance or interval dose tested",
+      "protocolCompleteForReportedContrast": false,
+      "primarySupportsChronicGain": false,
+      "sourceSections": [
+        "Methods: Procedure",
+        "Table 3",
+        "Results",
+        "Discussion",
+        "Limitations"
+      ],
+      "targetIds": [
+        "C_IM_AERO_HOLD"
+      ],
+      "reasonForTargets": "Distinct open posture-context study after the relay paper was inaccessible; it must not silently replace PMID27490817 or justify an aero interval dose."
+    },
+    "sourceAccessRecord": {
+      "key": "posture_160_primary",
+      "pmcid": "PMC8407214",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8407214/fullTextXML",
+      "attemptedAt": "2026-10-29T12:44:24.687338+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/xml",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8407214/fullTextXML",
+      "responseSha256": "b2f327e3e37d91c362873c0fa07884c8b30079226f7feaf6274c118c181bdb6e",
+      "bytes": 76630,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-4/posture_160_primary.response.gz",
+      "retrievedAt": "2026-10-29T12:44:27.146081+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    }
+  },
+  "cooldown_review": {
+    "studyKey": "cooldown_review",
+    "pmid": "29663142",
+    "pmcid": "PMC5999142",
+    "doi": "10.1007/s40279-018-0916-2",
+    "title": "Do We Need a Cool-Down After Exercise? A Narrative Review of the Psychophysiological Effects and the Effects on Performance, Injuries and the Long-Term Adaptive Response",
+    "studyType": "context_not_fully_reviewed",
+    "access": "selected_full_text_sections_only",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5999142/fullTextXML",
+    "retrievedAt": "2026-10-29T12:30:17.314833+00:00",
+    "artifactSha256": "931f98f6d0e52e9b3fc05e2d05d51230f0e31f01bf7440ea7396e77780a8fe73",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-1/cooldown_review.response.gz",
+    "fullMainTextReviewed": false,
+    "xmlTableCount": 3,
+    "population": "not newly extracted",
+    "work": "not newly extracted",
+    "recovery": "not newly extracted",
+    "intensityAnchor": "not newly extracted",
+    "frequency": "not newly extracted",
+    "protocolComplete": false,
+    "limits": "Post-exercise cool-down within about 1 h; review excludes short between-bout recovery. Remaining outcomes sections not examined fully in V21C.",
+    "manualReviewUnchanged": {
+      "key": "cooldown_review",
+      "review": "selected_full_text_sections_only",
+      "sectionsRead": [
+        "Introduction",
+        "Methods"
+      ],
+      "limit": "Post-exercise cool-down within about 1 h; review excludes short between-bout recovery. Remaining outcomes sections not examined fully in V21C."
+    },
+    "sourceAccessRecord": {
+      "key": "cooldown_review",
+      "pmcid": "PMC5999142",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5999142/fullTextXML",
+      "attemptedAt": "2026-10-29T12:30:14.698021+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/xml",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5999142/fullTextXML",
+      "responseSha256": "931f98f6d0e52e9b3fc05e2d05d51230f0e31f01bf7440ea7396e77780a8fe73",
+      "bytes": 231737,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/cooldown_review.response.gz",
+      "retrievedAt": "2026-10-29T12:30:17.314833+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    }
+  },
+  "triathlon_transition_primary": {
+    "studyKey": "triathlon_transition_primary",
+    "pmid": "36589784",
+    "pmcid": "PMC9802668",
+    "doi": "10.3389/fspor.2022.1065741",
+    "title": "Discovering the sluggishness of triathlon running - using the attractor method to quantify the impact of the bike-run transition",
+    "studyType": "context_not_fully_reviewed",
+    "access": "selected_full_text_sections_only",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9802668/fullTextXML",
+    "retrievedAt": "2026-10-29T12:30:18.402851+00:00",
+    "artifactSha256": "4985161d5fd0044f5391b8ce430b091898573eaab125de5138d45abd3724b3ec",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-1/triathlon_transition_primary.response.gz",
+    "fullMainTextReviewed": false,
+    "xmlTableCount": 2,
+    "population": "not newly extracted",
+    "work": "not newly extracted",
+    "recovery": "not newly extracted",
+    "intensityAnchor": "not newly extracted",
+    "frequency": "not newly extracted",
+    "protocolComplete": false,
+    "limits": "22 triathletes, 40 km bike then 10 km run, no aerobars, model-derived INSCYD estimates; not an Ironman duration or 4×15 aero trial. Results/discussion not fully examined here.",
+    "manualReviewUnchanged": {
+      "key": "triathlon_transition_primary",
+      "review": "selected_full_text_sections_only",
+      "sectionsRead": [
+        "Materials and methods including Tables 1 and 2"
+      ],
+      "limit": "22 triathletes, 40 km bike then 10 km run, no aerobars, model-derived INSCYD estimates; not an Ironman duration or 4×15 aero trial. Results/discussion not fully examined here."
+    },
+    "sourceAccessRecord": {
+      "key": "triathlon_transition_primary",
+      "pmcid": "PMC9802668",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9802668/fullTextXML",
+      "attemptedAt": "2026-10-29T12:30:17.311136+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/xml",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9802668/fullTextXML",
+      "responseSha256": "4985161d5fd0044f5391b8ce430b091898573eaab125de5138d45abd3724b3ec",
+      "bytes": 158304,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/triathlon_transition_primary.response.gz",
+      "retrievedAt": "2026-10-29T12:30:18.402851+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    }
+  },
+  "strength_economy_review": {
+    "studyKey": "strength_economy_review",
+    "pmid": "38165636",
+    "pmcid": "PMC11052887",
+    "doi": "10.1007/s40279-023-01978-y",
+    "title": "Effect of Strength Training Programs in Middle- and Long-Distance Runners’ Economy at Different Running Speeds: A Systematic Review with Meta-analysis",
+    "studyType": "context_not_fully_reviewed",
+    "access": "retrieved_not_full_text_reviewed",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11052887/fullTextXML",
+    "retrievedAt": "2026-10-29T12:30:18.308620+00:00",
+    "artifactSha256": "d1e43a610357c2676ed0c92c32e711fd99beb2ff7202486c36c8cb6c760f81b6",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-1/strength_economy_review.response.gz",
+    "fullMainTextReviewed": false,
+    "xmlTableCount": 7,
+    "population": "not newly extracted",
+    "work": "not newly extracted",
+    "recovery": "not newly extracted",
+    "intensityAnchor": "not newly extracted",
+    "frequency": "not newly extracted",
+    "protocolComplete": false,
+    "limits": "Full XML available, but no new complete examination of this long review claimed; V21B abstract-level limitations remain.",
+    "manualReviewUnchanged": {
+      "key": "strength_economy_review",
+      "review": "retrieved_not_full_text_reviewed",
+      "sectionsRead": [],
+      "limit": "Full XML available, but no new complete examination of this long review claimed; V21B abstract-level limitations remain."
+    },
+    "sourceAccessRecord": {
+      "key": "strength_economy_review",
+      "pmcid": "PMC11052887",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11052887/fullTextXML",
+      "attemptedAt": "2026-10-29T12:30:17.315123+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/xml",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11052887/fullTextXML",
+      "responseSha256": "d1e43a610357c2676ed0c92c32e711fd99beb2ff7202486c36c8cb6c760f81b6",
+      "bytes": 411746,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/strength_economy_review.response.gz",
+      "retrievedAt": "2026-10-29T12:30:18.308620+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    }
+  },
+  "posture_primary_publisher": {
+    "studyKey": "posture_primary_publisher",
+    "pmid": "27490817",
+    "pmcid": null,
+    "doi": "10.1080/02640414.2016.1215496",
+    "title": "Effect of bike-fit in the perception of comfort, fatigue and pain.",
+    "studyType": "primary_abstract_only",
+    "access": "publisher_403_prior_abstract_only",
+    "url": "https://www.tandfonline.com/doi/full/10.1080/02640414.2016.1215496",
+    "retrievedAt": "2026-10-29T12:30:18.126290+00:00",
+    "artifactSha256": null,
+    "artifact": null,
+    "fullMainTextReviewed": false,
+    "xmlTableCount": 0,
+    "population": "Posture influence confort/perception de douleur et fatigue en cyclisme.",
+    "work": "full protocol not reviewed",
+    "recovery": "unverified",
+    "intensityAnchor": "unverified_full_protocol",
+    "frequency": "unverified",
+    "protocolComplete": false,
+    "limits": "403 access denial; no bypass or paid access.",
+    "sourceAccessRecord": {
+      "key": "posture_primary_publisher",
+      "pmid": "27490817",
+      "url": "https://www.tandfonline.com/doi/full/10.1080/02640414.2016.1215496",
+      "attemptedAt": "2026-10-29T12:30:18.126290+00:00",
+      "paidApi": false,
+      "status": "not_retrieved",
+      "error": "HTTP Error 403: Forbidden",
+      "responseSha256": null
+    },
+    "priorAbstractRecordUnchanged": {
+      "referenceId": "IM-03",
+      "providedRecordUnchanged": {
+        "reference_id": "IM-03",
+        "authors": "Collectif",
+        "year": 2016,
+        "title": "Effect of bike-fit in perception of comfort fatigue and pain",
+        "pmid": "27490817",
+        "doi": null,
+        "url": "https://pubmed.ncbi.nlm.nih.gov/27490817/",
+        "kind": "acute_comfort_study",
+        "verification_status": "abstract_reviewed",
+        "reviewed_access": "PubMed abstract/metadata, not complete paper",
+        "retrieved_date": "2026-10-29",
+        "key_finding": "Posture influence confort/perception de douleur et fatigue en cyclisme.",
+        "transfer_limits": "Pas de garantie de tolérance aux 4x15 min aérodynamiques.",
+        "source_response_sha256": null,
+        "grade_of_certainty": "not_formally_graded"
+      },
+      "retrievedIdentity": {
+        "id": "27490817",
+        "source": "MED",
+        "title": "Effect of bike-fit in the perception of comfort, fatigue and pain.",
+        "authorString": "Priego Quesada JI, Pérez-Soriano P, Lucas-Cuevas AG, Salvador Palmer R, Cibrián Ortiz de Anda RM.",
+        "doi": "10.1080/02640414.2016.1215496",
+        "pubYear": "2017",
+        "electronicPublicationDate": "2016-08-04",
+        "firstPublicationDate": "2016-08-04",
+        "pubTypeList": {
+          "pubType": [
+            "Journal Article"
+          ]
+        },
+        "journalInfo": {
+          "issue": "14",
+          "volume": "35",
+          "journalIssueId": 2549627,
+          "dateOfPublication": "2017 Jul",
+          "monthOfPublication": 7,
+          "yearOfPublication": 2017,
+          "journal": {
+            "medlineAbbreviation": "J Sports Sci",
+            "title": "Journal of sports sciences",
+            "essn": "1466-447X",
+            "issn": "0264-0414",
+            "isoabbreviation": "J Sports Sci",
+            "nlmid": "8405364"
+          },
+          "printPublicationDate": "2017-07-01"
+        }
+      },
+      "localVerification": {
+        "status": "abstract_reviewed",
+        "reviewer": "Codex documentary review; not independent qualified coach approval",
+        "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+        "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+        "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+        "responseLocator": {
+          "medPmid": "27490817"
+        },
+        "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+        "fullTextReviewed": false,
+        "articleEfficacyOrDoseApproved": false
+      },
+      "discrepancies": [
+        {
+          "referenceId": "IM-03",
+          "code": "ONLINE_PRINT_YEAR_DISTINCTION",
+          "detail": "Provided 2016 corresponds to electronic publication; journal issue is 2017. Both dates retained.",
+          "providedAttributionUsable": true
+        },
+        {
+          "referenceId": "IM-03",
+          "code": "HANDOFF_JOURNAL_STUDY_TYPE_CONFLICT",
+          "detail": "JOURNAL_VERIFICATION_SOURCES.md calls IM-03 an Ironman scoping review, whereas the reference JSON and retrieved article describe an acute bike-fit comfort/fatigue/pain study. The scoping review in this corpus is IM-02; do not silently relabel the original journal row.",
+          "providedAttributionUsable": false
+        }
+      ],
+      "suppliedCitationQuarantined": false,
+      "suppliedJournalRowQuarantined": true,
+      "potentialCorrectedIdentityOnly": true,
+      "workoutAttributions": [],
+      "certainty": "not_independently_formally_graded"
+    }
+  },
+  "swim_primary_publisher": {
+    "studyKey": "swim_primary_publisher",
+    "pmid": "39526869",
+    "pmcid": null,
+    "doi": "10.23736/s0022-4707.24.15931-2",
+    "title": "Biophysical analyses of various interval training sets at critical swimming velocity.",
+    "studyType": "primary_abstract_only",
+    "access": "metadata_response_not_full_text_prior_abstract_only",
+    "url": "https://doi.org/10.23736/S0022-4707.24.15931-2",
+    "retrievedAt": "2026-10-29T12:30:19.152376+00:00",
+    "artifactSha256": "d98e16013b22b654f0b7a568446ec21fcda71e7e72e55484b8859cde4224ca68",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-1/swim_primary_publisher.response.gz",
+    "fullMainTextReviewed": false,
+    "xmlTableCount": 0,
+    "population": "11 nageurs nationaux; à même vitesse critique, 5x400 r60,10x200 r30,20x100 r15 donnent réponses différentes.",
+    "work": "full protocol not reviewed",
+    "recovery": "unverified",
+    "intensityAnchor": "unverified_full_protocol",
+    "frequency": "unverified",
+    "protocolComplete": false,
+    "limits": "HTTP 200 on DOI resolution was JSON metadata, not the article.",
+    "sourceAccessRecord": {
+      "key": "swim_primary_publisher",
+      "pmid": "39526869",
+      "url": "https://doi.org/10.23736/S0022-4707.24.15931-2",
+      "attemptedAt": "2026-10-29T12:30:18.308839+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "resolvedUrl": "https://api.crossref.org/v1/works/10.23736%2FS0022-4707.24.15931-2/transform",
+      "responseSha256": "d98e16013b22b654f0b7a568446ec21fcda71e7e72e55484b8859cde4224ca68",
+      "bytes": 6730,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/swim_primary_publisher.response.gz",
+      "retrievedAt": "2026-10-29T12:30:19.152376+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    },
+    "priorAbstractRecordUnchanged": {
+      "referenceId": "SWIM-01",
+      "providedRecordUnchanged": {
+        "reference_id": "SWIM-01",
+        "authors": "Collectif",
+        "year": 2024,
+        "title": "Biophysical analyses of interval training sets at critical swimming velocity",
+        "pmid": "39526869",
+        "doi": null,
+        "url": "https://pubmed.ncbi.nlm.nih.gov/39526869/",
+        "kind": "acute_crossover",
+        "verification_status": "abstract_reviewed",
+        "reviewed_access": "PubMed abstract/metadata, not complete paper",
+        "retrieved_date": "2026-10-29",
+        "key_finding": "11 nageurs nationaux; à même vitesse critique, 5x400 r60,10x200 r30,20x100 r15 donnent réponses différentes.",
+        "transfer_limits": "Nage crawl; aigu; ne permet pas transférer CSS à brasse ni inférer un temps de nage sans référence.",
+        "source_response_sha256": null,
+        "grade_of_certainty": "not_formally_graded"
+      },
+      "retrievedIdentity": {
+        "id": "39526869",
+        "source": "MED",
+        "title": "Biophysical analyses of various interval training sets at critical swimming velocity.",
+        "authorString": "Funai Y, Taba S, Kanegawa Y, Taimura A, Matsunami M.",
+        "doi": "10.23736/s0022-4707.24.15931-2",
+        "pubYear": "2025",
+        "electronicPublicationDate": "2024-11-11",
+        "firstPublicationDate": "2024-11-11",
+        "pubTypeList": {
+          "pubType": [
+            "Journal Article"
+          ]
+        },
+        "journalInfo": {
+          "issue": "2",
+          "volume": "65",
+          "journalIssueId": 3890610,
+          "dateOfPublication": "2025 Feb",
+          "monthOfPublication": 2,
+          "yearOfPublication": 2025,
+          "journal": {
+            "medlineAbbreviation": "J Sports Med Phys Fitness",
+            "title": "The Journal of sports medicine and physical fitness",
+            "essn": "1827-1928",
+            "issn": "0022-4707",
+            "isoabbreviation": "J Sports Med Phys Fitness",
+            "nlmid": "0376337"
+          },
+          "printPublicationDate": "2025-02-01"
+        }
+      },
+      "localVerification": {
+        "status": "abstract_reviewed",
+        "reviewer": "Codex documentary review; not independent qualified coach approval",
+        "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+        "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+        "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+        "responseLocator": {
+          "medPmid": "39526869"
+        },
+        "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+        "fullTextReviewed": false,
+        "articleEfficacyOrDoseApproved": false
+      },
+      "discrepancies": [
+        {
+          "referenceId": "SWIM-01",
+          "code": "ONLINE_PRINT_YEAR_DISTINCTION",
+          "detail": "Provided 2024 corresponds to electronic publication; journal issue is 2025. Both dates retained, no article substitution.",
+          "providedAttributionUsable": true
+        }
+      ],
+      "suppliedCitationQuarantined": false,
+      "suppliedJournalRowQuarantined": false,
+      "potentialCorrectedIdentityOnly": true,
+      "workoutAttributions": [],
+      "certainty": "not_independently_formally_graded"
+    }
+  },
+  "seiler_21812820": {
+    "studyKey": "seiler_21812820",
+    "pmid": "21812820",
+    "pmcid": null,
+    "doi": "10.1111/j.1600-0838.2011.01351.x",
+    "title": "Adaptations to aerobic interval training: interactive effects of exercise intensity and total work duration.",
+    "studyType": "primary_abstract_only",
+    "access": "abstract_reviewed_full_text_not_obtained",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE%3A%22Adaptations+to+aerobic+interval+training%22&format=json&resultType=core&pageSize=6",
+    "retrievedAt": "2026-10-29T12:41:24.867741+00:00",
+    "artifactSha256": "9c4beb3e6fd84dacf596a573e0423c6ee43352c1523d23143ec660568b68000b",
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-3/seiler_primary_search.response.gz",
+    "fullMainTextReviewed": false,
+    "xmlTableCount": 0,
+    "population": "35 recreational trained cyclists, 29 male/6 female; four groups",
+    "work": "4×4, 4×8 or 4×16 min at maximal tolerable intensity; 2 interval sessions/week for 7 weeks; low-intensity additional training",
+    "recovery": "Not supplied by the inspected abstract; never inferred from the TFCL source",
+    "intensityAnchor": "maximal_tolerable_intensity_not_fixed_FTP_recovery",
+    "frequency": "2/week for 7 weeks per abstract",
+    "protocolComplete": false,
+    "limits": "Primary article identity and abstract only; full methods remain unavailable in retrieved source links",
+    "manualReviewUnchanged": {
+      "key": "seiler_21812820",
+      "pmid": "21812820",
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-3/seiler_primary_search.response.gz",
+      "review": "abstract_reviewed_full_text_not_obtained",
+      "targetIds": [
+        "SEILER_BIKE_4X4MIN",
+        "BILLAT_BIKE_VO2MAX_4MIN"
+      ],
+      "population": "35 recreational trained cyclists, 29 male/6 female; four groups",
+      "work": "4×4, 4×8 or 4×16 min at maximal tolerable intensity; 2 interval sessions/week for 7 weeks; low-intensity additional training",
+      "rest": "Not supplied by the inspected abstract; never inferred from the TFCL source",
+      "outcomes": "Abstract reports greater overall gains in the 4×8 condition; does not establish universal superiority or validate 106–115% FTP and 50% FTP recovery",
+      "scope": "Primary article identity and abstract only; full methods remain unavailable in retrieved source links"
+    },
+    "sourceAccessRecord": {
+      "key": "seiler_primary_search",
+      "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE%3A%22Adaptations+to+aerobic+interval+training%22&format=json&resultType=core&pageSize=6",
+      "attemptedAt": "2026-10-29T12:41:23.638551+00:00",
+      "paidApi": false,
+      "httpStatus": 200,
+      "contentType": "application/json;charset=UTF-8",
+      "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE%3A%22Adaptations+to+aerobic+interval+training%22&format=json&resultType=core&pageSize=6",
+      "responseSha256": "9c4beb3e6fd84dacf596a573e0423c6ee43352c1523d23143ec660568b68000b",
+      "bytes": 5586,
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-3/seiler_primary_search.response.gz",
+      "retrievedAt": "2026-10-29T12:41:24.867741+00:00",
+      "status": "response_retrieved_access_type_not_yet_assessed"
+    },
+    "actualMetadataRecord": {
+      "id": "21812820",
+      "source": "MED",
+      "pmid": "21812820",
+      "doi": "10.1111/j.1600-0838.2011.01351.x",
+      "title": "Adaptations to aerobic interval training: interactive effects of exercise intensity and total work duration.",
+      "authorString": "Seiler S, Jøranson K, Olesen BV, Hetlelid KJ.",
+      "authorList": {
+        "author": [
+          {
+            "fullName": "Seiler S",
+            "lastName": "Seiler",
+            "firstName": "S",
+            "initials": "S",
+            "authorId": {
+              "type": "ORCID",
+              "value": "0000-0001-8024-5232"
+            },
+            "authorAffiliationDetailsList": {
+              "authorAffiliation": [
+                {
+                  "affiliation": "Faculty of Health and Sport Sciences, University of Agder, Kristinsand, Norway. stephen.seiler@uia.no"
+                }
+              ]
+            }
+          },
+          {
+            "fullName": "Jøranson K",
+            "lastName": "Jøranson",
+            "firstName": "K",
+            "initials": "K"
+          },
+          {
+            "fullName": "Olesen BV",
+            "lastName": "Olesen",
+            "firstName": "B V",
+            "initials": "BV"
+          },
+          {
+            "fullName": "Hetlelid KJ",
+            "lastName": "Hetlelid",
+            "firstName": "K J",
+            "initials": "KJ"
+          }
+        ]
+      },
+      "authorIdList": {
+        "authorId": [
+          {
+            "type": "ORCID",
+            "value": "0000-0001-8024-5232"
+          }
+        ]
+      },
+      "dataLinksTagsList": {
+        "dataLinkstag": [
+          "altmetrics"
+        ]
+      },
+      "journalInfo": {
+        "issue": "1",
+        "volume": "23",
+        "journalIssueId": 1999814,
+        "dateOfPublication": "2013 Feb",
+        "monthOfPublication": 2,
+        "yearOfPublication": 2013,
+        "journal": {
+          "medlineAbbreviation": "Scand J Med Sci Sports",
+          "title": "Scandinavian journal of medicine & science in sports",
+          "essn": "1600-0838",
+          "issn": "0905-7188",
+          "nlmid": "9111504",
+          "isoabbreviation": "Scand J Med Sci Sports"
+        },
+        "printPublicationDate": "2013-02-01"
+      },
+      "pubYear": "2013",
+      "pageInfo": "74-83",
+      "abstractText": "To compare the effects of three 7-week interval training programs varying in work period duration but matched for effort in trained recreational cyclists. Thirty-five cyclists (29 male, 6 female, VO(2peak) 52 ± 6 mL kg/min) were randomized to four training groups with equivalent training the previous 2 months (∼6 h/wk, ∼1.5 int. session/wk). Low only (n=8) trained 4-6 sessions/wk at a low-intensity. Three groups (n=9 each) trained 2 sessions/wk × 7 wk: 4 × 4 min, 4 × 8 min, or 4 × 16 min, plus 2-3 weekly low-intensity bouts. Interval sessions were prescribed at the maximal tolerable intensity. Interval training was performed at 88 ± 2, 90 ± 2, and 94 ± 2% of HR(peak) and 4.9, 9.6, and 13.2 mmol/L blood lactate in 4 × 16, 4 × 8, and 4 × 4 min groups, respectively (both P<0.001). 4 × 8 min training induced greater overall gains in VO(2) peak, power@VO(2) peak, and power@4 mM bLa- (Mean ± 95%CI): 11.4 (8.0-14.9), vs 4.2 (0.4-8.0), 5.6 (2.1-9.1), and 5.5% (2.0-9.0) in Low, 4 × 16, and 4 × 4 min groups, respectively (P<0.02 for 4 × 8 min vs all other groups). Interval training intensity and accumulated duration interact to influence the adaptive response. Accumulating 32 min of work at 90% HR max induces greater adaptive gains than accumulating 16 min of work at ∼95% HR max despite lower RPE.",
+      "affiliation": "Faculty of Health and Sport Sciences, University of Agder, Kristinsand, Norway. stephen.seiler@uia.no",
+      "publicationStatus": "ppublish",
+      "language": "eng",
+      "pubModel": "Print-Electronic",
+      "pubTypeList": {
+        "pubType": [
+          "Research Support, Non-U.S. Gov't",
+          "Randomized Controlled Trial",
+          "Journal Article"
+        ]
+      },
+      "meshHeadingList": {
+        "meshHeading": [
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Humans"
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Lactic Acid",
+            "meshQualifierList": {
+              "meshQualifier": [
+                {
+                  "majorTopic_YN": "N",
+                  "abbreviation": "BL",
+                  "qualifierName": "blood"
+                }
+              ]
+            }
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Exercise",
+            "meshQualifierList": {
+              "meshQualifier": [
+                {
+                  "majorTopic_YN": "Y",
+                  "abbreviation": "PH",
+                  "qualifierName": "physiology"
+                }
+              ]
+            }
+          },
+          {
+            "majorTopic_YN": "Y",
+            "descriptorName": "Adaptation, Physiological"
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Oxygen Consumption"
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Heart Rate",
+            "meshQualifierList": {
+              "meshQualifier": [
+                {
+                  "majorTopic_YN": "N",
+                  "abbreviation": "PH",
+                  "qualifierName": "physiology"
+                }
+              ]
+            }
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Physical Endurance",
+            "meshQualifierList": {
+              "meshQualifier": [
+                {
+                  "majorTopic_YN": "Y",
+                  "abbreviation": "PH",
+                  "qualifierName": "physiology"
+                }
+              ]
+            }
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Time Factors"
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Physical Education and Training",
+            "meshQualifierList": {
+              "meshQualifier": [
+                {
+                  "majorTopic_YN": "N",
+                  "abbreviation": "MT",
+                  "qualifierName": "methods"
+                }
+              ]
+            }
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Bicycling",
+            "meshQualifierList": {
+              "meshQualifier": [
+                {
+                  "majorTopic_YN": "Y",
+                  "abbreviation": "PH",
+                  "qualifierName": "physiology"
+                }
+              ]
+            }
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Adult"
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Middle Aged"
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Female"
+          },
+          {
+            "majorTopic_YN": "N",
+            "descriptorName": "Male"
+          }
+        ]
+      },
+      "chemicalList": {
+        "chemical": [
+          {
+            "name": "Lactic Acid",
+            "registryNumber": "33X04XA5AT"
+          }
+        ]
+      },
+      "subsetList": {
+        "subset": [
+          {
+            "code": "IM",
+            "name": "Index Medicus"
+          }
+        ]
+      },
+      "fullTextUrlList": {
+        "fullTextUrl": [
+          {
+            "availability": "Subscription required",
+            "availabilityCode": "S",
+            "documentStyle": "doi",
+            "site": "DOI",
+            "url": "https://doi.org/10.1111/j.1600-0838.2011.01351.x"
+          }
+        ]
+      },
+      "isOpenAccess": "N",
+      "inEPMC": "N",
+      "inPMC": "N",
+      "citedByCount": 110,
+      "hasReferences": "Y",
+      "hasTextMinedTerms": "Y",
+      "hasDbCrossReferences": "N",
+      "hasPDF": "N",
+      "hasBook": "N",
+      "hasSuppl": "N",
+      "hasLabsLinks": "Y",
+      "hasData": "N",
+      "authMan": "N",
+      "epmcAuthMan": "N",
+      "nihAuthMan": "N",
+      "hasTMAccessionNumbers": "N",
+      "dateOfCompletion": "2013-06-13",
+      "dateOfCreation": "2011-08-05",
+      "dateOfRevision": "2013-11-21",
+      "electronicPublicationDate": "2011-08-03",
+      "firstPublicationDate": "2011-08-03",
+      "firstIndexDate": "2011-08-05",
+      "hasEvaluations": "N"
+    }
+  }
+}

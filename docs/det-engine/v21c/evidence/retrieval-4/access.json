@@ -1,0 +1,17 @@
+[
+  {
+    "key": "posture_160_primary",
+    "pmcid": "PMC8407214",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8407214/fullTextXML",
+    "attemptedAt": "2026-10-29T12:44:24.687338+00:00",
+    "paidApi": false,
+    "httpStatus": 200,
+    "contentType": "application/xml",
+    "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8407214/fullTextXML",
+    "responseSha256": "b2f327e3e37d91c362873c0fa07884c8b30079226f7feaf6274c118c181bdb6e",
+    "bytes": 76630,
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-4/posture_160_primary.response.gz",
+    "retrievedAt": "2026-10-29T12:44:27.146081+00:00",
+    "status": "response_retrieved_access_type_not_yet_assessed"
+  }
+]

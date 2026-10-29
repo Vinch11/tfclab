@@ -1,0 +1,22 @@
+{
+  "status": "DRAFT_NO_GO",
+  "fullTextsMainTextExamined": 5,
+  "primaryFullTextsExamined": 4,
+  "fullXmlRetrieved": 8,
+  "registryEntries": 11,
+  "workoutIdsDossiered": 51,
+  "candidateChronologiesPreserved": 96,
+  "workoutIdsWithPrimaryFullProtocolComparison": 12,
+  "comparisonRows": 102,
+  "conclusiveNonEquivalent": 24,
+  "inconclusive": 78,
+  "distinctCandidatesWithPrimaryComparison": 22,
+  "provenanceVerifiedPrimaryComparisonLinks": 24,
+  "newExactDoseAttachments": 0,
+  "individualDoseApprovals": 0,
+  "newSportingHumanReviews": 0,
+  "priorV21bDraftContextPacketsPreserved": 2,
+  "libraryCoverageNotExpanded": true,
+  "referenceDiscrepanciesPreserved": 6,
+  "relayIdentifierCollisions": 3
+}

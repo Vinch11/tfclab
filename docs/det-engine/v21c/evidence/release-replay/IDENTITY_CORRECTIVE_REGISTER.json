@@ -1,0 +1,437 @@
+[
+  {
+    "v21bDiscrepancyUnchanged": {
+      "referenceId": "THR-01",
+      "code": "WRONG_PROVIDED_AUTHORS",
+      "detail": "The provided Faude/Kindermann/Meyer attribution does not match the retrieved PMID: Beneke, Leithäuser, Ochentel. Preserve the original; use retrieved identity only in a separately reviewed citation.",
+      "providedAttributionUsable": false
+    },
+    "providedReferenceUnchanged": {
+      "reference_id": "THR-01",
+      "authors": "Faude; Kindermann; Meyer",
+      "year": 2011,
+      "title": "Blood lactate diagnostics in exercise testing and training",
+      "pmid": "21487146",
+      "doi": null,
+      "url": "https://pubmed.ncbi.nlm.nih.gov/21487146/",
+      "kind": "narrative_review",
+      "verification_status": "abstract_reviewed",
+      "reviewed_access": "PubMed abstract/metadata, not complete paper",
+      "retrieved_date": "2026-10-29",
+      "key_finding": "Tests et concept MLSS à distinguer; intensité seuil non intrinsèquement meilleure.",
+      "transfer_limits": "Protocoles et définitions varient; seuils ≠ FTP ≠ CP.",
+      "source_response_sha256": null,
+      "grade_of_certainty": "not_formally_graded"
+    },
+    "verifiedCorrectiveIdentity": {
+      "id": "21487146",
+      "source": "MED",
+      "title": "Blood lactate diagnostics in exercise testing and training.",
+      "authorString": "Beneke R, Leithäuser RM, Ochentel O.",
+      "doi": "10.1123/ijspp.6.1.8",
+      "pubYear": "2011",
+      "electronicPublicationDate": null,
+      "firstPublicationDate": "2011-03-01",
+      "pubTypeList": {
+        "pubType": [
+          "Review",
+          "Journal Article"
+        ]
+      },
+      "journalInfo": {
+        "issue": "1",
+        "volume": "6",
+        "journalIssueId": 1824229,
+        "dateOfPublication": "2011 Mar",
+        "monthOfPublication": 3,
+        "yearOfPublication": 2011,
+        "journal": {
+          "medlineAbbreviation": "Int J Sports Physiol Perform",
+          "title": "International journal of sports physiology and performance",
+          "essn": "1555-0273",
+          "issn": "1555-0265",
+          "isoabbreviation": "Int J Sports Physiol Perform",
+          "nlmid": "101276430"
+        },
+        "printPublicationDate": "2011-03-01"
+      }
+    },
+    "verificationProvenanceUnchanged": {
+      "status": "abstract_reviewed",
+      "reviewer": "Codex documentary review; not independent qualified coach approval",
+      "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+      "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+      "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+      "responseLocator": {
+        "medPmid": "21487146"
+      },
+      "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+      "fullTextReviewed": false,
+      "articleEfficacyOrDoseApproved": false
+    },
+    "originalRewritten": false,
+    "newLiveRetrievalClaimed": false
+  },
+  {
+    "v21bDiscrepancyUnchanged": {
+      "referenceId": "VLA-03",
+      "code": "UNSUPPORTED_PROVIDED_YEAR",
+      "detail": "Provided 2024 is neither online 2020 nor journal 2021 in the retrieved record. Quarantine the supplied citation year, without altering the handoff.",
+      "providedAttributionUsable": false
+    },
+    "providedReferenceUnchanged": {
+      "reference_id": "VLA-03",
+      "authors": "Collectif",
+      "year": 2024,
+      "title": "Maximal lactate accumulation rate in running and cycling differs by modality",
+      "pmid": "33137832",
+      "doi": "10.1055/a-1273-7589",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/33137832/",
+      "kind": "test_retest_study",
+      "verification_status": "abstract_reviewed",
+      "reviewed_access": "PubMed abstract/metadata, not complete paper",
+      "retrieved_date": "2026-10-29",
+      "key_finding": "18 triathlètes; modalités vélo et course ont caractéristiques distinctes.",
+      "transfer_limits": "Pas de transfert direct d’une valeur vélo à la course.",
+      "source_response_sha256": null,
+      "grade_of_certainty": "not_formally_graded"
+    },
+    "verifiedCorrectiveIdentity": {
+      "id": "33137832",
+      "source": "MED",
+      "title": "Maximal Lactate Accumulation Rate in All-out Exercise Differs between Cycling and Running.",
+      "authorString": "Quittmann OJ, Schwarz YM, Mester J, Foitschik T, Abel T, Strüder HK.",
+      "doi": "10.1055/a-1273-7589",
+      "pubYear": "2021",
+      "electronicPublicationDate": "2020-11-02",
+      "firstPublicationDate": "2020-11-02",
+      "pubTypeList": {
+        "pubType": [
+          "Comparative Study",
+          "Journal Article"
+        ]
+      },
+      "journalInfo": {
+        "issue": "4",
+        "volume": "42",
+        "journalIssueId": 3146723,
+        "dateOfPublication": "2021 Apr",
+        "monthOfPublication": 4,
+        "yearOfPublication": 2021,
+        "journal": {
+          "medlineAbbreviation": "Int J Sports Med",
+          "title": "International journal of sports medicine",
+          "essn": "1439-3964",
+          "issn": "0172-4622",
+          "isoabbreviation": "Int J Sports Med",
+          "nlmid": "8008349"
+        },
+        "printPublicationDate": "2021-04-01"
+      }
+    },
+    "verificationProvenanceUnchanged": {
+      "status": "abstract_reviewed",
+      "reviewer": "Codex documentary review; not independent qualified coach approval",
+      "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+      "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+      "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+      "responseLocator": {
+        "medPmid": "33137832"
+      },
+      "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+      "fullTextReviewed": false,
+      "articleEfficacyOrDoseApproved": false
+    },
+    "originalRewritten": false,
+    "newLiveRetrievalClaimed": false
+  },
+  {
+    "v21bDiscrepancyUnchanged": {
+      "referenceId": "SWIM-01",
+      "code": "ONLINE_PRINT_YEAR_DISTINCTION",
+      "detail": "Provided 2024 corresponds to electronic publication; journal issue is 2025. Both dates retained, no article substitution.",
+      "providedAttributionUsable": true
+    },
+    "providedReferenceUnchanged": {
+      "reference_id": "SWIM-01",
+      "authors": "Collectif",
+      "year": 2024,
+      "title": "Biophysical analyses of interval training sets at critical swimming velocity",
+      "pmid": "39526869",
+      "doi": null,
+      "url": "https://pubmed.ncbi.nlm.nih.gov/39526869/",
+      "kind": "acute_crossover",
+      "verification_status": "abstract_reviewed",
+      "reviewed_access": "PubMed abstract/metadata, not complete paper",
+      "retrieved_date": "2026-10-29",
+      "key_finding": "11 nageurs nationaux; à même vitesse critique, 5x400 r60,10x200 r30,20x100 r15 donnent réponses différentes.",
+      "transfer_limits": "Nage crawl; aigu; ne permet pas transférer CSS à brasse ni inférer un temps de nage sans référence.",
+      "source_response_sha256": null,
+      "grade_of_certainty": "not_formally_graded"
+    },
+    "verifiedCorrectiveIdentity": {
+      "id": "39526869",
+      "source": "MED",
+      "title": "Biophysical analyses of various interval training sets at critical swimming velocity.",
+      "authorString": "Funai Y, Taba S, Kanegawa Y, Taimura A, Matsunami M.",
+      "doi": "10.23736/s0022-4707.24.15931-2",
+      "pubYear": "2025",
+      "electronicPublicationDate": "2024-11-11",
+      "firstPublicationDate": "2024-11-11",
+      "pubTypeList": {
+        "pubType": [
+          "Journal Article"
+        ]
+      },
+      "journalInfo": {
+        "issue": "2",
+        "volume": "65",
+        "journalIssueId": 3890610,
+        "dateOfPublication": "2025 Feb",
+        "monthOfPublication": 2,
+        "yearOfPublication": 2025,
+        "journal": {
+          "medlineAbbreviation": "J Sports Med Phys Fitness",
+          "title": "The Journal of sports medicine and physical fitness",
+          "essn": "1827-1928",
+          "issn": "0022-4707",
+          "isoabbreviation": "J Sports Med Phys Fitness",
+          "nlmid": "0376337"
+        },
+        "printPublicationDate": "2025-02-01"
+      }
+    },
+    "verificationProvenanceUnchanged": {
+      "status": "abstract_reviewed",
+      "reviewer": "Codex documentary review; not independent qualified coach approval",
+      "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+      "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+      "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+      "responseLocator": {
+        "medPmid": "39526869"
+      },
+      "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+      "fullTextReviewed": false,
+      "articleEfficacyOrDoseApproved": false
+    },
+    "originalRewritten": false,
+    "newLiveRetrievalClaimed": false
+  },
+  {
+    "v21bDiscrepancyUnchanged": {
+      "referenceId": "SWIM-03",
+      "code": "ONLINE_PRINT_YEAR_DISTINCTION",
+      "detail": "Provided 2021 corresponds to electronic publication; journal issue is 2023. Both dates retained.",
+      "providedAttributionUsable": true
+    },
+    "providedReferenceUnchanged": {
+      "reference_id": "SWIM-03",
+      "authors": "Collectif",
+      "year": 2021,
+      "title": "Coordination and stroking parameters in the four swimming techniques",
+      "pmid": "34372755",
+      "doi": "10.1080/14763141.2021.1959945",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/34372755/",
+      "kind": "narrative_review",
+      "verification_status": "abstract_reviewed",
+      "reviewed_access": "PubMed abstract/metadata, not complete paper",
+      "retrieved_date": "2026-10-29",
+      "key_finding": "Coordination, propulsion et résistance hydrodynamique varient selon la nage.",
+      "transfer_limits": "Pas de zone commune pour toutes les nages.",
+      "source_response_sha256": null,
+      "grade_of_certainty": "not_formally_graded"
+    },
+    "verifiedCorrectiveIdentity": {
+      "id": "34372755",
+      "source": "MED",
+      "title": "Coordination and stroking parameters in the four swimming techniques: a narrative review.",
+      "authorString": "Seifert L, Carmigniani R.",
+      "doi": "10.1080/14763141.2021.1959945",
+      "pubYear": "2023",
+      "electronicPublicationDate": "2021-08-09",
+      "firstPublicationDate": "2021-08-09",
+      "pubTypeList": {
+        "pubType": [
+          "Review",
+          "Journal Article"
+        ]
+      },
+      "journalInfo": {
+        "issue": "12",
+        "volume": "22",
+        "journalIssueId": 3663983,
+        "dateOfPublication": "2023 Dec",
+        "monthOfPublication": 12,
+        "yearOfPublication": 2023,
+        "journal": {
+          "medlineAbbreviation": "Sports Biomech",
+          "title": "Sports biomechanics",
+          "essn": "1752-6116",
+          "issn": "1476-3141",
+          "isoabbreviation": "Sports Biomech",
+          "nlmid": "101151352"
+        },
+        "printPublicationDate": "2023-12-01"
+      }
+    },
+    "verificationProvenanceUnchanged": {
+      "status": "abstract_reviewed",
+      "reviewer": "Codex documentary review; not independent qualified coach approval",
+      "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+      "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+      "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+      "responseLocator": {
+        "medPmid": "34372755"
+      },
+      "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+      "fullTextReviewed": false,
+      "articleEfficacyOrDoseApproved": false
+    },
+    "originalRewritten": false,
+    "newLiveRetrievalClaimed": false
+  },
+  {
+    "v21bDiscrepancyUnchanged": {
+      "referenceId": "IM-03",
+      "code": "ONLINE_PRINT_YEAR_DISTINCTION",
+      "detail": "Provided 2016 corresponds to electronic publication; journal issue is 2017. Both dates retained.",
+      "providedAttributionUsable": true
+    },
+    "providedReferenceUnchanged": {
+      "reference_id": "IM-03",
+      "authors": "Collectif",
+      "year": 2016,
+      "title": "Effect of bike-fit in perception of comfort fatigue and pain",
+      "pmid": "27490817",
+      "doi": null,
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27490817/",
+      "kind": "acute_comfort_study",
+      "verification_status": "abstract_reviewed",
+      "reviewed_access": "PubMed abstract/metadata, not complete paper",
+      "retrieved_date": "2026-10-29",
+      "key_finding": "Posture influence confort/perception de douleur et fatigue en cyclisme.",
+      "transfer_limits": "Pas de garantie de tolérance aux 4x15 min aérodynamiques.",
+      "source_response_sha256": null,
+      "grade_of_certainty": "not_formally_graded"
+    },
+    "verifiedCorrectiveIdentity": {
+      "id": "27490817",
+      "source": "MED",
+      "title": "Effect of bike-fit in the perception of comfort, fatigue and pain.",
+      "authorString": "Priego Quesada JI, Pérez-Soriano P, Lucas-Cuevas AG, Salvador Palmer R, Cibrián Ortiz de Anda RM.",
+      "doi": "10.1080/02640414.2016.1215496",
+      "pubYear": "2017",
+      "electronicPublicationDate": "2016-08-04",
+      "firstPublicationDate": "2016-08-04",
+      "pubTypeList": {
+        "pubType": [
+          "Journal Article"
+        ]
+      },
+      "journalInfo": {
+        "issue": "14",
+        "volume": "35",
+        "journalIssueId": 2549627,
+        "dateOfPublication": "2017 Jul",
+        "monthOfPublication": 7,
+        "yearOfPublication": 2017,
+        "journal": {
+          "medlineAbbreviation": "J Sports Sci",
+          "title": "Journal of sports sciences",
+          "essn": "1466-447X",
+          "issn": "0264-0414",
+          "isoabbreviation": "J Sports Sci",
+          "nlmid": "8405364"
+        },
+        "printPublicationDate": "2017-07-01"
+      }
+    },
+    "verificationProvenanceUnchanged": {
+      "status": "abstract_reviewed",
+      "reviewer": "Codex documentary review; not independent qualified coach approval",
+      "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+      "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+      "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+      "responseLocator": {
+        "medPmid": "27490817"
+      },
+      "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+      "fullTextReviewed": false,
+      "articleEfficacyOrDoseApproved": false
+    },
+    "originalRewritten": false,
+    "newLiveRetrievalClaimed": false
+  },
+  {
+    "v21bDiscrepancyUnchanged": {
+      "referenceId": "IM-03",
+      "code": "HANDOFF_JOURNAL_STUDY_TYPE_CONFLICT",
+      "detail": "JOURNAL_VERIFICATION_SOURCES.md calls IM-03 an Ironman scoping review, whereas the reference JSON and retrieved article describe an acute bike-fit comfort/fatigue/pain study. The scoping review in this corpus is IM-02; do not silently relabel the original journal row.",
+      "providedAttributionUsable": false
+    },
+    "providedReferenceUnchanged": {
+      "reference_id": "IM-03",
+      "authors": "Collectif",
+      "year": 2016,
+      "title": "Effect of bike-fit in perception of comfort fatigue and pain",
+      "pmid": "27490817",
+      "doi": null,
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27490817/",
+      "kind": "acute_comfort_study",
+      "verification_status": "abstract_reviewed",
+      "reviewed_access": "PubMed abstract/metadata, not complete paper",
+      "retrieved_date": "2026-10-29",
+      "key_finding": "Posture influence confort/perception de douleur et fatigue en cyclisme.",
+      "transfer_limits": "Pas de garantie de tolérance aux 4x15 min aérodynamiques.",
+      "source_response_sha256": null,
+      "grade_of_certainty": "not_formally_graded"
+    },
+    "verifiedCorrectiveIdentity": {
+      "id": "27490817",
+      "source": "MED",
+      "title": "Effect of bike-fit in the perception of comfort, fatigue and pain.",
+      "authorString": "Priego Quesada JI, Pérez-Soriano P, Lucas-Cuevas AG, Salvador Palmer R, Cibrián Ortiz de Anda RM.",
+      "doi": "10.1080/02640414.2016.1215496",
+      "pubYear": "2017",
+      "electronicPublicationDate": "2016-08-04",
+      "firstPublicationDate": "2016-08-04",
+      "pubTypeList": {
+        "pubType": [
+          "Journal Article"
+        ]
+      },
+      "journalInfo": {
+        "issue": "14",
+        "volume": "35",
+        "journalIssueId": 2549627,
+        "dateOfPublication": "2017 Jul",
+        "monthOfPublication": 7,
+        "yearOfPublication": 2017,
+        "journal": {
+          "medlineAbbreviation": "J Sports Sci",
+          "title": "Journal of sports sciences",
+          "essn": "1466-447X",
+          "issn": "0264-0414",
+          "isoabbreviation": "J Sports Sci",
+          "nlmid": "8405364"
+        },
+        "printPublicationDate": "2017-07-01"
+      }
+    },
+    "verificationProvenanceUnchanged": {
+      "status": "abstract_reviewed",
+      "reviewer": "Codex documentary review; not independent qualified coach approval",
+      "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+      "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+      "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+      "responseLocator": {
+        "medPmid": "27490817"
+      },
+      "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+      "fullTextReviewed": false,
+      "articleEfficacyOrDoseApproved": false
+    },
+    "originalRewritten": false,
+    "newLiveRetrievalClaimed": false
+  }
+]

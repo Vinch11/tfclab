@@ -1,0 +1,96 @@
+[
+  {
+    "key": "triathlon_transition_primary",
+    "ids": {
+      "pmcid": "PMC9802668",
+      "pmcid-ver": "PMC9802668.1",
+      "pmcaid": "9802668",
+      "pmcaiid": "9802668",
+      "pmid": "36589784",
+      "doi": "10.3389/fspor.2022.1065741"
+    },
+    "title": "Discovering the sluggishness of triathlon running - using the attractor method to quantify the impact of the bike-run transition",
+    "bodyChars": 45184,
+    "sections": 5,
+    "tableCount": 2
+  },
+  {
+    "key": "cooldown_review",
+    "ids": {
+      "pmcid": "PMC5999142",
+      "pmcid-ver": "PMC5999142.1",
+      "pmcaid": "5999142",
+      "pmcaiid": "5999142",
+      "pmid": "29663142",
+      "doi": "10.1007/s40279-018-0916-2",
+      "publisher-id": "916"
+    },
+    "title": "Do We Need a Cool-Down After Exercise? A Narrative Review of the Psychophysiological Effects and the Effects on Performance, Injuries and the Long-Term Adaptive Response",
+    "bodyChars": 62974,
+    "sections": 7,
+    "tableCount": 3
+  },
+  {
+    "key": "strength_economy_review",
+    "ids": {
+      "pmcid": "PMC11052887",
+      "pmcid-ver": "PMC11052887.1",
+      "pmcaid": "11052887",
+      "pmcaiid": "11052887",
+      "pmid": "38165636",
+      "doi": "10.1007/s40279-023-01978-y",
+      "publisher-id": "1978"
+    },
+    "title": "Effect of Strength Training Programs in Middle- and Long-Distance Runners\u2019 Economy at Different Running Speeds: A Systematic Review with Meta-analysis",
+    "bodyChars": 82321,
+    "sections": 7,
+    "tableCount": 7
+  },
+  {
+    "key": "longterm_recovery_review",
+    "ids": {
+      "pmcid": "PMC10914654",
+      "pmcid-ver": "PMC10914654.1",
+      "pmcaid": "10914654",
+      "pmcaiid": "10914654",
+      "pmid": "38443585",
+      "doi": "10.1186/s40798-024-00673-0",
+      "publisher-id": "673"
+    },
+    "title": "Effects of Passive or Active Recovery Regimes Applied During Long-Term Interval Training on Physical Fitness in Healthy Trained and Untrained Individuals: A Systematic Review",
+    "bodyChars": 46221,
+    "sections": 5,
+    "tableCount": 5
+  },
+  {
+    "key": "chronic_run_4_4",
+    "ids": {
+      "pmcid": "PMC10099854",
+      "pmcid-ver": "PMC10099854.1",
+      "pmcaid": "10099854",
+      "pmcaiid": "10099854",
+      "pmid": "36314990",
+      "doi": "10.1111/sms.14251",
+      "publisher-id": "SMS14251",
+      "other": "SJMSS-O-500-22.R1"
+    },
+    "title": "Aerobic  high\u2010intensity  intervals are superior to improve V\u0307O 2max  compared with sprint intervals in  well\u2010trained  men",
+    "bodyChars": 44278,
+    "sections": 8,
+    "tableCount": 4
+  },
+  {
+    "key": "acute_cycle_3_3",
+    "ids": {
+      "pmcid": "PMC8623252",
+      "pmcaid": "8623252",
+      "pmcaiid": "8623252",
+      "pmid": "34822448",
+      "doi": "10.3390/metabo11110790"
+    },
+    "title": "Central and Peripheral Oxygen Distribution in Two Different Modes of Interval Training",
+    "bodyChars": 34577,
+    "sections": 15,
+    "tableCount": 1
+  }
+]

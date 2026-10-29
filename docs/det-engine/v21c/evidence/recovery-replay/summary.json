@@ -1,0 +1,34 @@
+{
+  "conventionProposals": 416,
+  "sourceIds": 208,
+  "policyOperations": 466,
+  "ongoingInterRepetitionContextProposals": 416,
+  "hypotheticalLastRestOperations": {
+    "warm_up": 88,
+    "inter_repetitions": 0,
+    "inter_series_or_work_blocks": 64,
+    "after_main_block": 296,
+    "final_cool_down": 0,
+    "unresolved_following_content": 18
+  },
+  "inclusiveProposalCounts": {
+    "warm_up": 72,
+    "inter_repetitions": 0,
+    "inter_series_or_work_blocks": 50,
+    "after_main_block": 296,
+    "final_cool_down": 0,
+    "unresolved_following_content": 18
+  },
+  "disjointProposalSignatures": {
+    "after_main_block": 276,
+    "after_main_block+inter_series_or_work_blocks": 6,
+    "after_main_block+warm_up": 14,
+    "inter_series_or_work_blocks": 44,
+    "unresolved_following_content": 18,
+    "warm_up": 58
+  },
+  "warmupOperations": 88,
+  "warmupProposals": 72,
+  "classificationDoesNotDeterminePresence": true,
+  "approvedPolicies": 0
+}

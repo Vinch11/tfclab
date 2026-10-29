@@ -1,0 +1,23 @@
+test_abstract_does_not_supply_protocol (__main__.EvidenceContracts.test_abstract_does_not_supply_protocol) ... ok
+test_actual_candidate_comparisons_all_refused (__main__.EvidenceContracts.test_actual_candidate_comparisons_all_refused) ... ok
+test_actual_cross_sport_witness (__main__.EvidenceContracts.test_actual_cross_sport_witness) ... ok
+test_actual_low_cadence_rest_contradiction (__main__.EvidenceContracts.test_actual_low_cadence_rest_contradiction) ... ok
+test_acute_is_not_chronic_gain (__main__.EvidenceContracts.test_acute_is_not_chronic_gain) ... ok
+test_critical_argument_required (__main__.EvidenceContracts.test_critical_argument_required) ... ok
+test_each_unestablished_dimension_blocks (__main__.EvidenceContracts.test_each_unestablished_dimension_blocks) ... ok
+test_ftp_is_not_vo2peak (__main__.EvidenceContracts.test_ftp_is_not_vo2peak) ... ok
+test_last_rest_cannot_be_invented (__main__.EvidenceContracts.test_last_rest_cannot_be_invented) ... ok
+test_metadata_http200_is_not_full_text (__main__.EvidenceContracts.test_metadata_http200_is_not_full_text) ... ok
+test_missing_artifact_hash_provenance_blocks (__main__.EvidenceContracts.test_missing_artifact_hash_provenance_blocks) ... ok
+test_no_individual_promotion_even_if_comparison_allowed (__main__.EvidenceContracts.test_no_individual_promotion_even_if_comparison_allowed) ... ok
+test_no_numeric_duration_shortcut (__main__.EvidenceContracts.test_no_numeric_duration_shortcut) ... ok
+test_protocol_contradiction_is_blocking (__main__.EvidenceContracts.test_protocol_contradiction_is_blocking) ... ok
+test_review_cannot_be_exact_primary_protocol (__main__.EvidenceContracts.test_review_cannot_be_exact_primary_protocol) ... ok
+test_running_is_not_cycling (__main__.EvidenceContracts.test_running_is_not_cycling) ... ok
+test_software_control_never_approves_individual (__main__.EvidenceContracts.test_software_control_never_approves_individual) ... ok
+test_unknown_last_rest_is_blocking (__main__.EvidenceContracts.test_unknown_last_rest_is_blocking) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.001s
+
+OK
