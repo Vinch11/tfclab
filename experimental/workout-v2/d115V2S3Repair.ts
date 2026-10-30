@@ -187,6 +187,9 @@ export function explainD116S3Domains(){
   const slots=week.sessions.map(slotDomain);
   return {profile,week:3 as const,slots:slots.map(s=>({
    day:s.day,sport:s.sport,id:s.id,key:s.key,minutes:s.original,
+   sourceCategory:WorkoutLibrary.find(c=>c.id===s.id)?.cat??null,
+   sourcePhysiologicalIntent:WorkoutLibrary.find(c=>c.id===s.id)?.physiology?.primary??null,
+   keyOnRecoveryCard:s.key&&WorkoutLibrary.find(c=>c.id===s.id)?.cat==="D",
    variants:s.options.length-1,
    eligibleForDurationChange:s.options.length>1
   })),mayExport:false as const,sportApproved:false as const};
