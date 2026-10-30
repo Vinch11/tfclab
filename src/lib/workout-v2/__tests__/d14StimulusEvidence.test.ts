@@ -26,7 +26,7 @@ describe("D1.4 evidence of a specific physiological stimulus, not a key label", 
     const incomplete = auditD14KeyStimulus(2, "load", [{
       id: "REAL_INTERVALS", sport: "bike", key: true, intentFamily: "vo2",
       workSegments: [{ seconds: 900, physiologicalTarget: "vo2", referenceVerified: true }],
-      limiterMatchVerified: false, phaseCompatible: true, readinessCompatible: true,
+      doseAdequacyReviewed: false, limiterMatchVerified: false, phaseCompatible: true, readinessCompatible: true,
     }]);
     expect(incomplete.structuredTargetIds).toEqual(["REAL_INTERVALS"]);
     expect(incomplete.individuallySupportedIds).toEqual([]);
@@ -35,7 +35,7 @@ describe("D1.4 evidence of a specific physiological stimulus, not a key label", 
     const candidate = auditD14KeyStimulus(2, "load", [{
       id: "REAL_INTERVALS", sport: "bike", key: true, intentFamily: "vo2",
       workSegments: [{ seconds: 900, physiologicalTarget: "vo2", referenceVerified: true }],
-      limiterMatchVerified: true, phaseCompatible: true, readinessCompatible: true,
+      doseAdequacyReviewed: true, limiterMatchVerified: true, phaseCompatible: true, readinessCompatible: true,
     }]);
     expect(candidate.status).toBe("supported_pending_coach_review");
     expect(candidate.sportsGo).toBe(false);
