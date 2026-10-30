@@ -179,6 +179,16 @@ export function buildDetV3ContractFromCatalogue(
       if(preferredBrickIds.has(card.id))return -1;
       return sourceContract.rankCandidate?.(card,ctx)??0;
     },
+    consumedSourceIds(card){
+      if(report.accepted.some(source=>source.id===card.id))return [card.id];
+      const reviewed=brickById.get(card.id);
+      if(!reviewed)return [];
+      return [...new Set(reviewed.tags.flatMap(tag=>{
+        const value=tag.startsWith('bike-source:')?tag.slice('bike-source:'.length):
+          tag.startsWith('run-source:')?tag.slice('run-source:'.length):tag;
+        return /^V3P_(BIKE|RUN)_\d{3}$/.test(value)?[value]:[];
+      }))];
+    },
   };
   return {contract,report,brickReport,specificBrickReport,allBricks,auditErrors,sourceCounts:v3FullCatalogue.counts};
 }
