@@ -2334,7 +2334,7 @@ export default function AITrainingPlanPage() {
     if (!parsedPlan || !currentAthlete) return;
     // Pilote V3 : aucun plan expérimental ne peut être persisté ni envoyé à Nolio.
     if (parsedPlan.weeks?.some(week => week.sessions?.some(session =>
-      /V3P_(BIKE|RUN|SWIM|STRENGTH)_\\d{3}/.test(JSON.stringify(session))))) {
+      /V3P_(BIKE|RUN|SWIM|STRENGTH)_\d{3}/.test(JSON.stringify(session))))) {
       toast.error("Plan V3 expérimental : sauvegarde et export automatique désactivés. Revue sportive requise.");
       return;
     }
@@ -2458,7 +2458,7 @@ export default function AITrainingPlanPage() {
         validatorScore = vr.score;
         validatorGrade = vr.grade;
         validatorSummary = vr.summary as unknown as Record<string, unknown>;
-        criticalIssues = [...vr.issues.filter(i => i.severity === "error"), ...validateSessionCataloguePlan(parsedPlan, objective).filter(i => i.severity === "error")];
+        criticalIssues = [...vr.issues.filter(i => i.severity === "error"), ...validateSessionCataloguePlan(parsedPlan, objective, v3CoachPilot).filter(i => i.severity === "error")];
 
         // Audit "cohérence placement des séances" — constat n°2 : B11 (règles
         // de placement déclarées par chaque fiche catalogue, Quand/Éviter/
@@ -4589,7 +4589,7 @@ export default function AITrainingPlanPage() {
                             catalogIdIssues: checkB5ToValidationIssues(checkB5(current, lastAllowedCatalogIdsRef.current.length ? lastAllowedCatalogIdsRef.current : undefined, objective)),
                             finalValidationIssues: [
                               ...(updated.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_")),
-                              ...validateSessionCataloguePlan(updated, objective),
+                              ...validateSessionCataloguePlan(updated, objective, v3CoachPilot),
                             ],
                           });
                           setIsSaved(false);
