@@ -17,14 +17,17 @@ const d19Route:Plugin={
       response.statusCode=200;
       response.setHeader("Content-Type","text/html; charset=utf-8");
       response.setHeader("Cache-Control","no-store");
-      response.end([
+      const html=[
         "<!doctype html><html lang='fr'><head><meta charset='UTF-8'/>",
         "<meta name='viewport' content='width=device-width,initial-scale=1'/>",
         "<title>TFCLab D1.9 — synthétique DEV seulement</title></head>",
         "<body><div id='root'></div>",
         "<script type='module' src='/src/pages/__e2e/D19CoachReviewEntry.tsx'></script>",
         "</body></html>",
-      ].join(""));
+      ].join("");
+      void server.transformIndexHtml(route,html)
+        .then(transformed=>response.end(transformed))
+        .catch(error=>next(error));
     });
   },
 };
