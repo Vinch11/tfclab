@@ -12,10 +12,10 @@ const byId = (id: string): V3Workout => {
 };
 
 describe("TFCLab V3 pilot — isolated structured recipes", () => {
-  it("contains 100 actual candidate recipes, 40 bike and 20 in each other sport", () => {
-    expect(v3PilotCatalogue.workouts).toHaveLength(100);
-    expect(v3PilotCatalogue.counts).toEqual({ bike: 40, run: 20, swim: 20, strength: 20 });
-    expect(new Set(v3PilotCatalogue.workouts.map(w => w.id)).size).toBe(100);
+  it("contains 400 actual candidate recipes, 100 in each sport", () => {
+    expect(v3PilotCatalogue.workouts).toHaveLength(400);
+    expect(v3PilotCatalogue.counts).toEqual({ bike: 100, run: 100, swim: 100, strength: 100 });
+    expect(new Set(v3PilotCatalogue.workouts.map(w => w.id)).size).toBe(400);
   });
   it("all candidates pass the metadata and structure audit", () => {
     expect(auditV3Catalogue()).toEqual([]);
@@ -92,5 +92,83 @@ describe("TFCLab V3 pilot — read-only previews", () => {
   it("rejects overrides outside safety bounds during preview", () => {
     expect(() => previewV3Workout(byId("V3P_BIKE_008"), { overrides: { "1.count": 100 } }))
       .toThrow("V3_OUT_OF_BOUNDS");
+  });
+});
+
+describe("TFCLab V3 — 400 candidate coverage and non-duplication", () => {
+  const all = v3PilotCatalogue.workouts;
+  it("has contiguous stable IDs per sport with exactly 100 each", () => {
+    for (const sport of ["BIKE", "RUN", "SWIM", "STRENGTH"]) {
+      const ids = all.filter(w => w.sport === sport.toLowerCase()).map(w => w.id).sort();
+      expect(ids).toEqual(Array.from({ length: 100 }, (_, i) => "V3P_" + sport + "_" + String(i + 1).padStart(3, "0")));
+    }
+  });
+  it("has no exact duplicate recipe when ignoring metadata, IDs and titles", () => {
+    const bySport = new Map<string, Set<string>>();
+    for (const w of all) {
+      const key = JSON.stringify({ blocks: w.blocks, primaryIntent: w.primaryIntent, primaryDomain: w.primaryDomain });
+      const seen = bySport.get(w.sport) ?? new Set<string>();
+      expect(seen.has(key), w.id + " is an exact clone").toBe(false);
+      seen.add(key);
+      bySport.set(w.sport, seen);
+    }
+  });
+  it("each athlete-facing numeric quantity is strictly positive and within its declared bounds", () => {
+    function walk(blocks: V3Workout["blocks"]): void {
+      for (const block of blocks) {
+        if (block.kind === "repeat") {
+          expect(block.count.min).toBeGreaterThan(0);
+          expect(block.count.min).toBeLessThanOrEqual(block.count.base);
+          expect(block.count.base).toBeLessThanOrEqual(block.count.max);
+          expect(block.betweenSec).toBeGreaterThanOrEqual(0);
+          walk(block.steps);
+        } else {
+          const bounds = block.seconds ?? block.meters ?? block.reps;
+          expect(bounds?.min, block.label).toBeGreaterThan(0);
+          expect(bounds?.min).toBeLessThanOrEqual(bounds!.base);
+          expect(bounds!.base).toBeLessThanOrEqual(bounds!.max);
+        }
+      }
+    }
+    all.forEach(w => walk(w.blocks));
+  });
+  it("every swim recipe remains unresolved without a personal pace", () => {
+    for (const w of all.filter(w => w.sport === "swim")) {
+      const result = evaluateV3Workout(w);
+      expect(result.status, w.id).toBe("unresolved");
+      expect(result.minutes, w.id).toBeNull();
+      expect(result.distanceM, w.id).toBeGreaterThan(0);
+    }
+  });
+  it("every swimming recipe becomes computable only with explicit per-domain pace", () => {
+    const swimPaces = { recovery: 140, moderate_lt1: 120, tempo: 110, sub_threshold: 105,
+      mlss: 100, vo2max: 95, neuromuscular: 90 };
+    for (const w of all.filter(w => w.sport === "swim")) {
+      const result = evaluateV3Workout(w, { swimPaces });
+      expect(result.status, w.id).toBe("confirmed");
+      expect(result.seconds, w.id).toBeGreaterThan(0);
+    }
+  });
+  it("strength recipes with exercises do not misrepresent estimated duration as exact", () => {
+    for (const w of all.filter(w => w.sport === "strength")) {
+      const result = evaluateV3Workout(w);
+      expect(result.status, w.id).toBe("estimated");
+      expect(result.estimated, w.id).toBe(true);
+    }
+  });
+  it("all candidate intensities map to the shared TFCL doctrine", () => {
+    const allowed = new Set([
+      "recovery", "moderate_lt1", "tempo", "im_pace", "703_pace", "marathon_pace",
+      "sub_threshold", "semi_pace", "mlss", "vo2max", "neuromuscular",
+    ]);
+    for (const w of all) {
+      function walk(blocks: V3Workout["blocks"]): void {
+        blocks.forEach(b => {
+          if (b.kind === "repeat") walk(b.steps);
+          else if (b.domain !== null) expect(allowed.has(b.domain), w.id).toBe(true);
+        });
+      }
+      walk(w.blocks);
+    }
   });
 });
