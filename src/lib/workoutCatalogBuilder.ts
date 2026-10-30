@@ -1134,7 +1134,8 @@ export function buildWorkoutCatalog(
       workout: w,
       score: (() => {
         const base = scoreWorkout(w, goals, phases, limiterKeys, options?.injuryRisk);
-        return base <= -1000 ? base : base - historyPenalty(w.id);
+        return base <= -1000 ? base : base - historyPenalty(w.id) +
+          (options?.v3CoachPilot && w.id.startsWith("V3P_") ? 120 : 0); // explicit coach pilot only; never bypass earlier hard exclusions
       })(),
     }))
     // P4 diversité : à score strictement égal, départage par hash(id, rotationSeed)
