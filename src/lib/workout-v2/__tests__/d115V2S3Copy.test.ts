@@ -14,13 +14,13 @@ describe("D1.15: exact V2 structured copy-edit plus unchanged native validation"
     expect(row.changes).toHaveLength(2);
     expect(row.afterRatio.status).toBe("fully_accounted_inside_bands");
     expect(row.afterRatio.canCertifyPlan).toBe(false);
-    expect(row.originalCalendarUnchanged).toBe(true);
+    expect(row.daysAndSessionCountsPreserved).toBe(true);
     expect(row.editedPlan.totalWeeks).toBe(12);
     const unchanged=projectD12Profile(row.profile,[],true).candidatePlan!;
-    expect(unchanged.weeks.find(w=>w.weekNumber===3)?.sessions
-      .filter(s=>s.catalogId===null).length).not.toBeGreaterThan(
-      row.editedPlan.weeks.find(w=>w.weekNumber===3)?.sessions
-      .filter(s=>s.catalogId===null).length??0);
+    expect(unchanged.weeks.find(w=>w.weekNumber===3)?.sessions.length).toBe(
+      row.editedPlan.weeks.find(w=>w.weekNumber===3)?.sessions.length);
+    expect(unchanged.weeks.find(w=>w.weekNumber===3)?.sessions.map(s=>s.dayIndex)).toEqual(
+      row.editedPlan.weeks.find(w=>w.weekNumber===3)?.sessions.map(s=>s.dayIndex));
     for(const c of row.changes){
      expect(c.steps.reduce((sum,s)=>sum+s.durationSec,0)).toBe(c.newMinutes*60);
      expect(c.oldMinutes).not.toBe(c.newMinutes);
