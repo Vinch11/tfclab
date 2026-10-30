@@ -1,4 +1,5 @@
 import { describe,it,expect,vi,afterEach } from 'vitest';
+import type { DaySlot } from '@/engines/plan/weeklySlotLayout';
 import { buildDetV3Contract,ingestV3ForDeterministicEngine,type V3SourceCard,type DetV3Review } from './v31-v3-bridge';
 import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationFixtures';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
@@ -52,7 +53,7 @@ describe('V31 — true DET-ENGINE V3 bridge remains a closed experiment',()=>{
   const automatic={...candidate,automaticSelection:true} as unknown as V3SourceCard;
   expect(ingestV3ForDeterministicEngine([automatic],[review]).accepted).toHaveLength(0);
   expect(ingestV3ForDeterministicEngine([candidate],[{...review,athleteLevel:'light'}]).accepted).toHaveLength(0);
-  expect(ingestV3ForDeterministicEngine([candidate],[{...review,allPrerequisitesChecked:false} as any]).accepted).toHaveLength(0);
+  expect(ingestV3ForDeterministicEngine([candidate],[{...review,allPrerequisitesChecked:false} as unknown as DetV3Review]).accepted).toHaveLength(0);
  });
  it('inserts reviewed V3 only into the actual deterministic prevalidation catalogue, no network',()=>{
   vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN');});
@@ -68,8 +69,8 @@ describe('V31 — true DET-ENGINE V3 bridge remains a closed experiment',()=>{
   const prevalidated=assessPreparedGeneration(config,preparation);
   expect(prevalidated.weeks.length).toBe(config.weeksAvailable);
   expect(prevalidated.limiterPriorities).toEqual(config.identifiedLimitersRaw??[]);
-  expect(contract.filterCandidate!(report.accepted[0],{week:3,phase:'base',slot:{} as any,dayIndex:0})).toBe(false);
-  expect(contract.filterCandidate!(report.accepted[0],{week:3,phase:'build',slot:{} as any,dayIndex:0})).toBe(true);
+  expect(contract.filterCandidate!(report.accepted[0],{week:3,phase:'base',slot:{} as unknown as DaySlot,dayIndex:0})).toBe(false);
+  expect(contract.filterCandidate!(report.accepted[0],{week:3,phase:'build',slot:{} as unknown as DaySlot,dayIndex:0})).toBe(true);
  });
  it('runs the true deterministic assembler on synthetic data, never gives automatic approval',()=>{
   vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN');});
