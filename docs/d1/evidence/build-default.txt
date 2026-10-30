@@ -1,0 +1,15 @@
+
+> vite_react_shadcn_ts@0.0.0 build
+> vite build
+
+failed to load config from /workspace/tfclab/vite.config.ts
+error during build:
+Error: PLAN_RELEASE_DECLARATION_STALE:releaseId
+    at assertSameDeclaration (file:///workspace/tfclab/vite.config.ts.timestamp-1793344737640-8dc3461ec03b48.mjs:37:102)
+    at checkedPlanRelease (file:///workspace/tfclab/vite.config.ts.timestamp-1793344737640-8dc3461ec03b48.mjs:88:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///workspace/tfclab/vite.config.ts.timestamp-1793344737640-8dc3461ec03b48.mjs:116:47
+    at async loadConfigFromFile (file:///workspace/tfclab/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:66822:20)
+    at async resolveConfig (file:///workspace/tfclab/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:66416:24)
+    at async build (file:///workspace/tfclab/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65503:18)
+    at async CAC.<anonymous> (file:///workspace/tfclab/node_modules/vite/dist/node/cli.js:829:5)

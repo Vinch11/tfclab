@@ -1,0 +1,1913 @@
+{
+  "rows": [
+    {
+      "profile": "aerobic_dominant",
+      "athlete": {
+        "nom": "QA offline",
+        "sex": "male",
+        "age": 32,
+        "ftp": 299,
+        "weightKg": 72,
+        "vlamax": 0.35,
+        "vlamaxRun": 0.32,
+        "vo2max": 65,
+        "vma": 19.5,
+        "css": 90,
+        "fcMax": 190,
+        "tte": 45,
+        "pmax5s": 950,
+        "p30s": 620,
+        "p60s": 480,
+        "map5min": 380,
+        "paceThresholdSecPerKm": 210,
+        "runMLSSEffectivePct": 0.86,
+        "runMLSSEffectiveSource": "observed",
+        "runEconomyScore": 3
+      },
+      "config": {
+        "objective": "703",
+        "raceName": "QA 70.3 Test",
+        "raceGoals": [
+          {
+            "objective": "703",
+            "raceDate": "2027-01-17",
+            "priority": "A"
+          }
+        ],
+        "planStartDate": "2026-10-26",
+        "weeksAvailable": 12,
+        "weeklyHours": 10,
+        "weeklyHoursSource": "coach",
+        "maxSessionsPerDay": 2,
+        "strengthSessionsPerWeek": 1,
+        "ambition": "age_group",
+        "ambitionMeta": {
+          "saisie": "age_group",
+          "effective": "age_group",
+          "saisieLabel": "Confirmé",
+          "effectiveLabel": "Confirmé",
+          "downgraded": false,
+          "trainingLevel": "trained",
+          "trainingLevelSource": "manual",
+          "diagnosticNote": null
+        },
+        "constraints": "Profil synthétique QA — aucune contrainte, disponibilité large.",
+        "identifiedLimiters": [
+          "## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)",
+          "Total : 2 limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n",
+          "### Limiteur #1 — VLamax (Impact: 14.2/100)",
+          "- Statut : 🟡 SOUS-OPTIMAL",
+          "- Valeur actuelle : 0.35 vs cible : 0.30",
+          "- Catégorie séances clés : \"VLamax trop haute (LD)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+          "- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).",
+          "",
+          "### Limiteur #2 — TTE (Impact: 3.8/100)",
+          "- Statut : 🟡 SOUS-OPTIMAL",
+          "- Valeur actuelle : 43.00 vs cible : 45.00",
+          "- Catégorie séances clés : \"TTE faible (<40min)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+          "- ⚡ PRIORITÉ HAUTE : Ce limiteur doit recevoir la séance clé #2 de chaque semaine.",
+          "",
+          "## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS",
+          "- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.",
+          "- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).",
+          "- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.",
+          "- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.",
+          "- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies."
+        ],
+        "identifiedLimitersRaw": [
+          "VLamax",
+          "TTE"
+        ],
+        "chantierDurationWeeks": 4,
+        "fondationDurationWeeks": 4,
+        "injuryRisk": {
+          "run": {
+            "level": "FAIBLE",
+            "score": 17,
+            "why": "Risque CAP faible (17%). Les indicateurs sont dans les zones vertes pour 703. CAP normale autorisée.",
+            "guardrails": [
+              "Maintenir le monitoring habituel"
+            ]
+          },
+          "bike": {
+            "level": "FAIBLE",
+            "score": 28,
+            "why": "Risque Vélo faible (28%). Profil robuste. Entraînement normal autorisé.",
+            "guardrails": [
+              "Maintenir le monitoring habituel"
+            ]
+          }
+        },
+        "activeLevers": [
+          "Intervalles VO₂max",
+          "Travail au Seuil",
+          "Force Max"
+        ],
+        "prohibitions": [
+          "🚫 STRATÉGIE — Blocs VO2 lourds: Incompatible avec le travail de force max. Le travail de force max nécessite une récupération neuromusculaire incompatible avec les blocs VO2 intensifs. Séparer ces stimuli dans le temps."
+        ],
+        "adaptationProjections": [
+          {
+            "leverId": "volume_z2",
+            "leverLabel": "Volume Z2",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VO₂max",
+                "current": 65,
+                "projected": 66.82,
+                "deltaPct": 2.8,
+                "direction": "up"
+              },
+              {
+                "label": "VLamax",
+                "current": 0.35,
+                "projected": 0.34,
+                "deltaPct": -4,
+                "direction": "down"
+              },
+              {
+                "label": "FatMax",
+                "current": 77,
+                "projected": 81.14,
+                "deltaPct": 5.4,
+                "direction": "up"
+              },
+              {
+                "label": "LT2",
+                "current": 79.76923076923077,
+                "projected": 82.53,
+                "deltaPct": 3.5,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 47.73,
+                "deltaPct": 11,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.12,
+                "deltaPct": 4,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 2.5
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 2.4
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 2.3
+              }
+            ],
+            "recommendation": "Volume Z2 : effet principal sur TTE et FatMax (+11.0%, +5.4%)."
+          },
+          {
+            "leverId": "threshold_work",
+            "leverLabel": "Travail Seuil",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VO₂max",
+                "current": 65,
+                "projected": 65.65,
+                "deltaPct": 1,
+                "direction": "up"
+              },
+              {
+                "label": "VLamax",
+                "current": 0.35,
+                "projected": 0.34,
+                "deltaPct": -2,
+                "direction": "down"
+              },
+              {
+                "label": "FatMax",
+                "current": 77,
+                "projected": 80.08,
+                "deltaPct": 4,
+                "direction": "up"
+              },
+              {
+                "label": "LT2",
+                "current": 79.76923076923077,
+                "projected": 82.53,
+                "deltaPct": 3.5,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 55.9,
+                "deltaPct": 30,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.06,
+                "deltaPct": 2,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 3.4
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 2.9
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 2.6
+              }
+            ],
+            "recommendation": "Travail Seuil : effet principal sur TTE et FatMax (+30.0%, +4.0%)."
+          },
+          {
+            "leverId": "max_force",
+            "leverLabel": "Force Maximale",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VO₂max",
+                "current": 65,
+                "projected": 65.65,
+                "deltaPct": 1,
+                "direction": "up"
+              },
+              {
+                "label": "FatMax",
+                "current": 77,
+                "projected": 78.54,
+                "deltaPct": 2,
+                "direction": "up"
+              },
+              {
+                "label": "LT2",
+                "current": 79.76923076923077,
+                "projected": 82.53,
+                "deltaPct": 3.5,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 44.29,
+                "deltaPct": 3,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.33,
+                "deltaPct": 11,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 1.6
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 1.4
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 1.3
+              }
+            ],
+            "recommendation": "Force Maximale : effet principal sur Économie et LT2 (+11.0%, +3.5%)."
+          }
+        ],
+        "recentLoad": {
+          "tss7d": 120,
+          "source": "SNAPSHOT",
+          "status": "low",
+          "label": "120 TSS/7j (Snapshot)",
+          "recommendation": "Augmenter progressivement le volume d'entraînement",
+          "target": {
+            "min": 300,
+            "opt": 450,
+            "max": 650
+          }
+        },
+        "_athleteSex": "M",
+        "volumeRamp": {
+          "trainingLevel": "trained",
+          "week1PctTarget": 0.6,
+          "rampWeeks": 4,
+          "week1HoursCap": 8,
+          "weeklyHoursTarget": 10,
+          "week1HoursMax": 6,
+          "weeklyIncreasePctMax": 0.1,
+          "recentLoadAdjustment": {
+            "effectiveLevel": "light",
+            "reason": "Charge récente réelle mesurée basse (120 TSS/7j (Snapshot)) pour un niveau déclaré \"trained\" — rampe calculée sur le palier \"light\" par prudence (pas de saut brutal de volume en S1-S2)."
+          }
+        },
+        "terrainAvailability": "plat",
+        "strategyContext": {
+          "source": "lorang",
+          "primaryAction": "Focus Intervalles VO₂max",
+          "confidence": "high",
+          "levers": [
+            {
+              "id": "vo2_intervals",
+              "label": "Intervalles VO₂max",
+              "priority": 2,
+              "reason": "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
+              "adaptations": [
+                "5×4min Z5 r3min (classique Billat)",
+                "3×8min Z4-Z5 r4min",
+                "6×3min Z5 r3min",
+                "2x/semaine max en phase Build"
+              ]
+            },
+            {
+              "id": "threshold_work",
+              "label": "Travail au Seuil",
+              "priority": 2,
+              "reason": "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
+              "adaptations": [
+                "2×20min au seuil (FTP/allure seuil)",
+                "Sweet Spot 88-93% FTP / allure semi",
+                "Intervalles tempo 10-20min",
+                "Progression : durée au seuil +5min/semaine"
+              ]
+            },
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            }
+          ],
+          "trainingFocus": {
+            "do": [
+              "Blocs tempo / sweet spot longs",
+              "Progressions au seuil",
+              "Économie d'allure",
+              "Sorties longues avec finish à tempo"
+            ],
+            "avoid": [
+              "Séances trop courtes",
+              "Travail exclusif en intervalles courts",
+              "Négliger le volume spécifique"
+            ]
+          },
+          "recommendedWeekType": "vo2"
+        },
+        "physiologicalTrace": {
+          "version": 1,
+          "diagnostic": {
+            "executed": true,
+            "confidenceGlobal": 0.6050000000000002,
+            "dataCompleteness": 1,
+            "limiters": [
+              {
+                "metric": "VLamax",
+                "priority": 1,
+                "status": "acceptable",
+                "value": 0.35,
+                "target": 0.3,
+                "weightedImpact": 14.166666666666664
+              },
+              {
+                "metric": "TTE",
+                "priority": 2,
+                "status": "acceptable",
+                "value": 43,
+                "target": 45,
+                "weightedImpact": 3.7777777777777777
+              }
+            ],
+            "uncertainty": [
+              "Confiance diagnostique limitée (61%)."
+            ]
+          },
+          "decision": {
+            "executed": true,
+            "source": "lorang",
+            "calculationIssues": [],
+            "confidence": "high",
+            "primaryAction": "Focus Intervalles VO₂max",
+            "levers": [
+              {
+                "id": "vo2_intervals",
+                "label": "Intervalles VO₂max",
+                "priority": 2,
+                "reason": "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
+                "adaptations": [
+                  "5×4min Z5 r3min (classique Billat)",
+                  "3×8min Z4-Z5 r4min",
+                  "6×3min Z5 r3min",
+                  "2x/semaine max en phase Build"
+                ]
+              },
+              {
+                "id": "threshold_work",
+                "label": "Travail au Seuil",
+                "priority": 2,
+                "reason": "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
+                "adaptations": [
+                  "2×20min au seuil (FTP/allure seuil)",
+                  "Sweet Spot 88-93% FTP / allure semi",
+                  "Intervalles tempo 10-20min",
+                  "Progression : durée au seuil +5min/semaine"
+                ]
+              },
+              {
+                "id": "force_max",
+                "label": "Force Max",
+                "priority": 2,
+                "reason": "Économie faible — renforcement musculaire nécessaire",
+                "adaptations": [
+                  "Gym lourde 85–95% 1RM",
+                  "3–5 répétitions par série",
+                  "2–3 séries max",
+                  "1–2x/semaine (hors semaines de course)"
+                ]
+              }
+            ],
+            "prohibitions": [
+              {
+                "id": "vo2_heavy_blocks",
+                "label": "Blocs VO2 lourds",
+                "reason": "Incompatible avec le travail de force max"
+              }
+            ],
+            "trainingFocus": {
+              "do": [
+                "Blocs tempo / sweet spot longs",
+                "Progressions au seuil",
+                "Économie d'allure",
+                "Sorties longues avec finish à tempo"
+              ],
+              "avoid": [
+                "Séances trop courtes",
+                "Travail exclusif en intervalles courts",
+                "Négliger le volume spécifique"
+              ]
+            },
+            "weekType": "vo2"
+          },
+          "transmission": {
+            "identifiedLimitersRaw": {
+              "status": "consumed",
+              "origin": "diagnostic.limiter.gapAnalysis",
+              "consumers": [
+                "workoutCatalogBuilder.scoreWorkout",
+                "edge.buildStructuredDiagnosticBlock",
+                "server.reconciler"
+              ],
+              "detail": "Ordre transmis: VLamax > TTE"
+            },
+            "activeLevers": {
+              "status": "consumed",
+              "origin": "decision.strategy.levers",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+            },
+            "prohibitions": {
+              "status": "consumed",
+              "origin": "planConfigBuilder + decision.strategy.prohibitions",
+              "consumers": [
+                "workoutCatalogBuilder.prohibitions",
+                "edge.buildStructuredDiagnosticBlock"
+              ]
+            },
+            "strategyContext": {
+              "status": "consumed",
+              "origin": "decision.strategy (lorang)",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+            },
+            "prescriptionIntent": {
+              "status": "not_verified",
+              "origin": "plan final généré",
+              "consumers": [],
+              "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+            }
+          }
+        }
+      },
+      "result": {
+        "version": "d1-1",
+        "engineReference": "234112a1fa713b796d1f41faf14819d5ab6d0171",
+        "status": "refused",
+        "technicallyConstructed": false,
+        "constraintsSatisfied": false,
+        "sportingRelevance": "not_attested",
+        "humanReviewRequired": true,
+        "trace": [
+          {
+            "week": 1,
+            "day": "mardi",
+            "id": "V3_BIKE_CADENCE_DRILLS",
+            "duration": 60,
+            "intent": "technique",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mardi",
+            "id": "D_SWIM_TRI_REGEN_1000",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mercredi",
+            "id": "V2_RUN_EDUCATIFS_TECHNIQUES",
+            "duration": 25,
+            "intent": "technique",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mercredi",
+            "id": "D_RECOVERY_VAR_1_PRO",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "jeudi",
+            "id": "D_RECOVERY_VAR_9_PRO",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "jeudi",
+            "id": "D_SWIM_RECOVERY_EASY",
+            "duration": 20,
+            "intent": "technique",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "vendredi",
+            "id": "D_IM_BRICK_REGEN",
+            "duration": 15,
+            "intent": "endurance_fondamentale",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "samedi",
+            "id": "BRICK_STAGE1_INTRO",
+            "duration": 90,
+            "intent": "brick",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "dimanche",
+            "id": "A_RUN_Z2_EASY",
+            "duration": 55,
+            "intent": "endurance_fondamentale",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "dimanche",
+            "id": "C_STR_CIRCUIT_CARDIO_RUN",
+            "duration": 35,
+            "intent": "force",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          }
+        ],
+        "nodes": 107,
+        "issues": [
+          {
+            "week": 2,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          },
+          {
+            "week": 3,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          },
+          {
+            "week": 8,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          }
+        ],
+        "limiterPriorities": [
+          "VLamax",
+          "TTE"
+        ],
+        "reason": "empty_catalogue_domain_week_2",
+        "validationScope": "full_preparation_original_horizon_retained",
+        "preparationWeeks": 12,
+        "prescriptible": false,
+        "prescriptionBlockers": [
+          "individual_recipe_duration_dose_intensity_recovery_not_fully_attested"
+        ]
+      },
+      "repetitions": 20,
+      "days": 0
+    },
+    {
+      "profile": "glycolytic_dominant",
+      "athlete": {
+        "nom": "QA offline",
+        "sex": "male",
+        "age": 29,
+        "ftp": null,
+        "weightKg": 72,
+        "vlamax": null,
+        "vlamaxRun": null,
+        "vo2max": null,
+        "vma": 16.5,
+        "css": null,
+        "fcMax": 192,
+        "tte": null,
+        "pmax5s": 950,
+        "p30s": 620,
+        "p60s": 480,
+        "map5min": 380,
+        "paceThresholdSecPerKm": 248,
+        "runMLSSEffectivePct": null,
+        "runMLSSEffectiveSource": "predicted",
+        "runEconomyScore": 3
+      },
+      "config": {
+        "objective": "703",
+        "raceName": "QA 70.3 Test",
+        "raceGoals": [
+          {
+            "objective": "703",
+            "raceDate": "2027-01-17",
+            "priority": "A"
+          }
+        ],
+        "planStartDate": "2026-10-26",
+        "weeksAvailable": 12,
+        "weeklyHours": 10,
+        "weeklyHoursSource": "coach",
+        "maxSessionsPerDay": 2,
+        "strengthSessionsPerWeek": 1,
+        "ambition": "age_group",
+        "ambitionMeta": {
+          "saisie": "age_group",
+          "effective": "age_group",
+          "saisieLabel": "Confirmé",
+          "effectiveLabel": "Confirmé",
+          "downgraded": false,
+          "trainingLevel": "trained",
+          "trainingLevelSource": "manual",
+          "diagnosticNote": null
+        },
+        "constraints": "Profil synthétique QA — aucune contrainte, disponibilité large.",
+        "identifiedLimiters": [
+          "## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)",
+          "Total : 1 limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n",
+          "### Limiteur #1 — TTE (Impact: 3.8/100)",
+          "- Statut : 🟡 SOUS-OPTIMAL",
+          "- Valeur actuelle : 43.00 vs cible : 45.00",
+          "- Catégorie séances clés : \"TTE faible (<40min)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+          "- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).",
+          "",
+          "## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS",
+          "- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.",
+          "- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).",
+          "- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.",
+          "- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.",
+          "- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies."
+        ],
+        "identifiedLimitersRaw": [
+          "TTE"
+        ],
+        "chantierDurationWeeks": 4,
+        "fondationDurationWeeks": 4,
+        "injuryRisk": {
+          "run": {
+            "level": "FAIBLE",
+            "score": 24,
+            "why": "Risque CAP faible (24%). Les indicateurs sont dans les zones vertes pour 703. CAP normale autorisée.",
+            "guardrails": [
+              "Maintenir le monitoring habituel"
+            ]
+          },
+          "bike": {
+            "level": "FAIBLE",
+            "score": 28,
+            "why": "Risque Vélo faible (28%). Profil robuste. Entraînement normal autorisé.",
+            "guardrails": [
+              "Maintenir le monitoring habituel"
+            ]
+          }
+        },
+        "activeLevers": [
+          "Force Max"
+        ],
+        "prohibitions": [
+          "🚫 STRATÉGIE — Blocs VO2 lourds: Incompatible avec le travail de force max. Le travail de force max nécessite une récupération neuromusculaire incompatible avec les blocs VO2 intensifs. Séparer ces stimuli dans le temps."
+        ],
+        "adaptationProjections": [
+          {
+            "leverId": "threshold_work",
+            "leverLabel": "Travail Seuil",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 55.9,
+                "deltaPct": 30,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.06,
+                "deltaPct": 2,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 2.5
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 1.9
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 1.6
+              }
+            ],
+            "recommendation": "Travail Seuil : effet principal sur TTE et Économie (+30.0%, +2.0%)."
+          },
+          {
+            "leverId": "running_economy",
+            "leverLabel": "Travail Économie",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 45.58,
+                "deltaPct": 6,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.33,
+                "deltaPct": 11,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 1.1
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 1
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 0.9
+              }
+            ],
+            "recommendation": "Travail Économie : effet principal sur Économie et TTE (+11.0%, +6.0%)."
+          },
+          {
+            "leverId": "norwegian_method",
+            "leverLabel": "Méthode Norvégienne",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 51.6,
+                "deltaPct": 20,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.12,
+                "deltaPct": 4,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 1.8
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 1.4
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 1.2
+              }
+            ],
+            "recommendation": "Méthode Norvégienne : effet principal sur TTE et Économie (+20.0%, +4.0%)."
+          }
+        ],
+        "recentLoad": {
+          "tss7d": 120,
+          "source": "SNAPSHOT",
+          "status": "low",
+          "label": "120 TSS/7j (Snapshot)",
+          "recommendation": "Augmenter progressivement le volume d'entraînement",
+          "target": {
+            "min": 300,
+            "opt": 450,
+            "max": 650
+          }
+        },
+        "_athleteSex": "M",
+        "volumeRamp": {
+          "trainingLevel": "trained",
+          "week1PctTarget": 0.6,
+          "rampWeeks": 4,
+          "week1HoursCap": 8,
+          "weeklyHoursTarget": 10,
+          "week1HoursMax": 6,
+          "weeklyIncreasePctMax": 0.1,
+          "recentLoadAdjustment": {
+            "effectiveLevel": "light",
+            "reason": "Charge récente réelle mesurée basse (120 TSS/7j (Snapshot)) pour un niveau déclaré \"trained\" — rampe calculée sur le palier \"light\" par prudence (pas de saut brutal de volume en S1-S2)."
+          }
+        },
+        "terrainAvailability": "plat",
+        "strategyContext": {
+          "source": "lorang",
+          "primaryAction": "Focus Force Max",
+          "confidence": "high",
+          "levers": [
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            }
+          ],
+          "trainingFocus": {
+            "do": [
+              "Blocs tempo / sweet spot longs",
+              "Progressions au seuil",
+              "Économie d'allure",
+              "Sorties longues avec finish à tempo"
+            ],
+            "avoid": [
+              "Séances trop courtes",
+              "Travail exclusif en intervalles courts",
+              "Négliger le volume spécifique"
+            ]
+          },
+          "recommendedWeekType": "vo2"
+        },
+        "physiologicalTrace": {
+          "version": 1,
+          "diagnostic": {
+            "executed": true,
+            "confidenceGlobal": 0.15,
+            "dataCompleteness": 0.57,
+            "limiters": [
+              {
+                "metric": "TTE",
+                "priority": 1,
+                "status": "acceptable",
+                "value": 43,
+                "target": 45,
+                "weightedImpact": 3.7777777777777777
+              }
+            ],
+            "uncertainty": [
+              "Données physiologiques incomplètes (57%).",
+              "Confiance diagnostique limitée (15%)."
+            ]
+          },
+          "decision": {
+            "executed": true,
+            "source": "lorang",
+            "calculationIssues": [],
+            "confidence": "high",
+            "primaryAction": "Focus Force Max",
+            "levers": [
+              {
+                "id": "force_max",
+                "label": "Force Max",
+                "priority": 2,
+                "reason": "Économie faible — renforcement musculaire nécessaire",
+                "adaptations": [
+                  "Gym lourde 85–95% 1RM",
+                  "3–5 répétitions par série",
+                  "2–3 séries max",
+                  "1–2x/semaine (hors semaines de course)"
+                ]
+              }
+            ],
+            "prohibitions": [
+              {
+                "id": "vo2_heavy_blocks",
+                "label": "Blocs VO2 lourds",
+                "reason": "Incompatible avec le travail de force max"
+              }
+            ],
+            "trainingFocus": {
+              "do": [
+                "Blocs tempo / sweet spot longs",
+                "Progressions au seuil",
+                "Économie d'allure",
+                "Sorties longues avec finish à tempo"
+              ],
+              "avoid": [
+                "Séances trop courtes",
+                "Travail exclusif en intervalles courts",
+                "Négliger le volume spécifique"
+              ]
+            },
+            "weekType": "vo2"
+          },
+          "transmission": {
+            "identifiedLimitersRaw": {
+              "status": "consumed",
+              "origin": "diagnostic.limiter.gapAnalysis",
+              "consumers": [
+                "workoutCatalogBuilder.scoreWorkout",
+                "edge.buildStructuredDiagnosticBlock",
+                "server.reconciler"
+              ],
+              "detail": "Ordre transmis: TTE"
+            },
+            "activeLevers": {
+              "status": "consumed",
+              "origin": "decision.strategy.levers",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+            },
+            "prohibitions": {
+              "status": "consumed",
+              "origin": "planConfigBuilder + decision.strategy.prohibitions",
+              "consumers": [
+                "workoutCatalogBuilder.prohibitions",
+                "edge.buildStructuredDiagnosticBlock"
+              ]
+            },
+            "strategyContext": {
+              "status": "consumed",
+              "origin": "decision.strategy (lorang)",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+            },
+            "prescriptionIntent": {
+              "status": "not_verified",
+              "origin": "plan final généré",
+              "consumers": [],
+              "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+            }
+          }
+        }
+      },
+      "result": {
+        "version": "d1-1",
+        "engineReference": "234112a1fa713b796d1f41faf14819d5ab6d0171",
+        "status": "refused",
+        "technicallyConstructed": false,
+        "constraintsSatisfied": false,
+        "sportingRelevance": "not_attested",
+        "humanReviewRequired": true,
+        "trace": [
+          {
+            "week": 1,
+            "day": "mardi",
+            "id": "V3_BIKE_CADENCE_DRILLS",
+            "duration": 60,
+            "intent": "technique",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mardi",
+            "id": "D_SWIM_TRI_REGEN_1000",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mercredi",
+            "id": "D_RECOVERY_VAR_1_PRO",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mercredi",
+            "id": "D_SEMI_RECOVERY_30",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "jeudi",
+            "id": "D_RECOVERY_VAR_9_PRO",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "jeudi",
+            "id": "D_SWIM_RECOVERY_EASY",
+            "duration": 20,
+            "intent": "technique",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "vendredi",
+            "id": "D_IM_BRICK_REGEN",
+            "duration": 15,
+            "intent": "endurance_fondamentale",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "samedi",
+            "id": "BRICK_STAGE1_INTRO",
+            "duration": 90,
+            "intent": "brick",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "dimanche",
+            "id": "A_RUN_Z2_EASY",
+            "duration": 55,
+            "intent": "endurance_fondamentale",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "dimanche",
+            "id": "C_STR_CIRCUIT_CARDIO_TRI",
+            "duration": 40,
+            "intent": "force",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          }
+        ],
+        "nodes": 191,
+        "issues": [
+          {
+            "week": 2,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          },
+          {
+            "week": 3,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          },
+          {
+            "week": 8,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          }
+        ],
+        "limiterPriorities": [
+          "TTE"
+        ],
+        "reason": "empty_catalogue_domain_week_2",
+        "validationScope": "full_preparation_original_horizon_retained",
+        "preparationWeeks": 12,
+        "prescriptible": false,
+        "prescriptionBlockers": [
+          "individual_recipe_duration_dose_intensity_recovery_not_fully_attested"
+        ]
+      },
+      "repetitions": 20,
+      "days": 0
+    },
+    {
+      "profile": "balanced_typical",
+      "athlete": {
+        "nom": "QA offline",
+        "sex": "male",
+        "age": 35,
+        "ftp": 267,
+        "weightKg": null,
+        "vlamax": 0.55,
+        "vlamaxRun": 0.5,
+        "vo2max": null,
+        "vma": 18,
+        "css": null,
+        "fcMax": null,
+        "tte": 45,
+        "pmax5s": 950,
+        "p30s": 620,
+        "p60s": 480,
+        "map5min": null,
+        "paceThresholdSecPerKm": 227,
+        "runMLSSEffectivePct": 0.86,
+        "runMLSSEffectiveSource": "observed",
+        "runEconomyScore": 3
+      },
+      "config": {
+        "objective": "703",
+        "raceName": "QA 70.3 Test",
+        "raceGoals": [
+          {
+            "objective": "703",
+            "raceDate": "2027-01-17",
+            "priority": "A"
+          }
+        ],
+        "planStartDate": "2026-10-26",
+        "weeksAvailable": 12,
+        "weeklyHours": 10,
+        "weeklyHoursSource": "coach",
+        "maxSessionsPerDay": 2,
+        "strengthSessionsPerWeek": 1,
+        "ambition": "age_group",
+        "ambitionMeta": {
+          "saisie": "age_group",
+          "effective": "age_group",
+          "saisieLabel": "Confirmé",
+          "effectiveLabel": "Confirmé",
+          "downgraded": false,
+          "trainingLevel": "trained",
+          "trainingLevelSource": "manual",
+          "diagnosticNote": null
+        },
+        "constraints": "Profil synthétique QA — aucune contrainte, disponibilité large.",
+        "identifiedLimiters": [
+          "## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)",
+          "Total : 2 limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n",
+          "### Limiteur #1 — VLamax (Impact: 70.8/100)",
+          "- Statut : 🔴 CRITIQUE",
+          "- Valeur actuelle : 0.55 vs cible : 0.30",
+          "- Catégorie séances clés : \"VLamax trop haute (LD)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+          "- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).",
+          "",
+          "### Limiteur #2 — TTE (Impact: 3.8/100)",
+          "- Statut : 🟡 SOUS-OPTIMAL",
+          "- Valeur actuelle : 43.00 vs cible : 45.00",
+          "- Catégorie séances clés : \"TTE faible (<40min)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+          "- ⚡ PRIORITÉ HAUTE : Ce limiteur doit recevoir la séance clé #2 de chaque semaine.",
+          "",
+          "## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS",
+          "- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.",
+          "- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).",
+          "- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.",
+          "- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.",
+          "- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.",
+          "\n## Synthèse TFCL™",
+          "🎯 LIMITEUR PRIMAIRE : Métabolisme glycolytique — VLamax trop haute : consommation glycogène excessive."
+        ],
+        "identifiedLimitersRaw": [
+          "VLamax",
+          "TTE"
+        ],
+        "chantierDurationWeeks": 4,
+        "fondationDurationWeeks": 4,
+        "injuryRisk": {
+          "run": {
+            "level": "FAIBLE",
+            "score": 25,
+            "why": "Risque CAP faible (25%). Les indicateurs sont dans les zones vertes pour 703. CAP normale autorisée.",
+            "guardrails": [
+              "Maintenir le monitoring habituel"
+            ]
+          },
+          "bike": {
+            "level": "MODERE",
+            "score": 39,
+            "why": "Risque Vélo modéré (39%). Facteurs à surveiller : VLamax Vélo. Vigilance sur durées longues.",
+            "guardrails": [
+              "Surveiller tension tendineuse après sorties longues",
+              "Éviter accumulation force + durée dans la même semaine"
+            ]
+          }
+        },
+        "activeLevers": [
+          "Volume Z2 / Endurance",
+          "Force Max",
+          "SFR / Force Endurance",
+          "Train Low / Sleep Low"
+        ],
+        "prohibitions": [
+          "🚫 SPRINT BAN STRICT — VLamax trop haute pour cet objectif longue distance. INTERDITS : sprints all-out, Tabata, micro-intervalles explosifs (<20s), sprints neuromusculaires (6×10s, 8×20s, etc.), pliométrie explosive (drop jumps, hurdle rebounds), efforts erratiques non-structurés. Ces formats AUGMENTENT la VLamax et sont CONTRE-PRODUCTIFS pour l'endurance.",
+          "🚫 RESTRICTION VO2max LOURD — Avec une VLamax élevée, les blocs VO2max longs (≥5min @>110% FTP) stimulent excessivement la glycolyse et aggravent le problème. AUTORISÉ : intervalles VO2max COURTS et CONTRÔLÉS (3-4×3min @105-110% FTP max, repos longs ≥4min). INTERDIT : 5×5min @115% FTP, Tabata VO2max, 30/30 longs. PRIORITÉ : Sweet Spot prolongé (2×20min @88-92% FTP), seuil Norvégien, Z2 volume.",
+          "🚫 STRATÉGIE — Sprints: Augmenterait la VLamax, contre-productif pour l'objectif. Les sprints sollicitent fortement le système glycolytique rapide, ce qui augmenterait la VLamax. Or, pour un objectif longue distance, on cherche à la réduire pour optimiser l'utilisation des lipides.",
+          "🚫 STRATÉGIE — Micro-intervalles explosifs: Sollicite le système glycolytique rapide. Les micro-intervalles explosifs (10-20s all-out) développent la puissance glycolytique, incompatible avec l'objectif de réduction VLamax.",
+          "🚫 STRATÉGIE — Pacing erratique: Surconsommation glycogène par variations d'intensité. Un pacing irrégulier (accélérations/décélérations) surconsomme le glycogène par rapport à un effort régulier. Privilégier un effort constant.",
+          "🚫 STRATÉGIE — Blocs VO2 lourds: Incompatible avec le travail de force max. Le travail de force max nécessite une récupération neuromusculaire incompatible avec les blocs VO2 intensifs. Séparer ces stimuli dans le temps."
+        ],
+        "adaptationProjections": [
+          {
+            "leverId": "volume_z2",
+            "leverLabel": "Volume Z2",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VLamax",
+                "current": 0.55,
+                "projected": 0.52,
+                "deltaPct": -5,
+                "direction": "down"
+              },
+              {
+                "label": "FatMax",
+                "current": 56,
+                "projected": 60.14,
+                "deltaPct": 7.4,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 47.02,
+                "deltaPct": 9.4,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.1,
+                "deltaPct": 3.4,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 1.7
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 2
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 2.1
+              }
+            ],
+            "recommendation": "Volume Z2 : effet principal sur TTE et FatMax (+9.4%, +7.4%)."
+          },
+          {
+            "leverId": "threshold_work",
+            "leverLabel": "Travail Seuil",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VLamax",
+                "current": 0.55,
+                "projected": 0.54,
+                "deltaPct": -2,
+                "direction": "down"
+              },
+              {
+                "label": "FatMax",
+                "current": 56,
+                "projected": 58.24,
+                "deltaPct": 4,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 55.9,
+                "deltaPct": 30,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.06,
+                "deltaPct": 2,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 2.8
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 2.5
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 2.3
+              }
+            ],
+            "recommendation": "Travail Seuil : effet principal sur TTE et FatMax (+30.0%, +4.0%)."
+          },
+          {
+            "leverId": "running_economy",
+            "leverLabel": "Travail Économie",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "FatMax",
+                "current": 56,
+                "projected": 57.12,
+                "deltaPct": 2,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 45.58,
+                "deltaPct": 6,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.33,
+                "deltaPct": 11,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 1.2
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 1.2
+              },
+              {
+                "distance": "Ironman",
+                "improvementPct": 1.2
+              }
+            ],
+            "recommendation": "Travail Économie : effet principal sur Économie et TTE (+11.0%, +6.0%)."
+          }
+        ],
+        "recentLoad": {
+          "tss7d": 120,
+          "source": "SNAPSHOT",
+          "status": "low",
+          "label": "120 TSS/7j (Snapshot)",
+          "recommendation": "Augmenter progressivement le volume d'entraînement",
+          "target": {
+            "min": 300,
+            "opt": 450,
+            "max": 650
+          }
+        },
+        "_athleteSex": "M",
+        "volumeRamp": {
+          "trainingLevel": "trained",
+          "week1PctTarget": 0.6,
+          "rampWeeks": 4,
+          "week1HoursCap": 8,
+          "weeklyHoursTarget": 10,
+          "week1HoursMax": 6,
+          "weeklyIncreasePctMax": 0.1,
+          "recentLoadAdjustment": {
+            "effectiveLevel": "light",
+            "reason": "Charge récente réelle mesurée basse (120 TSS/7j (Snapshot)) pour un niveau déclaré \"trained\" — rampe calculée sur le palier \"light\" par prudence (pas de saut brutal de volume en S1-S2)."
+          }
+        },
+        "terrainAvailability": "plat",
+        "strategyContext": {
+          "source": "lorang",
+          "primaryAction": "Focus Volume Z2 / Endurance",
+          "confidence": "high",
+          "levers": [
+            {
+              "id": "z2_volume",
+              "label": "Volume Z2 / Endurance",
+              "priority": 2,
+              "reason": "VLamax 83% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition age_group)",
+              "adaptations": [
+                "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+                "Garder de la variété : 1 séance intensité conservée/sem",
+                "Z2 avec finish tempo léger 15-20min (progressif)",
+                "Progression douce +5-8%/sem sur volume aérobie"
+              ]
+            },
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            },
+            {
+              "id": "sfr_force_endurance",
+              "label": "SFR / Force Endurance",
+              "priority": 2,
+              "reason": "VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition age_group)",
+              "adaptations": [
+                "Cadence 50–65 rpm (transition douce)",
+                "Zone tempo / Sweet Spot bas",
+                "Blocs de 5–10 min",
+                "1x/semaine max en phase Build"
+              ]
+            },
+            {
+              "id": "train_low",
+              "label": "Train Low / Sleep Low",
+              "priority": 3,
+              "reason": "Objectif longue distance — amélioration oxydation lipidique",
+              "adaptations": [
+                "Sorties à jeun ou glycogène réduit",
+                "Max 1–2x/semaine",
+                "Intensité Z1-Z2 uniquement",
+                "Ravitaillement normal post-séance"
+              ]
+            }
+          ],
+          "trainingFocus": {
+            "do": [
+              "Zone 2 stricte (60-70% FTP)",
+              "SFR / basse cadence",
+              "Séances low-carb occasionnelles",
+              "Volume aérobie > intensité"
+            ],
+            "avoid": [
+              "Intervalles courts haute intensité",
+              "Séances > seuil",
+              "Sprint et travail anaérobie"
+            ]
+          },
+          "recommendedWeekType": "endurance"
+        },
+        "physiologicalTrace": {
+          "version": 1,
+          "diagnostic": {
+            "executed": true,
+            "confidenceGlobal": 0.5,
+            "dataCompleteness": 0.64,
+            "limiters": [
+              {
+                "metric": "VLamax",
+                "priority": 1,
+                "status": "limiting",
+                "value": 0.55,
+                "target": 0.3,
+                "weightedImpact": 70.83333333333334
+              },
+              {
+                "metric": "TTE",
+                "priority": 2,
+                "status": "acceptable",
+                "value": 43,
+                "target": 45,
+                "weightedImpact": 3.7777777777777777
+              }
+            ],
+            "uncertainty": [
+              "Données physiologiques incomplètes (64%).",
+              "Confiance diagnostique limitée (50%)."
+            ]
+          },
+          "decision": {
+            "executed": true,
+            "source": "lorang",
+            "calculationIssues": [],
+            "confidence": "high",
+            "primaryAction": "Focus Volume Z2 / Endurance",
+            "levers": [
+              {
+                "id": "z2_volume",
+                "label": "Volume Z2 / Endurance",
+                "priority": 2,
+                "reason": "VLamax 83% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition age_group)",
+                "adaptations": [
+                  "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+                  "Garder de la variété : 1 séance intensité conservée/sem",
+                  "Z2 avec finish tempo léger 15-20min (progressif)",
+                  "Progression douce +5-8%/sem sur volume aérobie"
+                ]
+              },
+              {
+                "id": "force_max",
+                "label": "Force Max",
+                "priority": 2,
+                "reason": "Économie faible — renforcement musculaire nécessaire",
+                "adaptations": [
+                  "Gym lourde 85–95% 1RM",
+                  "3–5 répétitions par série",
+                  "2–3 séries max",
+                  "1–2x/semaine (hors semaines de course)"
+                ]
+              },
+              {
+                "id": "sfr_force_endurance",
+                "label": "SFR / Force Endurance",
+                "priority": 2,
+                "reason": "VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition age_group)",
+                "adaptations": [
+                  "Cadence 50–65 rpm (transition douce)",
+                  "Zone tempo / Sweet Spot bas",
+                  "Blocs de 5–10 min",
+                  "1x/semaine max en phase Build"
+                ]
+              },
+              {
+                "id": "train_low",
+                "label": "Train Low / Sleep Low",
+                "priority": 3,
+                "reason": "Objectif longue distance — amélioration oxydation lipidique",
+                "adaptations": [
+                  "Sorties à jeun ou glycogène réduit",
+                  "Max 1–2x/semaine",
+                  "Intensité Z1-Z2 uniquement",
+                  "Ravitaillement normal post-séance"
+                ]
+              }
+            ],
+            "prohibitions": [
+              {
+                "id": "sprints",
+                "label": "Sprints",
+                "reason": "Augmenterait la VLamax, contre-productif pour l'objectif"
+              },
+              {
+                "id": "micro_intervals",
+                "label": "Micro-intervalles explosifs",
+                "reason": "Sollicite le système glycolytique rapide"
+              },
+              {
+                "id": "erratic_pacing",
+                "label": "Pacing erratique",
+                "reason": "Surconsommation glycogène par variations d'intensité"
+              },
+              {
+                "id": "vo2_heavy_blocks",
+                "label": "Blocs VO2 lourds",
+                "reason": "Incompatible avec le travail de force max"
+              }
+            ],
+            "trainingFocus": {
+              "do": [
+                "Zone 2 stricte (60-70% FTP)",
+                "SFR / basse cadence",
+                "Séances low-carb occasionnelles",
+                "Volume aérobie > intensité"
+              ],
+              "avoid": [
+                "Intervalles courts haute intensité",
+                "Séances > seuil",
+                "Sprint et travail anaérobie"
+              ]
+            },
+            "weekType": "endurance"
+          },
+          "transmission": {
+            "identifiedLimitersRaw": {
+              "status": "consumed",
+              "origin": "diagnostic.limiter.gapAnalysis",
+              "consumers": [
+                "workoutCatalogBuilder.scoreWorkout",
+                "edge.buildStructuredDiagnosticBlock",
+                "server.reconciler"
+              ],
+              "detail": "Ordre transmis: VLamax > TTE"
+            },
+            "activeLevers": {
+              "status": "consumed",
+              "origin": "decision.strategy.levers",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+            },
+            "prohibitions": {
+              "status": "consumed",
+              "origin": "planConfigBuilder + decision.strategy.prohibitions",
+              "consumers": [
+                "workoutCatalogBuilder.prohibitions",
+                "edge.buildStructuredDiagnosticBlock"
+              ]
+            },
+            "strategyContext": {
+              "status": "consumed",
+              "origin": "decision.strategy (lorang)",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+            },
+            "prescriptionIntent": {
+              "status": "not_verified",
+              "origin": "plan final généré",
+              "consumers": [],
+              "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+            }
+          }
+        }
+      },
+      "result": {
+        "version": "d1-1",
+        "engineReference": "234112a1fa713b796d1f41faf14819d5ab6d0171",
+        "status": "refused",
+        "technicallyConstructed": false,
+        "constraintsSatisfied": false,
+        "sportingRelevance": "not_attested",
+        "humanReviewRequired": true,
+        "trace": [
+          {
+            "week": 1,
+            "day": "mardi",
+            "id": "V3_BIKE_CADENCE_DRILLS",
+            "duration": 60,
+            "intent": "technique",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mardi",
+            "id": "D_RECOVERY_VAR_10_PRO",
+            "duration": 25,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mercredi",
+            "id": "D_SEMI_RECOVERY_30",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "mercredi",
+            "id": "D_RECOVERY_VAR_1_PRO",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "jeudi",
+            "id": "D_RECOVERY_VAR_9_PRO",
+            "duration": 20,
+            "intent": "recuperation",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "jeudi",
+            "id": "D_SWIM_RECOVERY_EASY",
+            "duration": 20,
+            "intent": "technique",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "vendredi",
+            "id": "D_IM_BRICK_REGEN",
+            "duration": 15,
+            "intent": "endurance_fondamentale",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "samedi",
+            "id": "BRICK_STAGE1_INTRO",
+            "duration": 90,
+            "intent": "brick",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "dimanche",
+            "id": "A_RUN_Z2_EASY",
+            "duration": 55,
+            "intent": "endurance_fondamentale",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          },
+          {
+            "week": 1,
+            "day": "dimanche",
+            "id": "C_STR_CIRCUIT_CARDIO_RUN",
+            "duration": 35,
+            "intent": "force",
+            "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+          }
+        ],
+        "nodes": 403,
+        "issues": [
+          {
+            "week": 2,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          },
+          {
+            "week": 3,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          },
+          {
+            "week": 8,
+            "code": "catalogue_slot_duration_unavailable",
+            "severity": "warning"
+          }
+        ],
+        "limiterPriorities": [
+          "VLamax",
+          "TTE"
+        ],
+        "reason": "empty_catalogue_domain_week_2",
+        "validationScope": "full_preparation_original_horizon_retained",
+        "preparationWeeks": 12,
+        "prescriptible": false,
+        "prescriptionBlockers": [
+          "individual_recipe_duration_dose_intensity_recovery_not_fully_attested"
+        ]
+      },
+      "repetitions": 20,
+      "days": 0
+    }
+  ],
+  "prohibited": {
+    "version": "d1-1",
+    "engineReference": "234112a1fa713b796d1f41faf14819d5ab6d0171",
+    "status": "refused",
+    "technicallyConstructed": false,
+    "constraintsSatisfied": false,
+    "sportingRelevance": "not_attested",
+    "humanReviewRequired": true,
+    "trace": [
+      {
+        "week": 1,
+        "day": "mardi",
+        "id": "A_SWIM_PULL_LONG_DISTANCE",
+        "duration": 40,
+        "intent": "technique",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "mardi",
+        "id": "D_RECOVERY_VAR_9_PRO",
+        "duration": 20,
+        "intent": "recuperation",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "mercredi",
+        "id": "C_SWIM_TECH_DRILLS",
+        "duration": 30,
+        "intent": "technique",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "mercredi",
+        "id": "D_SEMI_RECOVERY_30",
+        "duration": 20,
+        "intent": "recuperation",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "jeudi",
+        "id": "C_SWIM_KICK_SET",
+        "duration": 30,
+        "intent": "force",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "jeudi",
+        "id": "D_RECOVERY_VAR_6_PRO",
+        "duration": 25,
+        "intent": "recuperation",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "vendredi",
+        "id": "D_IM_BRICK_REGEN",
+        "duration": 15,
+        "intent": "endurance_fondamentale",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "samedi",
+        "id": "BRICK_STAGE1_INTRO",
+        "duration": 90,
+        "intent": "brick",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "dimanche",
+        "id": "A_RUN_Z2_EASY",
+        "duration": 55,
+        "intent": "endurance_fondamentale",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      },
+      {
+        "week": 1,
+        "day": "dimanche",
+        "id": "C_STR_CIRCUIT_CARDIO_RUN",
+        "duration": 35,
+        "intent": "force",
+        "reason": "Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé."
+      }
+    ],
+    "nodes": 740,
+    "issues": [
+      {
+        "week": 2,
+        "code": "catalogue_slot_duration_unavailable",
+        "severity": "warning"
+      },
+      {
+        "week": 3,
+        "code": "catalogue_slot_duration_unavailable",
+        "severity": "warning"
+      },
+      {
+        "week": 8,
+        "code": "catalogue_slot_duration_unavailable",
+        "severity": "warning"
+      }
+    ],
+    "limiterPriorities": [
+      "VLamax",
+      "TTE"
+    ],
+    "reason": "empty_catalogue_domain_week_2",
+    "validationScope": "full_preparation_original_horizon_retained",
+    "preparationWeeks": 12,
+    "prescriptible": false,
+    "prescriptionBlockers": [
+      "individual_recipe_duration_dose_intensity_recovery_not_fully_attested"
+    ]
+  },
+  "networkCalls": 0
+}

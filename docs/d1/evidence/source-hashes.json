@@ -1,0 +1,10 @@
+{
+  "experimental/det-engine/engine.ts": "0038bfac5c92bdaccdd2ae18d4b2af1c0d2e97451dcdd19ed797a59fb6e328cf",
+  "src/lib/plan/d1/generateBlock.ts": "3e53aee965ec41b48f2e6d99137aa79aa5d09c1dc3727998be8f106459442e74",
+  "src/lib/plan/d1/fixtures.ts": "24e74a71e8f6e285c66b1bf1964ef99faae4844672558f9cf893d19241949dc1",
+  "docs/d1/fixtures.json": "0b4cd2a92496569369239309f467f0d4a8f3de98292a62c46c2399975f772887",
+  "src/components/D1BlockPanel.tsx": "8dba6c7149a86bb61d432d88145017568dc49166998714e95471bb67f18e0e44",
+  "src/pages/AITrainingPlanPage.tsx": "748fc61b2301b1eb096a6de0cab846aca8c173f7fe5c36d6728f013f91dd2c74",
+  "src/App.tsx": "82b9703d71a25e19af659c620b23bdf21c5ff90edae2ea7d3afb4ea236a996bd",
+  "supabase/functions/_shared/planReleaseManifest.ts": "b30339075958af1627ff3d0ee3c9cb8c7523121bca04005afa95a735a9624cbd"
+}
