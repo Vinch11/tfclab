@@ -32,6 +32,10 @@ export interface WeekAudit {
   eligibleSourcesBySport:Record<Sport,number>;
   noEligibleSourceFor:Sport[];
   minCatalogMinutesForOriginalSlots:number|null;
+  stage1BaseBrickEligible:boolean;
+  extraIndependentLongBikeEligible:boolean;
+  separatedMinCatalogMinutes:number|null;
+  separatedMinimumOverBudget:boolean|null;
   volumeBudgetMaxMinutes:number|null;
   remainingAfterOriginalMinimumMinutes:number|null;
   verdict:"native_policy_unchanged_not_generated";
@@ -72,6 +76,26 @@ export function auditD12Cohort(profile:D12Profile):D12CohortAudit {
     const eligibleSourcesBySport=Object.fromEntries(sports.map(s=>[s,eligible.filter(m=>normalizeRepairSport(m.sport)===s).length])) as Record<Sport,number>;
     const minDurations=slots.map(slot=>Math.min(...sourceFor(slot.sport,slot).map(m=>Math.max(m.durationMin[0],slot.minDurationMin??0))));
     const minCatalogMinutesForOriginalSlots=minDurations.every(Number.isFinite)?minDurations.reduce((a,b)=>a+b,0):null;
+    // Strict alternative: the actual SHORT Stage1 card, plus a separate long
+    // BIKE with the original individualised floor. No hypothetical V2 extension.
+    const stage1=eligible.find(m=>m.id==="BRICK_STAGE1_INTRO");
+    const stage1BaseBrickEligible=!!stage1 && stage1.durationMin[0]===60 &&
+      stage1.durationMin[1]===90 && entry.phase==="base";
+    const longBikeFloor=entry.floors.longRideWeekly?entry.floors.slLongRideMin:null;
+    const independentLongBikeMin=longBikeFloor===undefined || longBikeFloor===null
+      ? null
+      : Math.min(...eligible.filter(m=>normalizeRepairSport(m.sport)==="bike")
+          .filter(m=>m.durationMin[1]>=Math.max(longBikeFloor,m.durationMin[0]))
+          .map(m=>Math.max(longBikeFloor,m.durationMin[0])));
+    const extraIndependentLongBikeEligible=independentLongBikeMin!==null && Number.isFinite(independentLongBikeMin);
+    // The existing long-brick slot is replaced with an actual Stage1 source,
+    // while the autonomous bike slot is added. Other slot minima remain native.
+    const otherSlotMin=slots.filter(s=>!(s.sport==="brick"&&s.isLongSession))
+      .map(slot=>Math.min(...sourceFor(slot.sport,slot).map(m=>Math.max(m.durationMin[0],slot.minDurationMin??0))));
+    const separatedMinCatalogMinutes=brick && stage1BaseBrickEligible &&
+      extraIndependentLongBikeEligible && otherSlotMin.every(Number.isFinite)
+      ? otherSlotMin.reduce((a,b)=>a+b,0)+stage1!.durationMin[0]+independentLongBikeMin!
+      : null;
     const longBikeFloorMin=entry.floors.longRideWeekly?entry.floors.slLongRideMin??null:null;
     const brickFloor=slots.find(s=>s.sport==="brick"&&s.isLongSession)?.minDurationMin??null;
     const counts=Object.fromEntries(sports.map(s=>[s,slots.filter(t=>t.sport===s).length])) as Record<Sport,number>;
@@ -89,6 +113,9 @@ export function auditD12Cohort(profile:D12Profile):D12CohortAudit {
       slotSportCount:counts,eligibleSourcesBySport,
       noEligibleSourceFor:sports.filter(s=>counts[s]>0&&eligibleSourcesBySport[s]===0),
       minCatalogMinutesForOriginalSlots,
+      stage1BaseBrickEligible,extraIndependentLongBikeEligible,
+      separatedMinCatalogMinutes,
+      separatedMinimumOverBudget: separatedMinCatalogMinutes===null||entry.volumeBudget?.maxMinutes===undefined?null:separatedMinCatalogMinutes>entry.volumeBudget.maxMinutes,
       volumeBudgetMaxMinutes:entry.volumeBudget?.maxMinutes??null,
       remainingAfterOriginalMinimumMinutes: minCatalogMinutesForOriginalSlots===null||entry.volumeBudget?.maxMinutes===undefined?null:
         entry.volumeBudget.maxMinutes-minCatalogMinutesForOriginalSlots,
