@@ -2,7 +2,7 @@
 
 **Statut : PILOTE ISOLÉ / NON INTÉGRÉ / NON AUTORISÉ POUR LA PRESCRIPTION.**
 
-Ce paquet n'altère ni `WorkoutLibrary` (V1), ni `computePlan`, ni le catalogue existant, ni les exports Nolio/PDF, ni la base de données. Pas de nouvelle route ni de feature flag nécessaire puisque rien en production n'importe ces fichiers.
+Le pilote est isolé dans `experimental/workout-v2/` ; ses tests restent dans `src/lib/workout-v2/__tests__/`. Ainsi, son code n'entre pas dans l'empreinte de release du frontend actif.\n\nCe paquet n'altère ni `WorkoutLibrary` (V1), ni `computePlan`, ni le catalogue existant, ni les exports Nolio/PDF, ni la base de données. Pas de nouvelle route ni de feature flag nécessaire puisque rien en production n'importe ces fichiers.
 
 ## Objectif livré dans ce lot
 
@@ -43,7 +43,7 @@ Un objectif peut être compatible avec plusieurs modalités ; **couverture** sig
 ## Exemple d'utilisation programmatique (isolée)
 
 ```ts
-import { instantiateWorkoutV2 } from "@/lib/workout-v2/instantiate";
+import { instantiateWorkoutV2 } from "../../experimental/workout-v2/instantiate";
 
 const res = instantiateWorkoutV2("V2_BIKE_02", {
   goal: "half",
