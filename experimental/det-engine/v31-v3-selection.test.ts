@@ -83,7 +83,7 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
     {maxNodes:2500,maxMilliseconds:1500},afterContract.contract);
   console.info('DET_V31_703_BRICK_REPAIR',JSON.stringify({
     originalReason:before.reason,originalSlot:before.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message,
-    brickId:V3_BASE_BRICK_ID,brickDurationMin:120,
+    brickId:V3_BASE_BRICK_ID,brickDurationMin:105,
     candidateEligibleWeek1:prevalidation.weeks[0].eligible.some(x=>x.id===V3_BASE_BRICK_ID),
     newStatus:after.status,newReason:after.reason,
     nextEmptySlot:after.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message,
