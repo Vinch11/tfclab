@@ -88,11 +88,16 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
     newStatus:after.status,newReason:after.reason,
     nextEmptySlot:after.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message,
     constructed:after.technicallyConstructed,conformant:after.constraintsSatisfied,
+    remainingBlockingIssues:after.issues.filter(i=>['blocking','error','critical'].includes(i.severity))
+      .slice(0,15).map(i=>({code:i.code,week:i.week,message:i.message?.slice(0,180)})),
     selectedBricks:after.trace.filter(t=>t.id===V3_BASE_BRICK_ID).map(t=>({week:t.week,day:t.day,duration:t.duration})),
   }));
   if(after.reason==='empty_catalogue_domain_week_1')
     expect(after.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message)
       .not.toContain('"sport":"brick"');
+  expect(after.technicallyConstructed).toBe(true);
+  expect(after.candidate?.weeks).toHaveLength(config.weeksAvailable);
+  expect(after.trace.some(t=>t.id===V3_BASE_BRICK_ID && t.week===1 && t.day==='samedi' && t.duration===105)).toBe(true);
   expect(after.humanReviewRequired).toBe(true);
   expect(after.sportingRelevance).toBe('not_attested');
  });
