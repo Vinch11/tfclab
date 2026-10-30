@@ -30,6 +30,29 @@ export interface EngineResult {
   limiterPriorities:string[];
 }
 const DEFAULT_LIMITS:SearchLimits={maxNodes:20000,maxMilliseconds:5000};
+
+/** Experimental partial-horizon validation: use the ORIGINAL declared race
+ * week from the untouched 12-week configuration; never mark S4 as a race
+ * just because the analysis stops at S4. An absent future week must remain
+ * an explicit validation warning, not become an invented event. */
+export function experimentalDeclaredRaceWeekNumbers(config:PlanConfig):number[] {
+  if(!config.planStartDate || !/^\d{4}-\d{2}-\d{2}$/.test(config.planStartDate))return [];
+  const start=Date.parse(config.planStartDate+"T00:00:00Z");
+  if(!Number.isFinite(start))return [];
+  const weeks:number[]=[];
+  for(const goal of config.raceGoals??[]){
+    const date=goal.raceDate;
+    if(!date || !/^\d{4}-\d{2}-\d{2}$/.test(date))continue;
+    const day=Date.parse(date+"T00:00:00Z");
+    if(!Number.isFinite(day) || new Date(day).toISOString().slice(0,10)!==date)continue;
+    const offsetDays=(day-start)/86400000;
+    if(!Number.isSafeInteger(offsetDays)||offsetDays<0)continue;
+    const week=Math.floor(offsetDays/7)+1;
+    if(week<=(config.weeksAvailable??0)) weeks.push(week);
+  }
+  return [...new Set(weeks)].sort((a,b)=>a-b);
+}
+
 /** All limits are hard caps; an exhausted search is not a proof of infeasibility. */
 export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanConfig,limits:SearchLimits=DEFAULT_LIMITS,experimentalContract?:ExperimentalAssemblyContract):EngineResult {
   const result:EngineResult={status:'refused',technicallyConstructed:false,constraintsSatisfied:false,
@@ -123,7 +146,12 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const merged:MergedPlan={...plan,weeks:plan.weeks.map(w=>({...w,sessions:w.sessions.map(s=>({...s,isKeySession:!!s.isKeySession,catalogId:s.catalogId??null,custom:!!s.custom,durationMin:s.durationMin??0,zones:s.zones??[]}))}))};
     result.issues.push(...validateWeeklyQuotas(merged,preparation.weeklyQuotas).map(i=>({code:i.code,week:i.weekNumber,severity:i.severity,message:i.reason})));
   }
-  const validation=validatePlan(result.candidate!,config.objective,config.prohibitions,undefined,
+  const experimentalRaceWeeks=limits.experimentalFirstWeeks!==undefined
+    ? experimentalDeclaredRaceWeekNumbers(config) : [];
+  if(limits.experimentalFirstWeeks!==undefined && !experimentalRaceWeeks.length)
+    result.issues.push({code:"experimental_race_week_provenance_missing",severity:"error"});
+  const validation=validatePlan(result.candidate!,config.objective,config.prohibitions,
+    limits.experimentalFirstWeeks!==undefined && experimentalRaceWeeks.length ? experimentalRaceWeeks : undefined,
     config.identifiedLimitersRaw,undefined,athlete,undefined,{sessionsPerWeek:config.sessionsPerWeek,maxSessionsPerDay:config.maxSessionsPerDay,maxDoubleDaysPerWeek:config.maxDoubleDaysPerWeek},config.injuryRisk,config.ambition,
     config.constraints,config.raceGoals?.some(g=>g.raceFormat==='lcw_3day'),config.deloadCadenceWeeks,
     config.ambitionMeta?{trainingLevel:config.ambitionMeta.trainingLevel,trainingLevelSource:config.ambitionMeta.trainingLevelSource}:undefined,
