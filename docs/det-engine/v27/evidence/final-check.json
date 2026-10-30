@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "essentialDocuments": 13,
+  "coachSessionsChecked": 30,
+  "newExecutableSourceIds": 1,
+  "technicalExecutions": 3,
+  "individualApprovals": 0,
+  "previousFilesUnchanged": 5135,
+  "changedPathsAllowed": 154,
+  "guardSourceSha256": "b4e47c0df277e5e6a7051ce7faab5368ebe8a3005b20f44004c4d7c7afc9b585"
+}

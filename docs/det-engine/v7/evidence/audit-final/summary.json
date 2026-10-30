@@ -1,0 +1,47 @@
+{
+  "manifests": [
+    {
+      "version": "v2",
+      "verified": true
+    },
+    {
+      "version": "v3",
+      "verified": true
+    },
+    {
+      "version": "v4",
+      "verified": true
+    },
+    {
+      "version": "v5",
+      "verified": true
+    },
+    {
+      "version": "v6",
+      "verified": true
+    }
+  ],
+  "cohorts": [
+    {
+      "cohort": "V5_same76",
+      "cases": 76,
+      "historicalIndependentlyIdentical": true
+    },
+    {
+      "cohort": "V6_same76",
+      "cases": 76,
+      "historicalIndependentlyIdentical": true
+    },
+    {
+      "cohort": "V6_new_ultra_only",
+      "cases": 2,
+      "historicalIndependentlyIdentical": true
+    },
+    {
+      "cohort": "V6_strict_IM_models",
+      "cases": 16,
+      "historicalIndependentlyIdentical": true
+    }
+  ],
+  "paidApiCalls": 0
+}

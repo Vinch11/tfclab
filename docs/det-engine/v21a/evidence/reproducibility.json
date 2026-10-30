@@ -1,0 +1,14 @@
+{
+  "pass": true,
+  "files": {
+    "family-definitions-and-impact.json": true,
+    "summary.json": true,
+    "PLAN_USAGE.jsonl": true,
+    "WORKOUT_FAMILY_MAPPING.jsonl": true,
+    "existing-reference-contexts.json": true,
+    "v19-documentary-context-preserved.json": true,
+    "REFERENCE_OCCURRENCES.jsonl": true,
+    "input-checksums.json": true
+  },
+  "identicalArtifacts": 8
+}

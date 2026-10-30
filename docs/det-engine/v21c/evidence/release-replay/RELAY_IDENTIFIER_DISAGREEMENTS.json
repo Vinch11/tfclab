@@ -1,0 +1,23 @@
+[
+  {
+    "relayId": "REC-02",
+    "relayPmcid": "PMC10914654",
+    "v21bReferenceId": "REC-02",
+    "v21bPmid": "32744041",
+    "samePublication": false
+  },
+  {
+    "relayId": "VO2-01",
+    "relayPmid": "34822448",
+    "v21bReferenceId": "VO2-01",
+    "v21bPmid": "23539308",
+    "samePublication": false
+  },
+  {
+    "relayId": "VO2-02",
+    "relayPmid": "36314990",
+    "v21bReferenceId": "VO2-02",
+    "v21bPmid": "42237396",
+    "samePublication": false
+  }
+]

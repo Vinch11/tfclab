@@ -1,0 +1,15 @@
+{
+  "fullCheckExitCode": 2,
+  "diagnostics": [
+    "docs/det-engine/v19/cycle-2/evidence/chain-attempt-1.txt:14: new blank line at EOF.",
+    "docs/det-engine/v19/cycle-2/evidence/experimental-regression.txt:14: new blank line at EOF.",
+    "docs/det-engine/v19/cycle-2/evidence/historical-regression.txt:14: new blank line at EOF.",
+    "docs/det-engine/v19/cycle-2/evidence/validation-2/chain.txt:14: new blank line at EOF.",
+    "docs/det-engine/v19/cycle-2/evidence/validation-2/chain_replay.txt:14: new blank line at EOF.",
+    "docs/det-engine/v19/cycle-2/evidence/validation-3-repair-1/chain.txt:14: new blank line at EOF.",
+    "docs/det-engine/v19/cycle-2/evidence/validation-3-repair-1/chain_replay.txt:14: new blank line at EOF."
+  ],
+  "onlyUntouchedRawTestLogsHaveExtraTerminalBlankLines": true,
+  "rawEvidenceNotReformatted": true,
+  "sportsAndFunctionalTestsUnaffected": true
+}

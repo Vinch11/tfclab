@@ -1,0 +1,2102 @@
+[
+  {
+    "legacyId": "A_SWIM_AEROBIC",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_VO2_3MIN",
+    "scope": {
+      "status": "prefix_not_controlled_or_not_identified",
+      "betweenKey": "B_BIKE_VO2_3MIN@v19:between_repetitions:1b764bed2bb4",
+      "afterKey": "B_BIKE_VO2_3MIN@v19:after_each_repetition:23bb55bfcb95",
+      "prescribedPrefixIdentical": false,
+      "totalMinutes": [
+        60.5,
+        64.5
+      ],
+      "recoveryMinutes": [
+        14,
+        18
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_THRESHOLD",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_BIKE_THRESHOLD@v19:between_repetitions:f701ae86e1a5",
+      "afterKey": "B_BIKE_THRESHOLD@v19:after_each_repetition:b337ea38c374",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        65,
+        70
+      ],
+      "recoveryMinutes": [
+        5,
+        10
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_VMA_400",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_THRESHOLD",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_SPEED_25",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_RUN_HILL_SKILLS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_RUN_STRIDES",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_BIKE_FORCE",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "C_BIKE_FORCE@v19:between_repetitions:4d3dfb406aa7",
+      "afterKey": "C_BIKE_FORCE@v19:after_each_repetition:8fcfca3d26f7",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        68,
+        71
+      ],
+      "recoveryMinutes": [
+        15,
+        18
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "C_SWIM_TECH_DRILLS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_IM_BIKE_OVERUNDER",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_IM_AERO_HOLD",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "C_IM_AERO_HOLD@v19:between_repetitions:5a9daecc4fac",
+      "afterKey": "C_IM_AERO_HOLD@v19:after_each_repetition:18ae8b1932ab",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        75,
+        80
+      ],
+      "recoveryMinutes": [
+        15,
+        20
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_MAR_TEMPO_BLOCKS",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_MAR_TEMPO_BLOCKS@v19:between_repetitions:80abba2bd7bd",
+      "afterKey": "B_MAR_TEMPO_BLOCKS@v19:after_each_repetition:e6546e06ce63",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        70,
+        75
+      ],
+      "recoveryMinutes": [
+        10,
+        15
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "C_MAR_HILL_STRENGTH",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SEMI_RACE_PACE",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_SEMI_RACE_PACE@v19:between_repetitions:4079a5ca7cf3",
+      "afterKey": "B_SEMI_RACE_PACE@v19:after_each_repetition:c93a20b0f530",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        59,
+        63
+      ],
+      "recoveryMinutes": [
+        4,
+        8
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_703_RUN_THRESHOLD",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_703_RUN_THRESHOLD@v19:between_repetitions:a59ae999ef96",
+      "afterKey": "B_703_RUN_THRESHOLD@v19:after_each_repetition:9aca1f5b22f0",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        61,
+        64
+      ],
+      "recoveryMinutes": [
+        6,
+        9
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_TR_HILL_REPS_SHORT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_HILL_TEMPO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_TR_SKILLS_TECH",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "C_TR_SKILLS_TECH@v19:between_repetitions:4094244ad594",
+      "afterKey": "C_TR_SKILLS_TECH@v19:after_each_repetition:1bde086200a1",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        45,
+        46
+      ],
+      "recoveryMinutes": [
+        11,
+        12
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "C_TR_POLES_SESSION",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "A_TR_EASY_TRAIL_STRIDES",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "A_TR_EASY_TRAIL_STRIDES@v19:between_repetitions:1b702b068751",
+      "afterKey": "A_TR_EASY_TRAIL_STRIDES@v19:after_each_repetition:ca9c1ff7d68d",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        51.2,
+        52.2
+      ],
+      "recoveryMinutes": [
+        5,
+        6
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_TR_HILL_SPRINTS_10x10",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_TR_HILL_SPRINTS_10x10@v19:between_repetitions:fa0a51aa8201",
+      "afterKey": "B_TR_HILL_SPRINTS_10x10@v19:after_each_repetition:a70633405e65",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        44.666666666666664,
+        46.666666666666664
+      ],
+      "recoveryMinutes": [
+        18,
+        20
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_TR_HILL_REPS_12x45",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_UPHILL_TEMPO_3x12",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_UPHILL_TEMPO_2x20",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_CRUISE_HILLS_6x4",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_RACEPACE_BLOCKS_3x10",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_VO2_HILLS_5x3",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_TEMPO_VARIANT_1",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_TEMPO_VARIANT_2",
+    "scope": {
+      "status": "prefix_not_controlled_or_not_identified",
+      "betweenKey": "B_TR_TEMPO_VARIANT_2@v19:between_repetitions:c57d74fbcb09",
+      "afterKey": "B_TR_TEMPO_VARIANT_2@v19:after_each_repetition:1584305b0e19",
+      "prescribedPrefixIdentical": false,
+      "totalMinutes": [
+        74,
+        78
+      ],
+      "recoveryMinutes": [
+        8,
+        12
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "C_TR_SKILLS_UPHILL_EFFICIENCY",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_TR_POLES_TECH_60",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_PACK_SHORT_RACEWEEK_1",
+    "scope": {
+      "status": "prefix_not_controlled_or_not_identified",
+      "betweenKey": "B_TR_PACK_SHORT_RACEWEEK_1@v19:between_repetitions:af8df36463b4",
+      "afterKey": "B_TR_PACK_SHORT_RACEWEEK_1@v19:after_each_repetition:362a51891034",
+      "prescribedPrefixIdentical": false,
+      "totalMinutes": [
+        63,
+        66
+      ],
+      "recoveryMinutes": [
+        9,
+        12
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_TR_PACK_LONG_UPHILL_TEMPO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_10K_VO2_1000",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_10K_VO2_600",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_10K_RACE_PACE_BLOCKS",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_10K_RACE_PACE_BLOCKS@v19:between_repetitions:3c8384451f48",
+      "afterKey": "B_10K_RACE_PACE_BLOCKS@v19:after_each_repetition:2dba027d752a",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        61,
+        64
+      ],
+      "recoveryMinutes": [
+        6,
+        9
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_10K_TEMPO_20",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_10K_TEMPO_20@v19:between_repetitions:221f5ada4955",
+      "afterKey": "B_10K_TEMPO_20@v19:after_each_repetition:043814e6ef27",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        53,
+        57
+      ],
+      "recoveryMinutes": [
+        4,
+        8
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "C_10K_STRIDES_SPEED",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "C_10K_STRIDES_SPEED@v19:between_repetitions:7a0ecb43ba7e",
+      "afterKey": "C_10K_STRIDES_SPEED@v19:after_each_repetition:e3962bf257ff",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        46.5,
+        47.5
+      ],
+      "recoveryMinutes": [
+        9,
+        10
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_SEMI_VO2_1200",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SEMI_RACE_PACE_2x15",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_SEMI_RACE_PACE_2x15@v19:between_repetitions:663fd0757164",
+      "afterKey": "B_SEMI_RACE_PACE_2x15@v19:after_each_repetition:8cb260633a90",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        59,
+        63
+      ],
+      "recoveryMinutes": [
+        4,
+        8
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "C_SEMI_HILL_STRENGTH",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR50_HILL_TEMPO_3x8",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR50_RACE_EFFORT_5x5",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_TR50_RACE_EFFORT_5x5@v19:between_repetitions:92f1b994a56f",
+      "afterKey": "B_TR50_RACE_EFFORT_5x5@v19:after_each_repetition:71b9cf44ff43",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        62,
+        65
+      ],
+      "recoveryMinutes": [
+        12,
+        15
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "A_SWIM_TRI_END_2500",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_TRI_CSS_10x200",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_TRI_CSS_5x400",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_TRI_VO2_8x100",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_SWIM_TRI_SIGHTING_DRILLS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_SST_3x20",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_BIKE_SST_3x20@v19:between_repetitions:7685455efa1a",
+      "afterKey": "B_BIKE_SST_3x20@v19:after_each_repetition:89ea9c093ecd",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        95,
+        100
+      ],
+      "recoveryMinutes": [
+        10,
+        15
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "C_BIKE_FORCE_LOW_CAD",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "C_BIKE_FORCE_LOW_CAD@v19:between_repetitions:5e10bf4141c7",
+      "afterKey": "C_BIKE_FORCE_LOW_CAD@v19:after_each_repetition:06666c9dfdbf",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        80,
+        85
+      ],
+      "recoveryMinutes": [
+        25,
+        30
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_SPRINT_NEUROMUSCULAR",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_OVERUNDER_EXTENDED",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_BIKE_OVERUNDER_EXTENDED@v19:between_repetitions:7c04d06c82f2",
+      "afterKey": "B_BIKE_OVERUNDER_EXTENDED@v19:after_each_repetition:b0fcda578650",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        80,
+        85
+      ],
+      "recoveryMinutes": [
+        15,
+        20
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_VO2_5x5",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_THRESHOLD_2x20",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_BIKE_THRESHOLD_2x20@v19:between_repetitions:3cebb98c0592",
+      "afterKey": "B_BIKE_THRESHOLD_2x20@v19:after_each_repetition:5078eb3cbdc5",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        73,
+        81
+      ],
+      "recoveryMinutes": [
+        8,
+        16
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_VMA_2000",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_MARATHON_PACE_3x5K",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_CRUISE_INTERVALS",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_RUN_CRUISE_INTERVALS@v19:between_repetitions:574b9aa7d391",
+      "afterKey": "B_RUN_CRUISE_INTERVALS@v19:after_each_repetition:5e6b6e5520b1",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        59,
+        60
+      ],
+      "recoveryMinutes": [
+        4,
+        5
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_VO2_LONG_4x5",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BRICK_ACTIVATION_PRE_RACE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "D_TAPER_BIKE_OPENER",
+    "scope": {
+      "status": "prefix_not_controlled_or_not_identified",
+      "betweenKey": "D_TAPER_BIKE_OPENER@v19:between_repetitions:a81556bbff2f",
+      "afterKey": "D_TAPER_BIKE_OPENER@v19:after_each_repetition:a229b35abac1",
+      "prescribedPrefixIdentical": false,
+      "totalMinutes": [
+        53,
+        56
+      ],
+      "recoveryMinutes": [
+        9,
+        12
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "D_TAPER_RUN_OPENER",
+    "scope": {
+      "status": "prefix_not_controlled_or_not_identified",
+      "betweenKey": "D_TAPER_RUN_OPENER@v19:between_repetitions:bbb472307598",
+      "afterKey": "D_TAPER_RUN_OPENER@v19:after_each_repetition:707b68399a49",
+      "prescribedPrefixIdentical": false,
+      "totalMinutes": [
+        33,
+        35
+      ],
+      "recoveryMinutes": [
+        6,
+        8
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "D_TAPER_SWIM_OPENER",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "D_TAPER_SHAKEOUT",
+    "scope": {
+      "status": "prefix_not_controlled_or_not_identified",
+      "betweenKey": "D_TAPER_SHAKEOUT@v19:between_repetitions:a88086114675",
+      "afterKey": "D_TAPER_SHAKEOUT@v19:after_each_repetition:6765986364d6",
+      "prescribedPrefixIdentical": false,
+      "totalMinutes": [
+        22.75,
+        23.75
+      ],
+      "recoveryMinutes": [
+        2,
+        3
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "D_PRE_RACE_ACTIVATION_RUN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_RUN_30_30_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_RUN_3MIN_3MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_BIKE_3MIN_3MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_RUN_TLIM_TEST",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_BIKE_TLIM_TEST",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_RUN_CRITICAL_VELOCITY",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_RUN_VO2MAX_LONG_5MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_BIKE_VO2MAX_4MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_RUN_LACTATE_TOLERANCE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_SWIM_30_30",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "BILLAT_SWIM_CSS_BILLAT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "NORWEGIAN_RUN_THRESHOLD_HIGH_5MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "NORWEGIAN_BIKE_THRESHOLD_LOW",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "NORWEGIAN_BIKE_THRESHOLD_HIGH",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "NORWEGIAN_SWIM_THRESHOLD",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "NORWEGIAN_RUN_VMA_POST_BLOCK",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "CANOVA_RUN_PRERACE_PHASE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "SEILER_RUN_4X4MIN_STANDARD",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "SEILER_BIKE_4X4MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "SEILER_RUN_4X8MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "SEILER_BIKE_4X8MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "SEILER_RUN_PROGRESSION_4TO8",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "SEILER_BIKE_PROGRESSION_POLARIZED",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_BIKE_ZONE6_AC_SHORT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_BIKE_ZONE6_AC_LONG",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_BIKE_ZONE7_NEURO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_BIKE_CP_OVER_UNDER",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_BIKE_CP_DEPLETION",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_RUN_CP_INTERVALS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_BIKE_SST_EXTENDED",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "COGGAN_BIKE_SST_EXTENDED@v19:between_repetitions:62dde1bcc372",
+      "afterKey": "COGGAN_BIKE_SST_EXTENDED@v19:after_each_repetition:a5267ef2d487",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        80,
+        85
+      ],
+      "recoveryMinutes": [
+        5,
+        10
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_BIKE_ZONE5_MAP",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "COGGAN_BIKE_FTP_TEST_20MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "SKIBA_BIKE_WPRIME_RECHARGE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "SKIBA_RUN_WPRIME_INTERVALS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "KENYAN_RUN_TEMPO_MARATHON",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "A_RUN_EASY_STRIDES_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_TEMPO_CRUISE_PRO",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "B_RUN_TEMPO_CRUISE_PRO@v19:between_repetitions:2505c5152009",
+      "afterKey": "B_RUN_TEMPO_CRUISE_PRO@v19:after_each_repetition:448bb8391825",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        61,
+        64
+      ],
+      "recoveryMinutes": [
+        6,
+        9
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_TEMPO_2x20_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_VO2_5x3_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_RUN_FARTLEK_60_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_RUN_HILL_TECH_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_SST_3x12_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_SST_2x20_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_SST_OVERUNDER_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_BIKE_VO2_6x3_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "A_SWIM_END_CSS_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_CSS_12x100_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_CSS_8x200_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_UPHILL_TEMPO_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_HILLREPS_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_HILLREPS_8x2_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_HILLREPS_6x3_PRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_SEMI_VMA_MOYENNE_1MIN",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "TPL_SEMI_VMA_MOYENNE_1MIN@v19:between_repetitions:8deb50079461",
+      "afterKey": "TPL_SEMI_VMA_MOYENNE_1MIN@v19:after_each_repetition:5afe7aa40a58",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        59,
+        60
+      ],
+      "recoveryMinutes": [
+        14,
+        15
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_SEMI_VO2_LONGUE_3MIN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_SEMI_FORCE_COTES_SPRINT",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "TPL_SEMI_FORCE_COTES_SPRINT@v19:between_repetitions:f44a30eca164",
+      "afterKey": "TPL_SEMI_FORCE_COTES_SPRINT@v19:after_each_repetition:b13ab44ef209",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        50.5,
+        52.5
+      ],
+      "recoveryMinutes": [
+        18,
+        20
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_SEMI_FORCE_COTES_VOLUME",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "TPL_SEMI_FORCE_COTES_VOLUME@v19:between_repetitions:03ca2f2a6389",
+      "afterKey": "TPL_SEMI_FORCE_COTES_VOLUME@v19:after_each_repetition:17200806846e",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        55.5,
+        57
+      ],
+      "recoveryMinutes": [
+        16.5,
+        18
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_SEMI_SEUIL_INTRO",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "TPL_SEMI_SEUIL_INTRO@v19:between_repetitions:cec9785f3231",
+      "afterKey": "TPL_SEMI_SEUIL_INTRO@v19:after_each_repetition:b0115bce6624",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        60,
+        62
+      ],
+      "recoveryMinutes": [
+        6,
+        8
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_SEMI_SEUIL_EXTENSIF",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "TPL_SEMI_SEUIL_EXTENSIF@v19:between_repetitions:b08fcc07a55b",
+      "afterKey": "TPL_SEMI_SEUIL_EXTENSIF@v19:after_each_repetition:88fc73ce3ef6",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        65,
+        67.5
+      ],
+      "recoveryMinutes": [
+        5,
+        7.5
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_SEMI_SPECIFIQUE_3x3000",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_SEMI_JUGE_DE_PAIX",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_MAR_COTES_LONGUES",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_MAR_SEUIL_INTRO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_MAR_SEUIL_JUGE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_MAR_TEMPO_SWEET_SPOT",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "TPL_MAR_TEMPO_SWEET_SPOT@v19:between_repetitions:955a0d9ca65a",
+      "afterKey": "TPL_MAR_TEMPO_SWEET_SPOT@v19:after_each_repetition:d349cf1a6630",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        64,
+        68
+      ],
+      "recoveryMinutes": [
+        4,
+        8
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_MAR_TEMPO_XXL",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_MAR_SPECIFIQUE_3x3000_MP",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_MAR_SEUIL_OVERSPEED",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_IM_BIKE_PMA_4x4",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_IM_BIKE_FORCE_K3",
+    "scope": {
+      "status": "prefix_not_controlled_or_not_identified",
+      "betweenKey": "TPL_IM_BIKE_FORCE_K3@v19:between_repetitions:5b73793b41e4",
+      "afterKey": "TPL_IM_BIKE_FORCE_K3@v19:after_each_repetition:d26722c67189",
+      "prescribedPrefixIdentical": false,
+      "totalMinutes": [
+        90,
+        90
+      ],
+      "recoveryMinutes": [
+        10,
+        15
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_SWIM_CSS_LONG_REPS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_703_RUN_TEMPO_2x20",
+    "scope": {
+      "status": "prefix_not_controlled_or_not_identified",
+      "betweenKey": "TPL_703_RUN_TEMPO_2x20@v19:between_repetitions:cd900d669d9f",
+      "afterKey": "TPL_703_RUN_TEMPO_2x20@v19:after_each_repetition:fa9ddab6dbb4",
+      "prescribedPrefixIdentical": false,
+      "totalMinutes": [
+        65,
+        65
+      ],
+      "recoveryMinutes": [
+        2,
+        4
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_703_RUN_VMA_1200",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "TPL_IM_RUN_SEUIL_EXTENSIF",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "TPL_IM_RUN_SEUIL_EXTENSIF@v19:between_repetitions:3088c93c1282",
+      "afterKey": "TPL_IM_RUN_SEUIL_EXTENSIF@v19:after_each_repetition:1e936e9a9299",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        73,
+        76
+      ],
+      "recoveryMinutes": [
+        3,
+        6
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "TPL_IM_RUN_TEMPO_SPECIFIQUE",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "TPL_IM_RUN_TEMPO_SPECIFIQUE@v19:between_repetitions:d8d2215abe45",
+      "afterKey": "TPL_IM_RUN_TEMPO_SPECIFIQUE@v19:after_each_repetition:ca8eb405d8d4",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        81,
+        84
+      ],
+      "recoveryMinutes": [
+        6,
+        9
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "ENR_RUN_NORWEGIAN_4x8",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_RUN_NORWEGIAN_5x6",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_RUN_CRUISE_INTERVALS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_RUN_ALLURE_SEMI_BLOCS",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "ENR_RUN_ALLURE_SEMI_BLOCS@v19:between_repetitions:614b1a1abe0b",
+      "afterKey": "ENR_RUN_ALLURE_SEMI_BLOCS@v19:after_each_repetition:68ced7c40b18",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        76,
+        79
+      ],
+      "recoveryMinutes": [
+        6,
+        9
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "ENR_BIKE_NORWEGIAN_5x5",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_BIKE_OVER_UNDER_AVANCE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_BIKE_SWEET_SPOT_PROGRESSIF",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "ENR_BIKE_SWEET_SPOT_PROGRESSIF@v19:between_repetitions:3b943868134c",
+      "afterKey": "ENR_BIKE_SWEET_SPOT_PROGRESSIF@v19:after_each_repetition:4bf3ec840277",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        100,
+        105
+      ],
+      "recoveryMinutes": [
+        10,
+        15
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "ENR_BIKE_TEMPO_CADENCE_BASSE",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "ENR_BIKE_TEMPO_CADENCE_BASSE@v19:between_repetitions:73a25c13aa7b",
+      "afterKey": "ENR_BIKE_TEMPO_CADENCE_BASSE@v19:after_each_repetition:7570c895e72c",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        100,
+        105
+      ],
+      "recoveryMinutes": [
+        10,
+        15
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "ENR_BIKE_GIMENEZ_TEST_FORMAT",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "ENR_BIKE_GIMENEZ_TEST_FORMAT@v19:between_repetitions:3f566c82bdea",
+      "afterKey": "ENR_BIKE_GIMENEZ_TEST_FORMAT@v19:after_each_repetition:7791dc80ed54",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        71,
+        72
+      ],
+      "recoveryMinutes": [
+        5,
+        6
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "ENR_BIKE_RAMP_4x10",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "ENR_BIKE_RAMP_4x10@v19:between_repetitions:8c12fb46f4c1",
+      "afterKey": "ENR_BIKE_RAMP_4x10@v19:after_each_repetition:a696bbffe909",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        82,
+        86
+      ],
+      "recoveryMinutes": [
+        12,
+        16
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "ENR_SWIM_SPEED_ENDURANCE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_SWIM_KICK_SET",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_SWIM_NEGATIVE_SPLIT_800",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_BRICK_DOUBLE_RUN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_TAPER_OPENERS_RUN",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_TAPER_OPENERS_BIKE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "ENR_RUN_10K_REPETITIONS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "V2_BIKE_SFR_CLASSIQUE",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "V2_BIKE_SFR_CLASSIQUE@v19:between_repetitions:4ff6b9ff421c",
+      "afterKey": "V2_BIKE_SFR_CLASSIQUE@v19:after_each_repetition:885d58233b80",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        86,
+        90
+      ],
+      "recoveryMinutes": [
+        16,
+        20
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "V2_BIKE_GRIMPEUR_TEMPO",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "V2_BIKE_GRIMPEUR_TEMPO@v19:between_repetitions:4c25f3875bc0",
+      "afterKey": "V2_BIKE_GRIMPEUR_TEMPO@v19:after_each_repetition:5c6e8b512022",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        88,
+        96
+      ],
+      "recoveryMinutes": [
+        8,
+        16
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "V2_BIKE_TT_POSITION",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "V2_BIKE_SPRINT_NEUROMUSCULAR",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "V2_RUN_5K_ALLURE_SPECIFIQUE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "V2_RUN_SPRINT_PLAT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "V2_BIKE_CADENCE_HAUTE",
+    "scope": {
+      "status": "same_prescribed_prefix_through_last_main_effort",
+      "betweenKey": "V2_BIKE_CADENCE_HAUTE@v19:between_repetitions:e19f7a009c58",
+      "afterKey": "V2_BIKE_CADENCE_HAUTE@v19:after_each_repetition:df77295a7aa0",
+      "prescribedPrefixIdentical": true,
+      "totalMinutes": [
+        70,
+        73
+      ],
+      "recoveryMinutes": [
+        15,
+        18
+      ],
+      "addingFinalRestProvesWithinEffortRepair": false,
+      "inference": "An extra recovery after the last effort does not add recovery between preceding efforts or reduce their written work. It is not a demonstrated repair of failure during those efforts. Recovery after the session and psychological pacing require their own evidence.",
+      "scientificValidation": false,
+      "individualPrescriptionApproved": false
+    }
+  },
+  {
+    "legacyId": "V2_RUN_OVER_UNDER",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "V2_SWIM_RACE_PACE_IM",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "V3_RUN_10K_TEMPO_CRUISE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_VMA_COTE_COURT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_VMA_COTE_LONG",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_SEUIL_MONTEE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_SEUIL_MONTEE_LONG",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_DESCENTE_RAPIDE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_TR_MONTEE_BATONS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "D_TR_TAPER_RAPPEL",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "URBAN_TAPIS_INCLINE_SEUIL",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "URBAN_COTES_URBAINES_VMA",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "URBAN_TAPIS_DESCENTE_NEGATIVE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "URBAN_TAPIS_SEUIL_PROGRESSIF_LONG",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "URBAN_ESCALIERS_BATONS_DOUBLE_POLING",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "URBAN_COTES_SPRINT_NEURO",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "A_SWIM_PULL_ENDURANCE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "A_SWIM_PADDLES_Z2",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_CSS_8x200",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_VO2_100",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_DESCENDING_400",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_SWIM_CATCH_FOCUS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_SWIM_BILATERAL_BREATH",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_SWIM_KICK_SET",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_SWIM_OPEN_WATER_SKILLS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_SWIM_TURNS_STARTS",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_SPRINT_25s",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_LACTATE_50s",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_200_BEST_EFFORT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_NEGATIVE_SPLIT_1K",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "A_SWIM_TEMPO_1500",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "D_SWIM_TECHNIQUE_LIGHT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_FORCE_PADDLES_BAND",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "D_SWIM_TAPER_ACTIVATION",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_CSS_SHORT_REST",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SWIM_THRESHOLD_400_200",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_LCW_BIKE_LONG_RACE_SAT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "S2R_WALK_RUN_1_2",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SPRINT_BIKE_VO2_SHORT",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_SPRINT_RUN_5K_PACE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_SPRINT_SWIM_RACE_PACE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_OLY_BIKE_TEMPO_SUSTAINED",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_OLY_RUN_10K_PACE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "B_OLY_SWIM_RACE_PACE",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_5K_VO2_REPS_6x800",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  },
+  {
+    "legacyId": "C_5K_PACE_LONG_REPS_3x1600",
+    "scope": {
+      "status": "not_demonstrated_without_two_witnesses",
+      "addingFinalRestProvesWithinEffortRepair": false
+    }
+  }
+]

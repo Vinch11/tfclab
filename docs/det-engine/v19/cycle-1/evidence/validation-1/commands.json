@@ -1,0 +1,131 @@
+[
+  {
+    "name": "contracts",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v19-contracts.test.mjs"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 14757,
+    "logBytes": 2377,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "types",
+    "bin": "node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 41882,
+    "logBytes": 0,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "build",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v19-build.mjs",
+      "docs/det-engine/v19/cycle-1/evidence/validation-1/build"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 11252,
+    "logBytes": 2330,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "replay",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v19-build.mjs",
+      "docs/det-engine/v19/cycle-1/evidence/validation-1/replay"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 11072,
+    "logBytes": 2330,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "independent",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v19-independent-audit.py",
+      "docs/det-engine/v19/cycle-1/evidence/validation-1/build",
+      "docs/det-engine/v19/cycle-1/evidence/validation-1/independent.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1054,
+    "logBytes": 645,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "independent_replay",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v19-independent-audit.py",
+      "docs/det-engine/v19/cycle-1/evidence/validation-1/replay",
+      "docs/det-engine/v19/cycle-1/evidence/validation-1/independent-replay.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1026,
+    "logBytes": 645,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "mutations",
+    "bin": "python3",
+    "args": [
+      "scripts/det-engine/v19-independent-audit.test.py"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 16684,
+    "logBytes": 107,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "v18_contract_regression",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v18-contracts.test.mjs"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 9456,
+    "logBytes": 2886,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "v18_selection_regression",
+    "bin": "node",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v18.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 6557,
+    "logBytes": 830,
+    "outputCapturedDirectly": true
+  }
+]

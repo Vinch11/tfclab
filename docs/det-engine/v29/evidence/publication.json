@@ -1,0 +1,18 @@
+{
+  "verifiedAt": "2026-10-29T22:41:50.120591+00:00",
+  "pr": "https://github.com/Vinch11/tfclab/pull/420",
+  "head": "022fb4fd497afa29edb0951a11beb52f23506af2",
+  "title": "DET-ENGINE V29 \u2014 pont temporel exact de prescription \u2014 DRAFT / NO-GO",
+  "draft": true,
+  "merged": false,
+  "bodyExactlyMatchesRequested": true,
+  "previousBodyPreservedInFull": true,
+  "tests": {
+    "new": 44,
+    "nonRegression": 425,
+    "unchangedSkips": 5
+  },
+  "codeDeploymentRequested": false,
+  "mergeRequested": false,
+  "headMeaning": "implementation commit verified before closure-only commit"
+}

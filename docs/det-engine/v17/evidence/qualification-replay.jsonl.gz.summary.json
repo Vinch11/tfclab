@@ -1,0 +1,17 @@
+{
+  "records": 920,
+  "explicitPhysiology": 25,
+  "exactIndividualVerifiedLinks": 0,
+  "scientificallyQualifiedByV17": 0,
+  "reviewPriority": {
+    "3": 869,
+    "1": 19,
+    "2": 30,
+    "0": 2
+  },
+  "globalContextBibliographyRetained": 12,
+  "newFullTextReviews": 0,
+  "documentaryAnnotations": 3,
+  "publicAbstractsRead": 2,
+  "referenceInheritanceFromModule": false
+}

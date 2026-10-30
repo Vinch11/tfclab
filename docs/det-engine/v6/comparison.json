@@ -1,0 +1,13 @@
+{
+  "cohort": "same_76_V5_candidates",
+  "cases": 76,
+  "distinctInputs": 29,
+  "beforeBlockingIncludingSupplementaryV5Continuity": 698,
+  "afterBlockingIncludingSupplementaryV5Continuity": 676,
+  "beforeWarnings": 5383,
+  "afterWarnings": 5381,
+  "improvedVariants": 17,
+  "improvedDistinctInputs": 6,
+  "acceptedRepairs": 22,
+  "allNewCandidatesSeparate": true
+}

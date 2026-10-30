@@ -1,0 +1,22 @@
+{
+  "duplicateStart": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 475,
+    "logBytes": 72,
+    "outputCapturedDirectly": true
+  },
+  "duplicateResumeRejected": {
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 36,
+    "logBytes": 1129,
+    "outputCapturedDirectly": true
+  },
+  "statesUnchanged": true,
+  "deadlineNotRenewed": true,
+  "noThirdCycle": true,
+  "noSecondDiagnosticRepair": true
+}

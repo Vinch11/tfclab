@@ -1,0 +1,139 @@
+{
+  "version": "det-v21b-session-1",
+  "baseline": "36fa6b248f7a3ac98e505ce88705beedd8987d74",
+  "startedAt": "2026-10-29T11:27:23Z",
+  "hardDeadline": "2026-10-29T12:27:23Z",
+  "maxUnits": 10,
+  "status": "completed_no_go",
+  "automaticRestart": false,
+  "budgetRenewal": false,
+  "units": [
+    {
+      "unit": 1,
+      "name": "baseline_remote_and_handoff_verification",
+      "status": "completed",
+      "evidence": [
+        "evidence/verify-handoff.txt",
+        "baseline-files.json"
+      ],
+      "completedAt": "2026-10-29T11:28:23.155676+00:00"
+    },
+    {
+      "unit": 2,
+      "name": "complete_corpus_read_and_free_source_reverification",
+      "status": "completed",
+      "completedAt": "2026-10-29T11:36:38.978643+00:00",
+      "evidence": [
+        "input",
+        "evidence/public-source-retrieval/provenance.json",
+        "evidence/public-source-retrieval/response.json.gz"
+      ]
+    },
+    {
+      "unit": 3,
+      "name": "independent_family_knowledge_import",
+      "status": "completed",
+      "completedAt": "2026-10-29T11:42:26.553120+00:00",
+      "evidence": [
+        "evidence/accepted/FAMILY_KNOWLEDGE_BASE.json"
+      ]
+    },
+    {
+      "unit": 4,
+      "name": "exhaustive_source_preserving_research_routing",
+      "status": "completed",
+      "completedAt": "2026-10-29T11:42:26.553559+00:00",
+      "evidence": [
+        "evidence/accepted/WORKOUT_RESEARCH_ROUTING.jsonl"
+      ]
+    },
+    {
+      "unit": 5,
+      "name": "priority_triage_96_candidate_timelines",
+      "status": "completed",
+      "completedAt": "2026-10-29T11:42:26.554018+00:00",
+      "evidence": [
+        "evidence/accepted/CANDIDATE_96_REVIEW.jsonl"
+      ]
+    },
+    {
+      "unit": 6,
+      "name": "two_targeted_protocol_comparisons_and_draft_packets",
+      "status": "completed",
+      "completedAt": "2026-10-29T11:42:26.554263+00:00",
+      "evidence": [
+        "evidence/accepted/TARGETED_PROTOCOL_COMPARISONS.json",
+        "evidence/accepted/EVIDENCE_ATTACHMENT_CANDIDATES.jsonl"
+      ]
+    },
+    {
+      "unit": 7,
+      "name": "coach_sidebar_and_nolio_fidelity",
+      "status": "completed",
+      "completedAt": "2026-10-29T11:42:26.554703+00:00",
+      "evidence": [
+        "evidence/accepted/coach-renders-with-context.jsonl.gz",
+        "evidence/accepted/nolio-unchanged-fixtures.jsonl.gz"
+      ]
+    },
+    {
+      "unit": 8,
+      "name": "independent_contracts_and_deterministic_replay",
+      "status": "completed",
+      "completedAt": "2026-10-29T11:49:21.952537+00:00",
+      "evidence": [
+        "evidence/contracts-2.txt",
+        "evidence/independent-final.json",
+        "evidence/final-gate-replay-comparison.json"
+      ]
+    },
+    {
+      "unit": 9,
+      "name": "handoff_documents_and_latest_coach_fidelity_correction",
+      "status": "completed",
+      "completedAt": "2026-10-29T11:54:35.226254+00:00",
+      "evidence": [
+        "README.md",
+        "REPRISE.md",
+        "REJECTED_TRIALS.md",
+        "evidence/contracts-coach-final.txt",
+        "evidence/independent-coach-final.json",
+        "evidence/handoff-readiness.json"
+      ]
+    },
+    {
+      "unit": 10,
+      "name": "final_integrity_commits_push_and_draft_pr",
+      "status": "completed",
+      "startedAt": "2026-10-29T11:56:05.032261+00:00",
+      "evidence": [
+        "final-integrity.json",
+        "evidence/independent-coach-final.json",
+        "evidence/whitespace-check.json"
+      ],
+      "completedAt": "2026-10-29T11:58:29.508708+00:00"
+    }
+  ],
+  "acceptedData": "evidence/coach-consolidated",
+  "replayData": "evidence/coach-consolidated-replay",
+  "corrections": [
+    {
+      "cause": "LATEST_COACH_NOTES_MISSING_FROM_FIRST_V21B_VIEW",
+      "action": "Preserve V19 cycle-2 sourceCoach and all 418 candidate views alongside exact V16 text; append scientific context separately.",
+      "rejectedPresentation": "evidence/accepted/coach-renders-with-context.jsonl.gz",
+      "acceptedPresentation": "evidence/coach-consolidated/coach-renders-with-context.jsonl.gz",
+      "historicalFilesChanged": false,
+      "doseChanged": false
+    }
+  ],
+  "finishedAt": "2026-10-29T11:58:29.508708+00:00",
+  "elapsedSeconds": 1867,
+  "closedWithinBudget": true,
+  "sourceCheckpointCommit": "ae7d7cbb8edbd6b7e054d2d77a4417da5bc69e67",
+  "delivery": {
+    "checkpointPushed": true,
+    "closurePushAndPrUpdate": "performed_after_closure_commit_within_same_unit",
+    "automaticRestart": false,
+    "quotaMeterExposed": false
+  }
+}

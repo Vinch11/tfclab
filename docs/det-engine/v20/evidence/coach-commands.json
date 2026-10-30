@@ -1,0 +1,29 @@
+[
+  {
+    "name": "coach",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 1128,
+    "logBytes": 173,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "contexts",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 972,
+    "logBytes": 435,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "contexts_replay",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 778,
+    "logBytes": 245,
+    "outputCapturedDirectly": true
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "ironman": {
+    "explicit_refusal": 59,
+    "no_safe_demonstrated_whole_plan_improvement": 41,
+    "construction_regression_rejected": 12,
+    "new_unvalidated_candidate": 8
+  },
+  "trail": {
+    "construction_regression_rejected": 7,
+    "explicit_refusal": 21,
+    "new_unvalidated_candidate": 3,
+    "no_safe_demonstrated_whole_plan_improvement": 3,
+    "whole_plan_improvement_accepted": 2
+  }
+}

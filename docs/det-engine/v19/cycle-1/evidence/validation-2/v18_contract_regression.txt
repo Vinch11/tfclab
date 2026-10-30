@@ -1,0 +1,40 @@
+✔ all 920 IDs and full source objects retained, no scientific promotion (1201.192337ms)
+✔ 67 complete V17 generic recipes retain complete status and same witness (2.662471ms)
+✔ lexer boundaries prevent zone descriptions becoming hours (0.170207ms)
+✔ composite hours and quoted seconds remain distinct and source-literal (0.146331ms)
+✔ explicit closed cycles and nested brackets have independent arithmetical expectations (0.294174ms)
+✔ a written between-series rest gives n-1 occurrences only (0.301946ms)
+✔ no final rest invented when r= alone is written (0.16514ms)
+✔ explicit between-repetition recovery does not include an extra final rest (0.177378ms)
+✔ indeterminate final recovery and source alternatives are blocked (0.398862ms)
+✔ explicit finish is inside total, not added to it (1.391762ms)
+✔ conditional or unspecified embedded work remains unresolved (0.267414ms)
+✔ a contradictory block sum is never padded to a label (0.203468ms)
+✔ distance timing not inferred from title, window, or CSS for another stroke (0.374135ms)
+✔ explicit matching stroke scenario is arithmetic, not capacity evidence (0.092109ms)
+✔ 119 swim models preserve all original parts and do not default to crawl (0.362708ms)
+✔ CSS-offset seconds are a target parameter, not swim elapsed duration (0.546084ms)
+✔ 127 strength models retain exercise data, unknown load/time, and no HR equivalence (0.715711ms)
+✔ time-based sets cannot become a fabricated repetition count (0.803734ms)
+✔ tempo, load, contractions and exercise headings are extracted from actual source (0.113311ms)
+✔ all 55 bricks and 32 mixed keep multimodal models and original order (90.047696ms)
+✔ missing transition is null, upper-bound transition has no zero lower bound (0.237999ms)
+✔ mixed recovery/mental exercise is not silently called a brick (0.114644ms)
+✔ all 2425 goal texts and source IDs survive variant analysis (19.35547ms)
+✔ parameter overlays never remove a warmup, cooldown, rest or discipline (10.14455ms)
+✔ all 920 coach outputs preserve all source instructions and restrictions (1566.796583ms)
+✔ local Nolio fixture refusals: v2, unknown versions, real mode, missing anchors, tamper (2.915973ms)
+✔ whole-library local output contracts retain timing and no real requests (4381.825229ms)
+✔ compiler, execution models and variants replay deterministically (845.548204ms)
+✔ explicit recovery including last occurrence is distinct from between-only (0.303108ms)
+✔ distance/time alternatives remain typed and cannot acquire a chosen duration (0.135274ms)
+✔ explicit named peripheral time can be read without turning it into running load (0.236027ms)
+✔ known source contradictions cannot enter even the local text fixture transport (3.626486ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8152.567459

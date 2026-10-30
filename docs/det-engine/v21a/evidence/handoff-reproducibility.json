@@ -1,0 +1,8 @@
+{
+  "pass": true,
+  "files": {
+    "summary.json": true,
+    "EDITORIAL_CANDIDATE_INDEX.jsonl": true,
+    "FAMILY_USAGE_BY_OBJECTIVE.csv": true
+  }
+}

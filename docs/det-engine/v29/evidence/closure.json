@@ -1,0 +1,16 @@
+{
+  "closedAt": "2026-10-29T22:41:50.120591+00:00",
+  "elapsedSeconds": 2982.120591,
+  "deadline": "2026-10-29T22:51:50+00:00",
+  "units": 10,
+  "validationAttempts": 3,
+  "implementationCommit": "022fb4fd497afa29edb0951a11beb52f23506af2",
+  "noAutoRestart": true,
+  "closedControllerRefused": true,
+  "noExtraValidationCreated": true,
+  "draftVerified": true,
+  "merged": false,
+  "individualApprovals": 0,
+  "realNolioCalls": 0,
+  "creditQuotaAccessible": false
+}

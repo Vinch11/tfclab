@@ -1,0 +1,391 @@
+{
+  "version": "det-v4-trail-matrix-3",
+  "cohort": "new_explicit_synthetic_only",
+  "cases": 36,
+  "built": 12,
+  "technicalValid": 12,
+  "sportConformant": 0,
+  "byModel": [
+    {
+      "model": "separated_exposure",
+      "cases": 12,
+      "built": 4
+    },
+    {
+      "model": "specific_back_to_back",
+      "cases": 12,
+      "built": 0
+    },
+    {
+      "model": "conservative_taper",
+      "cases": 12,
+      "built": 8
+    }
+  ],
+  "byObjective": [
+    {
+      "objective": "TrailShort",
+      "cases": 12,
+      "built": 6
+    },
+    {
+      "objective": "TrailMountain",
+      "cases": 12,
+      "built": 6
+    },
+    {
+      "objective": "TrailUltra",
+      "cases": 12,
+      "built": 0
+    }
+  ],
+  "reasons": {
+    "synthetic_coach_has_not_authorized_back_to_back": 8,
+    "trail_role_has_no_catalogue_dose_within_candidate_contract": 16
+  },
+  "exactReplay": 36,
+  "paidApiCalls": 0,
+  "retention": {
+    "previousBuilt": 6,
+    "retainedBuilt": 12,
+    "acceptedWholePlanCorrections": 0,
+    "decisions": [
+      {
+        "fixtureId": "synthetic-v4:TrailShort:untrained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "new_unvalidated_candidate",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:untrained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:untrained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "new_unvalidated_candidate",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:light",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "new_unvalidated_candidate",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:light",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:light",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "new_unvalidated_candidate",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:trained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:trained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:trained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "new_unvalidated_candidate",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "new_unvalidated_candidate",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:untrained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "no_safe_demonstrated_whole_plan_improvement",
+        "quality": {
+          "policy": "det-v3-quality-1",
+          "accepted": true,
+          "reason": "v3_quality_guard_passed",
+          "addedWarnings": [],
+          "worsenedProgression": [],
+          "worsenedWarningMagnitude": []
+        },
+        "global": {
+          "accepted": true,
+          "increases": [],
+          "firstWeekIncrease": false
+        },
+        "noNewCritical": true,
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:untrained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:untrained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "no_safe_demonstrated_whole_plan_improvement",
+        "quality": {
+          "policy": "det-v3-quality-1",
+          "accepted": true,
+          "reason": "v3_quality_guard_passed",
+          "addedWarnings": [],
+          "worsenedProgression": [],
+          "worsenedWarningMagnitude": []
+        },
+        "global": {
+          "accepted": true,
+          "increases": [],
+          "firstWeekIncrease": false
+        },
+        "noNewCritical": true,
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:light",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "no_safe_demonstrated_whole_plan_improvement",
+        "quality": {
+          "policy": "det-v3-quality-1",
+          "accepted": true,
+          "reason": "v3_quality_guard_passed",
+          "addedWarnings": [],
+          "worsenedProgression": [],
+          "worsenedWarningMagnitude": []
+        },
+        "global": {
+          "accepted": true,
+          "increases": [],
+          "firstWeekIncrease": false
+        },
+        "noNewCritical": true,
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:light",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:light",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "no_safe_demonstrated_whole_plan_improvement",
+        "quality": {
+          "policy": "det-v3-quality-1",
+          "accepted": true,
+          "reason": "v3_quality_guard_passed",
+          "addedWarnings": [],
+          "worsenedProgression": [],
+          "worsenedWarningMagnitude": []
+        },
+        "global": {
+          "accepted": true,
+          "increases": [],
+          "firstWeekIncrease": false
+        },
+        "noNewCritical": true,
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:trained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:trained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:trained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "no_safe_demonstrated_whole_plan_improvement",
+        "quality": {
+          "policy": "det-v3-quality-1",
+          "accepted": true,
+          "reason": "v3_quality_guard_passed",
+          "addedWarnings": [],
+          "worsenedProgression": [],
+          "worsenedWarningMagnitude": []
+        },
+        "global": {
+          "accepted": true,
+          "increases": [],
+          "firstWeekIncrease": false
+        },
+        "noNewCritical": true,
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "no_safe_demonstrated_whole_plan_improvement",
+        "quality": {
+          "policy": "det-v3-quality-1",
+          "accepted": true,
+          "reason": "v3_quality_guard_passed",
+          "addedWarnings": [],
+          "worsenedProgression": [],
+          "worsenedWarningMagnitude": []
+        },
+        "global": {
+          "accepted": true,
+          "increases": [],
+          "firstWeekIncrease": false
+        },
+        "noNewCritical": true,
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:untrained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:untrained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:untrained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:light",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:light",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:light",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:trained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:trained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:trained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+        "model": "separated_exposure",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+        "model": "specific_back_to_back",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      },
+      {
+        "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+        "model": "conservative_taper",
+        "acceptedCorrection": false,
+        "decision": "explicit_refusal",
+        "requiresHumanReview": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "policy": {
+    "maxIterations": 3,
+    "maxDurationMs": 1800000,
+    "maxWorkers": 2,
+    "maxHeapMb": 2048,
+    "apiBudgetUsd": 0,
+    "automaticMerge": false,
+    "deployment": false,
+    "paidModels": false,
+    "patchApplication": false
+  },
+  "version": {
+    "commit": "3a2ba77a71b8177dc1ed841c488cd79b55f3eeb6",
+    "branch": "experiment/det-engine",
+    "sourceHash": "b6b3fcbc4d1166da28a6c38b570754594b38fd5ccba537eb89f7e68d9ad19947",
+    "trackedDirty": false,
+    "untrackedFiles": [
+      "docs/det-engine/ARCHITECTURE.md",
+      "docs/det-engine/README.md",
+      "docs/det-engine/evidence/matrix.json",
+      "docs/det-engine/evidence/summary.json",
+      "experimental/det-engine/engine.test.ts",
+      "experimental/det-engine/engine.ts",
+      "experimental/det-engine/tsconfig.json",
+      "experimental/det-engine/vitest.config.ts",
+      "scripts/det-engine/gates.mjs",
+      "scripts/det-engine/gates.test.mjs",
+      "scripts/det-engine/loop.mjs"
+    ],
+    "testHash": "185f85f1cc0f8d7467cf30b6d24240422fc0b5a29caf5311a35e47eca1277468"
+  }
+}

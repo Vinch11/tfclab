@@ -1,0 +1,19 @@
+{
+  "version": "det-v11-1",
+  "baseline": "8c96fb3f81d0aa3d6955081268abc68f3738c912",
+  "branch": "experiment/det-engine",
+  "node": "v24.19.0",
+  "vitest": "4.1.12",
+  "typescript": "5.9.3",
+  "python": "3.12.14",
+  "data": "only inherited synthetic V10 profiles and explicitly labelled synthetic responses",
+  "scientificSources": "V8 verified matrix and documented Lorang shownotes; no new efficacy threshold",
+  "historical600Regenerated": false,
+  "paidApiCalls": 0,
+  "productionChanges": false,
+  "expertReviewed": false,
+  "scenarioClock": "2026-10-26T12:00:00Z",
+  "executionState": "state.json",
+  "sourceManifest": "source-checksums.json",
+  "preservedReferences": "baseline-files.json"
+}

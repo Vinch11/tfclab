@@ -1,0 +1,24 @@
+import {it,expect,vi,afterEach} from 'vitest';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';import {gunzipSync} from 'node:zlib';
+import {planningCases,supplementaryPlanningCases,preparePlanningCaseContext} from '@/qa/sports-plan-lab/planningMatrix';
+import {constructDeterministicPlan,type EngineResult} from './engine';
+import {contextualizeResult} from './v2-engine';
+const historical=JSON.parse(gunzipSync(readFileSync('docs/det-engine/evidence-final/matrix.json.gz')).toString()) as Array<EngineResult&{id:string}>;
+afterEach(()=>{vi.restoreAllMocks();vi.useRealTimers();});
+it.skipIf(!process.env.TFCL_DET_VARIANTS_OUT)('replays real empty-domain failures with only existing executable variants',()=>{
+ vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
+ const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('NETWORK_FORBIDDEN');});
+ vi.spyOn(console,'log').mockImplementation(()=>{});vi.spyOn(console,'warn').mockImplementation(()=>{});
+ const rows=[];
+ for(const spec of [...planningCases(),...supplementaryPlanningCases()]){
+  const raw=historical.find(r=>r.id===spec.id)!;if(!raw.reason?.startsWith('empty_catalogue_domain'))continue;
+  const {prepared}=preparePlanningCaseContext(spec);
+  const attempted=constructDeterministicPlan(prepared.athleteData,prepared.planConfig,{maxNodes:5000,maxMilliseconds:30000},{executableVariants:true});
+  const result=contextualizeResult(attempted,prepared.athleteData,prepared.planConfig);
+  rows.push({id:spec.id,objective:spec.objective,ambition:spec.ambition,level:spec.level,format:spec.format??'continuous',beforeReason:raw.reason,...result});
+  if(result.candidate)expect(result.candidate.weeks).toHaveLength(prepared.planConfig.weeksAvailable!);
+ }
+ expect(rows).toHaveLength(92);expect(fetch).not.toHaveBeenCalled();
+ mkdirSync(process.env.TFCL_DET_VARIANTS_OUT!,{recursive:true});
+ writeFileSync(`${process.env.TFCL_DET_VARIANTS_OUT}/attempts.json`,JSON.stringify(rows));
+},900000);

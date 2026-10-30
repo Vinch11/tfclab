@@ -1,0 +1,88 @@
+{
+  "version": "det-v26-preregistered-1",
+  "syntheticOnly": true,
+  "clock": "2026-10-29T12:00:00Z",
+  "baseline": "013489126054a94d4c5395e0b5e49d457d25ab47",
+  "selectionPolicy": "explicit source physiology, matching sport; no title search; partial-order tied choices",
+  "sensitivity": [
+    {
+      "id": "A_original",
+      "seed": "A_aerobic",
+      "delta": {}
+    },
+    {
+      "id": "B_original",
+      "seed": "B_sustainability",
+      "delta": {}
+    },
+    {
+      "id": "C_missing",
+      "seed": "C_uncertain",
+      "delta": {}
+    },
+    {
+      "id": "B_limiter_changed",
+      "seed": "B_changed_relevant_limiter",
+      "delta": {}
+    },
+    {
+      "id": "B_availability_reduced",
+      "seed": "B_sustainability",
+      "delta": {
+        "weeklyHours": 7,
+        "availableDays": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "id": "B_adverse",
+      "seed": "B_adverse_recovery",
+      "delta": {}
+    },
+    {
+      "id": "B_missing_anchor",
+      "seed": "B_missing_bike_reference",
+      "delta": {}
+    },
+    {
+      "id": "B_insufficient_capacity",
+      "seed": "B_sustainability",
+      "delta": {
+        "longBikeCapacity": 100
+      }
+    },
+    {
+      "id": "B_missing_science",
+      "seed": "B_sustainability",
+      "delta": {
+        "removeScientificContext": "aerobic_endurance"
+      }
+    },
+    {
+      "id": "B_favorable_insufficient",
+      "seed": "B_sustainability",
+      "delta": {
+        "recoveryReport": {
+          "synthetic": true,
+          "recovered": true,
+          "response": "as_expected",
+          "capacityGainEvidence": null,
+          "sourceRecipeTolerance": null
+        }
+      }
+    }
+  ],
+  "transferCases": [
+    "typed_verified",
+    "uncertain",
+    "absent",
+    "unknown_discipline",
+    "historical_unattested"
+  ],
+  "noFutureCapacityGain": true
+}

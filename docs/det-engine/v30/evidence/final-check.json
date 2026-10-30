@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "baselineFilesUnchanged": 5609,
+  "coachSessions": 30,
+  "coachOriginalInstructionsPreserved": true,
+  "rawIntensityContractsUnchanged": 30,
+  "boundedUnits": 10,
+  "runtimeEvidence": "validation-2",
+  "individualApprovals": 0,
+  "newOriginalCalendarInsertions": 0
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "pmid": "29663142",
+    "title": "Do We Need a Cool-Down After Exercise? A Narrative Review of the Psychophysiological Effects and the Effects on Performance, Injuries and the Long-Term Adaptive Response.",
+    "authors": "Van Hooren B, Peake JM.",
+    "year": "2018",
+    "doi": "10.1007/s40279-018-0916-2",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/29663142/",
+    "retrievalURL": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:29663142%20AND%20SRC:MED&format=json&resultType=core",
+    "responseSha256": "464f679be005a84d2720daedcc5853c155ddf1c904b5dbed74bb1603f8bc3a4a",
+    "abstractRead": true,
+    "fullTextRead": false,
+    "excerpt": "It is widely believed that an active cool-down is more effective for promoting post-exercise recovery than a passive cool-down involving no activity. However, research on this topic has never been synthesized and it therefore remains",
+    "fullAbstractStoredInRepository": false
+  },
+  {
+    "pmid": "33886100",
+    "title": "The Importance of 'Durability' in the Physiological Profiling of Endurance Athletes.",
+    "authors": "Maunder E, Seiler S, Mildenhall MJ, Kilding AE, Plews DJ.",
+    "year": "2021",
+    "doi": "10.1007/s40279-021-01459-0",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/33886100/",
+    "retrievalURL": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:33886100%20AND%20SRC:MED&format=json&resultType=core",
+    "responseSha256": "7b41f4872e38ce2425ba1d5cb3f2080a2b5cdadd3bb8347b561967eb3f606a2c",
+    "abstractRead": true,
+    "fullTextRead": false,
+    "excerpt": "Profiling physiological attributes is an important role for applied exercise physiologists working with endurance athletes. These attributes are typically assessed in well-rested athletes. However, as has been demonstrated in the literature and supported by field",
+    "fullAbstractStoredInRepository": false
+  }
+]

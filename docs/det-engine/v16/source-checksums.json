@@ -1,0 +1,20 @@
+{
+  "experimental/det-engine/v16-canonical.mjs": "366d112b39950b5ac8ba80bce20f366ee21c5bc11ba868477e8172515a1a21d7",
+  "experimental/det-engine/v16-coach.mjs": "5686a99288673a5c7b02dd7ba09ff8a0b3ac3083a7745b33e9ee007d2a4688c3",
+  "experimental/det-engine/v16-intensity.mjs": "6169b49b702599d4356a45c68b1385978e5606d99ee2ba5673737432d55a4ab8",
+  "experimental/det-engine/v16-nolio.mjs": "638504542cb7b68a0a305808a26df3ada1a57fb431cd1cf2867e93208620b4e5",
+  "experimental/det-engine/v16-offline-setup.ts": "fceb86bd1bc451d16f8c907ac2af9904fa662752232ae78c6479dbdd276979ac",
+  "experimental/det-engine/v16-selection.ts": "8bad4ad6cfa13238604c4230208542100245188d27bd9fbdc2743f8bb41abba2",
+  "experimental/det-engine/v16-study.test.ts": "5cc66140f658f97b03ce843290c43e63428d2daf9c78b1ff2e62e4b5bfe5584f",
+  "experimental/det-engine/vitest.v16-historical.config.ts": "85dd00ff372ed26ee93b2d9a02cefd3d5788ca0bcc455b4d5ba1bb10a3899a6e",
+  "experimental/det-engine/vitest.v16-regression.config.ts": "6d5f9219d09d8bc800357038925a0bd05aef572d53a0d07e2d7df6e5a6105a86",
+  "experimental/det-engine/vitest.v16.config.ts": "904ca3925b536ee16cebef7630c9344356fdbc1fdb94c3fac53d60e371015d37",
+  "scripts/det-engine/v16-contracts.test.mjs": "45696fbbd2ec56e3a93bf11209d835cea6576cae5aed4678bcf121888ccb536e",
+  "scripts/det-engine/v16-extract.mjs": "f8fa41aea88661dbf2ef7b48901dd53b83fe2b4ad79d3fc83d6af8be494acbb4",
+  "scripts/det-engine/v16-migrate.mjs": "d06f99caaa16f8b2a7e275dde32ccc7ed495ce17ae73566e711f0ebd45799b4e",
+  "scripts/det-engine/v16-nolio-source.mjs": "ab2a13123fb290302fd3d2d22f0ef7b04f1b65c011efc1ceba9ecf0ea9517908",
+  "scripts/det-engine/v16-report.py": "acc3e9d6b5e48b16b6e04be9e730316fdbcd3f7b6a576624ddb924d84c8f677c",
+  "scripts/det-engine/v16-run.mjs": "b61df9ff06c3b9a03df1df49766d92ac5cf46bb2c5828aa051ecbfcf0f44e7a1",
+  "scripts/det-engine/v16-schema.mjs": "275c7a8f629c81b3bc3dc6ca0279a67ff8f7d9162a7eb3633b956dabafcc280c",
+  "scripts/det-engine/v16-verify.py": "f11e7ca124134ac33249d33c1b83991f31c6f640cd5062c74145ac6be91e3d08"
+}

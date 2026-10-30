@@ -1,0 +1,93 @@
+{
+  "schema": "det-v30-registration-1",
+  "registeredAt": "2026-10-30T06:11:53.667593+00:00",
+  "subject": "B_sustainability",
+  "initialInputUnchanged": true,
+  "sourceArtifacts": {
+    "originals": {
+      "path": "docs/det-engine/v28/evidence/validation-3/build/originals.json.gz",
+      "sha256": "128b64a51393defc475eae194168608c94a22ca9097ea3a7a5b1e4057de558b5"
+    },
+    "v29Scenarios": {
+      "path": "docs/det-engine/v29/evidence/validation-3/build/scenarios.json.gz",
+      "sha256": "9cda6236ef71c409043122179abfa901485712537429990bb2e2dbf8a3d0c12d"
+    },
+    "catalogue": {
+      "path": "docs/det-engine/v19/cycle-1/evidence/validation-2/build/catalogue.jsonl.gz",
+      "sha256": "2f7699b66ce381a44092b611aca0bd344e27b5951d6a98b44828d81e5d05baef"
+    },
+    "v26References": {
+      "path": "docs/det-engine/v26/evidence/validation-safety/build/originals.json.gz",
+      "sha256": "dfbf54bde40fc01d722b132e2c928100d97888a786a18ad1f501108fa1eeac9a"
+    }
+  },
+  "policies": [
+    {
+      "id": "A",
+      "baseRecipe": "mandatory_ironman_variant",
+      "coachAuthorized": false,
+      "historicalReading": true
+    },
+    {
+      "id": "B",
+      "sourceId": "SEILER_BIKE_Z1_LONG",
+      "baseRecipe": "generic_written_recipe_only",
+      "specificVariantProposedForPhases": [
+        "build",
+        "peak"
+      ],
+      "coachAuthorized": false,
+      "requiresSeparateSportingReview": true
+    }
+  ],
+  "reservationModels": [
+    {
+      "id": "historical_windows",
+      "changes": []
+    },
+    {
+      "id": "recipe_review_envelopes",
+      "loadWeekChanges": [
+        {
+          "sourceId": "A_STR_STABILITY_CORE",
+          "reservedMinutes": 35,
+          "reason": "literal source duration upper bound; execution unknown without individual parameters"
+        },
+        {
+          "sourceId": "C_BIKE_AERO_POSITION_DRILLS",
+          "reservedMinutes": 90,
+          "reason": "upper of written6x10/rest5 interpretations; final rest NOT chosen"
+        }
+      ],
+      "changesWeek4": false,
+      "newAthleteParameters": false,
+      "nativeVolumeBudgetUnchanged": true,
+      "declaredAvailabilityUnchanged": true
+    }
+  ],
+  "alternativeModels": [
+    "same_sport_and_category_same_duration",
+    "explicit_posture_alternative_with_larger_continuous_bouts",
+    "cadence_is_not_posture_no_automatic_role_equivalence"
+  ],
+  "negativeCases": [
+    "unregistered_policy",
+    "phase_not_base",
+    "source_or_profile_changed",
+    "75_min_generic_bike",
+    "210_min_generic_recipe",
+    "capacity_unknown",
+    "capacity_insufficient",
+    "fan_unknown",
+    "fan_absent",
+    "physiology_reference_absent",
+    "adverse_recovery",
+    "pain",
+    "fictional_swim_paces_from_V28",
+    "source_removed",
+    "reservation_over_budget",
+    "five_minute_universal_waiver",
+    "goal_variant_not_auto_approved",
+    "block_refusal_not_accepted"
+  ]
+}

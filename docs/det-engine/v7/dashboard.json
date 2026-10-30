@@ -1,0 +1,321 @@
+{
+  "status": "NO-GO",
+  "reference": {
+    "version": "det-v4-reference-1",
+    "cases": 600,
+    "built": 167,
+    "withoutBlocking": 11,
+    "technicalValid": 167,
+    "existingCriticalRegressions": 0,
+    "existingWarningRegressions": 0,
+    "unchangedReferencePayload": true,
+    "replay": 600,
+    "classifications": {
+      "remaining_fixed_layout_or_solver_conflict": 42,
+      "candidate_contract_constraint_conflict": 60,
+      "assembled_with_executed_controls": 160,
+      "current_catalogue_domain_conflict": 72,
+      "existing_prevalidation_conflict": 50,
+      "inconclusive_search": 16,
+      "unsupported_static_adaptation": 40,
+      "insufficient_data": 160
+    },
+    "globalAuditContractFailures": 0,
+    "newInstrumentation": "V4 global observations do not rewrite reference issue severity or acceptance",
+    "promotedCandidateContracts": 0
+  },
+  "cohorts": [
+    {
+      "cohort": "V5_same76",
+      "cases": 76,
+      "distinctInputs": 29,
+      "technicalValid": 76,
+      "historicalNoBlocking": 0,
+      "historicalBlocking": 698,
+      "historicalWarnings": 5383,
+      "models": [
+        {
+          "model": "historical_AB_every_base",
+          "cases": 15,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "foundation_roles_then_quality",
+          "cases": 15,
+          "candidateNoExecutedBlocker": 4,
+          "conditional": 4,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "quality_only_when_source_supported",
+          "cases": 15,
+          "candidateNoExecutedBlocker": 4,
+          "conditional": 4,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "long_and_training_all_weeks",
+          "cases": 61,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "week_specific_training_and_competition",
+          "cases": 61,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        }
+      ],
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "V6_same76",
+      "cases": 76,
+      "distinctInputs": 29,
+      "technicalValid": 76,
+      "historicalNoBlocking": 0,
+      "historicalBlocking": 676,
+      "historicalWarnings": 5381,
+      "models": [
+        {
+          "model": "historical_AB_every_base",
+          "cases": 15,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "foundation_roles_then_quality",
+          "cases": 15,
+          "candidateNoExecutedBlocker": 4,
+          "conditional": 4,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "quality_only_when_source_supported",
+          "cases": 15,
+          "candidateNoExecutedBlocker": 4,
+          "conditional": 4,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "long_and_training_all_weeks",
+          "cases": 61,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "week_specific_training_and_competition",
+          "cases": 61,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        }
+      ],
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "V6_new_ultra_only",
+      "cases": 2,
+      "distinctInputs": 2,
+      "technicalValid": 2,
+      "historicalNoBlocking": 0,
+      "historicalBlocking": 8,
+      "historicalWarnings": 33,
+      "models": [
+        {
+          "model": "historical_AB_every_base",
+          "cases": 2,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "foundation_roles_then_quality",
+          "cases": 2,
+          "candidateNoExecutedBlocker": 2,
+          "conditional": 2,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "quality_only_when_source_supported",
+          "cases": 2,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        }
+      ],
+      "expertReviewed": 0
+    },
+    {
+      "cohort": "V6_strict_IM_models",
+      "cases": 16,
+      "distinctInputs": 8,
+      "technicalValid": 16,
+      "historicalNoBlocking": 0,
+      "historicalBlocking": 121,
+      "historicalWarnings": 1302,
+      "models": [
+        {
+          "model": "long_and_training_all_weeks",
+          "cases": 16,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        },
+        {
+          "model": "week_specific_training_and_competition",
+          "cases": 16,
+          "candidateNoExecutedBlocker": 0,
+          "conditional": 0,
+          "fullDefinedPass": 0
+        }
+      ],
+      "expertReviewed": 0
+    }
+  ],
+  "reviews": [
+    {
+      "file": "ironman",
+      "id": "IM:trained:finisher:known_synthetic",
+      "weeks": 16,
+      "expertReviewed": false,
+      "candidateStates": [
+        {
+          "model": {
+            "AB": "historical_AB_every_base",
+            "IM": "long_and_training_all_weeks"
+          },
+          "status": "fails",
+          "blocking": 12,
+          "unknowns": 9
+        },
+        {
+          "model": {
+            "AB": "historical_AB_every_base",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "fails",
+          "blocking": 12,
+          "unknowns": 9
+        }
+      ]
+    },
+    {
+      "file": "trail-court",
+      "id": "synthetic-v4:TrailShort:highly_trained",
+      "weeks": 12,
+      "expertReviewed": false,
+      "candidateStates": [
+        {
+          "model": {
+            "AB": "historical_AB_every_base",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "fails",
+          "blocking": 3,
+          "unknowns": 16
+        },
+        {
+          "model": {
+            "AB": "foundation_roles_then_quality",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "conditional_no_executed_blocker",
+          "blocking": 0,
+          "unknowns": 16
+        },
+        {
+          "model": {
+            "AB": "quality_only_when_source_supported",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "conditional_no_executed_blocker",
+          "blocking": 0,
+          "unknowns": 19
+        }
+      ]
+    },
+    {
+      "file": "trail-montagne",
+      "id": "synthetic-v4:TrailMountain:highly_trained",
+      "weeks": 16,
+      "expertReviewed": false,
+      "candidateStates": [
+        {
+          "model": {
+            "AB": "historical_AB_every_base",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "fails",
+          "blocking": 3,
+          "unknowns": 20
+        },
+        {
+          "model": {
+            "AB": "foundation_roles_then_quality",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "conditional_no_executed_blocker",
+          "blocking": 0,
+          "unknowns": 20
+        },
+        {
+          "model": {
+            "AB": "quality_only_when_source_supported",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "conditional_no_executed_blocker",
+          "blocking": 0,
+          "unknowns": 23
+        }
+      ]
+    },
+    {
+      "file": "ultra",
+      "id": "synthetic-v4:TrailUltra:trained",
+      "weeks": 20,
+      "expertReviewed": false,
+      "candidateStates": [
+        {
+          "model": {
+            "AB": "historical_AB_every_base",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "fails",
+          "blocking": 3,
+          "unknowns": 24
+        },
+        {
+          "model": {
+            "AB": "foundation_roles_then_quality",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "conditional_no_executed_blocker",
+          "blocking": 0,
+          "unknowns": 24
+        },
+        {
+          "model": {
+            "AB": "quality_only_when_source_supported",
+            "IM": "week_specific_training_and_competition"
+          },
+          "status": "fails",
+          "blocking": 3,
+          "unknowns": 24
+        }
+      ]
+    }
+  ],
+  "expertReviewed": 0,
+  "applicationCoachPreviewFamilies": [],
+  "offlineOnly": true,
+  "validationSummary": "validation-summary.json",
+  "coverage": "coverage.json",
+  "historicalCandidateReadingsIndependent": true
+}

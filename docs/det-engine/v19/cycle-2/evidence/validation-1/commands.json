@@ -1,0 +1,31 @@
+[
+  {
+    "name": "contracts",
+    "bin": "node",
+    "args": [
+      "scripts/det-engine/v19-modal.test.mjs"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 672,
+    "logBytes": 1263,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "types",
+    "bin": "node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "experimental/det-engine/tsconfig.json"
+    ],
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 42006,
+    "logBytes": 1793,
+    "outputCapturedDirectly": true
+  }
+]

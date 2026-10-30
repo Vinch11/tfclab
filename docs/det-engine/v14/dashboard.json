@@ -1,0 +1,162 @@
+{
+  "version": "det-v14-1",
+  "recommendation": "NO-GO",
+  "distinctSyntheticProfiles": 2,
+  "modelsEach": 3,
+  "prospectiveCalendars": 6,
+  "completeProspectiveCalendars": 6,
+  "currentlyAdmissibleCompletePlans": 0,
+  "operationallyApprovedPlans": 0,
+  "humanExpertReviewed": 0,
+  "sourceAuditCount": 19,
+  "rows": [
+    {
+      "profile": "IM_aerobic_history",
+      "model": "native_floor_conditional",
+      "complete": true,
+      "currentlyAdmissibleSlots": 1,
+      "conditionalSlots": 104,
+      "notAdmissible": 0,
+      "historicalBlocking": 2,
+      "historicalWarnings": 129,
+      "nativeFloorShortfalls": 0,
+      "technicalProjectionValid": false
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "hold_current_envelope",
+      "complete": true,
+      "currentlyAdmissibleSlots": 1,
+      "conditionalSlots": 104,
+      "notAdmissible": 0,
+      "historicalBlocking": 8,
+      "historicalWarnings": 129,
+      "nativeFloorShortfalls": 6,
+      "technicalProjectionValid": false
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "blockwise_reassessment",
+      "complete": true,
+      "currentlyAdmissibleSlots": 1,
+      "conditionalSlots": 104,
+      "notAdmissible": 0,
+      "historicalBlocking": 2,
+      "historicalWarnings": 130,
+      "nativeFloorShortfalls": 0,
+      "technicalProjectionValid": false
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "native_floor_conditional",
+      "complete": true,
+      "currentlyAdmissibleSlots": 1,
+      "conditionalSlots": 104,
+      "notAdmissible": 0,
+      "historicalBlocking": 2,
+      "historicalWarnings": 129,
+      "nativeFloorShortfalls": 0,
+      "technicalProjectionValid": false
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "hold_current_envelope",
+      "complete": true,
+      "currentlyAdmissibleSlots": 1,
+      "conditionalSlots": 104,
+      "notAdmissible": 0,
+      "historicalBlocking": 7,
+      "historicalWarnings": 129,
+      "nativeFloorShortfalls": 5,
+      "technicalProjectionValid": false
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "blockwise_reassessment",
+      "complete": true,
+      "currentlyAdmissibleSlots": 1,
+      "conditionalSlots": 104,
+      "notAdmissible": 0,
+      "historicalBlocking": 2,
+      "historicalWarnings": 129,
+      "nativeFloorShortfalls": 0,
+      "technicalProjectionValid": false
+    }
+  ],
+  "simulationCountsAreNotActualResults": true,
+  "tests": {
+    "experimental": {
+      "passed": 132,
+      "skipped": 50,
+      "todo": 0,
+      "evidence": "evidence/reassessment-delta/experimental.txt"
+    },
+    "historical": {
+      "passed": 2999,
+      "skipped": 1,
+      "todo": 6,
+      "evidence": "evidence/validation/historical.txt"
+    },
+    "targeted": {
+      "passed": 6,
+      "skipped": 0,
+      "todo": 0,
+      "evidence": "evidence/final/tests.txt"
+    },
+    "types": "passed",
+    "governancePassed": 62,
+    "targetedOverlapsExperimental": true
+  },
+  "reproducibility": {
+    "version": "det-v14-1",
+    "runs": [
+      {
+        "name": "final",
+        "args": [
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "--config",
+          "experimental/det-engine/vitest.v3.config.ts",
+          "experimental/det-engine/v14-study.test.ts",
+          "--maxWorkers=1",
+          "--testTimeout=60000"
+        ],
+        "exitCode": 0
+      },
+      {
+        "name": "replay",
+        "args": [
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "--config",
+          "experimental/det-engine/vitest.v3.config.ts",
+          "experimental/det-engine/v14-study.test.ts",
+          "--maxWorkers=1",
+          "--testTimeout=60000"
+        ],
+        "exitCode": 0
+      }
+    ],
+    "comparison": [
+      {
+        "file": "study.json.gz",
+        "first": "b28ca9a87d34cb8c4bc14908c7515cb8f47f2c752cf23b0a1f7b1a19a3eb21ea",
+        "replay": "b28ca9a87d34cb8c4bc14908c7515cb8f47f2c752cf23b0a1f7b1a19a3eb21ea"
+      },
+      {
+        "file": "calendars.json.gz",
+        "first": "69e9f09cdcb1c83a9c524323b01ec6efa22f65140cae66a4ececf0d7bd6ad706",
+        "replay": "69e9f09cdcb1c83a9c524323b01ec6efa22f65140cae66a4ececf0d7bd6ad706"
+      },
+      {
+        "file": "summary.json",
+        "first": "53788a8a01e7b23155d715cfea3be244d18b83e9efc826f628cb44bbcd17568c",
+        "replay": "53788a8a01e7b23155d715cfea3be244d18b83e9efc826f628cb44bbcd17568c"
+      }
+    ],
+    "identical": true,
+    "preregistrationUnchanged": true,
+    "clock": "2026-10-26T12:00:00Z",
+    "independentProcesses": true
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "coverageLost": [],
+  "coverageAdded": [],
+  "regressions": [],
+  "newlyExposed": [],
+  "unattributed": [],
+  "reproduced": true,
+  "noCriticalRegression": true,
+  "improvedConformance": 0,
+  "improvedConstruction": 0,
+  "improvedDefects": 11,
+  "defectReductions": [
+    {
+      "id": "Marathon:trained:finisher:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:highly_trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:highly_trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:highly_trained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "race_day_only_fiche_misplaced",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "Marathon:highly_trained:age_group:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 2,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "5K:highly_trained:age_group:unknown",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 6,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:untrained:finisher:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 6,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "10K:untrained:world_class:known_synthetic",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 7,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:untrained:finisher:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:untrained:elite:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 9,
+      "severity": "error",
+      "count": 1
+    },
+    {
+      "id": "IM:highly_trained:world_class:known_synthetic:lcw_3day",
+      "control": "plan_validator_complete_context",
+      "code": "polarization",
+      "week": 5,
+      "severity": "error",
+      "count": 1
+    }
+  ],
+  "improvement": true,
+  "scientificGoAttested": false,
+  "baselineHash": "c03a0d8314b04491722a26eb673c1c1dac341631273f7f888b1708cf1c6d19e1",
+  "candidateHash": "8c5c5347535036d209aa19d046e2c38e852511f9bd351fcd5ac805c2be1b74cb"
+}

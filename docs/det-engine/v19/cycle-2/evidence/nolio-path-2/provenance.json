@@ -1,0 +1,62 @@
+{
+  "sourcePath": "supabase/functions/nolio-send-plan/index.ts",
+  "sourceSha256": "22a7c2b6421084e79bfd135ba0adb97e49ac198601d718bfc4797ebe860c83ae",
+  "extractionMethod": "TypeScript AST, exact allowlisted function/constant declarations only",
+  "declarations": [
+    {
+      "name": "normalizeStr",
+      "sha256": "f83313b3f1aff68c809ecce5494283a90d91ebf8ba9c1e44a8e0796ae60d451a",
+      "start": 215
+    },
+    {
+      "name": "canonicalizeStructuredShape",
+      "sha256": "0512640237d79d7e9abc90c4384ec7ef00aa1c7fb4c5392fd8780f61122c55bd",
+      "start": 575
+    },
+    {
+      "name": "normalizeStructuredWorkoutForNolio",
+      "sha256": "2117f5c89437100aea6c27fa94d5d2552d8d2f4304996a3d46415ef05752b2ec",
+      "start": 624
+    },
+    {
+      "name": "S2R_RPE_LEGEND",
+      "sha256": "9cfa4c9d8bd1ab7f8ae336ec82b88320006bd4e548b5e3bf8c636099bda1a8e3",
+      "start": 1080
+    },
+    {
+      "name": "buildDescription",
+      "sha256": "84e8e83e268df1f7e6438ceed191448c233075bb85a6c28d069c7e8c64a62ec1",
+      "start": 1093
+    },
+    {
+      "name": "SWIM_BLOCK_REST_SEC",
+      "sha256": "0623b242b68c7f678473952bb5ab56c5f9a07481f19fb6f6f2848902981e1c57",
+      "start": 1347
+    },
+    {
+      "name": "isRestNode",
+      "sha256": "3d04140f6b7b5e4be704d57a97434ee13ee31b6e81caf0f189858ea304be0376",
+      "start": 1349
+    },
+    {
+      "name": "makeSwimBlockRest",
+      "sha256": "4b2645f98a3a4f0c1e8433bfe75278e351efa3a9814ba8dc4358a39cce99bc21",
+      "start": 1355
+    },
+    {
+      "name": "insertSwimBlockRests",
+      "sha256": "73a381d827303e3790faef40c3073cf6106415a7de333343c92852ca27585901",
+      "start": 1367
+    },
+    {
+      "name": "summarizeStructuredWorkout",
+      "sha256": "d65f57633d1451b734e8712563b502e0b4348847c7e0161f84de0d69ec21be71",
+      "start": 1389
+    }
+  ],
+  "importsExecuted": 0,
+  "edgeModuleImported": false,
+  "denoServeExecuted": false,
+  "networkGlobalsAvailable": false,
+  "productionModified": false
+}

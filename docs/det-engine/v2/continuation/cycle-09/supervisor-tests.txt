@@ -1,0 +1,38 @@
+✔ same controls and exact replay prove reproducibility without a scientific GO (4.020091ms)
+✔ new controls are exposed, never called measured sporting regressions (0.417581ms)
+✔ same-control new critical regression rejects despite more constructed plans (1.021212ms)
+✔ newly assembled invalid plan is newly exposed, not a previously valid plan regression (0.266763ms)
+✔ missing/duplicate cases and nondeterministic replay cannot pass (0.594838ms)
+✔ begin/resume/finish is idempotent and does not double-count attempts (0.566676ms)
+✔ state persists atomically and rejected evidence cannot be silently replaced (1.003816ms)
+✔ 12-cycle, per-cause, duration and two-global-no-progress budgets stop without a repeat loop (0.82097ms)
+✔ production branch and policy mutation are refused (0.341505ms)
+✔ repair restores only owned experimental bytes and preserves independent changes (2.224449ms)
+✔ prioritization skips exhausted causes instead of repeating them (0.350079ms)
+✔ registered recipe survives interruption, resumes once and restores only its own file (1.649021ms)
+✔ new critical multiplicity is detected and accepted improvements cannot be regressed via stale baselines (0.659806ms)
+✔ end-to-end supervisor retains a validated recipe and rolls back a rejected alternative (orchestration test double only) (4.771746ms)
+✔ different rule codes under the same broad control and week cannot mask a regression (0.183116ms)
+✔ newly executed extra control cannot falsely attribute aggregate conformance loss (0.248896ms)
+✔ message-only legacy week is normalized without treating different titles as new rules (0.300674ms)
+✔ comparable critical multiset reductions count as progress without requiring a new conformant plan (0.173522ms)
+✔ gross defect reduction never cancels a different newly introduced critical failure (0.135485ms)
+✔ missing plan, missing applicability, or changed control cannot be counted as repaired defects (0.379984ms)
+✔ fixed validation runner selects V2 bundle output and disables legacy matrix without invoking production suite (0.203688ms)
+✔ development can reject a genuinely passing no-progress proposal without falsifying test results (0.474426ms)
+✔ no-progress rejection cannot mislabel a measured improvement (0.292101ms)
+✔ successive registered cycle passes last accepted baseline and explicit version to its fixed validation runner (1.124478ms)
+✔ launch unavailable, interrupted, failed and genuinely passed commands remain distinct (0.138569ms)
+✔ validation reservation is durable before runner launch and elapsed time is accounted once (0.670332ms)
+✔ interrupted validation lease cannot be reused and recovery conservatively consumes its reservation once (0.531372ms)
+✔ per-cause stall budget resets only on accepted measurable progress, retaining total attempts (1.000731ms)
+✔ actual CLI subprocess applies a registered snapshot and restores it, proving lifecycle only (no sporting engine) (145.538851ms)
+✔ fixed-plan continuation passes each accepted candidate forward then stops a deterministic no-progress fixed point (orchestration double) (4.660503ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 184.058037

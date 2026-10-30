@@ -1,0 +1,26 @@
+{
+  "artifacts": [
+    {
+      "file": "checksums.json",
+      "sha256": "dbc91dfdc07a79939c944475947f1de26a755580ac159f03be32f24067b76256",
+      "identical": true
+    },
+    {
+      "file": "outputs.jsonl.gz",
+      "sha256": "d8c265562786fbabd39b88e905afffec8504b9417ad383f77d80260e9cd4b8c1",
+      "identical": true
+    },
+    {
+      "file": "overlays.json",
+      "sha256": "b52b30b4861157a08d82694f1fa124dcf89ef75f4ff489446d742c87b7300922",
+      "identical": true
+    },
+    {
+      "file": "summary.json",
+      "sha256": "8c1be580b78cbe13f3f9f2a5d54a45390e39aaf7b44e2e927156580275e8163b",
+      "identical": true
+    }
+  ],
+  "sourceCodeFollowup": "optional calculable coach presentation; explicit unsupported-version refusal",
+  "existingOutputsUnchanged": true
+}

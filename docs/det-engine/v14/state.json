@@ -1,0 +1,201 @@
+{
+  "version": "det-v14-1",
+  "baseline": "061b60e69637b081ac089be30ca157dacb7c1df7",
+  "startedAt": 1793202546,
+  "deadline": 1793206146,
+  "maxUnits": 10,
+  "maxAttemptsPerRootCause": 3,
+  "status": "completed_no_go",
+  "activeUnit": null,
+  "automaticRestart": false,
+  "units": [
+    {
+      "id": "baseline",
+      "status": "passed"
+    },
+    {
+      "id": "conditional_contract",
+      "status": "passed",
+      "completedAt": 1793204247.8483014,
+      "evidence": "evidence/guards.txt",
+      "meaning": "bounded experimental unit completed; not sports approval"
+    },
+    {
+      "id": "progression_portfolio",
+      "status": "passed",
+      "completedAt": 1793204247.848306,
+      "evidence": "evidence/attempt-4/study.json.gz",
+      "meaning": "bounded experimental unit completed; not sports approval"
+    },
+    {
+      "id": "required_catalogue",
+      "status": "passed",
+      "completedAt": 1793204247.8483067,
+      "evidence": "evidence/attempt-4/study.json.gz",
+      "meaning": "bounded experimental unit completed; not sports approval"
+    },
+    {
+      "id": "prospective_calendar",
+      "status": "passed",
+      "completedAt": 1793204247.8483071,
+      "evidence": "evidence/attempt-4/study.json.gz",
+      "meaning": "bounded experimental unit completed; not sports approval"
+    },
+    {
+      "id": "trajectories",
+      "status": "passed",
+      "completedAt": 1793204247.8483076,
+      "evidence": "evidence/guards.txt",
+      "meaning": "bounded experimental unit completed; not sports approval",
+      "reopenedReason": "new semantic root cause: valid reassessment retaining smaller envelope refuses due target; missing evidence remains pending",
+      "attempts": [
+        {
+          "startedAt": 1793205445076,
+          "command": [
+            "scripts/det-engine/v14-reassessment-validation.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793205667354,
+          "exitCode": 0,
+          "output": "docs/det-engine/v14/evidence/trajectories-1.txt",
+          "sha256": "4e37d59970fd65a3a436bf3c13e4c39c6d3ba0d1c891cef8b96dd3c016fccb19"
+        }
+      ]
+    },
+    {
+      "id": "full_validation",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793204247888,
+          "command": [
+            "scripts/det-engine/v14-validate.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793204805947,
+          "exitCode": 0,
+          "output": "docs/det-engine/v14/evidence/full_validation-1.txt",
+          "sha256": "e0e7f84f542a27d454680deee5daac3d5fc74a68c05a313383a52770e2a4317e"
+        },
+        {
+          "startedAt": 1793205066602,
+          "command": [
+            "scripts/det-engine/v14-final-delta.mjs"
+          ],
+          "status": "failed",
+          "completedAt": 1793205108372,
+          "exitCode": 1,
+          "output": "docs/det-engine/v14/evidence/full_validation-2.txt",
+          "sha256": "1399fc34dabae099c5279bdc7ae2d3622e8d24181464ba40736f20db4feb1a58"
+        },
+        {
+          "startedAt": 1793205157486,
+          "command": [
+            "scripts/det-engine/v14-final-delta.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793205383520,
+          "exitCode": 0,
+          "output": "docs/det-engine/v14/evidence/full_validation-3.txt",
+          "sha256": "b5c2231dbb52f19a12642b610eb8823342be8666120a74820f369e9532397c0f"
+        }
+      ],
+      "reopenedReason": "known relative source/calendar contradictions found and safely corrected after initial full suite; final experimental delta required"
+    },
+    {
+      "id": "determinism",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793205691994,
+          "command": [
+            "scripts/det-engine/v14-evidence.mjs"
+          ],
+          "status": "failed",
+          "completedAt": 1793205713433,
+          "exitCode": 1,
+          "output": "docs/det-engine/v14/evidence/determinism-1.txt",
+          "sha256": "26eb3d9b63bac920ae838edb284827e80417fbc8389d7338a00c7e1efd1693ea"
+        },
+        {
+          "startedAt": 1793205751357,
+          "command": [
+            "scripts/det-engine/v14-evidence.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793205782423,
+          "exitCode": 0,
+          "output": "docs/det-engine/v14/evidence/determinism-2.txt",
+          "sha256": "bfd2929f3e0220427ccea2383f7ffda39d7fe8f21978d48450a36a8a6276ee5e"
+        }
+      ]
+    },
+    {
+      "id": "documentation",
+      "status": "passed",
+      "completedAt": 1793205835.7461245,
+      "evidence": "README.md"
+    },
+    {
+      "id": "publication",
+      "status": "passed",
+      "startedAt": 1793205835.7461274,
+      "completedAt": 1793205876.82939,
+      "evidence": "publication-proof.json"
+    }
+  ],
+  "rootCauseAttempts": [
+    {
+      "cause": "missing recovery swim in native context",
+      "attempts": 2,
+      "outcome": "compatible offered alternative found; timing remains conditional",
+      "proof": [
+        "evidence/attempt-1/summary.json",
+        "evidence/attempt-2/study.json.gz"
+      ]
+    },
+    {
+      "cause": "intra-week duplicate sources and low-week source-target incompatibility",
+      "attempts": 2,
+      "outcome": "distinct offered sources, native long floors unchanged",
+      "proof": [
+        "evidence/attempt-3-tests.txt",
+        "evidence/distinct-source-witness.json",
+        "evidence/attempt-4/study.json.gz"
+      ]
+    },
+    {
+      "cause": "test fixture type widening",
+      "attempts": 1,
+      "outcome": "narrow existing Ironman fixture family; no unsafe cast",
+      "proof": [
+        "evidence/types-candidate.txt",
+        "evidence/types-candidate-2.txt"
+      ]
+    },
+    {
+      "cause": "relative source context after known rest/without preceding key exposure",
+      "attempts": 2,
+      "outcome": "generic recovery source plus literal whole-calendar placement guard; no intensity added",
+      "proof": [
+        "evidence/relative-context-candidate.txt",
+        "evidence/relative-context-candidate/unvalidated-study.json.gz",
+        "evidence/relative-context-candidate-2.txt"
+      ]
+    },
+    {
+      "cause": "fresh explicit lower capacity was treated as pending instead of refused at due dose",
+      "attempts": 1,
+      "outcome": "corrected; due insufficient dose refused; types and full experimental suite passed",
+      "proof": [
+        "evidence/reassessment-red.txt",
+        "evidence/reassessment-delta/commands.json"
+      ]
+    }
+  ],
+  "latestValidation": "evidence/reassessment-delta/commands.json",
+  "completedAt": 1793205876.829398,
+  "elapsedSeconds": 3331,
+  "stopReason": "ten_bounded_units_completed; prospective proof demonstrated, sporting approval not established",
+  "sourceCommit": "2fe9926eba54e1ac1e41e0d0583be2a42d9439b1"
+}

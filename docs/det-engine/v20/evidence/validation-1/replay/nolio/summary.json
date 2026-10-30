@@ -1,0 +1,22 @@
+{
+  "fixtures": 15,
+  "source": 13,
+  "editorial": 2,
+  "historicalTargetLosses": [
+    "D_RUN_REGEN",
+    "D_IM_BRICK_REGEN",
+    "D_MAR_REGEN",
+    "D_TR_RECUP_ACTIVE"
+  ],
+  "repairedTargetLosses": [
+    "D_RUN_REGEN",
+    "D_IM_BRICK_REGEN",
+    "D_MAR_REGEN",
+    "D_TR_RECUP_ACTIVE"
+  ],
+  "experimentalFidelityPass": 15,
+  "restoredOrPreservedExactSourceBounds": true,
+  "productionSenderModified": false,
+  "realNolioCalls": 0,
+  "scientificPromotions": 0
+}

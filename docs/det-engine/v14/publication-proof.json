@@ -1,0 +1,18 @@
+{
+  "version": "det-v14-1",
+  "sourceCommit": "2fe9926eba54e1ac1e41e0d0583be2a42d9439b1",
+  "pr": {
+    "headRefName": "experiment/det-engine",
+    "headRefOid": "2fe9926eba54e1ac1e41e0d0583be2a42d9439b1",
+    "isDraft": true,
+    "mergedAt": null,
+    "state": "OPEN",
+    "title": "DET-ENGINE AUTONOMOUS V14 \u2014 calendriers Ironman conditionnels et r\u00e9\u00e9valuation, NO-GO",
+    "url": "https://github.com/Vinch11/tfclab/pull/420"
+  },
+  "verifiedAtEpoch": 1793205876.8291054,
+  "published": true,
+  "draft": true,
+  "recommendation": "NO-GO",
+  "checkpointMeaning": "source/evidence head observed remotely; subsequent closure commit changes V14 documentation only"
+}

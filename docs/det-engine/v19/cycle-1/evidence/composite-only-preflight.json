@@ -1,0 +1,2535 @@
+[
+  {
+    "id": "C_TR_DOWNHILL_EASY_V39",
+    "sport": "run",
+    "duration": [
+      35,
+      55
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "30–45' facile + 6–10 descentes 45–60s 'propre' r=remontée easy",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "C_TR_SKILLS_DESCENT_40",
+    "sport": "run",
+    "duration": [
+      35,
+      50
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "40–50' easy + 8–12 descentes 45–60s 'propre' r=remontée easy.",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_TR_PACK_SHORT_LONGRUN_2H",
+    "sport": "run",
+    "duration": [
+      120,
+      150
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "2h–2h30 Z1–Z2 avec 3 montées Z3 (5–8'). Nutrition.",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "C_TR_PACK_LONG_DESC_SKILL",
+    "sport": "run",
+    "duration": [
+      40,
+      60
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "40–60' easy + 10 descentes 45–60s (propre) r=remontée easy.",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_TR_PACK_LONG_LONGRUN_3H",
+    "sport": "run",
+    "duration": [
+      165,
+      210
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "2h45–3h30 Z1–Z2. Derniers 20' Z2 haut si frais. Nutrition course.",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "C_TR_DOWNHILL_EASY",
+    "sport": "run",
+    "duration": [
+      35,
+      55
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "30–45' facile + 6–10 descentes 45–60s 'propre' r=remontée easy",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_10K_LONG_RUN_75",
+    "sport": "run",
+    "duration": [
+      70,
+      95
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "70–95' Z2 avec 10' finish Z3 si frais",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "B_10K_FARTLEK_PYRAMIDE",
+    "sport": "run",
+    "duration": [
+      50,
+      70
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1–Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "1'–2'–3'–4'–3'–2'–1' Z4b–Z5 r=1'–2' trot",
+        "zones": [
+          "Z4b",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "D_TR50_RECOVERY_WALK_RUN",
+    "sport": "run",
+    "duration": [
+      25,
+      40
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "25–40' alternance marche 2'/trot Z1 3'. Très relâché + mobilité 10'",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "C_BIKE_AERO_POSITION_DRILLS",
+    "sport": "bike",
+    "duration": [
+      60,
+      120
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Z2 avec 6x10' en position aéro (sans surpuissance) r=5' position relâchée Z1.",
+        "zones": [
+          "Z2",
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "FATMAX_BIKE_ZONE_FINDER",
+    "sport": "bike",
+    "duration": [
+      90,
+      120
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15 min Z1 strict à jeun (eau uniquement). FC < 65% FCmax.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Protocole paliers FatMax : 5 paliers de 12 min chacun. Palier 1 : 45% FTP. Palier 2 : 55% FTP. Palier 3 : 65% FTP. Palier 4 : 75% FTP. Palier 5 : 85% FTP. Observer : la puissance au palier où la FC commence à dériver de façon non linéaire = zone FatMax approximative. Idéalement avec analyseur respiratoire (QR ou FeO2). Sans matériel : noter RPE et dérive FC pour chaque palier.",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "15 min Z1. Repas riche en glucides complexes immédiatement après.",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "FATMAX_BIKE_LONG_FASTED",
+    "sport": "bike",
+    "duration": [
+      120,
+      180
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "20 min Z1 très progressif. Eau uniquement. Caféine autorisée (1-2mg/kg) 30 min avant pour mobiliser acides gras.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "90–140 min Z2 strict (63-72% FTP). AUCUN glucide exogène pendant les 90 premières minutes. Eau + électrolytes uniquement. Cadence 85-95 rpm. Si hypoglycémie (tremblements, confusion) : gel d'urgence immédiatement. Après 90 min si > 3h total : 30g CHO/h autorisés. Réf : Burke 2021 — 3h fasted Z2 augmente FatMax de 25-40% sur 12 semaines.",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "15 min Z1. Repas glucido-protéiné dans les 30 min (récupération + rechargement).",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "TAPER_ACTIVATION_J2",
+    "sport": "bike",
+    "duration": [
+      35,
+      45
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15 min Z1–Z2 progressif",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "15 min dont : 2x30s accélérations progressives à 90-95% FTP (pas sprint max). Récup 3 min Z1. 5 min Z3 continu à allure course. Objectif : activer le système neuromusculaire et confirmer les bonnes sensations. Si jambes ne répondent pas : c'est normal — ne pas paniquer ni allonger la séance.",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10 min Z1 strict. Fin de la séance = fin de la préparation physique.",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "AERO_BIKE_CADENCE_HIGH",
+    "sport": "bike",
+    "duration": [
+      75,
+      90
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15 min progressif Z1–Z2, cadence libre",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Série cadence élevée : 4x5 min à 110-120 rpm @ Z2 (55-65% FTP). Récup 3 min Z1 cadence libre. Focus : pédalage rond (tirer en haut, pousser en bas), minimiser le rebond en selle. Puis 2x10 min Z2 à 95-100 rpm (cadence race). Réf : Ahlquist 1992 — cadence élevée (90-100 rpm) préserve les fibres lentes et le glycogène musculaire en longue distance.",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10 min Z1 cadence libre",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "RECOVERY_COLD_WATER_IMMERSION",
+    "sport": "strength",
+    "duration": [
+      15,
+      25
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "Finir la séance. Attendre 5-10 min (douche froide progressive d'abord).",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Immersion eau froide (10-15°C) : 10-15 min. Méthode : cuves remplies de glace + eau froide, ou baignoire froide. Niveau : jusqu'aux hanches minimum, idéalement torse. Protocoles testés : 10 min à 11-15°C (Hausswirth 2013). Si pas de cuve : 10 min douche froide alternée (1 min froid, 30s chaud x4). Réf : Versey 2013 — CWI améliore la récupération de 24-48h : -35% douleurs musculaires, +5% puissance 24h après.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "Réchauffement progressif (vêtements chauds, boisson chaude). PAS de sauna immédiatement après (contre-indiqué).",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "BILLAT_RUN_ECONOMY_STRIDES",
+    "sport": "run",
+    "duration": [
+      40,
+      50
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "20 min Z1→Z2 relâché",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Protocole économie Billat (Billat 2003 — 'The Best Runners are Those Who Produce Less Lactate') : 10×100m strides progressifs avec focus sur : 1. Fréquence de foulée haute (175-185 spm) — compter ses pas pendant 30s. 2. Appui sous le centre de gravité (éviter heel strike). 3. Bras à 90° relâchés. 4. Expiration active à chaque foulée (synchronisation respiratoire). Récup : marche 60-90s entre chaque stride. Puis 4×200m à 95% VMA avec même focus technique. Réf : Billat 2003 — les coureurs élites ont une économie 15-20% meilleure grâce à une fréquence élevée et un meilleur transfert d'énergie élastique.",
+        "zones": [
+          "Z4",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10 min Z1 + marche 5 min",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+    "sport": "run",
+    "duration": [
+      60,
+      80
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15 min Z1→Z2 progressif",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "25-35 min continu à seuil bas norvégien (sous-seuil, 92-97 % de l'allure seuil) : 82-86% FCmax, RPE 6-7/10. Alternative intervalles avec récups très courtes : 3-4×8-10 min R:90s Z1. Réf : Tjelta 2019 — les meilleurs coureurs norvégiens accumulent 60-80 min/semaine au seuil bas en phase build. C'est le volume total qui crée l'adaptation, pas l'intensité de chaque répétition. Observer : FC stable (plateau) sur les 3 dernières minutes de chaque bloc = bonne intensité.",
+        "zones": [
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10 min Z1 + marche 5 min",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "NORWEGIAN_RUN_LACTATE_TEST_PROTOCOL",
+    "sport": "run",
+    "duration": [
+      60,
+      75
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10 min Z1 + 5 min Z2. Mesure lactate basale (cible : 1.0-1.2 mmol/L = bien récupéré).",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Protocole paliers lactate terrain Bakken : 4-5 paliers de 5 min avec mesure lactate à la fin de chaque. Palier 1 : Z2 facile (70% FCmax) → noter lactate. Palier 2 : 78% FCmax → noter lactate. Palier 3 : 83% FCmax → noter lactate. Palier 4 : 87% FCmax → noter lactate. Palier 5 (si confort) : 91% FCmax → noter lactate. Récup 90s entre paliers (mesure lactate pendant la récup). Identifier : LT1 = premier palier où lactate > 2.0 mmol/L. LT2/MLSS = palier où lactate > 3.5-4.0 mmol/L. Ces deux allures (et FC correspondantes) sont les cibles de tout le bloc double threshold suivant.",
+        "zones": [
+          "Z2",
+          "Z3",
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10 min Z1. Documenter les résultats dans le snapshot : pace_threshold_sec_per_km = allure à LT2. Recalibrer toutes les 6-8 semaines car le seuil s'améliore avec l'entraînement.",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "SEILER_WEEK_POLARIZED_TRI",
+    "sport": "bike",
+    "duration": [
+      65,
+      85
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "Structure triathlon 12-15h/semaine : LUNDI : Repos ou Z1 mobilité. MARDI matin : Natation Z1 volume (2500m). MARDI soir : Vélo 4×4min Z5 (haute intensité #1). MERCREDI : Run Z1-Z2 long (70 min). JEUDI matin : Natation CSS (haute intensité #2 — seuil). JEUDI soir : Vélo Z1 long (90 min). VENDREDI : Run strides légers + Z1 40 min. SAMEDI : Vélo Z1-Z2 long (150 min) + Run Z2 30 min (brick léger). DIMANCHE : Run Z1 60 min.",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Cette séance représente le MARDI SOIR vélo (4×4min Z5). VÉRIFICATION : Volume Z1-Z2 : ~80% du temps total toutes disciplines. Volume Z4-Z5 : ~20% (2 séances haute intensité par semaine — une vélo, une natation). Volume Z3 : 0-5% maximum. PIÈGE DU TRIATHLON SEILER : les triathlètes ont tendance à courir toutes leurs longues sorties vélo en Z3 ('grey zone') et à faire leurs natations en Z3. Résultat : 50-60% du volume en Z3 → stagnation. Réf : Muñoz 2014 — les triathlètes récréatifs qui passent à 80/20 améliorent leur VO2max de 8.4% vs 4.1% pour ceux en threshold.",
+        "zones": [
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "15 min Z1 vélo",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "COGGAN_BIKE_SST_PROGRESSIVE",
+    "sport": "bike",
+    "duration": [
+      80,
+      105
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "20 min Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Bloc 1 : 2×15 min à 88-90% FTP R:4 min. Bloc 2 : 1×15 min à 92-95% FTP R:4 min. Bloc 3 : 1×10 min à 97-102% FTP (zone FTP exacte). Récup entre blocs : 5 min Z1. La progression intra-séance simule la montée en intensité d'une course — l'athlète apprend à pousser l'intensité progressivement sur legs pré-fatiguées par le SST. Réf : Coggan 2010 — 'La progression au sein d'une même séance développe la capacité à changer de 'gear' métabolique et à maintenir la puissance en fin d'effort.'",
+        "zones": [
+          "Z4",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "15 min Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "COGGAN_BIKE_FTP_RAMP_TEST",
+    "sport": "bike",
+    "duration": [
+      25,
+      35
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10 min Z1 progressif. Cadence 85-90 rpm.",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Protocole Ramp Test Coggan : partir à 50% FTP estimée. Augmenter de 20W (ou 10-15%) toutes les 1 min. Continuer jusqu'à épuisement complet (impossible de maintenir la puissance du palier). Mesurer : puissance maximale du dernier palier COMPLÉTÉ. FTP estimée = puissance max palier × 0.75 (Coggan-Zwift adaptation). Avantage : pas de pacing requis, test court, reproductible. Inconvénient : moins précis que le 20min pour les athlètes bien entraînés (±5-8%). Cadence : maintenir 85-90 rpm sur tous les paliers, même les derniers.",
+        "zones": [
+          "Z4",
+          "Z5",
+          "Z6",
+          "Z7"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10 min Z1. Calculer FTP = puissance dernier palier × 0.75. Entrer dans TFCLab.",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "KENYAN_RUN_DOUBLE_DAY",
+    "sport": "run",
+    "duration": [
+      80,
+      110
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "MATIN (6h-7h) : 10 min progressif Z1. SOIR (16h-17h) : 10 min progressif Z1.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "MATIN : 40-50 min Z1-Z2 léger et relâché. Focus : foulée économe, relâchement total. Pas de montre GPS (courir au feeling). SOIR (minimum 5h après) : 40-50 min Z2 soutenu — légèrement plus fort que le matin. Les jambes sont plus chaudes et répondent mieux l'après-midi. Réf : Larsen 2003 — 'Les coureurs kényans d'élite font 2-3 doubles journées par semaine pendant leur préparation principale. Cette accumulation de volume quotidien crée des adaptations mitochondriales impossibles à atteindre avec une seule séance.' La clé : JAMAIS de haute intensité dans une double journée. Les deux séances sont TOUJOURS en Z1-Z2.",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "SOIR : marche 10 min. Nutrition : 60g CHO + 30g protéines dans l'heure. Sommeil 8-9h obligatoire (adaptation).",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_RUN_LONG_PROG_PRO",
+    "sport": "run",
+    "duration": [
+      90,
+      150
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Z2 majoritaire, finir 20–30' Z3 si frais",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "B_SWIM_CSS_LADDER_PRO",
+    "sport": "swim",
+    "duration": [
+      50,
+      75
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "100-200-300-400-300-200-100 à CSS (r=20–40s)",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "B_SWIM_SPEED_25S_PRO",
+    "sport": "swim",
+    "duration": [
+      35,
+      55
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "2 blocs : 12x25m vite r=20–30s, récup longue entre blocs",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_TR_DESC_TECH_PRO",
+    "sport": "run",
+    "duration": [
+      40,
+      60
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "8–12 descentes 45–60s 'propre' r=remontée easy",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_TR_LONG_V6_PRO",
+    "sport": "run",
+    "duration": [
+      150,
+      190
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Z2 majoritaire, finir 15–25' Z3 si frais (terrain stable)",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_TR_LONG_V7_PRO",
+    "sport": "run",
+    "duration": [
+      160,
+      200
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Z2 majoritaire, finir 15–25' Z3 si frais (terrain stable)",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_TR_LONG_V8_PRO",
+    "sport": "run",
+    "duration": [
+      170,
+      210
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Z2 majoritaire, finir 15–25' Z3 si frais (terrain stable)",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_TR_LONG_V9_PRO",
+    "sport": "run",
+    "duration": [
+      180,
+      220
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Z2 majoritaire, finir 15–25' Z3 si frais (terrain stable)",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_TR_LONG_V10_PRO",
+    "sport": "run",
+    "duration": [
+      190,
+      230
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Z2 majoritaire, finir 15–25' Z3 si frais (terrain stable)",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "C_STR_LOWER_PRO",
+    "sport": "strength",
+    "duration": [
+      45,
+      60
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "8' : 5' vélo Z1 + activation (glute bridge 2×10, bird-dog 2×8/côté, squat PdC 2×10, mobilité cheville 1'/côté)",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "A) Back squat ou Goblet squat : 4×5 @ 80-85% 1RM (ou RPE 8) · tempo 3-1-1-0 · repos 2'30-3' entre séries.\nB) Romanian deadlift : 3×6 @ RPE 7-8 · tempo 3-0-1-0 · repos 2'.\nC) Bulgarian split squat : 3×6/jambe @ haltères modérés (RPE 7) · repos 90s.\nD) Mollets debout (calf raise lourd) : 3×8 tempo 2-2-1-0 · repos 60s.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "8' : mobilité hanches (pigeon 1'/côté), psoas stretch (1'/côté), respiration nasale 3'",
+        "zones": []
+      },
+      {
+        "part": "Progression",
+        "text": "Sem 1-2 : ancrer technique (RPE 7). Sem 3-4 : monter à RPE 8-8.5. Sem 5 : décharge -30% volume. Cycle 4+1.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_ECC_QUAD_PRO",
+    "sport": "strength",
+    "duration": [
+      35,
+      50
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10' : vélo Z1 5' + activation (squat PdC 2×10, fentes alternées 2×8/côté, mobilité cheville 1'/côté)",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "A) Step-down excentrique (banc 30-40cm) : 4×6/jambe — descente 4-5s contrôlée, remontée aide bras · repos 90s.\nB) Squat excentrique (back ou goblet) : 4×5 @ RPE 7-8 — descente 5s, remontée 1s · repos 2'30.\nC) Reverse Nordic curl (quadris) : 3×6-8 — descente lente jusqu'à amplitude tolérée · repos 90s.\nD) Isos wall sit avec rebond léger : 3×30s · repos 60s.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "8' : foam rolling quadris 3', stretch quad debout 30s/côté ×2, marche 3'",
+        "zones": []
+      },
+      {
+        "part": "Progression",
+        "text": "Sem 1 : volume 60% (test toleration courbatures J+2-J+3). Sem 2-4 : volume plein. Sem 5 décharge. STOP 10j avant course A.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_CALF_HEAVY_PRO",
+    "sport": "strength",
+    "duration": [
+      25,
+      35
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "5' : marche dynamique + mobilité cheville (squat profond tenu 30s ×2, dorsiflexion contre mur 10/côté)",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "A) Calf raise debout (chargé barre ou Smith) : 4×6 @ RPE 8 — tempo 2-2-1-1 (excentrique 2s, iso bas 1s) · repos 2'.\nB) Calf raise assis (soléaire) : 3×10 @ charge lourde · tempo 2-1-2-0 · repos 90s.\nC) Single-leg calf raise marche d'escalier amplitude max : 3×12/jambe · repos 60s.\nD) Heel drop excentrique (escalier, descente lente 4s) : 2×15/jambe — préhab tendon.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "5' : stretch mollets (gastro & soléaire) 30s/côté ×2, mobilité cheville 2'",
+        "zones": []
+      },
+      {
+        "part": "Progression",
+        "text": "Charge +2.5kg/sem si tempo respecté. Décharge sem 5.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_PLYO_BASIC_PRO",
+    "sport": "strength",
+    "duration": [
+      25,
+      35
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10' : 5' jog Z1 + éducatifs (skipping, talons-fesses, foulée bondissante légère 2×20m)",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "A) Pogo jumps (2 pieds) : 4×15 contacts — rigidité, contact <200ms · repos 75s.\nB) Saut sur banc bas (20-30cm) : 3×8 — atterrir doux, redescendre marche · repos 90s.\nC) Skip A & Skip B : 3×20m/exercice · repos 60s.\nD) Single-leg hops linéaires : 3×8/jambe · repos 60s.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "8' : jog easy 3' + stretch mollets/quadris 5'",
+        "zones": []
+      },
+      {
+        "part": "Progression",
+        "text": "Sem 1 : 60% volume (apprentissage). Sem 2-4 : volume plein. Décharge sem 5. Contacts <120/séance.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_PLYO_ADVANCED_PRO",
+    "sport": "strength",
+    "duration": [
+      30,
+      40
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "12' : 5' jog Z1 + 4' éducatifs + 3' activation plyo basse (pogo 2×15, skip A 2×20m)",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "A) Depth jumps boîte 40cm (contact bref → saut max H) : 4×5 · repos 2'30 (qualité maximale).\nB) Bounds alternés (foulée bondissante) : 4×20m · repos 90s.\nC) Single-leg hops chargés (gilet 5-10% PdC) : 3×6/jambe · repos 90s.\nD) Hurdle hops 30cm : 3×6 · repos 90s.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "8' : jog 3' + foam rolling complet jambes 5'",
+        "zones": []
+      },
+      {
+        "part": "Progression",
+        "text": "Sem 1 : volume 70%. Sem 2-3 : plein. Sem 4 décharge. STOP J-10 course A. Total contacts <80.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_ANKLE_PROPRIO_PRO",
+    "sport": "strength",
+    "duration": [
+      20,
+      30
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "3' : mobilité cheville (dorsiflexion contre mur 10/côté, cercles cheville)",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "A) Équilibre yeux ouverts/fermés mono-jambe : 30-45s × 2/côté (progression : surface molle).\nB) Calf raise mono-jambe excentrique escalier : 3×12/jambe (descente 3s).\nC) Sauts unipodaux contrôlés (avant/arrière/latéral) : 3×8/direction/jambe · repos 60s.\nD) Renfo tibial antérieur (toe raises chargés) : 3×15.\nE) Renfo péroniers (élastique éversion) : 3×15/côté.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "3' : mobilité cheville + auto-massage voûte plantaire (balle) 1'/côté",
+        "zones": []
+      },
+      {
+        "part": "Progression",
+        "text": "Surface dure → molle (coussin proprio) sem 3. Yeux fermés sem 4.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "TPL_SEMI_LONGUE_PYRAMIDE",
+    "sport": "run",
+    "duration": [
+      90,
+      115
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "30-40' Z2 progressif",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Pyramide: 15' Z4a + 10' Z4b + 5' Z5 (r:2' Z2 entre blocs)",
+        "zones": [
+          "Z4",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "15-20' Z2 retour",
+        "zones": [
+          "Z2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "TPL_IM_BIKE_PMA_PYRAMIDE",
+    "sport": "bike",
+    "duration": [
+      65,
+      80
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "20' progressif",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "3'-4'-5'-4'-3' à 110% FTP (Z5). R:Temps effort",
+        "zones": [
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "TPL_IM_BIKE_FOUNDATION_4H30",
+    "sport": "bike",
+    "duration": [
+      240,
+      300
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "4h Z2 avec 3 x 25-30' à 85% FTP (Z3). Position aéro stricte. Nutrition 90g/h",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "15' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "TPL_SWIM_SIMULATION_EAU_LIBRE",
+    "sport": "swim",
+    "duration": [
+      55,
+      75
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "3000-3800m continu. 50m Polo toutes les 500m ou accélérer 20 coups toutes les 5'",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ENR_RUN_FARTLEK_SCANDINAVE",
+    "sport": "run",
+    "duration": [
+      50,
+      70
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "30-40' Fartlek : surges de 1-4' Z4/Z5, retours 2-3' Z2. 8-12 surges au feeling",
+        "zones": [
+          "Z2",
+          "Z4",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ENR_RUN_FARTLEK_KENYAN",
+    "sport": "run",
+    "duration": [
+      50,
+      65
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z2",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "25-35' tempo Z3 continu, toutes les 5' accélérer 30-60\" Z5 puis retour Z3 immédiat",
+        "zones": [
+          "Z3",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ENR_BIKE_POLARIZED_Z1_Z5",
+    "sport": "bike",
+    "duration": [
+      80,
+      110
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "20' Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "60-80' Z2 avec 3 x 6' Z5 à 108-115% FTP. R:6' Z1 entre chaque. Pas de Z3/Z4",
+        "zones": [
+          "Z2",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ENR_TAPER_SHAKEOUT_RUN",
+    "sport": "run",
+    "duration": [
+      15,
+      25
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "15-20' Z1 ultra-facile. 2 accélérations de 10\" en fin. Check: chaussures, tenue, sensations. Zéro fatigue",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V2_RUN_SORTIE_LONGUE_DEPLETION",
+    "sport": "run",
+    "duration": [
+      100,
+      130
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10' trot Z1",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "1h50 Z2 stable sans glucides (eau + sel uniquement). Emporter gel de secours.",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' marche. Manger dans les 30min post. Adaptation fat ox",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V2_RUN_GUT_TRAINING_Z3",
+    "sport": "run",
+    "duration": [
+      75,
+      100
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10' trot Z1→Z2 progressif",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "60-85' Z3 (allure IM) à Z4 bas (allure marathon). Ingérer gel/boisson toutes les 15-20'. Progresser de 60→90g/h sur 4-6 séances. Noter tout inconfort GI",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "5' marche. Bilan tolérance digestive",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V2_BIKE_GUT_TRAINING",
+    "sport": "bike",
+    "duration": [
+      120,
+      180
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' progressif Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "1h45-2h45 Z2/Z3 (allure IM). Ingérer boisson + gel/barre toutes les 15-20'. Target: 80→100g/h glucides. Varier sources: maltodextrine, fructose, gel, solide. Noter tolérance",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1 souple",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V2_RECUP_FOAM_ROLLING",
+    "sport": "strength",
+    "duration": [
+      18,
+      25
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Protocole: Mollets 2'/côté + Ischio 2'/côté + Quad/IT band 2'/côté + Fessiers 2'/côté + Thoracique 2' + Lats 1'/côté. Points triggers: 30\" pression maintenue",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "V2_IM_BIKE_QUEEN_STAGE",
+    "sport": "bike",
+    "duration": [
+      270,
+      310
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' progressif Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "4h15-4h45 Z2 (68-75% FTP) position aéro. 3-4 blocs de 30' Z3. Nutrition 80-100g/h identique race. Hydratation 750ml/h. C'est la répétition générale vélo",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1 souple",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V2_RUN_STRIDES_POST_EF",
+    "sport": "run",
+    "duration": [
+      45,
+      65
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "45-60' Z2 fondamental. Dernières 10': 6 x 20\" accélérations progressives (Z2→Z5 sur 20\") R:1' trot. Garder le système nerveux éveillé même en EF",
+        "zones": [
+          "Z2",
+          "Z5"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V2_RUN_KENYAN_TEMPO_LONG",
+    "sport": "run",
+    "duration": [
+      60,
+      80
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z2 progressif",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "40-60' continu Z4 (allure marathon -10-15\"/km, sous-seuil). Stable du début à la fin. Si FC dérive >8bpm → trop vite",
+        "zones": [
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V2_RUN_ETHIOPIAN_FARTLEK",
+    "sport": "run",
+    "duration": [
+      50,
+      65
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10' Z2",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "35-45' terrain vallonné naturel. Accélérer Z4/Z5 chaque montée (30\"-3'), Z2 en descente/plat. Aucun chrono. Au feeling. Écouter le corps",
+        "zones": [
+          "Z2",
+          "Z4",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V3_BIKE_CADENCE_DRILLS",
+    "sport": "bike",
+    "duration": [
+      60,
+      90
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Alternance: 5' à 60 rpm + 5' à 110 rpm, le tout Z2. 6 cycles. Focus: rondeur pédalage",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V3_BIKE_MIXED_PYRAMID",
+    "sport": "bike",
+    "duration": [
+      70,
+      90
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "1'-2'-3'-5'-3'-2'-1' à Z4-Z5-Z4-Z3-Z4-Z5-Z6 / égal repos Z1",
+        "zones": [
+          "Z3",
+          "Z4",
+          "Z5",
+          "Z6"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V3_TRAIL_ULTRA_MARCHE_COURSE",
+    "sport": "run",
+    "duration": [
+      180,
+      420
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10' Z1 marche",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "3-6h alternance: 10' course Z2 + 5' marche rapide. Montées >15%: marche active bâtons. Nutrition 60-90g/h glucides",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' marche",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V3_RACESIM_SEMI",
+    "sport": "run",
+    "duration": [
+      75,
+      100
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' échauffement compétition",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "16-18K à allure semi cible. Splits négatifs recommandés (1ère moitié +3s/km)",
+        "zones": [
+          "Z3",
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' trot Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V3_TEST_LACTATE_STEP",
+    "sport": "run",
+    "duration": [
+      50,
+      70
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10' Z1 + 5' Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Paliers de 4' avec +1 km/h par palier depuis 9 km/h. Prélèvement lactate à chaque palier. Arrêt à >8 mmol/L ou épuisement",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3",
+          "Z4",
+          "Z5"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V3_RECUP_COMPRESSION_PROTOCOL",
+    "sport": "mixed",
+    "duration": [
+      30,
+      60
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "Pas d'échauffement",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "1) Nutrition récup dans les 30' (0.3g/kg protéines + 1g/kg glucides). 2) Compression 20'. 3) Bain froid 10' à 10-12°C ou douche contrastée. 4) Foam rolling 10'",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "Sieste 20-30' si possible",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "V3_BIKE_Z2_PROGRESSIF",
+    "sport": "bike",
+    "duration": [
+      90,
+      150
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Progressif: 30' bas Z2 (55%) → 30' mi-Z2 (62%) → 30' haut Z2 (70%). Cadence stable 85-90 rpm",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "15' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "V3_BIKE_NEGATIVE_SPLIT",
+    "sport": "bike",
+    "duration": [
+      90,
+      150
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1→Z2",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "1ère moitié: Z2 haut (68-72% FTP). 2ème moitié: Z3 bas (76-82% FTP). Derniers 10': Z3 haut si sensations OK",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "B_TR_NEGATIVE_SPLIT",
+    "sport": "run",
+    "duration": [
+      120,
+      180
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1 plat",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "2-2h30 sentier : 1ère moitié Z1-Z2 très facile, 2nde moitié Z2-Z3 progressif. Derniers 30' @tempo",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1 marche",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_RUN_10K_TEMPO_LONG",
+    "sport": "run",
+    "duration": [
+      50,
+      65
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15min footing Z1",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "30min en progression: 10min @allure semi + 10min entre allure semi et 10K + 10min @allure 10K. Transition fluide sans arrêt",
+        "zones": [
+          "Z3",
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10min footing Z1",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "D_BIKE_TAPER_OPENER",
+    "sport": "bike",
+    "duration": [
+      30,
+      45
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15min spin Z1",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "10min Z2 incluant 4×30s @FTP puis 2×15s sprint. Tout en fraîcheur",
+        "zones": [
+          "Z2",
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10min spin très léger",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "B_RUN_LACTATE_SHUTTLE",
+    "sport": "run",
+    "duration": [
+      50,
+      65
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15min Z1-Z2 progressif + 4 accélérations 15s",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Alternance seuil/récup active : 4-6× (3min allure seuil → 2min Z2 actif SANS arrêt). L'objectif est de maintenir le lactate légèrement élevé (~3-4 mmol/L) sans pic. Réf: Brooks 2018 – le lactate est un carburant, pas un déchet. Entraîner la navette = meilleure clairance.",
+        "zones": [
+          "Z3-Z4",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10min Z1 décroissant",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_RUN_FARTLEK_LIBRE",
+    "sport": "run",
+    "duration": [
+      40,
+      55
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10min jog facile sans montre (courir au feeling)",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "25-35min de Fartlek libre : l'athlète accélère QUAND IL VEUT, AUSSI LONGTEMPS QU'IL VEUT, à L'INTENSITÉ QU'IL VEUT. Seules règles : 1) Au moins 5 accélérations. 2) Varier les durées (10s à 3min). 3) Écouter son corps. Réf: Gösta Holmer (1930s) – le Fartlek original suédois était un jeu, pas un protocole. Retrouver le plaisir primitif de courir.",
+        "zones": [
+          "Z1",
+          "Z2",
+          "Z3",
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "5-10min marche/jog très facile",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "A_BIKE_FARTLEK_TERRAIN",
+    "sport": "bike",
+    "duration": [
+      60,
+      90
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15min Z1-Z2 sur terrain plat",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "40-65min en utilisant le TERRAIN comme coach : sprinter chaque panneau, accélérer chaque côte, relancer chaque rond-point. Entre les relances : Z2 souple. Pas de puissance cible, pas de durée imposée. Variante : alterner 5min aéro/5min mains en haut, ou danseuse chaque côte.",
+        "zones": [
+          "Z2",
+          "Z3",
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10min Z1 retour facile",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "FM_BIKE_GLYCOGEN_DEPLETION",
+    "sport": "bike",
+    "duration": [
+      140,
+      200
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1 progressif",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "30' Z2 (70% FTP) + 15' Z3 bas (78% FTP) + 30' Z2 + 15' Z3 + 30' Z2. Pas de glucides pendant les 90 premières minutes. Après 90' : 30g/h glucides max si nécessaire. Objectif : vider les réserves de glycogène musculaire pour stimuler les adaptations lipidiques",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1. Recharger glucides dans les 30min post (1.2g/kg glucides + 0.4g/kg protéines)",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "FM_GUT_TRAINING_BIKE_60G",
+    "sport": "bike",
+    "duration": [
+      100,
+      150
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "15' Z1 progressif",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "75-120' Z2-Z3 (68-80% FTP). Consommer 60g glucides/h : alterner gel + boisson isotonique. Boire 500-750ml/h. Tester le mix glucose:fructose 2:1 (Jeukendrup 2014). Noter confort digestif toutes les 20min",
+        "zones": [
+          "Z2",
+          "Z3"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' Z1. Bilan digestif complet post-séance",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "REST_FULL_DAY",
+    "sport": "mixed",
+    "duration": [
+      0,
+      0
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Aucune séance. Le repos EST l'entraînement aujourd'hui — c'est pendant ces journées que les adaptations se construisent (réparation musculaire, consolidation neuro, baisse du cortisol).\n\nCheck-list du jour :\n• Sommeil : viser 8-9h, coucher avant 23h. Pas d'écran 60' avant.\n• Hydratation : 30-35 ml/kg/jour (≈ 2,2-2,5 L pour 70 kg). Urines couleur paille claire.\n• Alimentation : protéines à chaque repas (1,6-2 g/kg/jour), glucides complets, légumes, oméga-3.\n• Marche douce <20' tolérée si besoin de bouger (≠ entraînement).\n• Étirements passifs très légers autorisés (10' max) sans recherche d'amplitude.\n• Interdits : muscu, course, vélo, natation, HIIT, sauna intense, alcool.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "REST_ACTIVE_WALK",
+    "sport": "mixed",
+    "duration": [
+      20,
+      40
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "Marche facile en extérieur, terrain plat, 20-40'. Objectif = pomper le sang sans solliciter les fibres musculaires.\n\nExécution pas-à-pas :\n• Cadence : naturelle, ~100-120 pas/min. Tu dois pouvoir chanter, pas seulement parler.\n• Respiration : 100% nasale (inspire 4s / expire 6s). Si tu dois ouvrir la bouche, ralentis.\n• Posture : épaules relâchées en arrière, regard à l'horizon (pas le téléphone), bras qui se balancent librement.\n• Fréquence cardiaque cible : < 65% FCmax. Si tu n'as pas de cardio, sers-toi du test de la parole.\n• Pauses autorisées : aucune nécessaire, mais possible.\n\nRegression débutant : 20' suffit. Progression intermédiaire : 40' avec 4-5 micro-pauses pour mobilité chevilles (5 cercles/côté).",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "D_YOGA_ATHLETE",
+    "sport": "mixed",
+    "duration": [
+      20,
+      45
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "3' assis en tailleur, yeux fermés. Respiration 4s inspire nez / 6s expire nez. Pose ton intention : 'je relâche, je n'optimise pas'.",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "Enchaînement de postures (flow). Tiens chaque posture 5 respirations lentes (≈ 30-40s).\n\n1) **Salutations au soleil A (2 cycles)** — chien tête en bas → planche → chaturanga (genoux au sol pour débutant) → cobra → chien tête en bas. Lien respiration/mouvement : 1 mouvement = 1 souffle.\n\n2) **Guerrier I (Virabhadrasana I)** — fente avant, pied arrière à 45°, bras tendus vers le ciel. Bassin face avant, hanche arrière qui descend. 5 respirations/côté. Sensation : ouverture psoas avant, force jambes.\n\n3) **Guerrier II** — depuis Guerrier I, ouvre le bassin sur le côté, bras à l'horizontale. Regard sur la main avant. 5 respirations/côté.\n\n4) **Triangle (Trikonasana)** — depuis Guerrier II, tends la jambe avant, main avant qui descend sur le tibia (ou bloc), main arrière vers le ciel. 5 respirations/côté. Erreur : arrondir le dos pour aller toucher le sol. Garde-le long.\n\n5) **Pigeon (Eka Pada Rajakapotasana)** — jambe avant pliée tibia perpendiculaire, jambe arrière allongée. Buste posé sur l'avant-jambe (ou redressé pour débutant). 6 respirations/côté. Sensation : étirement profond fessier (piriforme). À ne JAMAIS forcer.\n\n6) **Pince debout (Uttanasana)** — debout, expire en pliant en avant à partir des hanches, mains au sol ou sur les tibias, genoux légèrement fléchis. 5 respirations.\n\n7) **Pont (Setu Bandha)** — allongé sur le dos, pieds au sol près des fessiers, soulève le bassin en serrant les fessiers. 5 respirations puis redescends vertèbre par vertèbre. 2 répétitions.\n\n8) **Shavasana (posture du cadavre)** — allongé sur le dos, bras en croix paumes vers le haut, jambes écartées. 3-5' en respiration libre. Scan corporel mental des pieds vers la tête.\n\nDurée Main : 15-40' selon nombre de cycles guerriers et durée du shavasana.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "2' assis tailleur, mains sur les genoux, 10 respirations conscientes. 'Mon corps est récupéré, je suis prêt(e) pour la prochaine séance.'",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Niveau débutant : 20' avec 1 seul cycle guerrier + shavasana 5'. Intermédiaire : 30-45' avec 2 cycles + transitions fluides. Important : pas d'égo dans le yoga — la posture la plus simple bien exécutée vaut 10 versions forcées.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "D_BIKE_SPIN_EASY",
+    "sport": "bike",
+    "duration": [
+      20,
+      40
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "5' Z1 cadence libre (80-90 rpm), résistance minimale.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "20-40' continu en Z1 strict.\n• Cadence cible : 90-100 rpm (jambes qui 'tournent' rapidement sans pousser fort).\n• Puissance : <55% FTP (si tu n'as pas de capteur, cible 'je sens à peine la pédale').\n• Respiration : 100% nasale.\n• Position : relâche les épaules toutes les 5', décroche un bras à tour de rôle pour relâcher la nuque.\n\nL'objectif est de pomper le sang dans les jambes pour évacuer les déchets, PAS de produire de la puissance. Si tu transpires beaucoup ou que tu deviens essoufflé, ralentis encore.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "2' cadence libre <80 rpm + 3' descente de vélo et marche douce.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Indoor (home trainer) recommandé pour éviter les côtes/sprints. Si en extérieur, choisis un parcours 100% plat. Regarde un film ou écoute un podcast — c'est une séance plaisir.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "D_FOAM_ROLLING",
+    "sport": "mixed",
+    "duration": [
+      10,
+      20
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "1' de respiration profonde au sol : inspire 4s / expire 6s. Préviens ton corps que tu vas le travailler en profondeur.",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "Parcours 6 zones, 30-45\" par passage, 2 passages par zone. Respiration LENTE pendant chaque passage (jamais d'apnée). Si tu trouves un point très sensible, reste dessus 20-30\" sans bouger jusqu'à ce que la douleur diminue de moitié.\n\n1) **Quadriceps** — face contre le rouleau, appui sur les avant-bras, rouleau juste au-dessus du genou. Roule lentement de mi-cuisse jusqu'au-dessus du genou. 2 passages chaque jambe. Erreur : passer sur le genou (interdit).\n\n2) **TFL/IT band** (face latérale cuisse) — sur le côté, hanche du dessous sur le rouleau, jambe du dessus pliée devant. Roule de la hanche jusqu'au-dessus du genou. Très sensible la 1ère fois — respire fort, ne pas pleurer 😉. 2 passages.\n\n3) **Mollets** — assis au sol, jambes tendues, rouleau sous le mollet. Croise l'autre jambe par-dessus pour amplifier la pression. Roule de la cheville jusqu'au creux du genou. Pour intensifier : tourne le pied vers l'intérieur puis l'extérieur. 2 passages/jambe.\n\n4) **Fessiers / piriforme** — assis sur le rouleau, croise la cheville droite sur le genou gauche (figure 4), penche-toi sur la fesse droite. Roule en petits cercles 30\". Change. Soulagement +++ pour les coureurs.\n\n5) **Adducteurs** (intérieur de cuisse) — face contre sol, cuisse écartée sur le côté à 90°, rouleau perpendiculaire à la cuisse, entre le genou et l'aine. Roule lentement. 2 passages/jambe. Aine = STOP.\n\n6) **Dorsaux / haut du dos** — allongé sur le dos, rouleau sous les omoplates, mains derrière la tête, bassin levé. Roule du milieu du dos jusqu'au haut. Tu peux laisser tomber la tête en arrière pour ouvrir la poitrine. Ne PAS rouler sur le bas du dos (lombaires).",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "1' allongé sur le dos, jambes pliées, respiration ample. Sens la circulation dans les jambes.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Échelle de douleur : vise 6/10 max ('inconfort qui se relâche'), jamais 9/10. Si tu n'as pas de rouleau : balle de tennis (point précis) ou bouteille d'eau gelée (mollets). Fréquence : 3-4×/semaine post-entraînement ou en soirée.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "D_ACTIVATION_ANKLE_FOOT",
+    "sport": "run",
+    "duration": [
+      8,
+      12
+    ],
+    "parts": [
+      {
+        "part": "Main",
+        "text": "5 exercices, 2 tours, repos 20s. Pieds NUS de préférence.\n\n1) **Toe yoga** (yoga des orteils) — assis, pied à plat au sol. Lève le gros orteil sans bouger les autres (10 reps). Puis lève les 4 autres en gardant le gros orteil au sol (10 reps). C'est dur la 1ère fois — le cerveau apprend. 2 tours/pied.\n\n2) **Heel raises** (montées sur pointes des pieds) — debout, mains à un mur, monte lentement sur la pointe (2s), redescends (3s). 15 reps. Pour intensifier : 1 jambe à la fois.\n\n3) **Single leg balance** — debout pieds nus sur 1 jambe, autre jambe pliée en arrière. Tiens 30\". Niveau 1 : yeux ouverts. Niveau 2 : yeux fermés. Niveau 3 : sur coussin/serviette pliée. 2×30\"/jambe.\n\n4) **Ankle CARs** (cercles contrôlés cheville) — assis ou debout, pied levé, dessine le plus grand cercle possible avec l'orteil, très lentement. 8 dans un sens / 8 dans l'autre, par cheville.\n\n5) **Short foot drill** (pied court) — assis ou debout pieds nus, essaie de 'raccourcir' ton pied en rapprochant la base des orteils du talon SANS recroqueviller les orteils. Comme si tu voulais creuser une voûte sous le pied. 12 contractions lentes de 3s/pied. Active les muscles intrinsèques (anti-pieds plats fonctionnels).",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "1' marche pieds nus en alternant marche normale, sur les pointes, sur les talons, sur les bords externes/internes.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Idéal en intégrant à ta routine du matin (sortie de douche) ou en regardant la TV. Pieds nus impératif. Prévention #1 des périostites, fascite plantaire, entorses pour les trailers et coureurs.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "D_YOGA_YIN_DEEP",
+    "sport": "mixed",
+    "duration": [
+      30,
+      50
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "3' assis tailleur, yeux fermés. Respiration 4s in / 6s out × 20 cycles. Intention : 'je m'autorise à ne rien faire'.",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "6 postures yin tenues 3-5 minutes chacune. Le yin travaille les FASCIAS (tissu conjonctif), pas les muscles. La règle : trouver son 'edge' (étirement modéré 5/10), s'immobiliser, respirer, accepter la sensation.\n\n1) **Dragon pose** (fente basse) — fente avant profonde, genou arrière au sol (coussin), mains de chaque côté du pied avant ou avant-bras au sol. 3'/côté. Sensation : psoas/aine arrière. Si trop : remonte sur les mains.\n\n2) **Sphinx** — couché ventre, avant-bras au sol coudes sous épaules, buste relevé. Bassin et jambes relâchés au sol. 3'. Sensation : ouverture douce lombaires + bas du ventre.\n\n3) **Shoelace** (lacet de chaussure) — assis, genou droit croisé par-dessus genou gauche (genoux empilés), pieds vers les fesses opposées. Penche le buste vers l'avant. 3'/côté. Sensation : fessier + hanche externe. Si genoux ne s'empilent pas : pose un coussin sous la fesse haute.\n\n4) **Banana** (banane) — couché sur le dos, croise les chevilles, attrape le poignet gauche avec la main droite par-dessus la tête, déhanche les hanches vers la gauche → corps en arc de banane. 3'/côté. Sensation : étirement latéral du tronc.\n\n5) **Butterfly** (papillon) — assis, plantes des pieds collées en losange, genoux qui tombent sur les côtés. Penche le buste vers l'avant en arrondissant le dos (yin = différent du hatha où on garde dos droit). 3'. Sensation : intérieur cuisses + bas du dos.\n\n6) **Legs up the wall** (jambes au mur) — couché sur le dos, fesses contre un mur, jambes tendues à la verticale contre le mur. Bras en croix. 5'. Récupération veineuse +++, calme le système nerveux.\n\nDurée totale : 30-50' selon nombre de postures et durée tenue.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "3' shavasana — couché sur le dos, bras en croix paumes vers le haut. Laisse le corps lourd. Respiration naturelle.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Le yin n'est PAS du stretch dynamique — la magie opère quand tu RESTES sans bouger 3-5'. Au début, c'est mentalement dur. Utilise un timer. Pas de musique entraînante (musique calme ou silence). Idéal jour de repos ou soir.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "D_YOGA_POWER_LIGHT",
+    "sport": "mixed",
+    "duration": [
+      20,
+      35
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "3' respiration diaphragmatique assise (main sur ventre, ventre qui se gonfle à l'inspiration, se vide à l'expiration). 15 cycles.",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "Flow dynamique : 1 mouvement = 1 respiration. Tiens 3-5 respirations dans les postures statiques.\n\n1) **Salutation au soleil A × 3 cycles** : debout (Tadasana) → bras au ciel inspire → pince debout expire → demi-pince inspire → planche expire → chaturanga (descente pompe contrôlée) → cobra/chien tête en haut inspire → chien tête en bas expire (5 respirations) → step avant pince → bras au ciel inspire → debout expire. Apprends ce flow par cœur.\n\n2) **Guerrier II flow** (5 min) — depuis chien tête en bas, step pied droit en fente, ouvre en Guerrier II (bras horizontaux), tiens 5 resp. Passe en Triangle (jambe avant tendue, main avant qui descend, main arrière vers le ciel), tiens 5 resp. Passe en Demi-lune (main avant au sol, jambe arrière levée à l'horizontale, main libre vers le ciel), tiens 5 resp. Reviens Guerrier II. Change de côté.\n\n3) **Chair pose flow** (chaise) — debout, descends en chaise (cuisses parallèles au sol, bras au ciel, dos long), tiens 5 resp. Twist droit (coude gauche sur genou droit), 5 resp. Twist gauche, 5 resp. Sors en pince debout.\n\n4) **Posture sur 1 jambe — Tree pose** (arbre) — debout, pied droit à l'intérieur cuisse gauche (ou mollet, JAMAIS sur le genou), mains jointes devant la poitrine ou au ciel. 8 resp/côté. Travaille équilibre + concentration.\n\nDurée Main : 15-25' selon vitesse.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "Posture de l'enfant 2' + shavasana 3-5'.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Power yoga = chauffe + force + équilibre + souplesse. Ne pas faire avant une séance VO2max ou seuil (tu seras 'cuit'). Idéal le matin pour démarrer la journée OU intercalé entre 2 jours d'entraînement modérés.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "D_YOGA_PRERACE",
+    "sport": "mixed",
+    "duration": [
+      15,
+      25
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "2' assis tailleur, 10 respirations lentes 4/6. Pose ton intention pour demain : 1 mot (ex. 'fluide', 'engagé', 'présent').",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "7 postures douces, focalisées sur la respiration et l'apaisement. Ne CHERCHE PAS la performance.\n\n1) **Cat-cow** lent × 10 cycles (1'). Lubrifie la colonne.\n\n2) **Low lunge** (fente basse douce) — fente avant, genou arrière au sol, mains de chaque côté du pied avant ou bras au ciel. 1'/côté × 2. Ouvre les psoas (souvent tendus à cause du stress).\n\n3) **Pigeon doux** — jambe avant pliée tibia perpendiculaire, jambe arrière étendue, buste droit (pas penché en avant pour cette version pré-course). 1'/côté × 2.\n\n4) **Forward fold debout** (pince) — debout, expire en pliant en avant, mains au sol ou aux tibias, genoux légèrement fléchis. Laisse pendre la tête. 1'. Calme le système nerveux.\n\n5) **Legs up the wall** — couché sur le dos, jambes tendues contre un mur. 3'. Récupération veineuse + relaxation profonde.\n\n6) **Body scan meditation** — toujours allongé jambes au mur ou shavasana, scan mental du corps des pieds vers la tête, 30s par zone. Note les tensions, respire dedans. 5'.\n\n7) **Visualisation parcours** (optionnel) — assis ou allongé, visualise les 1ères minutes de course : le départ, ton allure, ta respiration, ton expression. Voir, sentir, vivre mentalement.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "2' assis tailleur, mains sur les genoux, 10 respirations. 'Je suis prêt(e). Je fais confiance à mon entraînement.'",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "À faire le SOIR J-1, idéalement après le dîner (laisser 90' avant le coucher). Lumière tamisée, pas d'écran, musique calme ou silence. ZERO ambition de performance dans cette séance — c'est un cadeau à ton système nerveux.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "D_TAPER_FLUSH_BIKE",
+    "sport": "bike",
+    "duration": [
+      20,
+      30
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "5' Z1 cadence libre montée progressive.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "**Bloc 1 — 12-20' Z1 cadence 90-95 rpm**.\n\n**Bloc 2 — 3×30\" à FTP, cadence 95-100 rpm, R=1' Z1**. Les 30\" doivent être 'francs' (FTP, pas plus) — c'est un rappel neuromusculaire, pas un test. Reste assis, position aéro propre. Récup 1' pédalage Z1 cadence libre entre chaque.",
+        "zones": [
+          "Z1",
+          "Z4"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "3' Z1 cadence libre.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Les '3×30\" FTP' réveillent les fibres rapides sans les fatiguer. Si tes jambes sont lourdes au 2ème 30\", arrête, ne fais pas le 3ème. Tu dois sortir frais et en confiance.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "D_BREATHWORK_NASAL_ENDURANCE",
+    "sport": "mixed",
+    "duration": [
+      15,
+      25
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "3' assis confortable, respiration naturelle d'observation. Note ton 'BOLT score' (Body Oxygen Level Test) : inspire normal nez, expire normal nez, pince le nez, compte les secondes avant la 1ère envie de respirer. <20s = capacité CO2 faible (à travailler), 20-40s = correct, >40s = athlète entraîné en respi.",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "**Protocole inspiré Patrick McKeown (Oxygen Advantage).**\n\n**Bloc 1 — Respiration nasale lente 4/6 × 10 cycles (3')**\nInspire 4s nez (ventre), expire 6s nez. Réduit la fréquence respiratoire, élève le CO2.\n\n**Bloc 2 — Réduction respiratoire × 12 cycles (5')**\nRespire UNIQUEMENT par le nez, RÉDUIS volontairement le volume inspiré (respiration 'plus petite' que la normale). Tu dois ressentir une 'faim d'air' légère mais tolérable (3-4/10). Cela accroît la tolérance au CO2 = meilleure efficience respiratoire à l'effort.\n\n**Bloc 3 — Apnée à l'expiration progressive (5')**\nInspire normal nez, expire normal nez, retiens souffle poumons vides. Compte les secondes jusqu'à la 1ère 'pression' (pas jusqu'à l'asphyxie). Reprends respiration calme par le nez. Récup 1' respiration normale. Refais 5-6 cycles.\nObjectif : allonger progressivement la durée d'apnée semaine après semaine.\n\n**Bloc 4 — Cohérence cardiaque 5/5 × 5' (5')**\nRespiration calme nez 5s in / 5s out, comme vague régulière. Termine sur cette note apaisée.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "2' respiration libre nez, 5 respirations profondes.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Effets attendus après 4-6 sem : ventilation/min plus basse à effort donné = économie cardiaque + meilleure libération O2 aux muscles (effet Bohr). À combiner avec respiration NASALE en footing facile (Z1-Z2). Ne JAMAIS forcer une apnée jusqu'au malaise — la 'pression' est ton signal d'arrêt. Si vertige : stop, respire normalement.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_MAX_LOWER_HEAVY",
+    "sport": "strength",
+    "duration": [
+      50,
+      65
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "12' progressif :\n• 5' vélo home-trainer Z1 (RPE 2-3, tu chantonnes).\n• Activation glute bridge : allongé dos, talons proches fesses, pieds largeur bassin. Pousse dans les talons pour soulever le bassin, serre fort les fessiers en haut 1s, redescends lent. 2×12. Respire : expire en montant.\n• Bird-dog : à 4 pattes, tends bras droit + jambe gauche dans le prolongement du dos, tiens 2s, retour lent. 2×8/côté. Sensation : abdos profonds gainés.\n• 2 séries montantes squat barre : 5 reps @ 50% 1RM puis 5 reps @ 70% 1RM (mise en route articulaire et neuro).",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "**A) Back squat lourd — 4×4 @ 85-90% 1RM (RPE 8.5-9)**\n• Position : barre sur trapèzes (high-bar) ou un peu plus bas (low-bar), pieds largeur épaules, pointes 15° ouvertes.\n• Exécution : inspire profond ventre+côtes (Valsalva), gaine, descends en 2s en gardant le buste droit jusqu'à cuisses parallèles au sol, reste 1s en bas, pousse fort dans les talons pour remonter en 1s. Expire en haut.\n• Sensation : quadris + fessiers chargés, dos neutre verrouillé.\n• Erreurs fréquentes : genoux qui rentrent (valgus) · talons qui décollent · arrondissement bas du dos en fin de descente.\n• Régression débutant : goblet squat haltère 12kg × 8 reps tempo 3-1-1-0 (apprentissage 4-6 sem avant barre).\n• Repos 3-4' complets entre séries (récup ATP-PCr).\n\n**B) Trap-bar deadlift (hex-bar) — 3×4 @ 85% 1RM**\n• Position : dans la cage trap-bar, pieds largeur bassin, poignées dans les mains, bras tendus, dos plat, regard à 2m devant.\n• Exécution : inspire ventre, pousse le sol avec les jambes (pas tirer avec le dos), barre qui longe les jambes, extension complète hanches en haut. Expire en haut, redescends contrôlé 2s.\n• Sensation : chaîne postérieure entière (ischios+fessiers+dos).\n• Erreur fréquente : tirer dos arrondi → blessure lombaire.\n• Régression : Romanian deadlift haltères 8 reps @ RPE 6 (apprentissage charnière de hanche).\n• Repos 3'.\n\n**C) Hip thrust barre — 3×6 @ RPE 8 · tempo 2-1-2-0**\n• Position : haut du dos appuyé sur banc, barre sur hanches (avec coussin), pieds à plat largeur bassin.\n• Exécution : pousse les hanches vers le plafond en serrant fort les fessiers, alignement épaule-genou en haut, tiens 1s, redescends 2s.\n• Sensation : fessiers en feu, pas de tension dans le bas du dos.\n• Erreur : hyperextension lombaire en haut (cambré) → menton vers poitrine, fessiers serrés.\n• Régression : glute bridge PdC 15 reps tempo 2-2-2.\n• Repos 2'.\n\n**D) Mollets debout chargés — 3×8 tempo 2-2-1-0**\n• Position : machine ou Smith, plante des pieds sur cale, talons dans le vide.\n• Exécution : descends talons 2s sous niveau cale (étirement max), remonte 1s pointe max, tiens 1s en haut.\n• Sensation : gastrocnémiens (mollet visible) en contraction.\n• Erreur : amplitude tronquée, rebond élastique sans contrôle.\n• Repos 75s.\n\n→ Protocole Rønnestad 2010 (heavy strength + endurance) : gains économie +4-5%.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "8' :\n• Marche ou vélo Z1 3' pour évacuer.\n• Mobilité hanches couch stretch 60s/côté + stretch quadris debout 30s/côté ×2.\n• Respiration nasale lente 2'.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Coaching",
+        "text": "Progression 4+1 : Sem 1-2 : 4×4 @ 85%. Sem 3-4 : 4×4 @ 87-90%. Sem 5 décharge -40% volume. Maintien 1×/sem en peak.\nSécurité : toujours dans une cage avec arrêts de sécurité, ou avec un parreur. Si tu ne peux pas tenir le tempo, baisse la charge — la qualité prime.\nDébutant strict : 6-8 semaines de goblet squat + RDL haltères avant d'attaquer ce bloc lourd.",
+        "zones": []
+      },
+      {
+        "part": "Références",
+        "text": "Rønnestad & Mujika (2014, Scand J Med Sci Sports) · Vikmoen et al. (2016) · Beattie et al. (2017).",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_CORE_INTEGRATED",
+    "sport": "strength",
+    "duration": [
+      25,
+      35
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "5' activation :\n• Dead bug lent : allongé dos, bras tendus vers plafond, jambes à 90°. Tends bras droit derrière la tête + jambe gauche vers le sol (sans toucher), garde bas du dos PLAQUÉ au sol. 2×8/côté. Sensation : transverse engagé.\n• Cat-cow 1' lent (10 cycles).\n• Glute bridge 2×10 tempo 2-2-2.",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "Circuit 4 tours, repos 60s entre tours. Philosophie McGill : le core sert à TRANSMETTRE la force, pas à la créer — donc on travaille la résistance au mouvement (anti-pattern) plutôt que les crunchs.\n\n**1) Anti-extension — Hollow body hold (30-45s)**\n• Position : allongé dos, bas du dos plaqué au sol, jambes tendues à 15cm du sol, bras tendus derrière les oreilles.\n• Sensation : abdos profonds qui brûlent, bas du dos qui RESTE collé au sol.\n• Erreur : bas du dos qui se creuse → remonte jambes ou bras.\n• Régression débutant : tuck hold (genoux pliés ramenés vers poitrine) 30s.\n• Respiration : continue, pas d'apnée.\n\n**2) Anti-rotation — Pallof press élastique (12/côté lent)**\n• Position : debout côté à un point d'ancrage (porte), élastique tenu à 2 mains contre la poitrine.\n• Exécution : tends les bras devant toi lentement, RÉSISTE à la traction qui veut te faire tourner le buste vers l'ancrage. Tiens 2s, ramène. 12 lent.\n• Sensation : obliques + transverse engagés pour résister à la rotation.\n• Erreur : laisser tourner les épaules.\n• Régression : recule d'1 pas de l'ancrage (moins de tension).\n\n**3) Anti-flexion latérale — Suitcase carry (30m/côté)**\n• Charge : haltère ≈ 50% du poids du corps dans une seule main.\n• Exécution : marche lentement 30m en gardant les épaules parfaitement à l'horizontale, ne penche pas du côté chargé. La main libre reste relâchée.\n• Sensation : QL (carré des lombes) du côté OPPOSÉ à la charge qui travaille.\n• Erreur : compenser par épaule remontée → relâche.\n• Régression : 20m avec 30% PdC.\n\n**4) Anti-flexion — Front plank avec drag haltère sous corps (8/côté)**\n• Position : planche bras tendus, pieds largeur épaules, haltère 5kg sur le côté.\n• Exécution : attrape l'haltère avec la main opposée, fais-le glisser sous le corps vers l'autre côté, alterne. 8/côté.\n• Sensation : abdos qui résistent à la rotation des hanches (les hanches DOIVENT rester immobiles).\n• Erreur : hanches qui basculent.\n• Régression : planche genoux au sol 30s statique.\n\n**5) Hip-driven — Single-leg glute bridge tempo 2-2-2 (10/jambe)**\n• Position : allongé dos, un pied au sol près des fessiers, autre jambe tendue.\n• Exécution : monte 2s, tiens 2s en haut (fessier serré, hanches parfaitement alignées sans bascule), redescends 2s.\n• Sensation : fessier de la jambe d'appui isolé.\n• Erreur : hanche du côté libre qui chute → garde alignement.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "5' :\n• Child pose 1' (respiration ample).\n• Respiration diaphragmatique 4' allongé sur le dos, main sur le ventre : inspire 4-6s nez, expire 6-8s nez. Le ventre se gonfle à l'inspire.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Progression : Sem 1-2 : 3 tours. Sem 3-4 : 4 tours + charges +10%. Pas de décharge nécessaire.\nFréquence : 2×/sem idéal, jamais le jour d'une qualité bas du corps.",
+        "zones": []
+      },
+      {
+        "part": "Références",
+        "text": "McGill (2016) Low Back Disorders — 4 patterns anti-mouvement.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_ECC_DOWNHILL_PROTOCOL",
+    "sport": "strength",
+    "duration": [
+      40,
+      55
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10' :\n• 5' vélo Z1.\n• Squat PdC 2×10 + fentes 2×8/côté (voir technique reverse lunge dans C_STR_BODYWEIGHT_HOME).\n• Mobilité cheville dorsiflexion contre mur 1'/côté.",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "Logique : exposer les quadris à des contractions excentriques répétées pour déclencher le **Repeated Bout Effect (RBE)** = adaptation neuromusculaire qui protège des courbatures lors de la course en descente. Eston 1996.\n\n**A) Step-down excentrique boîte 40cm — 4×8/jambe · repos 90s**\n• Position : debout sur une boîte/marche stable de 40cm, un pied dans le vide.\n• Exécution : descends LENTEMENT en 5s en contrôlant uniquement avec la jambe d'appui, le pied libre touche à peine le sol. Remonte en t'aidant des bras (rampe, mur) — on ne travaille QUE l'excentrique.\n• Sensation : quadris qui freinent intensément.\n• Erreur : descente rapide (élan), genou qui rentre.\n• Régression : boîte 20cm, descente 3s, sem 1-2.\n\n**B) Back squat excentrique — 4×5 @ 70-75% 1RM · repos 3'**\n• Position et exécution : voir C_STR_MAX_LOWER_HEAVY.\n• Différence : descente en 5s contrôlés, remontée 1s normale.\n• Sensation : quadris en feu sur la descente.\n\n**C) Reverse Nordic curl — 3×6 amplitude tolérée · repos 90s**\n• Position : à genoux, pieds maintenus (sangle/coussin), buste droit cuisses verticales.\n• Exécution : recule lentement le buste en arrière en pivotant aux genoux, gardant le corps aligné des genoux à la tête. Tiens en bout d'amplitude tolérable, remonte en t'aidant si besoin.\n• Sensation : étirement intense quadris.\n• Régression : amplitude réduite 30° les 2 premières semaines.\n• Attention genoux : si douleur rotulienne → STOP.\n\n**D) Wall sit dynamique avec rebond léger — 3×40s · repos 60s**\n• Position : dos contre mur, cuisses parallèles au sol genoux 90°.\n• Exécution : petits rebonds verticaux 2-3cm dans la position, sans décoller le dos.\n• Sensation : quadris en tension isométrique avec petites secousses.\n\n**E) Marche en descente lestée — gilet 8-12kg, tapis -10%, 5'**\n• Marche normale en pente descendante à 4-5km/h, gilet lesté.\n• Sensation : quadris freinateurs sollicités.\n• Régression : sans lest les 2 premières semaines.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "10' : foam rolling quadris 4' (lent, pause 30s sur points sensibles) + stretch quad debout 30s/côté ×3 + marche 3'.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Progression critique : Sem 1 : volume 50% (test courbatures J+2-J+3, normales à modérées). Sem 2 : 70%. Sem 3-5 : volume plein. Sem 6 décharge -50%. Sem 7-8 réintroduction. STOP 14j avant course A.\nSi courbatures >7/10 J+3 → réduis volume sem suivante de 30%.\nObjectif : course en descente >30' sans destruction musculaire.",
+        "zones": []
+      },
+      {
+        "part": "Références",
+        "text": "Eston et al. (1996) sur RBE · Nosaka & Aoki (2011).",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_CALF_ISO_HEAVY",
+    "sport": "strength",
+    "duration": [
+      30,
+      40
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "6' :\n• Marche dynamique 2'.\n• Mobilité cheville : squat profond tenu 30s ×2, dorsiflexion contre mur (genou qui pousse vers le mur en gardant talon au sol) 12/côté.",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "**A) Calf raise debout chargé barre/Smith — 4×6 @ RPE 8.5 · tempo 3-2-1-1 · repos 2'30**\n• Position : barre sur trapèzes (ou Smith machine), plante des pieds sur cale 5cm, talons dans le vide.\n• Exécution : descends talons en 3s sous niveau cale (étirement max), tiens 2s en bas, remonte 1s pointe max, tiens 1s en haut.\n• Sensation : gastrocnémiens en charge maximale.\n• Erreur : amplitude tronquée · rebond élastique.\n• Régression : sans charge en mono-jambe pour apprendre tempo (sem 1-2).\n\n**B) Isométrique calf raise mi-amplitude (Smith) — 4×30s · repos 2'**\n• Position : Smith machine, plante des pieds sur cale, jambes droites.\n• Exécution : monte en pointe à mi-amplitude (45° dorsiflexion/plantaire), TIENS immobile 30s à charge lourde.\n• Sensation : tendon Achille + mollet en contraction soutenue.\n• Protocole tendineux : viser 5 minutes cumulées >85% charge max sur la semaine (antalgique + adaptation collagène).\n\n**C) Soléaire assis chargé — 4×10 tempo 2-1-2-0 · repos 90s**\n• Position : assis machine soléaire, genoux à 90°, charge sur les cuisses.\n• Exécution : monte en pointe 2s, tiens 1s, descends 2s.\n• Sensation : soléaire isolé (mollet profond).\n• Importance : sous-utilisé, crucial pour économie de course.\n\n**D) Heel drop excentrique escalier — 3×15/jambe (descente 4s)**\n• Position : pointe des pieds sur marche, talons dans le vide.\n• Exécution : monte sur 2 pieds, transfère sur 1 pied, descends en 4s lent UNIQUEMENT excentrique, remonte sur 2 pieds.\n• Sensation : tendon Achille étiré sous contrôle.\n• Crucial pour tendinopathie Achille (protocole Alfredson).\n\n**E) Hop unilatéral sur place — 3×20 (rigidité réactive)**\n• Sauts sur un pied au sol, contact bref (<200ms), retour rapide.\n• Sensation : ressort tendon.\n• Régression : double-leg pogo si dur.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "6' : stretch gastro debout (jambe arrière tendue, talon au sol) 30s/côté ×3 + stretch soléaire (jambe arrière genou fléchi) 30s/côté ×3 + mobilité cheville 2'.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Progression : charge +2.5kg/sem si tempo respecté. Iso : viser 5min cumulées >85% charge max. Décharge sem 5.\nSi tendinopathie Achille en place : protocole iso ET excentrique = traitement de référence (Rio 2015, Alfredson).\nSensation tendon : courbatures localisées normales 48h, douleur aiguë lancinante = STOP.",
+        "zones": []
+      },
+      {
+        "part": "Références",
+        "text": "Rio E. et al. (2015) — isométriques antalgiques · Alfredson et al. (1998) — eccentric protocol.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_TRAIL_LATERAL_STABILITY",
+    "sport": "strength",
+    "duration": [
+      30,
+      40
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "8' : mobilité hanches/chevilles (90/90 + ankle CARs) + bondissements légers latéraux 2×15s/côté.",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "**A) Lateral lunge haltères — 3×8/côté tempo 3-0-1-0 · repos 90s**\n• Position : debout pieds joints, haltères dans les mains.\n• Exécution : grand pas LATÉRAL à droite, descends sur la jambe droite (genou aligné pointe), jambe gauche tendue, descends 3s, pousse pour revenir.\n• Sensation : adducteurs + fessiers + quadris jambe d'appui.\n• Erreur : genou qui rentre · buste trop penché vers l'avant.\n\n**B) Cossack squat — 3×6/côté · repos 90s**\n• Position : debout pieds très écartés (1.5× largeur épaules), haltère en goblet.\n• Exécution : descends d'un côté en fléchissant complètement cette jambe (talon collé), jambe opposée tendue talon décollé pointe vers le haut, redresse, alterne.\n• Sensation : mobilité hanches + force adducteurs.\n• Régression : amplitude réduite (descente à mi-chemin).\n\n**C) Single-leg deadlift haltère (équilibre) — 3×8/jambe · repos 90s**\n• Position : debout sur 1 pied, haltère dans la main opposée.\n• Exécution : charnière de hanche, jambe libre qui s'allonge derrière, buste qui descend en T, haltère qui descend le long de la jambe d'appui. Redresse contrôlé.\n• Sensation : ischios + fessier + équilibre cheville.\n• Erreur : perdre l'alignement (hanche libre qui s'ouvre).\n• Régression : pied libre qui effleure le sol pour aide équilibre.\n\n**D) Lateral bounds réactifs — 4×8/côté · repos 60s**\n• Position : debout sur 1 pied (droit), saute latéralement et atterris sur l'autre pied (gauche), tiens 1s en équilibre.\n• Sensation : explosion latérale + contrôle réception.\n• Erreur : réception molle, perte d'équilibre.\n\n**E) Renfo péroniers élastique (éversion) — 3×15/côté**\n• Position : assis, élastique autour du pied, ancré côté médial.\n• Exécution : éverte le pied (pousse pointe vers l'extérieur) contre la résistance, lent.\n• Sensation : muscles latéraux de la cheville.\n• Crucial pour prévention entorse en inversion (mécanisme classique).\n\n**F) Équilibre yeux fermés mono-jambe surface molle — 4×30s/jambe**\n• Position : debout sur coussin proprio ou serviette pliée, 1 pied, yeux fermés, bras croisés.\n• Sensation : tout le pied qui ajuste en permanence.\n• Régression : yeux ouverts surface dure (sem 1-2).",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "6' : stretch adducteurs (grenouille au sol) 60s + mobilité cheville 2' + foam roll bandelette IT 1'/côté.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Progression : Sem 1-2 : charge légère, surface dure, yeux ouverts. Sem 3-4 : charge +20%, surface molle, yeux fermés.\nCible : marcher/courir sereinement sur cailloux mobiles, racines, pentes latérales.",
+        "zones": []
+      },
+      {
+        "part": "Références",
+        "text": "Hrysomallis (2007, Sports Med) — équilibre & prévention entorses.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_NORDIC_HAMSTRING_PETERSEN",
+    "sport": "strength",
+    "duration": [
+      25,
+      35
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "8' :\n• Glute bridge 2×12 tempo 2-2-2.\n• Leg swing avant/arrière 12/côté.\n• Hip CARs 5/côté.\n• Good morning PdC 2×10 (mains derrière tête, charnière de hanche, descends buste 3s).",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "**A) Nordic curl excentrique (partenaire / strap / machine) — protocole Petersen 2011**\n\n• Position : à genoux, mollets/chevilles maintenus FERMEMENT (par partenaire qui appuie sur les chevilles, ou strap fixe, ou machine Nordic).\n• Exécution : départ buste droit cuisses verticales, descends LENTEMENT en 3-5s en pivotant aux genoux, garde le corps parfaitement aligné (genoux-hanches-épaules en ligne droite, pas de cassure aux hanches). Au moment où tu ne peux plus retenir, atterris sur les mains et pousse pour revenir en haut (aide bras).\n• Sensation : ischios en contraction excentrique maximale, tension qui augmente jusqu'à perte de contrôle.\n• Erreur cardinale : casser aux hanches (charnière hanches au lieu de genoux) → perds le travail ischios.\n• Régression débutant : amplitude réduite 30° les 2 premières semaines (atterris vite).\n\n**Périodisation Petersen :**\n• Sem 1 : 1×5 (1 séance/sem).\n• Sem 2 : 2×6 (2 séances/sem).\n• Sem 3 : 3×6-8 (3 séances/sem).\n• Sem 4-10 : 3×8-10 (3 séances/sem en pré-saison, 1×/sem maintien post).\n→ Repos 2'30 entre séries.\n\n**B) Romanian deadlift haltères — 3×8 @ RPE 7 · tempo 3-0-1-0 · repos 90s**\n• Voir détail dans C_STR_BEGINNER_FOUNDATION_FULL.\n\n**C) Single-leg RDL — 3×8/jambe · repos 90s**\n• Voir détail dans C_STR_TRAIL_LATERAL_STABILITY.\n\n**D) Glute-ham raise machine (si dispo) — 2×8**\n• Position : sur machine GHR, pieds calés sous rouleaux, cuisses appuyées.\n• Exécution : depuis position pied au sol bras tendus, soulève le buste en utilisant ischios pour fléchir les genoux.\n• Régression : se passer si machine non dispo, Nordic + RDL suffisent.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "8' : foam roll ischios 3' (lent, points sensibles) + stretch ischios debout pied surélevé 30s/côté ×3.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Courbatures normales sem 1-2 (RBE prend 2-3 sem pour s'installer). Cycle 4+1 (3 semaines progression + 1 décharge).\nMaintien minimum 1×/sem AD VITAM pour conserver l'effet protecteur.\nProtocole non-négociable pour : marathon · semi · trail · soccer (origine).",
+        "zones": []
+      },
+      {
+        "part": "Références",
+        "text": "Petersen J. et al. (2011, Am J Sports Med) N=942 footballeurs, -51% lésions ischios · van Dyk et al. (2019) confirmation -51%.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "C_STR_ANKLE_FOOT_COMPLEX",
+    "sport": "strength",
+    "duration": [
+      20,
+      30
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "3' : mobilité cheville (dorsiflexion contre mur 12/côté + cercles cheville 10/sens + marche pointes/talons 30s chaque).",
+        "zones": []
+      },
+      {
+        "part": "Main",
+        "text": "**A) Équilibre mono-jambe yeux ouverts/fermés — 30-45s × 2/côté**\n• Position : debout sur 1 pied, autre genou levé hanche fléchie 90°.\n• Sensation : pied qui ajuste en permanence, cheville stabilisatrice.\n• Progression sem 3 : sur coussin proprio. Sem 4 : yeux fermés.\n\n**B) Calf raise mono-jambe excentrique escalier — 3×12/jambe (descente 3s)**\n• Voir détail dans C_STR_SINGLE_LEG_RUNNER.\n\n**C) Sauts unipodaux contrôlés (avant/arrière/latéral/diagonal) — 3×6/direction/jambe · repos 60s**\n• Position : debout sur 1 pied.\n• Exécution : saute dans une direction (ex : avant), réception en équilibre 1s, saute dans la direction opposée, etc. 6 sauts × 4 directions = 24 sauts.\n• Sensation : cheville qui contrôle la réception sur tous les axes.\n\n**D) Renfo tibial antérieur (toe raises chargés ou poulie) — 3×15**\n• Position : assis ou debout, poids sur dessus des orteils (ou poulie attachée).\n• Exécution : lève les orteils vers le tibia contre la résistance, lent.\n• Sensation : tibial antérieur (devant du tibia).\n• Crucial pour prévention périostite tibiale.\n\n**E) Renfo péroniers (élastique éversion) — 3×15/côté**\n• Voir détail dans C_STR_TRAIL_LATERAL_STABILITY.\n\n**F) Short foot exercise (activation intrinsèques) — 3×10s × 5 répétitions/pied**\n• Position : assis, pieds à plat au sol, sans appuyer sur les orteils.\n• Exécution : raccourcis activement le pied en rapprochant la tête du gros orteil du talon (cambrer la voûte plantaire) SANS recourber les orteils.\n• Sensation : muscles intrinsèques du pied actifs (difficile à isoler au début).\n• Importance : foot core paradigm.\n\n**G) Pickup billes/serviette avec orteils — 2×30s/pied**\n• Position : assis, serviette au sol sous le pied.\n• Exécution : essaie de saisir/froisser la serviette avec les orteils.\n• Sensation : intrinsèques du pied + flexion plantaire active.",
+        "zones": []
+      },
+      {
+        "part": "Cool-down",
+        "text": "3' : mobilité cheville + auto-massage voûte plantaire balle 1'/côté.",
+        "zones": []
+      },
+      {
+        "part": "Coaching",
+        "text": "Progression : Surface dure → coussin proprio sem 3. Yeux fermés sem 4. Ajouter 1 perturbation externe (push partenaire) sem 6.\nIdéal couplé à C_STR_TRAIL_FOOT_TECHNIQUE pour trailers.",
+        "zones": []
+      },
+      {
+        "part": "Références",
+        "text": "McKeon et al. (2015) — foot core paradigm · Hrysomallis (2007) — équilibre & blessures.",
+        "zones": []
+      }
+    ]
+  },
+  {
+    "id": "S2R_CONTINUOUS_30_LONG",
+    "sport": "run",
+    "duration": [
+      42,
+      50
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "10min marche active progressive",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "30min de course continue, allure stable et lente. Découpage mental possible en 3×10min sans arrêt.",
+        "zones": [
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "8min marche + mobilité complète 5min",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "S2R_TECHNIQUE_CADENCE_DRILLS",
+    "sport": "run",
+    "duration": [
+      15,
+      25
+    ],
+    "parts": [
+      {
+        "part": "Warm-up",
+        "text": "5min marche active",
+        "zones": [
+          "Z1"
+        ]
+      },
+      {
+        "part": "Main",
+        "text": "4 éducatifs × 20m, 2 passages chacun : talons-fesses · montées de genoux · foulées bondissantes très souples · pas chassés. Puis 4× 1min de trot à cadence augmentée (petits pas rapides, viser ~170-180 pas/min avec un métronome).",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      },
+      {
+        "part": "Cool-down",
+        "text": "5min marche",
+        "zones": [
+          "Z1"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "status": "code_pushed_and_PR_updated_DRAFT_NO_GO",
+  "verifiedAt": "2026-10-29T16:20:32.518215+00:00",
+  "branch": "experiment/det-engine",
+  "implementationCommit": "14727e42f6f5960612c542b51d0e2a5e6cd6e2eb",
+  "pr": 420,
+  "draft": true,
+  "merged": false,
+  "prHeadAtCodePublication": "14727e42f6f5960612c542b51d0e2a5e6cd6e2eb",
+  "bodySha256": "7538064cedf53dea1e5033c16cf0e4ca631686b62b8fcdd5f10c0dc9bbae0147",
+  "priorTrackedFilesUnchanged": 4742,
+  "releaseManifestVerified": 103,
+  "closureCommit": "documentation only; contains this receipt and closed state, with remote HEAD checked after push",
+  "forcePush": false,
+  "productionTouched": false,
+  "individualDoseApprovals": 0,
+  "humanExpertReviews": 0
+}

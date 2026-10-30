@@ -1,0 +1,245 @@
+{
+  "version": "det-v21c-examined-study-protocols-1",
+  "reviewRole": "Codex documentary analysis, not qualified human sporting approval",
+  "studies": [
+    {
+      "key": "acute_cycle_3_3",
+      "scope": "primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "bike",
+      "design": "acute_randomized_crossover",
+      "population": "24 healthy recreationally active men, 24.3 ± 3.6 years; cardiac output available in 17; not an Ironman cohort",
+      "work": "Five 3-min work phases versus 30 short work phases of 30 s, arranged in five 6-min sections; matched work rate and time",
+      "repetitions": 5,
+      "workSeconds": 180,
+      "restSeconds": 180,
+      "cadenceRpm": null,
+      "intensityAnchor": "cycle_ramp_power_at_80pct_VO2peak_then_reduced_5pct",
+      "restAnchor": "cycle_ramp_power_at_85pct_GET",
+      "intensityDetail": "Power corresponding to 80% VO2peak on a 20 W/min ramp, then reduced by 5% for delayed oxygen kinetics; not 80% FTP. Relief power corresponds to 85% GET.",
+      "recovery": "Long condition: each complete section has 3 min work and 3 min active recovery. Short condition starts with 30 s active recovery to align work-phase sampling. This does not settle a TFCL source's missing final rest.",
+      "warmupCooldown": "3 min baseline observation and 5 min warm-up at the active-recovery intensity; no TFCL 20-min warm-up plus accelerations or 10-min cool-down established",
+      "frequency": "Three experimental visits within two weeks, at least 48 h apart; acute protocols, not a weekly training prescription",
+      "outcomes": "Higher work-phase cardiopulmonary responses and time above target for long intervals, broadly similar section-average VO2; lactate 6.2 versus 4.2 mmol/L; no chronic adaptation measured",
+      "limits": "Recreational males; acute mechanistic contrast; equal work rates; not an individual optimum, not FTP-based prescription",
+      "protocolCompleteForReportedContrast": true,
+      "primarySupportsChronicGain": false,
+      "sourceSections": [
+        "2. Methods",
+        "3. Results",
+        "4. Discussion",
+        "5. Conclusions"
+      ],
+      "targetIds": [
+        "B_BIKE_VO2_3MIN",
+        "BILLAT_BIKE_VO2MAX_4MIN",
+        "SEILER_BIKE_4X4MIN"
+      ],
+      "reasonForTargets": "Explicit cycling interval recipes in the source, including 3/3 or 4/3–4 patterns; compare the actual anchors and whole session, not the VO2 label."
+    },
+    {
+      "key": "chronic_run_4_4",
+      "scope": "primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "run",
+      "design": "eight_week_randomized_training_trial",
+      "population": "48 aerobically well-trained healthy men randomized; 31 analyzed (10 HIIT, 12 short-rest SIT, 9 long-rest SIT); accustomed to treadmill but not specialized competitive runners",
+      "work": "HIIT 4×4 min compared with approximately 8×20 s exhaustive running and 10×30 s maximal running; treadmill approximately 3 degrees",
+      "repetitions": 4,
+      "workSeconds": 240,
+      "restSeconds": 180,
+      "cadenceRpm": null,
+      "intensityAnchor": "running_MAS_at_3deg_adjusted_to_HR_response",
+      "restAnchor": "70pct_HRmax_running",
+      "intensityDetail": "About 95% MAS, adjusted to reach 90–95% HRmax within 3 min; MAS measured at 3 degrees. This is neither cycling FTP nor proof that any HR percentage certifies measured VO2max.",
+      "recovery": "Three 3-min active recoveries between the four work bouts; a separately stated final 3-min cool-down at the same 70% HRmax intensity",
+      "warmupCooldown": "10-min warm-up around 70% HRmax; 3-min final cool-down; HIIT total 38 min. The study explicitly separates final cool-down from between-bout recovery.",
+      "frequency": "3 sessions/week for 8 weeks; other high-intensity endurance prohibited during intervention; other usual physical activities allowed",
+      "outcomes": "HIIT VO2max increased more than the two SIT groups; different anaerobic and performance responses. Attrition and compliance affect interpretation; not a universal protocol ranking.",
+      "limits": "Male selected sample, no direct bike transfer, protocol-specific training volume, no individual TFCL dose established; some SIT intolerance reported",
+      "protocolCompleteForReportedContrast": true,
+      "primarySupportsChronicGain": true,
+      "sourceSections": [
+        "2.1 Subjects",
+        "2.4 Training interventions",
+        "3.1 Withdrawal and compliance",
+        "3.2 Maximal oxygen uptake",
+        "4. Discussion"
+      ],
+      "targetIds": [
+        "TPL_SEMI_VMA_MOYENNE_1MIN",
+        "SEILER_BIKE_4X4MIN",
+        "BILLAT_BIKE_VO2MAX_4MIN"
+      ],
+      "reasonForTargets": "Running 1-min VMA recipe is a different dose; bike 4-min recipes are explicit transfer counterexamples despite a superficially similar interval label."
+    },
+    {
+      "key": "low_cadence_primary",
+      "scope": "primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "bike",
+      "design": "twelve_week_randomized_training_trial",
+      "population": "22 well-trained male veteran cyclists randomized, age 47 ± 6; low-cadence group 11, reported training-diary control 10; strength outcomes only 7/9; table sample labels require caution",
+      "work": "5×6 min at 40 rpm versus added freely chosen cadence moderate cycling",
+      "repetitions": 5,
+      "workSeconds": 360,
+      "restSeconds": 180,
+      "cadenceRpm": 40,
+      "intensityAnchor": "73to82pct_measured_HRmax",
+      "restAnchor": "60to72pct_HRmax_freely_chosen_cadence",
+      "intensityDetail": "73–82% measured HRmax, not TFCL Z3 or a fixed FTP percentage; 40 rpm differs from 50–60 rpm source recipes",
+      "recovery": "Methods say 3-min active rest in-between 5 efforts, but also report 30 min active rest weekly across two sessions: 24 min if strictly n−1 versus reported 30. Do not choose the missing final rest to reconcile the paper.",
+      "warmupCooldown": "15-min warm-up stated. Weekly warm-up plus cool-down 50 min reported; no silently reconstructed personal cool-down duration.",
+      "frequency": "2 sessions/week for 12 weeks in addition to usual training; freely chosen cadence group adds 90 min moderate cycling weekly",
+      "outcomes": "No significant low-cadence-group improvement in aerobic capacity, cycling performance or leg strength; freely chosen cadence group improved some measures. Not proof every low-cadence method is ineffective.",
+      "limits": "Veteran male sample; cadence, HR anchors and duration differ; internal recovery-volume ambiguity; prior training history incompletely known; subgroup strength tests",
+      "protocolCompleteForReportedContrast": false,
+      "primarySupportsChronicGain": false,
+      "sourceSections": [
+        "Training procedures",
+        "Results",
+        "Discussion"
+      ],
+      "targetIds": [
+        "C_BIKE_FORCE",
+        "C_BIKE_FORCE_LOW_CAD",
+        "TPL_IM_BIKE_FORCE_K3",
+        "ENR_BIKE_TEMPO_CADENCE_BASSE",
+        "V2_BIKE_SFR_CLASSIQUE",
+        "V2_BIKE_GRIMPEUR_TEMPO",
+        "V2_BIKE_CADENCE_HAUTE"
+      ],
+      "reasonForTargets": "Source cadence, work/rest and power labels are explicit. The high-cadence and climbing recipes are contrast cases, not automatically supported by freely chosen cadence results."
+    },
+    {
+      "key": "longterm_recovery_review",
+      "scope": "systematic_review_not_primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "mixed",
+      "design": "systematic_review_without_pooled_meta_analysis",
+      "population": "24 included studies; 501 participants in active-recovery programs and 229 in passive-recovery programs; trained/untrained, 14–48 years",
+      "work": "Heterogeneous interval-training programs, 3–15 weeks; no single common workout prescription",
+      "repetitions": null,
+      "workSeconds": null,
+      "restSeconds": null,
+      "cadenceRpm": null,
+      "intensityAnchor": "heterogeneous_not_interchangeable",
+      "restAnchor": "active_or_passive_as_individual_trials",
+      "intensityDetail": "Different studies use different heart-rate, speed, power, all-out or resistance-exercise anchors; no new TFCL domain equivalence",
+      "recovery": "Active/passive during repeated efforts or sets; does not test presence of an undocumented final rest in TFCL recipes",
+      "warmupCooldown": "Not a common standardized intervention; individual source trials required",
+      "frequency": "Heterogeneous trial frequencies and durations; no universal schedule inferred",
+      "outcomes": "Training improvements occur under both recovery modes; not a pooled non-inferiority/equivalence proof. Inconsistent participant counts occur in some tables, so primary trials remain necessary.",
+      "limits": "Heterogeneous populations, interventions and outcomes; primarily separate programs rather than uniform head-to-head comparison; no final-rest rule",
+      "protocolCompleteForReportedContrast": false,
+      "primarySupportsChronicGain": false,
+      "sourceSections": [
+        "Methods",
+        "Results Tables 2, 4, 5",
+        "Discussion",
+        "Conclusions"
+      ],
+      "targetIds": [],
+      "reasonForTargets": "Cross-cutting recovery context, never exact-recipe-dose evidence."
+    },
+    {
+      "key": "posture_160_primary",
+      "scope": "primary",
+      "review": "full_main_text_and_xml_tables_examined",
+      "sport": "bike",
+      "design": "uncontrolled_pre_post_bike_fitting_study",
+      "population": "160 adult amateur mountain-bike cyclists, 120 men and 40 women; no randomized control group; recreational/competitive mix",
+      "work": "120-s fitting observations at 100 W and 70–90 rpm, adjustments until at least 15 of 18 kinematic measurements in manufacturer reference ranges; not an aero interval workout",
+      "repetitions": null,
+      "workSeconds": 120,
+      "restSeconds": null,
+      "cadenceRpm": null,
+      "intensityAnchor": "absolute_100W_during_fitting",
+      "restAnchor": "rest_while_bike_adjusted_not_timed_training_recovery",
+      "intensityDetail": "100 W during fitting assessment, not a TFCL Z2 or individual FTP/VO2 target",
+      "recovery": "Subjects dismount and rest while adjustments are made; no training recovery duration or final-rest count specified",
+      "warmupCooldown": "No 4×15 or 6×10 aero training protocol; fitting measurements only",
+      "frequency": "One fitting intervention, usual mileage maintained, subjective scales repeated after 30 days",
+      "outcomes": "Improved self-reported discomfort/pain/fatigue after fitting; no controlled causal endurance or injury effect; some table units and mean-difference fields appear inconsistent and are not corrected by inference",
+      "limits": "Mountain-bike population, uncontrolled design, subjective outcomes, no long aero-position tolerance or interval dose tested",
+      "protocolCompleteForReportedContrast": false,
+      "primarySupportsChronicGain": false,
+      "sourceSections": [
+        "Methods: Procedure",
+        "Table 3",
+        "Results",
+        "Discussion",
+        "Limitations"
+      ],
+      "targetIds": [
+        "C_IM_AERO_HOLD"
+      ],
+      "reasonForTargets": "Distinct open posture-context study after the relay paper was inaccessible; it must not silently replace PMID27490817 or justify an aero interval dose."
+    }
+  ],
+  "partialOrUnreviewedFullTexts": [
+    {
+      "key": "cooldown_review",
+      "review": "selected_full_text_sections_only",
+      "sectionsRead": [
+        "Introduction",
+        "Methods"
+      ],
+      "limit": "Post-exercise cool-down within about 1 h; review excludes short between-bout recovery. Remaining outcomes sections not examined fully in V21C."
+    },
+    {
+      "key": "triathlon_transition_primary",
+      "review": "selected_full_text_sections_only",
+      "sectionsRead": [
+        "Materials and methods including Tables 1 and 2"
+      ],
+      "limit": "22 triathletes, 40 km bike then 10 km run, no aerobars, model-derived INSCYD estimates; not an Ironman duration or 4×15 aero trial. Results/discussion not fully examined here."
+    },
+    {
+      "key": "strength_economy_review",
+      "review": "retrieved_not_full_text_reviewed",
+      "sectionsRead": [],
+      "limit": "Full XML available, but no new complete examination of this long review claimed; V21B abstract-level limitations remain."
+    }
+  ],
+  "aliases": [
+    {
+      "relayId": "REC-02",
+      "relayPmcid": "PMC10914654",
+      "v21bReferenceId": "REC-02",
+      "v21bPmid": "32744041",
+      "samePublication": false
+    },
+    {
+      "relayId": "VO2-01",
+      "relayPmid": "34822448",
+      "v21bReferenceId": "VO2-01",
+      "v21bPmid": "23539308",
+      "samePublication": false
+    },
+    {
+      "relayId": "VO2-02",
+      "relayPmid": "36314990",
+      "v21bReferenceId": "VO2-02",
+      "v21bPmid": "42237396",
+      "samePublication": false
+    }
+  ],
+  "abstractOnlyAdditionalStudies": [
+    {
+      "key": "seiler_21812820",
+      "pmid": "21812820",
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-3/seiler_primary_search.response.gz",
+      "review": "abstract_reviewed_full_text_not_obtained",
+      "targetIds": [
+        "SEILER_BIKE_4X4MIN",
+        "BILLAT_BIKE_VO2MAX_4MIN"
+      ],
+      "population": "35 recreational trained cyclists, 29 male/6 female; four groups",
+      "work": "4×4, 4×8 or 4×16 min at maximal tolerable intensity; 2 interval sessions/week for 7 weeks; low-intensity additional training",
+      "rest": "Not supplied by the inspected abstract; never inferred from the TFCL source",
+      "outcomes": "Abstract reports greater overall gains in the 4×8 condition; does not establish universal superiority or validate 106–115% FTP and 50% FTP recovery",
+      "scope": "Primary article identity and abstract only; full methods remain unavailable in retrieved source links"
+    }
+  ]
+}

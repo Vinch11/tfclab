@@ -1,0 +1,27 @@
+{
+  "independentAuditPass": true,
+  "ids": 920,
+  "variants": 2425,
+  "sourceDoseAndInstructionsUnchanged": true,
+  "rawAndEffectiveObjectsEqual": true,
+  "allInheritedQualificationsUnchanged": true,
+  "historicalCasesReadOnly": 600,
+  "historicalConstructedPlans": 167,
+  "historicalWorkoutOccurrences": 10306,
+  "separateCohortOccurrences": {
+    "v2_historical_complete_plans": 10306,
+    "v14_native_primary": 210,
+    "v14_alternatives_separate": 420,
+    "v7_review_dossiers_separate": 332
+  },
+  "dossiers": 5,
+  "questions": 62,
+  "mentions": 475,
+  "contextRecords": 16,
+  "uniqueContextUrls": 14,
+  "referencesAutomaticallyAssigned": 0,
+  "scientificPromotions": 0,
+  "baselineFilesUnchanged": 4108,
+  "archivedEditorialCandidatesUnchanged": 418,
+  "objectiveAmbitionLevelStrata": 1309
+}

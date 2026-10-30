@@ -1,0 +1,447 @@
+[
+  {
+    "caseId": "A_aerobic",
+    "primaryAction": "Focus Intervalles VO₂max",
+    "programmingRequested": false,
+    "programmingAccepted": false,
+    "rejectedTrial": false,
+    "retainedStatus": "incomplete_or_refused",
+    "states": {
+      "conditional_pending_reassessment": 23,
+      "not_admissible": 7
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "minutes": 465,
+        "budget": 480
+      },
+      {
+        "week": 2,
+        "minutes": 485,
+        "budget": 528
+      },
+      {
+        "week": 3,
+        "minutes": 505,
+        "budget": 580
+      },
+      {
+        "week": 4,
+        "minutes": 285,
+        "budget": 420
+      }
+    ],
+    "minutesByDiscipline": {
+      "swim": 410,
+      "bike": 755,
+      "run": 470,
+      "strength": 105
+    },
+    "minutesByCatalogueIntent": {
+      "endurance_fondamentale": 1345,
+      "technique": 285,
+      "force": 75,
+      "recuperation": 35
+    },
+    "catalogueIntentMinutesAreDescriptiveNotEvidenceOfAdaptation": true,
+    "additionalMinutesAttributedToLimiter": 0,
+    "scopeBlockErrors": 0,
+    "historicalScopeErrors": 4,
+    "historicalWarningsBefore": 36,
+    "historicalWarningsRetained": 36,
+    "currentEnvelopeConflicts": 1,
+    "rejectedAlternatives": 1,
+    "adverseHoldApplied": 0,
+    "actualPrescriptionApproved": false
+  },
+  {
+    "caseId": "B_sustainability",
+    "primaryAction": "Focus Volume Z2 / Endurance",
+    "programmingRequested": true,
+    "programmingAccepted": false,
+    "rejectedTrial": true,
+    "retainedStatus": "complete_conditional_candidate",
+    "states": {
+      "conditional_pending_reassessment": 30
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "minutes": 465,
+        "budget": 480
+      },
+      {
+        "week": 2,
+        "minutes": 485,
+        "budget": 528
+      },
+      {
+        "week": 3,
+        "minutes": 505,
+        "budget": 580
+      },
+      {
+        "week": 4,
+        "minutes": 285,
+        "budget": 420
+      }
+    ],
+    "minutesByDiscipline": {
+      "swim": 410,
+      "bike": 755,
+      "run": 470,
+      "strength": 105
+    },
+    "minutesByCatalogueIntent": {
+      "endurance_fondamentale": 1345,
+      "technique": 285,
+      "force": 75,
+      "recuperation": 35
+    },
+    "catalogueIntentMinutesAreDescriptiveNotEvidenceOfAdaptation": true,
+    "additionalMinutesAttributedToLimiter": 0,
+    "scopeBlockErrors": 0,
+    "historicalScopeErrors": 4,
+    "historicalWarningsBefore": 35,
+    "historicalWarningsRetained": 35,
+    "currentEnvelopeConflicts": 1,
+    "rejectedAlternatives": 1,
+    "adverseHoldApplied": 0,
+    "actualPrescriptionApproved": false
+  },
+  {
+    "caseId": "C_uncertain",
+    "primaryAction": "Focus Volume Z2 / Endurance",
+    "programmingRequested": false,
+    "programmingAccepted": false,
+    "rejectedTrial": false,
+    "retainedStatus": "incomplete_or_refused",
+    "states": {
+      "not_admissible": 26,
+      "conditional_pending_reassessment": 4
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "minutes": 455,
+        "budget": 480
+      },
+      {
+        "week": 2,
+        "minutes": 465,
+        "budget": 528
+      },
+      {
+        "week": 3,
+        "minutes": 480,
+        "budget": 580
+      },
+      {
+        "week": 4,
+        "minutes": 265,
+        "budget": 420
+      }
+    ],
+    "minutesByDiscipline": {
+      "swim": 410,
+      "bike": 755,
+      "run": 395,
+      "strength": 105
+    },
+    "minutesByCatalogueIntent": {
+      "endurance_fondamentale": 1270,
+      "technique": 285,
+      "force": 75,
+      "recuperation": 35
+    },
+    "catalogueIntentMinutesAreDescriptiveNotEvidenceOfAdaptation": true,
+    "additionalMinutesAttributedToLimiter": 0,
+    "scopeBlockErrors": 0,
+    "historicalScopeErrors": 4,
+    "historicalWarningsBefore": 37,
+    "historicalWarningsRetained": 37,
+    "currentEnvelopeConflicts": 0,
+    "rejectedAlternatives": 0,
+    "adverseHoldApplied": 0,
+    "actualPrescriptionApproved": false
+  },
+  {
+    "caseId": "B_changed_relevant_limiter",
+    "primaryAction": "Focus Intervalles VO₂max",
+    "programmingRequested": false,
+    "programmingAccepted": false,
+    "rejectedTrial": false,
+    "retainedStatus": "complete_conditional_candidate",
+    "states": {
+      "conditional_pending_reassessment": 30
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "minutes": 465,
+        "budget": 480
+      },
+      {
+        "week": 2,
+        "minutes": 485,
+        "budget": 528
+      },
+      {
+        "week": 3,
+        "minutes": 505,
+        "budget": 580
+      },
+      {
+        "week": 4,
+        "minutes": 285,
+        "budget": 420
+      }
+    ],
+    "minutesByDiscipline": {
+      "swim": 410,
+      "bike": 755,
+      "run": 470,
+      "strength": 105
+    },
+    "minutesByCatalogueIntent": {
+      "endurance_fondamentale": 1345,
+      "technique": 285,
+      "force": 75,
+      "recuperation": 35
+    },
+    "catalogueIntentMinutesAreDescriptiveNotEvidenceOfAdaptation": true,
+    "additionalMinutesAttributedToLimiter": 0,
+    "scopeBlockErrors": 0,
+    "historicalScopeErrors": 4,
+    "historicalWarningsBefore": 36,
+    "historicalWarningsRetained": 36,
+    "currentEnvelopeConflicts": 1,
+    "rejectedAlternatives": 1,
+    "adverseHoldApplied": 0,
+    "actualPrescriptionApproved": false
+  },
+  {
+    "caseId": "B_missing_bike_reference",
+    "primaryAction": "Focus Volume Z2 / Endurance",
+    "programmingRequested": false,
+    "programmingAccepted": false,
+    "rejectedTrial": false,
+    "retainedStatus": "incomplete_or_refused",
+    "states": {
+      "conditional_pending_reassessment": 23,
+      "not_admissible": 7
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "minutes": 465,
+        "budget": 480
+      },
+      {
+        "week": 2,
+        "minutes": 485,
+        "budget": 528
+      },
+      {
+        "week": 3,
+        "minutes": 505,
+        "budget": 580
+      },
+      {
+        "week": 4,
+        "minutes": 285,
+        "budget": 420
+      }
+    ],
+    "minutesByDiscipline": {
+      "swim": 410,
+      "bike": 755,
+      "run": 470,
+      "strength": 105
+    },
+    "minutesByCatalogueIntent": {
+      "endurance_fondamentale": 1345,
+      "technique": 285,
+      "force": 75,
+      "recuperation": 35
+    },
+    "catalogueIntentMinutesAreDescriptiveNotEvidenceOfAdaptation": true,
+    "additionalMinutesAttributedToLimiter": 0,
+    "scopeBlockErrors": 0,
+    "historicalScopeErrors": 4,
+    "historicalWarningsBefore": 35,
+    "historicalWarningsRetained": 35,
+    "currentEnvelopeConflicts": 1,
+    "rejectedAlternatives": 1,
+    "adverseHoldApplied": 0,
+    "actualPrescriptionApproved": false
+  },
+  {
+    "caseId": "B_lower_run_capacity",
+    "primaryAction": "Focus Volume Z2 / Endurance",
+    "programmingRequested": true,
+    "programmingAccepted": false,
+    "rejectedTrial": true,
+    "retainedStatus": "incomplete_or_refused",
+    "states": {
+      "conditional_pending_reassessment": 29,
+      "not_admissible": 1
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "minutes": 465,
+        "budget": 480
+      },
+      {
+        "week": 2,
+        "minutes": 485,
+        "budget": 528
+      },
+      {
+        "week": 3,
+        "minutes": 505,
+        "budget": 580
+      },
+      {
+        "week": 4,
+        "minutes": 285,
+        "budget": 420
+      }
+    ],
+    "minutesByDiscipline": {
+      "swim": 410,
+      "bike": 755,
+      "run": 470,
+      "strength": 105
+    },
+    "minutesByCatalogueIntent": {
+      "endurance_fondamentale": 1345,
+      "technique": 285,
+      "force": 75,
+      "recuperation": 35
+    },
+    "catalogueIntentMinutesAreDescriptiveNotEvidenceOfAdaptation": true,
+    "additionalMinutesAttributedToLimiter": 0,
+    "scopeBlockErrors": 0,
+    "historicalScopeErrors": 4,
+    "historicalWarningsBefore": 35,
+    "historicalWarningsRetained": 35,
+    "currentEnvelopeConflicts": 3,
+    "rejectedAlternatives": 3,
+    "adverseHoldApplied": 0,
+    "actualPrescriptionApproved": false
+  },
+  {
+    "caseId": "B_adverse_recovery",
+    "primaryAction": "Focus Volume Z2 / Endurance",
+    "programmingRequested": true,
+    "programmingAccepted": false,
+    "rejectedTrial": true,
+    "retainedStatus": "incomplete_or_refused",
+    "states": {
+      "conditional_pending_reassessment": 29,
+      "not_admissible": 1
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "minutes": 465,
+        "budget": 480
+      },
+      {
+        "week": 2,
+        "minutes": 485,
+        "budget": 528
+      },
+      {
+        "week": 3,
+        "minutes": 505,
+        "budget": 580
+      },
+      {
+        "week": 4,
+        "minutes": 285,
+        "budget": 420
+      }
+    ],
+    "minutesByDiscipline": {
+      "swim": 410,
+      "bike": 755,
+      "run": 470,
+      "strength": 105
+    },
+    "minutesByCatalogueIntent": {
+      "endurance_fondamentale": 1345,
+      "technique": 285,
+      "force": 75,
+      "recuperation": 35
+    },
+    "catalogueIntentMinutesAreDescriptiveNotEvidenceOfAdaptation": true,
+    "additionalMinutesAttributedToLimiter": 0,
+    "scopeBlockErrors": 0,
+    "historicalScopeErrors": 4,
+    "historicalWarningsBefore": 35,
+    "historicalWarningsRetained": 35,
+    "currentEnvelopeConflicts": 1,
+    "rejectedAlternatives": 1,
+    "adverseHoldApplied": 1,
+    "actualPrescriptionApproved": false
+  },
+  {
+    "caseId": "B_insufficient_differentiation",
+    "primaryAction": "Focus Intervalles VO₂max",
+    "programmingRequested": false,
+    "programmingAccepted": false,
+    "rejectedTrial": false,
+    "retainedStatus": "complete_conditional_candidate",
+    "states": {
+      "conditional_pending_reassessment": 30
+    },
+    "weeks": [
+      {
+        "week": 1,
+        "minutes": 465,
+        "budget": 480
+      },
+      {
+        "week": 2,
+        "minutes": 485,
+        "budget": 528
+      },
+      {
+        "week": 3,
+        "minutes": 505,
+        "budget": 580
+      },
+      {
+        "week": 4,
+        "minutes": 285,
+        "budget": 420
+      }
+    ],
+    "minutesByDiscipline": {
+      "swim": 410,
+      "bike": 755,
+      "run": 470,
+      "strength": 105
+    },
+    "minutesByCatalogueIntent": {
+      "endurance_fondamentale": 1345,
+      "technique": 285,
+      "force": 75,
+      "recuperation": 35
+    },
+    "catalogueIntentMinutesAreDescriptiveNotEvidenceOfAdaptation": true,
+    "additionalMinutesAttributedToLimiter": 0,
+    "scopeBlockErrors": 0,
+    "historicalScopeErrors": 4,
+    "historicalWarningsBefore": 36,
+    "historicalWarningsRetained": 36,
+    "currentEnvelopeConflicts": 1,
+    "rejectedAlternatives": 1,
+    "adverseHoldApplied": 0,
+    "actualPrescriptionApproved": false
+  }
+]

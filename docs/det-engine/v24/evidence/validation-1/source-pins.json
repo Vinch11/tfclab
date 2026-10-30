@@ -1,0 +1,20 @@
+{
+  "experimental/det-engine/v24-capacity.ts": "f87a210492a0f8252fecd9576f258e3afbd78e4c94bd3b45b8b9d17ba02e95f9",
+  "experimental/det-engine/v24-contracts.test.ts": "9ed5b67c8a87a22cf9c8598a9e6522105dff8c6592b0f095de2389226ac95926",
+  "experimental/det-engine/v24-placement.ts": "1cfa8fa8e37b932f70ad4f622d44a0a50acea2b4750970e65937f29beda943e4",
+  "experimental/det-engine/v24-prescription.ts": "da5f1d9e483dfc42fb6cce4de605ac31371e2394371c985bd7c5ef1d7b4bf46f",
+  "experimental/det-engine/v24-reference.ts": "2f16bc3bbd1042bb76713bac6bc0f29581a0263e0ad5c3160ee152e854016c9b",
+  "experimental/det-engine/v24-study.test.ts": "e78a762305f734b80b3f6982b125504cdc7ccabaaafbdf7cd1c33febed0ffedb",
+  "experimental/det-engine/v24-virtual.d.ts": "711b35690a71db59212383c5efb0988890520b093989dde0ad6b76ae139d05df",
+  "experimental/det-engine/vitest.v24.config.ts": "7c5dd762b424a28cf86848ebcdc515961fc8491195c579da1b3295d75a0a763d",
+  "scripts/det-engine/v24-run.mjs": "743f0f4fdc88c7fdb9093e8dac1019265c7163ba69adcb82ea5f68ea513fbe9b",
+  "experimental/det-engine/v14-calendar.ts": "1c06222303bd877b2261367a81184ba635ecb717c3c332d8e0a9d2a06e6b4795",
+  "experimental/det-engine/v22-prescription.ts": "16bb0941793881ff8499710d506b9dd5949b942692abc5ff7b6d68f205bcfd9a",
+  "experimental/det-engine/v23-scope.ts": "09ca8c70e6c07d5cbffb3e5cc7e1bad25845378251da838eb5251cf8b6615a74",
+  "src/engines/diagnostic/computeDiagnostic.ts": "40340ceef5134c6ee3f479f006be0ead3435a89e3686ef3b9d5b38a6a74ba716",
+  "src/lib/v2/runMLSSPredictor.ts": "80246e0b0d9c8192dd9e3de65150b5e0c93cb5b665359634299aa9fd32d26459",
+  "docs/det-engine/v24/inputs.json": "1249ebc4843491c4791c9632de27e3542b25570fa096c1c99c63196ac548a33c",
+  "docs/det-engine/v24/evidence/pr424-retrieval.json": "7c4573f9eaed1637f559d27da09e5298c3fbf218fd788f7befa547a14617efb9",
+  "docs/det-engine/v22/inputs.json": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97",
+  "docs/det-engine/v23/inputs.json": "b566cf0e7db6bf82898f7accb63ba68e97a7bc7cbdec96fecdf41000b921dedc"
+}

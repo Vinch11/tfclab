@@ -1,0 +1,9 @@
+{
+  "exit": 1,
+  "expectedReason": "COACH_FLOOR_BUDGET_OR_CLOSURE",
+  "stateBeforeAfterSha256": "8cd0e5d2ee0177327548e2c7eab51ca8cd09ac67dda0d3864a805db41d9522ed",
+  "stateUnchanged": true,
+  "validationAttempts": 1,
+  "newValidationDirectoryCreated": false,
+  "automaticRestart": false
+}

@@ -1,0 +1,10 @@
+{
+  "experimental/det-engine/v19-modal.mjs": "7fa826a187ba8c722c4dafdf915a7c0636e5289364bd26a1f6d9c6899afa8f05",
+  "experimental/det-engine/v19-swim-scenario.mjs": "0ab61f1203bd5d1994805463173b7b0f1926be955521cf3656ee20f4f29cbcd7",
+  "experimental/det-engine/v19-chain.test.ts": "4769340acd8c64f4ec431eb6497655c9c5fa6283a2fecba753998ef71e232343",
+  "experimental/det-engine/vitest.v19.config.ts": "888c0bf538ace8b289e92414b7c0aff83e210e6fb306251b7adb3d062a2a0351",
+  "scripts/det-engine/v19-modal-build.mjs": "474bee12dbc159f2b040196f34068a453619c84e32aa933aeb6f77a031373e8d",
+  "scripts/det-engine/v19-modal-independent.py": "64534a96bf3870532385d2488c7eee6eb7995b629fd2b918c1a4cf83f7d95c55",
+  "scripts/det-engine/v19-modal.test.mjs": "e28e758ef6d67de411ef9e3b49ee3d631c85be1b8140f4866b2a3466026d0c43",
+  "scripts/det-engine/v19-modal-run.mjs": "1d724c9b5d491cd86b3c3cd5228728a00c7bd712ecb770283264de6074851b63"
+}

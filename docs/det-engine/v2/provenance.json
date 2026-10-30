@@ -1,0 +1,40 @@
+{
+  "baselineCommit": "f933ced243d15bd759a0704b88aa140ac9b4f4d9",
+  "latestEngineCommit": "19956fea",
+  "baseMethodologyCommit": "3a2ba77a71b8177dc1ed841c488cd79b55f3eeb6",
+  "node": "v24.19.0",
+  "vitest": "4.1.12",
+  "fixedDate": "2026-10-26T12:00:00Z",
+  "catalogueRotationSeed": 0,
+  "perPassRepairBudget": {
+    "maxAttempts": 16,
+    "maxAccepted": 4
+  },
+  "baselineAssemblyBudget": {
+    "maxNodes": 5000,
+    "maxMilliseconds": 3000
+  },
+  "sourceHashes": {
+    "experimental/det-engine/engine.test.ts": "185f85f1cc0f8d7467cf30b6d24240422fc0b5a29caf5311a35e47eca1277468",
+    "experimental/det-engine/v2-sports-validation.test.ts": "37d7a9920ab998cb1cf19c7731a2d7749348d6371ef5679fab2c40848be22a2c",
+    "experimental/det-engine/v2-engine.ts": "37425d6ebf5a304eeee8dafd417dc11bcdbddd8df47063d9e9791a8667219256",
+    "experimental/det-engine/v2-engine.test.ts": "713666b123738e957f1b35fea50f4d4736ec7743611bb4dfd4afe7e3dd0010c0",
+    "experimental/det-engine/engine.ts": "b6b3fcbc4d1166da28a6c38b570754594b38fd5ccba537eb89f7e68d9ad19947",
+    "experimental/det-engine/v2-ironman-probe.test.ts": "ebb844e2bd6f096049a9bf90c3010d9089e307aed8545f3eb4b00d012b3a672b",
+    "experimental/det-engine/v2-technical-validation.ts": "d20c71064d38d7f0c0624bfda040ef768351abf85cfc752b2dbca711c48084dd",
+    "experimental/det-engine/v2-technical-validation.test.ts": "4179c88b54d3033cc8551effb6a16bef815faf31f275d7a1b57ce55b0bfa0c6f",
+    "experimental/det-engine/v2-validation.ts": "22208b1b24bca4593d6f29cebd711ce61c463cced128624c5820e947428e2981",
+    "experimental/det-engine/v2-matrix.test.ts": "ed70bcbbda85ce238b98e60a7edbac2583d3877856bffabe99566ada50ecd2e6",
+    "experimental/det-engine/vitest.config.ts": "8d4020a5c074c4137d7dc408b39ac9b9a9e5d07db2a80504f710ba6c5fc20ed3",
+    "experimental/det-engine/v2-sports-validation.ts": "4ba0619840546bf7e431f0fd61dc31c5be420ee580ca497c543a992caa2ee11c",
+    "scripts/det-engine/v2-diagnostic.test.mjs": "9426a1387a7d3f1d5ce3b35df41b24e226d6150276f0645c06774c8ccab334fe",
+    "scripts/det-engine/v2-consolidate.mjs": "e82933fe0633fe6f29311926519710a36bb5d72d927c32f13667cee1ff33e37a",
+    "scripts/det-engine/v2-supervisor.mjs": "c6b946769979ea894afcb0021cebd598c9e958d2beac4b3cec63648b2eabd709",
+    "scripts/det-engine/v2-diagnostic.mjs": "115bd1ee33cde4f7eb4c4b77fcb5c661a32a64fc1b2ad727516097e54d52926e",
+    "scripts/det-engine/v2-supervisor.test.mjs": "19b3413398d3e4fb1eac24028d3db6f4f99f0b02b9611deb15316eead3a7b154"
+  },
+  "paidApiCalls": 0,
+  "deployment": false,
+  "athleteWrites": 0,
+  "permanentProcess": false
+}

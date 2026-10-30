@@ -1,0 +1,18 @@
+{
+  "finalGateCodeUsed": true,
+  "pass": true,
+  "files": {
+    "REJECTION_AND_GAPS.csv": true,
+    "TARGETED_PROTOCOL_COMPARISONS.json": true,
+    "WORKOUT_RESEARCH_ROUTING.jsonl": true,
+    "summary.json": true,
+    "FAMILY_KNOWLEDGE_BASE.json": true,
+    "IRONMAN_BLOCKERS_PRESERVED.json": true,
+    "coach-renders-with-context.jsonl.gz": true,
+    "nolio-unchanged-fixtures.jsonl.gz": true,
+    "CANDIDATE_96_REVIEW.jsonl": true,
+    "input-checksums.json": true,
+    "EVIDENCE_ATTACHMENT_CANDIDATES.jsonl": true
+  },
+  "identicalArtifacts": 11
+}

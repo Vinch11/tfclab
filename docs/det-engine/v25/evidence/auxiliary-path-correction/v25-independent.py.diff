@@ -1,0 +1,22 @@
+--- scripts/det-engine/v25-independent.py@Node-validation-3
++++ scripts/det-engine/v25-independent.py@documentary-path-correction
+@@ -11,7 +11,7 @@
+ for p,h in old_files.items():assert pathlib.Path(p).is_file()and sha(pathlib.Path(p).read_bytes())==h,('historical_file_changed',p)
+ spec=load(R/'inputs.json')
+ for p,h in spec['cohortInputs'].items():assert sha(raw(p))==h
+-old=load('docs/det-engine/v24/evidence/validation-3/build/results.json.gz');registered=load(E/'build/registered-cases.json');assert registered==load('docs/det-engine/v24/evidence/validation-3/build/registered-cases.json')
++old=load('docs/det-engine/v24/evidence/validation-2/build/results.json.gz');registered=load(E/'build/registered-cases.json');assert registered==load('docs/det-engine/v24/evidence/validation-2/build/registered-cases.json')
+ rows=load(E/'build/results.json.gz');assert len(rows)==8
+ reports=[];alternatives=receivable=slots=capacity_conflicts=suspensions=0
+ for i,row in enumerate(rows):
+@@ -63,8 +63,8 @@
+ good=c['recovery'][5]['decision'];assert digest({'subject':good['subject'],'observation':fixtures['recovery'][5]['events'][2]['observation'],'asOf':fixtures['recovery'][5]['events'][2]['at']})==good['reviewPacketHash']
+ mapping=lines('docs/det-engine/v21a/WORKOUT_FAMILY_MAPPING.jsonl');assert len(mapping)==920 and len({r['legacyId']for r in mapping})==920 and sum(len(r['variants'])for r in mapping)==2425
+ assert len(load('docs/det-engine/evidence-final/matrix.json.gz'))==600
+-review=lines('docs/det-engine/v20/evidence/validation-3/build/review/scientific-review.jsonl.gz');assert len(review)==96 and len({r['legacyId']for r in review})==51
+-assert sum(len(r['candidates'])for r in lines('docs/det-engine/v20/evidence/validation-3/build/review/review.jsonl.gz'))==418 and len(lines('docs/det-engine/v20/evidence/validation-3/build/nolio/fixtures.jsonl.gz'))==15
++review=lines('docs/det-engine/v20/evidence/validation-2/build/review/scientific-review.jsonl.gz');assert len(review)==96 and len({r['legacyId']for r in review})==51
++assert sum(len(r['candidates'])for r in lines('docs/det-engine/v20/evidence/validation-2/build/review/review.jsonl.gz'))==418 and len(lines('docs/det-engine/v20/evidence/validation-2/build/nolio/fixtures.jsonl.gz'))==15
+ replay={}
+ for p in['registered-cases.json','registered-contract-fixtures.json','results.json.gz','contract-results.json']:
+  b=raw(E/'build'/p);assert b==raw(E/'replay'/p);replay[p]=sha(b)

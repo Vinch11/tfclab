@@ -1,0 +1,9 @@
+{
+  "candidateInstances": 418,
+  "sourceIds": 210,
+  "recoveryPolicyEdits": 466,
+  "proposalInstancesWithWarmupRecoveryEdit": 72,
+  "pairedSourceIdsWithSamePrefixThroughLastMain": 37,
+  "pairedScopeNotDemonstratedOrDifferent": 173,
+  "arbitrationAutomaticallyResolved": 0
+}

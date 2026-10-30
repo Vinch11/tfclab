@@ -1,0 +1,14 @@
+experimental/det-engine/v19-chain.test.ts(10,941): error TS2339: Property 'sourceV18Recipe' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(10,1064): error TS2339: Property 'candidates' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(10,1189): error TS2339: Property 'candidates' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(12,325): error TS2339: Property 'originalCanonical' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(12,345): error TS2339: Property 'sourceV18Recipe' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(12,465): error TS2339: Property 'originalCanonical' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(12,485): error TS2339: Property 'sourceV18Recipe' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(13,795): error TS2339: Property 'sourceV18Recipe' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(13,854): error TS2869: Right operand of ?? is unreachable because the left operand is never nullish.
+experimental/det-engine/v19-chain.test.ts(13,858): error TS2339: Property 'sourceV18Recipe' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(13,952): error TS2339: Property 'originalCanonical' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(13,974): error TS2339: Property 'sourceV18Recipe' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(13,1154): error TS2339: Property 'candidates' does not exist on type 'unknown'.
+experimental/det-engine/v19-chain.test.ts(13,1246): error TS2869: Right operand of ?? is unreachable because the left operand is never nullish.

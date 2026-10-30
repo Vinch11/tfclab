@@ -1,0 +1,5 @@
+/** Source fidelity, editorial feasibility and prescription admission are independent axes. */
+import type{RecipeNode}from'./v18-ir';
+export type EditorialOrigin='source_explicit'|'new_editorial_proposal'|'individual_evidence_required';
+export interface EditorialChange {path:string;before:unknown;after:unknown;origin:'new_editorial_proposal';rule:string;justification:string;applicability:string;uncertainty:string;directDoseEvidence:null;scientificApproval:false;}
+export interface EditorialCandidate {version:'tfcl-editorial-recipe-1.0.0';legacyId:string;candidateKey:string;sourceCanonicalHash:string;sourceRecipeHash:string;variant:'between_repetitions'|'after_each_repetition'|'correct_declared_total';nodes:RecipeNode[];changes:EditorialChange[];candidateMinutes:[number,number]|null;sourceMinutes:[number,number]|null;classification:'complete_timeline_candidate'|'partial_candidate'|'ambiguous_candidate'|'contradictory_candidate'|'non_metabolic_model';sourceCompletenessClaim:false;individualPrescriptionApproved:false;scientificValidation:false;expertReview:false;automaticPromotion:false;}

@@ -1,0 +1,16 @@
+{
+  "baselineVersion": "det-v2-context-baseline",
+  "finalVersion": "det-v2-plan-repair-08-9680f75bb5ea",
+  "cases": 600,
+  "assembled": 167,
+  "withoutBlockingError": 11,
+  "criticalOccurrencesBeforeConstructed": 1403,
+  "criticalOccurrencesAfterConstructed": 1151,
+  "warningsBeforeConstructed": 7026,
+  "warningsAfterConstructed": 7118,
+  "repairsAccepted": 245,
+  "repairProposals": 13808,
+  "cycles": 9,
+  "supervisorElapsedMs": 1800071,
+  "scientificGo": false
+}

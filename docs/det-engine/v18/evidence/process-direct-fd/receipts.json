@@ -1,0 +1,39 @@
+[
+  {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 50,
+    "logBytes": 26,
+    "outputCapturedDirectly": true
+  },
+  {
+    "status": 7,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 37,
+    "logBytes": 17,
+    "outputCapturedDirectly": true
+  },
+  {
+    "status": -2,
+    "signal": null,
+    "error": {
+      "code": "ENOENT",
+      "message": "spawn tfcl_det_v18_missing_binary ENOENT"
+    },
+    "elapsedMs": 1,
+    "logBytes": 0,
+    "outputCapturedDirectly": true
+  },
+  {
+    "status": null,
+    "signal": "SIGTERM",
+    "error": {
+      "code": "TIME_BUDGET"
+    },
+    "elapsedMs": 102,
+    "logBytes": 0,
+    "outputCapturedDirectly": true
+  }
+]

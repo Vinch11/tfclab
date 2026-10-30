@@ -1,0 +1,136 @@
+{
+  "version": "v18-family-review-1",
+  "briefs": [
+    {
+      "family": "endurance_fondamentale",
+      "contextReferencesInheritedFromV8": [
+        "R25",
+        "O24"
+      ],
+      "principle": "Durée et domaine sont des conventions de prescription; une séance Z2 ne démontre ni FatMax individuel ni adaptation acquise.",
+      "individualEvidenceForReview": "Ancres de domaine, historique et réponse; distinguer entraînement à jeun et endurance normale.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    },
+    {
+      "family": "tempo_seuil",
+      "contextReferencesInheritedFromV8": [
+        "R25",
+        "O24"
+      ],
+      "principle": "MLSS, LT1, seuils et allures de compétition ne sont pas interchangeables.",
+      "individualEvidenceForReview": "Résultat de test, méthode, discipline, fraîcheur et récupération des répétitions.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    },
+    {
+      "family": "vo2max",
+      "contextReferencesInheritedFromV8": [
+        "R25",
+        "O24"
+      ],
+      "principle": "Répétitions à intensité élevée ne démontrent pas le temps réellement passé à VO2max. Aucun quota hebdomadaire créé.",
+      "individualEvidenceForReview": "Intensité étayée, tolérance documentée et limites de maintien de qualité.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    },
+    {
+      "family": "force_economie",
+      "contextReferencesInheritedFromV8": [
+        "LL24"
+      ],
+      "principle": "Force lourde, plyométrie, gainage et technique sont des modalités distinctes. Effets moyens ne valident pas chaque fiche.",
+      "individualEvidenceForReview": "Exercices, charge, séries, tempo, repos, compétence technique et tolérance musculaire.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    },
+    {
+      "family": "technique",
+      "contextReferencesInheritedFromV8": [],
+      "principle": "La vitesse CSS crawl ne chronomètre pas les autres nages, les éducatifs ou un circuit technique.",
+      "individualEvidenceForReview": "Tâche exacte, qualité de mouvement, référence propre à la nage et feedback coach.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    },
+    {
+      "family": "durabilite",
+      "contextReferencesInheritedFromV8": [
+        "M21"
+      ],
+      "principle": "Une durée planifiée ne prouve pas la résistance à la fatigue acquise; TTE frais et durabilité sont distincts.",
+      "individualEvidenceForReview": "Réaction pendant effort prolongé, dérive observée et suivi; avis qualitatif distinct de récupération.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    },
+    {
+      "family": "specificite_ironman",
+      "contextReferencesInheritedFromV8": [
+        "M21",
+        "L220"
+      ],
+      "principle": "Composantes des bricks, position aéro et nutrition doivent être explicites et individualisées; aucun crédit long vélo artificiel.",
+      "individualEvidenceForReview": "Doses par discipline, transitions, capacité actuelle, tolérance nutritionnelle et calendrier global.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    },
+    {
+      "family": "trail_excentrique",
+      "contextReferencesInheritedFromV8": [
+        "B20"
+      ],
+      "principle": "D+, D−, terrain et sollicitation excentrique sont distincts; aucun plafond individuel inféré du niveau.",
+      "individualEvidenceForReview": "Tolérance verticale/excentrique documentée, progression et réaction; inconnues conservées.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    },
+    {
+      "family": "recuperation_affutage",
+      "contextReferencesInheritedFromV8": [
+        "W23"
+      ],
+      "principle": "Affûtage et récupération ordinaire sont distincts; réduction de volume ne prouve pas la récupération; rappel intensité non imposé.",
+      "individualEvidenceForReview": "Réponse individuelle, fatigue résiduelle, compétition et placement; revue active cool-down limitée V17.",
+      "evidenceScope": "context only; not an automatic reference attribution to individual workouts",
+      "evidenceRecheckedExternallyInV18": false,
+      "tfclConvention": "catalogue dose envelopes and parsing conventions are not individual optima",
+      "scientificPromotion": false
+    }
+  ],
+  "lorangPrinciples": {
+    "source": "docs/det-engine/v8/LORANG_METHODOLOGY.md",
+    "documentedEditorialSources": [
+      "L175",
+      "L417",
+      "L220"
+    ],
+    "principles": [
+      "individual profile and history guide dose",
+      "feedback can change the next decision",
+      "balance other sessions when changing one stimulus"
+    ],
+    "tfclHypothesisNotLorangQuote": "Profil → limiteurs → adaptations → stimuli → dose → organisation → récupération → réévaluation",
+    "notDerived": [
+      "universal dose",
+      "weekly HIT quota",
+      "acquired tolerance",
+      "new fatigue questionnaire"
+    ]
+  },
+  "individualReferenceInheritance": false
+}

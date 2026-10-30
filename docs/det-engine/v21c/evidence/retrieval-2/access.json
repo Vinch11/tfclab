@@ -1,0 +1,17 @@
+[
+  {
+    "key": "low_cadence_primary",
+    "pmcid": "PMC3907705",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC3907705/fullTextXML",
+    "attemptedAt": "2026-10-29T12:32:17.905769+00:00",
+    "paidApi": false,
+    "httpStatus": 200,
+    "contentType": "application/xml",
+    "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC3907705/fullTextXML",
+    "responseSha256": "78b7b3061100b8071789526b29ad7fef2bc2abf0738eec0ec23473fb8f236021",
+    "bytes": 69074,
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-2/low_cadence_primary.response.gz",
+    "retrievedAt": "2026-10-29T12:32:19.749308+00:00",
+    "status": "response_retrieved_access_type_not_yet_assessed"
+  }
+]

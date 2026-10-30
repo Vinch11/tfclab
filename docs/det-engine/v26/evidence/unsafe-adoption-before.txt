@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/workspace/tfclab/scripts/det-engine/v26-adoption-guard.py", line 10, in <module>
+    assert h in expected,('refused_alternative_adopted',row['id'],f['status'],h,sorted(expected))
+           ^^^^^^^^^^^^^
+AssertionError: ('refused_alternative_adopted', 'B_availability_reduced', 'refused_experimental_alternative', 'b6643328c76a26726d7ac14adc9836755112dfb9fdb3a2230b993b8a995f0ec4', ['a20c70e2f91f1362e0afca20e6ace0576ec8d7833dc272ee5754ef08200424f9'])

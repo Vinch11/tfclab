@@ -1,0 +1,59 @@
+# Dossier scientifique — ENR_BIKE_GIMENEZ_TEST_FORMAT
+
+**Document de revue, aucune séance modifiée. DRAFT — NO-GO. Revue sportive humaine : 0.**
+
+Intention historique : Gimenez adapté — 6x6' Z4 (95% FTP) R:1' Z1. Seuil extensif haute densité.
+
+Utilisation archivée : 2 occurrences dans les plans synthétiques complets V2. Ce nombre ne mesure ni des athlètes réels ni l’efficacité de la séance. Source SHA-256 : `4b20a3911b306ea320003393fa8ea86be90daa27f7f853aa24a175cc19cac795`.
+
+## Recette historique à examiner
+
+| Partie | Consigne source conservée | Étiquettes source, pas des domaines individuels certifiés |
+|---|---|---|
+| Warm-up | 20' progressif | Z1, Z2 |
+| Main | 6 x 6' Z4 (93-97% FTP) R:1' Z1. Haute densité, clearance lactate rapide | Z4 |
+| Cool-down | 10' Z1 | Z1 |
+
+| Chronologie candidate conservée | Minutes du témoin technique | Empreinte candidate complète |
+|---|---:|---|
+| `ENR_BIKE_GIMENEZ_TEST_FORMAT@v19:between_repetitions:3f566c82bdea` | 71 | `c5ade04780698a8d35abfbc5271a5e5729a4c9498322b1eeabf99c80b87b333d` |
+| `ENR_BIKE_GIMENEZ_TEST_FORMAT@v19:after_each_repetition:7791dc80ed54` | 72 | `2f2d51c05ac17dfa521f6242940565d26b7ecc05e95dc756983953586145fe9d` |
+
+Ces minutes sont un témoin de compilation, pas un choix de dose individuelle. Les conventions de repos final restent candidates ; elles ne sont pas résolues par la littérature.
+
+## Ce que l’étude soutient
+
+Aucun protocole primaire ciblé adéquat n’a été établi pour ce dossier. L’intention historique ci-dessous reste une déclaration de la fiche ; elle n’est pas une conclusion bibliographique.
+
+## Ce qu’elle ne soutient pas
+
+Ni la dose exacte, ni une équivalence entre formats, ni l’admissibilité individuelle ne sont démontrées. Aucun article n’est attribué à partir du seul titre de la fiche.
+
+0 comparaison(s) avec protocole primaire intégral aboutissent à une non-concordance du protocole entier ; 2 comparaison(s) restent inconclues. Ne pas confondre non-concordance et contre-indication établie.
+
+## Ce qui dépend de l’athlète
+
+Les capacités à la dose envisagée, l’historique individuel, la récupération observée et l’accord du coach ne sont pas fournis dans cette cohorte documentaire. Les ancres physiologiques doivent être disponibles dans la bonne discipline ; aucune assimilation FTP/VO2peak, test frais/durabilité ou niveau qualitatif/résistance à la fatigue. La place dans le calendrier doit être revue avec les autres séances, pas sur cette seule fiche.
+
+Restrictions et contraintes exactes conservées :
+
+```json
+{
+  "avoid": "Fatigue élevée",
+  "when": "Build/Peak",
+  "necessity": "Recommandé",
+  "prerequisites": null,
+  "tags": [
+    "gimenez",
+    "seuil",
+    "haute-densité",
+    "vélo"
+  ]
+}
+```
+
+## Décision attendue du coach
+
+Clarifier l’intention et les paramètres réellement requis, examiner l’ancre d’intensité et la présence ou non du dernier repos avec le reste de la séance, puis confronter la dose aux preuves individuelles et au calendrier. Une décision documentée peut maintenir le refus ou demander une source primaire plus pertinente. Ce dossier ne demande pas une approbation globale et ne fournit aucune capacité nouvelle.
+
+Statut de chaque chronologie : **dose_not_individually_verified**. Aucun rattachement exact_recipe_dose, aucune validation experte humaine. Les lignes complètes avec travail/repos/population/fréquence, revendications non soutenues et empreintes d’article sont dans `../EXACT_PROTOCOL_COMPARISONS.csv`, filtrables par ID et clé candidate. Les objets sources et candidats intacts sont dans `../evidence/release-comparisons/source-id-dossiers.jsonl`.

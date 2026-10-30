@@ -1,0 +1,10 @@
+[
+  {
+    "key": "posture_open_search",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE_ABS%3A%28bike-fit+OR+bike-fitting%29+AND+OPEN_ACCESS%3AY&format=json&resultType=core&pageSize=6"
+  },
+  {
+    "key": "seiler_primary_search",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE%3A%22Adaptations+to+aerobic+interval+training%22&format=json&resultType=core&pageSize=6"
+  }
+]

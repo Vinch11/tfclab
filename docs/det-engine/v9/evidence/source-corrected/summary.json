@@ -1,0 +1,109 @@
+[
+  {
+    "id": "IM_reference",
+    "prospectiveDecisions": 7,
+    "selected": 4,
+    "refused": 3,
+    "minutes": 170,
+    "calendarComplete": false,
+    "calendarErrors": [],
+    "missingObligations": [
+      {
+        "sport": "bike",
+        "required": 2,
+        "placed": 0
+      },
+      {
+        "sport": "run",
+        "required": 2,
+        "placed": 1
+      }
+    ],
+    "trajectoryCount": 28,
+    "actions": {
+      "maintain": 8,
+      "coach_review": 20
+    },
+    "expertReviewed": false
+  },
+  {
+    "id": "IM_glycolytic",
+    "prospectiveDecisions": 7,
+    "selected": 0,
+    "refused": 7,
+    "minutes": 0,
+    "calendarComplete": false,
+    "calendarErrors": [],
+    "missingObligations": [
+      {
+        "sport": "swim",
+        "required": 2,
+        "placed": 0
+      },
+      {
+        "sport": "bike",
+        "required": 2,
+        "placed": 0
+      },
+      {
+        "sport": "run",
+        "required": 2,
+        "placed": 0
+      },
+      {
+        "sport": "strength",
+        "required": 1,
+        "placed": 0
+      }
+    ],
+    "trajectoryCount": 0,
+    "actions": {},
+    "expertReviewed": false
+  },
+  {
+    "id": "Trail_known_history",
+    "prospectiveDecisions": 6,
+    "selected": 2,
+    "refused": 4,
+    "minutes": 85,
+    "calendarComplete": false,
+    "calendarErrors": [],
+    "missingObligations": [
+      {
+        "sport": "run",
+        "required": 4,
+        "placed": 1
+      }
+    ],
+    "trajectoryCount": 14,
+    "actions": {
+      "maintain": 4,
+      "coach_review": 10
+    },
+    "expertReviewed": false
+  },
+  {
+    "id": "Trail_unknown_history",
+    "prospectiveDecisions": 6,
+    "selected": 0,
+    "refused": 6,
+    "minutes": 0,
+    "calendarComplete": false,
+    "calendarErrors": [],
+    "missingObligations": [
+      {
+        "sport": "run",
+        "required": 4,
+        "placed": 0
+      },
+      {
+        "sport": "strength",
+        "required": 1,
+        "placed": 0
+      }
+    ],
+    "trajectoryCount": 0,
+    "actions": {},
+    "expertReviewed": false
+  }
+]

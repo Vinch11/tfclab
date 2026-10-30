@@ -1,0 +1,82 @@
+{
+  "id": "v3-11-continuation",
+  "key": "711cf010386fa2c7251fcc204f0e74f8da25381ebc6f154af9615977f22bd274",
+  "kind": "continuation",
+  "source": "175acc5aeadba3a4851554ead3c6018748b8277b97d0f0e348caec107ca0063f",
+  "out": "/tmp/det-v3-strict-05",
+  "input": "/tmp/det-v3-strict-04/candidate.json.gz",
+  "status": "passed",
+  "startedAt": 1793134589165,
+  "completedAt": 1793134726889,
+  "commands": [
+    {
+      "name": "continuation",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v3-continuation.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 133158,
+      "timeoutMs": 900000
+    }
+  ],
+  "comparison": {
+    "coverageLost": [],
+    "coverageAdded": [],
+    "regressions": [],
+    "newlyExposed": [],
+    "unattributed": [],
+    "reproduced": true,
+    "noCriticalRegression": true,
+    "improvedConformance": 0,
+    "improvedConstruction": 0,
+    "improvedDefects": 3,
+    "defectReductions": [
+      {
+        "id": "Marathon:untrained:finisher:unknown",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 8,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "Marathon:highly_trained:age_group:known_synthetic",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 11,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "703:trained:finisher:unknown:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 10,
+        "severity": "error",
+        "count": 1
+      }
+    ],
+    "improvement": true,
+    "scientificGoAttested": false,
+    "baselineHash": "6fc57e73fb230f55a16ed6a726119a2b4e510f34f46de875324b1feddd74c350",
+    "candidateHash": "2c1a35b07ba522494af6987752f534b04657cb675f33486c703cb0e2d7d3cb64",
+    "warningOccurrencesBefore": 9748,
+    "warningOccurrencesAfter": 9744,
+    "warningImprovement": true
+  },
+  "accepted": true,
+  "evidenceHashes": {
+    "/tmp/det-v3-strict-05/candidate.json.gz": "bf250168cc05779e5b1d0e2814c1372101c4dad89165b664ab5bd87cc901370a",
+    "/tmp/det-v3-strict-05/replay.json.gz": "bf250168cc05779e5b1d0e2814c1372101c4dad89165b664ab5bd87cc901370a",
+    "/tmp/det-v3-strict-05/summary.json": "ec1212ec35bebd6075083d2e715d40c7214d959eb70733e747182ba0b767e054"
+  },
+  "decision": "measured_critical_improvement_guarded"
+}

@@ -1,0 +1,18 @@
+{
+  "version": "det-v13-1",
+  "sourceCommit": "c4581976bb0734c786d090595353649641d1f622",
+  "pr": {
+    "headRefName": "experiment/det-engine",
+    "headRefOid": "c4581976bb0734c786d090595353649641d1f622",
+    "isDraft": true,
+    "mergedAt": null,
+    "state": "OPEN",
+    "title": "DET-ENGINE AUTONOMOUS V13 \u2014 int\u00e9grit\u00e9 catalogue et faisabilit\u00e9 Ironman, NO-GO",
+    "url": "https://github.com/Vinch11/tfclab/pull/420"
+  },
+  "verifiedAtEpoch": 1793201970.319386,
+  "checkpointMeaning": "remote source and evidence commit observed; subsequent closure commit changes only V13 documents",
+  "published": true,
+  "recommendation": "NO-GO",
+  "draft": true
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "AB": "historical_AB_every_base",
+    "cases": 17,
+    "historicallyNoBlocking": 0,
+    "candidateNoExecutedBlocker": 0,
+    "conditional": 0,
+    "fullyDefinedPass": 0,
+    "expertReviewed": 0
+  },
+  {
+    "AB": "foundation_roles_then_quality",
+    "cases": 17,
+    "historicallyNoBlocking": 0,
+    "candidateNoExecutedBlocker": 5,
+    "conditional": 5,
+    "fullyDefinedPass": 0,
+    "expertReviewed": 0
+  },
+  {
+    "AB": "quality_only_when_source_supported",
+    "cases": 17,
+    "historicallyNoBlocking": 0,
+    "candidateNoExecutedBlocker": 3,
+    "conditional": 3,
+    "fullyDefinedPass": 0,
+    "expertReviewed": 0
+  }
+]

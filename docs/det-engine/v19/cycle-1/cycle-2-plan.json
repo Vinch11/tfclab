@@ -1,0 +1,35 @@
+{
+  "nextCycle": 2,
+  "sameGlobalDeadline": "2026-10-29T01:04:37Z",
+  "noAutomaticRestart": true,
+  "priorities": [
+    {
+      "family": "calendar transport",
+      "witness": "27 source records have weekday, J-day, stage, or morning/evening scope markers",
+      "action": "separate local encoding compatibility from faithful single-event transport; refuse ambiguous occurrence scope"
+    },
+    {
+      "family": "swim",
+      "witness": "3 complete source distance structures; 18 complete candidate structures on 9 additional IDs",
+      "action": "independent distance protocol accounting with recovery occurrence; retain unknown individual time and stroke references"
+    },
+    {
+      "family": "strength",
+      "witness": "127 source models / 573 blocks",
+      "action": "typed heading dose and timed-hold evidence, explicit load/recovery slots; never infer workout elapsed time from repetitions"
+    },
+    {
+      "family": "run/trail",
+      "witness": "89 records have only composite/nonleading quantities, including 24 descriptive records",
+      "action": "source-derived pace-distance and counted descent facts, no title-based timing or invented D-/tolerance"
+    },
+    {
+      "family": "physiology/calendar chain",
+      "action": "synthetic stored test result to actual limiters/catalogue, candidate assessment and calendar audit; no fake selected dose or acquired adaptation"
+    },
+    {
+      "family": "final validation",
+      "action": "non-regression multiobjective, independent checker, deterministic replay, readable coach/Nolio dossiers and PR draft update"
+    }
+  ]
+}

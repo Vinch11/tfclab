@@ -1,0 +1,86 @@
+{
+  "version": "det-v26-state-1",
+  "status": "closed_no_go",
+  "startedAt": "2026-10-29T19:14:13.001358+00:00",
+  "deadline": "2026-10-29T20:13:13.001358+00:00",
+  "budgetMinutes": 60,
+  "maxUnits": 10,
+  "units": [
+    {
+      "unit": 1,
+      "purpose": "Verify heads, instructions, immutable baseline",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "purpose": "Trace fixed candidate preferences and explicit physiology in full canonical library",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "purpose": "Preregister ten sensitivity cases and implement prospective canonical search",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "purpose": "Implement layered prescription/search, candidate #425 preflight and coach/Nolio sidecars",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "purpose": "Independent invariants, 25 new executable tests and bounded regression/replay runner",
+      "status": "complete"
+    },
+    {
+      "unit": 6,
+      "purpose": "Bind two existing V21C comparisons to exact candidate/source hashes; preserve mismatch and approvals=false",
+      "status": "complete"
+    },
+    {
+      "unit": 7,
+      "purpose": "Final validation of strengthened evidence and counterfactual sensitivity",
+      "status": "complete_with_isolated_finding"
+    },
+    {
+      "unit": 8,
+      "purpose": "Reject adoption of an alternative refused by whole-block validation; one bounded safety validation within original deadline",
+      "status": "complete"
+    },
+    {
+      "unit": 9,
+      "purpose": "Generate and verify full coach dossiers; commit/push experimental additions and update draft PR",
+      "status": "complete"
+    },
+    {
+      "unit": 10,
+      "purpose": "Close persistent supervisor, verify release fingerprints and draft publication, refuse closed-controller restart",
+      "status": "complete"
+    }
+  ],
+  "baseline": "013489126054a94d4c5395e0b5e49d457d25ab47",
+  "pr425": "4d8c788fa94c870c6dd327583c1e256b32f2bdf8",
+  "automaticRestart": false,
+  "integration": "DRAFT NO-GO",
+  "validationAttempts": 3,
+  "safetyValidationLimit": 1,
+  "safetyFinding": "V26 reduced availability incorrectly selected an existing but rejected floor alternative; no production or export enabled",
+  "safetyValidationUsed": true,
+  "finalAcceptedEvidence": "evidence/validation-safety",
+  "creditQuotaAccessible": false,
+  "closedAt": "2026-10-29T19:52:28.011036+00:00",
+  "sessionFirstObservedAt": "2026-10-29T19:13:31+00:00",
+  "implementationCommit": "141fe2d6206dc9d869de97ec91a1395701ba17a1",
+  "expertSportingReviews": 0,
+  "individualDoseApprovals": 0,
+  "newTestsPassed": 32,
+  "legacyTestsPassed": 319,
+  "legacyTestsSkipped": 5,
+  "newPhysicalSubstitutions": 0,
+  "historicalRawIssuesRemoved": 0,
+  "coachFloorPermissionAlreadyGranted": true,
+  "latestReadOnly425HeadAtClosure": "9f67b70240d21f4d07ef29828a64d01b2060fadf",
+  "tested425ContractHead": "4d8c788fa94c870c6dd327583c1e256b32f2bdf8",
+  "latest425CodeImported": false,
+  "latest425ContractIndependentlyValidated": false,
+  "remoteClosureNote": "REMOTE_CLOSURE_NOTE.md"
+}

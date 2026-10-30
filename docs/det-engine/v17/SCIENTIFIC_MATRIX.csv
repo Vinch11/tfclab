@@ -1,0 +1,921 @@
+legacy_id,sport,source_claim,source_explicit_intent,evidence_level,documentary_annotation,review_priority,review_family,archived_v14_impact_by_variant,scientific_validation
+A_BIKE_Z2_LONG,bike,"Endurance aérobie, économie, oxydation lipidique",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+A_RUN_Z2_EASY,run,"Endurance fondamentale, économie, récupération active",moderate_lt1,unassessed_for_this_protocol_dose_population,,1,run:moderate_lt1,"{""IM_aerobic_history:native_floor_conditional"": 13, ""IM_aerobic_history:hold_current_envelope"": 13, ""IM_aerobic_history:blockwise_reassessment"": 13, ""IM_balanced_history:native_floor_conditional"": 13, ""IM_balanced_history:hold_current_envelope"": 13, ""IM_balanced_history:blockwise_reassessment"": 13}",False
+A_SWIM_AEROBIC,swim,"Aérobie spécifique, technique sous faible contrainte",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_BIKE_VO2_3MIN,bike,"VO2max, puissance aérobie max",vo2max,unassessed_for_this_protocol_dose_population,,3,bike:vo2max,{},False
+B_BIKE_THRESHOLD,bike,"Seuil lactique, endurance musculaire haute intensité",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_RUN_VMA_400,run,"VO2max / VMA, économie haute intensité",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_THRESHOLD,run,"Seuil lactique, allure spécifique marathon/semi",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_SWIM_SPEED_25,swim,"Vitesse / puissance de nage, tolérance lactique",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_RUN_HILL_SKILLS,run,"Technique + force spécifique, économie",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_RUN_STRIDES,run,"Coordination neuromusculaire, économie de course",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_BIKE_CADENCE,bike,"Efficience pédalage, endurance musculaire légère",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_BIKE_FORCE,bike,"Force spécifique, recrutement musculaire",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_SWIM_TECH_DRILLS,swim,"Technique (alignement, catch), économie de nage",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_BIKE_RECOVERY,bike,"Récupération, circulation, fraîcheur",,"narrative review context; source dose, population and individual transfer unestablished",29663142,1,bike:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 3, ""IM_aerobic_history:hold_current_envelope"": 3, ""IM_aerobic_history:blockwise_reassessment"": 3, ""IM_balanced_history:native_floor_conditional"": 3, ""IM_balanced_history:hold_current_envelope"": 3, ""IM_balanced_history:blockwise_reassessment"": 3}",False
+D_RUN_REGEN,run,"Régénération, prévention blessures",,"narrative review context; source dose, population and individual transfer unestablished",29663142,1,run:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 3, ""IM_aerobic_history:hold_current_envelope"": 3, ""IM_aerobic_history:blockwise_reassessment"": 3, ""IM_balanced_history:native_floor_conditional"": 3, ""IM_balanced_history:hold_current_envelope"": 3, ""IM_balanced_history:blockwise_reassessment"": 3}",False
+D_SWIM_REGEN,swim,"Récupération active, mobilité",,unassessed_for_this_protocol_dose_population,,1,swim:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 3, ""IM_aerobic_history:hold_current_envelope"": 3, ""IM_aerobic_history:blockwise_reassessment"": 3, ""IM_balanced_history:native_floor_conditional"": 3, ""IM_balanced_history:hold_current_envelope"": 3, ""IM_balanced_history:blockwise_reassessment"": 3}",False
+A_IM_BIKE_STEADY_LONG,bike,"Endurance IM spécifique, stabilité métabolique",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+A_IM_RUN_PACE,run,"Allure marathon IM, économie post-vélo",,unassessed_for_this_protocol_dose_population,,1,run:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 6, ""IM_aerobic_history:hold_current_envelope"": 6, ""IM_aerobic_history:blockwise_reassessment"": 6, ""IM_balanced_history:native_floor_conditional"": 6, ""IM_balanced_history:hold_current_envelope"": 6, ""IM_balanced_history:blockwise_reassessment"": 6}",False
+B_IM_BIKE_OVERUNDER,bike,Tolérance lactate contrôlée sans dérive VLamax,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_IM_AERO_HOLD,bike,Tenue position aéro IM,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+D_IM_BRICK_REGEN,run,Transition vélo-course sans stress,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_MAR_LONG_RUN,run,"Endurance marathon, résistance mécanique",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_MAR_END_FAST_FINISH,run,Endurance + finish marathon,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_MAR_TEMPO_BLOCKS,run,"Allure marathon, tolérance aérobie",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_MAR_HILL_STRENGTH,run,Force spécifique marathon,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_MAR_REGEN,run,Régénération marathon,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BRICK_IM_Z2_RUN,brick,Adaptation neuromusculaire IM,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BRICK_FAST_FINISH,brick,Finish course sous fatigue,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+A_SEMI_TEMPO_LONG,run,Endurance spécifique semi,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_SEMI_RACE_PACE,run,Allure spécifique semi-marathon,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_703_BIKE_RACE_SIM,bike,Simulation 70.3 bike leg,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_703_RUN_THRESHOLD,run,Allure 70.3 run sous fatigue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BRICK_703_RACE_SIM,brick,Simulation enchaînement 70.3,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+A_TR_LONG_HIKE_RUN_DPLUS,run,"Sortie longue trail (D+), endurance + économie en montée",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_EASY_TECH,run,Endurance facile + technique sentier,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_BACK_TO_BACK_1,run,Back-to-back J1 (fatigue cumulée ultra),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_BACK_TO_BACK_2,run,Back-to-back J2 (économie sous fatigue),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_PROGRESSIVE,run,Sortie longue progressive (fin plus soutenue),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_RACE_SIMU,run,Simulation course trail (effort continu + nutrition),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_BIKE_SUPPORT,bike,Support aérobie sans impact (trail),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_TR_HILL_REPS_SHORT,run,"Côtes courtes (puissance aérobie, recrutement)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_HILL_TEMPO,run,Tempo en montée (seuil aérobie / endurance de côte),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_DESCENT_TOLERANCE,run,Tolérance excentrique (descente contrôlée),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_FARTLEK_TRAIL,run,"Fartlek trail (relances, variation terrain)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_STRENGTH_GENERAL,strength,Force générale & prévention blessures (trail),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_STRENGTH_HILLS_V29,strength,Force spécifique montée (trail),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_SKILLS_TECH,run,"Technique trail (appuis, relance, lecture terrain)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_DOWNHILL_EASY_V39,run,"Technique descente (facile, propre)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_POLES_SESSION,run,Technique bâtons (si utilisé en course),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TR_RECOVERY_SOFT,run,Récupération active trail (surface souple),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_END_ROLLING_75,run,Endurance facile sur terrain vallonné (économie),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_DPLUS_2H,run,Sortie longue trail D+ modéré (base trail),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_DPLUS_3H,run,Sortie longue trail (trail long) – résistance mécanique,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_PROGRESSIVE_Z3_FINISH,run,Sortie longue progressive (fin soutenue contrôlée),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_STEADY_CLIMB_CONTINUOUS,run,Montée continue longue (endurance en côte),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_EASY_TRAIL_STRIDES,run,Endurance facile + lignes droites (économie / coordination),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_RACE_SIMU_90_120,run,Simulation course trail (effort continu + nutrition),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_FLAT_SUPPORT_END,run,Endurance sur roulant (capacité aérobie sans casse),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_HILL_SPRINTS_10x10,run,Côtes très courtes (recrutement + économie montée),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_HILL_REPS_12x45,run,Côtes courtes 45s (puissance aérobie/relances),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_UPHILL_TEMPO_3x12,run,Tempo montée (seuil aérobie / endurance de côte),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_UPHILL_TEMPO_2x20,run,Tempo long en montée (spécifique trail long),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_FARTLEK_TRAIL_10x1_2,run,"Fartlek trail (variations, relances, technique)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_CRUISE_HILLS_6x4,run,Côtes moyennes (seuil/tempo) – efficacité montée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_RACEPACE_BLOCKS_3x10,run,Blocs 'race effort' (spécifique 20–80km),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_DESCENT_TOLERANCE_8x2,run,Tolérance excentrique (descente) + relance,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_TECH_CLIMB_DESC_LOOP,run,Boucle montée/descente (spécifique terrain technique),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_VO2_HILLS_5x3,run,VO2 en côte (puissance aérobie),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_TEMPO_VARIANT_1,run,Tempo trail variant #1 (seuil contrôlé),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_TEMPO_VARIANT_2,run,Tempo trail variant #2 (seuil progressif),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_STRENGTH_LOWER_45,strength,Force bas du corps (trail) – prévention blessures,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_STRENGTH_ECCENTRIC_QUADS,strength,Tolérance descente (excentrique quadriceps),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_SKILLS_DESCENT_40,run,"Technique descente (freinage, appuis, relâchement)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_SKILLS_UPHILL_EFFICIENCY,run,"Technique montée (cadence, posture, marche efficace)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_PROPRIO_ANKLE_FOOT,strength,Pied/cheville (proprioception) + prévention entorses,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_POLES_TECH_60,run,Bâtons (si utilisés) – efficience + coordination,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_MOBILITY_HIPS_20,strength,Mobilité hanches/dos + gainage (trail),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_STRENGTH_HILLS,strength,Force spécifique montée (trail),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+D_TR_RECOVERY_SOFT_30,run,Récupération active (surface souple),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TR_BIKE_REGEN_60,bike,Récup sans impact (support trail),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+D_TR_REST_MOBILITY,strength,Repos actif + mobilité (jour off intelligent),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+D_TR_WALK_REGEN,run,Marche active récupération,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_PACK_SHORT_RACEWEEK_1,run,Pack trail_short – séance clé 'race effort',,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_PACK_SHORT_LONGRUN_2H,run,Pack trail_short – long run spécifique (cap 2h30),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_PACK_LONG_UPHILL_TEMPO,run,Pack trail_mountain – tempo montée (spécifique 40–80km),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_PACK_LONG_DESC_SKILL,run,Pack trail_mountain – technique descente (volume modéré),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_PACK_LONG_LONGRUN_3H,run,Pack trail_mountain – long run (cap 3h30) + nutrition,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_DOWNHILL_EASY,run,"Technique descente (facile, propre)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_10K_EASY_60,run,Endurance fondamentale 10K (base aérobie),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_10K_LONG_RUN_75,run,Sortie longue 10K (endurance + résistance mécanique),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_10K_PROGRESSIVE_60,run,Sortie progressive 10K (negative split),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_10K_VO2_1000,run,VO2max 1000m (puissance aérobie spécifique 10K),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_10K_VO2_600,run,VO2max 600m (VMA courte spécifique 10K),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_10K_RACE_PACE_BLOCKS,run,Allure spécifique 10K (blocs race pace),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_10K_TEMPO_20,run,Tempo soutenu (seuil 10K),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_10K_FARTLEK_PYRAMIDE,run,Fartlek pyramidal (versatilité VO2/seuil),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_10K_STRIDES_SPEED,run,Lignes droites / économie de course,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_10K_RECOVERY_30,run,Récupération active 10K,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_SEMI_LONG_RUN_90,run,Sortie longue semi-marathon (résistance mécanique),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_SEMI_PROGRESSIVE_FINISH,run,Long run progressif (negative split semi),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_SEMI_VO2_1200,run,VO2max 1200m (support puissance aérobie semi),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_SEMI_TEMPO_LONG_30,run,"Tempo long (allure semi, seuil aérobie)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_SEMI_RACE_PACE_2x15,run,Allure course semi-marathon (blocs spécifiques),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_SEMI_FARTLEK_CONTROLLED,run,Fartlek contrôlé semi (changements de rythme),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_SEMI_HILL_STRENGTH,run,Force côtes semi-marathon (économie + puissance),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_SEMI_RECOVERY_30,run,Récupération active semi-marathon,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR50_LONG_RUN_2H30,run,Sortie longue trail 20–50km (endurance + D+ modéré),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR50_PROGRESSIVE_FINISH,run,Long trail progressif (finish soutenu),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR50_RACE_SIMU_2H,run,Simulation course trail 20–50km (effort + nutrition jour J),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR50_EASY_DPLUS_60,run,Endurance facile + D+ léger (économie montée),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR50_HILL_TEMPO_3x8,run,Tempo montée (seuil spécifique trail 20–50km),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR50_RACE_EFFORT_5x5,run,Blocs 'race effort' trail 20–50km,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR50_FARTLEK_SENTIER,run,"Fartlek sentier (relances terrain, spécifique trail court)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR50_DESCENT_SPEED,run,Vitesse descente (tolérance excentrique + technique),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR50_STRENGTH_EXPLOSIVE,strength,Force explosive (spécifique trail court/moyen),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR50_TECH_APPUIS,run,"Technique appuis sentier (coordination, lecture terrain)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TR50_RECOVERY_WALK_RUN,run,Récupération marche/course (lendemain longue sortie),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_SWIM_TRI_END_2500,swim,Endurance natation triathlon (volume aérobie),,unassessed_for_this_protocol_dose_population,,1,swim:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 6, ""IM_aerobic_history:hold_current_envelope"": 6, ""IM_aerobic_history:blockwise_reassessment"": 6, ""IM_balanced_history:native_floor_conditional"": 6, ""IM_balanced_history:hold_current_envelope"": 6, ""IM_balanced_history:blockwise_reassessment"": 6}",False
+A_SWIM_TRI_LONG_3500,swim,"Sortie longue natation IM (3500m+, résistance distance)",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_TRI_OPEN_WATER_SIMU,swim,"Simulation eau libre (navigation, respiration, drafting)",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_TRI_EASY_TECH_1500,swim,Endurance facile + technique (base triathlon),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_TRI_CSS_10x200,swim,CSS longue distance (seuil aérobie natation triathlon),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_TRI_CSS_5x400,swim,CSS blocs longs (endurance seuil natation IM),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_TRI_RACE_PACE_IM,swim,"Allure course IM (3.8km pace, régularité)",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_TRI_RACE_PACE_703,swim,"Allure course 70.3 (1.9km pace, légèrement plus soutenu)",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_TRI_VO2_8x100,swim,"VO2max natation (puissance aérobie, support triathlon)",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_TRI_NEGATIVE_SPLIT,swim,"Negative split (pacing triathlon – partir contrôlé, finir fort)",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_TRI_THRESHOLD_PYRAMID,swim,Pyramide seuil (versatilité CSS / intensité variée),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_TRI_SIGHTING_DRILLS,swim,Technique visée (sighting) + navigation eau libre,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_TRI_CATCH_PULL,swim,Technique catch & pull (efficacité propulsion triathlon),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_TRI_DRAFTING_PACK,swim,Drafting & nage en peloton (spécifique départ triathlon),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_TRI_BILATERAL_BREATHING,swim,Respiration bilatérale (adaptation eau libre / vagues),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_TRI_KICK_EFFICIENCY,swim,Battements économiques (réduire coût jambes pour vélo/course),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_SWIM_TRI_REGEN_1000,swim,Récupération active natation triathlon (post-séance dure),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_SWIM_TRI_PRE_RACE_ACTIVATION,swim,Activation pré-course triathlon (J-1 ou matin course),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_BIKE_SST_1x30,bike,"Sweet Spot long bloc (1x30' continu, durabilité seuil)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_SST_3x20,bike,Sweet Spot 3x20' (volume seuil élevé),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_BIKE_FORCE_LOW_CAD,bike,"Force basse cadence (50–60 rpm, recrutement neuromusculaire)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_SPRINT_NEUROMUSCULAR,bike,"Sprints neuromusculaires (recrutement, W' recharge rapide)",,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+A_BIKE_ENDURANCE_PROGRESSIVE,bike,Endurance progressive (negative split vélo),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_RACE_SIM_IM,bike,"Simulation course IM (4–5h Z2, pacing CP/W', nutrition)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_RACE_SIM_703,bike,"Simulation course 70.3 (2h–2h30 Z2–Z3, pacing, nutrition)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+A_BIKE_TRAIN_LOW,bike,"Train Low (Z2 glycogène bas – Impey protocol, oxydation lipidique)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_OVERUNDER_EXTENDED,bike,"Over-Under étendu (tolérance lactate, clearance – Lactate Shuttle)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_BIKE_AERO_POSITION_DRILLS,bike,Position aéro prolongée (confort + puissance en position),,unassessed_for_this_protocol_dose_population,,1,bike:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 9, ""IM_aerobic_history:hold_current_envelope"": 9, ""IM_aerobic_history:blockwise_reassessment"": 9, ""IM_balanced_history:native_floor_conditional"": 9, ""IM_balanced_history:hold_current_envelope"": 9, ""IM_balanced_history:blockwise_reassessment"": 9}",False
+B_BIKE_VO2_5x5,bike,VO2max 5x5' (puissance aérobie maximale vélo),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_THRESHOLD_2x20,bike,"Seuil 2x20' (FTP, durabilité au seuil)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_RUN_VMA_2000,run,"VMA longue 2000m (puissance aérobie, capacité VO2max)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_MARATHON_PACE_3x5K,run,Allure marathon blocs longs (3x5km race pace),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_MARATHON_PACE_LONG,run,Tempo marathon continu (30–40' allure course),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_RUN_TRAIN_LOW,run,Train Low course (Z2 glycogène bas – optimisation oxydation lipidique),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_IM_RACE_SIM,run,"Simulation course IM (allure marathon IM, post effort vélo virtuel)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_703_RACE_SIM,run,Simulation course 70.3 (allure semi sous fatigue),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_TEMPO_PROGRESSIVE,run,"Tempo progressif (Z2→Z3→Z4a, pacing training)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_CRUISE_INTERVALS,run,"Cruise intervals (seuil fractionné court repos, Daniels)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_VO2_LONG_4x5,run,"VO2max long (4x5', temps en zone maximal)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BRICK_STAGE1_INTRO,brick,"Brick Stage 1 – Introduction (Z2 bike + Z1 run, adaptation)",,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BRICK_STAGE2_BUILD,brick,Brick Stage 2 – Build (Z2 bike prolongé + Z2 run),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BRICK_STAGE3_QUALITY,brick,Brick Stage 3 – Quality (bike SST + run tempo),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BRICK_STAGE4_SPECIFIC,brick,Brick Stage 4 – Specific (race intensity bike + race pace run),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BRICK_STAGE5_RACE_SIM,brick,Brick Stage 5 – Race Simulation (effort complet + nutrition),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BRICK_SEMI_SPECIFIQUE,brick,Brick semi-marathon (vélo pré-fatigue + run semi pace),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BRICK_ACTIVATION_PRE_RACE,brick,"Brick activation pré-course (J-1, ouverture)",,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+D_TAPER_BIKE_OPENER,bike,"Ouverture vélo taper (intensité maintenue, volume réduit)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+D_TAPER_RUN_OPENER,run,"Ouverture course taper (rappel allure, sans fatigue)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TAPER_SWIM_OPENER,swim,Ouverture natation taper (technique + rappel allure),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_TAPER_SHAKEOUT,run,Shakeout veille course (activation légère),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_STR_PLYOMETRIC,strength,"Pliométrie (puissance réactive, économie de course)",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_UPPER_BODY_TRI,strength,"Haut du corps triathlon (épaules, dos, stabilité nage)",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_EXPLOSIVE_LOWER,strength,Force explosive bas du corps (recrutement neuromusculaire),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_CONCURRENT_AM_PM,strength,Force AM/PM (anti-interférence AMPK/mTOR – avant séance endurance PM),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+D_PRE_RACE_ACTIVATION_RUN,run,Activation pré-course (matin jour J),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_BIKE_CP_W_PRIME_TEST,bike,"Test CP/W' (3' + 12' all-out, étalonnage modèle puissance critique)",,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+B_RUN_PACING_PRACTICE,run,"Entraînement pacing (discipline allure cible, negative split)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_RUN_DURABILITY_LONG,run,Durabilité aérobie (long run avec monitoring drift HR/puissance),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_BIKE_DURABILITY_TEST,bike,Test durabilité (Z2 long + check décalage puissance/FC),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+HEAT_BIKE_ACCLIM_INTRO,bike,Introduction à l'entraînement en chaleur — adaptation cardiovasculaire progressive,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+HEAT_BIKE_PROTOCOL_LORANG,bike,Protocole heat training Lorang — augmentation volume plasmatique et adaptation thermorégulatrice,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+HEAT_SAUNA_POST_WORKOUT,bike,Protocole sauna post-entraînement — amplification adaptations volume plasmatique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+HEAT_RUN_ACCLIM,run,Acclimatation à la chaleur en course — adaptation thermorégulatrice spécifique run,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+HEAT_SWIM_WARM_WATER,swim,Adaptation natation en eau chaude — gestion thermorégulatrice et wetsuit en chaleur,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+FATMAX_BIKE_ZONE_FINDER,bike,Test et identification de la zone FatMax personnalisée — calibration du profil lipidique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FATMAX_BIKE_LONG_FASTED,bike,Longue sortie à jeun — développement maximal de l'oxydation lipidique (FatMax),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FATMAX_SLEEP_LOW_PROTOCOL,bike,Protocole Sleep Low — adaptation métabolique maximale lipidique sur cycle 16h,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FATMAX_RUN_LONG_FASTED,run,Sortie longue à jeun — développement FatMax course et robustesse glycogénique,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+FATMAX_TRAIN_HIGH_GUT,bike,Train High — adaptation intestinale aux hautes doses de glucides (gut training),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FATMAX_BIKE_FATFLUSH,bike,Fat Flush — longue sortie ultra-basse intensité pour maximiser oxydation lipidique absolue,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TAPER_BIKE_J14_VOLUME_CUT,bike,Début d'affûtage — réduction progressive du volume avec maintien de l'intensité,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TAPER_RUN_J14,run,Affûtage course — maintien qualité neuromusculaire pendant réduction volume,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TAPER_ACTIVATION_J2,bike,Activation J-2 — déblocage neuromusculaire et confirmation des sensations,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TAPER_SWIM_J3,swim,Activation natation pré-course — maintien sensations eau et technique,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+TAPER_MINI_5DAYS,run,Mini-taper 5 jours — affûtage express pour course secondaire ou test,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+OWS_DRAFTING_TRAINING,swim,Entraînement au drafting — nager dans le sillage pour économiser 15-25% d'énergie,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+OWS_MASS_START_SIM,swim,Simulation départ de masse — gestion du chaos initial et placement tactique,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+OWS_NAVIGATION_SIGHTING,swim,Maîtrise du sighting et navigation en open water — économiser 50-200m par ligne droite,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+OWS_WETSUIT_SPECIFIC,swim,Adaptation combinaison néoprène — technique et gestion thermique en wetsuit,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+ECONOMY_RUN_POSE_DRILLS,run,Technique de course Pose Method — réduction de la braking force et économie d'énergie,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ECONOMY_RUN_FATIGUE_FORM,run,Technique sous fatigue — maintien de l'économie de foulée en fin de séance longue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ECONOMY_TRAIL_DESCENT_TECH,trail,Technique de descente trail — économie neuromusculaire et protection quadriceps (Kilian Jornet),,unassessed_for_this_protocol_dose_population,,3,trail:unqualified_intent,{},False
+ECONOMY_STRIDES_ADVANCED,run,Strides avancés — développement de l'économie neuromusculaire et de la vitesse de base,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+AERO_BIKE_POSITION_ENDURANCE,bike,Endurance en position aéro — développer le confort et la puissance en position TT,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+AERO_BIKE_CADENCE_HIGH,bike,Développement neuromusculaire haute cadence — efficacité pédalage 100-120 rpm,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+AERO_BIKE_TT_RACE_SIM,bike,Simulation contre-la-montre/vélo triathlon — répétition complète des conditions de course,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+RMT_INSPIRATORY_INTRO,bike,Introduction entraînement musculaire respiratoire — renforcer les muscles inspiratoires,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+RMT_EXPIRATORY_CORE,strength,Entraînement expiratoire et gainage respiratoire — stabilité centrale et puissance respiratoire,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+CONTRAST_BIKE_FORCE_POWER,bike,Contrast training vélo — alternance force max / explosivité pour maximiser la PAP,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+CONTRAST_RUN_FORCE_SPEED,run,Contrast training run — alternance force max et strides explosifs pour économie neuromusculaire,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+CONTRAST_STR_UPPER_LOWER,strength,Contrast training haut/bas du corps — développement force-vitesse athlète triathlon,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+NUTRITION_CARB_PERIODIZATION_WEEK,bike,Modèle de semaine avec périodisation glucidique — optimiser l'adaptation métabolique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+NUTRITION_RACE_MORNING_PROTOCOL,bike,Protocole matin de course — optimisation du dernier repas et activation métabolique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+RECOVERY_COLD_WATER_IMMERSION,strength,Immersion eau froide post-séance — accélération récupération neuromusculaire et inflammation,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+RECOVERY_HRV_GUIDED_DAY,strength,Journée guidée par HRV — adapter l'entraînement selon le signal de récupération objectif,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+RECOVERY_YOGA_MOBILITY_TRI,strength,Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+TRAIL_NORDIC_WALK_UPHILL,trail,Marche nordique en montée — économie trail avec bâtons et technique VAM,,unassessed_for_this_protocol_dose_population,,3,trail:unqualified_intent,{},False
+BFR_LEGS_RECOVERY_STRENGTH,strength,BFR (Blood Flow Restriction) membres inférieurs — hypertrophie et force sans charge élevée,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+BILLAT_RUN_30_30_INTRO,run,Introduction au 30/30 Billat — maximiser le temps à VO2max avec volume modéré,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_RUN_30_30_PRO,run,30/30 Billat version avancée — volume maximal de temps à VO2max,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_BIKE_30_30,bike,30/30 Billat adapté vélo — développement VO2max et puissance aérobie maximale,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+BILLAT_RUN_60_60,run,60/60 Billat — transition entre Z4 et travail VO2max pur (moins intense que 30/30),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_BIKE_60_60,bike,60/60 Billat vélo — développement VO2max progressif accessible,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+BILLAT_RUN_3MIN_3MIN,run,3min/3min Billat — accumulation de temps à VO2max avec efforts plus longs (élite),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_BIKE_3MIN_3MIN,bike,3min/3min Billat vélo — développement VO2max et puissance critique vélo,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+BILLAT_RUN_MARATHON_PACE,run,Allure marathon Billat — développer la spécificité métabolique exacte de la course (Billat 2009),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_RUN_SEMI_PACE,run,Allure semi-marathon Billat — spécificité métabolique semi (seuil haut),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_RUN_TLIM_TEST,run,Test tlim@vVO2max Billat — mesurer le temps limite à la vitesse VO2max (diagnostic),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_BIKE_TLIM_TEST,bike,Test tlim@MAP Billat adapté vélo — temps limite à la puissance aérobie maximale,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+BILLAT_RUN_MLSS_LONG,run,Vitesse MLSS Billat — entraînement long au seuil lactique maximal stable (Billat 2004),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_BIKE_MLSS,bike,MLSS Billat vélo — seuil lactique maximal stable (88-93% FTP),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+BILLAT_RUN_CRITICAL_VELOCITY,run,"Vitesse critique Billat — zone entre MLSS et vVO2max (90-95% VMA, W' development)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_RUN_VO2MAX_LONG_5MIN,run,Intervalles longs VO2max Billat — 5×5min à vVO2max (adaptations centrales cardiaques),vo2max,unassessed_for_this_protocol_dose_population,,3,run:vo2max,{},False
+BILLAT_BIKE_VO2MAX_4MIN,bike,4×4min VO2max Billat-Norvégien — combinaison Billat/Seiler pour adaptations centrales maximales,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+BILLAT_RUN_FARTLEK_VO2,run,Fartlek Billat — intervalles libres en terrain naturel autour de vVO2max,vo2max,unassessed_for_this_protocol_dose_population,,3,run:vo2max,{},False
+BILLAT_TRAIL_FARTLEK_HILL,trail,Fartlek collines Billat — intervalles naturels en côte pour trail (stimulation VO2max + force),,unassessed_for_this_protocol_dose_population,,3,trail:unqualified_intent,{},False
+BILLAT_RUN_ECONOMY_STRIDES,run,Économie de course Billat — strides spécifiques pour améliorer le coût énergétique (Billat 2003),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_RUN_PROGRESSIVE_TEMPO,run,Tempo progressif Billat — montée en intensité de Z2 à allure course en continu (Billat 2009),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_RUN_LACTATE_TOLERANCE,run,Tolérance lactate Billat — intervalles au-dessus de vVO2max pour la capacité tampon (Billat 2000),,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+BILLAT_RUN_Z2_LONG_BILLAT,run,Sortie longue Z2 Billat — endurance fondamentale avec surges intégrés (Billat 2003),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BILLAT_SWIM_30_30,swim,30/30 Billat adapté natation — maximiser le temps à VO2max en piscine,,unassessed_for_this_protocol_dose_population,,2,swim:unqualified_intent,{},False
+BILLAT_SWIM_CSS_BILLAT,swim,CSS Billat — allure critique nage avec surges intégrés (principe tempo progressif natation),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+NORWEGIAN_RUN_THRESHOLD_LOW_AM,run,"Seuil bas norvégien (matin) — accumulation volume sous-seuil contrôlé (2.0-3.0 mmol/L, ~92-97 % de l'allure seuil)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME,run,Seuil bas norvégien volume — séance unique longue sous-seuil (sans double threshold),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+NORWEGIAN_RUN_THRESHOLD_HIGH_PM,run,Seuil haut norvégien (soir) — accumulation volume au seuil lactique (3.0-4.0 mmol/L),mlss,unassessed_for_this_protocol_dose_population,,3,run:mlss,{},False
+NORWEGIAN_RUN_THRESHOLD_HIGH_5MIN,run,Seuil haut norvégien 5min — variante intervalles plus longs pour développer le TTE,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+NORWEGIAN_RUN_DOUBLE_THRESHOLD_DAY,run,Journée Double Threshold norvégienne complète — matin seuil bas + soir seuil haut,mlss,unassessed_for_this_protocol_dose_population,,2,run:mlss,{},False
+NORWEGIAN_BIKE_THRESHOLD_LOW,bike,Seuil bas norvégien vélo — accumulation volume sous-seuil vélo (88-93% FTP),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+NORWEGIAN_BIKE_THRESHOLD_HIGH,bike,Seuil haut norvégien vélo — intervalles au seuil lactique vélo (85-92% FTP),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+NORWEGIAN_BIKE_DOUBLE_THRESHOLD,bike,Double threshold vélo triathlon — séance unique combinant seuil bas et seuil haut (sans double journée),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+NORWEGIAN_SWIM_THRESHOLD,swim,Seuil norvégien natation — accumulation volume au seuil (90-97% CSS) pour TTE natation,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+NORWEGIAN_WEEK_STRUCTURE_RUN,run,Structure semaine norvégienne course — organisation optimale du double threshold sur 7 jours,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+NORWEGIAN_RUN_VMA_POST_BLOCK,run,VO2max norvégien post-bloc — capitaliser sur le TTE développé avec séance VO2max ciblée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+NORWEGIAN_RUN_LACTATE_TEST_PROTOCOL,run,Protocole lactate terrain norvégien — calibrer les zones seuil sans labo (Bakken method),,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+CANOVA_RUN_FAST_CONTINUOUS_INTRO,run,Fast Continuous Run Canova intro — courir plus vite que l'allure course sur distance réduite (phase Introductive),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_FAST_CONTINUOUS_FUND,run,Fast Continuous Run Canova fondamental — volume FCR augmenté (phase Fundamental),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_PROGRESSIVE_LONG,run,Progressive Long Run Canova — sortie longue avec accélération progressive vers l'allure course (negative split),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_PROGRESSIVE_MEDIUM,run,Medium Long Run progressif Canova — version courte du PLR pour les semaines de charge modérée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_VARIATION_PACE_MARATHON,run,Variation of Pace Canova marathon — alternance allure marathon / allure semi pour développer la polyvalence métabolique,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_VARIATION_PACE_ULTRA,run,Variation of Pace Canova ultra/trail — alternance marche rapide / course pour ultra-endurance,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_SPECIAL_BLOCK_AM,run,Special Block Canova matin — FCR intense matin du bloc spécifique (phase Specific),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_SPECIAL_BLOCK_PM,run,Special Block Canova soir — Progressive Run sur jambes fatiguées (phase Specific),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_FARTLEK_MARATHON,run,Fartlek Canova marathon — alternance allure marathon et allure semi en terrain naturel,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_FARTLEK_MIXED,run,Fartlek mixte Canova — 3 allures (Z2 / marathon / semi) pour développement polyvalence métabolique complète,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_INTRODUCTIVE_PHASE,run,Phase Introductive Canova — premiers contacts avec l'allure course (12-16 semaines avant race),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_SPECIFIC_PHASE,run,Phase Specific Canova — blocs spécifiques intense à allure course (4-8 semaines avant race),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_RUN_PRERACE_PHASE,run,Phase Pre-race Canova — dernière stimulation spécifique avant course (J-7 à J-10),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+CANOVA_TRI_BRICK_SPECIFIC,brick,Brick spécifique Canova triathlon — vélo + run à allures race pour développer la spécificité de transition,mixed_specific,unassessed_for_this_protocol_dose_population,,3,brick:mixed_specific,{},False
+SEILER_RUN_Z1_EASY_LONG,run,Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20),moderate_lt1,unassessed_for_this_protocol_dose_population,,3,run:moderate_lt1,{},False
+SEILER_BIKE_Z1_LONG,bike,Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé,moderate_lt1,"narrative review context; source dose, population and individual transfer unestablished",33886100,1,bike:moderate_lt1,"{""IM_aerobic_history:native_floor_conditional"": 12, ""IM_aerobic_history:hold_current_envelope"": 12, ""IM_aerobic_history:blockwise_reassessment"": 12, ""IM_balanced_history:native_floor_conditional"": 12, ""IM_balanced_history:hold_current_envelope"": 12, ""IM_balanced_history:blockwise_reassessment"": 12}",False
+SEILER_SWIM_Z1_VOLUME,swim,Volume Z1 Seiler natation — accumulation volume aérobie en piscine (80% distribution polarisée),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+SEILER_RUN_4X4MIN_STANDARD,run,4×4min Seiler — intervalles VO2max standard norvégien (séance haute intensité polarisée),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+SEILER_BIKE_4X4MIN,bike,4×4min Seiler vélo — standard VO2max polarisé (séance haute intensité référence),,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+SEILER_RUN_4X8MIN,run,4×8min Seiler — intervalles longs haute intensité pour adaptations centrales profondes,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+SEILER_BIKE_4X8MIN,bike,4×8min Seiler vélo — intervalles longs VO2max avec adaptations cardiaques profondes,vo2max,unassessed_for_this_protocol_dose_population,,3,bike:vo2max,{},False
+SEILER_WEEK_POLARIZED_RUN,run,Semaine polarisée Seiler course — structure 80/20 optimale (modèle de référence),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+SEILER_WEEK_POLARIZED_TRI,bike,Semaine polarisée Seiler triathlon — distribution 80/20 sur 3 disciplines,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+SEILER_RUN_BLACK_HOLE_AUDIT,run,Audit Black Hole Seiler — identifier et corriger la distribution d'intensité (diagnostic),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+SEILER_RUN_Z1_RECOVERY_STRICT,run,Récupération Z1 strict Seiler — séance de récupération vraiment active (pas de dérive Z3),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+SEILER_RUN_PROGRESSION_4TO8,run,Progression Seiler 4→8min — évolution naturelle des intervalles dans le modèle polarisé,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+SEILER_BIKE_PROGRESSION_POLARIZED,bike,Progression polarisée Seiler vélo — évolution 4×4min → 4×8min → 4×12min sur 12 semaines,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_ZONE6_AC_SHORT,bike,Zone 6 Coggan — capacité anaérobie courte (30-60s) pour développer le W' et la tolérance lactate,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_ZONE6_AC_LONG,bike,Zone 6 Coggan longue — capacité anaérobie 60-120s pour développer W' et tolérance acidose,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_ZONE7_NEURO,bike,"Zone 7 Coggan — puissance neuromusculaire maximale (sprints 5-15s, >150% FTP)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_CP_OVER_UNDER,bike,Over-Under Coggan — intervalles alternant au-dessus et en-dessous du CP pour développer la puissance critique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_CP_DEPLETION,bike,Déplétion W' Coggan — vider intentionnellement le W' pour créer un stimulus d'adaptation maximal,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_RUN_CP_INTERVALS,run,Intervalles CP Coggan course — développement de la puissance critique running autour de la vitesse critique,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+COGGAN_BIKE_SST_EXTENDED,bike,Sweet Spot étendu Coggan — blocs longs 88-93% FTP pour adaptation TTE et résistance à la fatigue,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_SST_PROGRESSIVE,bike,Sweet Spot progressif Coggan — bloc SST avec montée vers Zone 4 FTP en fin de séance,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_ZONE5_MAP,bike,Zone 5 Coggan — VO2max via puissance MAP (106-120% FTP) pour développement plafond aérobie,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_FTP_TEST_20MIN,bike,Test FTP 20min Coggan — protocole officiel de mesure du Functional Threshold Power,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+COGGAN_BIKE_FTP_RAMP_TEST,bike,Ramp Test Coggan — test FTP progressif par paliers (alternative moins pénible au test 20min),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+SKIBA_BIKE_WPRIME_RECHARGE,bike,Reconstitution W' Skiba — entraîner la reconstitution rapide du W' pour répéter les efforts intenses,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+SKIBA_RUN_WPRIME_INTERVALS,run,W' intervals Skiba course — développer et entraîner la gestion du W' en running,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+LYDIARD_RUN_AEROBIC_BASE_LONG,run,Base aérobie Lydiard — sortie longue fondamentale pour construire le moteur aérobie (phase 1),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+LYDIARD_RUN_AEROBIC_BASE_MEDIUM,run,Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km,moderate_lt1,unassessed_for_this_protocol_dose_population,,3,run:moderate_lt1,{},False
+LYDIARD_RUN_HILL_CIRCUIT,run,Circuit collines Lydiard — développement force-endurance spécifique course (phase 2),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+LYDIARD_RUN_HILL_BOUNDING,run,Bondissements en côte Lydiard — développement force explosive et économie neuromusculaire,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+LYDIARD_RUN_TRACK_VMA,run,Piste Lydiard — intervalles VMA sur base aérobie développée (phase 3),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+KENYAN_RUN_FARTLEK_PYRAMID,run,Fartlek pyramide kényan — surges progressifs en terrain naturel (méthode Kipchoge/Sang),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+KENYAN_RUN_FARTLEK_SURGE,run,Fartlek surges kényan — accélérations libres en terrain vallonné (style Iten Kenya),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+KENYAN_RUN_DOUBLE_DAY,run,Double journée kényane — deux séances Z2 dans la même journée pour accumulation volume,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+KENYAN_RUN_TEMPO_MARATHON,run,Tempo marathon Kipchoge — allure marathon exacte sur blocs longs (séance signature),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+KENYAN_RUN_TEMPO_GROUP,run,Tempo groupe kényan — séance tempo en groupe pour bénéficier de la dynamique collective,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+KENYAN_RUN_LONG_NEGATIVE_SPLIT,run,Sortie longue negative split Kipchoge — accélération progressive sur les derniers km (séance weekend clé),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+KENYAN_WEEK_STRUCTURE_MARATHON,run,Semaine type kényane marathon — structure Kipchoge/Sang adaptée pour coureurs compétiteurs,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+KENYAN_RUN_ALTITUDE_SIMULATION,run,Simulation altitude kényane — protocole pour maximiser les bénéfices d'un camp en altitude,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_RUN_EASY_45_PRO,run,Endurance facile,,unassessed_for_this_protocol_dose_population,,1,run:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 3, ""IM_aerobic_history:hold_current_envelope"": 3, ""IM_aerobic_history:blockwise_reassessment"": 3, ""IM_balanced_history:native_floor_conditional"": 3, ""IM_balanced_history:hold_current_envelope"": 3, ""IM_balanced_history:blockwise_reassessment"": 3}",False
+A_RUN_LONG_PROG_PRO,run,Sortie longue progressive,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_RUN_EASY_STRIDES_PRO,run,Endurance + lignes droites,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_TEMPO_CRUISE_PRO,run,Tempo / seuil contrôlé,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_TEMPO_2x20_PRO,run,Tempo 2x20',,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_TEMPO_HILLS_PRO,run,Tempo vallonné,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_VO2_5x3_PRO,run,VO₂max (intervalles),vo2max,unassessed_for_this_protocol_dose_population,,3,run:vo2max,{},False
+B_RUN_FARTLEK_60_PRO,run,Fartlek (variations),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_RUN_HILL_TECH_PRO,run,Technique côte + coordination,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_RUN_STRENGTH_30_PRO,strength,Force coureur (bas du corps) 30–45',,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+D_RUN_RECOVERY_30_PRO,run,Footing récupération,recovery,unassessed_for_this_protocol_dose_population,,1,run:recovery,"{""IM_aerobic_history:native_floor_conditional"": 4, ""IM_aerobic_history:hold_current_envelope"": 4, ""IM_aerobic_history:blockwise_reassessment"": 4, ""IM_balanced_history:native_floor_conditional"": 4, ""IM_balanced_history:hold_current_envelope"": 4, ""IM_balanced_history:blockwise_reassessment"": 4}",False
+A_BIKE_END_90_PRO,bike,Endurance vélo,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+A_BIKE_LONG_IM_PRO,bike,Long ride IM (spécifique),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_SST_3x12_PRO,bike,Sweet spot / tempo,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_SST_2x20_PRO,bike,Sweet spot 2x20',,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_SST_OVERUNDER_PRO,bike,Over-Under light,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_SST_HILLS_PRO,bike,SST en montée,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_BIKE_VO2_6x3_PRO,bike,VO₂ vélo,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_BIKE_CADENCE_SKILLS_PRO,bike,Technique pédalage / cadence,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+D_BIKE_REGEN_60_PRO,bike,Récup vélo sans impact,,unassessed_for_this_protocol_dose_population,,1,bike:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 4, ""IM_aerobic_history:hold_current_envelope"": 4, ""IM_aerobic_history:blockwise_reassessment"": 4, ""IM_balanced_history:native_floor_conditional"": 4, ""IM_balanced_history:hold_current_envelope"": 4, ""IM_balanced_history:blockwise_reassessment"": 4}",False
+A_SWIM_END_CSS_PRO,swim,Endurance technique (CSS-),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_CSS_12x100_PRO,swim,Travail CSS,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_CSS_8x200_PRO,swim,CSS 8x200m,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_CSS_LADDER_PRO,swim,CSS Ladder,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_SPEED_25S_PRO,swim,Vitesse/puissance (court),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_TECH_DRILLS_PRO,swim,Technique pure (drills),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_SWIM_EASY_PRO,swim,Récup eau (souple),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_TR_LONG_DPLUS_PRO,run,Sortie longue trail D+ modéré,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_UPHILL_TEMPO_PRO,run,Tempo en montée (seuil aérobie),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_HILLREPS_PRO,run,Côtes courtes (relances),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_HILLREPS_8x2_PRO,run,Côtes 8x2',,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_HILLREPS_6x3_PRO,run,Côtes 6x3',,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_DESC_TECH_PRO,run,Technique descente (tolérance excentrique),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_STRENGTH_PRO,strength,Force trail (quadris/mollets/fessiers + gainage),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+A_TR_LONG_V1_PRO,run,Long D+ technique #1,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V2_PRO,run,Long D+ technique #2,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V3_PRO,run,Long D+ technique #3,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V4_PRO,run,Long D+ technique #4,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V5_PRO,run,Long D+ technique #5,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V6_PRO,run,Long D+ progressif #6,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V7_PRO,run,Long D+ progressif #7,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V8_PRO,run,Long D+ progressif #8,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V9_PRO,run,Long D+ progressif #9,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_LONG_V10_PRO,run,Long D+ progressif #10,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BR_HALF_RACEPACE_PRO,brick,Brick 70.3 spécifique (bike tempo + run tempo),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_STEADY_PRO,brick,Brick IM (bike Z2 + run easy),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V1_PRO,brick,Brick 70.3 variante #1,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V2_PRO,brick,Brick 70.3 variante #2,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V3_PRO,brick,Brick 70.3 variante #3,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V4_PRO,brick,Brick 70.3 variante #4,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V5_PRO,brick,Brick 70.3 variante #5,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V6_PRO,brick,Brick 70.3 variante #6,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V7_PRO,brick,Brick 70.3 variante #7,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V8_PRO,brick,Brick 70.3 variante #8,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V9_PRO,brick,Brick 70.3 variante #9,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_HALF_V10_PRO,brick,Brick 70.3 variante #10,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V1_PRO,brick,Brick IM variante #1,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V2_PRO,brick,Brick IM variante #2,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V3_PRO,brick,Brick IM variante #3,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V4_PRO,brick,Brick IM variante #4,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V5_PRO,brick,Brick IM variante #5,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V6_PRO,brick,Brick IM variante #6,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V7_PRO,brick,Brick IM variante #7,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V8_PRO,brick,Brick IM variante #8,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V9_PRO,brick,Brick IM variante #9,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_IM_V10_PRO,brick,Brick IM variante #10,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+C_STR_LOWER_PRO,strength,Force max bas du corps (squat/hip hinge),,unassessed_for_this_protocol_dose_population,,2,strength:unqualified_intent,{},False
+C_STR_UPPER_PRO,strength,Force haut du corps (poussée/tirage) — posture & natation,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_CORE_PRO,strength,Gainage anti-rotation & transfert force,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_FULL_BODY_PRO,strength,Full body intégré (compromis temps/efficacité),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_ECC_QUAD_PRO,strength,Excentriques quadris — résistance descente (trail),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_CALF_HEAVY_PRO,strength,Mollets lourds — raideur tendon Achille (trail/CAP),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_DOWNHILL_PLYO_PRO,strength,Plyo descente — amortissement & rigidité réactive,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_TRAIL_CORE_PRO,strength,Core montagne — stabilité tronc terrain instable,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_PLYO_BASIC_PRO,strength,Pliométrie de base — économie de course (route),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_PLYO_ADVANCED_PRO,strength,Pliométrie avancée — puissance réactive sub-10s,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_RUN_DRILLS_PRO,strength,Éducatifs foulée — technique & économie,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_HILL_SPRINTS_PRO,strength,Sprints courts en côte — force-vitesse & VLamax CAP,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_HIP_MOBILITY_PRO,strength,Mobilité hanches + activation fessiers (préhab),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_ANKLE_PROPRIO_PRO,strength,Cheville/pied — proprio & prévention entorse,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_HAMSTRING_HEALTH_PRO,strength,Ischio-jambiers — prévention lésions (Nordic & Romanian),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_THORACIC_SHOULDER_PRO,strength,Mobilité thoracique & épaule — posture vélo/natation,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_1_PRO,strength,Force/Préhab — fallback variante #1,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_2_PRO,strength,Force/Préhab — fallback variante #2,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_3_PRO,strength,Force/Préhab — fallback variante #3,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_4_PRO,strength,Force/Préhab — fallback variante #4,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_5_PRO,strength,Force/Préhab — fallback variante #5,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_6_PRO,strength,Force/Préhab — fallback variante #6,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_7_PRO,strength,Force/Préhab — fallback variante #7,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_8_PRO,strength,Force/Préhab — fallback variante #8,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_9_PRO,strength,Force/Préhab — fallback variante #9,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_10_PRO,strength,Force/Préhab — fallback variante #10,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_11_PRO,strength,Force/Préhab — fallback variante #11,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_12_PRO,strength,Force/Préhab — fallback variante #12,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_13_PRO,strength,Force/Préhab — fallback variante #13,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_14_PRO,strength,Force/Préhab — fallback variante #14,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_VAR_15_PRO,strength,Force/Préhab — fallback variante #15,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+D_RECOVERY_VAR_1_PRO,swim,Récupération active — variante #1,recovery,unassessed_for_this_protocol_dose_population,,3,swim:recovery,{},False
+D_RECOVERY_VAR_2_PRO,run,Récupération active — variante #2,recovery,unassessed_for_this_protocol_dose_population,,3,run:recovery,{},False
+D_RECOVERY_VAR_3_PRO,bike,Récupération active — variante #3,recovery,unassessed_for_this_protocol_dose_population,,3,bike:recovery,{},False
+D_RECOVERY_VAR_4_PRO,swim,Récupération active — variante #4,recovery,unassessed_for_this_protocol_dose_population,,1,swim:recovery,"{""IM_aerobic_history:native_floor_conditional"": 3, ""IM_aerobic_history:hold_current_envelope"": 3, ""IM_aerobic_history:blockwise_reassessment"": 3, ""IM_balanced_history:native_floor_conditional"": 3, ""IM_balanced_history:hold_current_envelope"": 3, ""IM_balanced_history:blockwise_reassessment"": 3}",False
+D_RECOVERY_VAR_5_PRO,run,Récupération active — variante #5,recovery,unassessed_for_this_protocol_dose_population,,3,run:recovery,{},False
+D_RECOVERY_VAR_6_PRO,bike,Récupération active — variante #6,recovery,unassessed_for_this_protocol_dose_population,,3,bike:recovery,{},False
+D_RECOVERY_VAR_7_PRO,swim,Récupération active — variante #7,recovery,unassessed_for_this_protocol_dose_population,,3,swim:recovery,{},False
+D_RECOVERY_VAR_8_PRO,run,Récupération active — variante #8,recovery,unassessed_for_this_protocol_dose_population,,3,run:recovery,{},False
+D_RECOVERY_VAR_9_PRO,bike,Récupération active — variante #9,recovery,unassessed_for_this_protocol_dose_population,,1,bike:recovery,"{""IM_aerobic_history:native_floor_conditional"": 1, ""IM_aerobic_history:hold_current_envelope"": 1, ""IM_aerobic_history:blockwise_reassessment"": 1, ""IM_balanced_history:native_floor_conditional"": 1, ""IM_balanced_history:hold_current_envelope"": 1, ""IM_balanced_history:blockwise_reassessment"": 1}",False
+D_RECOVERY_VAR_10_PRO,swim,Récupération active — variante #10,recovery,unassessed_for_this_protocol_dose_population,,3,swim:recovery,{},False
+TPL_SEMI_VMA_COURTE_30_30,run,"VMA courte 30""/30"" — développement VO2max et dynamisme",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_VMA_MOYENNE_1MIN,run,VMA moyenne 1' — volume à 100-105% VMA,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_VO2_LONGUE_3MIN,run,VO2max longue — blocs 3' pour puissance aérobie maximale,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_FORCE_COTES_SPRINT,run,Force maximale — sprints en côte raide (Z7),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_FORCE_COTES_VOLUME,run,Force spécifique — côtes volume Z5/Z6,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_SEUIL_INTRO,run,Seuil anaérobie — entrée dans le seuil (4x6' Z5),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_SEUIL_EXTENSIF,run,Seuil extensif — 3x10'-12' Z5 puis 3x12' Z4b/Z5 mix,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_TEMPO_CONTINU,run,Allure marathon continue — 30-40' Z4 bas,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_SPECIFIQUE_3x3000,run,Spécifique semi — 3x3000m à allure semi (Z4b),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_JUGE_DE_PAIX,run,Le Juge de Paix — 2x5000m à allure semi (Z4b). Séance étalon,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_SEMI_LONGUE_PYRAMIDE,run,Sortie longue pyramide — Z4a/Z4b/Z5 en fin de sortie,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_COTES_LONGUES,run,Côtes longues — force tranquille Z4 en montée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_VMA_40_20,run,"VMA intermittente 40""/20"" — temps >90% VO2max maximisé",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_SEUIL_INTRO,run,Seuil anaérobie intro — 3x8' Z4. Confortablement dur,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_SEUIL_JUGE,run,LE SEUIL (Le Juge) — 3x15' Z4. 45min de TTE. Séance étalon marathon,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_TEMPO_SWEET_SPOT,run,Tempo Sweet Spot — 2x15' → 2x20' Z4 (entre marathon et semi),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_TEMPO_XXL,run,Tempo XXL — 3x20' Z4 (1h à allure marathon/semi). Test de confiance,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_SPECIFIQUE_3x3000_MP,run,Spécifique marathon — 3x3000m à Allure Marathon (MP). Doit sembler trop facile,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_BLOC_CONTINU_MP,run,Bloc continu Allure Marathon — 40'-50'-60' à MP. Barrière mentale,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_LACTATE_SHUFFLE,run,Lactate Shuffle — 3x(10' MP + 5' Seuil). Produire du lactate et le digérer,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_SEUIL_OVERSPEED,run,Seuil Overspeed — 5x2000m Z4 (allure semi/15km). Débrider le moteur,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_SORTIE_ROYALE,run,LA SORTIE ROYALE — Z2 + 60-75' à Allure Marathon. Test ultime,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_LONGUE_PRE_FATIGUE,run,Sortie longue pré-fatigue — Z2 puis 30-45' MP en fin. Simulation km30→km40,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_MAR_MIX_TEMPO_VITESSE,run,Mix Tempo/Vitesse — 20' MP + 10x1' vite/lent. Neuro-plasticité sur pré-fatigue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_IM_BIKE_PMA_4x4,bike,PMA blocs — 4-5x4' à 110-115% FTP. VO2max vélo spécifique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_IM_BIKE_PMA_30_30,bike,"PMA intermittente — 30""/30"" et 40""/20"" à 120-130% FTP",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_IM_BIKE_PMA_PYRAMIDE,bike,PMA Pyramide — 3'-4'-5'-4'-3' à 110% FTP. Balayer toutes les zones VO2max,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_IM_BIKE_FORCE_K3,bike,Force SubMax K3 — 3x15-20' à 50-55rpm Z3. Pédalage rond en force,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_IM_BIKE_FOUNDATION_4H30,bike,Ironman Foundation — 4h30 Z2 + blocs Z3. Nutrition 90g glucides/h,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_IM_BIKE_RACE_SIM_6H,bike,SIMULATION IRONMAN — 6h. 4h Allure IM stricte + 30' CAP enchaîné,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_IM_BIKE_SWEET_SPOT_VLaMax,bike,Sweet Spot VLaMax — 3x20' à 88-90% FTP 60-70rpm. Baisser glycolyse,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_IM_BIKE_IRONMAN_SANDWICH,bike,Ironman Sandwich — 5h30. 3x1h Allure IM + 30' CAP. Durabilité spécifique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_703_BIKE_OVERUNDER,bike,Over-Unders 70.3 — 3-4x12' (2' 90% / 1' 110%). Clearance lactate,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_703_BIKE_SWEET_SPOT_90RPM,bike,Sweet Spot cadence course — 3x15-20' à 88-92% FTP 90-95rpm,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_703_BIKE_RACE_PACE_3x20,bike,Race Pace 70.3 — 3x20' à 80-85% FTP. Allure spécifique course,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_703_BIKE_REPETITION_GENERALE,bike,RÉPÉTITION GÉNÉRALE 70.3 — 4h. 2h30 Allure 70.3 + 30-40' CAP,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+TPL_SWIM_HYPOXIE,swim,Hypoxie — blocs Z5 avec respiration restreinte (3/5/7 mouvements),,unassessed_for_this_protocol_dose_population,,2,swim:unqualified_intent,{},False
+TPL_SWIM_FORCE_PLAQUETTES,swim,Force spécifique natation — 3-4x800m Pull+Grosses Plaquettes Z3,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+TPL_SWIM_CSS_LONG_REPS,swim,CSS Endurance longue — 6-8x300-400m à Allure CSS (Z4),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+TPL_SWIM_SIMULATION_EAU_LIBRE,swim,Simulation eau libre — 3000-3800m continu avec accélérations/polo,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+TPL_703_RUN_TEMPO_2x20,run,Tempo 70.3 — 2-3x15-20' Z4 (Allure 70.3). Métronome,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_703_RUN_VMA_1200,run,VMA longue 1200m — 5x1200m allure 10km (Z4 haut). Overspeed,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_IM_RUN_SEUIL_EXTENSIF,run,Seuil extensif IM — 2-3x20' Z4a (Allure Marathon IM). Tempo longue distance,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_IM_RUN_TEMPO_SPECIFIQUE,run,Tempo IM spécifique — 3x15-25' Z3 haut/Z4a. Allure Ironman,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_IM_RUN_LONGUE_DURABILITE,run,Longue durabilité IM — Z2 + 20-30' Z3 (Allure IM) en fin de sortie,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_IM_RUN_MARATHON_PRE_FATIGUE,run,Marathon pré-fatigué — 2h15 Z2 stable. Après grosse sortie vélo,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TPL_BRICK_IM_PROGRESSIVE,mixed,Brique IM progressive — 2h30-3h Vélo Z2/Z3 + 20-30' CAP Z2/Z3,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+TPL_BRICK_703_RYTHME,mixed,Brique 70.3 Rythme — 3h-3h30 Vélo + 20-30' CAP Z4,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+TPL_MAR_RENFO_LOURD,strength,"Force-endurance lourde marathon — Squat, Fentes, Deadlift (8-10 réps)",strength_endurance,unassessed_for_this_protocol_dose_population,,3,strength:strength_endurance,{},False
+TPL_MAR_RENFO_EXPLOSIF,strength,Renforcement explosif — charges légères remontée dynamique + pliométrie,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+ENR_RUN_NORWEGIAN_4x8,run,Norwegian 4x8' — protocole VO2max lactate-guided. Moteur aérobie élite,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+ENR_RUN_NORWEGIAN_5x6,run,Norwegian court 5x6' — variante VO2max plus dense. Accumulation temps en zone,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+ENR_RUN_BILLAT_30_30,run,"Billat 30/30 — 3 séries de 10x(30"" vVO2/30"" Z1). Temps accumulé >10min en zone VO2",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_FARTLEK_SCANDINAVE,run,Fartlek scandinave — surges imprévisibles 1-4' Z4/Z5 dans Z2. Résistance mentale,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_FARTLEK_KENYAN,run,Fartlek kényan — tempo continu Z3 avec surges Z5 courts. Développer le changement de rythme,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_FARTLEK_PYRAMIDE,run,Fartlek pyramidal — 1'-2'-3'-4'-3'-2'-1' Z4-Z5 avec récup égale. Montée puis descente progressive,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_TEMPO_PROGRESSIF,run,Tempo progressif — 30-45' en négatif split Z3→Z4. Apprendre à finir fort,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_CRUISE_INTERVALS,run,"Cruise Intervals Daniels — 4-6x1600m au seuil. Récup courte 60-90"". Clearance lactate optimale",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_ALLURE_MARATHON_LONG,run,Sortie longue allure marathon — 2h avec 40-60' Z4 bas (allure marathon) incorporé. Calibrer les sensations,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_ALLURE_SEMI_BLOCS,run,Blocs allure semi — 3x15' allure semi (Z4a) en nature. Spécificité maximale,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_COTES_COURTES,run,"Côtes courtes explosives — 10-15x10-15"" pleine puissance (8-12% pente). Recrutement neuromusculaire",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_COTES_LONGUES_FORCE,run,Côtes longues force — 6-8x2-3' en côte Z4/Z5 (5-8%). Économie de course + puissance,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_DESCENTE_TECHNIQUE,run,"Descente technique — 30-40' Z2 avec focus technique descente. Anti-DOMS, relâchement musculaire",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_TRAIN_LOW_FASTED,run,Train Low / Fasted run — Z2 à jeun 60-90'. Maximiser oxydation lipidique,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_SLEEP_LOW_DOUBLE,run,Sleep Low double day — Séance HIT soir (déplétion glycogène) + Z2 matin fasted. Protocole Marquet,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_DURABILITE_FINISH_FAST,run,Durabilité Finish Fast — Longue Z2 + dernier 20% du temps en Z3/Z4 progressif. Résistance à la fatigue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_PYRAMIDE_LACTIQUE,run,Pyramide lactique — 200-400-800-1200-800-400-200m. Tolérance multi-zones,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_DESCENDING_REST,run,"Descending rest 6x1000m — même allure, récup qui diminue (2'-1'30-1'-45""-30""-0""). Tolérance lactate",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_MIXTE_VMA_SEUIL,run,Séance mixte VMA + Seuil — 6x300m Z6 puis 2x8' Z4. Stimulation multi-filière,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_BIKE_NORWEGIAN_5x5,bike,Norwegian vélo 5x5' — VO2max lactate-guided. 88-92% FCmax en steady-state,,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+ENR_BIKE_POLARIZED_Z1_Z5,bike,Séance polarisée — 80' Z1/Z2 avec 3x6' Z5 insérés. Modèle 80/20 pur,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+ENR_BIKE_OVER_UNDER_AVANCE,bike,Over-Under avancé — 4x12' (3' 105% / 1' 90% x3). Clearance lactate dynamique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+ENR_BIKE_SWEET_SPOT_PROGRESSIF,bike,Sweet Spot progressif — 3x20' à 86→92% FTP (intra-bloc progressif). VLamax ↓ + TTE ↑,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+ENR_BIKE_TEMPO_CADENCE_BASSE,bike,Tempo cadence basse — 3x20' Z3 à 55-65rpm. Force musculaire spécifique cyclisme,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+ENR_BIKE_ENDURANCE_NEGATIVE_SPLIT,bike,Endurance negative split — 3h Z2 → dernière heure Z3 progressif. Durabilité vélo,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+ENR_BIKE_GIMENEZ_TEST_FORMAT,bike,Gimenez adapté — 6x6' Z4 (95% FTP) R:1' Z1. Seuil extensif haute densité,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+ENR_BIKE_RAMP_4x10,bike,Ramp 4x10' — chaque bloc commence à 85% et finit à 105% FTP. Tolérance progressive au lactate,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+ENR_SWIM_DESCENDING_SET,swim,Descending set — 5x400m avec temps qui descend chaque répétition. Gestion allure + finish fort,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+ENR_SWIM_BROKEN_SWIM,swim,"Broken swim 1500/1900m — distance race en segments avec micro-pauses 10"". Simulation course",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+ENR_SWIM_PADDLES_PULL_FORCE,swim,Pull buoy + plaquettes progressif — 4x600m Pull Z3. Force propulsive aquatique,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+ENR_SWIM_SPEED_ENDURANCE,swim,"Speed endurance — 16x50m Z5 R:15"". Vitesse + résistance. Départ compétition",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+ENR_SWIM_KICK_SET,swim,Kick set spécifique — 8x100m battements Z3/Z4. Propulsion jambes + stabilisation core,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+ENR_SWIM_NEGATIVE_SPLIT_800,swim,Negative split 4x800m — chaque 800 en negative split (2ème 400 plus rapide). Discipline d'allure,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+ENR_TRAIL_VMA_COTES,run,"VMA côtes trail — 8-10x1'30"" en côte raide (>15%). Puissance en montée",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_TRAIL_SEUIL_MONTEE,run,Seuil en montée — 3x10-15' en côte (8-12%) Z4. Endurance musculaire spécifique montée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_TRAIL_LONGUE_DPLUS,run,Sortie longue D+ — 2h30-4h avec D+ ciblé. Résistance verticale et nutrition terrain,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_TRAIL_MARCHE_RAPIDE_COTES,run,Marche rapide en côte — Z2/Z3 cardio en marchant rapidement (>15% pente). Économie verticale,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_BRICK_SWIM_BIKE,mixed,Brique natation→vélo — 2000-3000m natation + 1h30-2h vélo Z2/Z3. Transition T1,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+ENR_BRICK_DOUBLE_RUN,run,Double run — AM: 40' Z2 + PM: 30' Z3/Z4 qualité. Volume fractionné dans la journée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_STR_PLYOMETRIE,strength,"Pliométrie pure — box jumps, bounds, drop jumps. Raideur musculo-tendineuse",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+ENR_STR_CORE_ANTI_ROTATION,strength,"Core anti-rotation — Pallof press, planche latérale, dead bug. Stabilité tronc en fatigue",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+ENR_STR_EXCENTRIQUE_ISCHIO,strength,Nordic hamstring + excentriques — prévention blessures ischio-jambiers. Protocole scandinave,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+ENR_STR_CONCURRENT_AM_PM,strength,"Concurrent AM/PM — AM muscu force (squat, deadlift) + PM endurance. Anti-interférence AMPK/mTOR",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+ENR_RECUP_ACTIVE_MULTI,mixed,Récup active multi-sport — 20' nage facile + 20' vélo facile. Varier les contraintes mécaniques,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+ENR_RECUP_MOBILITE_YOGA,strength,"Mobilité & yoga flow — 30-40'. Amplitude, respiration, régénération fasciale",,unassessed_for_this_protocol_dose_population,,1,strength:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 12, ""IM_aerobic_history:hold_current_envelope"": 12, ""IM_aerobic_history:blockwise_reassessment"": 12, ""IM_balanced_history:native_floor_conditional"": 12, ""IM_balanced_history:hold_current_envelope"": 12, ""IM_balanced_history:blockwise_reassessment"": 12}",False
+ENR_RACE_SIM_MARATHON,run,Simulation marathon — 32km avec 20km allure marathon. Dress rehearsal complète,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RACE_SIM_SEMI,run,Simulation semi — 18km avec 12km allure semi. Test matériel et nutrition,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_TAPER_OPENERS_RUN,run,"Openers J-2 — 30' facile + 4x30"" allure 5km. Activation neuromusculaire pré-course",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_TAPER_OPENERS_BIKE,bike,Openers vélo J-2 — 45' facile + 3x1' à 120% FTP. Activation nerveuse pré-course,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+ENR_TAPER_SHAKEOUT_RUN,run,Shakeout J-1 — 15-20' trot très facile. Dernier check sensoriel,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_HEAT_ACCLIM_Z2,run,Heat acclimation — Z2 en condition chaude (>28°C ou sur-habillé). Adaptation thermorégulation 7-14j,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_ALTITUDE_EASY_RUN,run,"Altitude easy run — Z1/Z2 à altitude >1500m. Adaptation EPO naturelle, réduire 10-15% intensité",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_10K_TEMPO_CONTINU,run,Tempo continu 10km — 25-35' allure 10km (Z4 haut). Tolérance lactate spécifique,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_RUN_10K_REPETITIONS,run,Répétitions 10km — 10x800m allure 10km R:1'. Volume qualité élevé,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+ENR_BIKE_LACTATE_SHUTTLE,bike,"Lactate Shuttle — 8x(90"" Z5 + 3' Z3). Navette lactate continue. Clearance optimale",,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+ENR_RUN_LACTATE_CLEARANCE,run,Lactate clearance — 6x(2' Z5 + 4' Z3). Apprendre au corps à recycler le lactate en course,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+V2_BIKE_SFR_CLASSIQUE,bike,SFR classique — 5x8' à 50-60rpm Z3/Z4 en côte (4-6%). Force spécifique vélo,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_BIKE_SFR_PROGRESSIF,bike,SFR progressif — 4x10' (55rpm→70rpm intra-bloc). Force → vélocité enchaînée,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_BIKE_GRIMPEUR_TEMPO,bike,Tempo grimpeur — 2x25' en bosse Z3 (75-82% FTP) cadence libre. Endurance montée longue,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_BIKE_TT_POSITION,bike,TT position — 3x15' en position aéro Z3/Z4. Accoutumance aéro + puissance soutenue,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_BIKE_TT_RACE_PACE,bike,TT Race Pace — 1x40-60' continu position aéro allure course. Simulation exacte segment vélo,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_BIKE_FATMAX_LONG,bike,FatMax long — 2h30-3h30 Z2 bas (65-72% FTP). Zone d'oxydation lipidique maximale,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_BIKE_FATMAX_FASTED,bike,FatMax à jeun — 90-120' Z2 bas à jeun. Maximiser adaptations lipidiques,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_BIKE_SPRINT_NEUROMUSCULAR,bike,"Sprints neuromusculaires — 8x10"" max effort R:3'. Recrutement fibres rapides + puissance pic",,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+V2_BIKE_TABATA,bike,"Tabata vélo — 2x(8x20""/10"") Z6-Z7. VO2max + capacité anaérobie en 8 minutes d'effort",,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+V2_RUN_5K_VMA_200,run,VMA courte 200m — 12-16x200m Z6+ (100-105% VMA). Vitesse terminale et relâchement,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_5K_ALLURE_SPECIFIQUE,run,Allure spécifique 5K — 5x1000m allure 5K (Z5) R:2'. Caler les sensations course,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_SPRINT_PLAT,run,Sprints plat — 6-8x80-100m effort maximal R:3'. Vitesse maximale aérobie + recrutement,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+V2_RUN_SORTIE_LONGUE_STRUCTUREE,run,Sortie longue structurée — Z2 + inserts tempo Z3 toutes les 30'. Volume + qualité,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_SORTIE_LONGUE_DEPLETION,run,Sortie longue déplétion — 2h Z2 sans ravitaillement glucidique. Adaptation métabolique,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_GUT_TRAINING_Z3,run,Gut training course — Z2/Z3 avec ingestion progressive 60→90g/h glucides. Tolérance digestive,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_BIKE_GUT_TRAINING,bike,Gut training vélo — 2-3h Z2/Z3 avec ingestion 80→100g/h. Entraîner l'intestin,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_TRAIL_BACK_TO_BACK_SAM,run,Back-to-back SAMEDI — 3h-4h terrain montagneux D+ élevé. 1ère partie du weekend choc,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_TRAIL_BACK_TO_BACK_DIM,run,Back-to-back DIMANCHE — 2h-3h sur jambes fatiguées. Simuler la 2ème moitié d'ultra,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_TRAIL_MARCHE_COURSE_ALTERNE,run,Marche/course alternée ultra — 3-5h (10' course Z2 / 5' marche rapide). Stratégie ultra longue distance,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_TRAIL_DESCENTE_COMPETITIVE,run,Descente compétitive — 6x3' descente rapide technique Z4. Gagner du temps en descente,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_TRAIL_PROPRIOCEPTION,run,Proprioception trail — 40' terrain technique irrégulier Z2. Stabilité cheville + lecture terrain,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_SWIM_TECHNIQUE_CATCH,swim,Technique catch — 6x(100m catch-up + 100m nage). Améliorer prise d'eau et longueur de bras,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V2_SWIM_TECHNIQUE_ROTATION,swim,Rotation & roulis — éducatifs rotation tronc + nage unilatérale. Alignement et propulsion,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V2_SWIM_EAU_LIBRE_DRAFT,swim,Eau libre drafting — 2000-3000m avec alternance leadership/draft. Tactique course,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V2_SWIM_SIGHTING_DRILL,swim,Sighting drills — 1500m avec visée (polo/tarzan) toutes les 6-8 brasses. Orientation eau libre,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V2_SWIM_ENDURANCE_3K,swim,Endurance 3000m — série longue continue Z2/Z3. Simulation distance race IM,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V2_BRICK_AQUATHLON,mixed,Aquathlon brique — 1500m natation + 10km course enchaînés. Transition T1→course immédiate,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+V2_BRICK_INDOOR_RUN,mixed,Brique indoor→outdoor — 60' HT vélo Z3/Z4 + 20' course Z3 extérieur. Transition jambes lourdes,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+V2_BRICK_TRIPLE,mixed,Brique triple — 1500m natation + 1h30 vélo + 20' course. Mini-triathlon complet,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+V2_STR_HANCHE_COUREUR,strength,"Mobilité hanche coureur — abducteurs, fléchisseurs, rotateurs. Prévention ITB + économie de foulée",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V2_STR_ISOMETRIQUE_SEUIL,strength,"Isométrique seuil — wall sit, single leg hold, pont. Endurance musculaire sans impact articulaire",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V2_STR_ESCALIERS_TRAIL,strength,Escaliers trail — 20-30' montées escaliers (2 à 2) + descente contrôlée. Force + proprioception verticale,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V2_STR_GAINAGE_DYNAMIQUE,strength,"Gainage dynamique triathlon — mountain climber, bear crawl, pallof rotation. Stabilité sous mouvement",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V2_STR_FORCE_MAX_UPPER,strength,"Force haut du corps — tractions, développé, rowing. Propulsion natation + posture vélo",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V2_RECUP_FOAM_ROLLING,strength,Foam rolling structuré — 20-25' protocole complet. Auto-massage myofascial post-séance clé,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V2_RECUP_NAGE_DETENTE,swim,Nage détente — 1500m multi-nages facile. Décompression articulaire + circulation,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V2_RECUP_VELO_REGENERATION,bike,Vélo régénération — 45-60' Z1 strict <60% FTP. Flush sanguin sans stress mécanique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_IM_BIKE_QUEEN_STAGE,bike,Queen Stage IM — 4h30-5h Z2/Z3 avec nutrition race complète. Sortie royale du cycle,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_IM_SWIM_PROGRESSIVE_3800,swim,"Progressive 3800m — negative split. 1ère moitié Z2, 2ème Z3. Finir fort comme en course",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V2_703_BIKE_SPLIT_NEGATIVE,bike,Split négatif 70.3 — 2h vélo: 1h à 78% FTP + 1h à 85% FTP. Stratégie pacing 70.3,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_703_RUN_BRICK_FAST_START,mixed,Brique 70.3 fast start — 1h30 vélo Z3 + 5km CAP: 1er km Z4 haut puis Z4. Apprendre à attaquer T2,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+V2_RUN_MENTAL_FATIGUE,run,Run sous fatigue mentale — 60' Z2 après 30' tâche cognitive intense. Entraîner le cerveau fatigué,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_NEGATIVE_SPLIT_RACE_SIM,run,Negative split discipline — 10km en 2 moitiés: 5km Z3 bas + 5km Z3 haut→Z4. Discipline mentale absolue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_BIKE_CADENCE_HAUTE,bike,Cadence haute — 6x5' Z2 à 100-110rpm. Efficacité pédalage + économie neuromusculaire,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_BIKE_SINGLE_LEG,bike,Single leg drills — 6x(2' jambe droite + 2' jambe gauche) Z2. Éliminer les points morts,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V2_RUN_STRIDES_POST_EF,run,"EF + strides — 45-60' Z2 + 6x20"" accélérations progressives. Neuromusculation dans volume",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_EDUCATIFS_TECHNIQUES,run,"Éducatifs techniques — gammes complètes 30'. Montées genoux, talons-fesses, skipping, griffé, bondissements",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_KENYAN_TEMPO_LONG,run,"Tempo kényan long — 40-60' continu Z4 (allure marathon -15""/km, sous-seuil). Le 'bread and butter' des Kényans",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_ETHIOPIAN_FARTLEK,run,"Fartlek éthiopien — 50' terrain vallonné, accélérer en montée Z4/Z5, Z2 en descente. Tout au feeling",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_RUN_OVER_UNDER,run,Over-Under course — 4x8' (2' allure 10km / 2' allure marathon x2). Clearance lactate en course,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V2_SWIM_RACE_PACE_IM,swim,"Race pace IM — 6x500m allure course IM (Z3) R:20"". Caler exactement son allure",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V2_SWIM_THRESHOLD_MIXTE,swim,"Seuil mixte distances — 4x(100+200+300)m Z4 R:15"". Varier les distances au seuil",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V3_BIKE_Z2_ENDURANCE_LONG,bike,Développement aérobie fondamental — sortie longue Z2,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_Z2_CAFE_RIDE,bike,Sortie sociale Z2 récupération active,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_FATMAX_LONG,bike,Oxydation lipidique maximale — FatMax long,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_SST_PROGRESSIF,bike,Sweet Spot progressif — montée en durée bloc à bloc,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_TEMPO_LONG,bike,Tempo continu prolongé — endurance musculaire,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_OVER_UNDER_ADV,bike,Over-Under avancé — clearance lactate sous pression,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_CLIMBING_TEMPO,bike,Tempo en montée — simulation col,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_FORCE_SFR,bike,SFR — Strength/Force Resistance en côte,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_RACE_PACE_TT,bike,Race Pace vélo — simulation allure cible,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_TT_AERO,bike,Position aéro — adaptation posturale TT,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_VO2_CLASSIC_5x5,bike,VO2max classique 5x5' — gold standard Billat,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_VO2_SHORT_30_30,bike,VO2max 30/30 vélo — accumulation temps en zone,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_VO2_NORWEGIAN_4x8,bike,Norwegian 4x8' vélo — protocole Ingebrigtsen adapté,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_VO2_TABATA,bike,Tabata vélo — capacité anaérobie + VO2max,,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+V3_BIKE_RAMP_TEST,bike,Ramp test — montée progressive jusqu'à échec,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_SPRINT_NEURO,bike,Sprints neuromusculaires — recrutement fibres rapides,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_CADENCE_DRILLS,bike,Travail de cadence — efficacité de pédalage,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_THRESHOLD_2x20,bike,Seuil classique 2x20' — gold standard FTP,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_MUSCULAR_ENDURANCE,bike,Endurance musculaire — efforts soutenus mi-zone,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_MIXED_PYRAMID,bike,Pyramide mixte vélo — multi-zone en une séance,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_RECOVERY_SPIN,bike,Récupération active vélo — flush lactate,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_RUN_10K_INTERVALS_1000,run,10K spécifique — 5x1000m à allure cible,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_RUN_10K_TEMPO_CRUISE,run,Cruise intervals 10K — Daniels,,unassessed_for_this_protocol_dose_population,,0,run:unqualified_intent,{},False
+V3_RUN_10K_FAST_FINISH,run,Fast finish long run — sortie longue avec finish rapide 10K,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_RUN_10K_VO2_800,run,VO2max 10K — 8x800m,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_RUN_10K_RACE_SIM,run,Simulation course 10K — dress rehearsal,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_MTN_VMA_COTE,run,VMA côte trail montagne — puissance ascensionnelle,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_MTN_DESCENTE_TECH,run,Descente technique trail — proprioception et vitesse,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_MTN_LONG_D_PLUS,run,Sortie longue D+ trail montagne — volume vertical,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_MTN_RACE_SIM,run,Simulation course trail montagne — parcours type,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_ULTRA_B2B_WEEKEND,run,Back-to-back ultra — double sortie week-end pré-fatigue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_ULTRA_MARCHE_COURSE,run,Marche/course alternée ultra — gestion effort longue durée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_ULTRA_NIGHT,run,Sortie nocturne — adaptation vision et fatigue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_ULTRA_RACE_SIM,run,Simulation ultra — 50% distance course avec protocole complet,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_RACESIM_MARATHON,run,Simulation marathon — 30-32K à allure cible,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_RACESIM_SEMI,run,Simulation semi-marathon — 16-18K à allure cible,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_RACESIM_BIKE_IM,bike,Simulation vélo Ironman — 140K à puissance cible,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_RACESIM_BIKE_703,bike,Simulation vélo 70.3 — 70K à puissance cible,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_RACESIM_SWIM_IM,swim,Simulation natation Ironman — 3800m à allure cible,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V3_RACESIM_SWIM_703,swim,Simulation natation 70.3 — 1900m à allure cible,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V3_TEST_FTP_20MIN,bike,Test FTP 20' — évaluation seuil fonctionnel,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_TEST_VMA_VAMEVAL,run,Test VMA VAMEVAL — évaluation vitesse max aérobie,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TEST_CSS,swim,Test CSS — Critical Swim Speed,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V3_TEST_LACTATE_STEP,run,Test paliers lactate — seuils LT1/LT2,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TEST_SPRINT_15S,bike,Test sprint 15'' — puissance neuromusculaire maximale,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_TEST_TTE,bike,Test TTE — Time To Exhaustion au seuil,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_TEST_COOPER,run,Test Cooper 12' — estimation VO2max terrain,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TEST_HALF_MARATHON_TT,run,Test chrono semi-marathon — validation allure cible,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_BRICK_IM_LONG,brick,Brick longue Ironman — vélo long + run off the bike,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+V3_BRICK_703_RACE_PACE,brick,Brick 70.3 race pace — simulation T2 compétition,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+V3_BRICK_SWIM_BIKE,brick,Brick natation→vélo — T1 simulation,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+V3_BRICK_SHORT_INTENSITY,brick,Brick courte intense — adaptation neuromusculaire,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+V3_BRICK_SWIM_RUN_AQUA,brick,Aquathlon brick — natation + course directe,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+V3_BRICK_TRIPLE,brick,Triple brick — simulation enchaînement complet S/B/R,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+V3_RECUP_YOGA_ATHLETE,strength,Yoga athlète — mobilité et relâchement,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V3_RECUP_FOAM_ROLL,strength,Auto-massage foam roller — flush et mobilité,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V3_RECUP_SWIM_REGEN,swim,Natation régénérative — récupération aquatique,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V3_RECUP_WALK_NATURE,run,Marche en nature — récupération et santé mentale,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_RECUP_MOBILITE_HANCHE,strength,Mobilité articulaire hanches/chevilles — prévention,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+V3_RECUP_COMPRESSION_PROTOCOL,mixed,Protocole récupération complète — cold/compression/nutrition,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+V3_TRAIL_SHORT_TEMPO_COTE,run,Tempo côte trail court — allure spécifique montée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_TRAIL_SHORT_RACE_SIM,run,Simulation trail court 20-30K — parcours type,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+V3_BIKE_Z2_PROGRESSIF,bike,Sortie Z2 progressive — montée en puissance graduelle,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_INDOOR_ZWIFT,bike,Indoor structuré — séance home-trainer type Zwift,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_BIKE_NEGATIVE_SPLIT,bike,Negative split vélo — 2ème moitié plus rapide,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+V3_SWIM_OWS_SIGHTING,swim,Eau libre — navigation et drafting,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+V3_SWIM_SPEED_ENDURANCE,swim,Speed endurance natation — maintien vitesse haute,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_TR_EF_SENTIER,run,Endurance fondamentale sentier — adaptation terrain,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_SL_MONTAGNE_BASE,run,Sortie longue montagne base — volume D+ progressif,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_SL_ULTRA_BUILD,run,Sortie longue ultra build — D+ massif + nutrition,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_SL_PEAK,run,Sortie longue peak — simulation terrain cible,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_B2B_SAM,run,Back-to-back samedi — J1 volume D+ fort,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_B2B_DIM,run,Back-to-back dimanche — J2 endurance sur pré-fatigue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_MARCHE_COURSE_ULTRA,run,Marche/course alternée — gestion effort ultra longue durée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_TR_EF_VALLON,run,Endurance fondamentale vallonnée — adaptation D+,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_VMA_COTE_COURT,run,VMA côtes courtes — puissance ascensionnelle explosive,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_VMA_COTE_LONG,run,VMA côtes longues — endurance de force ascensionnelle,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_SEUIL_MONTEE,run,Seuil en montée — allure spécifique trail montagne,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_SEUIL_MONTEE_LONG,run,Seuil montée long — endurance au seuil en ascension,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_DESCENTE_RAPIDE,run,Descente rapide technique — vitesse et placement pied,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_DESCENTE_ECCENTRIC,run,Descente excentrique progressive — tolérance DOMS,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_FARTLEK_TERRAIN,run,Fartlek terrain — adaptation rythme variable naturel,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_TEMPO_VALLON,run,Tempo vallonné — seuil sur terrain ondulé,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_MONTEE_BATONS,run,Montée avec bâtons — technique et efficacité,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_TR_NEGATIVE_SPLIT,run,Sortie longue negative split — gestion effort trail,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_TR_PROPRIOCEPTION,strength,Proprioception trail — stabilité chevilles et appuis,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_EXCENTRIQUE_LOURD,strength,Force excentrique lourde — prévention DOMS descente,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_FORCE_MONTEE,strength,Force spécifique montée — puissance ascensionnelle,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_CORE_ANTIFATIGUE,strength,Core anti-fatigue trail — résistance posturale longue durée,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_PLIO_TRAIL,strength,Pliométrie trail — réactivité appuis terrain,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_TR_RENFO_CIRCUIT_FATIGUE,strength,Circuit force sous fatigue — résistance musculaire ultra,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+RS_TR_SIM_COURT,run,Simulation trail court — 60-70% distance course,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+RS_TR_SIM_MTN,run,Simulation trail montagne — terrain et nutrition complète,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+RS_TR_SIM_ULTRA,run,Simulation ultra — 40-50% distance avec protocole complet,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+RS_TR_SIM_NUIT,run,Simulation nocturne — adaptation vision et fatigue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+RS_TR_GUT_TRAINING,run,Gut Training trail — tolérance digestive en effort vallonné,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TR_RECUP_ACTIVE,run,Récupération active trail — trot très facile sentier,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TR_VELO_CROSS,bike,Vélo cross-training — volume aérobie sans impact,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+D_TR_TAPER_RAPPEL,run,Taper trail — rappel seuil montée court,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TR_TAPER_ACTIVATION,run,Activation pré-course trail — J-2,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TR_MOBILITE_TRAIL,strength,"Mobilité trail — chevilles, hanches, colonne",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+URBAN_TAPIS_INCLINE_SEUIL,run,[URBAIN] Seuil montée tapis incliné — 4×12' à 8-12% incl. Z3/Z4. Substitue seuil montée long en l'absence de relief,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_COTES_URBAINES_VMA,run,"[URBAIN] VMA côtes urbaines — 10-15×60-90"" à fond sur passerelles/ponts/rampes. Substitue VMA côtes en l'absence de montagne",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_ESCALIERS_PYRAMIDE,run,"[URBAIN] Escaliers pyramide — montées répétées d'escaliers urbains (building, parking, gradins). Force-puissance verticale + tolérance lactique montée",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_EXCENTRIQUE_DESCENTE_SALLE,strength,[URBAIN] Excentrique descente salle — substitue descente technique trail. Presse 120° phase neg 3-4s + step-downs + Nordic. Prépare quadriceps au stress descente,,unassessed_for_this_protocol_dose_population,,2,strength:unqualified_intent,{},False
+URBAN_TAPIS_SL_LONG,run,"[URBAIN · TAPIS] SL tapis incliné progressif — 60-120' à 3-8% incl. Z2, simule fatigue D+ d'une SL trail montagne. Au-delà de 2h, préférer URBAN_PARC_BOUCLES_VALLONNEES ou URBAN_SL_OUTDOOR_VARIETE (outdoor) — un tapis >2h est physiologiquement OK mais très peu motivant et n'apporte plus de gain spécifique.",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_DOUBLE_TAPIS_AM_PM,run,[URBAIN] Doublette tapis matin+soir — substitue back-to-back trail weekend. AM 75' Z2 5% incl. + PM 60' Z2 3% incl. Charge cumulée D+ équivalente,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_TAPIS_DESCENTE_NEGATIVE,run,[URBAIN] Tapis incliné NÉGATIVE — 4×6' à -6 à -10% incl. Z2/Z3. Travail spécifique excentrique quadriceps descente (tapis le permettant),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_PARC_BOUCLES_VALLONNEES,run,"[URBAIN · OUTDOOR] SL parc/bois urbain — 90-240' Z2 sur boucles vallonnées (Bois Vincennes, Forêt Soignes, Bois Boulogne, Parc Tête d'Or, etc.). Cumul D+ via répétitions de petites bosses. À PRIVILÉGIER sur tapis dès que la durée dépasse 2h.",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_SL_OUTDOOR_VARIETE,run,[URBAIN · OUTDOOR] SL urbaine variée — 120-210' Z2 alternant parc + ponts + escaliers + quais + petites côtes urbaines. Alternative outdoor PRIORITAIRE au tapis pour les sorties longues 2-3h en ville sans bois accessible.,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_ESCALIERS_TEMPO_LONG,run,[URBAIN] Escaliers tempo long — 25-45' continu sur boucle escaliers/parc à étages. Endurance force-vertical-aérobie,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_TAPIS_PYRAMIDE_INCLINE,run,[URBAIN] Pyramide inclinaison tapis — VO2max montée : 3-5-7-5-3' à 8% incl. allure Z4/Z5. Stimule VO2 spécifique grimpe,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_SAC_LESTE_SL,run,[URBAIN] SL avec sac lesté 4-6kg — 75-120' Z2 en parc/boucle urbaine. Reproduit charge spécifique trail (sac hydratation + matériel obligatoire),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_CORE_GAINAGE_TRAIL,strength,[URBAIN] Gainage trail spécifique — circuit 30' anti-affaissement chaîne post + tronc + cheville. Pré-requis pour soutenir effort montée/descente long,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+URBAN_RACESIM_TAPIS_NUTRITION,run,"[URBAIN · TAPIS] Race-sim tapis incliné — 90-150' tapis 4-7% incl. Z2 avec test nutrition/hydratation/matériel jour J. Format court (≤2h30) volontairement : pour une race-sim plus longue, utiliser URBAN_PARC_BOUCLES_VALLONNEES ou URBAN_SL_OUTDOOR_VARIETE avec sac lesté et matériel complet.",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_BATONS_TECHNIQUE_PARC,run,[URBAIN] Technique bâtons + montée puissante — 45' parc/escaliers avec bâtons trail. Apprentissage gestuelle bras + économie montée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_RECUP_VELO_ZONE1,bike,[URBAIN] Récup vélo home-trainer Z1 — 40-60' très facile post-séance lourde urbaine (escaliers/tapis incliné). Drainage sans impact,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+EXPE_HORS_VILLE_SL_DPLUS,run,[EXPÉ HORS-VILLE] Sortie longue D+ massif accessible — 2h30-5h trail vallonné/montagne (Ardennes/Vosges/Fontainebleau/Forêt domaniale <2h route). Volume D+ irréalisable en ville,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+EXPE_HORS_VILLE_BACK_TO_BACK,run,[EXPÉ HORS-VILLE] Back-to-back week-end massif — sam SL D+ 2h30-3h30 + dim SL D+ 1h30-2h30 sur jambes fatiguées. Choc spécifique trail,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+EXPE_HORS_VILLE_DESCENTE_TECHNIQUE,run,[EXPÉ HORS-VILLE] Atelier descente technique massif — 1h30-2h30 ciblé descentes répétées sur sentier accidenté. Compétence intransposable au tapis/escaliers,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_TAPIS_SEUIL_PROGRESSIF_LONG,run,"[URBAIN] Seuil progressif tapis incliné — 3×15' à 4/6/8% inclinaison, allure seuil descendante. Travaille puissance aérobie en montée soutenue",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_TAPIS_VO2_FARTLEK_INCLINE,run,[URBAIN] VO2max tapis fartlek inclinaison variable — 10×(2' à 8-10% VO2 + 1' récup 2%). Reproduit profil dent-de-scie sentier montée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_TAPIS_SIMUL_COL_LONG,run,[URBAIN] Simulation col long tapis — 60-90' continu à 6-10% incl. allure marche/course alternée (5'/5'). Reproduit ascension longue 800-1500m D+,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_ESCALIERS_SEUIL_CONTINU,run,[URBAIN] Seuil continu escaliers — 3×8' montées/descentes enchaînées sur grand escalier (>50 marches). Travail seuil + posture descente,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_ESCALIERS_FARTLEK_LIBRE,run,[URBAIN] Fartlek escaliers ludique — 45' parcours urbain enchaînant 6-10 escaliers du quartier avec allures libres. Stimulus varié et motivant,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_ESCALIERS_BATONS_DOUBLE_POLING,run,"[URBAIN] Escaliers + bâtons double-poling — 8×1'30 montée avec bâtons, focus poussée bras synchronisée. Spécifique trail mountain/ultra >1500m D+",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_COTES_NORVEGIEN_DOUBLE_SEUIL,run,[URBAIN] Côte urbaine méthode norvégienne double seuil — AM 5×6' côte allure seuil bas / PM 6×4' côte allure seuil haut. Volume seuil massif sans casse,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_COTES_SPRINT_NEURO,run,"[URBAIN] Sprint côte neuromusculaire — 12×8"" côte raide (>10%) à intensité max, R complète. Recrutement fibres rapides, puissance départ relances",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_COTES_LONGUES_FARTLEK,run,[URBAIN] Fartlek côtes longues — 70' parcours vallonné urbain (parc/passerelles/ponts) avec montées >2' à allures variables. Volume spécifique simulation profil,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+URBAN_PARKING_RAMPE_PYRAMIDE,run,[URBAIN] Parking souterrain rampe pyramide — 1-2-3-4-3-2-1 min montée rampe parking (pente continue 8-15%). Alternative tapis si météo extrême,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+EXPE_HORS_VILLE_NOCTURNE,run,"[EXPÉ HORS-VILLE] Sortie nocturne massif — 2-3h trail nuit avec frontale, sentier connu. Spécifique courses comportant phase nocturne (ultra >12h)",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+EXPE_HORS_VILLE_TRIPLE_JOUR,run,"[EXPÉ HORS-VILLE] Stage 3 jours massif — vendredi-samedi-dimanche en gîte, choc volume + D+. Pic spécifique ultra/mountain peak phase",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+EXPE_HORS_VILLE_RACE_SIM_MASSIF,run,"[EXPÉ HORS-VILLE] Race-sim massif autonomie complète — 3-5h sentier massif avec sac course, nutrition exacte jour J, matériel obligatoire. Répétition générale",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+EXPE_HORS_VILLE_VERTICAL_KM,run,"[EXPÉ HORS-VILLE] Vertical Km massif — montée sèche 1000m D+ continue (3-5km dist.), allure soutenue. Test puissance verticale + économie montée raide",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+EXPE_HORS_VILLE_FORET_PERIURBAINE,run,"[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_STR_ENDURANCE_CIRCUIT,strength,Circuit endurance musculaire général – socle de force,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+A_STR_STABILITY_CORE,strength,Stabilité et gainage – prévention blessure,,unassessed_for_this_protocol_dose_population,,1,strength:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 3, ""IM_aerobic_history:hold_current_envelope"": 3, ""IM_aerobic_history:blockwise_reassessment"": 3, ""IM_balanced_history:native_floor_conditional"": 3, ""IM_balanced_history:hold_current_envelope"": 3, ""IM_balanced_history:blockwise_reassessment"": 3}",False
+A_STR_AERO_STRENGTH,strength,Force aérobie – circuit à basse intensité avec charge modérée,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+B_STR_MAX_STRENGTH,strength,Force maximale – développement neuromusculaire,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+B_STR_PLYOMETRIC,strength,Pliométrie – puissance explosive et réactivité musculaire,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+B_STR_POWER_ENDURANCE,strength,Puissance-endurance – maintien de force sous fatigue,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_BRICK_TRANSITION_DRILL,brick,Technique de transition T2 – vitesse et automatismes,,unassessed_for_this_protocol_dose_population,,0,brick:unqualified_intent,{},False
+C_BRICK_CADENCE_ADAPT,brick,Adaptation cadence vélo→course – travail neuromusculaire,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+C_BRICK_NUTRITION_PRACTICE,brick,Répétition nutrition en enchaînement – gut training spécifique,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+D_BRICK_EASY_SHAKEOUT,brick,Enchaînement léger de récupération – maintien sensation transition,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+D_BRICK_RECOVERY_SPIN,brick,Récupération active enchaînement – décontraction musculaire,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_TAPER_OPENER,brick,Brick opener pré-course – activation sans fatigue,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+BR_TAPER_DRESS_REHEARSAL,brick,"Répétition générale – tenue course, nutrition, matériel final",,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+C_SWIM_KICK_TECH,swim,Technique de battements – position du corps et propulsion jambes,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_LEGS_ENDURANCE,swim,Endurance jambes natation – préparer sortie eau vers vélo,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_RUN_10K_RACE_PACE,run,Allure spécifique 10K – soutien au seuil,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_10K_VO2_SHORT,run,Développement VO2max court pour 10K – capacité anaérobie,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_RUN_10K_TEMPO_LONG,run,Tempo long progression pour 10K – endurance à haute intensité,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_BIKE_TAPER_OPENER,bike,Opener vélo pré-course – activation neuromusculaire,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_STR_ISOMETRIC_LOWER,strength,"Force isométrique membres inférieurs – tendons, stabilité articulaire",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_ISOMETRIC_UPPER,strength,"Force isométrique haut du corps – gainage, stabilité épaules nageur",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_NORDIC_HAMSTRING,strength,Force excentrique ischio-jambiers – prévention blessure course,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_HEAT_ACCLIM_BIKE_INDOOR,bike,Acclimatation chaleur sur home-trainer – expansion plasmatique,,unassessed_for_this_protocol_dose_population,,2,bike:unqualified_intent,{},False
+A_HEAT_ACCLIM_RUN,run,Sortie longue en conditions chaudes – adaptation sudation + pacing chaleur,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+B_RUN_LACTATE_SHUTTLE,run,Navette lactate – clairance lactique et recyclage métabolique,,unassessed_for_this_protocol_dose_population,,2,run:unqualified_intent,{},False
+C_RESP_INSPIRATORY_MUSCLE,strength,"Entraînement muscles inspiratoires – réduction dyspnée, économie ventilatoire",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+D_PAP_PRE_RACE,strength,Post-Activation Potentiation – activation neuromusculaire pré-compétition,,unassessed_for_this_protocol_dose_population,,2,strength:unqualified_intent,{},False
+C_SWIM_CORD_RESISTANCE,swim,Force spécifique nage avec élastique/corde – puissance de traction,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_MENTAL_RACE_VISUALIZATION,mixed,"Visualisation structurée de course – gestion mentale, pacing, scénarios",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_MENTAL_RACE_SCENARIO_TRAINING,mixed,Entraînement par scénarios – résilience mentale et adaptabilité tactique,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+B_RUN_PYRAMID_VMA,run,"Pyramide VMA – variété de durées, engagement mental progressif",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_BIKE_PYRAMID_POWER,bike,"Pyramide puissance – stimulation multi-zones, variété mentale",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_SWIM_PYRAMID_CSS,swim,"Pyramide CSS natation – variété de distances, maintien technique sous fatigue",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_RUN_DESCENDING_TEMPO,run,"Tempo dégressif – finish positif, confiance en fin de séance",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_BIKE_DESCENDING_INTERVALS,bike,"Intervalles dégressifs vélo – intensité montante, durée descendante",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+A_RUN_FARTLEK_LIBRE,run,"Fartlek libre – autonomie de l'athlète, plaisir de courir, instinct",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_BIKE_FARTLEK_TERRAIN,bike,"Fartlek terrain vélo – jouer avec le parcours, varier les relances",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_STR_CIRCUIT_CARDIO_RUN,strength,Circuit cardio-technique coureur – renforcement ludique avec cardio intégré,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_CIRCUIT_CARDIO_TRI,strength,Circuit cardio triathlon – renforcement multisport ludique,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+FM_BIKE_FATMAX_PROGRESSIVE,bike,FatMax progressif — Z2 bas avec montée progressive vers plafond FatMax (65→75% FTP). Oxydation lipidique maximale,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FM_BIKE_GLYCOGEN_DEPLETION,bike,Déplétion glycogénique ciblée — Z2-Z3 mixte 2h30+. Épuiser les réserves pour forcer l'oxydation lipidique,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FM_BIKE_SLEEP_LOW_AM,bike,Sleep Low → Ride AM — Vélo Z2 matinal après soirée sans glucides post-HIT. Adaptation mitochondriale maximale (Marquet 2016),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FM_RUN_FATMAX_ZONE,run,FatMax zone run — course en zone d'oxydation lipidique maximale (65-75% VMA). Ciblage métabolique précis,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+FM_RUN_FASTED_LONG,run,Sortie longue à jeun — Z2 fasted 75-100'. Maximiser les adaptations lipidiques pour l'endurance,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+FM_RUN_SLEEP_LOW_AM,run,Sleep Low → Run AM — Course Z2 matinale après dîner sans glucides post-HIT. Protocole Marquet 2016,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+FM_GUT_TRAINING_BIKE_30G,bike,Gut Training Phase 1 — Tolérance digestive 30g/h glucides pendant effort Z2-Z3. Adaptation intestinale,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FM_GUT_TRAINING_BIKE_60G,bike,Gut Training Phase 2 — Montée à 60g/h glucides pendant effort Z2-Z3. Palier intermédiaire,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FM_GUT_TRAINING_BIKE_90G,bike,Gut Training Phase 3 — Objectif élite 90g/h glucides (glucose:fructose 2:1). Adaptation intestinale avancée (Cao 2025),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+FM_GUT_TRAINING_RUN,run,Gut Training CAP — Tolérance digestive en course à pied. Condition critique pour marathon/IM,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+FM_SWIM_Z2_LONG_FATMAX,swim,Natation Z2 longue — oxydation lipidique en milieu aquatique. Volume aérobie sans impact,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+FM_SWIM_FASTED_AM,swim,Natation à jeun matinale — adaptation lipidique en milieu aquatique. Volume Z2 sans glucides,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+FM_BRICK_FATMAX_Z2,brick,Brick FatMax — vélo Z2 long + enchaînement CAP Z2. Oxydation lipidique sous fatigue de transition,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+FM_BRICK_GUT_FATMAX,brick,Brick Gut+FatMax — vélo Z2 avec gut training + CAP Z2 sans glucides. Double adaptation métabolique,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+REST_FULL_DAY,mixed,"Repos complet — aucune activité physique. Sommeil, hydratation, nutrition",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+REST_ACTIVE_WALK,mixed,Récupération active par marche — circulation sans stress mécanique,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_MOBILITY_ROUTINE,mixed,"Mobilité articulaire ciblée — hanches, chevilles, épaules, thoracique",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_YOGA_ATHLETE,mixed,"Yoga athlète — étirements actifs, respiration, relâchement musculaire",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_RUN_SHAKEOUT,run,Shakeout run — déverrouillage musculaire pré-compétition ou post-charge,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_BIKE_SPIN_EASY,bike,"Spin facile — flush lactate, cadence haute sans charge",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+D_SWIM_LOOSEN,swim,Nage de récupération — relâchement épaules et activation douce,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_FOAM_ROLLING,mixed,"Auto-massage foam roller — réduction tonus musculaire, prévention adhérences",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_ACTIVATION_PRERACE,mixed,Activation neuromusculaire pré-course — primers sans fatigue,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_DELOAD_RUN,run,"Footing de décharge — volume réduit 40-50%, intensité Z1 stricte",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_DELOAD_BIKE,bike,"Sortie vélo de décharge — volume réduit, cadence libre, plaisir",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+D_STRETCH_ROUTINE,mixed,Routine étirements statiques — post-entraînement ou jour off,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_ACTIVATION_GLUTES,mixed,Activation fessiers — réveil glutéal avant séance clé ou longue sortie,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_ACTIVATION_CORE_TAPER,mixed,Gainage léger taper — maintien core sans fatigue musculaire,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_ACTIVATION_ANKLE_FOOT,run,Activation pieds & chevilles — proprioception et prévention entorses/périostites,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_MOBILITY_HIPS_DEEP,mixed,"Mobilité hanches approfondie — déverrouillage psoas, piriforme, adducteurs",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_MOBILITY_THORACIC,mixed,Mobilité thoracique & épaules — crucial nageurs et posture vélo,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_MOBILITY_TRAIL_SPECIFIC,run,"Mobilité trail — préparation descente, stabilité latérale, flexion dorsale",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_YOGA_YIN_DEEP,mixed,Yin yoga — postures longues (3-5') pour fascias et tissu conjonctif,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_YOGA_POWER_LIGHT,mixed,"Power yoga léger — flow dynamique sans fatigue, coordination respiration",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_YOGA_PRERACE,mixed,"Yoga pré-compétition — calme mental, ouverture hanches, activation douce",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_TAPER_FLUSH_RUN,run,Footing flush taper — micro-dose pour maintenir sensations sans charge,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+D_TAPER_FLUSH_BIKE,bike,Spin taper — openers vélo avant compétition,,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+D_TAPER_SWIM_TOUCH,swim,"Nage taper — toucher l'eau, garder le feel sans fatigue",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_BREATHWORK_BOX,mixed,Box breathing & cohérence cardiaque — gestion stress pré-compétition,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_VISUALIZATION_RACE,mixed,Visualisation mentale de la course — répétition mentale guidée du jour J,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_BREATHWORK_NASAL_ENDURANCE,mixed,"Respiration nasale endurance — développer tolérance CO2, économie respiratoire",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+D_COLD_CONTRAST,mixed,Protocole contraste chaud/froid — récupération vasculaire post-charge,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+A_SWIM_CONTINUOUS_2K,swim,"Nage continue 2000m — endurance aérobie, régularité allure",,unassessed_for_this_protocol_dose_population,,1,swim:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 3, ""IM_aerobic_history:hold_current_envelope"": 3, ""IM_aerobic_history:blockwise_reassessment"": 3, ""IM_balanced_history:native_floor_conditional"": 3, ""IM_balanced_history:hold_current_envelope"": 3, ""IM_balanced_history:blockwise_reassessment"": 3}",False
+A_SWIM_PULL_ENDURANCE,swim,"Endurance pull buoy — force propulsion bras, position corps",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_PADDLES_Z2,swim,"Endurance plaquettes — force spécifique traction, résistance eau",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_CSS_8x200,swim,Seuil CSS — 8x200m au seuil critique de nage,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_CSS_PYRAMID,swim,Pyramide CSS — variation distance au seuil pour stimulus cognitif,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_VO2_100,swim,VO2max natation — 10x100m efforts max contrôlés,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_DESCENDING_400,swim,"Série descendante 400m — negative split, gestion allure",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_BROKEN_1500,swim,1500m cassé — simulation distance race avec micro-repos,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_CATCH_FOCUS,swim,Technique catch — amélioration prise d'eau et phase propulsive,,unassessed_for_this_protocol_dose_population,,1,swim:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 9, ""IM_aerobic_history:hold_current_envelope"": 9, ""IM_aerobic_history:blockwise_reassessment"": 9, ""IM_balanced_history:native_floor_conditional"": 9, ""IM_balanced_history:hold_current_envelope"": 9, ""IM_balanced_history:blockwise_reassessment"": 9}",False
+C_SWIM_BILATERAL_BREATH,swim,"Respiration bilatérale — équilibre nage, réduction traînée",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_KICK_SET,swim,"Battement de jambes — propulsion jambes, position corps, gainage",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_OPEN_WATER_SKILLS,swim,"Compétences eau libre — navigation, drafting, départ groupé",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_SWIM_TURNS_STARTS,swim,"Virages et coulées — efficacité virages, poussée murale, coulées",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_RACE_SIM_IM,swim,Simulation course IM — 3800m allure race avec nutrition pré-vélo,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_RACE_SIM_703,swim,"Simulation course 70.3 — 1900m allure race, transition mentale",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_LONG_3K,swim,Sortie longue natation 3000m+ — endurance spécifique IM,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_MIXED_SET,swim,"Séance mixte — alternance endurance et seuil, polyvalence",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_SPRINT_25s,swim,"Sprint 25m — vitesse max, recrutement neuromusculaire",,unassessed_for_this_protocol_dose_population,,2,swim:unqualified_intent,{},False
+B_SWIM_LACTATE_50s,swim,"Tolérance lactique — 8x50m haute intensité, récup courte",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_200_BEST_EFFORT,swim,"4x200m best effort — capacité anaérobie, negative split",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_FARTLEK_MIX,swim,"Fartlek aquatique — alternance rapide/lent, adaptabilité allure",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_NEGATIVE_SPLIT_1K,swim,"Negative split 2x1000m — gestion d'effort, finish fort",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_LADDER_50_400,swim,"Échelle montante-descendante — polyvalence distances, stimulus varié",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_TEMPO_1500,swim,"Tempo natation — 1500m allure tempo (CSS+5""), régularité",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_AEROBIC_MULTI_NAGES,swim,"Multi-nages aérobie — endurance globale, équilibre musculaire",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_PROGRESSIVE_2K,swim,Progressif 2000m — montée en allure contrôlée sur longue distance,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_SWIM_RECOVERY_EASY,swim,"Récup active natation — flush lactates, mobilité épaules",,unassessed_for_this_protocol_dose_population,,1,swim:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 7, ""IM_aerobic_history:hold_current_envelope"": 7, ""IM_aerobic_history:blockwise_reassessment"": 7, ""IM_balanced_history:native_floor_conditional"": 7, ""IM_balanced_history:hold_current_envelope"": 7, ""IM_balanced_history:blockwise_reassessment"": 7}",False
+D_SWIM_TECHNIQUE_LIGHT,swim,"Technique légère — éducatifs sans fatigue, travail proprioceptif",,unassessed_for_this_protocol_dose_population,,1,swim:unqualified_intent,"{""IM_aerobic_history:native_floor_conditional"": 1, ""IM_aerobic_history:hold_current_envelope"": 1, ""IM_aerobic_history:blockwise_reassessment"": 1, ""IM_balanced_history:native_floor_conditional"": 1, ""IM_balanced_history:hold_current_envelope"": 1, ""IM_balanced_history:blockwise_reassessment"": 1}",False
+B_SWIM_FORCE_PADDLES_BAND,swim,"Force plaquettes + élastique — résistance propulsion, puissance traction",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_PULL_LONG_DISTANCE,swim,"Pull buoy longue distance — endurance bras, économie de nage",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_SWIM_TAPER_ACTIVATION,swim,Activation pré-course — maintien feeling sans fatigue,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+D_SWIM_RACE_REHEARSAL,swim,"Répétition générale — 800m allure race, routine pré-compétition",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_CSS_SHORT_REST,swim,"CSS repos courts — 12x100m seuil, tolérance fatigue accumulée",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_SWIM_THRESHOLD_400_200,swim,"Seuil mixte 400/200 — alternance distances au seuil, résistance mentale",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+A_SWIM_STEADY_STATE_2500,swim,"Steady state 2500m — allure constante sub-CSS, endurance spécifique",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_STR_MAX_LOWER_HEAVY,strength,Force maximale bas du corps — 4×4 lourd (Rønnestad),max_strength,unassessed_for_this_protocol_dose_population,,3,strength:max_strength,{},False
+C_STR_POWER_LIFT_COMPLEX,strength,Force-puissance complexe (PAP) — transfert neuromusculaire,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_CORE_INTEGRATED,strength,Core intégré — anti-flexion/extension/rotation/latéro-flexion,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_TOTAL_BODY_45,strength,Total body 45' — efficience athlète à temps limité,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_BEGINNER_FOUNDATION_FULL,strength,Fondations débutant 8 sem — technique avant charge (full body),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_UPPER_PUSH_PULL,strength,Haut du corps push/pull équilibré — posture & équilibre musculaire,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_LOWER_HYPERTROPHY,strength,Hypertrophie bas du corps — gain masse maigre (8-12 reps),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_KETTLEBELL_FLOW,strength,Circuit kettlebell complet — force + cardio + coordination,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_BODYWEIGHT_HOME,strength,"Renfo PdC à la maison — zéro matériel, voyage / hôtel",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_ECC_DOWNHILL_PROTOCOL,strength,Protocole excentrique descente — protection quadris (8 sem),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_CALF_ISO_HEAVY,strength,Mollets isométrique lourd — raideur tendon (trail rocheux),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_TRAIL_HIKING_POWER,strength,Puissance hike — montées raides avec bâtons (trail long),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_TRAIL_LATERAL_STABILITY,strength,"Stabilité latérale — terrains techniques, prévention cheville",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_TRAIL_CORE_BACKPACK,strength,Core porté sac — anti-rotation/anti-flexion ultra-trail,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_TRAIL_FOOT_TECHNIQUE,strength,Pied technique trail — proprio dynamique terrain irrégulier,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_RE_ECONOMY_BLAGROVE,strength,Économie de course — protocole Blagrove (force+plyo combiné),,unassessed_for_this_protocol_dose_population,,2,strength:unqualified_intent,{},False
+C_STR_REACTIVE_STIFFNESS,strength,Raideur réactive Achille — stiffness foulée (route),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_RUN_FORM_STRIDES,strength,Travail de foulée — strides + drills séance dédiée,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_HILL_SPRINTS_SHORT,strength,Sprints courts en côte — force-vitesse neuromusculaire,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_PLYO_PROGRESSION_8WK,strength,Progression plyo débutant — 8 semaines structurées,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_RUN_CADENCE_DRILLS,strength,Cadence + posture coureur — drills techniques 30',,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_SINGLE_LEG_RUNNER,strength,"Unilatéral coureur — équilibre droit/gauche, prévention blessure",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_NORDIC_HAMSTRING_PETERSEN,strength,Nordic Hamstring — protocole Petersen (-51% lésions ischios),,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_HIP_MOBILITY_DYNAMIC,strength,Mobilité hanches dynamique + activation chaîne postérieure,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_ANKLE_FOOT_COMPLEX,strength,"Complexe cheville-pied — proprio, intrinsèques, prévention entorse",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_THORACIC_POSTURAL_RESET,strength,Reset postural thoracique & épaule — vélo/natation/bureau,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_KNEE_PREHAB_VMO,strength,"Préhab genou — VMO, alignement, prévention syndrome rotulien",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_LOWER_BACK_BULLETPROOF,strength,Dos bas blindé — McGill Big 3 + renforcement profond,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_GLUTE_REACTIVATION,strength,Réactivation fessiers — antidote 'glute amnesia' bureau/voiture,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_TIBIAL_SHIN_SPLINTS,strength,Prévention périostite tibiale — tibial antérieur & postérieur,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+C_STR_CYCLIST_PEDAL_POWER,strength,Force de pédalage — Rønnestad allégé spécial cycliste,,unassessed_for_this_protocol_dose_population,,2,strength:unqualified_intent,{},False
+C_STR_CYCLIST_NECK_BACK,strength,Cou & dos cycliste — survivre aux longues sorties en aéro,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+B_RUN_HEDGEHOG_VMA_SHORT,run,"🦔 Hérisson VMA courte — puissance ascensionnelle, VO2max, sans accès montagne",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_HEDGEHOG_VMA_LONG,run,🦔 Hérisson VMA longue — VO2max soutenu + lactique sur côte urbaine,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_HEDGEHOG_SEUIL,run,"🦔 Hérisson seuil côte — endurance de force au seuil, sans montagne",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_RUN_HEDGEHOG_STAIRS,run,"🦔 Hérisson escaliers — puissance excentrique + chaîne postérieure, 100 % urbain",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_IM_RUN_LONG_DURABILITY_2H,run,"Long run IM-spécifique 1h45-2h15 — durabilité aérobie, oxydation lipidique, résistance musculaire fin de marathon IM",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_IM_BRICK_LONG_MARATHON_PACE,brick,Brick long IM-spécifique — simulation T2 + run au pace marathon IM en fatigue vélo,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+B_IM_RUN_LATE_RACE_FRACTIONS,run,Late-race specifics — capacité à tenir/accélérer au pace IM dans les 30 dernières minutes d'une sortie longue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_IM_RUN_FATIGUED_NEXT_DAY,run,Long run en fatigue résiduelle (lendemain gros vélo ou fin de bloc 3j) — durabilité musculaire IM,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_IM_RUN_MARATHON_SPLIT,run,Marathon split — 2 séances run au pace IM séparées de 6-8h (durabilité musculaire + récupération inter-séance),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_IM_RUN_NEG_SPLIT_LR,run,"Negative split long run — apprendre la gestion d'allure IM, accélérer en fin de sortie longue",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_703_RUN_RACE_PACE_LONG,run,Long run race-pace 70.3 — 45-60min @ pace 70.3 dans une SL 1h30-1h50 (durabilité spécifique semi off-bike),,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_703_BRICK_RACE_PACE,brick,Brick race-pace 70.3 — 2h-2h30 vélo race-pace + 60-75' run race-pace (signature absolue podium 70.3),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+B_703_RUN_OFF_BIKE_FAST_FINISH,run,Long run avec finish rapide après séance vélo SST — durabilité fast-finish 70.3,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_703_RUN_NEG_SPLIT,run,"Negative split long run 70.3 — gestion d'allure, accélérer jusqu'au pace 70.3 en fin de sortie",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_703_SWIM_OWS_RACE_SIM,swim,Eau libre race-sim 70.3 — 2-3 km avec quick start + drafting + sighting + sortie ponton,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_703_SWIM_QUICK_START_DRAFT,swim,Piscine race-sim — départ rapide 100-200m + drafting pieds + retour CSS (signature compétitive 70.3),,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_BRICK_RACE_PACE_SHORT_703,brick,Brick race-pace 70.3 court — 90' vélo race-pace + 30-40' run race-pace (competitor sans budget 4h),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+B_BRICK_SST_TEMPO_BUILD_703,brick,Brick seuil Build — vélo sweetspot + run tempo court (durabilité seuil off-bike),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+B_BRICK_SEUIL_LONG_BUILD_IM,brick,Brick seuil long IM — vélo tempo/SST + run seuil moyen (durabilité IM Build),,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+B_LCW_SWIM_FRI_EVENING,swim,"Natation continue rythmée style vendredi LCW — 2.5-3.8 km en 2 blocs allure race, préparation étape 1 (départ soir, fatigue journée)",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_LCW_BIKE_LONG_RACE_SAT,bike,"Long ride race-pace samedi LCW — 2h30-3h à intensité race étape 2 (85-88% FTP autorisé, PAS de contrainte T2), préparation étape 2 (SANS brique)",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+B_LCW_RUN_OFF_LEGS_SUN,run,"Long run race-pace dimanche LCW — 60-90min (ou 21km/marathon en Peak) sur jambes fatiguées vélo veille, préparation étape 3",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_LCW_BACK_TO_BACK_PEAK,mixed,Répétition générale weekend LCW — enchaîner Ven soir natation + Sam long bike + Dim long run sur 3 jours consécutifs (SIMULATION COURSE COMPLÈTE),,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+B_LCW_NUTRITION_RECHARGE,mixed,Protocole recharge glycogénique inter-étapes LCW — recharge agressive vendredi soir + samedi soir pour restaurer glycogène musculaire avant étape suivante,,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+B_RUN_HILL_SPRINTS_10x10,run,"Sprints en côte 10×10s — puissance neuromusculaire, recrutement fibres rapides, économie de course",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_RUN_HILL_REPS_VO2_8x60,run,"Répétitions VO2max en côte 8×60-90s — développement aérobie, puissance grimpante, résistance à l'acidose",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_RUN_HILL_TEMPO_3x8,run,"Tempo grimpant 3×8min au seuil — endurance au seuil en côte, force spécifique en montée soutenue",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+A_RUN_HILL_STRIDES_END,run,"Strides en côte en fin de sortie facile — entretien économie, activation neuromusculaire douce",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_WALK_RUN_1_2,run,"Marche-course 1'/2' — première exposition à l'impact, tolérance tendineuse",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_WALK_RUN_2_2,run,Marche-course 2'/2' — allongement de la fraction courue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_WALK_BRISK_RECOVERY,run,Marche rapide de récupération — volume aérobie SANS impact supplémentaire,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_WALK_RUN_3_1,run,Marche-course 3'/1' — la course devient majoritaire,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_WALK_RUN_5_1,run,Marche-course 5'/1' — préparation à la course continue,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_CONSOLIDATION_WEEK_SESSION,run,Semaine de palier — répétition du volume de la semaine précédente sans progression,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_CONTINUOUS_15,run,Première course continue 15min — franchissement du seuil psychologique,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_CONTINUOUS_20_25,run,Course continue 20-25min — consolidation de l'endurance de base,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_CONTINUOUS_30_LONG,run,Course continue débutant 30min — objectif final du cycle,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_FIRST_5K_WALK_RUN,run,Premier 5 km en marche-course assumée — validation du cycle,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_STR_FOUNDATION_BEGINNER,strength,"Renforcement fondation — Bloc 1 (S1-S4) : ancrage technique, charge minimale",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+S2R_STR_FOUNDATION_BLOC2,strength,Renforcement fondation — Bloc 2 (S5-S8) : unilatéral et tolérance à l'impact,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+S2R_STR_FOUNDATION_BLOC3,strength,Renforcement fondation — Bloc 3 (S9-S12) : élasticité et maintien,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+S2R_TECHNIQUE_CADENCE_DRILLS,run,Éducatifs et cadence — réduire l'impact par la fréquence de foulée,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_CROSS_TRAINING_LOW_IMPACT,mixed,"Cross-training sans impact (vélo, elliptique, natation) — volume aérobie supplémentaire",,unassessed_for_this_protocol_dose_population,,3,mixed:unqualified_intent,{},False
+S2R_MOBILITY_RECOVERY,strength,"Mobilité et récupération — chevilles, hanches, chaîne postérieure",,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+S2R_SWIM_INTRO_TECHNIQUE,swim,Découverte natation sans impact — alternative aérobie pendant la construction du tissu conjonctif,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+S2R_SWIM_CONTINUOUS_LOW_IMPACT,swim,"Natation continue facile — volume aérobie complémentaire, compatible semaine de taper",,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+S2R_BIKE_INTRO_SPIN,bike,"Découverte vélo sans impact — alternative aérobie, home trainer ou terrain plat",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+S2R_BIKE_CONTINUOUS_LOW_IMPACT,bike,"Vélo continu facile — volume aérobie complémentaire, compatible semaine de taper",,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+S2R_WALK_RUN_4_1,run,Marche-course 4'/1' — palier intermédiaire entre 3'/1' et 5'/1',,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_BREATHING_TECHNIQUE_INTRO,run,Technique respiratoire — contrôle du souffle avant qu'il ne devienne un frein à la progression,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_HILL_INTRO_GENTLE,run,Introduction très progressive au dénivelé — préparer le profil à un terrain non plat,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_CONTINUOUS_20_PARK_VARIANT,run,"Course continue 20min en environnement agréable — variante de motivation, même cible physiologique",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_PARKRUN_SOCIAL_INTRO,run,Première sortie encadrée/collective — ancrer la régularité par le cadre social plutôt que la performance,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_FIRST_5K_CONTINUOUS_RACE,run,Premier 5 km en course continue — variante pour les profils ayant dépassé le besoin de marche-course,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+S2R_STR_MAINTENANCE_TAPER,strength,Renforcement allégé spécial taper — maintien sans fatigue résiduelle,,unassessed_for_this_protocol_dose_population,,3,strength:unqualified_intent,{},False
+S2R_ACTIVE_RECOVERY_WALK_LONG,run,Marche longue de récupération active — volume aérobie sans aucune charge d'impact,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_SPRINT_BIKE_VO2_SHORT,bike,Vélo VO2max court 6×3min — puissance proche de l'allure course Sprint (20km ~30-35min),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_SPRINT_RUN_5K_PACE,run,Course allure Sprint (5K post-vélo) — 5×1000m allure 5K cible R:90s,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BRIQUE_SPRINT_RACE_PACE,brick,Brick Sprint race-pace — vélo 30-35' allure course + T2 chrono + run 15-20' allure Sprint,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+B_SPRINT_SWIM_RACE_PACE,swim,Natation allure course Sprint — 750m fractionné 15×50m allure cible R:15s,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+B_OLY_BIKE_TEMPO_SUSTAINED,bike,Vélo tempo soutenu 3×15min — seuil format Olympique (40km ~65-85min),,unassessed_for_this_protocol_dose_population,,3,bike:unqualified_intent,{},False
+C_OLY_RUN_10K_PACE,run,Course allure Olympique (10K post-vélo) — 4×1500m allure 10K cible R:2',,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+BRIQUE_OLY_RACE_PACE,brick,Brick Olympique race-pace — vélo 1h-1h15 allure course + T2 + run 25-30' allure Olympique,,unassessed_for_this_protocol_dose_population,,3,brick:unqualified_intent,{},False
+B_OLY_SWIM_RACE_PACE,swim,Natation allure course Olympique — 1500m négative split 2×750m,,unassessed_for_this_protocol_dose_population,,3,swim:unqualified_intent,{},False
+C_5K_VO2_REPS_6x800,run,VO2max 5K — 6×800m allure 5K cible R:2' trot,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+C_5K_PACE_LONG_REPS_3x1600,run,Allure spécifique 5K (reps longues) — 3×1600m allure 5K cible R:3',,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+B_5K_FINISH_KICK,run,Finish kick 5K — accélération progressive sur les 800 derniers mètres,,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False
+TT_5K_TEST,run,"Test chrono 5K — effort maximal, prédicteur et calibration allure",,unassessed_for_this_protocol_dose_population,,3,run:unqualified_intent,{},False

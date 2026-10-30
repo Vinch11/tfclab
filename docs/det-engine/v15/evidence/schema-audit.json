@@ -1,0 +1,133 @@
+{
+  "input": "docs/det-engine/v14/evidence/final/study.json.gz",
+  "inputSha256": "b28ca9a87d34cb8c4bc14908c7515cb8f47f2c752cf23b0a1f7b1a19a3eb21ea",
+  "results": [
+    {
+      "profile": "IM_aerobic_history",
+      "model": "native_floor_conditional",
+      "full16": {
+        "execution": "executed",
+        "valid": false,
+        "issues": [
+          "weeks.15.sessions.7:invalid_union"
+        ],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "initialFourWeeks": {
+        "execution": "executed",
+        "valid": true,
+        "issues": [],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "projectionOnly": true,
+      "calendarGenerated": false,
+      "operationalApproval": false
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "hold_current_envelope",
+      "full16": {
+        "execution": "executed",
+        "valid": false,
+        "issues": [
+          "weeks.15.sessions.7:invalid_union"
+        ],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "initialFourWeeks": {
+        "execution": "executed",
+        "valid": true,
+        "issues": [],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "projectionOnly": true,
+      "calendarGenerated": false,
+      "operationalApproval": false
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "blockwise_reassessment",
+      "full16": {
+        "execution": "executed",
+        "valid": false,
+        "issues": [
+          "weeks.15.sessions.7:invalid_union"
+        ],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "initialFourWeeks": {
+        "execution": "executed",
+        "valid": true,
+        "issues": [],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "projectionOnly": true,
+      "calendarGenerated": false,
+      "operationalApproval": false
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "native_floor_conditional",
+      "full16": {
+        "execution": "executed",
+        "valid": false,
+        "issues": [
+          "weeks.15.sessions.7:invalid_union"
+        ],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "initialFourWeeks": {
+        "execution": "executed",
+        "valid": true,
+        "issues": [],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "projectionOnly": true,
+      "calendarGenerated": false,
+      "operationalApproval": false
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "hold_current_envelope",
+      "full16": {
+        "execution": "executed",
+        "valid": false,
+        "issues": [
+          "weeks.15.sessions.7:invalid_union"
+        ],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "initialFourWeeks": {
+        "execution": "executed",
+        "valid": true,
+        "issues": [],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "projectionOnly": true,
+      "calendarGenerated": false,
+      "operationalApproval": false
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "blockwise_reassessment",
+      "full16": {
+        "execution": "executed",
+        "valid": false,
+        "issues": [
+          "weeks.15.sessions.7:invalid_union"
+        ],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "initialFourWeeks": {
+        "execution": "executed",
+        "valid": true,
+        "issues": [],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "projectionOnly": true,
+      "calendarGenerated": false,
+      "operationalApproval": false
+    }
+  ],
+  "sourceCalendarsUnchanged": true
+}

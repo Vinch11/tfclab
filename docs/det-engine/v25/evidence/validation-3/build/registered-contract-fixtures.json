@@ -1,0 +1,2512 @@
+{
+  "floors": [
+    {
+      "id": "95_over_90",
+      "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 95,
+      "capacity": 90,
+      "slot": {
+        "key": "synthetic:v25:95_over_90",
+        "week": 3,
+        "day": 4,
+        "role": {
+          "key": "B_sustainability:native_floor_conditional:S3:run:0",
+          "sport": "run",
+          "index": 0,
+          "kind": "long",
+          "floor": 95,
+          "currentCapacity": 90,
+          "target": 95,
+          "purpose": "discipline-specific sustained aerobic exposure; durability response must be assessed"
+        },
+        "card": {
+          "variants": {
+            "ironman": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+            "half": "70-90 min Z1-Z2 — 1x/semaine minimum",
+            "marathon": "80-110 min Z1 — le volume facile est aussi important que les séances dures",
+            "semi": "60-80 min Z1-Z2"
+          },
+          "metadataVersion": 1,
+          "complete": true,
+          "id": "SEILER_RUN_Z1_EASY_LONG",
+          "sport": "course",
+          "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+          "objective": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+          "intentFamily": "endurance_fondamentale",
+          "goals": [
+            "ironman",
+            "half",
+            "marathon",
+            "semi"
+          ],
+          "objectiveSpecific": false,
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "durationMin": [
+            70,
+            150
+          ],
+          "mainZoneMax": 2,
+          "specialContext": null,
+          "prerequisiteKeys": [],
+          "necessity": "Obligatoire",
+          "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler.",
+          "avoid": "Dériver vers Z3 (erreur classique — 'black hole') · Terrain trop vallonné si difficile de rester en Z1-Z2",
+          "tags": [
+            "Seiler",
+            "polarisé",
+            "Z1",
+            "Z2",
+            "volume",
+            "80/20",
+            "aérobie fondamental",
+            "black hole"
+          ],
+          "structure": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        "minutes": 95,
+        "timing": {
+          "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+          "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+          "originalRange": [
+            70,
+            150
+          ],
+          "allDeclaredParts": [
+            {
+              "part": "Warm-up",
+              "text": "Intégré — les 10 premières minutes sont l'échauffement naturel.",
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "part": "Main",
+              "text": "60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine.",
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "part": "Cool-down",
+              "text": "Intégré — les 10 dernières minutes naturellement plus lentes.",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "previousV13": {
+            "id": "SEILER_RUN_Z1_EASY_LONG",
+            "sport": "course",
+            "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+            "originalRange": [
+              70,
+              150
+            ],
+            "legacyLiteralProjection": {
+              "range": null,
+              "proof": "non-literal flank duration"
+            },
+            "legacyProjectionTrustedForFullSession": false,
+            "knownTimedBlocksRange": null,
+            "knownMandatoryLowerMin": null,
+            "fullRecipeTimeRange": null,
+            "necessaryUsableSourceRange": [
+              70,
+              150
+            ],
+            "fatalDurationConflict": false,
+            "belowMandatory": false,
+            "outsideDemonstratedFullUpper": false,
+            "unattributed": null,
+            "status": "temporal_coverage_unknown",
+            "brick": null,
+            "customProof": null,
+            "originalPhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "effectivePhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "mainZoneMax": 2,
+            "zones": [
+              "Z1",
+              "Z2"
+            ],
+            "prerequisites": [],
+            "specialContext": null,
+            "sourceMetadataHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+            "fullSessionTimingAttested": false,
+            "notes": [
+              "no unstated warm-up, cool-down, transition or stroke pace assigned",
+              "a Main-only recipe lower bound is not a full-session upper bound",
+              "unsupported composite grammar remains unknown; old parser projection preserved"
+            ]
+          },
+          "declaredContentRange": null,
+          "necessaryRange": [
+            70,
+            150
+          ],
+          "timingCompleteForDeclaredRecipe": false,
+          "proof": null,
+          "individualFeasibilityAttested": false,
+          "sourceUnchanged": true,
+          "unknowns": [
+            "complete protocol elapsed time not established; all source components retained"
+          ]
+        },
+        "recipe": {
+          "total": 95,
+          "allSourceComponentsUnchanged": true,
+          "valid": true
+        },
+        "input": {
+          "week": 3,
+          "assessedWeek": 1,
+          "minutes": 95,
+          "currentCapacity": 90,
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            }
+          ]
+        },
+        "decision": {
+          "state": "conditional_pending_reassessment",
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "capacity",
+              "kind": "capacity",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated source-specific coach reassessment of admissible envelope",
+                "completed comparable effort and subsequent recovery; not predicted adaptation",
+                "whole-microcycle interactions reviewed"
+              ],
+              "fallback": "retain a source-compatible dose within the last demonstrated envelope, revalidate the whole week and disclose any programming shortfall; otherwise hold"
+            }
+          ],
+          "currentlyDocumentedCapacity": 90,
+          "proposedMinutes": 95,
+          "capacityAlreadyAcquired": false,
+          "operationallyApproved": false,
+          "expertReviewed": false
+        },
+        "originalCatalogue": {
+          "errors": [],
+          "unknown": []
+        },
+        "fallback": {
+          "status": "candidate_only",
+          "targetMax": 90,
+          "action": "retain a complete source-compatible dose inside the last demonstrated envelope, then rerun the entire week; if native floor/specificity no longer satisfied, preserve that non-conformity and hold the Ironman claim",
+          "preservesObjective": false,
+          "mustRevalidateWholeWeek": true
+        }
+      },
+      "proposedMinutes": 95
+    },
+    {
+      "id": "90_floor_candidate",
+      "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 90,
+      "capacity": 90,
+      "slot": {
+        "key": "synthetic:v25:90_floor_candidate",
+        "week": 3,
+        "day": 4,
+        "role": {
+          "key": "B_sustainability:native_floor_conditional:S3:run:0",
+          "sport": "run",
+          "index": 0,
+          "kind": "long",
+          "floor": 95,
+          "currentCapacity": 90,
+          "target": 95,
+          "purpose": "discipline-specific sustained aerobic exposure; durability response must be assessed"
+        },
+        "card": {
+          "variants": {
+            "ironman": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+            "half": "70-90 min Z1-Z2 — 1x/semaine minimum",
+            "marathon": "80-110 min Z1 — le volume facile est aussi important que les séances dures",
+            "semi": "60-80 min Z1-Z2"
+          },
+          "metadataVersion": 1,
+          "complete": true,
+          "id": "SEILER_RUN_Z1_EASY_LONG",
+          "sport": "course",
+          "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+          "objective": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+          "intentFamily": "endurance_fondamentale",
+          "goals": [
+            "ironman",
+            "half",
+            "marathon",
+            "semi"
+          ],
+          "objectiveSpecific": false,
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "durationMin": [
+            70,
+            150
+          ],
+          "mainZoneMax": 2,
+          "specialContext": null,
+          "prerequisiteKeys": [],
+          "necessity": "Obligatoire",
+          "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler.",
+          "avoid": "Dériver vers Z3 (erreur classique — 'black hole') · Terrain trop vallonné si difficile de rester en Z1-Z2",
+          "tags": [
+            "Seiler",
+            "polarisé",
+            "Z1",
+            "Z2",
+            "volume",
+            "80/20",
+            "aérobie fondamental",
+            "black hole"
+          ],
+          "structure": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        "minutes": 95,
+        "timing": {
+          "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+          "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+          "originalRange": [
+            70,
+            150
+          ],
+          "allDeclaredParts": [
+            {
+              "part": "Warm-up",
+              "text": "Intégré — les 10 premières minutes sont l'échauffement naturel.",
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "part": "Main",
+              "text": "60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine.",
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "part": "Cool-down",
+              "text": "Intégré — les 10 dernières minutes naturellement plus lentes.",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "previousV13": {
+            "id": "SEILER_RUN_Z1_EASY_LONG",
+            "sport": "course",
+            "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+            "originalRange": [
+              70,
+              150
+            ],
+            "legacyLiteralProjection": {
+              "range": null,
+              "proof": "non-literal flank duration"
+            },
+            "legacyProjectionTrustedForFullSession": false,
+            "knownTimedBlocksRange": null,
+            "knownMandatoryLowerMin": null,
+            "fullRecipeTimeRange": null,
+            "necessaryUsableSourceRange": [
+              70,
+              150
+            ],
+            "fatalDurationConflict": false,
+            "belowMandatory": false,
+            "outsideDemonstratedFullUpper": false,
+            "unattributed": null,
+            "status": "temporal_coverage_unknown",
+            "brick": null,
+            "customProof": null,
+            "originalPhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "effectivePhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "mainZoneMax": 2,
+            "zones": [
+              "Z1",
+              "Z2"
+            ],
+            "prerequisites": [],
+            "specialContext": null,
+            "sourceMetadataHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+            "fullSessionTimingAttested": false,
+            "notes": [
+              "no unstated warm-up, cool-down, transition or stroke pace assigned",
+              "a Main-only recipe lower bound is not a full-session upper bound",
+              "unsupported composite grammar remains unknown; old parser projection preserved"
+            ]
+          },
+          "declaredContentRange": null,
+          "necessaryRange": [
+            70,
+            150
+          ],
+          "timingCompleteForDeclaredRecipe": false,
+          "proof": null,
+          "individualFeasibilityAttested": false,
+          "sourceUnchanged": true,
+          "unknowns": [
+            "complete protocol elapsed time not established; all source components retained"
+          ]
+        },
+        "recipe": {
+          "total": 95,
+          "allSourceComponentsUnchanged": true,
+          "valid": true
+        },
+        "input": {
+          "week": 3,
+          "assessedWeek": 1,
+          "minutes": 95,
+          "currentCapacity": 90,
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            }
+          ]
+        },
+        "decision": {
+          "state": "conditional_pending_reassessment",
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "capacity",
+              "kind": "capacity",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated source-specific coach reassessment of admissible envelope",
+                "completed comparable effort and subsequent recovery; not predicted adaptation",
+                "whole-microcycle interactions reviewed"
+              ],
+              "fallback": "retain a source-compatible dose within the last demonstrated envelope, revalidate the whole week and disclose any programming shortfall; otherwise hold"
+            }
+          ],
+          "currentlyDocumentedCapacity": 90,
+          "proposedMinutes": 95,
+          "capacityAlreadyAcquired": false,
+          "operationallyApproved": false,
+          "expertReviewed": false
+        },
+        "originalCatalogue": {
+          "errors": [],
+          "unknown": []
+        },
+        "fallback": {
+          "status": "candidate_only",
+          "targetMax": 90,
+          "action": "retain a complete source-compatible dose inside the last demonstrated envelope, then rerun the entire week; if native floor/specificity no longer satisfied, preserve that non-conformity and hold the Ironman claim",
+          "preservesObjective": false,
+          "mustRevalidateWholeWeek": true
+        }
+      },
+      "proposedMinutes": 90
+    },
+    {
+      "id": "75_below_goal_min",
+      "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 75,
+      "capacity": 90,
+      "slot": {
+        "key": "synthetic:v25:75_below_goal_min",
+        "week": 3,
+        "day": 4,
+        "role": {
+          "key": "B_sustainability:native_floor_conditional:S3:run:0",
+          "sport": "run",
+          "index": 0,
+          "kind": "long",
+          "floor": 95,
+          "currentCapacity": 90,
+          "target": 95,
+          "purpose": "discipline-specific sustained aerobic exposure; durability response must be assessed"
+        },
+        "card": {
+          "variants": {
+            "ironman": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+            "half": "70-90 min Z1-Z2 — 1x/semaine minimum",
+            "marathon": "80-110 min Z1 — le volume facile est aussi important que les séances dures",
+            "semi": "60-80 min Z1-Z2"
+          },
+          "metadataVersion": 1,
+          "complete": true,
+          "id": "SEILER_RUN_Z1_EASY_LONG",
+          "sport": "course",
+          "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+          "objective": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+          "intentFamily": "endurance_fondamentale",
+          "goals": [
+            "ironman",
+            "half",
+            "marathon",
+            "semi"
+          ],
+          "objectiveSpecific": false,
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "durationMin": [
+            70,
+            150
+          ],
+          "mainZoneMax": 2,
+          "specialContext": null,
+          "prerequisiteKeys": [],
+          "necessity": "Obligatoire",
+          "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler.",
+          "avoid": "Dériver vers Z3 (erreur classique — 'black hole') · Terrain trop vallonné si difficile de rester en Z1-Z2",
+          "tags": [
+            "Seiler",
+            "polarisé",
+            "Z1",
+            "Z2",
+            "volume",
+            "80/20",
+            "aérobie fondamental",
+            "black hole"
+          ],
+          "structure": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        "minutes": 95,
+        "timing": {
+          "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+          "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+          "originalRange": [
+            70,
+            150
+          ],
+          "allDeclaredParts": [
+            {
+              "part": "Warm-up",
+              "text": "Intégré — les 10 premières minutes sont l'échauffement naturel.",
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "part": "Main",
+              "text": "60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine.",
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "part": "Cool-down",
+              "text": "Intégré — les 10 dernières minutes naturellement plus lentes.",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "previousV13": {
+            "id": "SEILER_RUN_Z1_EASY_LONG",
+            "sport": "course",
+            "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+            "originalRange": [
+              70,
+              150
+            ],
+            "legacyLiteralProjection": {
+              "range": null,
+              "proof": "non-literal flank duration"
+            },
+            "legacyProjectionTrustedForFullSession": false,
+            "knownTimedBlocksRange": null,
+            "knownMandatoryLowerMin": null,
+            "fullRecipeTimeRange": null,
+            "necessaryUsableSourceRange": [
+              70,
+              150
+            ],
+            "fatalDurationConflict": false,
+            "belowMandatory": false,
+            "outsideDemonstratedFullUpper": false,
+            "unattributed": null,
+            "status": "temporal_coverage_unknown",
+            "brick": null,
+            "customProof": null,
+            "originalPhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "effectivePhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "mainZoneMax": 2,
+            "zones": [
+              "Z1",
+              "Z2"
+            ],
+            "prerequisites": [],
+            "specialContext": null,
+            "sourceMetadataHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+            "fullSessionTimingAttested": false,
+            "notes": [
+              "no unstated warm-up, cool-down, transition or stroke pace assigned",
+              "a Main-only recipe lower bound is not a full-session upper bound",
+              "unsupported composite grammar remains unknown; old parser projection preserved"
+            ]
+          },
+          "declaredContentRange": null,
+          "necessaryRange": [
+            70,
+            150
+          ],
+          "timingCompleteForDeclaredRecipe": false,
+          "proof": null,
+          "individualFeasibilityAttested": false,
+          "sourceUnchanged": true,
+          "unknowns": [
+            "complete protocol elapsed time not established; all source components retained"
+          ]
+        },
+        "recipe": {
+          "total": 95,
+          "allSourceComponentsUnchanged": true,
+          "valid": true
+        },
+        "input": {
+          "week": 3,
+          "assessedWeek": 1,
+          "minutes": 95,
+          "currentCapacity": 90,
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            }
+          ]
+        },
+        "decision": {
+          "state": "conditional_pending_reassessment",
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "capacity",
+              "kind": "capacity",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated source-specific coach reassessment of admissible envelope",
+                "completed comparable effort and subsequent recovery; not predicted adaptation",
+                "whole-microcycle interactions reviewed"
+              ],
+              "fallback": "retain a source-compatible dose within the last demonstrated envelope, revalidate the whole week and disclose any programming shortfall; otherwise hold"
+            }
+          ],
+          "currentlyDocumentedCapacity": 90,
+          "proposedMinutes": 95,
+          "capacityAlreadyAcquired": false,
+          "operationallyApproved": false,
+          "expertReviewed": false
+        },
+        "originalCatalogue": {
+          "errors": [],
+          "unknown": []
+        },
+        "fallback": {
+          "status": "candidate_only",
+          "targetMax": 90,
+          "action": "retain a complete source-compatible dose inside the last demonstrated envelope, then rerun the entire week; if native floor/specificity no longer satisfied, preserve that non-conformity and hold the Ironman claim",
+          "preservesObjective": false,
+          "mustRevalidateWholeWeek": true
+        }
+      },
+      "proposedMinutes": 75
+    },
+    {
+      "id": "missing_component_reduction",
+      "sourceId": "A_RUN_Z2_EASY",
+      "minutes": 20,
+      "capacity": 90,
+      "slot": {
+        "key": "synthetic:v25:missing_component_reduction",
+        "week": 3,
+        "day": 4,
+        "role": {
+          "key": "B_sustainability:native_floor_conditional:S3:run:0",
+          "sport": "run",
+          "index": 0,
+          "kind": "long",
+          "floor": 95,
+          "currentCapacity": 90,
+          "target": 95,
+          "purpose": "discipline-specific sustained aerobic exposure; durability response must be assessed"
+        },
+        "card": {
+          "variants": {
+            "ironman": "Z2 stable 45–75 min (ou brick après vélo)",
+            "half": "Z2 40–70 min",
+            "marathon": "Z2 50–90 min (socle majeur)",
+            "semi": "Z2 35–70 min"
+          },
+          "metadataVersion": 1,
+          "complete": true,
+          "id": "A_RUN_Z2_EASY",
+          "sport": "course",
+          "title": "Endurance fondamentale, économie, récupération active",
+          "objective": "Endurance fondamentale, économie, récupération active",
+          "intentFamily": "endurance_fondamentale",
+          "goals": [
+            "ironman",
+            "half",
+            "marathon",
+            "semi"
+          ],
+          "objectiveSpecific": false,
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "durationMin": [
+            35,
+            90
+          ],
+          "mainZoneMax": 2,
+          "specialContext": null,
+          "prerequisiteKeys": [],
+          "necessity": "Obligatoire",
+          "when": "Toute l'année",
+          "avoid": "Aucun (adapter volume si fatigue)",
+          "tags": [],
+          "structure": "Warm-up: 10 min Z1–Z2 relâché | Main: 20–70 min Z2 (technique, relâchement) | Cool-down: 5 min Z1 + éducatifs 5 min (optionnel)",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        "minutes": 95,
+        "timing": {
+          "sourceId": "A_RUN_Z2_EASY",
+          "sourceHash": "b672fe6111beef6983e9bde55991b3cdd13e91e204ad0f047cc0e242d1ce3366",
+          "originalRange": [
+            35,
+            90
+          ],
+          "allDeclaredParts": [
+            {
+              "part": "Warm-up",
+              "text": "10 min Z1–Z2 relâché",
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "part": "Main",
+              "text": "20–70 min Z2 (technique, relâchement)",
+              "zones": [
+                "Z2"
+              ]
+            },
+            {
+              "part": "Cool-down",
+              "text": "5 min Z1 + éducatifs 5 min (optionnel)",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "previousV13": {
+            "id": "A_RUN_Z2_EASY",
+            "sport": "course",
+            "title": "Endurance fondamentale, économie, récupération active",
+            "originalRange": [
+              35,
+              90
+            ],
+            "legacyLiteralProjection": {
+              "range": [
+                35,
+                90
+              ],
+              "proof": "literal variable main duration + explicit flank and optional minutes"
+            },
+            "legacyProjectionTrustedForFullSession": true,
+            "knownTimedBlocksRange": [
+              35,
+              90
+            ],
+            "knownMandatoryLowerMin": 35,
+            "fullRecipeTimeRange": [
+              35,
+              90
+            ],
+            "necessaryUsableSourceRange": [
+              35,
+              90
+            ],
+            "fatalDurationConflict": false,
+            "belowMandatory": false,
+            "outsideDemonstratedFullUpper": false,
+            "unattributed": null,
+            "status": "complete_literal_temporal_bounds_compatible",
+            "brick": null,
+            "customProof": null,
+            "originalPhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "effectivePhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "mainZoneMax": 2,
+            "zones": [
+              "Z1",
+              "Z2"
+            ],
+            "prerequisites": [],
+            "specialContext": null,
+            "sourceMetadataHash": "b672fe6111beef6983e9bde55991b3cdd13e91e204ad0f047cc0e242d1ce3366",
+            "fullSessionTimingAttested": true,
+            "notes": [
+              "no unstated warm-up, cool-down, transition or stroke pace assigned",
+              "a Main-only recipe lower bound is not a full-session upper bound",
+              "unsupported composite grammar remains unknown; old parser projection preserved"
+            ]
+          },
+          "declaredContentRange": [
+            40,
+            90
+          ],
+          "necessaryRange": [
+            40,
+            90
+          ],
+          "timingCompleteForDeclaredRecipe": true,
+          "proof": "warm10 + main20–70 + cool5 + optional drills5 retained; main is the only variable",
+          "individualFeasibilityAttested": false,
+          "sourceUnchanged": true,
+          "unknowns": [
+            "actual execution, symptoms and recovery not observed"
+          ]
+        },
+        "recipe": {
+          "total": 95,
+          "allSourceComponentsUnchanged": true,
+          "valid": true
+        },
+        "input": {
+          "week": 3,
+          "assessedWeek": 1,
+          "minutes": 95,
+          "currentCapacity": 90,
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            }
+          ]
+        },
+        "decision": {
+          "state": "conditional_pending_reassessment",
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "capacity",
+              "kind": "capacity",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated source-specific coach reassessment of admissible envelope",
+                "completed comparable effort and subsequent recovery; not predicted adaptation",
+                "whole-microcycle interactions reviewed"
+              ],
+              "fallback": "retain a source-compatible dose within the last demonstrated envelope, revalidate the whole week and disclose any programming shortfall; otherwise hold"
+            }
+          ],
+          "currentlyDocumentedCapacity": 90,
+          "proposedMinutes": 95,
+          "capacityAlreadyAcquired": false,
+          "operationallyApproved": false,
+          "expertReviewed": false
+        },
+        "originalCatalogue": {
+          "errors": [],
+          "unknown": []
+        },
+        "fallback": {
+          "status": "candidate_only",
+          "targetMax": 90,
+          "action": "retain a complete source-compatible dose inside the last demonstrated envelope, then rerun the entire week; if native floor/specificity no longer satisfied, preserve that non-conformity and hold the Ironman claim",
+          "preservesObjective": false,
+          "mustRevalidateWholeWeek": true
+        }
+      },
+      "proposedMinutes": 20
+    },
+    {
+      "id": "unknown_capacity",
+      "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 90,
+      "capacity": null,
+      "slot": {
+        "key": "synthetic:v25:unknown_capacity",
+        "week": 3,
+        "day": 4,
+        "role": {
+          "key": "B_sustainability:native_floor_conditional:S3:run:0",
+          "sport": "run",
+          "index": 0,
+          "kind": "long",
+          "floor": 95,
+          "currentCapacity": null,
+          "target": 95,
+          "purpose": "discipline-specific sustained aerobic exposure; durability response must be assessed"
+        },
+        "card": {
+          "variants": {
+            "ironman": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+            "half": "70-90 min Z1-Z2 — 1x/semaine minimum",
+            "marathon": "80-110 min Z1 — le volume facile est aussi important que les séances dures",
+            "semi": "60-80 min Z1-Z2"
+          },
+          "metadataVersion": 1,
+          "complete": true,
+          "id": "SEILER_RUN_Z1_EASY_LONG",
+          "sport": "course",
+          "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+          "objective": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+          "intentFamily": "endurance_fondamentale",
+          "goals": [
+            "ironman",
+            "half",
+            "marathon",
+            "semi"
+          ],
+          "objectiveSpecific": false,
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "durationMin": [
+            70,
+            150
+          ],
+          "mainZoneMax": 2,
+          "specialContext": null,
+          "prerequisiteKeys": [],
+          "necessity": "Obligatoire",
+          "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler.",
+          "avoid": "Dériver vers Z3 (erreur classique — 'black hole') · Terrain trop vallonné si difficile de rester en Z1-Z2",
+          "tags": [
+            "Seiler",
+            "polarisé",
+            "Z1",
+            "Z2",
+            "volume",
+            "80/20",
+            "aérobie fondamental",
+            "black hole"
+          ],
+          "structure": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes.",
+          "zones": [
+            "Z1",
+            "Z2"
+          ]
+        },
+        "minutes": 95,
+        "timing": {
+          "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+          "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+          "originalRange": [
+            70,
+            150
+          ],
+          "allDeclaredParts": [
+            {
+              "part": "Warm-up",
+              "text": "Intégré — les 10 premières minutes sont l'échauffement naturel.",
+              "zones": [
+                "Z1"
+              ]
+            },
+            {
+              "part": "Main",
+              "text": "60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine.",
+              "zones": [
+                "Z1",
+                "Z2"
+              ]
+            },
+            {
+              "part": "Cool-down",
+              "text": "Intégré — les 10 dernières minutes naturellement plus lentes.",
+              "zones": [
+                "Z1"
+              ]
+            }
+          ],
+          "previousV13": {
+            "id": "SEILER_RUN_Z1_EASY_LONG",
+            "sport": "course",
+            "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+            "originalRange": [
+              70,
+              150
+            ],
+            "legacyLiteralProjection": {
+              "range": null,
+              "proof": "non-literal flank duration"
+            },
+            "legacyProjectionTrustedForFullSession": false,
+            "knownTimedBlocksRange": null,
+            "knownMandatoryLowerMin": null,
+            "fullRecipeTimeRange": null,
+            "necessaryUsableSourceRange": [
+              70,
+              150
+            ],
+            "fatalDurationConflict": false,
+            "belowMandatory": false,
+            "outsideDemonstratedFullUpper": false,
+            "unattributed": null,
+            "status": "temporal_coverage_unknown",
+            "brick": null,
+            "customProof": null,
+            "originalPhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "effectivePhases": [
+              "base",
+              "build",
+              "peak"
+            ],
+            "mainZoneMax": 2,
+            "zones": [
+              "Z1",
+              "Z2"
+            ],
+            "prerequisites": [],
+            "specialContext": null,
+            "sourceMetadataHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+            "fullSessionTimingAttested": false,
+            "notes": [
+              "no unstated warm-up, cool-down, transition or stroke pace assigned",
+              "a Main-only recipe lower bound is not a full-session upper bound",
+              "unsupported composite grammar remains unknown; old parser projection preserved"
+            ]
+          },
+          "declaredContentRange": null,
+          "necessaryRange": [
+            70,
+            150
+          ],
+          "timingCompleteForDeclaredRecipe": false,
+          "proof": null,
+          "individualFeasibilityAttested": false,
+          "sourceUnchanged": true,
+          "unknowns": [
+            "complete protocol elapsed time not established; all source components retained"
+          ]
+        },
+        "recipe": {
+          "total": 95,
+          "allSourceComponentsUnchanged": true,
+          "valid": true
+        },
+        "input": {
+          "week": 3,
+          "assessedWeek": 1,
+          "minutes": 95,
+          "currentCapacity": null,
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            }
+          ]
+        },
+        "decision": {
+          "state": "conditional_pending_reassessment",
+          "hardFailures": [],
+          "conditions": [
+            {
+              "id": "protocol_time",
+              "kind": "protocol_time",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "complete original source including all repetitions, rests and peripheral elements timed within the reserved slot",
+                "individual stroke/technique times when needed; crawl CSS is not a backstroke/breaststroke time"
+              ],
+              "fallback": "use an independently timed compatible source or keep the slot pending; never truncate"
+            },
+            {
+              "id": "recovery",
+              "kind": "recovery",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated response to prior comparable exposure and whole preceding microcycle",
+                "no adverse symptoms or unresolved fatigue before this session"
+              ],
+              "fallback": "do not release on elapsed time; evaluate a conservative whole-week alternative or hold"
+            },
+            {
+              "id": "whole_week_interaction",
+              "kind": "interaction",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "combined swim/bike/run/muscle exposures and spacing reviewed",
+                "nutrition and hydration for prolonged work reviewed from individual history, no quantity or GI tolerance imputed"
+              ],
+              "fallback": "hold the affected exposure and revalidate the whole microcycle; disclose specificity loss"
+            },
+            {
+              "id": "canonical_review:recipe_not_fully_compiled",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:recipe_not_fully_compiled",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_review:no_source_bounded_duration_assignment",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_review:no_source_bounded_duration_assignment",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "objective_variant_requires_explicit_source_resolution",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "objective_variant_requires_explicit_source_resolution",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "canonical_full_recipe_not_technically_complete",
+              "kind": "prerequisite",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "canonical_full_recipe_not_technically_complete",
+                "source-specific individual and whole-week coach review"
+              ],
+              "fallback": "hold this prescription; retain a separately verified conservative alternative and revalidate the whole week, never truncate or suppress a discipline"
+            },
+            {
+              "id": "capacity",
+              "kind": "capacity",
+              "beforeWeek": 3,
+              "requiredEvidence": [
+                "dated source-specific coach reassessment of admissible envelope",
+                "completed comparable effort and subsequent recovery; not predicted adaptation",
+                "whole-microcycle interactions reviewed"
+              ],
+              "fallback": "retain a source-compatible dose within the last demonstrated envelope, revalidate the whole week and disclose any programming shortfall; otherwise hold"
+            }
+          ],
+          "currentlyDocumentedCapacity": 90,
+          "proposedMinutes": 95,
+          "capacityAlreadyAcquired": false,
+          "operationallyApproved": false,
+          "expertReviewed": false
+        },
+        "originalCatalogue": {
+          "errors": [],
+          "unknown": []
+        },
+        "fallback": {
+          "status": "candidate_only",
+          "targetMax": 90,
+          "action": "retain a complete source-compatible dose inside the last demonstrated envelope, then rerun the entire week; if native floor/specificity no longer satisfied, preserve that non-conformity and hold the Ironman claim",
+          "preservesObjective": false,
+          "mustRevalidateWholeWeek": true
+        }
+      },
+      "proposedMinutes": 90
+    }
+  ],
+  "physiology": [
+    {
+      "id": "typed_cost_from_separate_424_fixture",
+      "raw": {
+        "athleteId": "pilot:B-MARATHON",
+        "athleteName": "QA Synthetic",
+        "age": 35,
+        "sex": "M",
+        "weightKg": 72,
+        "objectif": "MARATHON",
+        "ambition": "world_class",
+        "sportFocus": "run",
+        "vo2max": 58,
+        "ftp": 280,
+        "ftpKg": 3.888888888888889,
+        "pmax5s": 950,
+        "p30sW": 620,
+        "p60sW": 480,
+        "map5minW": 380,
+        "vma": 18,
+        "css": 90,
+        "vlamax": 0.55,
+        "vlamaxRun": 0.5,
+        "vlamaxSource": "synthetic_estimate",
+        "vlamaxProtocol": null,
+        "vlamaxIsReference": false,
+        "tteObservedMin": null,
+        "tteObservedMinRun": 45,
+        "tteMode": "synthetic_estimate",
+        "tss7d": null,
+        "fatigueState": null,
+        "runEconomyScore": 65,
+        "runHrDriftPct": null,
+        "paceThresholdSecPerKm": null,
+        "runningPower1s": null,
+        "runningPower5s": null,
+        "runningPower30s": null,
+        "runningPower60s": null,
+        "runningPower5min": null,
+        "runningPowerThreshold": null,
+        "sprint15sDistance": null,
+        "bikeCadenceRpm": null,
+        "bikeHrDriftFlag": false,
+        "protocolQuality": null,
+        "wprimeKj": null,
+        "cpDataQuality": null,
+        "fatmax": null,
+        "forceDevMode": false,
+        "giIssuesFlag": false,
+        "targetRaceDurationMin": null
+      },
+      "envelope": {
+        "id": "typed_cost_from_separate_424_fixture",
+        "status": "documented_candidate",
+        "quantity": "running_oxygen_cost",
+        "unit": "ml_O2/kg/km",
+        "value": 200,
+        "uncertainty": {
+          "status": "documented",
+          "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+          "individualErrorBound": null
+        },
+        "method": {
+          "kind": "synthetic_fixture",
+          "id": "PR424-economy-contract-test",
+          "admissibility": "experimental_context_only"
+        },
+        "version": "det-v25-run-cost-1",
+        "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+        "sourceArtifactHash": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+        "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+        "observedAt": "2026-10-29T10:00:00Z",
+        "validThrough": "2026-11-10T23:59:59Z",
+        "synthetic": true
+      }
+    },
+    {
+      "id": "uncertain_cost",
+      "raw": {
+        "athleteId": "pilot:B-MARATHON",
+        "athleteName": "QA Synthetic",
+        "age": 35,
+        "sex": "M",
+        "weightKg": 72,
+        "objectif": "MARATHON",
+        "ambition": "world_class",
+        "sportFocus": "run",
+        "vo2max": 58,
+        "ftp": 280,
+        "ftpKg": 3.888888888888889,
+        "pmax5s": 950,
+        "p30sW": 620,
+        "p60sW": 480,
+        "map5minW": 380,
+        "vma": 18,
+        "css": 90,
+        "vlamax": 0.55,
+        "vlamaxRun": 0.5,
+        "vlamaxSource": "synthetic_estimate",
+        "vlamaxProtocol": null,
+        "vlamaxIsReference": false,
+        "tteObservedMin": null,
+        "tteObservedMinRun": 45,
+        "tteMode": "synthetic_estimate",
+        "tss7d": null,
+        "fatigueState": null,
+        "runEconomyScore": 65,
+        "runHrDriftPct": null,
+        "paceThresholdSecPerKm": null,
+        "runningPower1s": null,
+        "runningPower5s": null,
+        "runningPower30s": null,
+        "runningPower60s": null,
+        "runningPower5min": null,
+        "runningPowerThreshold": null,
+        "sprint15sDistance": null,
+        "bikeCadenceRpm": null,
+        "bikeHrDriftFlag": false,
+        "protocolQuality": null,
+        "wprimeKj": null,
+        "cpDataQuality": null,
+        "fatmax": null,
+        "forceDevMode": false,
+        "giIssuesFlag": false,
+        "targetRaceDurationMin": null
+      },
+      "envelope": {
+        "id": "uncertain_cost",
+        "status": "uncertain",
+        "quantity": "running_oxygen_cost",
+        "unit": "ml_O2/kg/km",
+        "value": 200,
+        "uncertainty": {
+          "status": "documented",
+          "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+          "individualErrorBound": null
+        },
+        "method": {
+          "kind": "synthetic_fixture",
+          "id": "PR424-economy-contract-test",
+          "admissibility": "experimental_context_only"
+        },
+        "version": "det-v25-run-cost-1",
+        "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+        "sourceArtifactHash": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+        "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+        "observedAt": "2026-10-29T10:00:00Z",
+        "validThrough": "2026-11-10T23:59:59Z",
+        "synthetic": true
+      }
+    },
+    {
+      "id": "absent_cost",
+      "raw": {
+        "athleteId": "pilot:B-MARATHON",
+        "athleteName": "QA Synthetic",
+        "age": 35,
+        "sex": "M",
+        "weightKg": 72,
+        "objectif": "MARATHON",
+        "ambition": "world_class",
+        "sportFocus": "run",
+        "vo2max": 58,
+        "ftp": 280,
+        "ftpKg": 3.888888888888889,
+        "pmax5s": 950,
+        "p30sW": 620,
+        "p60sW": 480,
+        "map5minW": 380,
+        "vma": 18,
+        "css": 90,
+        "vlamax": 0.55,
+        "vlamaxRun": 0.5,
+        "vlamaxSource": "synthetic_estimate",
+        "vlamaxProtocol": null,
+        "vlamaxIsReference": false,
+        "tteObservedMin": null,
+        "tteObservedMinRun": 45,
+        "tteMode": "synthetic_estimate",
+        "tss7d": null,
+        "fatigueState": null,
+        "runEconomyScore": 65,
+        "runHrDriftPct": null,
+        "paceThresholdSecPerKm": null,
+        "runningPower1s": null,
+        "runningPower5s": null,
+        "runningPower30s": null,
+        "runningPower60s": null,
+        "runningPower5min": null,
+        "runningPowerThreshold": null,
+        "sprint15sDistance": null,
+        "bikeCadenceRpm": null,
+        "bikeHrDriftFlag": false,
+        "protocolQuality": null,
+        "wprimeKj": null,
+        "cpDataQuality": null,
+        "fatmax": null,
+        "forceDevMode": false,
+        "giIssuesFlag": false,
+        "targetRaceDurationMin": null
+      },
+      "envelope": {
+        "id": "absent_cost",
+        "status": "absent",
+        "quantity": "running_oxygen_cost",
+        "unit": "ml_O2/kg/km",
+        "value": null,
+        "uncertainty": {
+          "status": "documented",
+          "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+          "individualErrorBound": null
+        },
+        "method": {
+          "kind": "synthetic_fixture",
+          "id": "PR424-economy-contract-test",
+          "admissibility": "experimental_context_only"
+        },
+        "version": "det-v25-run-cost-1",
+        "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+        "sourceArtifactHash": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+        "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+        "observedAt": "2026-10-29T10:00:00Z",
+        "validThrough": "2026-11-10T23:59:59Z",
+        "synthetic": true
+      }
+    },
+    {
+      "id": "score_is_not_cost",
+      "raw": {
+        "athleteId": "pilot:B-MARATHON",
+        "athleteName": "QA Synthetic",
+        "age": 35,
+        "sex": "M",
+        "weightKg": 72,
+        "objectif": "MARATHON",
+        "ambition": "world_class",
+        "sportFocus": "run",
+        "vo2max": 58,
+        "ftp": 280,
+        "ftpKg": 3.888888888888889,
+        "pmax5s": 950,
+        "p30sW": 620,
+        "p60sW": 480,
+        "map5minW": 380,
+        "vma": 18,
+        "css": 90,
+        "vlamax": 0.55,
+        "vlamaxRun": 0.5,
+        "vlamaxSource": "synthetic_estimate",
+        "vlamaxProtocol": null,
+        "vlamaxIsReference": false,
+        "tteObservedMin": null,
+        "tteObservedMinRun": 45,
+        "tteMode": "synthetic_estimate",
+        "tss7d": null,
+        "fatigueState": null,
+        "runEconomyScore": 65,
+        "runHrDriftPct": null,
+        "paceThresholdSecPerKm": null,
+        "runningPower1s": null,
+        "runningPower5s": null,
+        "runningPower30s": null,
+        "runningPower60s": null,
+        "runningPower5min": null,
+        "runningPowerThreshold": null,
+        "sprint15sDistance": null,
+        "bikeCadenceRpm": null,
+        "bikeHrDriftFlag": false,
+        "protocolQuality": null,
+        "wprimeKj": null,
+        "cpDataQuality": null,
+        "fatmax": null,
+        "forceDevMode": false,
+        "giIssuesFlag": false,
+        "targetRaceDurationMin": null
+      },
+      "envelope": {
+        "id": "score_is_not_cost",
+        "status": "documented_candidate",
+        "quantity": "run_economy_score",
+        "unit": "score_0_100",
+        "value": 65,
+        "uncertainty": {
+          "status": "documented",
+          "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+          "individualErrorBound": null
+        },
+        "method": {
+          "kind": "synthetic_fixture",
+          "id": "PR424-economy-contract-test",
+          "admissibility": "experimental_context_only"
+        },
+        "version": "det-v25-run-cost-1",
+        "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+        "sourceArtifactHash": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+        "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+        "observedAt": "2026-10-29T10:00:00Z",
+        "validThrough": "2026-11-10T23:59:59Z",
+        "synthetic": true
+      }
+    }
+  ],
+  "recovery": [
+    {
+      "id": "unknown",
+      "subject": {
+        "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+        "minutes": 130,
+        "currentCapacityMinutes": 180,
+        "synthetic": true
+      },
+      "events": [
+        {
+          "kind": "adverse_response",
+          "at": "2026-11-09T08:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T08:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "adverse",
+            "recovered": false,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        },
+        {
+          "kind": "request_reassessment",
+          "at": "2026-11-09T09:00:00Z"
+        },
+        {
+          "kind": "document_reassessment",
+          "at": "2026-11-09T18:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T18:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "unknown",
+            "recovered": null,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        }
+      ],
+      "asOf": "2026-11-09T19:00:00Z"
+    },
+    {
+      "id": "adverse",
+      "subject": {
+        "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+        "minutes": 130,
+        "currentCapacityMinutes": 180,
+        "synthetic": true
+      },
+      "events": [
+        {
+          "kind": "adverse_response",
+          "at": "2026-11-09T08:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T08:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "adverse",
+            "recovered": false,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        },
+        {
+          "kind": "request_reassessment",
+          "at": "2026-11-09T09:00:00Z"
+        },
+        {
+          "kind": "document_reassessment",
+          "at": "2026-11-09T18:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T18:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "adverse",
+            "recovered": false,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        }
+      ],
+      "asOf": "2026-11-09T19:00:00Z"
+    },
+    {
+      "id": "favourable_insufficient_capacity",
+      "subject": {
+        "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+        "minutes": 130,
+        "currentCapacityMinutes": 120,
+        "synthetic": true
+      },
+      "events": [
+        {
+          "kind": "adverse_response",
+          "at": "2026-11-09T08:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T08:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "adverse",
+            "recovered": false,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 120,
+            "capacityProvenance": "separate preregistered synthetic lower envelope; not produced by recovery"
+          }
+        },
+        {
+          "kind": "request_reassessment",
+          "at": "2026-11-09T09:00:00Z"
+        },
+        {
+          "kind": "document_reassessment",
+          "at": "2026-11-09T18:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T18:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "favourable",
+            "recovered": true,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 120,
+            "capacityProvenance": "separate preregistered synthetic lower envelope; not produced by recovery"
+          }
+        }
+      ],
+      "asOf": "2026-11-09T19:00:00Z"
+    },
+    {
+      "id": "favourable_missing_reference",
+      "subject": {
+        "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+        "minutes": 130,
+        "currentCapacityMinutes": 180,
+        "synthetic": true
+      },
+      "events": [
+        {
+          "kind": "adverse_response",
+          "at": "2026-11-09T08:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T08:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "adverse",
+            "recovered": false,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        },
+        {
+          "kind": "request_reassessment",
+          "at": "2026-11-09T09:00:00Z"
+        },
+        {
+          "kind": "document_reassessment",
+          "at": "2026-11-09T18:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T18:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "favourable",
+            "recovered": true,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": false,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        }
+      ],
+      "asOf": "2026-11-09T19:00:00Z"
+    },
+    {
+      "id": "persistent_pain",
+      "subject": {
+        "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+        "minutes": 130,
+        "currentCapacityMinutes": 180,
+        "synthetic": true
+      },
+      "events": [
+        {
+          "kind": "adverse_response",
+          "at": "2026-11-09T08:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T08:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "adverse",
+            "recovered": false,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        },
+        {
+          "kind": "request_reassessment",
+          "at": "2026-11-09T09:00:00Z"
+        },
+        {
+          "kind": "document_reassessment",
+          "at": "2026-11-09T18:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T18:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "favourable",
+            "recovered": true,
+            "pain": true,
+            "symptoms": false,
+            "restriction": true,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        }
+      ],
+      "asOf": "2026-11-09T19:00:00Z"
+    },
+    {
+      "id": "favourable_documented",
+      "subject": {
+        "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+        "minutes": 130,
+        "currentCapacityMinutes": 180,
+        "synthetic": true
+      },
+      "events": [
+        {
+          "kind": "adverse_response",
+          "at": "2026-11-09T08:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T08:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "adverse",
+            "recovered": false,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        },
+        {
+          "kind": "request_reassessment",
+          "at": "2026-11-09T09:00:00Z"
+        },
+        {
+          "kind": "document_reassessment",
+          "at": "2026-11-09T18:00:00Z",
+          "observation": {
+            "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+            "sourceId": "SEILER_BIKE_Z1_LONG",
+            "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+            "recordedAt": "2026-11-09T18:00:00Z",
+            "validThrough": "2026-11-10T23:59:59Z",
+            "synthetic": true,
+            "response": "favourable",
+            "recovered": true,
+            "pain": false,
+            "symptoms": false,
+            "restriction": false,
+            "previousToleranceDocumented": true,
+            "previousCompletedMinutes": 120,
+            "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+            "referenceUsable": true,
+            "microcycleCompatible": true,
+            "capacityMinutes": 180,
+            "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+          }
+        }
+      ],
+      "asOf": "2026-11-09T19:00:00Z"
+    }
+  ],
+  "verifiedArtifacts": {
+    "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a": {
+      "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+      "claims": [
+        {
+          "quantity": "running_oxygen_cost",
+          "unit": "ml_O2/kg/km",
+          "value": 200,
+          "methodId": "PR424-economy-contract-test",
+          "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

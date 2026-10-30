@@ -1,0 +1,192 @@
+# Orchestration expérimentale V2
+
+Le superviseur est un processus local explicite, pas un service permanent. Il ne
+fusionne, ne pousse et ne déploie rien. Il ne lit ni n'écrit les bases athlètes ou
+Nolio. Son seul budget externe autorisé est zéro. Les décisions scientifiques ne
+sont pas déléguées à un modèle payant.
+
+## Cinq fonctions logiques
+
+| Fonction | Réalisation | Preuve produite |
+|---|---|---|
+| Diagnostic | `v2-diagnostic.mjs` : classification, fréquences, exemples ; séparation preuve/hypothèse et refus local/global/inconclusif | diagnostic versionné et tableau par objectif/ambition/niveau |
+| Développement | manifeste de correction précis : cause, hypothèse falsifiable, chemins expérimentaux, hash avant, contenu après | snapshot avant/après et empreinte du manifeste |
+| Validation | commandes locales fixes (TypeScript, suite expérimentale), règles sportives existantes, matrice V2 et rejeu | logs `.txt`, bundles baseline/candidate/replay et comparaison |
+| Réparation | restauration des seuls octets appartenant au manifeste rejeté | décision, snapshot conservé, liste des restaurations/conflits |
+| Supervision | état JSON atomique, événements ordonnés, budgets, acceptation/rejet et reprise idempotente | journal des cycles et dernier baseline accepté |
+
+Les corrections sont développées par la session de développement dans le mandat
+accordé. Un manifeste peut être exécuté sans lancer de commande arbitraire : le
+superviseur autorise uniquement la substitution exacte de fichiers TypeScript
+existants sous `experimental/det-engine/`, hors tests et configuration Vitest.
+Il ne génère pas seul une nouvelle méthodologie ni une correction scientifique.
+
+## Comparaison et acceptation
+
+Chaque bundle porte `version`, `controls: [{id, version}]`, `rows`. Chaque ligne
+porte `executedControls`. Les problèmes portent `control`, `code`, `severity`,
+`week` et éventuellement `message`. Un contrôle n'est comparable que si sa version
+et son exécution dans les deux lignes sont attestées. Les nouvelles instrumentations
+sont rapportées séparément ; elles ne sont pas appelées régressions mesurées.
+L'absence d'applicabilité empêche néanmoins l'acceptation automatique de la
+correction lorsque de nouveaux problèmes critiques ne peuvent être attribués.
+
+Le superviseur sépare :
+
+- perte de construction ou de conformité d'un cas antérieur ;
+- nouveau problème critique sous un contrôle comparable, y compris sa multiplicité ;
+- défaut nouvellement exposé sur un plan auparavant non construit ;
+- défaut sous une instrumentation non comparable ;
+- couverture perdue, couverture supplémentaire et différence au rejeu.
+
+Les règles sportives restent inchangées. Aucun problème n'est supprimé des
+artefacts. Accepter une correction expérimentale ne rend pas valides les nouveaux
+plans encore défectueux. Une amélioration du nombre de plans assemblés ne certifie
+jamais une pertinence sportive générale. Le champ `scientificGoAttested` reste
+faux. Les critères non démontrés d'une discipline ne sont pas compensés par
+les réussites d'une autre.
+
+Une correction n'est retenue que si les contrôles unitaires/non-régression/sportifs
+et le rejeu sont attestés, sans régression critique comparable ni attribution
+inconnue. Les réductions du multiensemble de défauts critiques sous contrôles comparables
+sont comptées séparément (`improvedDefects` et `defectReductions`), même si un plan
+reste non conforme. Elles ne compensent jamais une nouvelle erreur critique ; une
+perte de plan ou l’arrêt d’un contrôle ne compte pas comme défaut corrigé.
+La session peut rejeter explicitement une proposition sans progrès avec
+`retain: false` dans l’évaluation : la décision est alors
+`development_rejected_no_progress`, sans transformer des tests réussis en échecs.
+Cette option exige l’absence de progrès mesuré, conserve les preuves et laisse
+la dernière référence acceptée inchangée.
+Le bundle accepté devient la référence suivante : comparer un nouveau
+cycle à une ancienne baseline pour effacer une régression est refusé.
+
+## Budgets et reprise
+
+Politique immuable : 12 cycles, 3 tentatives consécutives sans progrès par cause, réévaluation stratégique
+après 2 cycles globaux consécutifs sans amélioration, 30 minutes d'exécution
+cumulée, 2 workers, heap Node 2048 Mo par processus, 15 minutes par commande,
+0 USD API. Le heap n'est pas une limite RSS OS. Les tentatives totales restent auditées dans `attempts`/`totalAttemptsPerCause`.
+`consecutiveNoProgressByCause` est dérivé des cycles terminés (y compris lors
+d’une reprise d’un ancien état) et remis à zéro uniquement après une correction
+acceptée avec progrès mesuré. Les causes ayant épuisé leurs
+3 tentatives sans progrès sont écartées de la priorisation ; les causes indépendantes restent
+éligibles. Deux cycles globaux sans progrès imposent une réévaluation documentée.
+Les refus sportifs ne comptent pas automatiquement comme des erreurs réparables.
+
+L'état est écrit par remplacement atomique et contient les hashes, budgets,
+cycles, causes tentées, dernier bundle accepté et événements. Un identifiant de
+cycle rejoué avec la même provenance ne compte pas deux tentatives ; la même
+identité avec un autre manifeste est refusée. Un cycle terminé ne peut pas être
+réécrit avec de nouvelles preuves.
+
+Le snapshot est écrit avant application. Si une application est interrompue,
+`apply-recipe` vérifie que chaque fichier correspond à l'avant ou à l'après
+attendu, puis reprend seulement les fichiers manquants. Une modification tierce
+provoque un conflit explicite. Le retour arrière vérifie le hash après avant de
+restaurer le hash avant ; aucune commande `git reset`, `checkout`, `restore` ou
+suppression générale de travail n'est utilisée. Les correctifs indépendants
+acceptés ne font pas partie du snapshot rejeté.
+
+Un seul superviseur écrit dans un fichier d'état donné ; il n'y a pas de verrou
+multi-processus distribué. Des expérimentations parallèles doivent employer des
+états et branches séparés. Chaque entrée de validation, y compris `execute-recipe` et la continuation de
+plans, écrit sa réservation durable avant tout lancement de processus enfant.
+À la fin, le temps réellement consommé est ajouté une fois et déduit du temps
+restant à imputer au cycle : `finishCycle` ne le compte pas deux fois.
+Une validation interrompue conserve une réservation
+persistante ; `recover-validation` consomme cette réservation plutôt que rendre
+le budget artificiellement disponible. Il ne tue pas des processus orphelins :
+l'opérateur doit vérifier leur fin avant une reprise.
+
+## Commandes
+
+Toutes les commandes vérifient la branche réelle, qui doit être
+`experiment/det-engine` ou une branche dérivée de ce préfixe.
+
+```sh
+# Initialisation idempotente, bundle initial immuable.
+node scripts/det-engine/v2-supervisor.mjs init /tmp/det-v2/state.json /tmp/baseline.json
+
+# La session peut journaliser une unité qu'elle a appliquée et validée.
+node scripts/det-engine/v2-supervisor.mjs begin /tmp/det-v2/state.json /tmp/cycle.json
+node scripts/det-engine/v2-supervisor.mjs finish /tmp/det-v2/state.json /tmp/evaluation.json
+node scripts/det-engine/v2-supervisor.mjs status /tmp/det-v2/state.json
+
+# Un manifeste enregistré peut aussi être appliqué/validé/restauré automatiquement.
+node scripts/det-engine/v2-supervisor.mjs execute-recipe /tmp/det-v2/state.json /tmp/recipe.json /tmp/cycle-output /tmp/last-accepted.json
+```
+
+`cycle.json` : `id`, `cause`, `sourceHash`, `recipeId`, `scope` (`global` ou
+`targeted`). `evaluation.json` : `id`, chemins `baseline`, `candidate`, `replay`,
+et `tests: {unit, nonRegression, sporting, replay}` issus des commandes réellement
+exécutées. L'API d'enregistrement ne remplace pas leur exécution ; la commande
+`execute-recipe` exécute elle-même le plan fixe et exige ses artefacts.
+
+`recipe.json` : `id`, `cycleId`, `cause`, `hypothesis`, `scope`, et
+`modifications: [{path, beforeSha256, afterContent}]`. Les manifestes contenant
+une modification de production, de tests ou une base périmée sont refusés.
+Chaque commande distingue `passed`, `failed`, `unavailable`, `interrupted` et
+`not_executed`. Une erreur de lancement, même avec un statut numérique zéro, ne
+compte jamais comme test exécuté avec succès. Les commandes suivantes sont
+explicitement marquées non exécutées lorsque le plan s’arrête.
+Les refus et erreurs du contrôleur sont persistés et le manifeste est rejeté,
+sans supprimer son diagnostic.
+
+Le plan fixe exécute TypeScript, les tests du superviseur et du diagnostic, puis
+la suite Vitest expérimentale (pas la suite de production entière). Il neutralise
+explicitement l’ancienne variable `TFCL_DET_MATRIX_OUT`.
+
+La matrice V2 réelle reçoit `TFCL_DET_V2_OUT`, `TFCL_DET_V2_INPUT` (chemin
+explicite du dernier bundle accepté) et `TFCL_DET_V2_VERSION` (identifiant du cycle
+et hash source). La validation globale sans référence explicite est refusée :
+un cycle suivant ne reconstruit pas depuis V1 en perdant les réparations déjà
+acceptées. Les preuves initiales restent immuables. La matrice écrit
+`baseline.json`, `candidate.json`, `replay.json`. La reprise n'active aucune
+récurrence automatique. Toute nouvelle session doit relancer explicitement le
+superviseur après lecture de l'état.
+
+## Validation du superviseur
+
+`node scripts/det-engine/v2-supervisor.test.mjs` : 30 tests d'orchestration.
+Ils couvrent contrôles incomparables, nouveaux défauts exposés, vraie régression
+critique sous contrôle identique, multiplicité, couverture, non-déterminisme,
+limites, idempotence, preuve périmée, reprise et retour arrière préservant les
+travaux indépendants. Le test du cycle complet utilise un double explicitement
+nommé ; il prouve l'orchestration, pas les qualités du moteur sportif. Les
+résultats sportifs exigent les simulations réelles publiées séparément.
+
+
+## Continuation autonome du réparateur de plans existant
+
+```sh
+node scripts/det-engine/v2-supervisor.mjs continue-plans /tmp/det-v2/state.json /tmp/continuation /tmp/last-accepted.json catalogue_selection_invalid_weekly_distribution
+```
+
+Cette commande ne développe ni n'applique de code source. Elle utilise uniquement
+le réparateur déterministe borné déjà implémenté et testé par la matrice V2.
+Elle ouvre un cycle global, réserve son budget, exécute les commandes fixes et le
+rejeu, compare à la dernière référence acceptée, puis conserve les seuls progrès
+sans régression. Le candidat accepté devient l'entrée du cycle suivant, sans
+repartir de V1 ni perdre les réparations précédentes. Chaque cycle possède son
+répertoire d'artefacts et sa décision persistée.
+
+Un résultat sans progrès est rejeté avec tous les tests réellement réussis
+conservés ; un point fixe déterministe entraîne une réévaluation immédiate plutôt
+qu'un rejeu identique improductif. Les maxima de 12 cycles, 3 échecs consécutifs
+par cause, 2 cycles globaux sans progrès et la durée cumulée restent en vigueur.
+Une régression conserve la dernière référence acceptée et ses preuves, sans
+appliquer de restauration destructive. Une autre approche nécessite une nouvelle
+unité de développement dans le mandat ; la commande ne s'invente pas de règles.
+
+`execute-recipe` peut de même demander `retainIfNoProgress: false` dans son
+manifeste pour rejeter et restaurer ses seuls octets si ses tests passent mais
+qu'aucun progrès n'est mesuré. Les preuves du correctif rejeté restent présentes.
+
+Le test réel de sous-processus CLI vérifie initialisation, application d'un
+snapshot enregistré puis restauration dans un dépôt temporaire expérimental.
+Il n'exécute pas de moteur sportif fictif : sa portée est seulement le cycle de
+vie du contrôleur. Si les processus enfants sont indisponibles (ex. EPERM), ce
+test est explicitement marqué indisponible/ignoré ; un rejeu dans un environnement
+autorisant ces processus est nécessaire et ses résultats sont publiés séparément.
+Les tests de continuation à validation simulée restent nommés doubles
+d'orchestration et ne servent jamais de preuves scientifiques.

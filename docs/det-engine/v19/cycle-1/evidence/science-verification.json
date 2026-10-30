@@ -1,0 +1,13 @@
+{
+  "sourceRows": 920,
+  "unchangedV17ScientificRows": 920,
+  "manualDocumentaryDossiers": 4,
+  "publicAbstractMetadataChecked": 2,
+  "replay": {
+    "scientific-matrix.jsonl.gz": true,
+    "summary.json": true,
+    "documentary-context.json": true
+  },
+  "individualScientificValidations": 0,
+  "humanExpertReviews": 0
+}

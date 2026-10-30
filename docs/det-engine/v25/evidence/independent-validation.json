@@ -1,0 +1,154 @@
+{
+  "version": "det-v25-independent-1",
+  "pass": true,
+  "priorTrackedFilesUnchanged": 4742,
+  "cohortCases": 8,
+  "retainedReservationsUnchanged": 240,
+  "capacityConflictsRetained": 9,
+  "planningFloorAlternativesExamined": 9,
+  "technicallyReceivableFloorAlternatives": 6,
+  "nativeRecoverySuspensionsRetained": 1,
+  "newFloorFixtures": 5,
+  "newPhysiologyFixtures": 4,
+  "typedCostContextsConsumed": 1,
+  "newRecoveryFixtures": 6,
+  "recoveryCoachReviewCandidates": 1,
+  "nativeRefusalsRemoved": 0,
+  "historicalErrorsRemoved": 0,
+  "calendarMutations": 0,
+  "compensationMinutes": 0,
+  "individualDoseApprovals": 0,
+  "humanExpertReviews": 0,
+  "preservedIds": 920,
+  "preservedVariants": 2425,
+  "historicalCasesPreservedNotRerun": 600,
+  "preservedCandidateChronologies": 96,
+  "preservedCandidateIds": 51,
+  "preservedCandidateViews": 418,
+  "preservedNolioFixtures": 15,
+  "logicalReplayHashes": {
+    "registered-cases.json": "ca31c66322198d9e22508f3b83f824ee6b5e4a551ec01a933fc1a21866354b35",
+    "registered-contract-fixtures.json": "318ab45bf35773b049dbf64ee563c1e55895989bdba9e917e4aecc09fa08ace3",
+    "results.json.gz": "6758b933c0ffb955508945268d6ee01a7f037e55c8b74015144becea30da7c13",
+    "contract-results.json": "12aa4ccbe80aacbffb591fd5638e2adb5563b2e036da105c36e57b75f3012ae6"
+  },
+  "profiles": [
+    {
+      "caseId": "A_aerobic",
+      "reservationsUnchanged": 30,
+      "retainedV24Model": null,
+      "receivableFloorAlternatives": 1,
+      "capacityConflicts": 1,
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "historicalBlockingUnchanged": 4,
+      "historicalWarningsUnchanged": 36,
+      "newBlockErrors": 0,
+      "nativeRecoverySuspensions": 0
+    },
+    {
+      "caseId": "B_sustainability",
+      "reservationsUnchanged": 30,
+      "retainedV24Model": "space_peak_bike_block_and_long_run",
+      "receivableFloorAlternatives": 1,
+      "capacityConflicts": 1,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "historicalBlockingUnchanged": 4,
+      "historicalWarningsUnchanged": 34,
+      "newBlockErrors": 0,
+      "nativeRecoverySuspensions": 0
+    },
+    {
+      "caseId": "C_uncertain",
+      "reservationsUnchanged": 30,
+      "retainedV24Model": null,
+      "receivableFloorAlternatives": 0,
+      "capacityConflicts": 0,
+      "states": {
+        "not_admissible": 26,
+        "conditional_pending_reassessment": 4
+      },
+      "historicalBlockingUnchanged": 4,
+      "historicalWarningsUnchanged": 37,
+      "newBlockErrors": 0,
+      "nativeRecoverySuspensions": 0
+    },
+    {
+      "caseId": "B_changed_relevant_limiter",
+      "reservationsUnchanged": 30,
+      "retainedV24Model": null,
+      "receivableFloorAlternatives": 1,
+      "capacityConflicts": 1,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "historicalBlockingUnchanged": 4,
+      "historicalWarningsUnchanged": 36,
+      "newBlockErrors": 0,
+      "nativeRecoverySuspensions": 0
+    },
+    {
+      "caseId": "B_missing_bike_reference",
+      "reservationsUnchanged": 30,
+      "retainedV24Model": null,
+      "receivableFloorAlternatives": 1,
+      "capacityConflicts": 1,
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "historicalBlockingUnchanged": 4,
+      "historicalWarningsUnchanged": 35,
+      "newBlockErrors": 0,
+      "nativeRecoverySuspensions": 0
+    },
+    {
+      "caseId": "B_lower_run_capacity",
+      "reservationsUnchanged": 30,
+      "retainedV24Model": "space_peak_bike_block_and_long_run",
+      "receivableFloorAlternatives": 0,
+      "capacityConflicts": 3,
+      "states": {
+        "conditional_pending_reassessment": 29,
+        "not_admissible": 1
+      },
+      "historicalBlockingUnchanged": 4,
+      "historicalWarningsUnchanged": 34,
+      "newBlockErrors": 0,
+      "nativeRecoverySuspensions": 0
+    },
+    {
+      "caseId": "B_adverse_recovery",
+      "reservationsUnchanged": 30,
+      "retainedV24Model": "space_peak_bike_block_and_long_run",
+      "receivableFloorAlternatives": 1,
+      "capacityConflicts": 1,
+      "states": {
+        "conditional_pending_reassessment": 29,
+        "not_admissible": 1
+      },
+      "historicalBlockingUnchanged": 4,
+      "historicalWarningsUnchanged": 34,
+      "newBlockErrors": 0,
+      "nativeRecoverySuspensions": 1
+    },
+    {
+      "caseId": "B_insufficient_differentiation",
+      "reservationsUnchanged": 30,
+      "retainedV24Model": null,
+      "receivableFloorAlternatives": 1,
+      "capacityConflicts": 1,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "historicalBlockingUnchanged": 4,
+      "historicalWarningsUnchanged": 36,
+      "newBlockErrors": 0,
+      "nativeRecoverySuspensions": 0
+    }
+  ]
+}

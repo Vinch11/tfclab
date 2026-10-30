@@ -1,0 +1,19 @@
+{
+  "closedAt": "2026-10-30T06:50:17.203956+00:00",
+  "elapsedSeconds": 2637.203956,
+  "deadline": "2026-10-30T07:06:00+00:00",
+  "units": 10,
+  "validationAttempts": 2,
+  "acceptedEvidence": "validation-2",
+  "rejectedEvidencePreserved": "validation-1",
+  "implementationCommit": "180d7fc564837b77333ac64dad89872fe8eb720d",
+  "closedControllerRefused": true,
+  "extraValidationCreated": false,
+  "automaticRestart": false,
+  "draftVerified": true,
+  "merged": false,
+  "newTechnicallyExecutableSessions": 0,
+  "individualApprovals": 0,
+  "realNolioCalls": 0,
+  "creditQuotaAccessible": false
+}

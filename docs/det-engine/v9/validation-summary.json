@@ -1,0 +1,70 @@
+{
+  "commands": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 43207
+    },
+    {
+      "name": "node",
+      "args": [
+        "--test",
+        "scripts/det-engine/gates.test.mjs",
+        "scripts/det-engine/v2-diagnostic.test.mjs",
+        "scripts/det-engine/v2-supervisor.test.mjs",
+        "scripts/det-engine/v3-supervisor.test.mjs",
+        "scripts/det-engine/v4-supervisor.test.mjs",
+        "scripts/det-engine/v5-budget.test.mjs",
+        "scripts/det-engine/v5-evidence.test.mjs",
+        "scripts/det-engine/v6-budget.test.mjs",
+        "scripts/det-engine/v7-budget.test.mjs",
+        "experimental/det-engine/v8-causal-audit.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 2049
+    },
+    {
+      "name": "experimental",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 64817
+    },
+    {
+      "name": "historical",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 333625
+    }
+  ],
+  "finalTypeCheck": "evidence/types-canonical.txt",
+  "finalExperimental": "evidence/experimental-final.txt",
+  "targetedV9": "evidence/canonical-comparison.txt",
+  "independentReplay": "evidence/full-replay.txt",
+  "nodePassed": 62,
+  "experimentalPassed": 78,
+  "experimentalSkipped": 36,
+  "targetedV9Passed": 9,
+  "historicalPassed": 2999,
+  "historicalSkipped": 1,
+  "historicalTodo": 6,
+  "baselineArtifactsVerified": 139,
+  "fullRacePlansBuilt": 0,
+  "expertReviewPerformed": false,
+  "note": "final targeted/type checks cover subsequent experimental changes; unchanged production suite reported separately"
+}

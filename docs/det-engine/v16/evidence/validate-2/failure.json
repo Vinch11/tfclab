@@ -1,0 +1,40 @@
+{
+  "failure": "Error: COMMAND_FAILED:experimental_regression:ETIMEDOUT",
+  "proof": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "elapsedMs": 39775
+    },
+    {
+      "name": "canonical_contracts",
+      "args": [
+        "scripts/det-engine/v16-contracts.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "elapsedMs": 5134
+    },
+    {
+      "name": "experimental_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 143,
+      "error": "ETIMEDOUT",
+      "elapsedMs": 180123
+    }
+  ],
+  "baselineUnchanged": 3057
+}

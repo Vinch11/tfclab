@@ -1,0 +1,124 @@
+{
+  "version": "det-v26-independent-1",
+  "passed": true,
+  "previousFilesUnchanged": 4920,
+  "originalCasesUnchanged": 8,
+  "sensitivityCases": 10,
+  "coachDossiers": 2,
+  "sessionsDetailed": 60,
+  "independentlyCheckedRecipeWitnesses": 26,
+  "historicalRawResultsUnchanged": true,
+  "individualRefusalsUnchanged": 42,
+  "A_runRefusals": 7,
+  "newPhysicalSubstitutions": 0,
+  "individualApprovals": 0,
+  "humanSportingReviews": 0,
+  "knownSourceTextNolioMocks": 60,
+  "sourceTextRefusals": 0,
+  "structuredCalendarWorkouts": 0,
+  "separate425TransferProbes": 5,
+  "historicalFixturesPreservedNotRerun": 600,
+  "preservedIds": 920,
+  "preservedVariants": 2425,
+  "preservedNolioFixtures": 15,
+  "logicalReplay": {
+    "preregistered-inputs.json": "e3876dc316536475d774b74c87bff166159052784c4208a9d070853ab6253bee",
+    "original-cases.json": "ca31c66322198d9e22508f3b83f824ee6b5e4a551ec01a933fc1a21866354b35",
+    "originals.json.gz": "aac3d287ee1f38d49667a7644f10cefe9b5c2fd420736e251c0642a65896c9be",
+    "sensitivity.json.gz": "12576ade4698c2fb04448e0ad1ed4127f88c43bf514fdc3847b18c9c8b2c50d3",
+    "dossiers.json.gz": "229b3bbd760864bc9a24693fd0ba35b0eba61ad9989ef0b00f0044eb240c05f4",
+    "nolio.json.gz": "77d23c6226176fb1f342765f95eab23ef3e21d1b55b1832a88a0f88a3af561b3",
+    "transfers.json.gz": "b022dcb89e1eeffab539a9a56674d9a9c730d9c4f3b7cdac986e0b1b36a16049"
+  },
+  "profiles": [
+    {
+      "caseId": "A_aerobic",
+      "rawHistorical": [
+        5,
+        36
+      ],
+      "refusals": 7,
+      "candidateShortlist": 2,
+      "selectionPassingKnownGates": 0,
+      "physicalChangesBeyondBaselineCoachPolicy": 0
+    },
+    {
+      "caseId": "B_sustainability",
+      "rawHistorical": [
+        5,
+        34
+      ],
+      "refusals": 0,
+      "candidateShortlist": 1,
+      "selectionPassingKnownGates": 0,
+      "physicalChangesBeyondBaselineCoachPolicy": 0
+    },
+    {
+      "caseId": "C_uncertain",
+      "rawHistorical": [
+        4,
+        37
+      ],
+      "refusals": 26,
+      "candidateShortlist": 0,
+      "selectionPassingKnownGates": 0,
+      "physicalChangesBeyondBaselineCoachPolicy": 0
+    },
+    {
+      "caseId": "B_changed_relevant_limiter",
+      "rawHistorical": [
+        5,
+        36
+      ],
+      "refusals": 0,
+      "candidateShortlist": 2,
+      "selectionPassingKnownGates": 0,
+      "physicalChangesBeyondBaselineCoachPolicy": 0
+    },
+    {
+      "caseId": "B_missing_bike_reference",
+      "rawHistorical": [
+        5,
+        35
+      ],
+      "refusals": 7,
+      "candidateShortlist": 1,
+      "selectionPassingKnownGates": 0,
+      "physicalChangesBeyondBaselineCoachPolicy": 0
+    },
+    {
+      "caseId": "B_lower_run_capacity",
+      "rawHistorical": [
+        4,
+        34
+      ],
+      "refusals": 1,
+      "candidateShortlist": 1,
+      "selectionPassingKnownGates": 0,
+      "physicalChangesBeyondBaselineCoachPolicy": 0
+    },
+    {
+      "caseId": "B_adverse_recovery",
+      "rawHistorical": [
+        5,
+        34
+      ],
+      "refusals": 1,
+      "candidateShortlist": 1,
+      "selectionPassingKnownGates": 0,
+      "physicalChangesBeyondBaselineCoachPolicy": 0
+    },
+    {
+      "caseId": "B_insufficient_differentiation",
+      "rawHistorical": [
+        5,
+        36
+      ],
+      "refusals": 0,
+      "candidateShortlist": 2,
+      "selectionPassingKnownGates": 0,
+      "physicalChangesBeyondBaselineCoachPolicy": 0
+    }
+  ],
+  "verifierSha256": "17664d306e70f3e98d9c26fa2e4695e9f336c754ea9d516bfb14e853b97401ba"
+}

@@ -1,0 +1,11 @@
+{
+  "records": {
+    "RECIPES.csv": 920,
+    "VARIANTS.csv": 2425,
+    "QUALIFICATION_MATRIX.csv": 920
+  },
+  "allParsedCellsEqualBeforeAfter": true,
+  "recordTerminator": "LF",
+  "sportingSourceChanges": 0,
+  "remainingWhitespaceDiagnosticsInRawLogs": 6
+}

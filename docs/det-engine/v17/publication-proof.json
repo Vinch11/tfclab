@@ -1,0 +1,30 @@
+{
+  "sourceCommit": "fd63ff6396ed71d0bc4a0df2e320f522fcb32baa",
+  "baseline": "42a0ca0993a479d6d2f7498287ed855fdfa0dd5a",
+  "pr": {
+    "baseRefName": "main",
+    "headRefName": "experiment/det-engine",
+    "headRefOid": "fd63ff6396ed71d0bc4a0df2e320f522fcb32baa",
+    "isDraft": true,
+    "mergedAt": null,
+    "state": "OPEN",
+    "title": "DET-ENGINE V17 \u2014 67 recettes compil\u00e9es, contr\u00f4le ind\u00e9pendant et qualification des 920 fiches \u2014 NO-GO",
+    "url": "https://github.com/Vinch11/tfclab/pull/420"
+  },
+  "verifiedAt": "2026-10-28T21:21:15.568321+00:00",
+  "draft": true,
+  "merged": false,
+  "sourcePushed": true,
+  "prBodyUpdated": true,
+  "integrationStatus": "NO_GO",
+  "newIndividualPrescriptionsApproved": 0,
+  "scientificPromotions": 0,
+  "newFullPlans": 0,
+  "realNolioCalls": 0,
+  "athleteWrites": 0,
+  "paidAPICalls": 0,
+  "deployments": 0,
+  "unitCount": 10,
+  "elapsedSeconds": 2979,
+  "scope": "remote checkpoint at source commit; documentation closure follows on the same experimental branch"
+}

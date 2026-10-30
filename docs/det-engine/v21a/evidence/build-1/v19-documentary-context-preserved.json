@@ -1,0 +1,358 @@
+{
+  "newPublicAbstractReviews": [
+    {
+      "doi": "10.1007/s40279-018-0916-2",
+      "pmid": "29663142",
+      "title": "Do We Need a Cool-Down After Exercise? A Narrative Review of the Psychophysiological Effects and the Effects on Performance, Injuries and the Long-Term Adaptive Response.",
+      "authors": "Van Hooren B, Peake JM.",
+      "year": "2018",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/29663142/",
+      "publicResponseSha256": "69ad347996695224b0a956ea0409914aa74ba5732d277264c77a98d06c26a2a5",
+      "abstractRead": true,
+      "fullTextRead": false,
+      "summaryFrench": "La revue narrative ne montre pas un bénéfice général des retours au calme actifs sur la plupart des marqueurs de récupération. Certains bénéfices restent possibles.",
+      "applicabilityLimits": "Ne valide pas une récupération finale de cinq minutes dans ce protocole, une meilleure tolérance aux efforts précédents ou un gain individuel.",
+      "shortExcerpt": "It is widely believed that an active cool-down is more effective for promoting post-exercise recovery than a passive cool-down involving no activity. However, research on this topic has",
+      "fullAbstractStoredInRepository": false,
+      "individualScientificApproval": false
+    },
+    {
+      "doi": "10.1007/s40279-017-0690-6",
+      "pmid": "28332114",
+      "title": "Training the Gut for Athletes.",
+      "authors": "Jeukendrup AE.",
+      "year": "2017",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/28332114/",
+      "publicResponseSha256": "9c4ed0d03a15faec417c416f0340effe8445037ed0d2411d0d6cb9c17349ad4b",
+      "abstractRead": true,
+      "fullTextRead": false,
+      "summaryFrench": "La revue décrit une adaptation digestive et des mécanismes dépendant des nutriments. Elle souligne des incertitudes sur les méthodes et délais optimaux.",
+      "applicabilityLimits": "Le résumé ne valide ni un départ universel à 60g/h, ni 100–120g/h, ni un ratio obligatoire unique, ni une adaptation acquise après huit semaines.",
+      "shortExcerpt": "The gastrointestinal (GI) tract plays a critical role in delivering carbohydrate and fluid during prolonged exercise and can therefore be a major determinant of performance. The incidence of",
+      "fullAbstractStoredInRepository": false,
+      "individualScientificApproval": false
+    }
+  ],
+  "inheritedV8Bibliography": [
+    {
+      "id": "R25",
+      "year": 2025,
+      "authors": "Rosenblat et al.",
+      "design": "IPD network meta-analysis",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/39888556/",
+      "populationAndDuration": "13 studies, 348 trained endurance athletes; 296 men, 52 women; recreational/competitive; mean study ages 17.6–41.5. Duration by study not extracted from abstract.",
+      "finding": "No overall POL superiority over PYR in VO2max or time trial; exploratory level interaction. Different analyses/zone accounting from Oliveira.",
+      "limits": "Abstract inspected; IPD unavailable here; subgroup findings not universal prescriptions; sparse women and no demonstrated ultra transfer.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "O24",
+      "year": 2024,
+      "authors": "Oliveira et al.",
+      "design": "systematic review/meta-analysis",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38717713/",
+      "populationAndDuration": "17 studies, 437 subjects; adult/young adult endurance interventions >=4 weeks.",
+      "finding": "Small pooled VO2peak advantage for POL; does not establish a universal best race-performance distribution.",
+      "limits": "Abstract and search excerpts; full text blocked by recaptcha; heterogeneous protocols and outcomes, no direct TFCL percentage validation.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "W23",
+      "year": 2023,
+      "authors": "Wang et al.",
+      "design": "systematic review/meta-analysis",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/37163550/",
+      "populationAndDuration": "14 studies in endurance athletes; competition taper; mixed sports.",
+      "finding": "Volume reduction with retained intensity/frequency can improve performance; reported 41–60% reduction and <=21 days are study-associated ranges.",
+      "limits": "Not universal dose thresholds or support for arbitrary J−1/J−2 intervals; fatigue response and individual readiness not measured in these fixtures.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "B20",
+      "year": 2020,
+      "authors": "Bontemps et al.",
+      "design": "narrative review",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/33037592/",
+      "populationAndDuration": "Downhill-running studies; variable slopes, participants and exposure protocols, not a pooled intervention.",
+      "finding": "Descent eccentric loading can impair performance; repeated exposure may induce adaptation.",
+      "limits": "No validated individual D− ceiling, no inference of acquired tolerance from planned sessions; narrative evidence.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "I20",
+      "year": 2020,
+      "authors": "Impellizzeri et al.",
+      "design": "conceptual/methodological critique",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/32502973/",
+      "populationAndDuration": "Training-load/injury inference; no intervention cohort or safe progression trial.",
+      "finding": "Conceptual pitfalls prevent treating acute/chronic ratios as causal injury safety rules.",
+      "limits": "Does not establish a replacement progression ceiling, nor prove any observed increase unsafe; abstract/search metadata checked.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "M21",
+      "year": 2021,
+      "authors": "Maunder et al.",
+      "design": "narrative/conceptual review",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/33886100/",
+      "populationAndDuration": "Endurance profiling during prolonged exercise, field observations; not a dosing trial.",
+      "finding": "Durability concerns onset/magnitude of physiological deterioration during prolonged exercise.",
+      "limits": "Fresh TTE or a fresh threshold alone is not a direct measurement of durability; no validated training progression algorithm.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "S25",
+      "year": 2025,
+      "authors": "Sablain et al.",
+      "design": "original reliability/comparison study",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/40338332/",
+      "populationAndDuration": "13 physically active men; cycling; four 15-s isokinetic sprint tests; VO2max mean60.5.",
+      "finding": "VLamax repeatability and calculated MLSS agreement examined; wide individual power agreement limits despite similar group means.",
+      "limits": "Short laboratory protocol, no training efficacy trial, no validation of TFCL field-inverse estimates or trail transfer.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "LL24",
+      "year": 2024,
+      "authors": "Llanos-Lagos et al.",
+      "design": "systematic review/meta-analysis",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38165636/",
+      "populationAndDuration": "652 moderately/well/highly trained middle/long-distance runners; 6–24 weeks, 1–4 strength sessions/week.",
+      "finding": "Some high-load/plyometric/combined methods improve running economy, with method/speed dependence.",
+      "limits": "Low/moderate certainty by comparison; not proof that any strength catalogue entry treats an unmeasured economy deficit or requires a blanket VO2 prohibition.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "L175",
+      "year": 2019,
+      "authors": "Dan Lorang, TTS175 shownotes",
+      "design": "coaching interview, edited shownotes",
+      "url": "https://scientifictriathlon.com/tts175/",
+      "populationAndDuration": "Professional and illustrative time-limited triathletes; no controlled trial.",
+      "finding": "Profile/history and athlete feedback guide dose; repeated technique, aerobic, strength/endurance and economisation phases are examples.",
+      "limits": "0:56,10:41,58:50,1:12:12,1:21:45; shownotes not independently checked against full audio. Elite schedules are not age-group minima.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "L417",
+      "year": 2023,
+      "authors": "Dan Lorang, TTS417 shownotes",
+      "design": "coaching interview, edited shownotes",
+      "url": "https://scientifictriathlon.com/tts417/",
+      "populationAndDuration": "Elite triathlon case discussions, including Lucy Charles-Barclay; no comparative trial.",
+      "finding": "Evolving individual plans, balance of low/higher effort and adjustment of other sessions; workload depends on athlete history/capacity.",
+      "limits": "08:21,10:54,14:09,1:12:23; elite observations, no universal weekly HIT count; no VLamax term found on inspected page.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "L220",
+      "year": 2020,
+      "authors": "220 Triathlon interview with Lorang",
+      "design": "coaching/media account",
+      "url": "https://www.220triathlon.com/training/long-distance/frodeno-and-haugs-coach-dan-lorang-on-how-to-train-for-ironman",
+      "populationAndDuration": "Frodeno/Haug professional Ironman examples; updated page2022.",
+      "finding": "Metabolic profile, long-term consistency and feedback inform progressive load and changing phase focus.",
+      "limits": "Attributed coach/athlete statements, not controlled evidence; no exact transferable quotas or proof of a unique optimal phase sequence.",
+      "accessed": "2026-10-28",
+      "access": "abstract or edited shownotes; see limits"
+    },
+    {
+      "id": "E26",
+      "year": 2026,
+      "authors": "Esteve-Lanao et al.",
+      "design": "randomized controlled trial, publisher abstract",
+      "url": "https://doi.org/10.1177/17479541261468168",
+      "populationAndDuration": "20 recreational marathon runners,16 weeks, matched weekly load; publication31July2026",
+      "finding": "No significant between-group marathon difference; distinct economy and second-half speed outcomes.",
+      "limits": "Small trial, abstract only/paywalled full text; cannot validate individual response selection or transfer to Ironman/trail.",
+      "accessed": "2026-10-28",
+      "access": "publisher abstract inspected"
+    }
+  ],
+  "exactManualCases": [
+    {
+      "legacyId": "C_IM_AERO_HOLD",
+      "kind": "final_recovery_causal_scope",
+      "contextDOIs": [
+        "10.1007/s40279-018-0916-2"
+      ],
+      "editorialRevision": "Conserver les 4×15 minutes et les récupérations Z1 de la source. Présenter séparément la récupération finale proposée et le retour au calme éventuel ; aucune branche n’est approuvée.",
+      "reviewFinding": "Les variantes 75/80 minutes modifient la dernière récupération, pas la dose des efforts précédents. Le résumé de la revue ne justifie pas une meilleure récupération individuelle par cinq minutes Z1 supplémentaires.",
+      "conditions": [
+        "choix explicite du coach",
+        "tolérance posturale et musculaire actuelle",
+        "contraintes du microcycle",
+        "réaction observée distincte de l’avis de résistance à la fatigue"
+      ],
+      "scientificLevel": "narrative_review_context_not_exact_protocol_validation",
+      "sourceEffectiveHash": "a00c4816d6effeff0a9761f583e4e9c442e5a4bbe947f719afdd8763ac98af12",
+      "sourceInstructions": [
+        {
+          "part": "Main",
+          "text": "4x15' Z2 en position aéro r=5' Z1",
+          "zones": [
+            "Z2",
+            "Z1"
+          ]
+        }
+      ],
+      "origin": "new_editorial_proposal",
+      "sourceCorrectionApplied": false,
+      "scientificValidation": false,
+      "humanExpertReview": false,
+      "automaticPromotion": false,
+      "newDoseInvented": false
+    },
+    {
+      "legacyId": "FATMAX_TRAIN_HIGH_GUT",
+      "kind": "conditional_nutritional_progression",
+      "contextDOIs": [
+        "10.1007/s40279-017-0690-6"
+      ],
+      "editorialRevision": "Conserver tous les paliers chiffrés et la consigne de ratio comme données originales, mais les présenter comme propositions historiques non approuvées. Aucun palier supérieur n’est réputé acquis par le seul passage des semaines. Le coach doit confirmer la tolérance au palier courant et décider maintien, refus ou réévaluation ; aucune nouvelle quantité n’est prescrite ici.",
+      "reviewFinding": "La publication Jeukendrup 2017 existe et a été relue au niveau du résumé. Ce résumé ne confirme pas l’échéance 8–10 semaines ni la progression précise vers 100–120g/h ni l’universalité du ratio obligatoire. La consigne originale n’est pas supprimée ou remplacée automatiquement.",
+      "conditions": [
+        "historique de tolérance digestive documenté quand nécessaire",
+        "produits et conditions de course",
+        "symptômes déjà suivis par le coach",
+        "revue compétente avant progression nutritionnelle"
+      ],
+      "scientificLevel": "mechanism_plausible_context_dose_and_timeline_unverified",
+      "sourceEffectiveHash": "9429f05f591c81dcaccadffa87015ccd83545a618359d29700135e610f60c39f",
+      "sourceInstructions": [
+        {
+          "part": "Warm-up",
+          "text": "20 min Z2. Commencer glucides dès le départ (contrairement au fasted training).",
+          "zones": [
+            "Z2"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "90–150 min Z2–Z3. Ingestion glucides : semaines 1-2 : 60g/h. Semaines 3-4 : 75g/h. Semaines 5-6 : 90g/h. Semaines 7-8 : 100-120g/h. RATIO OBLIGATOIRE : 2 glucose pour 1 fructose (ex : gel glucose + boisson fructose). Tester les produits de course (pas entraînement). Si nausées : réduire 10g/h et réessayer semaine suivante. Réf : Jeukendrup 2017 — adaptation transporteurs intestinaux sur 8-10 semaines.",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "15 min Z1. Journaliser : glucides ingérés, symptômes GI (0-10), énergie perçue.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "origin": "new_editorial_proposal",
+      "sourceCorrectionApplied": false,
+      "scientificValidation": false,
+      "humanExpertReview": false,
+      "automaticPromotion": false,
+      "newDoseInvented": false
+    },
+    {
+      "legacyId": "NUTRITION_CARB_PERIODIZATION_WEEK",
+      "kind": "author_attribution_clarification",
+      "contextDOIs": [],
+      "editorialRevision": "Présenter le tableau comme un exemple TFCLab candidat de périodisation glucidique. Distinguer les principes documentés d’individualisation et de feedback de Lorang des jours, quotas de VO2max et quantités alimentaires exacts du tableau. Conserver intégralement le tableau original pour revue.",
+      "reviewFinding": "Les entretiens édités L175/L417/L220 examinés en V8 ne prouvent pas ce calendrier alimentaire universel ni une obligation de séance intense chaque mardi. Le contexte Impey 2018 mentionné dans la source n’est pas vérifié par une simple attribution au module.",
+      "conditions": [
+        "pas de promotion des quantités du tableau",
+        "adaptation au profil et à la charge effectivement prévue",
+        "revue nutritionnelle et incertitudes"
+      ],
+      "scientificLevel": "documented_coaching_principles_distinct_from_TFCL_conventions",
+      "sourceEffectiveHash": "4116374bd9371c8feafb940732af100f2dc0d686b930f3f021c558ca016ee4b5",
+      "sourceInstructions": [
+        {
+          "part": "Warm-up",
+          "text": "Lundi (récup) : Low carb. Mardi (intensité) : High carb (150g avant + 60g/h pendant).",
+          "zones": [
+            "Z1"
+          ]
+        },
+        {
+          "part": "Main",
+          "text": "Modèle semaine Lorang : Lundi : repos/récup, carbs modérés (3g/kg). Mardi : séance intense VO2max — HIGH carb (6-8g/kg, glucides avant/pendant/après). Mercredi : Z2 moyen + train low possible (4g/kg). Jeudi : seuil ou technique — HIGH carb (6g/kg). Vendredi : récup active — LOW carb (2-3g/kg, pas de glucides exogènes). Samedi : longue sortie — LOW carb début puis progression selon durée. Dimanche : récup ou brick léger — carbs modérés. Réf : Impey 2018 — train low, compete high.",
+          "zones": [
+            "Z2",
+            "Z3"
+          ]
+        },
+        {
+          "part": "Cool-down",
+          "text": "Journaliser quotidiennement : énergie, poids, qualité sommeil, humeur. Adapter si déclin sur 3 jours consécutifs.",
+          "zones": [
+            "Z1"
+          ]
+        }
+      ],
+      "origin": "new_editorial_proposal",
+      "sourceCorrectionApplied": false,
+      "scientificValidation": false,
+      "humanExpertReview": false,
+      "automaticPromotion": false,
+      "newDoseInvented": false
+    },
+    {
+      "legacyId": "B_LCW_NUTRITION_RECHARGE",
+      "kind": "blocking_unit_context_clarification",
+      "contextDOIs": [],
+      "editorialRevision": "Isoler la mention « Hydratation +500 mL/h de sommeil visée » comme une consigne à clarifier, sans en faire une prescription automatique ni la convertir en volume à boire pendant le sommeil. Conserver l’original, demander confirmation de l’unité et de la période d’application. Aucune quantité de remplacement n’est inventée.",
+      "reviewFinding": "La portée de cette unité et la manière de l’appliquer sont ambiguës dans un protocole inter-étapes. Cette remarque ne constitue ni un diagnostic clinique ni une nouvelle limite universelle d’hydratation. Le sous-chantier reste bloqué pour prescription/export de cette consigne ; les autres travaux continuent.",
+      "conditions": [
+        "confirmation de l’auteur ou revue compétente",
+        "durée et contexte réellement visés",
+        "pas d’activation automatique de cette consigne"
+      ],
+      "scientificLevel": "unresolved_high_impact_source_instruction",
+      "sourceEffectiveHash": "55e596c5bd418332b4d6d9fbe3d3d0af558905f94662e4b5a55da1c1e705d7aa",
+      "sourceInstructions": [
+        {
+          "part": "Post-Étape 1 (Ven soir post-natation)",
+          "text": "Fenêtre 30min : 1.2 g/kg CHO + 0.4 g/kg protéine (ex: repas riz + poulet + fruit). Puis dîner classique + 1 collation glucidique avant coucher (banane + pain complet). Cible 8-10 g/kg CHO sur 12-16h vers samedi matin.",
+          "zones": []
+        },
+        {
+          "part": "Post-Étape 2 (Sam post-vélo)",
+          "text": "Fenêtre 30min CRITIQUE : 1.2 g/kg CHO + 0.4 g/kg protéine (boisson récup + fruits + gel). Dîner riche glucides complexes (pâtes/riz 200-300g cuits) + protéine maigre + légumes cuits (pas crus, digestibilité). Collation avant coucher : porridge + miel. Hydratation +500 mL/h de sommeil visée.",
+          "zones": []
+        },
+        {
+          "part": "Pré-Étape 3 (Dim matin pré-run)",
+          "text": "Petit-déjeuner 3h avant : 2-2.5 g/kg CHO facilement digestibles (avoine + banane + miel + toast). 30min avant départ : 30g CHO liquide (gel + eau). Café si habitude.",
+          "zones": []
+        }
+      ],
+      "origin": "new_editorial_proposal",
+      "sourceCorrectionApplied": false,
+      "scientificValidation": false,
+      "humanExpertReview": false,
+      "automaticPromotion": false,
+      "newDoseInvented": false
+    }
+  ],
+  "automaticAttributionToOtherWorkouts": false,
+  "lorangContext": "docs/det-engine/v8/LORANG_METHODOLOGY.md; edited shownotes, not universal dose trials",
+  "freeResearchDiscarded": [
+    {
+      "query": "title + author field",
+      "result": "0 hits"
+    },
+    {
+      "query": "broad training/gut title",
+      "result": "newest results on mice and unrelated interventions excluded; no transfer to athlete dosing"
+    }
+  ],
+  "paidCalls": 0
+}

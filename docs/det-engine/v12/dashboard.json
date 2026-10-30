@@ -1,0 +1,396 @@
+{
+  "version": "det-v12-1",
+  "recommendation": "NO-GO",
+  "distinctProfiles": 2,
+  "progressionHypothesesPerProfile": 5,
+  "recoveryHypothesesPerProfile": 3,
+  "distinctComputedCalendars": 7,
+  "selectedConditionalVersions": 2,
+  "selectedWeeksPerVersion": 4,
+  "decisionRecordsPerVersion": [
+    26,
+    26
+  ],
+  "actualObservationsAdded": 0,
+  "expertReviewed": 0,
+  "profiles": [
+    {
+      "id": "IM_aerobic_history",
+      "model": "technical_segmentation",
+      "weeklyMinutes": [
+        480,
+        480,
+        485,
+        250
+      ],
+      "weeklyMetrics": [
+        {
+          "week": 1,
+          "type": "load",
+          "total": 480,
+          "totals": {
+            "swim": 80,
+            "bike": 265,
+            "run": 105,
+            "strength": 30
+          },
+          "longs": [
+            {
+              "sport": "bike",
+              "source": "V3_BIKE_Z2_ENDURANCE_LONG",
+              "minutes": 180,
+              "autonomous": true
+            },
+            {
+              "sport": "run",
+              "source": "A_RUN_Z2_EASY",
+              "minutes": 65,
+              "autonomous": true
+            }
+          ],
+          "position": [
+            {
+              "source": "C_BIKE_AERO_POSITION_DRILLS",
+              "minutes": 85,
+              "autonomousLongCredit": 0
+            }
+          ],
+          "deltaByDiscipline": null,
+          "measuredResponse": null
+        },
+        {
+          "week": 2,
+          "type": "load",
+          "total": 480,
+          "totals": {
+            "swim": 80,
+            "bike": 260,
+            "run": 110,
+            "strength": 30
+          },
+          "longs": [
+            {
+              "sport": "bike",
+              "source": "V3_BIKE_Z2_ENDURANCE_LONG",
+              "minutes": 180,
+              "autonomous": true
+            },
+            {
+              "sport": "run",
+              "source": "A_RUN_Z2_EASY",
+              "minutes": 70,
+              "autonomous": true
+            }
+          ],
+          "position": [
+            {
+              "source": "C_IM_AERO_HOLD",
+              "minutes": 80,
+              "autonomousLongCredit": 0
+            }
+          ],
+          "deltaByDiscipline": {
+            "swim": 0,
+            "bike": -5,
+            "run": 5,
+            "strength": 0
+          },
+          "measuredResponse": null
+        },
+        {
+          "week": 3,
+          "type": "load",
+          "total": 485,
+          "totals": {
+            "swim": 80,
+            "bike": 260,
+            "run": 115,
+            "strength": 30
+          },
+          "longs": [
+            {
+              "sport": "bike",
+              "source": "V3_BIKE_Z2_ENDURANCE_LONG",
+              "minutes": 180,
+              "autonomous": true
+            },
+            {
+              "sport": "run",
+              "source": "A_RUN_Z2_EASY",
+              "minutes": 75,
+              "autonomous": true
+            }
+          ],
+          "position": [
+            {
+              "source": "C_IM_AERO_HOLD",
+              "minutes": 80,
+              "autonomousLongCredit": 0
+            }
+          ],
+          "deltaByDiscipline": {
+            "swim": 0,
+            "bike": 0,
+            "run": 5,
+            "strength": 0
+          },
+          "measuredResponse": null
+        },
+        {
+          "week": 4,
+          "type": "recovery",
+          "total": 250,
+          "totals": {
+            "swim": 80,
+            "bike": 85,
+            "run": 55,
+            "strength": 30
+          },
+          "longs": [
+            {
+              "sport": "bike",
+              "source": "A_BIKE_END_90_PRO",
+              "minutes": 85,
+              "autonomous": true
+            },
+            {
+              "sport": "run",
+              "source": "A_RUN_EASY_45_PRO",
+              "minutes": 55,
+              "autonomous": true
+            }
+          ],
+          "position": [],
+          "deltaByDiscipline": {
+            "swim": 0,
+            "bike": -175,
+            "run": -60,
+            "strength": 0
+          },
+          "measuredResponse": null
+        }
+      ],
+      "divergences": [
+        {
+          "week": 1,
+          "role": "IM_aerobic_history:bike:1",
+          "before": {
+            "source": "C_IM_AERO_HOLD",
+            "minutes": 80
+          },
+          "after": {
+            "source": "C_BIKE_AERO_POSITION_DRILLS",
+            "minutes": 85
+          },
+          "nominalTimeChangeOnly": false,
+          "physiologicalLoadEquivalent": false
+        },
+        {
+          "week": 1,
+          "role": "IM_aerobic_history:run:0",
+          "before": {
+            "source": "A_RUN_Z2_EASY",
+            "minutes": 70
+          },
+          "after": {
+            "source": "A_RUN_Z2_EASY",
+            "minutes": 65
+          },
+          "nominalTimeChangeOnly": true,
+          "physiologicalLoadEquivalent": false
+        }
+      ],
+      "rawErrors": 7,
+      "rawWarnings": 30
+    },
+    {
+      "id": "IM_balanced_history",
+      "model": "technical_segmentation",
+      "weeklyMinutes": [
+        480,
+        480,
+        480,
+        250
+      ],
+      "weeklyMetrics": [
+        {
+          "week": 1,
+          "type": "load",
+          "total": 480,
+          "totals": {
+            "swim": 85,
+            "bike": 205,
+            "run": 160,
+            "strength": 30
+          },
+          "longs": [
+            {
+              "sport": "bike",
+              "source": "V3_BIKE_Z2_PROGRESSIF",
+              "minutes": 120,
+              "autonomous": true
+            },
+            {
+              "sport": "run",
+              "source": "A_RUN_Z2_EASY",
+              "minutes": 90,
+              "autonomous": true
+            }
+          ],
+          "position": [
+            {
+              "source": "C_BIKE_AERO_POSITION_DRILLS",
+              "minutes": 85,
+              "autonomousLongCredit": 0
+            }
+          ],
+          "deltaByDiscipline": null,
+          "measuredResponse": null
+        },
+        {
+          "week": 2,
+          "type": "load",
+          "total": 480,
+          "totals": {
+            "swim": 95,
+            "bike": 195,
+            "run": 160,
+            "strength": 30
+          },
+          "longs": [
+            {
+              "sport": "bike",
+              "source": "V3_BIKE_Z2_PROGRESSIF",
+              "minutes": 120,
+              "autonomous": true
+            },
+            {
+              "sport": "run",
+              "source": "A_RUN_Z2_EASY",
+              "minutes": 90,
+              "autonomous": true
+            }
+          ],
+          "position": [
+            {
+              "source": "C_IM_AERO_HOLD",
+              "minutes": 75,
+              "autonomousLongCredit": 0
+            }
+          ],
+          "deltaByDiscipline": {
+            "swim": 10,
+            "bike": -10,
+            "run": 0,
+            "strength": 0
+          },
+          "measuredResponse": null
+        },
+        {
+          "week": 3,
+          "type": "load",
+          "total": 480,
+          "totals": {
+            "swim": 95,
+            "bike": 195,
+            "run": 160,
+            "strength": 30
+          },
+          "longs": [
+            {
+              "sport": "bike",
+              "source": "V3_BIKE_Z2_PROGRESSIF",
+              "minutes": 120,
+              "autonomous": true
+            },
+            {
+              "sport": "run",
+              "source": "A_RUN_Z2_EASY",
+              "minutes": 90,
+              "autonomous": true
+            }
+          ],
+          "position": [
+            {
+              "source": "C_IM_AERO_HOLD",
+              "minutes": 75,
+              "autonomousLongCredit": 0
+            }
+          ],
+          "deltaByDiscipline": {
+            "swim": 0,
+            "bike": 0,
+            "run": 0,
+            "strength": 0
+          },
+          "measuredResponse": null
+        },
+        {
+          "week": 4,
+          "type": "recovery",
+          "total": 250,
+          "totals": {
+            "swim": 80,
+            "bike": 85,
+            "run": 55,
+            "strength": 30
+          },
+          "longs": [
+            {
+              "sport": "bike",
+              "source": "A_BIKE_END_90_PRO",
+              "minutes": 85,
+              "autonomous": true
+            },
+            {
+              "sport": "run",
+              "source": "A_RUN_EASY_45_PRO",
+              "minutes": 55,
+              "autonomous": true
+            }
+          ],
+          "position": [],
+          "deltaByDiscipline": {
+            "swim": -15,
+            "bike": -110,
+            "run": -105,
+            "strength": 0
+          },
+          "measuredResponse": null
+        }
+      ],
+      "divergences": [
+        {
+          "week": 1,
+          "role": "IM_balanced_history:swim:0",
+          "before": {
+            "source": "A_SWIM_AEROBIC_MULTI_NAGES",
+            "minutes": 55
+          },
+          "after": {
+            "source": "A_SWIM_AEROBIC_MULTI_NAGES",
+            "minutes": 45
+          },
+          "nominalTimeChangeOnly": true,
+          "physiologicalLoadEquivalent": false
+        },
+        {
+          "week": 1,
+          "role": "IM_balanced_history:bike:1",
+          "before": {
+            "source": "C_IM_AERO_HOLD",
+            "minutes": 75
+          },
+          "after": {
+            "source": "C_BIKE_AERO_POSITION_DRILLS",
+            "minutes": 85
+          },
+          "nominalTimeChangeOnly": false,
+          "physiologicalLoadEquivalent": false
+        }
+      ],
+      "rawErrors": 7,
+      "rawWarnings": 30
+    }
+  ]
+}

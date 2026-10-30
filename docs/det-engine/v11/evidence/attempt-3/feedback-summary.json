@@ -1,0 +1,138 @@
+[
+  {
+    "profile": "IM_aerobic_history",
+    "responses": [
+      {
+        "case": "assimilation",
+        "status": "accepted_candidate_proposal",
+        "accepted": true,
+        "change": {
+          "week": 2,
+          "source": "A_RUN_Z2_EASY",
+          "before": 70,
+          "after": 70,
+          "candidateBasis": "pre-existing mock normal-run envelope or actual native next-week floor; no search of warning thresholds"
+        },
+        "allOtherDosesUnchanged": true,
+        "placementsUnchanged": true,
+        "noNewCritical": true,
+        "noNewWarnings": true
+      },
+      {
+        "case": "fatigue_recovered",
+        "status": "accepted_candidate_proposal",
+        "accepted": true,
+        "change": {
+          "week": 2,
+          "source": "A_RUN_Z2_EASY",
+          "before": 70,
+          "after": 65,
+          "candidateBasis": "pre-existing mock normal-run envelope or actual native next-week floor; no search of warning thresholds"
+        },
+        "allOtherDosesUnchanged": true,
+        "placementsUnchanged": true,
+        "noNewCritical": true,
+        "noNewWarnings": true
+      },
+      {
+        "case": "pain",
+        "status": "held_for_coach",
+        "accepted": false
+      },
+      {
+        "case": "contradictory_response",
+        "status": "held_for_coach",
+        "accepted": false
+      },
+      {
+        "case": "objective_improvement",
+        "status": "accepted_candidate_proposal",
+        "accepted": true,
+        "change": {
+          "week": 2,
+          "source": "A_RUN_Z2_EASY",
+          "before": 70,
+          "after": 70,
+          "candidateBasis": "pre-existing mock normal-run envelope or actual native next-week floor; no search of warning thresholds"
+        },
+        "allOtherDosesUnchanged": true,
+        "placementsUnchanged": true,
+        "noNewCritical": true,
+        "noNewWarnings": true
+      },
+      {
+        "case": "insufficient",
+        "status": "held_for_coach",
+        "accepted": false
+      }
+    ]
+  },
+  {
+    "profile": "IM_balanced_history",
+    "responses": [
+      {
+        "case": "assimilation",
+        "status": "accepted_candidate_proposal",
+        "accepted": true,
+        "change": {
+          "week": 2,
+          "source": "A_RUN_Z2_EASY",
+          "before": 90,
+          "after": 90,
+          "candidateBasis": "pre-existing mock normal-run envelope or actual native next-week floor; no search of warning thresholds"
+        },
+        "allOtherDosesUnchanged": true,
+        "placementsUnchanged": true,
+        "noNewCritical": true,
+        "noNewWarnings": true
+      },
+      {
+        "case": "fatigue_recovered",
+        "status": "accepted_candidate_proposal",
+        "accepted": true,
+        "change": {
+          "week": 2,
+          "source": "A_RUN_Z2_EASY",
+          "before": 90,
+          "after": 75,
+          "candidateBasis": "pre-existing mock normal-run envelope or actual native next-week floor; no search of warning thresholds"
+        },
+        "allOtherDosesUnchanged": true,
+        "placementsUnchanged": true,
+        "noNewCritical": true,
+        "noNewWarnings": true
+      },
+      {
+        "case": "pain",
+        "status": "held_for_coach",
+        "accepted": false
+      },
+      {
+        "case": "contradictory_response",
+        "status": "held_for_coach",
+        "accepted": false
+      },
+      {
+        "case": "objective_improvement",
+        "status": "accepted_candidate_proposal",
+        "accepted": true,
+        "change": {
+          "week": 2,
+          "source": "A_RUN_Z2_EASY",
+          "before": 90,
+          "after": 90,
+          "candidateBasis": "pre-existing mock normal-run envelope or actual native next-week floor; no search of warning thresholds"
+        },
+        "allOtherDosesUnchanged": true,
+        "placementsUnchanged": true,
+        "noNewCritical": true,
+        "noNewWarnings": true
+      },
+      {
+        "case": "insufficient",
+        "status": "held_for_coach",
+        "accepted": false
+      }
+    ]
+  }
+]

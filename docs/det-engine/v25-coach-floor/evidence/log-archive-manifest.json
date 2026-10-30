@@ -1,0 +1,16 @@
+[
+  {
+    "original": "evidence/development-1.txt",
+    "archive": "evidence/development-1.txt.gz",
+    "originalSha256": "a81d5dbc5c23b5a292691e4c0e861c03c9757008edc8cbb3de3ea7c7568bd85f",
+    "archiveSha256": "3315f4832d7d7e8d126e2c0dc97f68adedadb552109b23dc767bb5d9c25734c9",
+    "contentUnchanged": true
+  },
+  {
+    "original": "evidence/development-2.txt",
+    "archive": "evidence/development-2.txt.gz",
+    "originalSha256": "c95981bb0fccd321953b7723acb8f66e2442c467b8290d98109b07be98d672e0",
+    "archiveSha256": "15866826d42dd4efa12f17bf1135c7bf5b10798e170357bbac0fa7f1926f0ca2",
+    "contentUnchanged": true
+  }
+]

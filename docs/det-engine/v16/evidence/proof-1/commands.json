@@ -1,0 +1,46 @@
+[
+  {
+    "name": "canonical_final",
+    "args": [
+      "scripts/det-engine/v16-migrate.mjs",
+      "docs/det-engine/v16/evidence/final"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 3491
+  },
+  {
+    "name": "canonical_replay",
+    "args": [
+      "scripts/det-engine/v16-migrate.mjs",
+      "docs/det-engine/v16/evidence/replay"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 3590
+  },
+  {
+    "name": "integration_final",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16.config.ts"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 27273
+  },
+  {
+    "name": "integration_replay",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v16.config.ts"
+    ],
+    "exitCode": 0,
+    "error": null,
+    "elapsedMs": 24219
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-1/PLAN_USAGE.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-1/PLAN_USAGE.jsonl.gz",
+    "uncompressedSha256": "58799bc3cf9e149b2d69ed4898fc0d4b543a7ed6e3cf6539239ab6351f6e7278",
+    "compressedSha256": "330243896a9040a4d0ea6eb69e524ddc696a6c9cc71c50d37f297af31b5a7ab0",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-1/WORKOUT_FAMILY_MAPPING.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-1/WORKOUT_FAMILY_MAPPING.jsonl.gz",
+    "uncompressedSha256": "d1a34a2a4ec13415fe2acc8b73672f0b221637cf1ea1d1114c97aa4052e9f7b4",
+    "compressedSha256": "ce07e6a7f4f9c1b5d7742ce73a60d9a515cad7081058029fd51ac5ab21b1bbaf",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-1/REFERENCE_OCCURRENCES.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-1/REFERENCE_OCCURRENCES.jsonl.gz",
+    "uncompressedSha256": "afface00481c1215b184aa1fe4a702fb8fbf174819403bf483ed17cb0b97f04f",
+    "compressedSha256": "29c0251775ca271d23653428567a6a60f1d9e40e47726d91a65bc6f00b4d2333",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-2/PLAN_USAGE.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-2/PLAN_USAGE.jsonl.gz",
+    "uncompressedSha256": "58799bc3cf9e149b2d69ed4898fc0d4b543a7ed6e3cf6539239ab6351f6e7278",
+    "compressedSha256": "330243896a9040a4d0ea6eb69e524ddc696a6c9cc71c50d37f297af31b5a7ab0",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-2/WORKOUT_FAMILY_MAPPING.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-2/WORKOUT_FAMILY_MAPPING.jsonl.gz",
+    "uncompressedSha256": "5c1b1b78dfdd9bb69540a0e3063e407ba4d91879f82b03bddc8fe6ed85ec7f59",
+    "compressedSha256": "fb3c55fe0cd49e436252bcd199b49586a094da91d95d373b181909230307f15a",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-2/REFERENCE_OCCURRENCES.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-2/REFERENCE_OCCURRENCES.jsonl.gz",
+    "uncompressedSha256": "afface00481c1215b184aa1fe4a702fb8fbf174819403bf483ed17cb0b97f04f",
+    "compressedSha256": "29c0251775ca271d23653428567a6a60f1d9e40e47726d91a65bc6f00b4d2333",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-3/PLAN_USAGE.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-3/PLAN_USAGE.jsonl.gz",
+    "uncompressedSha256": "33980769c6ac6906ef7309602cb906a81d2df554a471da2d6a0dedfa97e1f214",
+    "compressedSha256": "b14cbb50318802c4ddd5b4cfda996a7a9fcea5b7ebd441120caeaddcb6cacb03",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-3/WORKOUT_FAMILY_MAPPING.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-3/WORKOUT_FAMILY_MAPPING.jsonl.gz",
+    "uncompressedSha256": "b1ddcd0b4de63273fb69fefe26f97c367eef84d1b1be83611bd08c175ba33933",
+    "compressedSha256": "732a8319c7493d798276e99a826ed2e305f7d645d696342e76b48eaab479ee0e",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/build-3/REFERENCE_OCCURRENCES.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/build-3/REFERENCE_OCCURRENCES.jsonl.gz",
+    "uncompressedSha256": "afface00481c1215b184aa1fe4a702fb8fbf174819403bf483ed17cb0b97f04f",
+    "compressedSha256": "29c0251775ca271d23653428567a6a60f1d9e40e47726d91a65bc6f00b4d2333",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/final/PLAN_USAGE.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/final/PLAN_USAGE.jsonl.gz",
+    "uncompressedSha256": "33980769c6ac6906ef7309602cb906a81d2df554a471da2d6a0dedfa97e1f214",
+    "compressedSha256": "b14cbb50318802c4ddd5b4cfda996a7a9fcea5b7ebd441120caeaddcb6cacb03",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/final/WORKOUT_FAMILY_MAPPING.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/final/WORKOUT_FAMILY_MAPPING.jsonl.gz",
+    "uncompressedSha256": "b1ddcd0b4de63273fb69fefe26f97c367eef84d1b1be83611bd08c175ba33933",
+    "compressedSha256": "732a8319c7493d798276e99a826ed2e305f7d645d696342e76b48eaab479ee0e",
+    "lossless": true
+  },
+  {
+    "originalPath": "docs/det-engine/v21a/evidence/final/REFERENCE_OCCURRENCES.jsonl",
+    "preservedAs": "docs/det-engine/v21a/evidence/final/REFERENCE_OCCURRENCES.jsonl.gz",
+    "uncompressedSha256": "afface00481c1215b184aa1fe4a702fb8fbf174819403bf483ed17cb0b97f04f",
+    "compressedSha256": "29c0251775ca271d23653428567a6a60f1d9e40e47726d91a65bc6f00b4d2333",
+    "lossless": true
+  }
+]

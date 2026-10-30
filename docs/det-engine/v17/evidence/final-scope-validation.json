@@ -1,0 +1,11 @@
+{
+  "typescriptExitCode": 0,
+  "selectionFinalTests": 8,
+  "nodeFinalContractTests": 27,
+  "scope": "explicit goal-variant pending state, optional reference presentation and rejection of unknown API versions; no default cohort output changed",
+  "logs": [
+    "types-final-scope.txt",
+    "selection-final-scope.txt",
+    "contracts-final-supplement.txt"
+  ]
+}

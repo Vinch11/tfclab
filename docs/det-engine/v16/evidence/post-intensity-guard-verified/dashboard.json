@@ -1,0 +1,173 @@
+{
+  "version": "det-v16-1",
+  "status": "DRAFT_NO_GO",
+  "coverage": {
+    "sourceRecords": 920,
+    "uniqueIds": 920,
+    "converted": 920,
+    "schemaPass": 920,
+    "losslessCoachRenders": 920,
+    "reconvertedIdentically": 920,
+    "automaticPrescriptionApproved": 0,
+    "deepScientificReviews": 0,
+    "sourceDefinitionsOutsideAggregation": [
+      {
+        "file": "src/lib/libraryDurationIndex.ts",
+        "inAggregation": false
+      },
+      {
+        "file": "src/lib/workoutCatalogBuilder.ts",
+        "inAggregation": false
+      }
+    ]
+  },
+  "audit": {
+    "total": 920,
+    "uniqueLegacyIds": 920,
+    "bySport": {
+      "bike": {
+        "total": 168,
+        "anomalies": {
+          "RECIPE_NOT_FULLY_EXECUTABLE": 168,
+          "PHYSIOLOGY_UNDOCUMENTED": 162,
+          "DOMAIN_UNRESOLVED": 162,
+          "PHASE_ENRICHMENT_DIVERGENCE": 15,
+          "NONCANONICAL_ZONE_LABEL": 2
+        },
+        "severity": {
+          "blocking_automatic_execution": 168,
+          "review_required": 341
+        }
+      },
+      "run": {
+        "total": 416,
+        "anomalies": {
+          "RECIPE_NOT_FULLY_EXECUTABLE": 416,
+          "PHASE_ENRICHMENT_DIVERGENCE": 92,
+          "PHYSIOLOGY_UNDOCUMENTED": 404,
+          "DOMAIN_UNRESOLVED": 404,
+          "TRAIL_EXPOSURE_INCOMPLETE": 168,
+          "BRICK_COMPONENTS_UNRESOLVED": 1,
+          "NONCANONICAL_ZONE_LABEL": 3
+        },
+        "severity": {
+          "blocking_automatic_execution": 417,
+          "review_required": 1071
+        }
+      },
+      "swim": {
+        "total": 119,
+        "anomalies": {
+          "RECIPE_NOT_FULLY_EXECUTABLE": 119,
+          "PHYSIOLOGY_UNDOCUMENTED": 115,
+          "DOMAIN_UNRESOLVED": 115,
+          "PHASE_ENRICHMENT_DIVERGENCE": 25,
+          "NONCANONICAL_ZONE_LABEL": 3
+        },
+        "severity": {
+          "blocking_automatic_execution": 119,
+          "review_required": 258
+        }
+      },
+      "brick": {
+        "total": 55,
+        "anomalies": {
+          "RECIPE_NOT_FULLY_EXECUTABLE": 55,
+          "PHYSIOLOGY_UNDOCUMENTED": 54,
+          "DOMAIN_UNRESOLVED": 55,
+          "BRICK_COMPONENTS_UNRESOLVED": 55,
+          "PHASE_ENRICHMENT_DIVERGENCE": 1
+        },
+        "severity": {
+          "blocking_automatic_execution": 110,
+          "review_required": 110
+        }
+      },
+      "strength": {
+        "total": 127,
+        "anomalies": {
+          "RECIPE_NOT_FULLY_EXECUTABLE": 127,
+          "PHYSIOLOGY_UNDOCUMENTED": 125,
+          "DOMAIN_UNRESOLVED": 127,
+          "TRAIL_EXPOSURE_INCOMPLETE": 61,
+          "PHASE_ENRICHMENT_DIVERGENCE": 6,
+          "NONCANONICAL_ZONE_LABEL": 18
+        },
+        "severity": {
+          "blocking_automatic_execution": 127,
+          "review_required": 337
+        }
+      },
+      "trail": {
+        "total": 3,
+        "anomalies": {
+          "RECIPE_NOT_FULLY_EXECUTABLE": 3,
+          "PHYSIOLOGY_UNDOCUMENTED": 3,
+          "DOMAIN_UNRESOLVED": 3,
+          "TRAIL_EXPOSURE_INCOMPLETE": 3
+        },
+        "severity": {
+          "blocking_automatic_execution": 3,
+          "review_required": 9
+        }
+      },
+      "mixed": {
+        "total": 32,
+        "anomalies": {
+          "RECIPE_NOT_FULLY_EXECUTABLE": 32,
+          "PHYSIOLOGY_UNDOCUMENTED": 32,
+          "DOMAIN_UNRESOLVED": 32,
+          "BRICK_COMPONENTS_UNRESOLVED": 7,
+          "MIXED_SPORT_SEMANTICS_UNRESOLVED": 25,
+          "NONCANONICAL_ZONE_LABEL": 7
+        },
+        "severity": {
+          "blocking_automatic_execution": 39,
+          "review_required": 96
+        }
+      }
+    },
+    "bySeverity": {
+      "blocking_automatic_execution": 983,
+      "review_required": 2222
+    },
+    "anomalyCounts": {
+      "RECIPE_NOT_FULLY_EXECUTABLE": 920,
+      "PHYSIOLOGY_UNDOCUMENTED": 895,
+      "DOMAIN_UNRESOLVED": 898,
+      "PHASE_ENRICHMENT_DIVERGENCE": 139,
+      "BRICK_COMPONENTS_UNRESOLVED": 63,
+      "TRAIL_EXPOSURE_INCOMPLETE": 232,
+      "MIXED_SPORT_SEMANTICS_UNRESOLVED": 25,
+      "NONCANONICAL_ZONE_LABEL": 33
+    },
+    "duplicates": [],
+    "convertedNotScientificallyValidated": 920,
+    "automaticPrescriptionApproved": 0,
+    "literalTimedPartRecords": 0,
+    "sourceFieldsUnchanged": true,
+    "checks": {
+      "durations": "whole_simple_parts_only_else_unknown",
+      "repetitions": "source_wbal_and_lexical_tokens_preserved_not_fully_resolved",
+      "domains": "explicit_intent_only_no_zone_inference",
+      "prerequisites": "structured_and_free_text_preserved_not_semantically_complete",
+      "duplicates": "ids_and_exact_content_excluding_id",
+      "objectivePhase": "declared_vs_enriched_preserved_historical_filters_separate",
+      "brick": "conservative_unresolved_no_inferred_leg_doses",
+      "trail": "dPlus_preserved_dMinus_and_individual_tolerance_unknown",
+      "science": "unverified_source_mentions_only",
+      "individualization": "required_refs_and_tolerance_unknown_not_imputed"
+    },
+    "scientificValidation": false
+  },
+  "nolio": {
+    "localV1TextFixturePass": 833,
+    "localV1StructuredFixturePass": 0,
+    "textScope": "explicit_text_only_mock_reservation_not_full_source_executability_or_individual_admissibility",
+    "v2": "refused_no_machine_schema_in_workspace_complex_workout_contract_unresolved",
+    "remoteCalls": 0,
+    "realWrites": 0
+  },
+  "newCalendars": 0,
+  "oldReferencesAltered": 0
+}

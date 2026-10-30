@@ -1,0 +1,10 @@
+{
+  "pass": true,
+  "allPreviousAndExecutedNodeSourcesUnchanged": true,
+  "oneExplicitCoachProgrammingPolicy": true,
+  "individualDoseApprovals": 0,
+  "individualExpertReviews": 0,
+  "requestedFocusedDossiers": 7,
+  "changedPathsAllCoachFloorScope": 61,
+  "verifierSourceSha256": "e6914a74a91cd872397efb1cd56ba40382eba3a4f735dedec78b5ea5103fe936"
+}

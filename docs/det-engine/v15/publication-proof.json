@@ -1,0 +1,21 @@
+{
+  "version": "det-v15-1",
+  "sourceCommit": "1bf745ff3dcd61891446e62446b8a90ac7d6238d",
+  "pr": {
+    "headRefName": "experiment/det-engine",
+    "headRefOid": "1bf745ff3dcd61891446e62446b8a90ac7d6238d",
+    "isDraft": true,
+    "mergedAt": null,
+    "state": "OPEN",
+    "title": "DET-ENGINE AUTONOMOUS V15 \u2014 dossier coach et maturit\u00e9 de prescription, NO-GO",
+    "url": "https://github.com/Vinch11/tfclab/pull/420"
+  },
+  "verifiedAtEpoch": 1793209890.254602,
+  "published": true,
+  "draft": true,
+  "recommendation": "NO-GO",
+  "checkpointMeaning": "remote source/evidence commit observed; subsequent closure commit changes V15 documentation only",
+  "actualHumanExpertReview": false,
+  "sourceCalendarsRegenerated": 0,
+  "originalConditionsResolved": 0
+}

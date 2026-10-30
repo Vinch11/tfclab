@@ -1,0 +1,18 @@
+{
+  "v2": {
+    "allEntriesVerified": true,
+    "manifestSha256": "6d26774239072d07742433221af97f75ac0c2c62fab6f3be4b0fcd127701dd48"
+  },
+  "v3": {
+    "allEntriesVerified": true,
+    "manifestSha256": "845729d03e5481f5d8a50dec6e829461af38765f78f0ec35d1bcc62ae2179180"
+  },
+  "v4": {
+    "allEntriesVerified": true,
+    "manifestSha256": "01b80c01bf4b5ce1704a087c61a59960ef086b18532f429b8a6f9c1872989903"
+  },
+  "v5": {
+    "allEntriesVerified": true,
+    "manifestSha256": "7dcfdc08d774b5b1d0445b8df0cc0263df428ddedc1fda354285f31d594de57c"
+  }
+}

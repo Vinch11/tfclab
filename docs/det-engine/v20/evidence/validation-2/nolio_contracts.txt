@@ -1,0 +1,14 @@
+✔ all four demonstrated pace-target losses are repaired from exact frozen source bounds (4.608541ms)
+✔ actual four-by-fifteen aero recipe retains its repetition tree and recoveries without a fabricated dose (1.690974ms)
+✔ changed source fingerprint, unresolved targets and real output requests refuse (0.47709ms)
+✔ a structural change by a normalizer is refused, not repaired by hiding it (0.468337ms)
+✔ no positive pace floor is invented and repeated normalization preserves the output payload (1.048173ms)
+✔ missing numeric target bounds and fractional seconds remain explicit refusals (0.405212ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16.071645

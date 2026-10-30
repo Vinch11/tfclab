@@ -1,0 +1,23 @@
+{
+  "experimental/det-engine/v14-calendar.ts": "c0655b86c5adf00a3cb27a00714da686df630bbfe0e42dfdac221253df131b23",
+  "experimental/det-engine/v14-contract.ts": "f0e7c926ed8266f9a49b624a66d5866ed161b7eacae394a158613cbce05fe066",
+  "experimental/det-engine/v14-guards.test.ts": "31fc085e8f00c666b7b4eb4b5b01ae38148674e8f38bc21bf9cd26a51368cab8",
+  "experimental/det-engine/v14-inspect.test.ts": "e0c4995dd845e766fee931afd071f5d030516894957a04477e3fd58e58b70ab6",
+  "experimental/det-engine/v14-profiles.ts": "4cbc639cefe4703f712a42298685f79fb54e1c0565c89abe3fdb5706c9fd8def",
+  "experimental/det-engine/v14-reassessment.test.ts": "2460446b2e426e593be9c4b9095e235284ee3a8fa88e07b1c0cf03c564101973",
+  "experimental/det-engine/v14-relative-context.ts": "f8356e006a9fc72abdbdd66dd230a55ad24db5bdebdf011653713ff5b5bed2d5",
+  "experimental/det-engine/v14-science.ts": "fd637226901cfe0b786377d64f961b607c670e10f26d7e266a3861f8566eefd1",
+  "experimental/det-engine/v14-simulation.ts": "ce5735fa9c8b2f3bbbb769c9c055217d44ddd1548b87d13a4d1419980defc2c9",
+  "experimental/det-engine/v14-source-inspect.test.ts": "4a5f027dc4b3306a736951dfbf52a24a04ed634da5cb5236852848318090834c",
+  "experimental/det-engine/v14-sources.ts": "2bba5afa26f688bdae1eebfd3797bd6810f9b6698fc96fdd48df847467402952",
+  "experimental/det-engine/v14-state.ts": "1482d1998ad16e82b22c320e800f1c360384cc81633a955780d1cb1581ff9139",
+  "experimental/det-engine/v14-study.test.ts": "73d9def7363d0879bf6d0ad56edc02db6801063b3bbe4cfe56c45c5896dcb0ae",
+  "experimental/det-engine/v14-study.ts": "5214837d31dc391ef97e46d77ccce45c5d67cec77ddf490f2258fd17d1d9003a",
+  "experimental/det-engine/v14-validation.ts": "92c441a5092f795a8ff338aaf47ea35bcad5916cc6a0bc67cffb4b640914e596",
+  "scripts/det-engine/v14-evidence.mjs": "f9aa4538ce83897e20ff79bccc98ebf107849b2f7828c7fa04fa13876f7e4d7a",
+  "scripts/det-engine/v14-final-delta.mjs": "d4b5dfe972f21b45f5e6066b5a6fe1771bd46ee6ebb3c7c5bcba7041308b6302",
+  "scripts/det-engine/v14-reassessment-validation.mjs": "8e4c36da51f2a3591ebdffec8fa75f9b008d2c295b4b43c85e774671e8c58da3",
+  "scripts/det-engine/v14-report.py": "64fbc1c223cbc482ac9c2e7c8449613e5eb16c6eea244dc1328c87385c389802",
+  "scripts/det-engine/v14-run.mjs": "f3ebfd7581814d89525ff3cd96137da47b3fbd8679a968e8fb6345d9683f631b",
+  "scripts/det-engine/v14-validate.mjs": "854fd6e9523a19e337a27cf3aeb57a0fc783389b50f18b6a5837d220a3319dfe"
+}

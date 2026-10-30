@@ -1,0 +1,12 @@
+{
+  "verifiedAt": "2026-10-29T19:52:28.094112+00:00",
+  "implementationCommit": "141fe2d6206dc9d869de97ec91a1395701ba17a1",
+  "pr420Draft": true,
+  "pr420Merged": false,
+  "prBodySha256": "6a5ae39b3116db8d181f664d045cd8bcccfd01cf04b48f0826aee3451531d063",
+  "releaseFilesVerified": 207,
+  "unitsClosed": 10,
+  "closedNoGo": true,
+  "noAutomaticRestart": true,
+  "closureCommit": "discover from git log; no circular self-hash"
+}

@@ -1,0 +1,20 @@
+import fs from 'node:fs';import zlib from 'node:zlib';import {it,expect,vi} from 'vitest';
+import {loadV29Data,scenarioV29} from './v29-test-data';import {resolveParametricV28,reviewParametricBlockV28} from './v28-execution';
+import {bridgeExactTimeV29,validateBridgeBlockV29} from './v29-bridge';import {prepareExactNolioLocalV29} from './v29-nolio';
+import {buildV26Prescription} from './v26-prescription';import {digest} from './v9-prospective';
+it('replays eleven unchanged V28 scenarios, witnesses the two floating defects and transports only in a separate integer-seconds representation',()=>{
+ vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date('2026-10-29T12:00:00Z'));vi.spyOn(console,'log').mockImplementation(()=>{});vi.spyOn(console,'warn').mockImplementation(()=>{});vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN');});
+ try{const d=loadV29Data(),out=process.env.TFCL_DET_V29_OUT;
+  const originals=d.prepared.slice(0,3).map((v:any,i:number)=>{const r=buildV26Prescription(v,d.a,d.canonical,d.knowledge,d.spec.clock).retained;expect(r).toEqual(d.registry.originals[i].result);return{caseId:v.caseId,inputHash:digest(v.input),retainedHash:digest(r),rawHistorical:r.rawValidation.historical,refusals:r.decisions.filter((x:any)=>x.state==='not_admissible').map((x:any)=>({slotKey:x.slotKey,sourceId:x.sourceId,sport:x.sport,state:x.state,hardFailures:x.hardFailures})),calendarPreserved:true};});
+  const scenarios=d.registry.scenarioIds.map((id:string)=>{const s=scenarioV29(d,id),execution=resolveParametricV28(s.f,s.context,s.parameters,s.availableMinutes,s.options);expect(execution).toEqual(s.row.result);const old=reviewParametricBlockV28(d.registry.originals[1].result,s.f.v,s.f.slot.key,execution);expect(old).toEqual(s.row.wholeBlockReview);
+   const bridge=bridgeExactTimeV29(s.f,execution,s.request,d.registry),block=validateBridgeBlockV29(d.registry.originals[1].result,s.f.v,bridge),nolio=prepareExactNolioLocalV29(s.f,bridge,block);
+   const targetWeek=old.trialCalendar.weeks[0],stored=old.trialCalendar.calendar.weeks[0],activeSum=stored.sessions.filter((x:any)=>!x.isRest).reduce((n:number,x:any)=>n+x.durationMin,0);
+   const floatingWitness=old.scope.executedBlockErrors.some((e:any)=>e.code==='four_week_budget_arithmetic')?{legacyActiveMinuteSum:activeSum,legacyStoredMinuteSum:targetWeek.reservedMinutes,strictEquality:activeSum===targetWeek.reservedMinutes,rawError:old.scope.executedBlockErrors.filter((e:any)=>e.code==='four_week_budget_arithmetic')}:null;
+   return{scenarioId:id,sourceId:s.row.sourceId,request:s.request,v28Source:{artifact:d.registration.sourceArtifacts.scenarios,rowHash:digest(s.row),technicallyComplete:execution.technically_complete_in_scenario,seconds:execution.seconds,availableMinutes:s.availableMinutes,wholeBlockAccepted:old.acceptedAsSeparateTechnicalScenario},floatingWitness,bridge,block,nolio};
+  });
+  expect(scenarios.filter((s:any)=>s.floatingWitness)).toHaveLength(2);expect(scenarios.filter((s:any)=>s.bridge.knownSourceTimeline)).toHaveLength(7);expect(scenarios.filter((s:any)=>s.block.noNewComplementaryDefect)).toHaveLength(5);
+  expect(originals[0].refusals.filter((x:any)=>x.sport==='run')).toHaveLength(7);expect(originals[2].refusals).toHaveLength(26);expect(d.registry.phases.filter((p:any)=>p.A.compatible===false)).toHaveLength(4);
+  const schedules=d.registration.clockTests.map((t:any)=>{const s=scenarioV29(d,t.scenarioId),bridge=bridgeExactTimeV29(s.f,s.row.result,{...s.request,windows:t.windows},d.registry);return{input:t,result:bridge.documentedSchedule,block:validateBridgeBlockV29(d.registry.originals[1].result,s.f.v,bridge)};});
+  if(out){if(!out.startsWith('docs/det-engine/v29/evidence/')||fs.existsSync(out))throw Error('V29_FRESH_OUTPUT_REQUIRED');fs.mkdirSync(out,{recursive:true});for(const[name,data]of Object.entries({registration:d.registration,originals,scenarios,schedules}))fs.writeFileSync(out+'/'+name+'.json.gz',zlib.gzipSync(JSON.stringify(data,null,2)));}
+ }finally{vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();}
+});

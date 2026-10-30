@@ -1,0 +1,92 @@
+{
+  "version": "v16-final-validation",
+  "commands": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "elapsedMs": 41963
+    },
+    {
+      "name": "canonical_contracts",
+      "args": [
+        "scripts/det-engine/v16-contracts.test.mjs"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "elapsedMs": 5417
+    },
+    {
+      "name": "experimental_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v16-regression.config.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "elapsedMs": 52145
+    },
+    {
+      "name": "current_v16_study",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v16.config.ts"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "elapsedMs": 23701
+    },
+    {
+      "name": "historical_regression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v16-historical.config.ts"
+      ],
+      "exitCode": 0,
+      "error": null,
+      "elapsedMs": 23969
+    }
+  ],
+  "nodeContractTests": 27,
+  "v16StudyTests": 9,
+  "previousExperimentalGuards": {
+    "passed": 30,
+    "skippedPreexistingArchiveGates": 3,
+    "files": 8
+  },
+  "targetedHistoricalTests": {
+    "passed": 186,
+    "files": 31
+  },
+  "sourceRecords": 920,
+  "uniqueIds": 920,
+  "selectionContexts": 192,
+  "filterComparisons": 5520,
+  "independentJsonSchema": {
+    "records": 920,
+    "valid": 920,
+    "errors": 0
+  },
+  "protectedFiles": 3057,
+  "allProtectedUnchanged": true,
+  "fullHistoricalApplicationSuiteReplayed": false,
+  "historical600ConfigurationsAltered": false,
+  "scientificValidation": false,
+  "expertReviewed": false,
+  "initialNodeContractPass": 26,
+  "sourceIntensityGuardSupplement": "evidence/intensity-guard-validation.json",
+  "postGuardWholeLibraryReplay": "evidence/post-intensity-guard-verification.json"
+}

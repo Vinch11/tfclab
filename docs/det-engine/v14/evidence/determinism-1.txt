@@ -1,0 +1,21 @@
+node:fs:622
+  return binding.open(
+                 ^
+
+Error: ENOENT: no such file or directory, open 'docs/det-engine/v14/evidence/final/study.json.gz'
+    at Object.openSync (node:fs:622:18)
+    at readFileSync (node:fs:488:35)
+    at hash (file:///workspace/tfclab/scripts/det-engine/v14-evidence.mjs:7:43)
+    at file:///workspace/tfclab/scripts/det-engine/v14-evidence.mjs:7:120
+    at Array.map (<anonymous>)
+    at file:///workspace/tfclab/scripts/det-engine/v14-evidence.mjs:7:97
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'docs/det-engine/v14/evidence/final/study.json.gz'
+}
+
+Node.js v24.19.0

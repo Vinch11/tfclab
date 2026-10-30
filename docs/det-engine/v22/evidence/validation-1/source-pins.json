@@ -1,0 +1,21 @@
+{
+  "experimental/det-engine/v22-baseline.test.ts": "d57cdc5f3c871e5d232431a687f05e3024f48e3c02cd206450c7b567c8f44d53",
+  "experimental/det-engine/v22-contracts.test.ts": "2c84e82cdc061c4c7d7434ad9d41e4615d7ccdd390d3a98303ff8f27259b0336",
+  "experimental/det-engine/v22-development.test.ts": "42a6a3bbec6a23183c01e3845aecf57961ee8aa28cc8bad1b54e5eef6967b411",
+  "experimental/det-engine/v22-evidence.ts": "834e3ef7e0c26d70b4ebeda41da095cdcdab3c07c41873d61450f98abd70b6ad",
+  "experimental/det-engine/v22-intensity.ts": "4fcf709001c08aa64d9e6a39b7eaa41144bdb935bc1c02f61c1fdee724205c2d",
+  "experimental/det-engine/v22-intents.ts": "24ee8f03c1ff15ceafdaba4bc6b85baa8ed1b9e77505e24fa476d419aba2089e",
+  "experimental/det-engine/v22-prescription.ts": "a79738dd25edeae1f3221afd70b050beccd5030e136ec8a296bf99b37a913af7",
+  "experimental/det-engine/v22-profiles.ts": "724469f6fc3416cb9422b1c6c8af2d5bf92179eb4703d6d9b04c6bdf203c5948",
+  "experimental/det-engine/v22-prospective.test.ts": "fb9e30a803cb90b4c9e8135584939be5b3fd24f2d81b5abfc59a093b2608c123",
+  "experimental/det-engine/v22-reassessment.ts": "19b2163d2b5745be35842eb86809a8774171d507328cb99a94eb8490de530504",
+  "experimental/det-engine/vitest.v22-regression.config.ts": "757cd623b9b418ac3f6d0059d81dab37fc843585924b0200be7b9193cab77fa8",
+  "experimental/det-engine/vitest.v22.config.ts": "f54f9879660c4206ef4bc3f4f8fcf2b75ac57bedbc981e306e6c7e5f5a055a1a",
+  "scripts/det-engine/v22-run.mjs": "72436dbff505f2478ed25117a7fa2adfa190947faa130df6c76588280d3df28f",
+  "scripts/det-engine/v22-session.py": "9afeb43c1ba0e2001c2cf927ac04a49dcf848d98ec498d3cd0368b02a586b446",
+  "experimental/det-engine/v10-profiles.ts": "2b1d7bd582743e84f738e438f42ed75df3654560867bf873f5213af68191e081",
+  "experimental/det-engine/v10-allocation.ts": "b6a78f0e09e6ea88e18bdd5df957921bd5d454764be65e939060a1d315ff12bf",
+  "experimental/det-engine/v14-calendar.ts": "656c1c11b6f3ed39fd46c11b886c9a1d0d35619d47bd4366d4886208bf052aa9",
+  "docs/det-engine/v22/inputs.json": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97",
+  "docs/det-engine/v22/feedback-inputs.json": "2c2ec035bc7feb8425ad9df88157043b28b2cc63766069444c1718dab290eb06"
+}

@@ -1,0 +1,27 @@
+{
+  "records": 920,
+  "conversionAnomalies": {
+    "RECIPE_NOT_FULLY_EXECUTABLE": 920,
+    "PHYSIOLOGY_UNDOCUMENTED": 895,
+    "DOMAIN_UNRESOLVED": 898,
+    "PHASE_ENRICHMENT_DIVERGENCE": 139,
+    "BRICK_COMPONENTS_UNRESOLVED": 63,
+    "TRAIL_EXPOSURE_INCOMPLETE": 232,
+    "MIXED_SPORT_SEMANTICS_UNRESOLVED": 25,
+    "NONCANONICAL_ZONE_LABEL": 33
+  },
+  "sourceTemporalStatus": {
+    "advertised_range_partly_outside_demonstrated_recipe": 69,
+    "complete_literal_temporal_bounds_compatible": 7,
+    "temporal_coverage_unknown": 779,
+    "partial_timing_bounds_only": 57,
+    "unattributed_advertised_session_time": 7,
+    "mandatory_components_conflict_with_advertised_total": 1
+  },
+  "provenFatalTemporalConflicts": 1,
+  "fatalSourceIds": [
+    "C_BRICK_TRANSITION_DRILL"
+  ],
+  "deepScientificValidation": false,
+  "unknownGrammarIsNotInvalidPrescription": true
+}

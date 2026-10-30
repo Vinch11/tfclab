@@ -1,0 +1,52 @@
+{
+  "version": "det-v14-1",
+  "runs": [
+    {
+      "name": "final",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v14-study.test.ts",
+        "--maxWorkers=1",
+        "--testTimeout=60000"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "replay",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v14-study.test.ts",
+        "--maxWorkers=1",
+        "--testTimeout=60000"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "comparison": [
+    {
+      "file": "study.json.gz",
+      "first": "b28ca9a87d34cb8c4bc14908c7515cb8f47f2c752cf23b0a1f7b1a19a3eb21ea",
+      "replay": "b28ca9a87d34cb8c4bc14908c7515cb8f47f2c752cf23b0a1f7b1a19a3eb21ea"
+    },
+    {
+      "file": "calendars.json.gz",
+      "first": "69e9f09cdcb1c83a9c524323b01ec6efa22f65140cae66a4ececf0d7bd6ad706",
+      "replay": "69e9f09cdcb1c83a9c524323b01ec6efa22f65140cae66a4ececf0d7bd6ad706"
+    },
+    {
+      "file": "summary.json",
+      "first": "53788a8a01e7b23155d715cfea3be244d18b83e9efc826f628cb44bbcd17568c",
+      "replay": "53788a8a01e7b23155d715cfea3be244d18b83e9efc826f628cb44bbcd17568c"
+    }
+  ],
+  "identical": true,
+  "preregistrationUnchanged": true,
+  "clock": "2026-10-26T12:00:00Z",
+  "independentProcesses": true
+}

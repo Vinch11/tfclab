@@ -1,0 +1,443 @@
+{
+  "version": "v16-static-lineage-1",
+  "scope": "static callsite evidence plus separate synthetic runtime study; no user data read",
+  "sources": [
+    {
+      "file": "src/pages/AITrainingPlanPage.tsx",
+      "sha256": "aede6bbf2f757233eb631398dfa5706abbd3f61123d5a11471e8e9d636ef9b3e",
+      "matches": [
+        {
+          "term": "buildDiagnosticForAthlete",
+          "lines": [
+            1117,
+            1267,
+            1278,
+            3365,
+            3367
+          ]
+        },
+        {
+          "term": "getEffectiveRefs(athlete",
+          "lines": [
+            1120,
+            1273
+          ]
+        },
+        {
+          "term": "athleteTests.map",
+          "lines": [
+            1164
+          ]
+        },
+        {
+          "term": "tteObservedMin:",
+          "lines": [
+            1226
+          ]
+        },
+        {
+          "term": "checkinData:",
+          "lines": [
+            1250
+          ]
+        },
+        {
+          "term": "return computeDiagnostic",
+          "lines": [
+            1262
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/lib/effectiveRefs.ts",
+      "sha256": "66b2eedd7c485a6d2f6b6af25da1b6cb4bcb89e1edd403161a034e4a524a9bcc",
+      "matches": [
+        {
+          "term": "getEffectiveSnapshot",
+          "lines": [
+            35,
+            75
+          ]
+        },
+        {
+          "term": "getEffectiveRefs",
+          "lines": [
+            71
+          ]
+        },
+        {
+          "term": "snapshotUsed",
+          "lines": [
+            29,
+            132
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/lib/vlamaxEffectif.ts",
+      "sha256": "7389d4caadc4d87ab36ad7cdcfc6483718fa93ed6f54304a43066ee34972dce0",
+      "matches": [
+        {
+          "term": "const athleteTestsAll",
+          "lines": [
+            335
+          ]
+        },
+        {
+          "term": "computeVLamaxEffectif",
+          "lines": [
+            248
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/engines/diagnostic/computeDiagnostic.ts",
+      "sha256": "40340ceef5134c6ee3f479f006be0ead3435a89e3686ef3b9d5b38a6a74ba716",
+      "matches": [
+        {
+          "term": "computeDiagnostic",
+          "lines": [
+            5,
+            19,
+            83
+          ]
+        },
+        {
+          "term": "computeTTEEffectif",
+          "lines": [
+            34,
+            245
+          ]
+        },
+        {
+          "term": "fatigueStateToScore",
+          "lines": [
+            70,
+            265
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/engines/plan/prepareTrainingPlanContext.ts",
+      "sha256": "0f915d388b0e3c940c699eab9348bb5bbfc1a2eaa5218809b4d1d21cbf478aa9",
+      "matches": [
+        {
+          "term": "computeDecision",
+          "lines": [
+            3,
+            222
+          ]
+        },
+        {
+          "term": "buildPlanConfigFromDiagnostic",
+          "lines": [
+            5,
+            223
+          ]
+        },
+        {
+          "term": "prescriptionIntent:",
+          "lines": [
+            58,
+            207
+          ]
+        },
+        {
+          "term": "physiologicalTrace = trace",
+          "lines": [
+            261
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/engines/plan/planConfigBuilder.ts",
+      "sha256": "4241ed91bb72fdef5ed84758396e7380477871e38ff714acaf3a99131f8d1682",
+      "matches": [
+        {
+          "term": "identifiedLimitersRaw:",
+          "lines": [
+            394
+          ]
+        },
+        {
+          "term": "trainingLevel:",
+          "lines": [
+            165,
+            354,
+            388,
+            585
+          ]
+        },
+        {
+          "term": "loadHistory:",
+          "lines": [
+            409
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/lib/workoutCatalogBuilder.ts",
+      "sha256": "3859ef2e1956db310ef67ae1f8857754e75f100166317632057f34fe4d27c91c",
+      "matches": [
+        {
+          "term": "LIMITER_SESSION_PATTERNS",
+          "lines": [
+            13,
+            501
+          ]
+        },
+        {
+          "term": "buildWorkoutCatalog",
+          "lines": [
+            26,
+            144,
+            579,
+            835,
+            1125,
+            1183,
+            1602
+          ]
+        },
+        {
+          "term": "scoreWorkout",
+          "lines": [
+            26,
+            340,
+            625,
+            755,
+            791,
+            1119,
+            1517,
+            1577
+          ]
+        }
+      ]
+    },
+    {
+      "file": "experimental/det-engine/v10-fixtures.ts",
+      "sha256": "b6a3475572b2be48bbaeee22953a6444fdfe8491be9af6fd42a37ee48eeba479",
+      "matches": [
+        {
+          "term": "V10_FIXTURE_SPEC",
+          "lines": [
+            2
+          ]
+        },
+        {
+          "term": "focusSport",
+          "lines": [
+            2
+          ]
+        },
+        {
+          "term": "normalCaps",
+          "lines": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "file": "experimental/det-engine/v10-allocation.ts",
+      "sha256": "2f032781f4db2c088101581b79b60f85e5945659cb1b09871253e85eb2b8f208",
+      "matches": [
+        {
+          "term": "priorityIntent",
+          "lines": [
+            6,
+            8,
+            21
+          ]
+        },
+        {
+          "term": "p.focusSport",
+          "lines": [
+            6
+          ]
+        },
+        {
+          "term": "priority:",
+          "lines": [
+            5,
+            6,
+            21
+          ]
+        },
+        {
+          "term": "water filling",
+          "lines": [
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "file": "experimental/det-engine/v14-state.ts",
+      "sha256": "1482d1998ad16e82b22c320e800f1c360384cc81633a955780d1cb1581ff9139",
+      "matches": [
+        {
+          "term": "currently_admissible",
+          "lines": [
+            1,
+            12,
+            30
+          ]
+        },
+        {
+          "term": "conditional_pending_reassessment",
+          "lines": [
+            1,
+            12,
+            30
+          ]
+        },
+        {
+          "term": "not_admissible",
+          "lines": [
+            1,
+            12,
+            30
+          ]
+        }
+      ]
+    },
+    {
+      "file": "experimental/det-engine/v14-simulation.ts",
+      "sha256": "ce5735fa9c8b2f3bbbb769c9c055217d44ddd1548b87d13a4d1419980defc2c9",
+      "matches": [
+        {
+          "term": "synthetic",
+          "lines": [
+            8,
+            11
+          ]
+        },
+        {
+          "term": "reassess",
+          "lines": [
+            10,
+            11
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/types/snapshot.ts",
+      "sha256": "6f7c283c90e5d176d3b49301a3d4c891129b53021fe28a96994406f60d6c56e8",
+      "matches": [
+        {
+          "term": "coach_notes?",
+          "lines": [
+            31
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/engines/diagnostic/types.ts",
+      "sha256": "f129287dc95188efbe832bc45684b96d9a51c94209e7ad123b3cafbbb2d197dd",
+      "matches": [
+        {
+          "term": "fatigueState:",
+          "lines": [
+            83
+          ]
+        },
+        {
+          "term": "checkinData?",
+          "lines": [
+            114
+          ]
+        },
+        {
+          "term": "interface CheckinData",
+          "lines": [
+            134
+          ]
+        }
+      ]
+    },
+    {
+      "file": "src/lib/fatigueEffectif.ts",
+      "sha256": "632363f758e78497bb07e0ecd53c1a8c47752257f5a8eec02f44ef71ddb64bb2",
+      "matches": [
+        {
+          "term": "Durabilit\u00e9 / TTE",
+          "lines": [
+            66,
+            276,
+            481
+          ]
+        },
+        {
+          "term": "fatiguePercue?",
+          "lines": [
+            197
+          ]
+        }
+      ]
+    },
+    {
+      "file": "docs/det-engine/v8/SCIENTIFIC_EVIDENCE_MATRIX.md",
+      "sha256": "d5fb5fb46c2be22f7a4f2237cf6a7b605d6edf3d73da32d702d2559f6eb8afd5",
+      "matches": [
+        {
+          "term": "M21",
+          "lines": [
+            18,
+            21,
+            28,
+            31,
+            69
+          ]
+        },
+        {
+          "term": "L175",
+          "lines": [
+            14,
+            15,
+            19,
+            20,
+            21,
+            22,
+            24,
+            31,
+            87
+          ]
+        },
+        {
+          "term": "L417",
+          "lines": [
+            19,
+            23,
+            25,
+            32,
+            93
+          ]
+        }
+      ]
+    }
+  ],
+  "qualitativeFatigueResistance": {
+    "dedicatedFieldTransmittedToDetEngineFound": false,
+    "auditedContracts": [
+      "Athlete",
+      "Snapshot",
+      "DiagnosticInput",
+      "PlanFormConfig",
+      "V10 fixtures",
+      "V14 profile/state"
+    ],
+    "freeCoachNotesExist": true,
+    "notesAutomaticallyProveDurability": false,
+    "fatigueStateIsResistanceCapacity": false,
+    "trainingLevelIsObservedAssimilation": false
+  },
+  "fullAutomaticCausalDoseChainDemonstrated": false
+}

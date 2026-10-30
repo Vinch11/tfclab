@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/workspace/tfclab/scripts/det-engine/v29-text-guard.py", line 7, in <module>
+    assert 'charge : poids du corps'in p['description'],('DECLARED_BODYWEIGHT_LOAD_MISSING_FROM_TEXT',row['scenarioId'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('DECLARED_BODYWEIGHT_LOAD_MISSING_FROM_TEXT', 'strength_between_explicit')

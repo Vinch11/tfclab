@@ -1,0 +1,13 @@
+{
+  "version": "det-v7",
+  "baselineCommit": "3763cb1f10203a3a93cab1aaadc6fa8a76d87ef4",
+  "sourceCommit": "ef4c03f7",
+  "finalComparison": "evidence/comparison-complete",
+  "finalRegistry": "evidence/registry-complete",
+  "finalReviews": "evidence/reviews-complete",
+  "historicalRulesModified": false,
+  "realAthleteData": false,
+  "paidCalls": false,
+  "productionIntegration": false,
+  "expertReviewPerformed": false
+}

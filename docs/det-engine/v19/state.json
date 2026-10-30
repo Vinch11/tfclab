@@ -1,0 +1,54 @@
+{
+  "version": "v19-night-mission-1",
+  "baseline": "b735116a6df87765bf02d5d5c34b1a5c28a845c1",
+  "branch": "experiment/det-engine",
+  "PR": 420,
+  "status": "completed_no_go",
+  "startedAt": "2026-10-28T23:04:37Z",
+  "hardDeadline": "2026-10-29T01:04:37Z",
+  "maxTotalSeconds": 7200,
+  "maxCycles": 2,
+  "maxCycleSeconds": 3600,
+  "currentCycle": 2,
+  "cycles": [
+    {
+      "cycle": 1,
+      "state": "cycle-1/state.json",
+      "startedAt": "2026-10-28T23:04:37Z",
+      "deadline": "2026-10-29T00:04:37Z",
+      "finishedAt": "2026-10-28T23:55:07.498Z",
+      "status": "completed_no_go",
+      "checkpointCommit": "0fced83ac8840680e47a6f3e65529c2f5bd8d229"
+    },
+    {
+      "cycle": 2,
+      "state": "cycle-2/state.json",
+      "startedAt": "2026-10-28T23:55:36.478Z",
+      "deadline": "2026-10-29T00:55:36.478Z",
+      "finishedAt": "2026-10-29T00:47:13.797Z",
+      "status": "completed_no_go"
+    }
+  ],
+  "resources": {
+    "nodeMemoryMb": 2048,
+    "maxProcessSeconds": 180,
+    "maxLogBytes": 25165824,
+    "testWorkers": 1,
+    "paidExternalCalls": 0
+  },
+  "quotaObservation": {
+    "exposedCounterAvailable": false,
+    "search": "enabled tool names/descriptions inspected; no actual credit/quota reporting tool exposed",
+    "exactCreditsNotClaimed": true
+  },
+  "automaticRestart": false,
+  "budgetAutoRenewal": false,
+  "active": null,
+  "technicalFinishedAt": "2026-10-29T00:47:13.797Z",
+  "registryFinalizedAt": "2026-10-29T00:48:13.609381+00:00",
+  "totalCycleSeconds": 6127,
+  "elapsedWallSecondsAtRegistryFinalization": 6216,
+  "stopReason": "two_completed_bounded_cycles_and_prescription_review_boundaries; no third cycle or budget renewal",
+  "codeCheckpointCommit": "f8557589f82ee22931772c113f728ac948f25ddd",
+  "recommendation": "NO-GO"
+}

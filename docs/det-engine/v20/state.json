@@ -1,0 +1,139 @@
+{
+  "version": "det-v20-bounded-1",
+  "baseline": "596bb96407ee381db73316fb3cb6efe6007508e9",
+  "branch": "experiment/det-engine",
+  "PR": 420,
+  "status": "completed_no_go",
+  "startedAt": "2026-10-29T06:03:25+00:00",
+  "hardDeadline": "2026-10-29T07:03:25+00:00",
+  "maxSeconds": 3600,
+  "maxUnits": 10,
+  "units": [
+    {
+      "unit": 1,
+      "name": "baseline_integrity_preregistered_inputs",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:03:25+00:00",
+      "evidence": [
+        "docs/det-engine/v20/inputs.json",
+        "docs/det-engine/v20/baseline-files.json"
+      ],
+      "finishedAt": "2026-10-29T06:08:30.837Z"
+    },
+    {
+      "unit": 2,
+      "name": "classification_418_proposals",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:08:31.119Z",
+      "evidence": [
+        "docs/det-engine/v20/evidence/review-1/summary.json"
+      ],
+      "finishedAt": "2026-10-29T06:11:38.462Z"
+    },
+    {
+      "unit": 3,
+      "name": "scientific_review_96_candidates_51_ids",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:11:38.746Z",
+      "evidence": [
+        "docs/det-engine/v20/evidence/review-1/scientific-review.jsonl.gz",
+        "docs/det-engine/v20/SCIENTIFIC_REVIEW_SCOPE.md"
+      ],
+      "finishedAt": "2026-10-29T06:11:39.563Z"
+    },
+    {
+      "unit": 4,
+      "name": "experimental_nolio_target_integrity",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:11:39.843Z",
+      "evidence": [
+        "docs/det-engine/v20/evidence/nolio-1/summary.json"
+      ],
+      "finishedAt": "2026-10-29T06:14:17.234Z"
+    },
+    {
+      "unit": 5,
+      "name": "preregistered_physiological_prescription_comparison",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:14:17.529Z",
+      "evidence": [
+        "docs/det-engine/v20/evidence/physiology-2/results.json",
+        "docs/det-engine/v20/evidence/physiology-2/registered-inputs.json"
+      ],
+      "finishedAt": "2026-10-29T06:19:29.505Z"
+    },
+    {
+      "unit": 6,
+      "name": "ironman_candidate_feasibility_and_complete_plan_controls",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:19:29.783Z",
+      "evidence": [
+        "docs/det-engine/v20/evidence/ironman-1/results.json"
+      ],
+      "finishedAt": "2026-10-29T06:23:46.885Z"
+    },
+    {
+      "unit": 7,
+      "name": "independent_validation_and_deterministic_replay",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:23:47.176Z",
+      "evidence": [
+        "docs/det-engine/v20/evidence/validation-1/independent.json",
+        "docs/det-engine/v20/evidence/validation-1/reproducibility.json"
+      ],
+      "finishedAt": "2026-10-29T06:30:48.073Z"
+    },
+    {
+      "unit": 8,
+      "name": "targeted_multiobjective_non_regression",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:30:48.357Z",
+      "evidence": [
+        "docs/det-engine/v20/evidence/regression-commands.json"
+      ],
+      "finishedAt": "2026-10-29T06:33:36.041Z"
+    },
+    {
+      "unit": 9,
+      "name": "coach_dossiers_and_scientific_decision_register",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:33:36.319Z",
+      "evidence": [
+        "docs/det-engine/v20/evidence/final-review-integrity.json",
+        "docs/det-engine/v20/evidence/coach-commands.json",
+        "docs/det-engine/v20/coach-review.html"
+      ],
+      "finishedAt": "2026-10-29T06:50:12.577Z"
+    },
+    {
+      "unit": 10,
+      "name": "closure_preservation_commit_and_draft_pr",
+      "status": "completed",
+      "startedAt": "2026-10-29T06:50:12.856Z",
+      "evidence": [
+        "docs/det-engine/v20/acceptance.json",
+        "docs/det-engine/v20/source-checksums.json"
+      ],
+      "finishedAt": "2026-10-29T06:56:10.526Z"
+    }
+  ],
+  "active": null,
+  "maxNodeMemoryMb": 2048,
+  "maxProcessMs": 180000,
+  "maxLogBytes": 16777216,
+  "workers": 1,
+  "automaticRestart": false,
+  "budgetRenewal": false,
+  "quotaCounterExposed": false,
+  "validationAttempts": 2,
+  "validation": {
+    "status": "passed",
+    "evidence": "docs/det-engine/v20/evidence/validation-2",
+    "finishedAt": "2026-10-29T06:44:57.645Z"
+  },
+  "technicalFinishedAt": "2026-10-29T06:56:10.799612+00:00",
+  "elapsedTechnicalSeconds": 3165,
+  "stopReason": "ten_bounded_units_completed; independent_sports_review_required; no automatic_renewal",
+  "codeCheckpointCommit": "e4555c09dee4674ad7d988117430282ece8f4afc",
+  "recommendation": "NO-GO"
+}

@@ -1,0 +1,162 @@
+{
+  "id": "v3-8-continuation",
+  "key": "e3ba2b61f0bd4d6a4df0836597333b7b8aaf2f342a451b324640b6afd750ec5c",
+  "kind": "continuation",
+  "source": "83c47f91d43515fd8b0bf81eee8140e0a86fff32f80269a91e716423c4734576",
+  "out": "/tmp/det-v3-strict-02",
+  "input": "/tmp/det-v3-strict-01/candidate.json.gz",
+  "status": "passed",
+  "startedAt": 1793134065383,
+  "completedAt": 1793134200230,
+  "commands": [
+    {
+      "name": "continuation",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v3-continuation.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 131172,
+      "timeoutMs": 900000
+    }
+  ],
+  "comparison": {
+    "coverageLost": [],
+    "coverageAdded": [],
+    "regressions": [],
+    "newlyExposed": [],
+    "unattributed": [],
+    "reproduced": true,
+    "noCriticalRegression": true,
+    "improvedConformance": 0,
+    "improvedConstruction": 0,
+    "improvedDefects": 13,
+    "defectReductions": [
+      {
+        "id": "Marathon:untrained:competitor:unknown",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 9,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "Marathon:untrained:elite:known_synthetic",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 15,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "Marathon:untrained:elite:known_synthetic",
+        "control": "plan_validator_complete_context",
+        "code": "demanding_session_accumulation",
+        "week": 15,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "Marathon:light:competitor:known_synthetic",
+        "control": "plan_validator_complete_context",
+        "code": "race_day_only_fiche_misplaced",
+        "week": 10,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "Marathon:light:world_class:unknown",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 7,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "Semi:untrained:elite:unknown",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 6,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "10K:light:world_class:known_synthetic",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 5,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "703:untrained:competitor:known_synthetic:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "demanding_session_accumulation",
+        "week": 13,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "703:light:finisher:known_synthetic:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "demanding_session_accumulation",
+        "week": 13,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "703:trained:competitor:unknown:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "race_day_only_fiche_misplaced",
+        "week": 6,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "703:trained:competitor:unknown:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "race_day_only_fiche_misplaced",
+        "week": 8,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "IM:highly_trained:age_group:unknown:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "key_sessions_per_sport",
+        "week": 12,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "IM:highly_trained:age_group:unknown:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "race_day_only_fiche_misplaced",
+        "week": 12,
+        "severity": "error",
+        "count": 1
+      }
+    ],
+    "improvement": true,
+    "scientificGoAttested": false,
+    "baselineHash": "386405a9c2c03679887eaa9de9c6482ec304df02007b0f8211ca5fb7336cddff",
+    "candidateHash": "317045b131d9d164b81b9ffc7fcddba7bc9305fa00183f45eb034b5674f918f5",
+    "warningOccurrencesBefore": 9759,
+    "warningOccurrencesAfter": 9756,
+    "warningImprovement": true
+  },
+  "accepted": true,
+  "evidenceHashes": {
+    "/tmp/det-v3-strict-02/candidate.json.gz": "b0d1a8c9ded8d44984c6bd6ea0803b3a0c3665cd0ffe7960b56c077094244a9d",
+    "/tmp/det-v3-strict-02/replay.json.gz": "b0d1a8c9ded8d44984c6bd6ea0803b3a0c3665cd0ffe7960b56c077094244a9d",
+    "/tmp/det-v3-strict-02/summary.json": "98c5922a1c7cc2ec2cd94d8617abea4e171db6111cabe3cf90ebf11bd01f48d0"
+  },
+  "decision": "measured_critical_improvement_guarded"
+}

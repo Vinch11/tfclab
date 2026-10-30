@@ -1,0 +1,98 @@
+{
+  "version": "det-v8-1",
+  "startedAt": 1793178322,
+  "deadline": 1793181922,
+  "maxUnits": 10,
+  "baseline": "3c47c8f064ffcfbbdf2dec96ee7c01f2e4944905",
+  "status": "completed_no_go",
+  "units": [
+    {
+      "id": "baseline",
+      "status": "passed",
+      "evidence": "baseline-files.json",
+      "scope": "audit/proposal; no scientific promotion"
+    },
+    {
+      "id": "literature",
+      "status": "passed",
+      "evidence": "bibliography.json",
+      "scope": "audit/proposal; no scientific promotion"
+    },
+    {
+      "id": "lorang",
+      "status": "passed",
+      "evidence": "LORANG_METHODOLOGY.md",
+      "scope": "audit/proposal; no scientific promotion"
+    },
+    {
+      "id": "contracts_audit",
+      "status": "passed",
+      "evidence": "contract-audit.json",
+      "scope": "audit/proposal; no scientific promotion"
+    },
+    {
+      "id": "four_plan_review",
+      "status": "passed",
+      "evidence": "SPORT_SCIENCE_REVIEW.md",
+      "scope": "audit/proposal; no scientific promotion"
+    },
+    {
+      "id": "candidate_contracts",
+      "status": "passed",
+      "evidence": "PROPOSED_SPORT_CONTRACTS.md",
+      "scope": "audit/proposal; no scientific promotion"
+    },
+    {
+      "id": "parallel_comparison",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793179045684,
+          "command": [
+            "scripts/det-engine/v8-compare.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793179045833,
+          "exitCode": 0,
+          "output": "docs/det-engine/v8/evidence/parallel_comparison-1.txt",
+          "sha256": "4484dc704baab7bf41fd2a34254ba9ada8794a98d2e64701282e45be3c00167f"
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793178604587,
+          "command": [
+            "scripts/det-engine/v8-validate.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793179006194,
+          "exitCode": 0,
+          "output": "docs/det-engine/v8/evidence/validation-1.txt",
+          "sha256": "5817c1e9a84df1d0bb8eedd794df4d0ab0a76b7758031b03cb110187640fd530"
+        }
+      ]
+    },
+    {
+      "id": "documentation",
+      "status": "passed",
+      "evidence": "V8_RESULTS.md"
+    },
+    {
+      "id": "publication",
+      "status": "passed",
+      "startedAt": 1793179154.300591,
+      "mode": "manual_git_and_draft_pr_receipt",
+      "completedAt": 1793179241.404824,
+      "evidence": "publication-proof.json"
+    }
+  ],
+  "activeUnit": null,
+  "completedAt": 1793179241.4048266,
+  "stopReason": "ten_named_units_completed",
+  "elapsedSeconds": 919.405,
+  "automaticRestart": false
+}

@@ -1,0 +1,41 @@
+{
+  "version": "det-v24-preregistered-1",
+  "registeredAt": "2026-10-29T14:53:33.148594+00:00",
+  "clock": "2026-10-29T12:00:00Z",
+  "baseline": "4ec5547875768f8430606401bb750445e381f71f",
+  "sourceInputs": {
+    "docs/det-engine/v22/inputs.json": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97",
+    "docs/det-engine/v23/inputs.json": "b566cf0e7db6bf82898f7accb63ba68e97a7bc7cbdec96fecdf41000b921dedc"
+  },
+  "cohort": "unchanged original 3 V22 + 5 V23 counterfactuals",
+  "models": [
+    {
+      "id": "pull_on_support_day",
+      "action": "from V23 rejected priority trial move catch-pull swim to the existing strength support day, preserving all doses and other placements",
+      "hypothesis": "protect both long ride and long run days; use a preexisting lower-duration support day rather than add training days",
+      "uncertainty": "consecutive technical swim days may suit some athletes only; no demonstrated superiority or extra capacity"
+    },
+    {
+      "id": "catch_on_support_day",
+      "action": "move catch-focus swim to support day and catch-pull to existing technical bike day",
+      "hypothesis": "alternative ordering of existing technical sessions; no role, dose, volume or intensity added",
+      "uncertainty": "technical order and proximity require coach review"
+    }
+  ],
+  "acceptance": "no new historical warning or error by original code/week/severity/control, no block error, no new individual refusal; retain all raw issues and recovery holds",
+  "externalFixture424": {
+    "label": "separate PR424 QA case, never a replacement measurement for A",
+    "base": "B-MARATHON",
+    "runEconomyScore": 65,
+    "vlamaxRun": 0.5,
+    "runningEconomyCostMlKgKm": 200,
+    "vma": 18,
+    "paceThresholdSecPerKm": null
+  },
+  "externalStates": [
+    "corrected_candidate",
+    "uncertain",
+    "absent"
+  ],
+  "floorPolicy": "literal SEILER_RUN integrated source and Ironman 90-120 range may support a coach-only 90-minute proposal, never automatic waiver of unchanged 95-minute floor"
+}

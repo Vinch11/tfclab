@@ -1,0 +1,20 @@
+✔ all 920 originals remain unchanged by modality fact extraction (265.553752ms)
+✔ strength retains 127 protocols with unknown elapsed time and individual load (21.737888ms)
+✔ distance structures do not become timed swim prescriptions or transferable CSS (16.161669ms)
+✔ mere commentary on morning/evening or alternative J-days is not a two-event protocol (0.57641ms)
+✔ explicit weekly actions and stage actions retain their occurrence questions (0.255386ms)
+✔ written 1000m with absolute 3m40-4m10 pace has a source-bounded 220-250s arithmetic fact (0.692876ms)
+✔ pace cannot leak across a recovery or another distance (0.997076ms)
+✔ trail exposure never creates acquired eccentric tolerance or inferred D-minus (20.280708ms)
+✔ explicit synthetic 2000m at 120s/100m fits 45min arithmetically without proving capability (0.502548ms)
+✔ 30min window refuses rather than trimming the written distance (0.434466ms)
+✔ CSS, cross-stroke transfer, missing evidence, unsafe unknown conditions and out-of-range distances refuse (0.233763ms)
+✔ arithmetic scenario does not alter source instruction or source qualification (0.239442ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 353.012

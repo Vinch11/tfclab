@@ -1,0 +1,2 @@
+stdout-proof
+stderr-proof

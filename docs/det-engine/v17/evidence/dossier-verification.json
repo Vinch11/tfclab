@@ -1,0 +1,18 @@
+{
+  "version": "v17-dossier-verification-1",
+  "protectedFiles": 3206,
+  "allProtectedUnchanged": true,
+  "canonicalRecordsUnchanged": 920,
+  "recipeRecords": 920,
+  "scientificRows": 920,
+  "variantEntriesPreserved": 2425,
+  "variantQuantitiesIndependentlyVerified": 1388,
+  "independentCompleteWitnesses": 67,
+  "coachViewsPreserved": 920,
+  "structuredFixturesFaithfullyExpanded": 12,
+  "sourceSportCollapseAllowed": false,
+  "expertReview": false,
+  "individualPrescriptionsApproved": 0,
+  "localLinksChecked": 92,
+  "scopeOnlyV17": true
+}

@@ -1,0 +1,91 @@
+{
+  "version": "det-v9-1",
+  "baseline": "902353d732e08a4a54f3e11cadf911714aa9cce2",
+  "startedAt": 1793180431,
+  "deadline": 1793184031,
+  "maxUnits": 10,
+  "maxAttempts": 3,
+  "status": "completed_no_go",
+  "activeUnit": null,
+  "units": [
+    {
+      "id": "baseline",
+      "status": "passed",
+      "evidence": "baseline-files.json",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "pilots",
+      "status": "passed",
+      "evidence": "evidence/inputs-inspection-final.json",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "prospective",
+      "status": "passed",
+      "evidence": "PROSPECTIVE_PRESCRIPTION.md",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "dose",
+      "status": "passed",
+      "evidence": "INDIVIDUAL_DOSE_RATIONALE.md",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "calendar",
+      "status": "passed",
+      "evidence": "evidence/canonical/decisions.json.gz",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "feedback",
+      "status": "passed",
+      "evidence": "FEEDBACK_DECISION_CONTRACT.md",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "comparison",
+      "status": "passed",
+      "evidence": "evidence/reproducibility.json",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "validation",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793181396494,
+          "command": [
+            "scripts/det-engine/v9-validate.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793181840232,
+          "exitCode": 0,
+          "output": "docs/det-engine/v9/evidence/validation-1.txt",
+          "sha256": "e96060fdc65298c2afd8f86feb396939499258752c3af7d1bacc1422a9a752c6"
+        }
+      ],
+      "evidence": "validation-summary.json",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "documentation",
+      "status": "passed",
+      "evidence": "V9_RESULTS.md",
+      "scope": "bounded experimental work completed, no sporting approval"
+    },
+    {
+      "id": "publication",
+      "status": "passed",
+      "startedAt": 1793182357.1273816,
+      "mode": "authorized_git_push_and_draft_pr_update",
+      "completedAt": 1793182462.9224384,
+      "evidence": "publication-proof.json"
+    }
+  ],
+  "completedAt": 1793182462.9224405,
+  "elapsedSeconds": 2031.922,
+  "stopReason": "ten_named_units_completed",
+  "automaticRestart": false
+}

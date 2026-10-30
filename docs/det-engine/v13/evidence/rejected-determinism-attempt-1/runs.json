@@ -1,0 +1,14 @@
+[
+  {
+    "name": "final",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v3.config.ts",
+      "experimental/det-engine/v13-study.test.ts",
+      "--maxWorkers=1"
+    ],
+    "exitCode": 1
+  }
+]

@@ -1,0 +1,3 @@
+import{V10_FIXTURE_SPEC as S}from'./v10-fixtures';import type{V10Profile}from'./v10-profiles';
+/** Transparent materialization of preregistered mock history, never real observations. */
+export function mockHistory(p:V10Profile){return{synthetic:true,provenance:S.historyProvenance,recordsAreInstrumented:false,weekly:p.family==='ironman'?Array.from({length:S.imCommon.historyWeeks},(_,index)=>({relativeWeek:index-S.imCommon.historyWeeks,minutes:S.imCommon.recentWeeklyMinutes,longBikeMinutes:p.longCaps.bike,longRunMinutes:p.longCaps.run,response:'synthetic tolerated/recovered as specified, not measured'})):p.fixture?.history??null,coachNormalCaps:p.normalCaps,coachLongCaps:p.longCaps,verticalEnvelope:p.vertical,focusEvidence:p.evidence};}

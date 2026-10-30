@@ -1,0 +1,131 @@
+{
+  "version": "det-v18-build-1",
+  "sourceRecords": 920,
+  "uniqueIds": 920,
+  "counts": {
+    "complete": 75,
+    "partial": 292,
+    "ambiguous": 400,
+    "contradictory": 2,
+    "descriptive_non_metabolic": 151
+  },
+  "baselineCounts": {
+    "complete": 67,
+    "partial": 299,
+    "ambiguous": 401,
+    "contradictory": 2,
+    "descriptive_non_metabolic": 151
+  },
+  "bySport": {
+    "bike": {
+      "total": 168,
+      "complete": 20,
+      "partial": 49,
+      "ambiguous": 99,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "run": {
+      "total": 416,
+      "complete": 55,
+      "partial": 157,
+      "ambiguous": 203,
+      "contradictory": 1,
+      "descriptive_non_metabolic": 0
+    },
+    "swim": {
+      "total": 119,
+      "complete": 0,
+      "partial": 36,
+      "ambiguous": 83,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "brick": {
+      "total": 55,
+      "complete": 0,
+      "partial": 39,
+      "ambiguous": 15,
+      "contradictory": 1,
+      "descriptive_non_metabolic": 0
+    },
+    "strength": {
+      "total": 127,
+      "complete": 0,
+      "partial": 0,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 127
+    },
+    "trail": {
+      "total": 3,
+      "complete": 0,
+      "partial": 3,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 0
+    },
+    "mixed": {
+      "total": 32,
+      "complete": 0,
+      "partial": 8,
+      "ambiguous": 0,
+      "contradictory": 0,
+      "descriptive_non_metabolic": 24
+    }
+  },
+  "newComplete": [
+    "A_SEMI_TEMPO_LONG",
+    "A_TR_FLAT_SUPPORT_END",
+    "A_10K_PROGRESSIVE_60",
+    "B_RUN_IM_RACE_SIM",
+    "B_RUN_TEMPO_PROGRESSIVE",
+    "TPL_IM_RUN_LONGUE_DURABILITE",
+    "ENR_RUN_TEMPO_PROGRESSIF",
+    "V3_RECUP_WALK_NATURE"
+  ],
+  "preservedV17Complete": 67,
+  "regressions": [],
+  "strengthModels": 127,
+  "strengthBlocks": 573,
+  "swimModels": 119,
+  "swimSourceProtocols": [
+    "A_SWIM_TRI_OPEN_WATER_SIMU",
+    "A_SWIM_CONTINUOUS_2K",
+    "A_SWIM_STEADY_STATE_2500"
+  ],
+  "multimodalModels": 87,
+  "variants": 2425,
+  "variantClasses": {
+    "fully_structured": 0,
+    "explicit_parameter_only": 6,
+    "descriptive": 1346,
+    "ambiguous": 1073,
+    "contradictory": 0
+  },
+  "variantInstances": 6,
+  "coachRenders": 920,
+  "textNolioPass": 833,
+  "structuredNolioPass": 13,
+  "structuredNolioIds": [
+    "D_BIKE_RECOVERY",
+    "D_RUN_REGEN",
+    "D_IM_BRICK_REGEN",
+    "A_MAR_LONG_RUN",
+    "D_MAR_REGEN",
+    "A_TR_BIKE_SUPPORT",
+    "A_TR_FLAT_SUPPORT_END",
+    "A_10K_EASY_60",
+    "A_SEMI_LONG_RUN_90",
+    "TPL_IM_RUN_MARATHON_PRE_FATIGUE",
+    "V3_BIKE_Z2_CAFE_RIDE",
+    "D_TR_RECUP_ACTIVE",
+    "D_TR_VELO_CROSS"
+  ],
+  "grammarAffectedIds": 103,
+  "baselineProtectedFiles": 3399,
+  "scientificPromotions": 0,
+  "expertReviews": 0,
+  "individualPrescriptionsApproved": 0,
+  "realNolioCalls": 0
+}

@@ -1,0 +1,12 @@
+{
+  "draft": true,
+  "merged": false,
+  "head": "experiment/det-engine",
+  "head_sha": "966d2fbbfd9b62756c2fc5a145c3c2feaddd5f2a",
+  "title": "DET-ENGINE AUTONOMOUS V5 \u2014 plans complets, r\u00e9parations et contrats sportifs candidats, NO-GO",
+  "base": "main",
+  "verifiedAtUnixSeconds": 1793143546.8647957,
+  "prUrl": "https://github.com/Vinch11/tfclab/pull/420",
+  "checkpointOnly": true,
+  "closureCommitScope": "subsequent closure commit changes only V5 documentation, state and manifests; engine source unchanged"
+}

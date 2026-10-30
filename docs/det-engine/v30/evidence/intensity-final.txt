@@ -1,0 +1,1 @@
+PASS: all30 native intensity contracts preserved, including strict Z1 S3 run

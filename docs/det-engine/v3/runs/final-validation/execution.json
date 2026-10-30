@@ -1,0 +1,78 @@
+{
+  "id": "v3-12-validation",
+  "key": "851f1c2a9679dfcd0c89a578a75da30a7a7599f58610e9f64b438fd300bf7427",
+  "kind": "validation",
+  "source": "175acc5aeadba3a4851554ead3c6018748b8277b97d0f0e348caec107ca0063f",
+  "out": "/tmp/det-v3-final-validation",
+  "input": null,
+  "status": "passed",
+  "startedAt": 1793134772468,
+  "completedAt": 1793135164463,
+  "commands": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 39151,
+      "timeoutMs": 900000
+    },
+    {
+      "name": "node-tests",
+      "args": [
+        "--test",
+        "scripts/det-engine/gates.test.mjs",
+        "scripts/det-engine/v2-diagnostic.test.mjs",
+        "scripts/det-engine/v2-supervisor.test.mjs",
+        "scripts/det-engine/v3-supervisor.test.mjs"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 2227,
+      "timeoutMs": 900000
+    },
+    {
+      "name": "experimental-tests",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 19431,
+      "timeoutMs": 900000
+    },
+    {
+      "name": "historical-tests",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 331185,
+      "timeoutMs": 900000
+    }
+  ],
+  "comparison": null,
+  "accepted": false,
+  "evidenceHashes": {},
+  "decision": "experimental_evaluation_only"
+}

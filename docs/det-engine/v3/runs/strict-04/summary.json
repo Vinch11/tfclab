@@ -1,0 +1,10 @@
+{
+  "version": "det-v3-progression-1-strict-next-strict-next-strict-next-strict-next",
+  "baseline": "det-v3-progression-1-strict-next-strict-next-strict-next",
+  "cases": 600,
+  "accepted": 5,
+  "attempts": 1452,
+  "criticalBefore": 1117,
+  "criticalAfter": 1112,
+  "exactReplay": 600
+}

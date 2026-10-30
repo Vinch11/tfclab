@@ -1,0 +1,16 @@
+✔ AST execution imports no edge module, server or network capability (1.600606ms)
+✔ source formatter ignores nonstandard Bike/Run parts in this explicit canonical projection (2.065498ms)
+✔ normalizer adds visible comments without changing the original payload or quantity (4.568126ms)
+✔ zero lower pace bound is NOT replaced by an invented positive speed to pass the sender (1.250488ms)
+✔ machine rounding convention is separate from literal identity and physiological approval (1.693982ms)
+✔ formatter 4000-character policy is exposed rather than silently truncating a source fixture (1.426643ms)
+✔ multiline editorial bullets alone are not counted as loss of source instructions (1.409468ms)
+✔ actual sender functions retain injected swim block pauses as a separate incompatibility witness (1.218559ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22.734743

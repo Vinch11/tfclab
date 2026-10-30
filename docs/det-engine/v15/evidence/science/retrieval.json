@@ -1,0 +1,62 @@
+[
+  {
+    "pmid": "33886100",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:33886100%20AND%20SRC:MED&format=json&resultType=core",
+    "title": "The Importance of 'Durability' in the Physiological Profiling of Endurance Athletes.",
+    "authors": "Maunder E, Seiler S, Mildenhall MJ, Kilding AE, Plews DJ.",
+    "year": "2021",
+    "doi": "10.1007/s40279-021-01459-0",
+    "retrievedAt": 1793207338.1586843,
+    "sha256": "7b41f4872e38ce2425ba1d5cb3f2080a2b5cdadd3bb8347b561967eb3f606a2c",
+    "fullTextRead": false,
+    "abstractRead": true,
+    "abstractExcerpt": "Profiling physiological attributes is an important role for applied exercise physiologists working with endurance athletes. These attributes are typically assessed in well-rested athletes. However, as has been demonstrated in the literature and supported by field data presented here, the attributes",
+    "excerptWords": 40,
+    "fullAbstractStoredInRepository": false
+  },
+  {
+    "pmid": "37163550",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:37163550%20AND%20SRC:MED&format=json&resultType=core",
+    "title": "Effects of tapering on performance in endurance athletes: A systematic review and meta-analysis.",
+    "authors": "Wang Z, Wang YT, Gao W, Zhong Y.",
+    "year": "2023",
+    "doi": "10.1371/journal.pone.0282838",
+    "retrievedAt": 1793207337.9121647,
+    "sha256": "69c39a23ec13fdcf9970cc5fb711455b277cc8bcae31df4c7d08a51d6bc529f7",
+    "fullTextRead": false,
+    "abstractRead": true,
+    "abstractExcerpt": "Objective To assess the responses to taper in endurance athletes using meta-analysis. Methods Systematic searches were conducted in China National Knowledge Infrastructure, PubMed, Web of Science, SPORTDiscus, and EMBASE databases. Standardized mean difference (SMD) and 95% confidence interval (CI) of",
+    "excerptWords": 40,
+    "fullAbstractStoredInRepository": false
+  },
+  {
+    "pmid": "38165636",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:38165636%20AND%20SRC:MED&format=json&resultType=core",
+    "title": "Effect of Strength Training Programs in Middle- and Long-Distance Runners' Economy at Different Running Speeds: A Systematic Review with Meta-analysis.",
+    "authors": "Llanos-Lagos C, Ramirez-Campillo R, Moran J, Sáez de Villarreal E.",
+    "year": "2024",
+    "doi": "10.1007/s40279-023-01978-y",
+    "retrievedAt": 1793207337.91268,
+    "sha256": "73fedfa2b179ac7c7036726b27a11179f4742e60bd1339eeb453289065127f59",
+    "fullTextRead": false,
+    "abstractRead": true,
+    "abstractExcerpt": "Background Running economy is defined as the energy demand at submaximal running speed, a key determinant of overall running performance. Strength training can improve running economy, although the magnitude of its effect may depend on factors such as the strength",
+    "excerptWords": 40,
+    "fullAbstractStoredInRepository": false
+  },
+  {
+    "pmid": "28332114",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:28332114%20AND%20SRC:MED&format=json&resultType=core",
+    "title": "Training the Gut for Athletes.",
+    "authors": "Jeukendrup AE.",
+    "year": "2017",
+    "doi": "10.1007/s40279-017-0690-6",
+    "retrievedAt": 1793207338.2092824,
+    "sha256": "ee2d0772df578a79cceb75baab5a4c117cee48c04d8b0e003fd76085c78fbf98",
+    "fullTextRead": false,
+    "abstractRead": true,
+    "abstractExcerpt": "The gastrointestinal (GI) tract plays a critical role in delivering carbohydrate and fluid during prolonged exercise and can therefore be a major determinant of performance. The incidence of GI problems in athletes participating in endurance events is high, indicating that",
+    "excerptWords": 40,
+    "fullAbstractStoredInRepository": false
+  }
+]

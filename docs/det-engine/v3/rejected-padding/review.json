@@ -1,0 +1,105 @@
+{
+  "status": "rejected",
+  "reason": "padding_previous_weeks_to_reduce_warning_not_physiologically_justified",
+  "originalWarningReduction": 14,
+  "acceptedForPrescription": 0,
+  "changes": [
+    {
+      "caseId": "Sprint:untrained:finisher:known_synthetic",
+      "week": 2,
+      "session": 8,
+      "id": "A_RUN_Z2_EASY",
+      "before": 35,
+      "after": 90
+    },
+    {
+      "caseId": "Sprint:light:world_class:known_synthetic",
+      "week": 2,
+      "session": 8,
+      "id": "A_RUN_Z2_EASY",
+      "before": 35,
+      "after": 90
+    },
+    {
+      "caseId": "Marathon:untrained:competitor:known_synthetic",
+      "week": 6,
+      "session": 1,
+      "id": "RECOVERY_YOGA_MOBILITY_TRI",
+      "before": 30,
+      "after": 45
+    },
+    {
+      "caseId": "Marathon:light:finisher:known_synthetic",
+      "week": 6,
+      "session": 6,
+      "id": "BILLAT_RUN_MLSS_LONG",
+      "before": 70,
+      "after": 90
+    },
+    {
+      "caseId": "Marathon:trained:finisher:known_synthetic",
+      "week": 1,
+      "session": 6,
+      "id": "A_RUN_Z2_EASY",
+      "before": 65,
+      "after": 90
+    },
+    {
+      "caseId": "Semi:untrained:competitor:unknown",
+      "week": 2,
+      "session": 6,
+      "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+      "before": 40,
+      "after": 70
+    },
+    {
+      "caseId": "5K:trained:age_group:unknown",
+      "week": 1,
+      "session": 1,
+      "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+      "before": 40,
+      "after": 70
+    },
+    {
+      "caseId": "10K:trained:age_group:known_synthetic",
+      "week": 1,
+      "session": 2,
+      "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+      "before": 40,
+      "after": 70
+    },
+    {
+      "caseId": "10K:highly_trained:age_group:known_synthetic",
+      "week": 1,
+      "session": 1,
+      "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+      "before": 40,
+      "after": 70
+    },
+    {
+      "caseId": "IM:trained:age_group:unknown:lcw_3day",
+      "week": 4,
+      "session": 8,
+      "id": "TPL_IM_BIKE_FORCE_K3",
+      "before": 105,
+      "after": 135
+    },
+    {
+      "caseId": "IM:highly_trained:finisher:known_synthetic:lcw_3day",
+      "week": 10,
+      "session": 4,
+      "id": "ENR_RUN_DESCENDING_REST",
+      "before": 50,
+      "after": 65
+    },
+    {
+      "caseId": "IM:highly_trained:age_group:unknown:lcw_3day",
+      "week": 6,
+      "session": 5,
+      "id": "V3_RACESIM_SWIM_IM",
+      "before": 75,
+      "after": 95
+    }
+  ],
+  "note": "Original preliminary records used session id instead of case id; this mapping is reconstructed from the actual before/after plans."
+}

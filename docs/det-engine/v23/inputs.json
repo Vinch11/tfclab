@@ -1,0 +1,76 @@
+{
+  "version": "det-v23-preregistered-1",
+  "registeredAt": "2026-10-29T14:11:25.590375+00:00",
+  "clock": "2026-10-29T12:00:00Z",
+  "baselineInputsPath": "docs/det-engine/v22/inputs.json",
+  "baselineInputsSha256": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97",
+  "originalProfiles": [
+    "A_aerobic",
+    "B_sustainability",
+    "C_uncertain"
+  ],
+  "counterfactuals": [
+    {
+      "id": "B_changed_relevant_limiter",
+      "base": "B_sustainability",
+      "rawOverrides": {
+        "vo2max": 40,
+        "tteObservedMin": 65
+      },
+      "question": "Can actual TFCL decision change when observed sustainability is preserved but aerobic capacity differs? No desired output supplied."
+    },
+    {
+      "id": "B_missing_bike_reference",
+      "base": "B_sustainability",
+      "rawOverrides": {
+        "ftp": null,
+        "ftpKg": null
+      },
+      "question": "Missing bike anchor must not acquire one or release numeric bike prescription."
+    },
+    {
+      "id": "B_lower_run_capacity",
+      "base": "B_sustainability",
+      "capacityOverrides": {
+        "longCaps": {
+          "run": 75
+        }
+      },
+      "question": "A declared lower current envelope must block current/future doses; no capacity increase from elapsed weeks."
+    },
+    {
+      "id": "B_adverse_recovery",
+      "base": "B_sustainability",
+      "observation": {
+        "week": 2,
+        "sport": "bike",
+        "kind": "long",
+        "sourceId": "SEILER_BIKE_Z1_LONG",
+        "response": "adverse",
+        "recovered": false,
+        "symptoms": false,
+        "synthetic": true,
+        "basis": "Preregistered synthetic source-specific incomplete recovery before S2; no real athlete data."
+      },
+      "question": "A source-bound adverse response must hold the due session and remain visible in whole-block readiness."
+    },
+    {
+      "id": "B_insufficient_differentiation",
+      "base": "B_sustainability",
+      "rawOverrides": {
+        "tteObservedMin": null,
+        "tteMode": null
+      },
+      "question": "Do not convert an estimated TTE alone into a documented sport-specific priority."
+    }
+  ],
+  "programmingContract": {
+    "version": "v23-observed-foundation-priority-1",
+    "eligibleObservedSource": "bike TTE observed, positive raw value, dated synthetic field evidence and an available bike anchor",
+    "priority": "existing candidate_foundation_request only; high-intensity and strength requests remain deferred",
+    "placement": "soft preference to keep the prioritized autonomous long ride alone after the existing full rest day when the existing calendar allows it",
+    "extraMinutes": "none without a documented source-specific dose reason; identical volumes are allowed",
+    "scientificStatus": "reversible coaching/programming candidate, not a physiological law"
+  },
+  "capacityAlternativePolicy": "Compare the last documented envelope with the complete source range and unchanged native floor; refuse if any mandatory component/floor is lost. No new capacity from weeks."
+}

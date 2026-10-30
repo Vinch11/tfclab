@@ -1,0 +1,178 @@
+[
+  {
+    "legacyId": "A_SEMI_TEMPO_LONG",
+    "partIndex": 0,
+    "before": "unknown",
+    "after": "envelope",
+    "grammar": "explicit_total_with_final_subdose",
+    "stillRecipeBlocked": false
+  },
+  {
+    "legacyId": "BRICK_STAGE5_RACE_SIM",
+    "partIndex": 0,
+    "before": "unknown",
+    "after": "alternative",
+    "grammar": "source_explicit_alternative_no_automatic_selection",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "FATMAX_BIKE_LONG_FASTED",
+    "partIndex": 0,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "FATMAX_BIKE_LONG_FASTED",
+    "partIndex": 2,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "FATMAX_RUN_LONG_FASTED",
+    "partIndex": 2,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "FATMAX_BIKE_FATFLUSH",
+    "partIndex": 0,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "TAPER_RUN_J14",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "alternative",
+    "grammar": "source_explicit_alternative_no_automatic_selection",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "BILLAT_RUN_30_30_INTRO",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "repeat",
+    "grammar": "nested_series_explicit_between_rest",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "BILLAT_RUN_30_30_PRO",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "repeat",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "BILLAT_BIKE_30_30",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "repeat",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "BILLAT_RUN_60_60",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "repeat",
+    "grammar": "nested_series_explicit_between_rest",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "BILLAT_BIKE_60_60",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "repeat",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "KENYAN_RUN_FARTLEK_PYRAMID",
+    "partIndex": 0,
+    "before": "unknown",
+    "after": "alternative",
+    "grammar": "source_explicit_alternative_no_automatic_selection",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "ENR_RUN_TEMPO_PROGRESSIF",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "compositional_children",
+    "stillRecipeBlocked": false
+  },
+  {
+    "legacyId": "V2_BIKE_FATMAX_FASTED",
+    "partIndex": 2,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "V2_BRICK_INDOOR_RUN",
+    "partIndex": 2,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "V3_RECUP_WALK_NATURE",
+    "partIndex": 0,
+    "before": "unknown",
+    "after": "annotation",
+    "grammar": "explicit_absence_of_part",
+    "stillRecipeBlocked": false
+  },
+  {
+    "legacyId": "V3_RECUP_COMPRESSION_PROTOCOL",
+    "partIndex": 0,
+    "before": "unknown",
+    "after": "annotation",
+    "grammar": "explicit_absence_of_part",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "C_HEAT_ACCLIM_BIKE_INDOOR",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "FM_RUN_FASTED_LONG",
+    "partIndex": 2,
+    "before": "unknown",
+    "after": "time",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "FM_SWIM_Z2_LONG_FATMAX",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "distance",
+    "grammar": "explicit_execution_with_retained_nonexecution_note",
+    "stillRecipeBlocked": true
+  },
+  {
+    "legacyId": "A_SWIM_STEADY_STATE_2500",
+    "partIndex": 1,
+    "before": "unknown",
+    "after": "distance",
+    "grammar": "source_distance_css_target_separate_dimensions",
+    "stillRecipeBlocked": true
+  }
+]

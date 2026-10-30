@@ -1,0 +1,17 @@
+{
+  "cause": "executable_variant_domain_coverage",
+  "cases": 92,
+  "newlyConstructed": 0,
+  "safeConformant": 0,
+  "decision": "reject_no_measurable_progress",
+  "restored": {
+    "restored": [
+      "experimental/det-engine/engine.ts"
+    ],
+    "conflicts": []
+  },
+  "testsPassed": true,
+  "comparisonScope": "Unchanged last accepted bundle, whose exact 600-case replay is proven in cycle02.",
+  "rejectedProposalReplay": "not_executed",
+  "acceptanceClaim": "Rejected proposal never retained; true replay gate refers only to the unchanged retained baseline, not to a second run of the discarded 92-case proposal."
+}

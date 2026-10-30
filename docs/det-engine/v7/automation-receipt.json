@@ -1,0 +1,9 @@
+{
+  "creationConfirmed": true,
+  "enabled": true,
+  "scheduledAt": "2026-10-30T08:33:31Z",
+  "timezone": "Europe/Brussels",
+  "localTime": "2026-10-30 09:33:31",
+  "mode": "read_only_report",
+  "developmentDaemon": false
+}

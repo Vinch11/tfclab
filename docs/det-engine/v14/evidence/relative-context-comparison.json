@@ -1,0 +1,350 @@
+[
+  {
+    "profile": "IM_aerobic_history",
+    "model": "native_floor_conditional",
+    "beforeCritical": 2,
+    "afterCritical": 2,
+    "beforeWarnings": 128,
+    "afterWarnings": 129,
+    "added": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé run"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "jeudi: attendu run, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "removed": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "acceptance": "technical context correction only; no new critical issue, one extra preserved layout warning; no sporting approval"
+  },
+  {
+    "profile": "IM_aerobic_history",
+    "model": "hold_current_envelope",
+    "beforeCritical": 8,
+    "afterCritical": 8,
+    "beforeWarnings": 128,
+    "afterWarnings": 129,
+    "added": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé run"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "jeudi: attendu run, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "removed": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "acceptance": "technical context correction only; no new critical issue, one extra preserved layout warning; no sporting approval"
+  },
+  {
+    "profile": "IM_aerobic_history",
+    "model": "blockwise_reassessment",
+    "beforeCritical": 2,
+    "afterCritical": 2,
+    "beforeWarnings": 129,
+    "afterWarnings": 130,
+    "added": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé run"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "jeudi: attendu run, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "removed": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "acceptance": "technical context correction only; no new critical issue, one extra preserved layout warning; no sporting approval"
+  },
+  {
+    "profile": "IM_balanced_history",
+    "model": "native_floor_conditional",
+    "beforeCritical": 2,
+    "afterCritical": 2,
+    "beforeWarnings": 128,
+    "afterWarnings": 129,
+    "added": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé run"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "jeudi: attendu run, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "removed": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "acceptance": "technical context correction only; no new critical issue, one extra preserved layout warning; no sporting approval"
+  },
+  {
+    "profile": "IM_balanced_history",
+    "model": "hold_current_envelope",
+    "beforeCritical": 7,
+    "afterCritical": 7,
+    "beforeWarnings": 128,
+    "afterWarnings": 129,
+    "added": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé run"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "jeudi: attendu run, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "removed": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "acceptance": "technical context correction only; no new critical issue, one extra preserved layout warning; no sporting approval"
+  },
+  {
+    "profile": "IM_balanced_history",
+    "model": "blockwise_reassessment",
+    "beforeCritical": 2,
+    "afterCritical": 2,
+    "beforeWarnings": 128,
+    "afterWarnings": 129,
+    "added": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé run"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "jeudi: attendu run, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "removed": [
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mardi: attendu bike+run, observé bike+swim"
+        ],
+        "count": 1
+      },
+      {
+        "issue": [
+          "layout_drift",
+          13,
+          "warning",
+          "mercredi: attendu strength+swim, observé bike"
+        ],
+        "count": 1
+      }
+    ],
+    "acceptance": "technical context correction only; no new critical issue, one extra preserved layout warning; no sporting approval"
+  }
+]

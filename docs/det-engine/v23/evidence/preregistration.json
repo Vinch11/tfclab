@@ -1,0 +1,9 @@
+{
+  "inputsSha256": "b566cf0e7db6bf82898f7accb63ba68e97a7bc7cbdec96fecdf41000b921dedc",
+  "registeredCaseBytesSha256": "ca31c66322198d9e22508f3b83f824ee6b5e4a551ec01a933fc1a21866354b35",
+  "originalProfilesUnchanged": true,
+  "counterfactualInputsFixedBeforeCalculation": true,
+  "registeredCasesMtimeNs": 1793283753532770104,
+  "outputMtimeNs": 1793283761384967782,
+  "orderingVerified": true
+}

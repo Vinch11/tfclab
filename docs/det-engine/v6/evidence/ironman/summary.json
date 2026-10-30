@@ -1,0 +1,22 @@
+{
+  "distinctInputs": 8,
+  "models": [
+    {
+      "model": "standalone_strict",
+      "cases": 8,
+      "built": 8,
+      "withoutBlocking": 0,
+      "refusals": [],
+      "enduranceFloorsRelaxed": false
+    },
+    {
+      "model": "peak_components_strict",
+      "cases": 8,
+      "built": 8,
+      "withoutBlocking": 0,
+      "refusals": [],
+      "enduranceFloorsRelaxed": false
+    }
+  ],
+  "expertReviewed": 0
+}

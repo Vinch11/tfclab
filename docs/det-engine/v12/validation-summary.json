@@ -1,0 +1,79 @@
+{
+  "version": "det-v12-1",
+  "types": "passed",
+  "nodePassed": 62,
+  "experimental": {
+    "passed": 112,
+    "skipped": 45,
+    "todo": 0,
+    "log": "evidence/validation/experimental.txt"
+  },
+  "historical": {
+    "passed": 2999,
+    "skipped": 1,
+    "todo": 6,
+    "log": "evidence/validation/historical.txt"
+  },
+  "targetedPassed": 12,
+  "targetedOverlapsExperimental": true,
+  "targetedOptInEvidenceTests": 2,
+  "reproducibility": {
+    "version": "det-v12-1",
+    "runs": [
+      {
+        "name": "final",
+        "args": [
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "--config",
+          "experimental/det-engine/vitest.v3.config.ts",
+          "experimental/det-engine/v12-study.test.ts",
+          "experimental/det-engine/v12-comparison.test.ts",
+          "--maxWorkers=1"
+        ],
+        "exitCode": 0
+      },
+      {
+        "name": "replay",
+        "args": [
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "--config",
+          "experimental/det-engine/vitest.v3.config.ts",
+          "experimental/det-engine/v12-study.test.ts",
+          "experimental/det-engine/v12-comparison.test.ts",
+          "--maxWorkers=1"
+        ],
+        "exitCode": 0
+      }
+    ],
+    "comparison": [
+      {
+        "file": "study.json.gz",
+        "first": "7467a48915e591daa1273b090ef7443f56ab3554b557bc27d55d3527a1ee53d9",
+        "replay": "7467a48915e591daa1273b090ef7443f56ab3554b557bc27d55d3527a1ee53d9"
+      },
+      {
+        "file": "summary.json",
+        "first": "6e5c21cc9e7088c20c55cd5a1bbd0961758dcaaac2451b0b6c1865f8ef1d04da",
+        "replay": "6e5c21cc9e7088c20c55cd5a1bbd0961758dcaaac2451b0b6c1865f8ef1d04da"
+      },
+      {
+        "file": "comparison.json.gz",
+        "first": "f394e39e0d1ab854811561d23b1db31fa9a9361b193edd256e487aca5b2e0d91",
+        "replay": "f394e39e0d1ab854811561d23b1db31fa9a9361b193edd256e487aca5b2e0d91"
+      },
+      {
+        "file": "comparison-summary.json",
+        "first": "b6f802cd7b73fc764dabe63c78ae242b94180ef3f1fffb7ba0c9a705b3b41818",
+        "replay": "b6f802cd7b73fc764dabe63c78ae242b94180ef3f1fffb7ba0c9a705b3b41818"
+      }
+    ],
+    "identical": true,
+    "preregistrationUnchanged": true,
+    "clock": "2026-10-26T12:00:00Z",
+    "independentProcesses": true
+  },
+  "fullPreparationSportingAttestation": false,
+  "expertReviewed": false
+}

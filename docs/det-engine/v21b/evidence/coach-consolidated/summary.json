@@ -1,0 +1,42 @@
+{
+  "version": "det-v21b-documentary-integration-1",
+  "status": "DRAFT_NO_GO",
+  "families": 15,
+  "referencesMetadataReverified": 46,
+  "abstractsRead": 45,
+  "fullTextsRead": 0,
+  "sourceWorkouts": 920,
+  "sourceVariants": 2425,
+  "workoutsWithContentSupportedResearchContext": 787,
+  "unresolvedIntentIds": [
+    "A_10K_PROGRESSIVE_60",
+    "A_SEMI_PROGRESSIVE_FINISH"
+  ],
+  "titleOrScopeOnlyRoutesWithheld": 1697,
+  "sourceDiscrepancies": 6,
+  "completeCandidatesTriaged": 96,
+  "candidateDistinctIds": 51,
+  "documentaryPacketCandidates": 2,
+  "packetScope": "family_context_only_draft_not_expert_approved",
+  "scientificApprovals": 0,
+  "workoutDosesNotIndividuallyVerified": 920,
+  "candidateDosesNotIndividuallyVerified": 96,
+  "questionsOpen": 62,
+  "coachRendersPreserved": 920,
+  "priorEditorialCoachViewsPreserved": 418,
+  "nolioFixturesPreserved": 15,
+  "doseOrIntensityChanges": 0,
+  "assumptionGuards": 8,
+  "prohibitedAssumptionsNotAsserted": {
+    "thresholds_interchangeable": false,
+    "field_vlamax_is_direct_lab_measurement": false,
+    "fresh_test_proves_durability": false,
+    "crawl_css_applies_to_other_strokes": false,
+    "final_rest_assumed_present_or_absent": false,
+    "aero_4x15_equivalent_to_6x10": false,
+    "nutrition_heat_posture_tolerance_assumed": false,
+    "progression_just_because_week_elapsed": false
+  },
+  "historical600Reexecuted": false,
+  "nolioCalls": 0
+}

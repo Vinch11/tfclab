@@ -1,0 +1,121 @@
+{
+  "version": "det-v24-session-1",
+  "baseline": "4ec5547875768f8430606401bb750445e381f71f",
+  "startedAt": "2026-10-29T14:45:51Z",
+  "hardDeadline": "2026-10-29T15:45:51Z",
+  "maxUnits": 10,
+  "budgetRenewal": false,
+  "automaticRestart": false,
+  "status": "closed_no_go",
+  "units": [
+    {
+      "unit": 1,
+      "name": "baseline_and_readonly_424_coordination",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "name": "preregister_two_placement_hypotheses_and_external_reference_fixture",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "name": "bounded_reusable_placement_and_reference_contracts",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "name": "whole_block_floor_counterproposal_and_negative_guards",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "name": "frozen_cohort_replay_and_multiobjective_regression",
+      "status": "completed_with_type_failure_and_warning_identity_gap"
+    },
+    {
+      "unit": 6,
+      "name": "full_warning_identity_gate_and_peak_exposure_hypothesis",
+      "status": "complete",
+      "reason": "unchanged warning totals conceal exchanged repetition witnesses; retain them as proposals only"
+    },
+    {
+      "unit": 7,
+      "name": "strict_witness_validation_replay_and_multiobjective_checks",
+      "status": "complete"
+    },
+    {
+      "unit": 8,
+      "name": "independent_arithmetic_source_warning_checks_and_eight_coach_dossiers",
+      "status": "complete",
+      "evidence": [
+        "evidence/independent-validation.json",
+        "evidence/final-additional-checks.json"
+      ]
+    },
+    {
+      "unit": 9,
+      "name": "guarded_experimental_commit_push_and_draft_pr_update",
+      "status": "complete",
+      "publishedImplementationCommit": "4752273e9424a133b025487ff9ec92be4ff7a55f"
+    },
+    {
+      "unit": 10,
+      "name": "bounded_closure_and_no_restart_guard",
+      "status": "complete"
+    }
+  ],
+  "developmentAttempts": [
+    {
+      "id": 1,
+      "status": "failed",
+      "cause": "missing CE and no observed pace correctly return runMLSS=null; assertion incorrectly accessed its nested prediction",
+      "correction": "assert whole diagnostic runMLSS is null; no implementation, sports threshold or refusal altered",
+      "log": "evidence/development-1.txt.gz"
+    },
+    {
+      "id": 2,
+      "status": "passed_16_tests",
+      "log": "evidence/development-2.txt",
+      "laterHardening": "source identity, acceptance revalidation, whole-block floor counterproposal; full validation follows"
+    },
+    {
+      "id": 3,
+      "status": "failed_falsifiable_placement_hypothesis",
+      "reason": "protecting only peak ride still changes two raw layout_drift witnesses; zero aggregate additions is insufficient",
+      "evidence": "evidence/development-3"
+    },
+    {
+      "id": 4,
+      "status": "passed_20_tests",
+      "evidence": "evidence/development-4",
+      "result": "run-role day exchange yields an actual distinct candidate; three negative guards added before final validation"
+    }
+  ],
+  "validationAttempts": 2,
+  "rejectedEvidence": [
+    {
+      "path": "evidence/validation-1",
+      "sportsObservation": "aggregate acceptance too coarse; no production use or publication",
+      "technicalFailure": "test-only remote-loader replaceAll exceeds existing ES library; use equivalent regex replacement"
+    }
+  ],
+  "lastSavedAt": "2026-10-29T15:15:23.825548+00:00",
+  "acceptedValidation": "evidence/validation-2",
+  "recommendation": "DRAFT_NO_GO",
+  "developmentClosedAt": "2026-10-29T15:17:55.713695+00:00",
+  "resumeRequiresNewBudget": true,
+  "closedAt": "2026-10-29T15:21:15.329136+00:00",
+  "elapsedMinutesAtClosureCheckpoint": 35.405,
+  "publishedImplementationCommit": "4752273e9424a133b025487ff9ec92be4ff7a55f",
+  "prDraftVerified": true,
+  "prMerged": false,
+  "actualIndividualApprovals": 0,
+  "humanExpertReviews": 0,
+  "nextHumanDecisions": [
+    "parallel run-reference/CE review with #424",
+    "candidate 95/90 programming contract",
+    "independent coach review of sequencing and real recovery"
+  ],
+  "closureEvidence": "evidence/pr420-updated.json and final documentation-only closure commit; discover its SHA with git log on this state file"
+}

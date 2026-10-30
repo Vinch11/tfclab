@@ -1,0 +1,19 @@
+{
+  "status": "explicit_coach_policy_code_pushed_PR_DRAFT_NO_GO",
+  "verifiedAt": "2026-10-29T17:58:03.391171+00:00",
+  "branch": "experiment/det-engine",
+  "implementationCommit": "c9820ecc394f5211ed3d54eec3850e7cd3f092df",
+  "pr": 420,
+  "draft": true,
+  "merged": false,
+  "prHeadAtCodePublication": "c9820ecc394f5211ed3d54eec3850e7cd3f092df",
+  "bodySha256": "7c89b6cc1d56fc6cab7ce19817227a74fa75e448cf5ea0ec8b239d28eb74a4b3",
+  "priorTrackedFilesUnchanged": 4850,
+  "releaseManifestVerified": 64,
+  "coachProgrammingPolicyAuthorizations": 1,
+  "individualDoseApprovals": 0,
+  "individualExpertReviews": 0,
+  "closureCommit": "documentation only; remote HEAD checked separately after push",
+  "forcePush": false,
+  "productionTouched": false
+}

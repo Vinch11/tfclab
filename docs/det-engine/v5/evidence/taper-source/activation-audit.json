@@ -1,0 +1,374 @@
+[
+  {
+    "fixtureId": "synthetic-v4:TrailShort:untrained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 2,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": []
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailShort:light",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 2,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": []
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailShort:trained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 4,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": [
+        "ravitaillement"
+      ]
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailShort:highly_trained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 4,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": [
+        "ravitaillement"
+      ]
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailMountain:untrained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 2,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": []
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailMountain:light",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 2,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": []
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailMountain:trained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 4,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": [
+        "ravitaillement"
+      ]
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailMountain:highly_trained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 4,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": [
+        "ravitaillement"
+      ]
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailUltra:untrained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 2,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": []
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailUltra:light",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 2,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": []
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailUltra:trained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 4,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": [
+        "ravitaillement"
+      ]
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  },
+  {
+    "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+    "sourceCardPresent": true,
+    "inPreparedPool": true,
+    "coachZoneCap": 4,
+    "sourceMainZoneMax": 3,
+    "taperEligibility": {
+      "compatible": true,
+      "reasons": [],
+      "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+      "repairInsertionReference": {
+        "compatible": true,
+        "reasons": []
+      },
+      "confirmedPrerequisites": [
+        "ravitaillement"
+      ]
+    },
+    "recoveryReasons": [
+      "recovery_zone:z3",
+      "recovery_intent:race_pace"
+    ],
+    "minimumDoseCheck": {
+      "errors": [],
+      "unknown": []
+    },
+    "sourceStructure": "Warm-up: 10' Z1 plat | Main: 20-30' vallonné léger dont 4-6×30s @allure course r=1'30 trot. Terrain type course si possible | Cool-down: 10' Z1 + strides légères",
+    "sourceDoseRange": [
+      30,
+      50
+    ]
+  }
+]

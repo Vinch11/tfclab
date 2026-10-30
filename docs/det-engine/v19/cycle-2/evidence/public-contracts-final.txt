@@ -1,0 +1,12 @@
+✔ public format fixture preserves literal targets including a zero domain boundary; no runtime sender claim (1.527787ms)
+✔ real identities, unknown recipe, multi-occurrence, multimodal and unverified document context refuse (0.27854ms)
+✔ fractional duration, missing target maximum and lost or conflicting instructions refuse (0.649772ms)
+✔ exercises, unknown target semantics and implicit recovery durations remain refused (0.233643ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8.458836

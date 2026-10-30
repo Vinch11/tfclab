@@ -1,0 +1,99 @@
+[
+  {
+    "id": "IM_reference",
+    "prospectiveDecisions": 7,
+    "selected": 7,
+    "refused": 0,
+    "minutes": 300,
+    "calendarComplete": true,
+    "calendarErrors": [],
+    "missingObligations": [],
+    "trajectoryCount": 49,
+    "actions": {
+      "maintain": 14,
+      "coach_review": 35
+    },
+    "expertReviewed": false
+  },
+  {
+    "id": "IM_glycolytic",
+    "prospectiveDecisions": 7,
+    "selected": 0,
+    "refused": 7,
+    "minutes": 0,
+    "calendarComplete": false,
+    "calendarErrors": [],
+    "missingObligations": [
+      {
+        "sport": "swim",
+        "required": 2,
+        "placed": 0
+      },
+      {
+        "sport": "bike",
+        "required": 2,
+        "placed": 0
+      },
+      {
+        "sport": "run",
+        "required": 2,
+        "placed": 0
+      },
+      {
+        "sport": "strength",
+        "required": 1,
+        "placed": 0
+      }
+    ],
+    "trajectoryCount": 0,
+    "actions": {},
+    "expertReviewed": false
+  },
+  {
+    "id": "Trail_known_history",
+    "prospectiveDecisions": 6,
+    "selected": 4,
+    "refused": 2,
+    "minutes": 135,
+    "calendarComplete": false,
+    "calendarErrors": [],
+    "missingObligations": [
+      {
+        "sport": "run",
+        "required": 4,
+        "placed": 3
+      }
+    ],
+    "trajectoryCount": 28,
+    "actions": {
+      "maintain": 8,
+      "coach_review": 18,
+      "substitute": 2
+    },
+    "expertReviewed": false
+  },
+  {
+    "id": "Trail_unknown_history",
+    "prospectiveDecisions": 6,
+    "selected": 0,
+    "refused": 6,
+    "minutes": 0,
+    "calendarComplete": false,
+    "calendarErrors": [],
+    "missingObligations": [
+      {
+        "sport": "run",
+        "required": 4,
+        "placed": 0
+      },
+      {
+        "sport": "strength",
+        "required": 1,
+        "placed": 0
+      }
+    ],
+    "trajectoryCount": 0,
+    "actions": {},
+    "expertReviewed": false
+  }
+]

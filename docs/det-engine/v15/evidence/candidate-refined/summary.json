@@ -1,0 +1,235 @@
+{
+  "version": "det-v15-1",
+  "selected": {
+    "profile": "IM_aerobic_history",
+    "model": "native_floor_conditional"
+  },
+  "classification": [
+    {
+      "profile": "IM_aerobic_history",
+      "model": "native_floor_conditional",
+      "slots": 105,
+      "conditionalSlots": 104,
+      "conditionOccurrences": 318,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 50
+      },
+      "byId": {
+        "protocol_time": 53,
+        "swim_execution": 32,
+        "prerequisite:ventilateur": 12,
+        "whole_week_interaction": 48,
+        "posture_response": 9,
+        "movement_competence": 15,
+        "recovery": 98,
+        "relative_source_context": 33,
+        "catalogue_unknown": 12,
+        "capacity": 6
+      },
+      "initialBlockOccurrences": 69,
+      "initialBlockByPrimary": {
+        "technical_catalogue": 20,
+        "individual_pre_prescription": 19,
+        "routine_monitoring": 19,
+        "future_reassessment": 11
+      },
+      "reviewQuestionGroups": 212,
+      "allMapped": true,
+      "everyOriginalGateRetained": true
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "hold_current_envelope",
+      "slots": 105,
+      "conditionalSlots": 104,
+      "conditionOccurrences": 312,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 44
+      },
+      "byId": {
+        "protocol_time": 53,
+        "swim_execution": 32,
+        "prerequisite:ventilateur": 12,
+        "whole_week_interaction": 48,
+        "posture_response": 9,
+        "movement_competence": 15,
+        "recovery": 98,
+        "relative_source_context": 33,
+        "catalogue_unknown": 12
+      },
+      "initialBlockOccurrences": 69,
+      "initialBlockByPrimary": {
+        "technical_catalogue": 20,
+        "individual_pre_prescription": 19,
+        "routine_monitoring": 19,
+        "future_reassessment": 11
+      },
+      "reviewQuestionGroups": 206,
+      "allMapped": true,
+      "everyOriginalGateRetained": true
+    },
+    {
+      "profile": "IM_aerobic_history",
+      "model": "blockwise_reassessment",
+      "slots": 105,
+      "conditionalSlots": 104,
+      "conditionOccurrences": 318,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 50
+      },
+      "byId": {
+        "protocol_time": 53,
+        "swim_execution": 32,
+        "prerequisite:ventilateur": 12,
+        "whole_week_interaction": 48,
+        "posture_response": 9,
+        "movement_competence": 15,
+        "recovery": 98,
+        "relative_source_context": 33,
+        "catalogue_unknown": 12,
+        "capacity": 6
+      },
+      "initialBlockOccurrences": 69,
+      "initialBlockByPrimary": {
+        "technical_catalogue": 20,
+        "individual_pre_prescription": 19,
+        "routine_monitoring": 19,
+        "future_reassessment": 11
+      },
+      "reviewQuestionGroups": 212,
+      "allMapped": true,
+      "everyOriginalGateRetained": true
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "native_floor_conditional",
+      "slots": 105,
+      "conditionalSlots": 104,
+      "conditionOccurrences": 317,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 49
+      },
+      "byId": {
+        "protocol_time": 53,
+        "swim_execution": 32,
+        "prerequisite:ventilateur": 12,
+        "whole_week_interaction": 48,
+        "posture_response": 9,
+        "movement_competence": 15,
+        "recovery": 98,
+        "relative_source_context": 33,
+        "catalogue_unknown": 12,
+        "capacity": 5
+      },
+      "initialBlockOccurrences": 69,
+      "initialBlockByPrimary": {
+        "technical_catalogue": 20,
+        "individual_pre_prescription": 19,
+        "routine_monitoring": 19,
+        "future_reassessment": 11
+      },
+      "reviewQuestionGroups": 211,
+      "allMapped": true,
+      "everyOriginalGateRetained": true
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "hold_current_envelope",
+      "slots": 105,
+      "conditionalSlots": 104,
+      "conditionOccurrences": 312,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 44
+      },
+      "byId": {
+        "protocol_time": 53,
+        "swim_execution": 32,
+        "prerequisite:ventilateur": 12,
+        "whole_week_interaction": 48,
+        "posture_response": 9,
+        "movement_competence": 15,
+        "recovery": 98,
+        "relative_source_context": 33,
+        "catalogue_unknown": 12
+      },
+      "initialBlockOccurrences": 69,
+      "initialBlockByPrimary": {
+        "technical_catalogue": 20,
+        "individual_pre_prescription": 19,
+        "routine_monitoring": 19,
+        "future_reassessment": 11
+      },
+      "reviewQuestionGroups": 206,
+      "allMapped": true,
+      "everyOriginalGateRetained": true
+    },
+    {
+      "profile": "IM_balanced_history",
+      "model": "blockwise_reassessment",
+      "slots": 105,
+      "conditionalSlots": 104,
+      "conditionOccurrences": 318,
+      "byPrimary": {
+        "technical_catalogue": 110,
+        "individual_pre_prescription": 60,
+        "routine_monitoring": 98,
+        "future_reassessment": 50
+      },
+      "byId": {
+        "protocol_time": 53,
+        "swim_execution": 32,
+        "prerequisite:ventilateur": 12,
+        "whole_week_interaction": 48,
+        "posture_response": 9,
+        "movement_competence": 15,
+        "recovery": 98,
+        "relative_source_context": 33,
+        "catalogue_unknown": 12,
+        "capacity": 6
+      },
+      "initialBlockOccurrences": 69,
+      "initialBlockByPrimary": {
+        "technical_catalogue": 20,
+        "individual_pre_prescription": 19,
+        "routine_monitoring": 19,
+        "future_reassessment": 11
+      },
+      "reviewQuestionGroups": 212,
+      "allMapped": true,
+      "everyOriginalGateRetained": true
+    }
+  ],
+  "initial": {
+    "sessions": 26,
+    "conditionalSlots": 25,
+    "conditions": 69
+  },
+  "sourceCalendarsRegenerated": 0,
+  "originalConditionsResolved": 0,
+  "expertReviewPerformed": false,
+  "operationalApproval": false,
+  "recommendation": "NO-GO",
+  "inputs": {
+    "docs/det-engine/v14/evidence/final/study.json.gz": "b28ca9a87d34cb8c4bc14908c7515cb8f47f2c752cf23b0a1f7b1a19a3eb21ea",
+    "docs/det-engine/v14/evidence/inspection.json": "41388794da9aec47222fcd86f9edf5f166dbf959dc47078546acb5684117b83e",
+    "docs/det-engine/v15/evidence/schema-audit.json": "d94596ef573f573e1d684abeaa4bda9eab72c918d4fb1cf57af32af001dfa9b0",
+    "docs/det-engine/v14/evidence/final/calendars.json.gz": "69e9f09cdcb1c83a9c524323b01ec6efa22f65140cae66a4ececf0d7bd6ad706",
+    "docs/det-engine/v8/SCIENTIFIC_EVIDENCE_MATRIX.md": "d5fb5fb46c2be22f7a4f2237cf6a7b605d6edf3d73da32d702d2559f6eb8afd5",
+    "docs/det-engine/v8/LORANG_METHODOLOGY.md": "74bba1aa3ddfb3758625769e90eb607fde4e1cf59d76d1804ba2cc66a548c491"
+  }
+}

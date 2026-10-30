@@ -1,0 +1,1870 @@
+{
+  "unassigned": [
+    {
+      "week": 13,
+      "role": {
+        "key": "IM_aerobic_history:native_floor_conditional:S13:bike:1",
+        "sport": "bike",
+        "index": 1,
+        "kind": "endurance",
+        "floor": 0,
+        "currentCapacity": 120,
+        "target": 45,
+        "purpose": "maintain discipline-specific exposure in the existing doctrine domain"
+      },
+      "reasons": [
+        {
+          "source": "D_BIKE_RECOVERY",
+          "reason": "not_in_original_eligible_context_pool"
+        },
+        {
+          "source": "V2_RECUP_VELO_REGENERATION",
+          "reason": "not_in_original_eligible_context_pool"
+        },
+        {
+          "source": "D_BIKE_REGEN_60_PRO",
+          "reason": "distinct_source_required_by_existing_final_validation"
+        },
+        {
+          "source": "V3_BIKE_RECOVERY_SPIN",
+          "reason": "not_in_original_eligible_context_pool"
+        },
+        {
+          "source": "D_RECOVERY_VAR_3_PRO",
+          "reason": "not_in_original_eligible_context_pool"
+        }
+      ]
+    },
+    {
+      "week": 13,
+      "role": {
+        "key": "IM_aerobic_history:native_floor_conditional:S13:run:1",
+        "sport": "run",
+        "index": 1,
+        "kind": "endurance",
+        "floor": 0,
+        "currentCapacity": 75,
+        "target": 45,
+        "purpose": "maintain discipline-specific exposure in the existing doctrine domain"
+      },
+      "reasons": [
+        {
+          "source": "D_RUN_REGEN",
+          "reason": "not_in_original_eligible_context_pool"
+        },
+        {
+          "source": "A_RUN_EASY_45_PRO",
+          "reason": "not_in_original_eligible_context_pool"
+        },
+        {
+          "source": "A_RUN_Z2_EASY",
+          "reason": "distinct_source_required_by_existing_final_validation"
+        },
+        {
+          "source": "D_RUN_RECOVERY_30_PRO",
+          "hard": [
+            "complete_declared_recipe_or_catalogue_max_exceeded"
+          ]
+        },
+        {
+          "source": "D_MAR_REGEN",
+          "hard": [
+            "complete_declared_recipe_or_catalogue_max_exceeded"
+          ]
+        },
+        {
+          "source": "D_RECOVERY_VAR_2_PRO",
+          "reason": "not_in_original_eligible_context_pool"
+        }
+      ]
+    }
+  ],
+  "pools": [
+    {
+      "week": 13,
+      "cards": [
+        {
+          "id": "A_IM_RUN_LONG_DURABILITY_2H",
+          "sport": "run",
+          "duration": [
+            105,
+            135
+          ],
+          "phases": [
+            "peak",
+            "build"
+          ],
+          "when": "Build + Peak IM (1×/sem en alternance avec brick long)",
+          "avoid": "Fatigue extrême, blessure tendineuse active, semaine récup",
+          "intent": "test",
+          "pre": [],
+          "structure": "Warm-up: 15min Z1→Z2 progressif, cadence cible 178-184 spm | Main: 75-105min Z2 stable (75-82% FCmax, pace ~+15-25s/km vs pace IM cible). Cadence verrouillée. Nutrition race 70-90g CHO/h (test IM). FC drift toléré <5% sur les 60 dernières minutes (Stryd Durability). Si drift >8% → réduire à Z1 et noter limite durabilité atteinte. | Cool-down: 15min Z1 + 5min marche + mobilité hanches/mollets"
+        },
+        {
+          "id": "A_IM_RUN_FATIGUED_NEXT_DAY",
+          "sport": "run",
+          "duration": [
+            75,
+            110
+          ],
+          "phases": [
+            "peak",
+            "build"
+          ],
+          "when": "Build + Peak IM, dimanche après gros samedi vélo (back-to-back)",
+          "avoid": "Douleur tendineuse, FC repos +10bpm vs baseline (signal sur-fatigue)",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: 20min Z1 très souple, cadence libre (jambes ouvrent progressivement) | Main: 45-75min Z2 bas (pace +25-35s/km vs pace IM). Cadence stable >175 spm malgré fatigue. Si FC monte >Z2 → ralentir, ne PAS forcer. Nutrition 60g CHO/h. Objectif : entraîner le système à courir 'long' avec glycogène/muscles pré-fatigués. | Cool-down: 10min marche + protocole récup actif (compression, glace)"
+        },
+        {
+          "id": "A_RUN_Z2_EASY",
+          "sport": "run",
+          "duration": [
+            35,
+            90
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année",
+          "avoid": "Aucun (adapter volume si fatigue)",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Warm-up: 10 min Z1–Z2 relâché | Main: 20–70 min Z2 (technique, relâchement) | Cool-down: 5 min Z1 + éducatifs 5 min (optionnel)"
+        },
+        {
+          "id": "V3_BIKE_CADENCE_DRILLS",
+          "sport": "bike",
+          "duration": [
+            60,
+            90
+          ],
+          "phases": [
+            "build",
+            "base"
+          ],
+          "when": "Base/Build, dans sortie Z2",
+          "avoid": "Jour d'intervalles intenses",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Warm-up: 15' Z1→Z2 | Main: Alternance: 5' à 60 rpm + 5' à 110 rpm, le tout Z2. 6 cycles. Focus: rondeur pédalage | Cool-down: 10' Z1"
+        },
+        {
+          "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+          "sport": "run",
+          "duration": [
+            40,
+            70
+          ],
+          "phases": [
+            "base"
+          ],
+          "when": "Base — séance quotidienne ou quasi-quotidienne. Le volume total hebdomadaire est la clé Lydiard.",
+          "avoid": "Intensité > Z2 · Phase de Build ou Peak",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Warm-up: Intégré — départ très progressif 5 min Z1. | Main: 40-60 min en Z1-Z2. Cette séance est volontairement courte et facile — c'est son but. Lydiard prescrivait des doubles journées : matin 40-60 min Z1, soir 40-60 min Z1. Le volume hebdomadaire total (pas l'intensité de chaque séance) crée l'adaptation. RÈGLE LYDIARD : 'Il vaut mieux courir 100 km/semaine à Z1-Z2 que 60 km/semaine avec trop d'intensité.' Pour les Age Groupers : 6×50 min Z2/semaine = 300 min de base aérobie pure. Résultat sur 12-16 semaines : augmentation naturelle de la VMA de 5-12% sans aucune séance intense. | Cool-down: Marche 5 min + mobilité légère"
+        },
+        {
+          "id": "V2_RUN_EDUCATIFS_TECHNIQUES",
+          "sport": "run",
+          "duration": [
+            25,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année (2x/semaine, avant séance qualité)",
+          "avoid": "Si douleur articulaire aiguë",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Warm-up: 10' trot Z1 | Main: Gammes complètes: 2x30m montées genoux + 2x30m talons-fesses + 2x30m skipping + 2x30m pas chassés + 2x30m griffé + 4x40m bondissements progressifs. Marche retour | Cool-down: 5' trot Z1"
+        },
+        {
+          "id": "V2_BIKE_SINGLE_LEG",
+          "sport": "bike",
+          "duration": [
+            50,
+            65
+          ],
+          "phases": [
+            "build",
+            "base"
+          ],
+          "when": "Base/Build",
+          "avoid": "Douleur genou unilatérale",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Warm-up: 15' Z2 | Main: 6 x (2' jambe droite seule + 2' jambe gauche seule) Z2 60-70rpm. Pied libre sur repose-pied ou décroché. R:2' deux jambes. Focus: point mort haut et bas | Cool-down: 10' Z1"
+        },
+        {
+          "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+          "sport": "bike",
+          "duration": [
+            150,
+            300
+          ],
+          "phases": [
+            "build",
+            "base"
+          ],
+          "when": "Base et Build, week-end",
+          "avoid": "Semaine de récupération",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Warm-up: 20' progressif Z1→Z2 | Main: 2h30-4h30 Z2 stable, cadence 85-95 rpm | Cool-down: 10' retour Z1"
+        },
+        {
+          "id": "SEILER_BIKE_Z1_LONG",
+          "sport": "bike",
+          "duration": [
+            90,
+            210
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année — 1-2x/semaine. Pilier des 80% du volume Seiler.",
+          "avoid": "Home trainer sans ventilateur (FC monte) · Dériver vers Z3 sur les côtes",
+          "intent": "endurance_fondamentale",
+          "pre": [
+            "ventilateur"
+          ],
+          "structure": "Warm-up: Intégré — les 15 premières minutes Z1 très progressif. | Main: 90-180 min en Z1-Z2 strict (55-72% FTP, < 75% FCmax). Cadence libre 85-95 rpm. CONTRÔLE PUISSANCE : utiliser la puissance comme guide principal (pas la FC qui réagit trop lentement). Maintenir < 72% FTP en plat, autoriser jusqu'à 76% FTP dans les côtes courtes. Descentes : pédaler léger pour maintenir le stimulus sans dépasser Z2. Réf : Seiler 2006 — les cyclistes norvégiens élites (cross-country ski adapté au vélo) maintiennent 78-82% de leur volume < 72% FTP. Ceux qui dérivent vers Z3 sur les longues sorties stagnent. | Cool-down: Intégré — dernières 15 min Z1 strict."
+        },
+        {
+          "id": "SEILER_RUN_Z1_EASY_LONG",
+          "sport": "run",
+          "duration": [
+            70,
+            150
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler.",
+          "avoid": "Dériver vers Z3 (erreur classique — 'black hole') · Terrain trop vallonné si difficile de rester en Z1-Z2",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes."
+        },
+        {
+          "id": "B_BIKE_DURABILITY_TEST",
+          "sport": "bike",
+          "duration": [
+            120,
+            180
+          ],
+          "phases": [
+            "peak",
+            "build"
+          ],
+          "when": "Fin de Build / Peak",
+          "avoid": "Fatigue",
+          "intent": "test",
+          "pre": [],
+          "structure": "Main: 2–3h Z2 stable. Comparer ratio puissance/FC 1ère vs 2ème moitié. Objectif drift <5%."
+        },
+        {
+          "id": "V3_BIKE_Z2_PROGRESSIF",
+          "sport": "bike",
+          "duration": [
+            90,
+            150
+          ],
+          "phases": [
+            "build",
+            "base"
+          ],
+          "when": "Base/Build, mi-semaine",
+          "avoid": "Semaine de récup",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Warm-up: 15' Z1 | Main: Progressif: 30' bas Z2 (55%) → 30' mi-Z2 (62%) → 30' haut Z2 (70%). Cadence stable 85-90 rpm | Cool-down: 15' Z1"
+        },
+        {
+          "id": "V2_BIKE_FATMAX_LONG",
+          "sport": "bike",
+          "duration": [
+            150,
+            210
+          ],
+          "phases": [
+            "build",
+            "base"
+          ],
+          "when": "Base/Build IM",
+          "avoid": "Si glycogène déjà déplété (train low veille)",
+          "intent": "fatmax",
+          "pre": [],
+          "structure": "Warm-up: 15' progressif Z1→Z2, cadence 80rpm | Main: 2h15-3h15 Z2 bas (65-72% FTP). Ravitaillement modéré (40-50g/h). Cadence confortable 80-90rpm. Respiration nasale possible = bon signe | Cool-down: 10' Z1 souple"
+        },
+        {
+          "id": "V2_RUN_SORTIE_LONGUE_DEPLETION",
+          "sport": "run",
+          "duration": [
+            100,
+            130
+          ],
+          "phases": [
+            "build"
+          ],
+          "when": "Build IM/Marathon (1x/2semaines max)",
+          "avoid": "Si glycémie instable, >2h30 sans glucides",
+          "intent": "fatmax",
+          "pre": [
+            "glucides"
+          ],
+          "structure": "Warm-up: 10' trot Z1 | Main: 1h50 Z2 stable sans glucides (eau + sel uniquement). Emporter gel de secours. | Cool-down: 10' marche. Manger dans les 30min post. Adaptation fat ox"
+        },
+        {
+          "id": "D_BIKE_REGEN_60_PRO",
+          "sport": "bike",
+          "duration": [
+            45,
+            75
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1–Z2 très facile, 90–95rpm"
+        },
+        {
+          "id": "SEILER_RUN_Z1_RECOVERY_STRICT",
+          "sport": "run",
+          "duration": [
+            30,
+            50
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année — lendemain de séance haute intensité ou longue sortie. Remplace le repos complet.",
+          "avoid": "Dériver vers Z2 haut ou Z3 (détruit le bénéfice) · Courir avec des partenaires plus rapides",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: Commencer directement à allure très lente | Main: 30-45 min en Z1 STRICT (< 70% FCmax). Allure : beaucoup plus lente qu'on ne pense nécessaire. Test : capable de chanter une chanson complète en courant (pas juste des mots — une chanson entière). Réf : Seiler 2010 — 'La plupart des athlètes font leurs séances de récupération trop vite et leurs séances intensives trop lentement. Résultat : tout se retrouve en Z3.' Cette séance doit se terminer avec l'impression de ne pas avoir vraiment couru — c'est le signe qu'elle est correcte. | Cool-down: Marche 5 min + mobilité 10 min"
+        },
+        {
+          "id": "C_BIKE_CADENCE_SKILLS_PRO",
+          "sport": "bike",
+          "duration": [
+            45,
+            70
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année",
+          "avoid": "Fatigue lombaire",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Main: Z2 + 6x3' cadence 100–110 rpm (sans surpuissance)"
+        },
+        {
+          "id": "D_DELOAD_RUN",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Semaine de récupération (1 semaine sur 3-4)",
+          "avoid": "N/A",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Warm-up: 3' marche dynamique + 5 squats + 5 fentes. | Main: 25-40' Z1 stricte (allure très facile, 'je peux parler en phrases complètes').\n• Cible FC : 65-72% FCmax max.\n• Cadence : naturelle, ne pas chercher à augmenter.\n• Technique : épaules basses, regard 20m devant, foulée souple.\n• Si tu te sens trop bien et que tu accélères 'machinalement' : ralentis volontairement. Le but n'est PAS de progresser cette séance. | Cool-down: 3' marche + étirement debout mollets/quadriceps 20\"/côté. | Coaching: Semaine de décharge = 40-50% du volume normal. Tu dois finir TOUTES tes séances de la semaine avec l'impression d'avoir 'gardé du jus'. Si tu termines fatigué, c'est que ta décharge est trop chargée."
+        },
+        {
+          "id": "D_SEMI_RECOVERY_30",
+          "sport": "run",
+          "duration": [
+            20,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B / long run",
+          "avoid": "Douleur",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 20–35' Z1 très facile + mobilité"
+        },
+        {
+          "id": "C_BIKE_CADENCE",
+          "sport": "bike",
+          "duration": [
+            45,
+            75
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année",
+          "avoid": "fatigue lombaire",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Warm-up: 15 min Z1–Z2 | Main: 6x5 min Z2 cadence 95–105 + 3 min Z1 | Cool-down: 10 min Z1"
+        },
+        {
+          "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+          "sport": "run",
+          "duration": [
+            90,
+            180
+          ],
+          "phases": [
+            "base"
+          ],
+          "when": "Base — pilier de la phase 1 Lydiard. 1x/semaine weekend. Volume progressif sur 16-24 semaines.",
+          "avoid": "Dériver vers Z3 ou plus (détruit l'objectif) · Phase Build ou Peak (trop tard pour la base) · Terrain trop technique",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Warm-up: Intégré — les 15 premières minutes sont l'échauffement naturel en Z1. | Main: 90-150 min en Z1-Z2 strict. PHILOSOPHIE LYDIARD : 'La course aérobie développe le cœur, les poumons, les muscles et le système vasculaire. Sans cette base, la vitesse n'a aucun fondement.' Allure : conversation complète possible. FC < 75% FCmax STRICTEMENT. Pour un coureur avec FCmax 185 : rester sous 139 bpm. Progression Lydiard sur 24 semaines : S1=90 min, S4=110 min, S8=130 min, S12=150 min, S16=165 min, S20=180 min. La DURÉE augmente, pas l'intensité. Lydiard prescrivait même des marches si la FC montait trop. Cette base développe : densité capillaire, densité mitochondriale, enzymes aérobies, économie de course, volume sanguin, efficacité cardiaque. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes. Étirements doux."
+        },
+        {
+          "id": "A_10K_EASY_60",
+          "sport": "run",
+          "duration": [
+            45,
+            70
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année",
+          "avoid": "Aucun",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 45–70' Z2 facile, focus relâchement"
+        },
+        {
+          "id": "D_RECOVERY_VAR_8_PRO",
+          "sport": "run",
+          "duration": [
+            35,
+            45
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_IM_BRICK_REGEN",
+          "sport": "run",
+          "duration": [
+            15,
+            30
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après long vélo IM",
+          "avoid": "Fatigue excessive",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15–30' Z1 très relâché"
+        },
+        {
+          "id": "D_ACTIVATION_ANKLE_FOOT",
+          "sport": "run",
+          "duration": [
+            8,
+            12
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Pré-séance trail ou 2-3x/semaine",
+          "avoid": "N/A",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Main: 5 exercices, 2 tours, repos 20s. Pieds NUS de préférence.\n\n1) **Toe yoga** (yoga des orteils) — assis, pied à plat au sol. Lève le gros orteil sans bouger les autres (10 reps). Puis lève les 4 autres en gardant le gros orteil au sol (10 reps). C'est dur la 1ère fois — le cerveau apprend. 2 tours/pied.\n\n2) **Heel raises** (montées sur pointes des pieds) — debout, mains à un mur, monte lentement sur la pointe (2s), redescends (3s). 15 reps. Pour intensifier : 1 jambe à la fois.\n\n3) **Single leg balance** — debout pieds nus sur 1 jambe, autre jambe pliée en arrière. Tiens 30\". Niveau 1 : yeux ouverts. Niveau 2 : yeux fermés. Niveau 3 : sur coussin/serviette pliée. 2×30\"/jambe.\n\n4) **Ankle CARs** (cercles contrôlés cheville) — assis ou debout, pied levé, dessine le plus grand cercle possible avec l'orteil, très lentement. 8 dans un sens / 8 dans l'autre, par cheville.\n\n5) **Short foot drill** (pied court) — assis ou debout pieds nus, essaie de 'raccourcir' ton pied en rapprochant la base des orteils du talon SANS recroqueviller les orteils. Comme si tu voulais creuser une voûte sous le pied. 12 contractions lentes de 3s/pied. Active les muscles intrinsèques (anti-pieds plats fonctionnels). | Cool-down: 1' marche pieds nus en alternant marche normale, sur les pointes, sur les talons, sur les bords externes/internes. | Coaching: Idéal en intégrant à ta routine du matin (sortie de douche) ou en regardant la TV. Pieds nus impératif. Prévention #1 des périostites, fascite plantaire, entorses pour les trailers et coureurs."
+        },
+        {
+          "id": "D_RECOVERY_VAR_9_PRO",
+          "sport": "bike",
+          "duration": [
+            20,
+            50
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_6_PRO",
+          "sport": "bike",
+          "duration": [
+            25,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RUN_RECOVERY_30_PRO",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité 10'"
+        },
+        {
+          "id": "D_MAR_REGEN",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B",
+          "avoid": "Douleur",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 25–40' Z1"
+        },
+        {
+          "id": "D_RECOVERY_VAR_5_PRO",
+          "sport": "run",
+          "duration": [
+            20,
+            55
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "C_BIKE_AERO_POSITION_DRILLS",
+          "sport": "bike",
+          "duration": [
+            60,
+            120
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "when": "Toute l'année IM / 70.3",
+          "avoid": "Douleur cervicale/lombaire",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: Z2 avec 6x10' en position aéro (sans surpuissance) r=5' position relâchée Z1."
+        },
+        {
+          "id": "A_IM_RUN_PACE",
+          "sport": "run",
+          "duration": [
+            60,
+            120
+          ],
+          "phases": [
+            "peak",
+            "build"
+          ],
+          "when": "Build / Peak IM",
+          "avoid": "Douleurs tendineuses",
+          "intent": "race_pace",
+          "pre": [],
+          "structure": "Main: 60–120' Z2 bas (IM pace)"
+        }
+      ]
+    },
+    {
+      "week": 14,
+      "cards": [
+        {
+          "id": "V3_BIKE_Z2_CAFE_RIDE",
+          "sport": "bike",
+          "duration": [
+            60,
+            120
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Dimanche facile ou semaine de récup",
+          "avoid": "En remplacement d'une séance clé",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: 10' Z1 | Main: 50-100' Z2 relax, cadence libre | Cool-down: 10' Z1"
+        },
+        {
+          "id": "D_BIKE_REGEN_60_PRO",
+          "sport": "bike",
+          "duration": [
+            45,
+            75
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1–Z2 très facile, 90–95rpm"
+        },
+        {
+          "id": "D_BIKE_RECOVERY",
+          "sport": "bike",
+          "duration": [
+            30,
+            60
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Taper / lendemain charge",
+          "avoid": "aucun",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 30–60 min Z1, très facile"
+        },
+        {
+          "id": "D_IM_BRICK_REGEN",
+          "sport": "run",
+          "duration": [
+            15,
+            30
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après long vélo IM",
+          "avoid": "Fatigue excessive",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15–30' Z1 très relâché"
+        },
+        {
+          "id": "D_MAR_REGEN",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B",
+          "avoid": "Douleur",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 25–40' Z1"
+        },
+        {
+          "id": "V3_RECUP_WALK_NATURE",
+          "sport": "run",
+          "duration": [
+            30,
+            60
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Jour de repos ou récup active",
+          "avoid": "Jamais en remplacement de repos complet si surentraînement",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: Pas d'échauffement | Main: 30-60' marche terrain naturel (forêt, sentier). Pas de FC cible, focus: respiration nasale, déconnexion | Cool-down: 5' étirements debout"
+        },
+        {
+          "id": "D_10K_RECOVERY_30",
+          "sport": "run",
+          "duration": [
+            20,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B",
+          "avoid": "Douleur",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 20–35' Z1 très relâché + étirements"
+        },
+        {
+          "id": "D_RUN_REGEN",
+          "sport": "run",
+          "duration": [
+            20,
+            45
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "lendemain séance B / taper",
+          "avoid": "si douleur",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 20–45 min Z1, relâché"
+        },
+        {
+          "id": "D_TAPER_SHAKEOUT",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "J-1",
+          "avoid": "—",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15–20' Z1 + 3x15s accélérations (relâché) r=1' + 5' marche"
+        },
+        {
+          "id": "V2_RECUP_VELO_REGENERATION",
+          "sport": "bike",
+          "duration": [
+            40,
+            60
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain séance clé / post-compétition",
+          "avoid": "Si besoin repos complet",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 45-60' Z1 strict (<60% FTP). Cadence 85-95rpm confortable. Aucune bosse, aucun effort. Si FC >70% FCmax → ralentir. Flush sanguin uniquement"
+        },
+        {
+          "id": "D_TAPER_FLUSH_RUN",
+          "sport": "run",
+          "duration": [
+            15,
+            20
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Semaine taper, J-3 à J-2 avant course",
+          "avoid": "N/A",
+          "intent": "race_pace",
+          "pre": [],
+          "structure": "Warm-up: 3' marche dynamique + 5 squats + 5 fentes. | Main: **Bloc 1 — 12-15' Z1 très facile**. Allure 'je peux chanter'. FC <70% max. Cadence naturelle.\n\n**Bloc 2 — 3×15\" allure course**. Sur une portion plate, accélère pour atteindre l'allure prévue le jour de la course (PAS plus vite), tiens 15\" puis relâche en marche 45\". 3 répétitions. But : rappeler au système nerveux 'à quoi ressemble' l'allure de course, SANS fatigue. | Cool-down: 2' marche + 5 respirations. | Coaching: Tu dois sortir FRAIS et avec l'envie d'en faire plus. Si tu sens un truc qui tire, raccourcis à 10' Z1 sans accélérations. Pas de chrono visible."
+        },
+        {
+          "id": "D_RUN_SHAKEOUT",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "J-1 course ou lendemain longue sortie",
+          "avoid": "Si douleur",
+          "intent": "test",
+          "pre": [],
+          "structure": "Warm-up: 3' marche dynamique avec montées de genoux légères + cercles de bras + 5 squats à poids de corps. | Main: **Bloc 1 — 12 à 20' Z1 stricte** (allure très facile, FC <70% max). Tu dois pouvoir tenir une conversation complète. Foulée courte, cadence légèrement plus haute que d'habitude (180+ pas/min) pour stimuler le système nerveux sans charger les muscles.\n\n**Bloc 2 — 4×20\" accélérations progressives**. Après le bloc Z1 facile, exécute 4 lignes droites sur 100-150m :\n• 20\" : tu pars en footing puis tu accélères PROGRESSIVEMENT pour finir à allure 5K à la dernière seconde. Aucune raideur, aucun blocage.\n• 40\" de marche entre chaque ligne droite (récup complète).\n• Objectif = réveiller la chaîne propulsive, pas faire un test.\n\nNi capteur ni chrono nécessaire — tout est aux sensations. | Cool-down: 2' marche + 5 respirations profondes + étirement debout mollet/quadri (15s/côté, sans forcer). | Coaching: But = 'allumer la machine' la veille d'une course, PAS s'entraîner. Si tu ressens fatigue ou douleur en début de séance, raccourcis à 10' Z1 sans accélérations. La veille d'une course majeure : faire le shakeout le matin si la course est l'après-midi, ou l'après-midi si course le matin."
+        },
+        {
+          "id": "D_SEMI_RECOVERY_30",
+          "sport": "run",
+          "duration": [
+            20,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B / long run",
+          "avoid": "Douleur",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 20–35' Z1 très facile + mobilité"
+        },
+        {
+          "id": "ENR_TAPER_SHAKEOUT_RUN",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Veille de course",
+          "avoid": "Si anxiété → mieux vaut repos complet",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15-20' Z1 ultra-facile. 2 accélérations de 10\" en fin. Check: chaussures, tenue, sensations. Zéro fatigue"
+        },
+        {
+          "id": "D_ACTIVATION_ANKLE_FOOT",
+          "sport": "run",
+          "duration": [
+            8,
+            12
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Pré-séance trail ou 2-3x/semaine",
+          "avoid": "N/A",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Main: 5 exercices, 2 tours, repos 20s. Pieds NUS de préférence.\n\n1) **Toe yoga** (yoga des orteils) — assis, pied à plat au sol. Lève le gros orteil sans bouger les autres (10 reps). Puis lève les 4 autres en gardant le gros orteil au sol (10 reps). C'est dur la 1ère fois — le cerveau apprend. 2 tours/pied.\n\n2) **Heel raises** (montées sur pointes des pieds) — debout, mains à un mur, monte lentement sur la pointe (2s), redescends (3s). 15 reps. Pour intensifier : 1 jambe à la fois.\n\n3) **Single leg balance** — debout pieds nus sur 1 jambe, autre jambe pliée en arrière. Tiens 30\". Niveau 1 : yeux ouverts. Niveau 2 : yeux fermés. Niveau 3 : sur coussin/serviette pliée. 2×30\"/jambe.\n\n4) **Ankle CARs** (cercles contrôlés cheville) — assis ou debout, pied levé, dessine le plus grand cercle possible avec l'orteil, très lentement. 8 dans un sens / 8 dans l'autre, par cheville.\n\n5) **Short foot drill** (pied court) — assis ou debout pieds nus, essaie de 'raccourcir' ton pied en rapprochant la base des orteils du talon SANS recroqueviller les orteils. Comme si tu voulais creuser une voûte sous le pied. 12 contractions lentes de 3s/pied. Active les muscles intrinsèques (anti-pieds plats fonctionnels). | Cool-down: 1' marche pieds nus en alternant marche normale, sur les pointes, sur les talons, sur les bords externes/internes. | Coaching: Idéal en intégrant à ta routine du matin (sortie de douche) ou en regardant la TV. Pieds nus impératif. Prévention #1 des périostites, fascite plantaire, entorses pour les trailers et coureurs."
+        },
+        {
+          "id": "V3_BIKE_RECOVERY_SPIN",
+          "sport": "bike",
+          "duration": [
+            30,
+            50
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain de séance clé",
+          "avoid": "Jamais en remplacement de repos complet si fatigue > 8/10",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: 5' Z1 | Main: 20-40' Z1 strict (<55% FTP), cadence 90-100 rpm, pas de résistance | Cool-down: 5' Z1"
+        },
+        {
+          "id": "D_RECOVERY_VAR_8_PRO",
+          "sport": "run",
+          "duration": [
+            35,
+            45
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_9_PRO",
+          "sport": "bike",
+          "duration": [
+            20,
+            50
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_6_PRO",
+          "sport": "bike",
+          "duration": [
+            25,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RUN_RECOVERY_30_PRO",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_2_PRO",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_5_PRO",
+          "sport": "run",
+          "duration": [
+            20,
+            55
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        }
+      ]
+    },
+    {
+      "week": 15,
+      "cards": [
+        {
+          "id": "V3_BIKE_Z2_CAFE_RIDE",
+          "sport": "bike",
+          "duration": [
+            60,
+            120
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Dimanche facile ou semaine de récup",
+          "avoid": "En remplacement d'une séance clé",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: 10' Z1 | Main: 50-100' Z2 relax, cadence libre | Cool-down: 10' Z1"
+        },
+        {
+          "id": "D_BIKE_REGEN_60_PRO",
+          "sport": "bike",
+          "duration": [
+            45,
+            75
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1–Z2 très facile, 90–95rpm"
+        },
+        {
+          "id": "D_BIKE_RECOVERY",
+          "sport": "bike",
+          "duration": [
+            30,
+            60
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Taper / lendemain charge",
+          "avoid": "aucun",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 30–60 min Z1, très facile"
+        },
+        {
+          "id": "D_IM_BRICK_REGEN",
+          "sport": "run",
+          "duration": [
+            15,
+            30
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après long vélo IM",
+          "avoid": "Fatigue excessive",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15–30' Z1 très relâché"
+        },
+        {
+          "id": "D_MAR_REGEN",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B",
+          "avoid": "Douleur",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 25–40' Z1"
+        },
+        {
+          "id": "V3_RECUP_WALK_NATURE",
+          "sport": "run",
+          "duration": [
+            30,
+            60
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Jour de repos ou récup active",
+          "avoid": "Jamais en remplacement de repos complet si surentraînement",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: Pas d'échauffement | Main: 30-60' marche terrain naturel (forêt, sentier). Pas de FC cible, focus: respiration nasale, déconnexion | Cool-down: 5' étirements debout"
+        },
+        {
+          "id": "D_10K_RECOVERY_30",
+          "sport": "run",
+          "duration": [
+            20,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B",
+          "avoid": "Douleur",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 20–35' Z1 très relâché + étirements"
+        },
+        {
+          "id": "D_RUN_REGEN",
+          "sport": "run",
+          "duration": [
+            20,
+            45
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "lendemain séance B / taper",
+          "avoid": "si douleur",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 20–45 min Z1, relâché"
+        },
+        {
+          "id": "D_TAPER_SHAKEOUT",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "J-1",
+          "avoid": "—",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15–20' Z1 + 3x15s accélérations (relâché) r=1' + 5' marche"
+        },
+        {
+          "id": "V2_RECUP_VELO_REGENERATION",
+          "sport": "bike",
+          "duration": [
+            40,
+            60
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain séance clé / post-compétition",
+          "avoid": "Si besoin repos complet",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 45-60' Z1 strict (<60% FTP). Cadence 85-95rpm confortable. Aucune bosse, aucun effort. Si FC >70% FCmax → ralentir. Flush sanguin uniquement"
+        },
+        {
+          "id": "D_TAPER_FLUSH_RUN",
+          "sport": "run",
+          "duration": [
+            15,
+            20
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Semaine taper, J-3 à J-2 avant course",
+          "avoid": "N/A",
+          "intent": "race_pace",
+          "pre": [],
+          "structure": "Warm-up: 3' marche dynamique + 5 squats + 5 fentes. | Main: **Bloc 1 — 12-15' Z1 très facile**. Allure 'je peux chanter'. FC <70% max. Cadence naturelle.\n\n**Bloc 2 — 3×15\" allure course**. Sur une portion plate, accélère pour atteindre l'allure prévue le jour de la course (PAS plus vite), tiens 15\" puis relâche en marche 45\". 3 répétitions. But : rappeler au système nerveux 'à quoi ressemble' l'allure de course, SANS fatigue. | Cool-down: 2' marche + 5 respirations. | Coaching: Tu dois sortir FRAIS et avec l'envie d'en faire plus. Si tu sens un truc qui tire, raccourcis à 10' Z1 sans accélérations. Pas de chrono visible."
+        },
+        {
+          "id": "D_RUN_SHAKEOUT",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "J-1 course ou lendemain longue sortie",
+          "avoid": "Si douleur",
+          "intent": "test",
+          "pre": [],
+          "structure": "Warm-up: 3' marche dynamique avec montées de genoux légères + cercles de bras + 5 squats à poids de corps. | Main: **Bloc 1 — 12 à 20' Z1 stricte** (allure très facile, FC <70% max). Tu dois pouvoir tenir une conversation complète. Foulée courte, cadence légèrement plus haute que d'habitude (180+ pas/min) pour stimuler le système nerveux sans charger les muscles.\n\n**Bloc 2 — 4×20\" accélérations progressives**. Après le bloc Z1 facile, exécute 4 lignes droites sur 100-150m :\n• 20\" : tu pars en footing puis tu accélères PROGRESSIVEMENT pour finir à allure 5K à la dernière seconde. Aucune raideur, aucun blocage.\n• 40\" de marche entre chaque ligne droite (récup complète).\n• Objectif = réveiller la chaîne propulsive, pas faire un test.\n\nNi capteur ni chrono nécessaire — tout est aux sensations. | Cool-down: 2' marche + 5 respirations profondes + étirement debout mollet/quadri (15s/côté, sans forcer). | Coaching: But = 'allumer la machine' la veille d'une course, PAS s'entraîner. Si tu ressens fatigue ou douleur en début de séance, raccourcis à 10' Z1 sans accélérations. La veille d'une course majeure : faire le shakeout le matin si la course est l'après-midi, ou l'après-midi si course le matin."
+        },
+        {
+          "id": "D_SEMI_RECOVERY_30",
+          "sport": "run",
+          "duration": [
+            20,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B / long run",
+          "avoid": "Douleur",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 20–35' Z1 très facile + mobilité"
+        },
+        {
+          "id": "ENR_TAPER_SHAKEOUT_RUN",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Veille de course",
+          "avoid": "Si anxiété → mieux vaut repos complet",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15-20' Z1 ultra-facile. 2 accélérations de 10\" en fin. Check: chaussures, tenue, sensations. Zéro fatigue"
+        },
+        {
+          "id": "D_ACTIVATION_ANKLE_FOOT",
+          "sport": "run",
+          "duration": [
+            8,
+            12
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Pré-séance trail ou 2-3x/semaine",
+          "avoid": "N/A",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Main: 5 exercices, 2 tours, repos 20s. Pieds NUS de préférence.\n\n1) **Toe yoga** (yoga des orteils) — assis, pied à plat au sol. Lève le gros orteil sans bouger les autres (10 reps). Puis lève les 4 autres en gardant le gros orteil au sol (10 reps). C'est dur la 1ère fois — le cerveau apprend. 2 tours/pied.\n\n2) **Heel raises** (montées sur pointes des pieds) — debout, mains à un mur, monte lentement sur la pointe (2s), redescends (3s). 15 reps. Pour intensifier : 1 jambe à la fois.\n\n3) **Single leg balance** — debout pieds nus sur 1 jambe, autre jambe pliée en arrière. Tiens 30\". Niveau 1 : yeux ouverts. Niveau 2 : yeux fermés. Niveau 3 : sur coussin/serviette pliée. 2×30\"/jambe.\n\n4) **Ankle CARs** (cercles contrôlés cheville) — assis ou debout, pied levé, dessine le plus grand cercle possible avec l'orteil, très lentement. 8 dans un sens / 8 dans l'autre, par cheville.\n\n5) **Short foot drill** (pied court) — assis ou debout pieds nus, essaie de 'raccourcir' ton pied en rapprochant la base des orteils du talon SANS recroqueviller les orteils. Comme si tu voulais creuser une voûte sous le pied. 12 contractions lentes de 3s/pied. Active les muscles intrinsèques (anti-pieds plats fonctionnels). | Cool-down: 1' marche pieds nus en alternant marche normale, sur les pointes, sur les talons, sur les bords externes/internes. | Coaching: Idéal en intégrant à ta routine du matin (sortie de douche) ou en regardant la TV. Pieds nus impératif. Prévention #1 des périostites, fascite plantaire, entorses pour les trailers et coureurs."
+        },
+        {
+          "id": "V3_BIKE_RECOVERY_SPIN",
+          "sport": "bike",
+          "duration": [
+            30,
+            50
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain de séance clé",
+          "avoid": "Jamais en remplacement de repos complet si fatigue > 8/10",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: 5' Z1 | Main: 20-40' Z1 strict (<55% FTP), cadence 90-100 rpm, pas de résistance | Cool-down: 5' Z1"
+        },
+        {
+          "id": "D_RECOVERY_VAR_8_PRO",
+          "sport": "run",
+          "duration": [
+            35,
+            45
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_9_PRO",
+          "sport": "bike",
+          "duration": [
+            20,
+            50
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_6_PRO",
+          "sport": "bike",
+          "duration": [
+            25,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RUN_RECOVERY_30_PRO",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_2_PRO",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_5_PRO",
+          "sport": "run",
+          "duration": [
+            20,
+            55
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        }
+      ]
+    },
+    {
+      "week": 16,
+      "cards": [
+        {
+          "id": "V3_BIKE_Z2_CAFE_RIDE",
+          "sport": "bike",
+          "duration": [
+            60,
+            120
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Dimanche facile ou semaine de récup",
+          "avoid": "En remplacement d'une séance clé",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: 10' Z1 | Main: 50-100' Z2 relax, cadence libre | Cool-down: 10' Z1"
+        },
+        {
+          "id": "D_BIKE_REGEN_60_PRO",
+          "sport": "bike",
+          "duration": [
+            45,
+            75
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1–Z2 très facile, 90–95rpm"
+        },
+        {
+          "id": "D_BIKE_RECOVERY",
+          "sport": "bike",
+          "duration": [
+            30,
+            60
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Taper / lendemain charge",
+          "avoid": "aucun",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 30–60 min Z1, très facile"
+        },
+        {
+          "id": "D_IM_BRICK_REGEN",
+          "sport": "run",
+          "duration": [
+            15,
+            30
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après long vélo IM",
+          "avoid": "Fatigue excessive",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15–30' Z1 très relâché"
+        },
+        {
+          "id": "D_MAR_REGEN",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B",
+          "avoid": "Douleur",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 25–40' Z1"
+        },
+        {
+          "id": "V3_RECUP_WALK_NATURE",
+          "sport": "run",
+          "duration": [
+            30,
+            60
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Jour de repos ou récup active",
+          "avoid": "Jamais en remplacement de repos complet si surentraînement",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: Pas d'échauffement | Main: 30-60' marche terrain naturel (forêt, sentier). Pas de FC cible, focus: respiration nasale, déconnexion | Cool-down: 5' étirements debout"
+        },
+        {
+          "id": "D_10K_RECOVERY_30",
+          "sport": "run",
+          "duration": [
+            20,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B",
+          "avoid": "Douleur",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 20–35' Z1 très relâché + étirements"
+        },
+        {
+          "id": "D_RUN_REGEN",
+          "sport": "run",
+          "duration": [
+            20,
+            45
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "lendemain séance B / taper",
+          "avoid": "si douleur",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 20–45 min Z1, relâché"
+        },
+        {
+          "id": "D_TAPER_SHAKEOUT",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "J-1",
+          "avoid": "—",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15–20' Z1 + 3x15s accélérations (relâché) r=1' + 5' marche"
+        },
+        {
+          "id": "V2_RECUP_VELO_REGENERATION",
+          "sport": "bike",
+          "duration": [
+            40,
+            60
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain séance clé / post-compétition",
+          "avoid": "Si besoin repos complet",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 45-60' Z1 strict (<60% FTP). Cadence 85-95rpm confortable. Aucune bosse, aucun effort. Si FC >70% FCmax → ralentir. Flush sanguin uniquement"
+        },
+        {
+          "id": "D_TAPER_FLUSH_RUN",
+          "sport": "run",
+          "duration": [
+            15,
+            20
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "Semaine taper, J-3 à J-2 avant course",
+          "avoid": "N/A",
+          "intent": "race_pace",
+          "pre": [],
+          "structure": "Warm-up: 3' marche dynamique + 5 squats + 5 fentes. | Main: **Bloc 1 — 12-15' Z1 très facile**. Allure 'je peux chanter'. FC <70% max. Cadence naturelle.\n\n**Bloc 2 — 3×15\" allure course**. Sur une portion plate, accélère pour atteindre l'allure prévue le jour de la course (PAS plus vite), tiens 15\" puis relâche en marche 45\". 3 répétitions. But : rappeler au système nerveux 'à quoi ressemble' l'allure de course, SANS fatigue. | Cool-down: 2' marche + 5 respirations. | Coaching: Tu dois sortir FRAIS et avec l'envie d'en faire plus. Si tu sens un truc qui tire, raccourcis à 10' Z1 sans accélérations. Pas de chrono visible."
+        },
+        {
+          "id": "D_RUN_SHAKEOUT",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "taper"
+          ],
+          "when": "J-1 course ou lendemain longue sortie",
+          "avoid": "Si douleur",
+          "intent": "test",
+          "pre": [],
+          "structure": "Warm-up: 3' marche dynamique avec montées de genoux légères + cercles de bras + 5 squats à poids de corps. | Main: **Bloc 1 — 12 à 20' Z1 stricte** (allure très facile, FC <70% max). Tu dois pouvoir tenir une conversation complète. Foulée courte, cadence légèrement plus haute que d'habitude (180+ pas/min) pour stimuler le système nerveux sans charger les muscles.\n\n**Bloc 2 — 4×20\" accélérations progressives**. Après le bloc Z1 facile, exécute 4 lignes droites sur 100-150m :\n• 20\" : tu pars en footing puis tu accélères PROGRESSIVEMENT pour finir à allure 5K à la dernière seconde. Aucune raideur, aucun blocage.\n• 40\" de marche entre chaque ligne droite (récup complète).\n• Objectif = réveiller la chaîne propulsive, pas faire un test.\n\nNi capteur ni chrono nécessaire — tout est aux sensations. | Cool-down: 2' marche + 5 respirations profondes + étirement debout mollet/quadri (15s/côté, sans forcer). | Coaching: But = 'allumer la machine' la veille d'une course, PAS s'entraîner. Si tu ressens fatigue ou douleur en début de séance, raccourcis à 10' Z1 sans accélérations. La veille d'une course majeure : faire le shakeout le matin si la course est l'après-midi, ou l'après-midi si course le matin."
+        },
+        {
+          "id": "D_SEMI_RECOVERY_30",
+          "sport": "run",
+          "duration": [
+            20,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Après séance B / long run",
+          "avoid": "Douleur",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: 20–35' Z1 très facile + mobilité"
+        },
+        {
+          "id": "ENR_TAPER_SHAKEOUT_RUN",
+          "sport": "run",
+          "duration": [
+            15,
+            25
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Veille de course",
+          "avoid": "Si anxiété → mieux vaut repos complet",
+          "intent": "endurance_fondamentale",
+          "pre": [],
+          "structure": "Main: 15-20' Z1 ultra-facile. 2 accélérations de 10\" en fin. Check: chaussures, tenue, sensations. Zéro fatigue"
+        },
+        {
+          "id": "D_ACTIVATION_ANKLE_FOOT",
+          "sport": "run",
+          "duration": [
+            8,
+            12
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Pré-séance trail ou 2-3x/semaine",
+          "avoid": "N/A",
+          "intent": "technique",
+          "pre": [],
+          "structure": "Main: 5 exercices, 2 tours, repos 20s. Pieds NUS de préférence.\n\n1) **Toe yoga** (yoga des orteils) — assis, pied à plat au sol. Lève le gros orteil sans bouger les autres (10 reps). Puis lève les 4 autres en gardant le gros orteil au sol (10 reps). C'est dur la 1ère fois — le cerveau apprend. 2 tours/pied.\n\n2) **Heel raises** (montées sur pointes des pieds) — debout, mains à un mur, monte lentement sur la pointe (2s), redescends (3s). 15 reps. Pour intensifier : 1 jambe à la fois.\n\n3) **Single leg balance** — debout pieds nus sur 1 jambe, autre jambe pliée en arrière. Tiens 30\". Niveau 1 : yeux ouverts. Niveau 2 : yeux fermés. Niveau 3 : sur coussin/serviette pliée. 2×30\"/jambe.\n\n4) **Ankle CARs** (cercles contrôlés cheville) — assis ou debout, pied levé, dessine le plus grand cercle possible avec l'orteil, très lentement. 8 dans un sens / 8 dans l'autre, par cheville.\n\n5) **Short foot drill** (pied court) — assis ou debout pieds nus, essaie de 'raccourcir' ton pied en rapprochant la base des orteils du talon SANS recroqueviller les orteils. Comme si tu voulais creuser une voûte sous le pied. 12 contractions lentes de 3s/pied. Active les muscles intrinsèques (anti-pieds plats fonctionnels). | Cool-down: 1' marche pieds nus en alternant marche normale, sur les pointes, sur les talons, sur les bords externes/internes. | Coaching: Idéal en intégrant à ta routine du matin (sortie de douche) ou en regardant la TV. Pieds nus impératif. Prévention #1 des périostites, fascite plantaire, entorses pour les trailers et coureurs."
+        },
+        {
+          "id": "V3_BIKE_RECOVERY_SPIN",
+          "sport": "bike",
+          "duration": [
+            30,
+            50
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain de séance clé",
+          "avoid": "Jamais en remplacement de repos complet si fatigue > 8/10",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Warm-up: 5' Z1 | Main: 20-40' Z1 strict (<55% FTP), cadence 90-100 rpm, pas de résistance | Cool-down: 5' Z1"
+        },
+        {
+          "id": "D_RECOVERY_VAR_8_PRO",
+          "sport": "run",
+          "duration": [
+            35,
+            45
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_9_PRO",
+          "sport": "bike",
+          "duration": [
+            20,
+            50
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_6_PRO",
+          "sport": "bike",
+          "duration": [
+            25,
+            35
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RUN_RECOVERY_30_PRO",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_2_PRO",
+          "sport": "run",
+          "duration": [
+            25,
+            40
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        },
+        {
+          "id": "D_RECOVERY_VAR_5_PRO",
+          "sport": "run",
+          "duration": [
+            20,
+            55
+          ],
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "when": "Lendemain charge",
+          "avoid": "—",
+          "intent": "recuperation",
+          "pre": [],
+          "structure": "Main: Z1 très facile + mobilité/respiration 10'"
+        }
+      ]
+    }
+  ]
+}

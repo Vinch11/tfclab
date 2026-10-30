@@ -1,0 +1,12 @@
+{
+  "sourceRecords": 920,
+  "structuredFixturesIndependentlyChecked": 15,
+  "literalFidelityPass": 0,
+  "documentedEncodingPrecisionPass": 11,
+  "targetSemanticsRemovedAndRefused": 4,
+  "formatterProjectionMissingAtLeastOnePart": 121,
+  "sourcePayloadsPreserved": true,
+  "productionChanged": false,
+  "realNolioCalls": 0,
+  "scope": "exact fixtures and explicit canonical projection only; not a statement that all real exports follow this projection"
+}

@@ -1,0 +1,15 @@
+{
+  "version": "det-v3-resume-proof-1",
+  "engineCommit": "e88d37e4",
+  "cycleCount": 12,
+  "result": {
+    "id": "v3-11-continuation",
+    "status": "passed",
+    "accepted": true,
+    "decision": "measured_critical_improvement_guarded",
+    "idempotent": true
+  },
+  "newOutputCreated": false,
+  "isolatedExperimentalCheckoutRemoved": true,
+  "interpretation": "Existing completed result reused; no new simulation or repair executed."
+}

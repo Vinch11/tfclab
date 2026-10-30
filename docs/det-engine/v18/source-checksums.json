@@ -1,0 +1,21 @@
+{
+  "experimental/det-engine/v18-compiler.mjs": "d5d9a339e82258f0efe6d7160db183cc3570f007bc69f2678ddf700019a9aaaa",
+  "experimental/det-engine/v18-ir.ts": "999288b9c2a86551251ec8fafd824b846edee475a32e869669dc27872b499cde",
+  "experimental/det-engine/v18-models.mjs": "c3e4e014ce516f55e46aa1b7bb95fddc960cdde0f9d3cbcbb6ce7522e86b6c3b",
+  "experimental/det-engine/v18-outputs.mjs": "bc108180dc291eedf69db1c9244086ad28c5ef43191879b3986ff7ea6289fe49",
+  "experimental/det-engine/v18-selection.test.ts": "d813695736508eb66be0dfe723f7344531b742126753e1cbb54ac3d7998bcc46",
+  "experimental/det-engine/v18-selection.ts": "5ffd0b2a9c41e39e936f3cde8f994222b13118f4a9f08e4d6fd5987c9d29c027",
+  "experimental/det-engine/vitest.v18.config.ts": "6e06797e01a8120f059b1e247163291ec4bd3bfd0860e273e6bd719130f1e182",
+  "scripts/det-engine/v18-build.mjs": "58f184027eb880107255524f05fa4dd393e83d1daa59de2649551f83ad5781b4",
+  "scripts/det-engine/v18-contracts.test.mjs": "4a13381e44e6129007c62992a41531cbec6d3ea5b5a038dc77fd30d0b0716ce1",
+  "scripts/det-engine/v18-family-review.py": "922cd7bc53f93de49dae43cbc4c6c581d741ba9759cc8c800d656ca2a560475b",
+  "scripts/det-engine/v18-independent-audit.py": "00596b2b39221c1deb5264a030bcda81c71eb79081dcfa968162e22e05eeb10f",
+  "scripts/det-engine/v18-independent-audit.test.py": "df321cd65b0861dd5757eeb43acfd5a879f5c3e2bd251d996be97017c8fc1380",
+  "scripts/det-engine/v18-process.mjs": "0a8fc74f6acfd458e50da349a324cf8f29ac98d2c652fdb0c03d3450d5f9b4cb",
+  "scripts/det-engine/v18-process.test.mjs": "92be34e4de4c9b51033f6c4237c66c52b4c97d3029e8120d71c7c3ef19f127b1",
+  "scripts/det-engine/v18-report.py": "e5aa93a07914783cc98ec9ee0e6dea8004e3858a04ada7815112b3abce7e8e57",
+  "scripts/det-engine/v18-run.mjs": "45194f186d89df23abf94e2b02271a17179ad6b855ef12b6c74633f2bd36b2a9",
+  "scripts/det-engine/v18-session.mjs": "34abce3ef69105b711def49aedee0f3fb0c8eb4064c2059ddcd459f9054eec57",
+  "scripts/det-engine/v18-verify.py": "7849a30754229b929e3cf80a2d346ad1ff9f11167e6b3b2ab22bf3a3088ed946",
+  "scripts/det-engine/v18-viewer.test.mjs": "c9010e2d4582f54818ea240b66418f51df4f702af6797805172c67bd35401aee"
+}

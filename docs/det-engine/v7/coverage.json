@@ -1,0 +1,26 @@
+{
+  "executed": [
+    "technical_schema_full_calendar",
+    "historical_plan_validator_unchanged",
+    "original_prevalidation_signals_retained",
+    "catalogue_integrity",
+    "physical_and_effective_frequencies",
+    "known_discipline_components",
+    "generation_block_minutes",
+    "source_placement",
+    "coach_budgets",
+    "original_global_progression",
+    "original_taper_contract",
+    "deterministic_byte_replay"
+  ],
+  "not_applicable": "recorded explicitly per contract and per plan; no universal pass substitution",
+  "unknown_or_not_attested": [
+    "actual_recovery_response",
+    "individual_vertical_eccentric_tolerance",
+    "unattributable_brick_minutes_where_present",
+    "independent_expert_review",
+    "general_sporting_efficacy"
+  ],
+  "production_rules_modified": false,
+  "candidate_contracts_promoted": 0
+}

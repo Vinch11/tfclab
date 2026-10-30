@@ -1,0 +1,79 @@
+[
+  {
+    "cohort": "same_76_V5_candidates_after_guarded_repairs",
+    "plans": 76,
+    "distinctInputs": 29,
+    "technicalValid": 76,
+    "withoutBlockingExistingAndGlobal": 0,
+    "passesGlobal": 70,
+    "blockingOccurrences": 673,
+    "warnings": 5381,
+    "counterfactualOnly": 0,
+    "expertReviewed": 0,
+    "byObjective": [
+      {
+        "objective": "TrailShort",
+        "plans": 7,
+        "withoutBlocking": 0
+      },
+      {
+        "objective": "TrailMountain",
+        "plans": 8,
+        "withoutBlocking": 0
+      },
+      {
+        "objective": "IM",
+        "plans": 61,
+        "withoutBlocking": 0
+      }
+    ]
+  },
+  {
+    "cohort": "strict_IM_contracts_8_inputs_2_models",
+    "plans": 16,
+    "distinctInputs": 8,
+    "technicalValid": 16,
+    "withoutBlockingExistingAndGlobal": 0,
+    "passesGlobal": 14,
+    "blockingOccurrences": 121,
+    "warnings": 1256,
+    "counterfactualOnly": 0,
+    "expertReviewed": 0,
+    "byObjective": [
+      {
+        "objective": "IM",
+        "plans": 16,
+        "withoutBlocking": 0
+      }
+    ]
+  },
+  {
+    "cohort": "role_coverage_ultra_and_nonultra_controls",
+    "plans": 4,
+    "distinctInputs": 4,
+    "technicalValid": 4,
+    "withoutBlockingExistingAndGlobal": 0,
+    "passesGlobal": 4,
+    "blockingOccurrences": 16,
+    "warnings": 53,
+    "counterfactualOnly": 0,
+    "expertReviewed": 0,
+    "byObjective": [
+      {
+        "objective": "TrailShort",
+        "plans": 1,
+        "withoutBlocking": 0
+      },
+      {
+        "objective": "TrailMountain",
+        "plans": 1,
+        "withoutBlocking": 0
+      },
+      {
+        "objective": "TrailUltra",
+        "plans": 2,
+        "withoutBlocking": 0
+      }
+    ]
+  }
+]

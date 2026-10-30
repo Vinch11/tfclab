@@ -1,0 +1,22 @@
+{
+  "cases": 76,
+  "models": [
+    {
+      "model": "reference_session_frequency",
+      "trail": 0,
+      "IM": 0
+    },
+    {
+      "model": "endurance_minutes_load",
+      "trail": 0,
+      "IM": 15
+    },
+    {
+      "model": "endurance_minutes_all",
+      "trail": 0,
+      "IM": 8
+    }
+  ],
+  "runOnlyConflicts": 15,
+  "noLegacyIssuesRemoved": true
+}

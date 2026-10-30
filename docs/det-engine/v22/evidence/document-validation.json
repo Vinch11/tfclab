@@ -1,0 +1,8 @@
+{
+  "requiredDocumentsPresent": 9,
+  "allMarkdownTablesConsistent": true,
+  "decisionTraces": 90,
+  "calendarSourceRowsRepresented": 90,
+  "losslessArchivesChecked": 14,
+  "noActualApproval": true
+}

@@ -1,0 +1,58 @@
+{
+  "ok": true,
+  "source": "a31b4801c8013a37395d0d900de97b949c0dbc2026ce5d8fc8a6c3a3b708a083",
+  "commands": [
+    {
+      "name": "types-followup",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 39665
+    },
+    {
+      "name": "trail-generator",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-trail.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 3238
+    },
+    {
+      "name": "trail-current",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-trail-matrix.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 18794
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-trail-generator-r3/trail-current.txt": "c028b780c680db8ba4ae684f7e0359aed9aa25e6c7e2e6f4d016add9ac1709cf",
+    "/tmp/det-v4-trail-generator-r3/trail-generator.txt": "e9151490cef71310ae623a7bffa516ed456893d2fc335d779b38d22fc8e15287",
+    "/tmp/det-v4-trail-generator-r3/types-followup.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "reservation": {
+    "id": "trail-generator",
+    "startedAt": 1793138864374
+  }
+}

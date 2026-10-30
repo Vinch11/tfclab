@@ -1,0 +1,604 @@
+{
+  "version": "v19-independent-editorial-python-1",
+  "sourceRecords": 920,
+  "unchangedSourceCompleteChecked": 75,
+  "candidateInstancesChecked": 418,
+  "completeCandidateWitnesses": 96,
+  "completeCandidateDistinctIds": 51,
+  "witnesses": [
+    {
+      "legacyId": "B_BIKE_VO2_3MIN",
+      "candidateKey": "B_BIKE_VO2_3MIN@v19:between_repetitions:1b764bed2bb4",
+      "seconds": 3630,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_VO2_3MIN",
+      "candidateKey": "B_BIKE_VO2_3MIN@v19:after_each_repetition:23bb55bfcb95",
+      "seconds": 3870,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_THRESHOLD",
+      "candidateKey": "B_BIKE_THRESHOLD@v19:between_repetitions:f701ae86e1a5",
+      "seconds": 3900,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_THRESHOLD",
+      "candidateKey": "B_BIKE_THRESHOLD@v19:after_each_repetition:b337ea38c374",
+      "seconds": 4200,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_BIKE_FORCE",
+      "candidateKey": "C_BIKE_FORCE@v19:between_repetitions:4d3dfb406aa7",
+      "seconds": 4080,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_BIKE_FORCE",
+      "candidateKey": "C_BIKE_FORCE@v19:after_each_repetition:8fcfca3d26f7",
+      "seconds": 4260,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_IM_AERO_HOLD",
+      "candidateKey": "C_IM_AERO_HOLD@v19:between_repetitions:5a9daecc4fac",
+      "seconds": 4500,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_IM_AERO_HOLD",
+      "candidateKey": "C_IM_AERO_HOLD@v19:after_each_repetition:18ae8b1932ab",
+      "seconds": 4800,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_MAR_TEMPO_BLOCKS",
+      "candidateKey": "B_MAR_TEMPO_BLOCKS@v19:between_repetitions:80abba2bd7bd",
+      "seconds": 4200,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_MAR_TEMPO_BLOCKS",
+      "candidateKey": "B_MAR_TEMPO_BLOCKS@v19:after_each_repetition:e6546e06ce63",
+      "seconds": 4500,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_SEMI_RACE_PACE",
+      "candidateKey": "B_SEMI_RACE_PACE@v19:between_repetitions:4079a5ca7cf3",
+      "seconds": 3540,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_SEMI_RACE_PACE",
+      "candidateKey": "B_SEMI_RACE_PACE@v19:after_each_repetition:c93a20b0f530",
+      "seconds": 3780,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_703_RUN_THRESHOLD",
+      "candidateKey": "B_703_RUN_THRESHOLD@v19:between_repetitions:a59ae999ef96",
+      "seconds": 3660,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_703_RUN_THRESHOLD",
+      "candidateKey": "B_703_RUN_THRESHOLD@v19:after_each_repetition:9aca1f5b22f0",
+      "seconds": 3840,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_TR_SKILLS_TECH",
+      "candidateKey": "C_TR_SKILLS_TECH@v19:between_repetitions:4094244ad594",
+      "seconds": 2700,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_TR_SKILLS_TECH",
+      "candidateKey": "C_TR_SKILLS_TECH@v19:after_each_repetition:1bde086200a1",
+      "seconds": 2760,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "A_TR_EASY_TRAIL_STRIDES",
+      "candidateKey": "A_TR_EASY_TRAIL_STRIDES@v19:between_repetitions:1b702b068751",
+      "seconds": 3072,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "A_TR_EASY_TRAIL_STRIDES",
+      "candidateKey": "A_TR_EASY_TRAIL_STRIDES@v19:after_each_repetition:ca9c1ff7d68d",
+      "seconds": 3132,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR_HILL_SPRINTS_10x10",
+      "candidateKey": "B_TR_HILL_SPRINTS_10x10@v19:between_repetitions:fa0a51aa8201",
+      "seconds": 2680,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR_HILL_SPRINTS_10x10",
+      "candidateKey": "B_TR_HILL_SPRINTS_10x10@v19:after_each_repetition:a70633405e65",
+      "seconds": 2800,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR_TEMPO_VARIANT_1",
+      "candidateKey": "B_TR_TEMPO_VARIANT_1@v19:after_each_repetition:3433949b6b19",
+      "seconds": 3480,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR_TEMPO_VARIANT_2",
+      "candidateKey": "B_TR_TEMPO_VARIANT_2@v19:between_repetitions:c57d74fbcb09",
+      "seconds": 4440,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR_TEMPO_VARIANT_2",
+      "candidateKey": "B_TR_TEMPO_VARIANT_2@v19:after_each_repetition:1584305b0e19",
+      "seconds": 4680,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR_PACK_SHORT_RACEWEEK_1",
+      "candidateKey": "B_TR_PACK_SHORT_RACEWEEK_1@v19:between_repetitions:af8df36463b4",
+      "seconds": 3780,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR_PACK_SHORT_RACEWEEK_1",
+      "candidateKey": "B_TR_PACK_SHORT_RACEWEEK_1@v19:after_each_repetition:362a51891034",
+      "seconds": 3960,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_10K_RACE_PACE_BLOCKS",
+      "candidateKey": "B_10K_RACE_PACE_BLOCKS@v19:between_repetitions:3c8384451f48",
+      "seconds": 3660,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_10K_RACE_PACE_BLOCKS",
+      "candidateKey": "B_10K_RACE_PACE_BLOCKS@v19:after_each_repetition:2dba027d752a",
+      "seconds": 3840,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_10K_TEMPO_20",
+      "candidateKey": "B_10K_TEMPO_20@v19:between_repetitions:221f5ada4955",
+      "seconds": 3180,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_10K_TEMPO_20",
+      "candidateKey": "B_10K_TEMPO_20@v19:after_each_repetition:043814e6ef27",
+      "seconds": 3420,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_10K_STRIDES_SPEED",
+      "candidateKey": "C_10K_STRIDES_SPEED@v19:between_repetitions:7a0ecb43ba7e",
+      "seconds": 2790,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_10K_STRIDES_SPEED",
+      "candidateKey": "C_10K_STRIDES_SPEED@v19:after_each_repetition:e3962bf257ff",
+      "seconds": 2850,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_SEMI_RACE_PACE_2x15",
+      "candidateKey": "B_SEMI_RACE_PACE_2x15@v19:between_repetitions:663fd0757164",
+      "seconds": 3540,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_SEMI_RACE_PACE_2x15",
+      "candidateKey": "B_SEMI_RACE_PACE_2x15@v19:after_each_repetition:8cb260633a90",
+      "seconds": 3780,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR50_RACE_EFFORT_5x5",
+      "candidateKey": "B_TR50_RACE_EFFORT_5x5@v19:between_repetitions:92f1b994a56f",
+      "seconds": 3720,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_TR50_RACE_EFFORT_5x5",
+      "candidateKey": "B_TR50_RACE_EFFORT_5x5@v19:after_each_repetition:71b9cf44ff43",
+      "seconds": 3900,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_SST_3x20",
+      "candidateKey": "B_BIKE_SST_3x20@v19:between_repetitions:7685455efa1a",
+      "seconds": 5700,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_SST_3x20",
+      "candidateKey": "B_BIKE_SST_3x20@v19:after_each_repetition:89ea9c093ecd",
+      "seconds": 6000,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_BIKE_FORCE_LOW_CAD",
+      "candidateKey": "C_BIKE_FORCE_LOW_CAD@v19:between_repetitions:5e10bf4141c7",
+      "seconds": 4800,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "C_BIKE_FORCE_LOW_CAD",
+      "candidateKey": "C_BIKE_FORCE_LOW_CAD@v19:after_each_repetition:06666c9dfdbf",
+      "seconds": 5100,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_OVERUNDER_EXTENDED",
+      "candidateKey": "B_BIKE_OVERUNDER_EXTENDED@v19:between_repetitions:7c04d06c82f2",
+      "seconds": 4800,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_OVERUNDER_EXTENDED",
+      "candidateKey": "B_BIKE_OVERUNDER_EXTENDED@v19:after_each_repetition:b0fcda578650",
+      "seconds": 5100,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_THRESHOLD_2x20",
+      "candidateKey": "B_BIKE_THRESHOLD_2x20@v19:between_repetitions:3cebb98c0592",
+      "seconds": 4380,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_BIKE_THRESHOLD_2x20",
+      "candidateKey": "B_BIKE_THRESHOLD_2x20@v19:after_each_repetition:5078eb3cbdc5",
+      "seconds": 4860,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_RUN_CRUISE_INTERVALS",
+      "candidateKey": "B_RUN_CRUISE_INTERVALS@v19:between_repetitions:574b9aa7d391",
+      "seconds": 3540,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_RUN_CRUISE_INTERVALS",
+      "candidateKey": "B_RUN_CRUISE_INTERVALS@v19:after_each_repetition:5e6b6e5520b1",
+      "seconds": 3600,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "D_TAPER_BIKE_OPENER",
+      "candidateKey": "D_TAPER_BIKE_OPENER@v19:between_repetitions:a81556bbff2f",
+      "seconds": 3180,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "D_TAPER_BIKE_OPENER",
+      "candidateKey": "D_TAPER_BIKE_OPENER@v19:after_each_repetition:a229b35abac1",
+      "seconds": 3360,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "D_TAPER_RUN_OPENER",
+      "candidateKey": "D_TAPER_RUN_OPENER@v19:between_repetitions:bbb472307598",
+      "seconds": 1980,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "D_TAPER_RUN_OPENER",
+      "candidateKey": "D_TAPER_RUN_OPENER@v19:after_each_repetition:707b68399a49",
+      "seconds": 2100,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "D_TAPER_SHAKEOUT",
+      "candidateKey": "D_TAPER_SHAKEOUT@v19:between_repetitions:a88086114675",
+      "seconds": 1365,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "D_TAPER_SHAKEOUT",
+      "candidateKey": "D_TAPER_SHAKEOUT@v19:after_each_repetition:6765986364d6",
+      "seconds": 1425,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "BILLAT_BIKE_VO2MAX_4MIN",
+      "candidateKey": "BILLAT_BIKE_VO2MAX_4MIN@v19:between_repetitions:2ee538a53f1b",
+      "seconds": 4620,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "SEILER_BIKE_4X4MIN",
+      "candidateKey": "SEILER_BIKE_4X4MIN@v19:between_repetitions:0d317809497b",
+      "seconds": 3960,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "COGGAN_BIKE_SST_EXTENDED",
+      "candidateKey": "COGGAN_BIKE_SST_EXTENDED@v19:between_repetitions:62dde1bcc372",
+      "seconds": 4800,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "COGGAN_BIKE_SST_EXTENDED",
+      "candidateKey": "COGGAN_BIKE_SST_EXTENDED@v19:after_each_repetition:a5267ef2d487",
+      "seconds": 5100,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_RUN_TEMPO_CRUISE_PRO",
+      "candidateKey": "B_RUN_TEMPO_CRUISE_PRO@v19:between_repetitions:2505c5152009",
+      "seconds": 3660,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "B_RUN_TEMPO_CRUISE_PRO",
+      "candidateKey": "B_RUN_TEMPO_CRUISE_PRO@v19:after_each_repetition:448bb8391825",
+      "seconds": 3840,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_VMA_MOYENNE_1MIN",
+      "candidateKey": "TPL_SEMI_VMA_MOYENNE_1MIN@v19:between_repetitions:8deb50079461",
+      "seconds": 3540,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_VMA_MOYENNE_1MIN",
+      "candidateKey": "TPL_SEMI_VMA_MOYENNE_1MIN@v19:after_each_repetition:5afe7aa40a58",
+      "seconds": 3600,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_FORCE_COTES_SPRINT",
+      "candidateKey": "TPL_SEMI_FORCE_COTES_SPRINT@v19:between_repetitions:f44a30eca164",
+      "seconds": 3030,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_FORCE_COTES_SPRINT",
+      "candidateKey": "TPL_SEMI_FORCE_COTES_SPRINT@v19:after_each_repetition:b13ab44ef209",
+      "seconds": 3150,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_FORCE_COTES_VOLUME",
+      "candidateKey": "TPL_SEMI_FORCE_COTES_VOLUME@v19:between_repetitions:03ca2f2a6389",
+      "seconds": 3330,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_FORCE_COTES_VOLUME",
+      "candidateKey": "TPL_SEMI_FORCE_COTES_VOLUME@v19:after_each_repetition:17200806846e",
+      "seconds": 3420,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_SEUIL_INTRO",
+      "candidateKey": "TPL_SEMI_SEUIL_INTRO@v19:between_repetitions:cec9785f3231",
+      "seconds": 3600,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_SEUIL_INTRO",
+      "candidateKey": "TPL_SEMI_SEUIL_INTRO@v19:after_each_repetition:b0115bce6624",
+      "seconds": 3720,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_SEUIL_EXTENSIF",
+      "candidateKey": "TPL_SEMI_SEUIL_EXTENSIF@v19:between_repetitions:b08fcc07a55b",
+      "seconds": 3900,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_SEMI_SEUIL_EXTENSIF",
+      "candidateKey": "TPL_SEMI_SEUIL_EXTENSIF@v19:after_each_repetition:88fc73ce3ef6",
+      "seconds": 4050,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_MAR_TEMPO_SWEET_SPOT",
+      "candidateKey": "TPL_MAR_TEMPO_SWEET_SPOT@v19:between_repetitions:955a0d9ca65a",
+      "seconds": 3840,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_MAR_TEMPO_SWEET_SPOT",
+      "candidateKey": "TPL_MAR_TEMPO_SWEET_SPOT@v19:after_each_repetition:d349cf1a6630",
+      "seconds": 4080,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_IM_BIKE_FORCE_K3",
+      "candidateKey": "TPL_IM_BIKE_FORCE_K3@v19:between_repetitions:5b73793b41e4",
+      "seconds": 5400,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_IM_BIKE_FORCE_K3",
+      "candidateKey": "TPL_IM_BIKE_FORCE_K3@v19:after_each_repetition:d26722c67189",
+      "seconds": 5400,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_703_RUN_TEMPO_2x20",
+      "candidateKey": "TPL_703_RUN_TEMPO_2x20@v19:between_repetitions:cd900d669d9f",
+      "seconds": 3900,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_703_RUN_TEMPO_2x20",
+      "candidateKey": "TPL_703_RUN_TEMPO_2x20@v19:after_each_repetition:fa9ddab6dbb4",
+      "seconds": 3900,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_IM_RUN_SEUIL_EXTENSIF",
+      "candidateKey": "TPL_IM_RUN_SEUIL_EXTENSIF@v19:between_repetitions:3088c93c1282",
+      "seconds": 4380,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_IM_RUN_SEUIL_EXTENSIF",
+      "candidateKey": "TPL_IM_RUN_SEUIL_EXTENSIF@v19:after_each_repetition:1e936e9a9299",
+      "seconds": 4560,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_IM_RUN_TEMPO_SPECIFIQUE",
+      "candidateKey": "TPL_IM_RUN_TEMPO_SPECIFIQUE@v19:between_repetitions:d8d2215abe45",
+      "seconds": 4860,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "TPL_IM_RUN_TEMPO_SPECIFIQUE",
+      "candidateKey": "TPL_IM_RUN_TEMPO_SPECIFIQUE@v19:after_each_repetition:ca8eb405d8d4",
+      "seconds": 5040,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_RUN_ALLURE_SEMI_BLOCS",
+      "candidateKey": "ENR_RUN_ALLURE_SEMI_BLOCS@v19:between_repetitions:614b1a1abe0b",
+      "seconds": 4560,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_RUN_ALLURE_SEMI_BLOCS",
+      "candidateKey": "ENR_RUN_ALLURE_SEMI_BLOCS@v19:after_each_repetition:68ced7c40b18",
+      "seconds": 4740,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_BIKE_SWEET_SPOT_PROGRESSIF",
+      "candidateKey": "ENR_BIKE_SWEET_SPOT_PROGRESSIF@v19:between_repetitions:3b943868134c",
+      "seconds": 6000,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_BIKE_SWEET_SPOT_PROGRESSIF",
+      "candidateKey": "ENR_BIKE_SWEET_SPOT_PROGRESSIF@v19:after_each_repetition:4bf3ec840277",
+      "seconds": 6300,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_BIKE_TEMPO_CADENCE_BASSE",
+      "candidateKey": "ENR_BIKE_TEMPO_CADENCE_BASSE@v19:between_repetitions:73a25c13aa7b",
+      "seconds": 6000,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_BIKE_TEMPO_CADENCE_BASSE",
+      "candidateKey": "ENR_BIKE_TEMPO_CADENCE_BASSE@v19:after_each_repetition:7570c895e72c",
+      "seconds": 6300,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_BIKE_GIMENEZ_TEST_FORMAT",
+      "candidateKey": "ENR_BIKE_GIMENEZ_TEST_FORMAT@v19:between_repetitions:3f566c82bdea",
+      "seconds": 4260,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_BIKE_GIMENEZ_TEST_FORMAT",
+      "candidateKey": "ENR_BIKE_GIMENEZ_TEST_FORMAT@v19:after_each_repetition:7791dc80ed54",
+      "seconds": 4320,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_BIKE_RAMP_4x10",
+      "candidateKey": "ENR_BIKE_RAMP_4x10@v19:between_repetitions:8c12fb46f4c1",
+      "seconds": 4920,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_BIKE_RAMP_4x10",
+      "candidateKey": "ENR_BIKE_RAMP_4x10@v19:after_each_repetition:a696bbffe909",
+      "seconds": 5160,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "ENR_TAPER_OPENERS_BIKE",
+      "candidateKey": "ENR_TAPER_OPENERS_BIKE@v19:between_repetitions:d6f4b76b3850",
+      "seconds": 2940,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "V2_BIKE_SFR_CLASSIQUE",
+      "candidateKey": "V2_BIKE_SFR_CLASSIQUE@v19:between_repetitions:4ff6b9ff421c",
+      "seconds": 5160,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "V2_BIKE_SFR_CLASSIQUE",
+      "candidateKey": "V2_BIKE_SFR_CLASSIQUE@v19:after_each_repetition:885d58233b80",
+      "seconds": 5400,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "V2_BIKE_GRIMPEUR_TEMPO",
+      "candidateKey": "V2_BIKE_GRIMPEUR_TEMPO@v19:between_repetitions:4c25f3875bc0",
+      "seconds": 5280,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "V2_BIKE_GRIMPEUR_TEMPO",
+      "candidateKey": "V2_BIKE_GRIMPEUR_TEMPO@v19:after_each_repetition:5c6e8b512022",
+      "seconds": 5760,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "V2_BIKE_CADENCE_HAUTE",
+      "candidateKey": "V2_BIKE_CADENCE_HAUTE@v19:between_repetitions:e19f7a009c58",
+      "seconds": 4200,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "V2_BIKE_CADENCE_HAUTE",
+      "candidateKey": "V2_BIKE_CADENCE_HAUTE@v19:after_each_repetition:df77295a7aa0",
+      "seconds": 4380,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "V3_RUN_10K_TEMPO_CRUISE",
+      "candidateKey": "V3_RUN_10K_TEMPO_CRUISE@v19:declared-total:184d03ab58d5",
+      "seconds": 2940,
+      "editorialNotSourceValidated": true
+    },
+    {
+      "legacyId": "S2R_WALK_RUN_1_2",
+      "candidateKey": "S2R_WALK_RUN_1_2@v19:declared-total:afb51b6b52f9",
+      "seconds": 2220,
+      "editorialNotSourceValidated": true
+    }
+  ],
+  "coachSourceViewsChecked": 920,
+  "candidateTextContractsChecked": 96,
+  "candidateStructuredContractsChecked": 2,
+  "sourceStructuredContracts": 13,
+  "dedicatedModels": {
+    "strength": 127,
+    "swim": 119,
+    "multimodal": 87
+  },
+  "failures": [],
+  "notAttested": [
+    "historical completeness of editorial additions",
+    "scientific dose optimality",
+    "individual current admission",
+    "acquired adaptation",
+    "human expert review",
+    "real Nolio acceptance"
+  ]
+}

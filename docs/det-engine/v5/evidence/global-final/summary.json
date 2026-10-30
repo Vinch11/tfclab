@@ -1,0 +1,107 @@
+[
+  {
+    "cohort": "retained_V5_trail_after_guards",
+    "plans": 15,
+    "passesExecutedGlobalContracts": 12,
+    "issues": {
+      "downhill_dose_incomplete:unknown": 212,
+      "individual_eccentric_tolerance_unknown:unknown": 15,
+      "existing_load_to_load_or_recovery_ceiling:contract": 7
+    },
+    "taperModels": [
+      {
+        "model": "easy_only",
+        "passesExecutedCandidateTaper": 12,
+        "issues": {
+          "candidate_easy_only_intensity:error": 3
+        }
+      },
+      {
+        "model": "race_eve_catalogue",
+        "passesExecutedCandidateTaper": 12,
+        "issues": {
+          "activation_catalogue_evidence_missing:unknown": 3
+        }
+      },
+      {
+        "model": "maintain_catalogue_intensity",
+        "passesExecutedCandidateTaper": 12,
+        "issues": {
+          "activation_catalogue_evidence_missing:unknown": 3
+        }
+      }
+    ],
+    "physiologicalSafetyAttested": false,
+    "expertReviewed": 0
+  },
+  {
+    "cohort": "raw_V5_trail_structural",
+    "plans": 8,
+    "passesExecutedGlobalContracts": 8,
+    "issues": {
+      "downhill_dose_incomplete:unknown": 120,
+      "individual_eccentric_tolerance_unknown:unknown": 8
+    },
+    "taperModels": [
+      {
+        "model": "easy_only",
+        "passesExecutedCandidateTaper": 5,
+        "issues": {
+          "candidate_easy_only_intensity:error": 3
+        }
+      },
+      {
+        "model": "race_eve_catalogue",
+        "passesExecutedCandidateTaper": 5,
+        "issues": {
+          "activation_catalogue_evidence_missing:unknown": 3
+        }
+      },
+      {
+        "model": "maintain_catalogue_intensity",
+        "passesExecutedCandidateTaper": 5,
+        "issues": {
+          "activation_catalogue_evidence_missing:unknown": 3
+        }
+      }
+    ],
+    "physiologicalSafetyAttested": false,
+    "expertReviewed": 0
+  },
+  {
+    "cohort": "candidate_IM_retained_policy_comparison",
+    "plans": 61,
+    "passesExecutedGlobalContracts": 58,
+    "issues": {
+      "required_training_discipline_gap:contract": 3
+    },
+    "taperModels": [
+      {
+        "model": "easy_only",
+        "passesExecutedCandidateTaper": 8,
+        "issues": {
+          "candidate_easy_only_intensity:error": 482,
+          "taper_volume_not_reduced:error": 29
+        }
+      },
+      {
+        "model": "race_eve_catalogue",
+        "passesExecutedCandidateTaper": 8,
+        "issues": {
+          "activation_catalogue_evidence_missing:unknown": 482,
+          "taper_volume_not_reduced:error": 29
+        }
+      },
+      {
+        "model": "maintain_catalogue_intensity",
+        "passesExecutedCandidateTaper": 8,
+        "issues": {
+          "activation_catalogue_evidence_missing:unknown": 482,
+          "taper_volume_not_reduced:error": 29
+        }
+      }
+    ],
+    "physiologicalSafetyAttested": false,
+    "expertReviewed": 0
+  }
+]

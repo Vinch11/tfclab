@@ -1,0 +1,33 @@
+{
+  "schema": "v28-closure-1",
+  "closedAt": "2026-10-29T21:46:07.659318+00:00",
+  "elapsedSecondsAtClosure": 2127,
+  "budgetMinutes": 60,
+  "unitsCompleted": 10,
+  "implementationCommit": "f34360cba713615a29f82f8bf3e0afab37279820",
+  "publicationVerified": true,
+  "prDraft": true,
+  "merged": false,
+  "publicationBodySha256": "9cc1495967be2ddece5cabcd8ced066bd543a86e47326062daf1139388e9d393",
+  "runtimeFrozenSince": "evidence/validation-3",
+  "acceptedValidation": 3,
+  "rejectedValidationModels": [
+    1,
+    2
+  ],
+  "newTestsPassed": 42,
+  "nonRegressionTestsPassed": 383,
+  "unchangedSkips": 5,
+  "syntheticTechnicallyCompleteScenarios": 6,
+  "syntheticCompleteSourceIds": 4,
+  "syntheticNoNewDefectWholeBlockScenarios": 1,
+  "originalBTechnicalExecutionsUnchanged": 3,
+  "individualDoseApprovals": 0,
+  "humanSportingReviews": 0,
+  "newCoachPolicyAuthorizations": 0,
+  "paidExternalApiCalls": 0,
+  "realNolioCalls": 0,
+  "automaticRestart": false,
+  "status": "NO-GO",
+  "exactCreditQuotaAccessible": false
+}

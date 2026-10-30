@@ -1,0 +1,11 @@
+file:///workspace/tfclab/scripts/det-engine/v24-run.mjs:3
+if(s.status!=='in_progress_no_go'||Date.now()>=deadline||deadline-Date.parse(s.startedAt)!==3600000||s.maxUnits!==10||s.units.length>10||s.automaticRestart||s.budgetRenewal)throw Error('V24_BUDGET_OR_CLOSURE');
+                                                                                                                                                                                   ^
+
+Error: V24_BUDGET_OR_CLOSURE
+    at file:///workspace/tfclab/scripts/det-engine/v24-run.mjs:3:180
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.19.0

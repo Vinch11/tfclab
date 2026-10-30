@@ -1,0 +1,106 @@
+{
+  "id": "v3-9-continuation",
+  "key": "5eaf4a677c64b53409501a3f88fa2e6638e60987e918abac5222fd8605d87026",
+  "kind": "continuation",
+  "source": "509a399f7027c192cd1bb0e607b503b305c8ffd774ae8a8df42d877a27e00ec3",
+  "out": "/tmp/det-v3-strict-03",
+  "input": "/tmp/det-v3-strict-02/candidate.json.gz",
+  "status": "passed",
+  "startedAt": 1793134242060,
+  "completedAt": 1793134375119,
+  "commands": [
+    {
+      "name": "continuation",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v3-continuation.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 128899,
+      "timeoutMs": 900000
+    }
+  ],
+  "comparison": {
+    "coverageLost": [],
+    "coverageAdded": [],
+    "regressions": [],
+    "newlyExposed": [],
+    "unattributed": [],
+    "reproduced": true,
+    "noCriticalRegression": true,
+    "improvedConformance": 0,
+    "improvedConstruction": 0,
+    "improvedDefects": 6,
+    "defectReductions": [
+      {
+        "id": "Semi:light:world_class:unknown",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 7,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "Semi:light:world_class:unknown",
+        "control": "plan_validator_complete_context",
+        "code": "race_day_only_fiche_misplaced",
+        "week": 8,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "Semi:light:world_class:unknown",
+        "control": "plan_validator_complete_context",
+        "code": "race_day_only_fiche_misplaced",
+        "week": 9,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "5K:light:competitor:unknown",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 8,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "703:light:world_class:unknown:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "race_day_only_fiche_misplaced",
+        "week": 6,
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "id": "IM:light:competitor:known_synthetic:lcw_3day",
+        "control": "plan_validator_complete_context",
+        "code": "polarization",
+        "week": 5,
+        "severity": "error",
+        "count": 1
+      }
+    ],
+    "improvement": true,
+    "scientificGoAttested": false,
+    "baselineHash": "317045b131d9d164b81b9ffc7fcddba7bc9305fa00183f45eb034b5674f918f5",
+    "candidateHash": "74bb9a1e4b2deaf1b48b67b8aa752661aac2baaf83c18a63cf7a6860e95fc68f",
+    "warningOccurrencesBefore": 9756,
+    "warningOccurrencesAfter": 9750,
+    "warningImprovement": true
+  },
+  "accepted": true,
+  "evidenceHashes": {
+    "/tmp/det-v3-strict-03/candidate.json.gz": "d2d55618cf7066a7a5703fc177b963d53b0062aaef2e217f1af653167777b6c3",
+    "/tmp/det-v3-strict-03/replay.json.gz": "d2d55618cf7066a7a5703fc177b963d53b0062aaef2e217f1af653167777b6c3",
+    "/tmp/det-v3-strict-03/summary.json": "d5d9e52ffb8a8f137597ce40d9572cd5b8877f74fd0fe004b2a3c8e87eb876e2"
+  },
+  "decision": "measured_critical_improvement_guarded"
+}

@@ -1,0 +1,47 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+4:23:57 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab
+
+ ❯ src/lib/plan/__tests__/lovableBuild.test.ts (5 tests | 2 failed) 4585ms
+     × recomputes the committed declaration from the catalogue and all three source components 943ms
+     × ignores only Lovable's injected Tailwind metadata, without changing any fingerprint 504ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/plan/__tests__/lovableBuild.test.ts > Lovable build fingerprints its actual checkout, without Git or preparation script > recomputes the committed declaration from the catalogue and all three source components
+Error: PLAN_RELEASE_DECLARATION_STALE:releaseId
+ ❯ assertSameDeclaration scripts/preproduction/plan-release-source.mjs:34:102
+     32| export function assertSameDeclaration(expected, actual) {
+     33|   for (const key of ["manifestVersion", "releaseId", "contractHash", "…
+     34|     if (JSON.stringify(canonical(expected[key])) !== JSON.stringify(ca…
+       |                                                                                                      ^
+     35|   }
+     36| }
+ ❯ checkedPlanRelease scripts/preproduction/plan-release-source.mjs:61:3
+ ❯ src/lib/plan/__tests__/lovableBuild.test.ts:18:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/lib/plan/__tests__/lovableBuild.test.ts > Lovable build fingerprints its actual checkout, without Git or preparation script > ignores only Lovable's injected Tailwind metadata, without changing any fingerprint
+Error: PLAN_RELEASE_DECLARATION_STALE:releaseId
+ ❯ assertSameDeclaration scripts/preproduction/plan-release-source.mjs:34:102
+     32| export function assertSameDeclaration(expected, actual) {
+     33|   for (const key of ["manifestVersion", "releaseId", "contractHash", "…
+     34|     if (JSON.stringify(canonical(expected[key])) !== JSON.stringify(ca…
+       |                                                                                                      ^
+     35|   }
+     36| }
+ ❯ checkedPlanRelease scripts/preproduction/plan-release-source.mjs:61:3
+ ❯ src/lib/plan/__tests__/lovableBuild.test.ts:31:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 381 passed (382)
+      Tests  2 failed | 2997 passed | 1 skipped | 6 todo (3006)
+   Start at  16:23:57
+   Duration  217.18s (transform 12.92s, setup 23.28s, import 67.31s, tests 163.28s, environment 115.38s)
+

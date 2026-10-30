@@ -1,0 +1,678 @@
+{
+  "version": "det-v24-independent-1",
+  "pass": true,
+  "previousTrackedFilesUnchanged": 4654,
+  "preservedIds": 920,
+  "preservedVariants": 2425,
+  "historicalConfigurationsPreservedNotRerun": 600,
+  "candidateChronologies": 96,
+  "candidateIds": 51,
+  "candidateViews": 418,
+  "nolioFixturesPreservedNoCall": 15,
+  "cohortCases": 8,
+  "checkedRetainedSlots": 240,
+  "retainedPlacementCases": 3,
+  "retainedDayMoves": 6,
+  "coachOnlyWarningTradeoffProposals": 9,
+  "coachOnlyFloorCounterproposals": 6,
+  "currentCapacityConflictsRetained": 9,
+  "newHistoricalWarningOrErrorWitnesses": 0,
+  "newBlockErrors": 0,
+  "runBoundaryFunctionEqualAcrossBranches": true,
+  "readOnlyPR424Head": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d",
+  "deterministicLogicalFiles": {
+    "registered-cases.json": "ca31c66322198d9e22508f3b83f824ee6b5e4a551ec01a933fc1a21866354b35",
+    "results.json.gz": "3b076e189a0ea6383652a41a2af51597b47778443e8cef66ac5a2ee3661d3fd1",
+    "physiology-handoff.json": "4b3703b9a9378e2df2d916c6b5bbaef3175a66d7afb5a0d11f8660fd538a5d58"
+  },
+  "humanExpertReviews": 0,
+  "individualDoseApprovals": 0,
+  "fullIronmanValidation": false,
+  "profiles": [
+    {
+      "caseId": "A_aerobic",
+      "retainedModel": null,
+      "changedDays": 0,
+      "warningsBefore": 36,
+      "warningsAfter": 36,
+      "blockingBefore": 4,
+      "blockingAfter": 4,
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "capacityConflicts": 1,
+      "blockErrors": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "bySport": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "bySport": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "bySport": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "bySport": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_sustainability",
+      "retainedModel": "space_peak_bike_block_and_long_run",
+      "changedDays": 2,
+      "warningsBefore": 35,
+      "warningsAfter": 34,
+      "blockingBefore": 4,
+      "blockingAfter": 4,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "capacityConflicts": 1,
+      "blockErrors": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "bySport": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "bySport": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "bySport": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "bySport": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "C_uncertain",
+      "retainedModel": null,
+      "changedDays": 0,
+      "warningsBefore": 37,
+      "warningsAfter": 37,
+      "blockingBefore": 4,
+      "blockingAfter": 4,
+      "states": {
+        "not_admissible": 26,
+        "conditional_pending_reassessment": 4
+      },
+      "capacityConflicts": 0,
+      "blockErrors": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 455,
+          "bySport": {
+            "swim": 110,
+            "bike": 205,
+            "run": 115,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 465,
+          "bySport": {
+            "swim": 110,
+            "bike": 215,
+            "run": 115,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 480,
+          "bySport": {
+            "swim": 110,
+            "bike": 230,
+            "run": 115,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 265,
+          "bySport": {
+            "swim": 80,
+            "bike": 105,
+            "run": 50,
+            "strength": 30
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_changed_relevant_limiter",
+      "retainedModel": null,
+      "changedDays": 0,
+      "warningsBefore": 36,
+      "warningsAfter": 36,
+      "blockingBefore": 4,
+      "blockingAfter": 4,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "capacityConflicts": 1,
+      "blockErrors": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "bySport": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "bySport": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "bySport": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "bySport": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_missing_bike_reference",
+      "retainedModel": null,
+      "changedDays": 0,
+      "warningsBefore": 35,
+      "warningsAfter": 35,
+      "blockingBefore": 4,
+      "blockingAfter": 4,
+      "states": {
+        "conditional_pending_reassessment": 23,
+        "not_admissible": 7
+      },
+      "capacityConflicts": 1,
+      "blockErrors": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "bySport": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "bySport": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "bySport": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "bySport": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_lower_run_capacity",
+      "retainedModel": "space_peak_bike_block_and_long_run",
+      "changedDays": 2,
+      "warningsBefore": 35,
+      "warningsAfter": 34,
+      "blockingBefore": 4,
+      "blockingAfter": 4,
+      "states": {
+        "conditional_pending_reassessment": 29,
+        "not_admissible": 1
+      },
+      "capacityConflicts": 3,
+      "blockErrors": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "bySport": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "bySport": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "bySport": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "bySport": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_adverse_recovery",
+      "retainedModel": "space_peak_bike_block_and_long_run",
+      "changedDays": 2,
+      "warningsBefore": 35,
+      "warningsAfter": 34,
+      "blockingBefore": 4,
+      "blockingAfter": 4,
+      "states": {
+        "conditional_pending_reassessment": 29,
+        "not_admissible": 1
+      },
+      "capacityConflicts": 1,
+      "blockErrors": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "bySport": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "bySport": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "bySport": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "bySport": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_insufficient_differentiation",
+      "retainedModel": null,
+      "changedDays": 0,
+      "warningsBefore": 36,
+      "warningsAfter": 36,
+      "blockingBefore": 4,
+      "blockingAfter": 4,
+      "states": {
+        "conditional_pending_reassessment": 30
+      },
+      "capacityConflicts": 1,
+      "blockErrors": 0,
+      "weeks": [
+        {
+          "week": 1,
+          "minutes": 465,
+          "bySport": {
+            "swim": 110,
+            "bike": 205,
+            "run": 125,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 2,
+          "minutes": 485,
+          "bySport": {
+            "swim": 110,
+            "bike": 215,
+            "run": 135,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 3,
+          "minutes": 505,
+          "bySport": {
+            "swim": 110,
+            "bike": 230,
+            "run": 140,
+            "strength": 25
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 2,
+            "run": 2,
+            "strength": 1
+          }
+        },
+        {
+          "week": 4,
+          "minutes": 285,
+          "bySport": {
+            "swim": 80,
+            "bike": 105,
+            "run": 70,
+            "strength": 30
+          },
+          "frequencies": {
+            "swim": 3,
+            "bike": 1,
+            "run": 1,
+            "strength": 1
+          }
+        }
+      ]
+    }
+  ]
+}

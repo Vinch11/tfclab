@@ -1,0 +1,8 @@
+{
+  "cases": 76,
+  "period": "actual_prepareGenerationContracts_chunksForQuota",
+  "strictSourceBounds": true,
+  "IMAllBlocks": 0,
+  "trailAllBlocks": 0,
+  "notEquivalentToFullSportingValidity": true
+}

@@ -1,0 +1,16 @@
+{
+  "/workspace/tfclab/scripts/det-engine/v21a-families.json": "b60964df9ecffebd33df2a89a559aff51684f2ab2b933357e442dd53bf40185b",
+  "docs/det-engine/v14/evidence/final/calendars.json.gz": "69e9f09cdcb1c83a9c524323b01ec6efa22f65140cae66a4ececf0d7bd6ad706",
+  "docs/det-engine/v16/evidence/final/canonical.jsonl.gz": "59d8bcaa068282fa918fd097905aed1e6cb5b8e8f50d7bf721e17aa3d3f9f351",
+  "docs/det-engine/v16/evidence/source-bundle.json.gz": "0a03fcead74ced6fcede14df5fa6e2187c576a3ef545c982c9d88adb14c12d9d",
+  "docs/det-engine/v17/evidence/qualification-final.jsonl.gz": "f94d447db246b8db6e6f0f0d1c8b99ac21b5c5c19e2702cae206c1ac16690292",
+  "docs/det-engine/v17/evidence/scientific-retrieval.json": "444d8d9b5e1250a80673fe46dd71f7be6f030209488626c4273caa727ff964c8",
+  "docs/det-engine/v18/evidence/validation-3/build/variants.jsonl.gz": "fed466f08730515298a963f368484723715b97268117d8f068f192f9af161fe6",
+  "docs/det-engine/v19/cycle-1/evidence/science-1/documentary-context.json": "172a2b7737bdbd9519c2abe89a0d715506690be5266065e41010341b724d4fa0",
+  "docs/det-engine/v2/final/candidate.json.gz": "318bae1631f347494aa72ac32821eb8a2a408d55da3e6b8253299e772d8b732f",
+  "docs/det-engine/v7/reviews/ironman.json.gz": "a7887747c22552023cff459e37729c42a697eebaeda15922a235b45e3a72e8ee",
+  "docs/det-engine/v7/reviews/trail-court.json.gz": "4fb4fef590e661fb7dc8ffb02695ec20ca1b2d708d27cf08c388ff4d4eafefe2",
+  "docs/det-engine/v7/reviews/trail-montagne.json.gz": "8d808a962467d58b1a3303d266c39211297e569f9db6e1270d72bb3c81121743",
+  "docs/det-engine/v7/reviews/ultra.json.gz": "6a9b7ed932c473597ce1898568391cb79d71c44ce757dc2dafe7f1475e795a38",
+  "docs/det-engine/v8/bibliography.json": "08af7ab73a6874712ffaf108c53b1d0ebda4ddf3f8263ca54044745bc6b803e2"
+}

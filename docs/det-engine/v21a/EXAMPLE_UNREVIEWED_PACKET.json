@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "tfcl-evidence-attachment-1.0.0",
+  "packetId": "EXAMPLE-UNREVIEWED-NOT-AN-EVIDENCE-CLAIM",
+  "binding": {
+    "legacyId": "A_BIKE_Z2_LONG",
+    "sourceEffectiveSha256": "aef93a7b5f0acd62d2acf9c1d32289bdfeb05e4dbefb9155c336bd9314875daa",
+    "familyId": "aerobic_endurance",
+    "variantGoal": null,
+    "variantSourceHash": null,
+    "recipeContentSha256": null
+  },
+  "claim": {
+    "text": "Question de recherche non examinée ; aucune justification acquise.",
+    "scope": "family_context",
+    "origin": "candidate_hypothesis",
+    "finding": "unassessed"
+  },
+  "reference": {
+    "title": null,
+    "authors": null,
+    "year": null,
+    "doi": null,
+    "pmid": null,
+    "url": null,
+    "referenceKind": "none"
+  },
+  "verification": {
+    "status": "source_mention_only",
+    "retrievalUrl": null,
+    "responseSha256": null,
+    "accessedAt": null,
+    "reviewer": null,
+    "accessLimits": [
+      "Aucune recherche effectuée dans cet exemple."
+    ]
+  },
+  "evidenceAssessment": {
+    "studyDesign": null,
+    "certaintyFramework": null,
+    "certaintyJudgment": null,
+    "rationale": null,
+    "assessedBy": null
+  },
+  "applicability": {
+    "population": null,
+    "intervention": null,
+    "comparator": null,
+    "outcomes": [],
+    "limitations": [
+      "Applicabilité non examinée."
+    ],
+    "directness": "unassessed",
+    "doseAndRecoveryCompared": false,
+    "individualDataNeeded": []
+  },
+  "review": {
+    "status": "draft",
+    "reviewer": null,
+    "decisionRationale": null,
+    "individualAthleteApproved": false
+  },
+  "supersedesPacketId": null,
+  "prescriptionImpact": "none_research_annotation_only",
+  "automaticPromotion": false
+}

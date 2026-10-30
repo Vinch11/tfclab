@@ -1,0 +1,33 @@
+✔ all 920 immutable IDs, canonical contents, references and V18 recipes survive (44.762883ms)
+✔ 75 source-complete recipes remain exact source witnesses, not newly edited recipes (0.551411ms)
+✔ all 208 unresolved final-recovery IDs retain both candidate conventions (0.918373ms)
+✔ there is no default winner, optimum or expert validation (0.779934ms)
+✔ real bike threshold source gives 65 and 70 minutes, with work parameters unchanged (5.321741ms)
+✔ not fitting the advertised envelope is retained as a rejection, not a changed threshold (0.652512ms)
+✔ distance, unknown drills and unknown recovery amounts are not fabricated (14.46177ms)
+✔ non-metabolic models are not converted to cardio minutes or repeated duration totals (13.334243ms)
+✔ 119 swim models retain unknown individual duration and no CSS transfer (6.70243ms)
+✔ all brick/mixed models keep explicit disciplines, order and unknown transition (4.929561ms)
+✔ flat fundamental work does not receive a universal vertical/eccentric questionnaire gate (2.441486ms)
+✔ headline correction changes no work, count, rest or intensity and remains historically noncompliant (10.48898ms)
+✔ walk-run source stays 37 minutes, not silently clipped to its 24-30 announcement (3.938188ms)
+✔ every changed path is explicit and no original object mutates (1189.953441ms)
+✔ a fabricated extra minute, count or lower zone cannot enter coach/Nolio (22.216263ms)
+✔ editorial content cannot be relabeled as historical proof or scientific approval (4.551231ms)
+✔ V2, unknown versions and real identity context are refused (9.797128ms)
+✔ uncompiled editorial candidates remain readable and cannot be exported (17.63085ms)
+✔ both real rest proposals expose descriptive recovery accounting without domain inference (4.41776ms)
+✔ 920 coach records preserve source instructions, variants and useful restrictions (8651.180451ms)
+✔ source and candidate replay are deterministic with no external calls (2843.720809ms)
+✔ one hard 120-minute budget remains unchanged by cycle switching (0.497701ms)
+✔ third cycle, auto restart, budget renewal and 61-minute cycles are rejected (0.285742ms)
+✔ deadline is exclusive; no reset on resume and no invented credit balance (0.514868ms)
+✔ all 920 raw text encodings are fixtures only, with no calendar or prescription approval (8648.173645ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21525.971988

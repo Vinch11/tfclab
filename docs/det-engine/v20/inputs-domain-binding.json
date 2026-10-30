@@ -1,0 +1,18 @@
+{
+  "registeredAt": "2026-10-29T06:16:09.204861+00:00",
+  "beforePhysiologicalCalculation": true,
+  "syntheticOnly": true,
+  "bindings": {
+    "Z1": "recovery"
+  },
+  "bindingOrigin": "explicit synthetic coach interpretation for serialization, not automatically inferred physiology",
+  "formDates": {
+    "planStartDate": "2026-10-29",
+    "raceDate": "2027-02-18"
+  },
+  "sourceRecipeDurationsRemainUnchanged": true,
+  "sourceWorkoutIds": [
+    "D_BIKE_RECOVERY",
+    "D_RUN_REGEN"
+  ]
+}

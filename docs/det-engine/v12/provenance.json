@@ -1,0 +1,18 @@
+{
+  "version": "det-v12-1",
+  "baseline": "0bf3d0a14738ea68ccf1cd347929b306b2b3b5b2",
+  "branch": "experiment/det-engine",
+  "node": "v24.19.0",
+  "vitest": "4.1.12",
+  "typescript": "5.9.3",
+  "python": "3.12.14",
+  "scenarioClock": "2026-10-26T12:00:00Z",
+  "data": "unchanged V10 synthetic profiles, no actual observations added; explicitly hypothetical response cases",
+  "science": "verified V8 matrix and Lorang shownotes; no new dose law",
+  "historical600Regenerated": false,
+  "priorEvidenceFilesVerified": 2318,
+  "productionChanged": false,
+  "expertReviewed": false,
+  "paidApiCalls": 0,
+  "sourceManifest": "source-checksums.json"
+}

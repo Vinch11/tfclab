@@ -1,0 +1,1432 @@
+{
+  "floors": [
+    {
+      "id": "95_over_90",
+      "decision": {
+        "version": "det-v25-planning-floor-1",
+        "slotKey": "synthetic:v25:95_over_90",
+        "week": 3,
+        "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+        "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+        "minutes": 95,
+        "planningFloor": 95,
+        "capacity": 90,
+        "objective": "IM",
+        "profileContextHash": "69692e273e5a06ae249bfce4194bc986cbe6668e0f145520d35e53eb8752005e",
+        "proposalHash": "103d04369c1a6c74234b23c901effff3380b0813d1d3622f0274061c535b7e25",
+        "source_recipe_minimum": 60,
+        "catalogue_duration_minimum": 70,
+        "goal_variant_minimum": 90,
+        "planning_floor": 95,
+        "current_capacity_envelope": 90,
+        "individual_tolerance_verified": false,
+        "coach_override_status": "pending_explicit_decision",
+        "coachDecision": {
+          "status": "pending_explicit_decision",
+          "approved": false,
+          "reason": "no_human_decision_document"
+        },
+        "recipeComplete": true,
+        "goalVariantCompatible": true,
+        "goalVariantCompatibilityScope": "literal duration and unchanged full instructions; individualized intensity assignment remains unresolved",
+        "intensityAssignmentVerified": false,
+        "catalogueCheck": {
+          "errors": [],
+          "unknown": []
+        },
+        "withinDeclaredEnvelope": false,
+        "planningFloorExceptionRequired": false,
+        "alternativeTechnicallyReceivable": false,
+        "status": "not_currently_admissible",
+        "reasons": [
+          "dose_exceeds_current_documented_envelope"
+        ],
+        "outstanding": [
+          "source_intensity_domain_resolution",
+          "source_specific_individual_tolerance",
+          "dated_recovery_and_whole_microcycle_review",
+          "independent_coach_dose_decision"
+        ],
+        "sourceIntensityInstructions": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes.",
+        "goalVariantInstructions": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+        "sourceRecipeChanged": false,
+        "nativeFloorChanged": false,
+        "individualDoseApproved": false,
+        "operationallyApproved": false,
+        "capacityIncreased": false
+      }
+    },
+    {
+      "id": "90_floor_candidate",
+      "decision": {
+        "version": "det-v25-planning-floor-1",
+        "slotKey": "synthetic:v25:90_floor_candidate",
+        "week": 3,
+        "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+        "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+        "minutes": 90,
+        "planningFloor": 95,
+        "capacity": 90,
+        "objective": "IM",
+        "profileContextHash": "69692e273e5a06ae249bfce4194bc986cbe6668e0f145520d35e53eb8752005e",
+        "proposalHash": "e42a8f62518f1c10e4911075621b164bb3fdac2b4d25e79641c1d24e3acd5a13",
+        "source_recipe_minimum": 60,
+        "catalogue_duration_minimum": 70,
+        "goal_variant_minimum": 90,
+        "planning_floor": 95,
+        "current_capacity_envelope": 90,
+        "individual_tolerance_verified": false,
+        "coach_override_status": "pending_explicit_decision",
+        "coachDecision": {
+          "status": "pending_explicit_decision",
+          "approved": false,
+          "reason": "no_human_decision_document"
+        },
+        "recipeComplete": true,
+        "goalVariantCompatible": true,
+        "goalVariantCompatibilityScope": "literal duration and unchanged full instructions; individualized intensity assignment remains unresolved",
+        "intensityAssignmentVerified": false,
+        "catalogueCheck": {
+          "errors": [],
+          "unknown": []
+        },
+        "withinDeclaredEnvelope": true,
+        "planningFloorExceptionRequired": true,
+        "alternativeTechnicallyReceivable": true,
+        "status": "candidate_planning_floor_exception",
+        "reasons": [],
+        "outstanding": [
+          "source_intensity_domain_resolution",
+          "source_specific_individual_tolerance",
+          "dated_recovery_and_whole_microcycle_review",
+          "independent_coach_dose_decision"
+        ],
+        "sourceIntensityInstructions": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes.",
+        "goalVariantInstructions": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+        "sourceRecipeChanged": false,
+        "nativeFloorChanged": false,
+        "individualDoseApproved": false,
+        "operationallyApproved": false,
+        "capacityIncreased": false
+      }
+    },
+    {
+      "id": "75_below_goal_min",
+      "decision": {
+        "version": "det-v25-planning-floor-1",
+        "slotKey": "synthetic:v25:75_below_goal_min",
+        "week": 3,
+        "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+        "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+        "minutes": 75,
+        "planningFloor": 95,
+        "capacity": 90,
+        "objective": "IM",
+        "profileContextHash": "69692e273e5a06ae249bfce4194bc986cbe6668e0f145520d35e53eb8752005e",
+        "proposalHash": "2127203bb133580bad309678b3a5c9eca43ac0494e91f0bb5d2fbfd0a0952669",
+        "source_recipe_minimum": 60,
+        "catalogue_duration_minimum": 70,
+        "goal_variant_minimum": 90,
+        "planning_floor": 95,
+        "current_capacity_envelope": 90,
+        "individual_tolerance_verified": false,
+        "coach_override_status": "pending_explicit_decision",
+        "coachDecision": {
+          "status": "pending_explicit_decision",
+          "approved": false,
+          "reason": "no_human_decision_document"
+        },
+        "recipeComplete": true,
+        "goalVariantCompatible": false,
+        "goalVariantCompatibilityScope": "literal duration and unchanged full instructions; individualized intensity assignment remains unresolved",
+        "intensityAssignmentVerified": false,
+        "catalogueCheck": {
+          "errors": [],
+          "unknown": []
+        },
+        "withinDeclaredEnvelope": true,
+        "planningFloorExceptionRequired": true,
+        "alternativeTechnicallyReceivable": false,
+        "status": "not_currently_admissible",
+        "reasons": [
+          "goal_variant_duration_not_satisfied"
+        ],
+        "outstanding": [
+          "source_intensity_domain_resolution",
+          "source_specific_individual_tolerance",
+          "dated_recovery_and_whole_microcycle_review",
+          "independent_coach_dose_decision"
+        ],
+        "sourceIntensityInstructions": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes.",
+        "goalVariantInstructions": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+        "sourceRecipeChanged": false,
+        "nativeFloorChanged": false,
+        "individualDoseApproved": false,
+        "operationallyApproved": false,
+        "capacityIncreased": false
+      }
+    },
+    {
+      "id": "missing_component_reduction",
+      "decision": {
+        "version": "det-v25-planning-floor-1",
+        "slotKey": "synthetic:v25:missing_component_reduction",
+        "week": 3,
+        "sourceId": "A_RUN_Z2_EASY",
+        "sourceHash": "b672fe6111beef6983e9bde55991b3cdd13e91e204ad0f047cc0e242d1ce3366",
+        "minutes": 20,
+        "planningFloor": 95,
+        "capacity": 90,
+        "objective": "IM",
+        "profileContextHash": "69692e273e5a06ae249bfce4194bc986cbe6668e0f145520d35e53eb8752005e",
+        "proposalHash": "32fb2a8d7b03adf434b961b5c00a928f5742b032396984cb9f570829551c83bd",
+        "source_recipe_minimum": 40,
+        "catalogue_duration_minimum": 35,
+        "goal_variant_minimum": null,
+        "planning_floor": 95,
+        "current_capacity_envelope": 90,
+        "individual_tolerance_verified": false,
+        "coach_override_status": "pending_explicit_decision",
+        "coachDecision": {
+          "status": "pending_explicit_decision",
+          "approved": false,
+          "reason": "no_human_decision_document"
+        },
+        "recipeComplete": false,
+        "goalVariantCompatible": false,
+        "goalVariantCompatibilityScope": "literal duration and unchanged full instructions; individualized intensity assignment remains unresolved",
+        "intensityAssignmentVerified": false,
+        "catalogueCheck": {
+          "errors": [
+            "catalogue_duration"
+          ],
+          "unknown": []
+        },
+        "withinDeclaredEnvelope": true,
+        "planningFloorExceptionRequired": true,
+        "alternativeTechnicallyReceivable": false,
+        "status": "not_currently_admissible",
+        "reasons": [
+          "original_catalogue_contract_refuses_alternative",
+          "complete_mandatory_source_recipe_not_preserved",
+          "goal_variant_not_demonstrated"
+        ],
+        "outstanding": [
+          "source_intensity_domain_resolution",
+          "source_specific_individual_tolerance",
+          "dated_recovery_and_whole_microcycle_review",
+          "independent_coach_dose_decision"
+        ],
+        "sourceIntensityInstructions": "Warm-up: 10 min Z1–Z2 relâché | Main: 20–70 min Z2 (technique, relâchement) | Cool-down: 5 min Z1 + éducatifs 5 min (optionnel)",
+        "goalVariantInstructions": "Z2 stable 45–75 min (ou brick après vélo)",
+        "sourceRecipeChanged": false,
+        "nativeFloorChanged": false,
+        "individualDoseApproved": false,
+        "operationallyApproved": false,
+        "capacityIncreased": false
+      }
+    },
+    {
+      "id": "unknown_capacity",
+      "decision": {
+        "version": "det-v25-planning-floor-1",
+        "slotKey": "synthetic:v25:unknown_capacity",
+        "week": 3,
+        "sourceId": "SEILER_RUN_Z1_EASY_LONG",
+        "sourceHash": "37dabb2a7f964813df64301ea52cf5d450203344b1f657eb8694b82554005e51",
+        "minutes": 90,
+        "planningFloor": 95,
+        "capacity": null,
+        "objective": "IM",
+        "profileContextHash": "69692e273e5a06ae249bfce4194bc986cbe6668e0f145520d35e53eb8752005e",
+        "proposalHash": "7a086ee854cf49e626abd0d142dc93a7f81792791ea23d23b3b788263446d5ce",
+        "source_recipe_minimum": 60,
+        "catalogue_duration_minimum": 70,
+        "goal_variant_minimum": 90,
+        "planning_floor": 95,
+        "current_capacity_envelope": null,
+        "individual_tolerance_verified": false,
+        "coach_override_status": "pending_explicit_decision",
+        "coachDecision": {
+          "status": "pending_explicit_decision",
+          "approved": false,
+          "reason": "no_human_decision_document"
+        },
+        "recipeComplete": true,
+        "goalVariantCompatible": true,
+        "goalVariantCompatibilityScope": "literal duration and unchanged full instructions; individualized intensity assignment remains unresolved",
+        "intensityAssignmentVerified": false,
+        "catalogueCheck": {
+          "errors": [],
+          "unknown": []
+        },
+        "withinDeclaredEnvelope": false,
+        "planningFloorExceptionRequired": true,
+        "alternativeTechnicallyReceivable": false,
+        "status": "not_currently_admissible",
+        "reasons": [
+          "current_capacity_unknown"
+        ],
+        "outstanding": [
+          "source_intensity_domain_resolution",
+          "source_specific_individual_tolerance",
+          "dated_recovery_and_whole_microcycle_review",
+          "independent_coach_dose_decision"
+        ],
+        "sourceIntensityInstructions": "Warm-up: Intégré — les 10 premières minutes sont l'échauffement naturel. | Main: 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. | Cool-down: Intégré — les 10 dernières minutes naturellement plus lentes.",
+        "goalVariantInstructions": "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+        "sourceRecipeChanged": false,
+        "nativeFloorChanged": false,
+        "individualDoseApproved": false,
+        "operationallyApproved": false,
+        "capacityIncreased": false
+      }
+    }
+  ],
+  "physiology": [
+    {
+      "id": "typed_cost_from_separate_424_fixture",
+      "decision": {
+        "version": "det-v25-physiology-consumption-1",
+        "status": "typed_context_consumed_for_review",
+        "reasons": [],
+        "inputUnchanged": {
+          "athleteId": "pilot:B-MARATHON",
+          "athleteName": "QA Synthetic",
+          "age": 35,
+          "sex": "M",
+          "weightKg": 72,
+          "objectif": "MARATHON",
+          "ambition": "world_class",
+          "sportFocus": "run",
+          "vo2max": 58,
+          "ftp": 280,
+          "ftpKg": 3.888888888888889,
+          "pmax5s": 950,
+          "p30sW": 620,
+          "p60sW": 480,
+          "map5minW": 380,
+          "vma": 18,
+          "css": 90,
+          "vlamax": 0.55,
+          "vlamaxRun": 0.5,
+          "vlamaxSource": "synthetic_estimate",
+          "vlamaxProtocol": null,
+          "vlamaxIsReference": false,
+          "tteObservedMin": null,
+          "tteObservedMinRun": 45,
+          "tteMode": "synthetic_estimate",
+          "tss7d": null,
+          "fatigueState": null,
+          "runEconomyScore": 65,
+          "runHrDriftPct": null,
+          "paceThresholdSecPerKm": null,
+          "runningPower1s": null,
+          "runningPower5s": null,
+          "runningPower30s": null,
+          "runningPower60s": null,
+          "runningPower5min": null,
+          "runningPowerThreshold": null,
+          "sprint15sDistance": null,
+          "bikeCadenceRpm": null,
+          "bikeHrDriftFlag": false,
+          "protocolQuality": null,
+          "wprimeKj": null,
+          "cpDataQuality": null,
+          "fatmax": null,
+          "forceDevMode": false,
+          "giIssuesFlag": false,
+          "targetRaceDurationMin": null
+        },
+        "envelope": {
+          "id": "typed_cost_from_separate_424_fixture",
+          "status": "documented_candidate",
+          "quantity": "running_oxygen_cost",
+          "unit": "ml_O2/kg/km",
+          "value": 200,
+          "uncertainty": {
+            "status": "documented",
+            "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+            "individualErrorBound": null
+          },
+          "method": {
+            "kind": "synthetic_fixture",
+            "id": "PR424-economy-contract-test",
+            "admissibility": "experimental_context_only"
+          },
+          "version": "det-v25-run-cost-1",
+          "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+          "sourceArtifactHash": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+          "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+          "observedAt": "2026-10-29T10:00:00Z",
+          "validThrough": "2026-11-10T23:59:59Z",
+          "synthetic": true
+        },
+        "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+        "nativeRunMLSS": {
+          "observedPct": null,
+          "prediction": {
+            "mlssPct": 93.7,
+            "confidence": 0.75,
+            "trace": {
+              "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+              "vlamaxContribution": 16.85,
+              "ceContribution": -10.5,
+              "rmseExpected": 2.64
+            }
+          },
+          "crossValidation": null,
+          "effectivePct": 93.7,
+          "effectiveSource": "predicted"
+        },
+        "experimental": {
+          "prediction": {
+            "mlssPct": 83.2,
+            "confidence": 0.85,
+            "trace": {
+              "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+              "vlamaxContribution": 16.85,
+              "ceContribution": 0,
+              "rmseExpected": 2.64
+            }
+          },
+          "crossValidation": null,
+          "observedPct": null,
+          "observedReferenceRetained": true
+        },
+        "nativeReferenceReplaced": false,
+        "nativeRefusalsRemoved": 0,
+        "scoreConvertedToCost": false,
+        "individualValueExperimentallyValidated": false,
+        "individualDoseApproved": false,
+        "assumedMerged": false,
+        "limitations": [
+          "existing Model C calibration and clamping remain visible",
+          "typed input does not validate a measured or estimated value",
+          "no field reference is generated or replaced by this context"
+        ]
+      }
+    },
+    {
+      "id": "uncertain_cost",
+      "decision": {
+        "version": "det-v25-physiology-consumption-1",
+        "status": "hold_typed_reference",
+        "reasons": [
+          "reference_quality_uncertain"
+        ],
+        "inputUnchanged": {
+          "athleteId": "pilot:B-MARATHON",
+          "athleteName": "QA Synthetic",
+          "age": 35,
+          "sex": "M",
+          "weightKg": 72,
+          "objectif": "MARATHON",
+          "ambition": "world_class",
+          "sportFocus": "run",
+          "vo2max": 58,
+          "ftp": 280,
+          "ftpKg": 3.888888888888889,
+          "pmax5s": 950,
+          "p30sW": 620,
+          "p60sW": 480,
+          "map5minW": 380,
+          "vma": 18,
+          "css": 90,
+          "vlamax": 0.55,
+          "vlamaxRun": 0.5,
+          "vlamaxSource": "synthetic_estimate",
+          "vlamaxProtocol": null,
+          "vlamaxIsReference": false,
+          "tteObservedMin": null,
+          "tteObservedMinRun": 45,
+          "tteMode": "synthetic_estimate",
+          "tss7d": null,
+          "fatigueState": null,
+          "runEconomyScore": 65,
+          "runHrDriftPct": null,
+          "paceThresholdSecPerKm": null,
+          "runningPower1s": null,
+          "runningPower5s": null,
+          "runningPower30s": null,
+          "runningPower60s": null,
+          "runningPower5min": null,
+          "runningPowerThreshold": null,
+          "sprint15sDistance": null,
+          "bikeCadenceRpm": null,
+          "bikeHrDriftFlag": false,
+          "protocolQuality": null,
+          "wprimeKj": null,
+          "cpDataQuality": null,
+          "fatmax": null,
+          "forceDevMode": false,
+          "giIssuesFlag": false,
+          "targetRaceDurationMin": null
+        },
+        "envelope": {
+          "id": "uncertain_cost",
+          "status": "uncertain",
+          "quantity": "running_oxygen_cost",
+          "unit": "ml_O2/kg/km",
+          "value": 200,
+          "uncertainty": {
+            "status": "documented",
+            "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+            "individualErrorBound": null
+          },
+          "method": {
+            "kind": "synthetic_fixture",
+            "id": "PR424-economy-contract-test",
+            "admissibility": "experimental_context_only"
+          },
+          "version": "det-v25-run-cost-1",
+          "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+          "sourceArtifactHash": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+          "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+          "observedAt": "2026-10-29T10:00:00Z",
+          "validThrough": "2026-11-10T23:59:59Z",
+          "synthetic": true
+        },
+        "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+        "nativeRunMLSS": {
+          "observedPct": null,
+          "prediction": {
+            "mlssPct": 93.7,
+            "confidence": 0.75,
+            "trace": {
+              "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+              "vlamaxContribution": 16.85,
+              "ceContribution": -10.5,
+              "rmseExpected": 2.64
+            }
+          },
+          "crossValidation": null,
+          "effectivePct": 93.7,
+          "effectiveSource": "predicted"
+        },
+        "experimental": {
+          "prediction": null,
+          "crossValidation": null,
+          "observedPct": null,
+          "observedReferenceRetained": true
+        },
+        "nativeReferenceReplaced": false,
+        "nativeRefusalsRemoved": 0,
+        "scoreConvertedToCost": false,
+        "individualValueExperimentallyValidated": false,
+        "individualDoseApproved": false,
+        "assumedMerged": false,
+        "limitations": [
+          "existing Model C calibration and clamping remain visible",
+          "typed input does not validate a measured or estimated value",
+          "no field reference is generated or replaced by this context"
+        ]
+      }
+    },
+    {
+      "id": "absent_cost",
+      "decision": {
+        "version": "det-v25-physiology-consumption-1",
+        "status": "hold_typed_reference",
+        "reasons": [
+          "oxygen_cost_absent_no_score_or_mean_substitution"
+        ],
+        "inputUnchanged": {
+          "athleteId": "pilot:B-MARATHON",
+          "athleteName": "QA Synthetic",
+          "age": 35,
+          "sex": "M",
+          "weightKg": 72,
+          "objectif": "MARATHON",
+          "ambition": "world_class",
+          "sportFocus": "run",
+          "vo2max": 58,
+          "ftp": 280,
+          "ftpKg": 3.888888888888889,
+          "pmax5s": 950,
+          "p30sW": 620,
+          "p60sW": 480,
+          "map5minW": 380,
+          "vma": 18,
+          "css": 90,
+          "vlamax": 0.55,
+          "vlamaxRun": 0.5,
+          "vlamaxSource": "synthetic_estimate",
+          "vlamaxProtocol": null,
+          "vlamaxIsReference": false,
+          "tteObservedMin": null,
+          "tteObservedMinRun": 45,
+          "tteMode": "synthetic_estimate",
+          "tss7d": null,
+          "fatigueState": null,
+          "runEconomyScore": 65,
+          "runHrDriftPct": null,
+          "paceThresholdSecPerKm": null,
+          "runningPower1s": null,
+          "runningPower5s": null,
+          "runningPower30s": null,
+          "runningPower60s": null,
+          "runningPower5min": null,
+          "runningPowerThreshold": null,
+          "sprint15sDistance": null,
+          "bikeCadenceRpm": null,
+          "bikeHrDriftFlag": false,
+          "protocolQuality": null,
+          "wprimeKj": null,
+          "cpDataQuality": null,
+          "fatmax": null,
+          "forceDevMode": false,
+          "giIssuesFlag": false,
+          "targetRaceDurationMin": null
+        },
+        "envelope": {
+          "id": "absent_cost",
+          "status": "absent",
+          "quantity": "running_oxygen_cost",
+          "unit": "ml_O2/kg/km",
+          "value": null,
+          "uncertainty": {
+            "status": "documented",
+            "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+            "individualErrorBound": null
+          },
+          "method": {
+            "kind": "synthetic_fixture",
+            "id": "PR424-economy-contract-test",
+            "admissibility": "experimental_context_only"
+          },
+          "version": "det-v25-run-cost-1",
+          "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+          "sourceArtifactHash": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+          "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+          "observedAt": "2026-10-29T10:00:00Z",
+          "validThrough": "2026-11-10T23:59:59Z",
+          "synthetic": true
+        },
+        "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+        "nativeRunMLSS": {
+          "observedPct": null,
+          "prediction": {
+            "mlssPct": 93.7,
+            "confidence": 0.75,
+            "trace": {
+              "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+              "vlamaxContribution": 16.85,
+              "ceContribution": -10.5,
+              "rmseExpected": 2.64
+            }
+          },
+          "crossValidation": null,
+          "effectivePct": 93.7,
+          "effectiveSource": "predicted"
+        },
+        "experimental": {
+          "prediction": null,
+          "crossValidation": null,
+          "observedPct": null,
+          "observedReferenceRetained": true
+        },
+        "nativeReferenceReplaced": false,
+        "nativeRefusalsRemoved": 0,
+        "scoreConvertedToCost": false,
+        "individualValueExperimentallyValidated": false,
+        "individualDoseApproved": false,
+        "assumedMerged": false,
+        "limitations": [
+          "existing Model C calibration and clamping remain visible",
+          "typed input does not validate a measured or estimated value",
+          "no field reference is generated or replaced by this context"
+        ]
+      }
+    },
+    {
+      "id": "score_is_not_cost",
+      "decision": {
+        "version": "det-v25-physiology-consumption-1",
+        "status": "hold_typed_reference",
+        "reasons": [
+          "score_and_oxygen_cost_are_not_interchangeable",
+          "verified_artifact_does_not_support_exact_transferred_claim"
+        ],
+        "inputUnchanged": {
+          "athleteId": "pilot:B-MARATHON",
+          "athleteName": "QA Synthetic",
+          "age": 35,
+          "sex": "M",
+          "weightKg": 72,
+          "objectif": "MARATHON",
+          "ambition": "world_class",
+          "sportFocus": "run",
+          "vo2max": 58,
+          "ftp": 280,
+          "ftpKg": 3.888888888888889,
+          "pmax5s": 950,
+          "p30sW": 620,
+          "p60sW": 480,
+          "map5minW": 380,
+          "vma": 18,
+          "css": 90,
+          "vlamax": 0.55,
+          "vlamaxRun": 0.5,
+          "vlamaxSource": "synthetic_estimate",
+          "vlamaxProtocol": null,
+          "vlamaxIsReference": false,
+          "tteObservedMin": null,
+          "tteObservedMinRun": 45,
+          "tteMode": "synthetic_estimate",
+          "tss7d": null,
+          "fatigueState": null,
+          "runEconomyScore": 65,
+          "runHrDriftPct": null,
+          "paceThresholdSecPerKm": null,
+          "runningPower1s": null,
+          "runningPower5s": null,
+          "runningPower30s": null,
+          "runningPower60s": null,
+          "runningPower5min": null,
+          "runningPowerThreshold": null,
+          "sprint15sDistance": null,
+          "bikeCadenceRpm": null,
+          "bikeHrDriftFlag": false,
+          "protocolQuality": null,
+          "wprimeKj": null,
+          "cpDataQuality": null,
+          "fatmax": null,
+          "forceDevMode": false,
+          "giIssuesFlag": false,
+          "targetRaceDurationMin": null
+        },
+        "envelope": {
+          "id": "score_is_not_cost",
+          "status": "documented_candidate",
+          "quantity": "run_economy_score",
+          "unit": "score_0_100",
+          "value": 65,
+          "uncertainty": {
+            "status": "documented",
+            "basis": "synthetic explicit QA parameter, not a measurement or calibrated individual value",
+            "individualErrorBound": null
+          },
+          "method": {
+            "kind": "synthetic_fixture",
+            "id": "PR424-economy-contract-test",
+            "admissibility": "experimental_context_only"
+          },
+          "version": "det-v25-run-cost-1",
+          "sourceRef": "36a8f2f69c07248aa4e08bbc4bb322e9ae4c759d:experimental/physiology-validation/v1/economy-contract.test.ts",
+          "sourceArtifactHash": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+          "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+          "observedAt": "2026-10-29T10:00:00Z",
+          "validThrough": "2026-11-10T23:59:59Z",
+          "synthetic": true
+        },
+        "rawInputHash": "c4c11a50bf59f9357a2675f63760e8303eb1697281f5a60fa4c21fdce302c587",
+        "nativeRunMLSS": {
+          "observedPct": null,
+          "prediction": {
+            "mlssPct": 93.7,
+            "confidence": 0.75,
+            "trace": {
+              "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+              "vlamaxContribution": 16.85,
+              "ceContribution": -10.5,
+              "rmseExpected": 2.64
+            }
+          },
+          "crossValidation": null,
+          "effectivePct": 93.7,
+          "effectiveSource": "predicted"
+        },
+        "experimental": {
+          "prediction": null,
+          "crossValidation": null,
+          "observedPct": null,
+          "observedReferenceRetained": true
+        },
+        "nativeReferenceReplaced": false,
+        "nativeRefusalsRemoved": 0,
+        "scoreConvertedToCost": false,
+        "individualValueExperimentallyValidated": false,
+        "individualDoseApproved": false,
+        "assumedMerged": false,
+        "limitations": [
+          "existing Model C calibration and clamping remain visible",
+          "typed input does not validate a measured or estimated value",
+          "no field reference is generated or replaced by this context"
+        ]
+      }
+    }
+  ],
+  "recovery": [
+    {
+      "id": "unknown",
+      "decision": {
+        "version": "det-v25-recovery-reassessment-1",
+        "subject": {
+          "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+          "sourceId": "SEILER_BIKE_Z1_LONG",
+          "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+          "minutes": 130,
+          "currentCapacityMinutes": 180,
+          "synthetic": true
+        },
+        "state": "awaiting_reassessment",
+        "history": [
+          {
+            "sequence": 1,
+            "event": {
+              "kind": "adverse_response",
+              "at": "2026-11-09T08:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T08:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "adverse",
+                "recovered": false,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "planned_conditional",
+            "to": "suspended_due_to_recovery",
+            "accepted": true,
+            "reasons": [
+              "adverse_recovery_hold"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 2,
+            "event": {
+              "kind": "request_reassessment",
+              "at": "2026-11-09T09:00:00Z"
+            },
+            "from": "suspended_due_to_recovery",
+            "to": "awaiting_reassessment",
+            "accepted": true,
+            "reasons": [],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 3,
+            "event": {
+              "kind": "document_reassessment",
+              "at": "2026-11-09T18:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T18:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "unknown",
+                "recovered": null,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "awaiting_reassessment",
+            "to": "awaiting_reassessment",
+            "accepted": true,
+            "reasons": [
+              "recent_favourable_recovery_not_documented"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          }
+        ],
+        "nativeSuspension": null,
+        "reviewPacketHash": null,
+        "recoveryHoldStillOperative": true,
+        "currentCapacityMinutes": 180,
+        "targetRecipeIndividualToleranceVerified": false,
+        "capacityIncreased": false,
+        "adaptationObserved": false,
+        "compensationMinutes": 0,
+        "calendarModified": false,
+        "individualDoseApproved": false,
+        "operationalAuthorization": false,
+        "simulation": true
+      }
+    },
+    {
+      "id": "adverse",
+      "decision": {
+        "version": "det-v25-recovery-reassessment-1",
+        "subject": {
+          "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+          "sourceId": "SEILER_BIKE_Z1_LONG",
+          "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+          "minutes": 130,
+          "currentCapacityMinutes": 180,
+          "synthetic": true
+        },
+        "state": "suspended_due_to_recovery",
+        "history": [
+          {
+            "sequence": 1,
+            "event": {
+              "kind": "adverse_response",
+              "at": "2026-11-09T08:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T08:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "adverse",
+                "recovered": false,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "planned_conditional",
+            "to": "suspended_due_to_recovery",
+            "accepted": true,
+            "reasons": [
+              "adverse_recovery_hold"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 2,
+            "event": {
+              "kind": "request_reassessment",
+              "at": "2026-11-09T09:00:00Z"
+            },
+            "from": "suspended_due_to_recovery",
+            "to": "awaiting_reassessment",
+            "accepted": true,
+            "reasons": [],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 3,
+            "event": {
+              "kind": "document_reassessment",
+              "at": "2026-11-09T18:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T18:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "adverse",
+                "recovered": false,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "awaiting_reassessment",
+            "to": "suspended_due_to_recovery",
+            "accepted": true,
+            "reasons": [
+              "persistent_adverse_response_pain_or_restriction"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          }
+        ],
+        "nativeSuspension": null,
+        "reviewPacketHash": null,
+        "recoveryHoldStillOperative": true,
+        "currentCapacityMinutes": 180,
+        "targetRecipeIndividualToleranceVerified": false,
+        "capacityIncreased": false,
+        "adaptationObserved": false,
+        "compensationMinutes": 0,
+        "calendarModified": false,
+        "individualDoseApproved": false,
+        "operationalAuthorization": false,
+        "simulation": true
+      }
+    },
+    {
+      "id": "favourable_insufficient_capacity",
+      "decision": {
+        "version": "det-v25-recovery-reassessment-1",
+        "subject": {
+          "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+          "sourceId": "SEILER_BIKE_Z1_LONG",
+          "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+          "minutes": 130,
+          "currentCapacityMinutes": 120,
+          "synthetic": true
+        },
+        "state": "not_admissible",
+        "history": [
+          {
+            "sequence": 1,
+            "event": {
+              "kind": "adverse_response",
+              "at": "2026-11-09T08:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T08:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "adverse",
+                "recovered": false,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 120,
+                "capacityProvenance": "separate preregistered synthetic lower envelope; not produced by recovery"
+              }
+            },
+            "from": "planned_conditional",
+            "to": "suspended_due_to_recovery",
+            "accepted": true,
+            "reasons": [
+              "adverse_recovery_hold"
+            ],
+            "subjectHash": "1991c8d034e445147e5abf10a8711e00446a732b7afbfa8e073716d603a29ec3",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 2,
+            "event": {
+              "kind": "request_reassessment",
+              "at": "2026-11-09T09:00:00Z"
+            },
+            "from": "suspended_due_to_recovery",
+            "to": "awaiting_reassessment",
+            "accepted": true,
+            "reasons": [],
+            "subjectHash": "1991c8d034e445147e5abf10a8711e00446a732b7afbfa8e073716d603a29ec3",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 3,
+            "event": {
+              "kind": "document_reassessment",
+              "at": "2026-11-09T18:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T18:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "favourable",
+                "recovered": true,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 120,
+                "capacityProvenance": "separate preregistered synthetic lower envelope; not produced by recovery"
+              }
+            },
+            "from": "awaiting_reassessment",
+            "to": "not_admissible",
+            "accepted": true,
+            "reasons": [
+              "target_dose_exceeds_current_capacity"
+            ],
+            "subjectHash": "1991c8d034e445147e5abf10a8711e00446a732b7afbfa8e073716d603a29ec3",
+            "reviewPacketHash": null
+          }
+        ],
+        "nativeSuspension": null,
+        "reviewPacketHash": null,
+        "recoveryHoldStillOperative": true,
+        "currentCapacityMinutes": 120,
+        "targetRecipeIndividualToleranceVerified": false,
+        "capacityIncreased": false,
+        "adaptationObserved": false,
+        "compensationMinutes": 0,
+        "calendarModified": false,
+        "individualDoseApproved": false,
+        "operationalAuthorization": false,
+        "simulation": true
+      }
+    },
+    {
+      "id": "favourable_missing_reference",
+      "decision": {
+        "version": "det-v25-recovery-reassessment-1",
+        "subject": {
+          "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+          "sourceId": "SEILER_BIKE_Z1_LONG",
+          "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+          "minutes": 130,
+          "currentCapacityMinutes": 180,
+          "synthetic": true
+        },
+        "state": "not_admissible",
+        "history": [
+          {
+            "sequence": 1,
+            "event": {
+              "kind": "adverse_response",
+              "at": "2026-11-09T08:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T08:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "adverse",
+                "recovered": false,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "planned_conditional",
+            "to": "suspended_due_to_recovery",
+            "accepted": true,
+            "reasons": [
+              "adverse_recovery_hold"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 2,
+            "event": {
+              "kind": "request_reassessment",
+              "at": "2026-11-09T09:00:00Z"
+            },
+            "from": "suspended_due_to_recovery",
+            "to": "awaiting_reassessment",
+            "accepted": true,
+            "reasons": [],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 3,
+            "event": {
+              "kind": "document_reassessment",
+              "at": "2026-11-09T18:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T18:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "favourable",
+                "recovered": true,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": false,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "awaiting_reassessment",
+            "to": "not_admissible",
+            "accepted": true,
+            "reasons": [
+              "physiological_reference_missing_or_uncertain"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          }
+        ],
+        "nativeSuspension": null,
+        "reviewPacketHash": null,
+        "recoveryHoldStillOperative": true,
+        "currentCapacityMinutes": 180,
+        "targetRecipeIndividualToleranceVerified": false,
+        "capacityIncreased": false,
+        "adaptationObserved": false,
+        "compensationMinutes": 0,
+        "calendarModified": false,
+        "individualDoseApproved": false,
+        "operationalAuthorization": false,
+        "simulation": true
+      }
+    },
+    {
+      "id": "persistent_pain",
+      "decision": {
+        "version": "det-v25-recovery-reassessment-1",
+        "subject": {
+          "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+          "sourceId": "SEILER_BIKE_Z1_LONG",
+          "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+          "minutes": 130,
+          "currentCapacityMinutes": 180,
+          "synthetic": true
+        },
+        "state": "not_admissible",
+        "history": [
+          {
+            "sequence": 1,
+            "event": {
+              "kind": "adverse_response",
+              "at": "2026-11-09T08:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T08:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "adverse",
+                "recovered": false,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "planned_conditional",
+            "to": "suspended_due_to_recovery",
+            "accepted": true,
+            "reasons": [
+              "adverse_recovery_hold"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 2,
+            "event": {
+              "kind": "request_reassessment",
+              "at": "2026-11-09T09:00:00Z"
+            },
+            "from": "suspended_due_to_recovery",
+            "to": "awaiting_reassessment",
+            "accepted": true,
+            "reasons": [],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 3,
+            "event": {
+              "kind": "document_reassessment",
+              "at": "2026-11-09T18:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T18:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "favourable",
+                "recovered": true,
+                "pain": true,
+                "symptoms": false,
+                "restriction": true,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "awaiting_reassessment",
+            "to": "not_admissible",
+            "accepted": true,
+            "reasons": [
+              "persistent_adverse_response_pain_or_restriction"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          }
+        ],
+        "nativeSuspension": null,
+        "reviewPacketHash": null,
+        "recoveryHoldStillOperative": true,
+        "currentCapacityMinutes": 180,
+        "targetRecipeIndividualToleranceVerified": false,
+        "capacityIncreased": false,
+        "adaptationObserved": false,
+        "compensationMinutes": 0,
+        "calendarModified": false,
+        "individualDoseApproved": false,
+        "operationalAuthorization": false,
+        "simulation": true
+      }
+    },
+    {
+      "id": "favourable_documented",
+      "decision": {
+        "version": "det-v25-recovery-reassessment-1",
+        "subject": {
+          "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+          "sourceId": "SEILER_BIKE_Z1_LONG",
+          "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+          "minutes": 130,
+          "currentCapacityMinutes": 180,
+          "synthetic": true
+        },
+        "state": "candidate_for_coach_review",
+        "history": [
+          {
+            "sequence": 1,
+            "event": {
+              "kind": "adverse_response",
+              "at": "2026-11-09T08:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T08:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "adverse",
+                "recovered": false,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "planned_conditional",
+            "to": "suspended_due_to_recovery",
+            "accepted": true,
+            "reasons": [
+              "adverse_recovery_hold"
+            ],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 2,
+            "event": {
+              "kind": "request_reassessment",
+              "at": "2026-11-09T09:00:00Z"
+            },
+            "from": "suspended_due_to_recovery",
+            "to": "awaiting_reassessment",
+            "accepted": true,
+            "reasons": [],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": null
+          },
+          {
+            "sequence": 3,
+            "event": {
+              "kind": "document_reassessment",
+              "at": "2026-11-09T18:00:00Z",
+              "observation": {
+                "slotKey": "B_sustainability:native_floor_conditional:S2:bike:0",
+                "sourceId": "SEILER_BIKE_Z1_LONG",
+                "sourceHash": "378f979aa6d40a882de55ce46958dc6c3bfa2d4debd4fc68f45af1c323cc2f6c",
+                "recordedAt": "2026-11-09T18:00:00Z",
+                "validThrough": "2026-11-10T23:59:59Z",
+                "synthetic": true,
+                "response": "favourable",
+                "recovered": true,
+                "pain": false,
+                "symptoms": false,
+                "restriction": false,
+                "previousToleranceDocumented": true,
+                "previousCompletedMinutes": 120,
+                "toleranceProvenance": "separate synthetic source-specific prior-session completion observation; not exact future-dose proof",
+                "referenceUsable": true,
+                "microcycleCompatible": true,
+                "capacityMinutes": 180,
+                "capacityProvenance": "original preregistered coach envelope; not increased by the recovery response"
+              }
+            },
+            "from": "awaiting_reassessment",
+            "to": "candidate_for_coach_review",
+            "accepted": true,
+            "reasons": [],
+            "subjectHash": "cdb634814216441a6a6cd77d15fcb537ddf7424427a7ffa8464327f20d0266f8",
+            "reviewPacketHash": "63a4b6e0cb310ee1058b4ba1d3cf6cbb6a3df1b439e19dc0a5c8982315b0869c"
+          }
+        ],
+        "nativeSuspension": null,
+        "reviewPacketHash": "63a4b6e0cb310ee1058b4ba1d3cf6cbb6a3df1b439e19dc0a5c8982315b0869c",
+        "recoveryHoldStillOperative": true,
+        "currentCapacityMinutes": 180,
+        "targetRecipeIndividualToleranceVerified": false,
+        "capacityIncreased": false,
+        "adaptationObserved": false,
+        "compensationMinutes": 0,
+        "calendarModified": false,
+        "individualDoseApproved": false,
+        "operationalAuthorization": false,
+        "simulation": true
+      }
+    }
+  ]
+}

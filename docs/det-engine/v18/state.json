@@ -1,0 +1,181 @@
+{
+  "version": "v18-ledger-1",
+  "baseline": "13e5d334d221b11317cbe4a84793890b6936dcde",
+  "startedAt": "2026-10-28T21:44:37Z",
+  "deadline": "2026-10-28T22:44:37Z",
+  "status": "completed_no_go",
+  "maxUnits": 10,
+  "maxAttemptsPerRoot": 3,
+  "maxProcessSeconds": 180,
+  "memoryMb": 2048,
+  "automaticRestart": false,
+  "units": [
+    {
+      "unit": 1,
+      "name": "Baseline and root-cause audit of 700 incomplete records",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00",
+      "finalValidation": "evidence/validation-3"
+    },
+    {
+      "unit": 2,
+      "name": "Boundary-safe quantities and syntax regression",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00",
+      "finalValidation": "evidence/validation-3"
+    },
+    {
+      "unit": 3,
+      "name": "Compositional timeline, explicit recovery and alternatives",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00",
+      "finalValidation": "evidence/validation-3"
+    },
+    {
+      "unit": 4,
+      "name": "127 strength execution models",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00",
+      "finalValidation": "evidence/validation-3"
+    },
+    {
+      "unit": 5,
+      "name": "119 swim distance and stroke models",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00",
+      "finalValidation": "evidence/validation-3"
+    },
+    {
+      "unit": 6,
+      "name": "55 brick and 32 mixed execution models",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00",
+      "finalValidation": "evidence/validation-3"
+    },
+    {
+      "unit": 7,
+      "name": "2425 goal-variant source bindings",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/candidate-build-2",
+        "evidence/independent-attempt-1.json",
+        "evidence/contracts-direct-1.txt"
+      ],
+      "recordedAt": "2026-10-28T22:01:26.427742+00:00",
+      "finalValidation": "evidence/validation-3"
+    },
+    {
+      "unit": 8,
+      "name": "Coach, local Nolio and family scientific review",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "evidence/validation-3/build/outputs.jsonl.gz",
+        "evidence/validation-3/family",
+        "evidence/family-candidate-replay.json"
+      ],
+      "recordedAt": null
+    },
+    {
+      "unit": 9,
+      "name": "Independent audit, sensitivity and historical non-regression",
+      "status": "passed",
+      "attempts": 3,
+      "evidence": "docs/det-engine/v18/evidence/validation-3",
+      "recordedAt": null,
+      "finishedAt": "2026-10-28T22:19:33.447Z",
+      "previousAttemptFailures": [
+        {
+          "attempt": 1,
+          "cause": "spawnSync EPERM",
+          "evidence": "evidence/validation-1/failure.json"
+        },
+        {
+          "attempt": 2,
+          "cause": "nested V18 family-review output guard",
+          "evidence": "evidence/validation-2/failure.json"
+        }
+      ],
+      "lastAttemptOutcome": "passed"
+    },
+    {
+      "unit": 10,
+      "name": "Dossier, publication and explicit closure",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": [
+        "README.md",
+        "evidence/final-supplement-receipts.json",
+        "evidence/pr-source-checkpoint.json",
+        "evidence/closed-unit-refusal.json"
+      ],
+      "recordedAt": null,
+      "finishedAt": "2026-10-28T22:35:24.244742+00:00"
+    }
+  ],
+  "active": null,
+  "rejectedOrUnchosen": [
+    {
+      "cause": "unqualified_final_recovery",
+      "decision": "retain unresolved; no n-1 or n choice merely to fit window"
+    },
+    {
+      "cause": "standalone_goal_duration_on_multicomponent_recipe",
+      "decision": "retain ambiguous; no warm-up/cool-down deletion"
+    },
+    {
+      "cause": "swim_or_technical_distance_time_unknown",
+      "decision": "protocol shape separated from athlete duration"
+    }
+  ],
+  "finishedAt": "2026-10-28T22:35:24.244742+00:00",
+  "elapsedSeconds": 3047,
+  "workUnitsUsed": 10,
+  "stopReason": "10_authorized_work_units_completed",
+  "sourceCommit": "2fb67ec8f1d829a7f9bafd0d7e227976f281d20f",
+  "publication": {
+    "pr": 420,
+    "draft": true,
+    "merged": false,
+    "deployment": false,
+    "scientificPromotion": false,
+    "sourceCheckpoint": "evidence/pr-source-checkpoint.json"
+  }
+}

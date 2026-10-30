@@ -1,0 +1,23 @@
+{
+  "experimental": {
+    "passed": 132,
+    "skipped": 50,
+    "todo": 0,
+    "evidence": "evidence/reassessment-delta/experimental.txt"
+  },
+  "historical": {
+    "passed": 2999,
+    "skipped": 1,
+    "todo": 6,
+    "evidence": "evidence/validation/historical.txt"
+  },
+  "targeted": {
+    "passed": 6,
+    "skipped": 0,
+    "todo": 0,
+    "evidence": "evidence/final/tests.txt"
+  },
+  "types": "passed",
+  "governancePassed": 62,
+  "targetedOverlapsExperimental": true
+}

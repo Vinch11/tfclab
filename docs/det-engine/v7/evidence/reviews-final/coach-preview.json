@@ -1,0 +1,119 @@
+{
+  "mode": "experimental_offline_read_only",
+  "applicationIntegration": false,
+  "families": [
+    {
+      "objective": "IM",
+      "caseId": "IM:trained:finisher:known_synthetic",
+      "sourceModel": "standalone_preserve",
+      "declaredLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "reviewFile": "ironman.md",
+      "offlineReviewAvailable": true,
+      "applicationCoachPreviewAvailable": false,
+      "productionAvailable": false,
+      "realAthleteSupport": false,
+      "status": "candidate_diagnostic_only",
+      "historicalConformity": false,
+      "candidateContract": {
+        "AB": "historical_AB_every_base",
+        "IM": "week_specific_training_and_competition"
+      },
+      "candidateStatus": "fails",
+      "candidateUnknowns": 9,
+      "coachReviewMandatory": true,
+      "expertReviewPerformed": false,
+      "allowedActions": [
+        "read_synthetic_calendar",
+        "inspect_rules_and_unknowns"
+      ],
+      "noSaveOrNolioOrGenerationEndpoint": true,
+      "automaticPrescriptionAllowed": false
+    },
+    {
+      "objective": "TrailShort",
+      "caseId": "synthetic-v4:TrailShort:highly_trained",
+      "sourceModel": "conservative_taper",
+      "declaredLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "reviewFile": "trail-court.md",
+      "offlineReviewAvailable": true,
+      "applicationCoachPreviewAvailable": false,
+      "productionAvailable": false,
+      "realAthleteSupport": false,
+      "status": "candidate_diagnostic_only",
+      "historicalConformity": false,
+      "candidateContract": {
+        "AB": "foundation_roles_then_quality",
+        "IM": "week_specific_training_and_competition"
+      },
+      "candidateStatus": "fails",
+      "candidateUnknowns": 16,
+      "coachReviewMandatory": true,
+      "expertReviewPerformed": false,
+      "allowedActions": [
+        "read_synthetic_calendar",
+        "inspect_rules_and_unknowns"
+      ],
+      "noSaveOrNolioOrGenerationEndpoint": true,
+      "automaticPrescriptionAllowed": false
+    },
+    {
+      "objective": "TrailMountain",
+      "caseId": "synthetic-v4:TrailMountain:highly_trained",
+      "sourceModel": "conservative_taper",
+      "declaredLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "reviewFile": "trail-montagne.md",
+      "offlineReviewAvailable": true,
+      "applicationCoachPreviewAvailable": false,
+      "productionAvailable": false,
+      "realAthleteSupport": false,
+      "status": "conditional_candidate_review",
+      "historicalConformity": false,
+      "candidateContract": {
+        "AB": "foundation_roles_then_quality",
+        "IM": "week_specific_training_and_competition"
+      },
+      "candidateStatus": "conditional_no_executed_blocker",
+      "candidateUnknowns": 20,
+      "coachReviewMandatory": true,
+      "expertReviewPerformed": false,
+      "allowedActions": [
+        "read_synthetic_calendar",
+        "inspect_rules_and_unknowns"
+      ],
+      "noSaveOrNolioOrGenerationEndpoint": true,
+      "automaticPrescriptionAllowed": false
+    },
+    {
+      "objective": "TrailUltra",
+      "caseId": "synthetic-v4:TrailUltra:trained",
+      "sourceModel": "conservative_taper",
+      "declaredLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "reviewFile": "ultra.md",
+      "offlineReviewAvailable": true,
+      "applicationCoachPreviewAvailable": false,
+      "productionAvailable": false,
+      "realAthleteSupport": false,
+      "status": "conditional_candidate_review",
+      "historicalConformity": false,
+      "candidateContract": {
+        "AB": "foundation_roles_then_quality",
+        "IM": "week_specific_training_and_competition"
+      },
+      "candidateStatus": "conditional_no_executed_blocker",
+      "candidateUnknowns": 24,
+      "coachReviewMandatory": true,
+      "expertReviewPerformed": false,
+      "allowedActions": [
+        "read_synthetic_calendar",
+        "inspect_rules_and_unknowns"
+      ],
+      "noSaveOrNolioOrGenerationEndpoint": true,
+      "automaticPrescriptionAllowed": false
+    }
+  ],
+  "notADeployment": true
+}

@@ -1,0 +1,46 @@
+{
+  "fixtures": 6,
+  "ultra": [
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:untrained",
+      "status": "refused",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "withoutBlocking": false,
+      "controls": null
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:light",
+      "status": "refused",
+      "reason": "trail_role_has_no_catalogue_dose_within_candidate_contract",
+      "withoutBlocking": false,
+      "controls": null
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:trained",
+      "status": "candidate",
+      "reason": null,
+      "withoutBlocking": false,
+      "controls": {
+        "existingSports": "executed",
+        "candidateTrailQuota": "executed_experimental",
+        "referenceTrailQuota": "not_implemented",
+        "verticalProgression": "known_doses_only",
+        "eccentricAdaptation": "not_attested"
+      }
+    },
+    {
+      "fixtureId": "synthetic-v4:TrailUltra:highly_trained",
+      "status": "candidate",
+      "reason": null,
+      "withoutBlocking": false,
+      "controls": {
+        "existingSports": "executed",
+        "candidateTrailQuota": "executed_experimental",
+        "referenceTrailQuota": "not_implemented",
+        "verticalProgression": "known_doses_only",
+        "eccentricAdaptation": "not_attested"
+      }
+    }
+  ],
+  "expertReviewed": 0
+}

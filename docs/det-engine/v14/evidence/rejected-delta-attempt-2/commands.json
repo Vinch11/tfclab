@@ -1,0 +1,86 @@
+{
+  "reason": "late relative calendar context correction; production and historical sources/inputs unchanged",
+  "sourceSnapshot": {
+    "experimental/det-engine/v14-calendar.ts": "fd80e2ed6f0c3e0feb3da4a437a51c52175730c1a851fc67f4d83c62c769fcc9",
+    "experimental/det-engine/v14-contract.ts": "f0e7c926ed8266f9a49b624a66d5866ed161b7eacae394a158613cbce05fe066",
+    "experimental/det-engine/v14-guards.test.ts": "b20485129c61fb5950b56a7aa89be1494800d3437c9cc507d1ed9bc29494c86f",
+    "experimental/det-engine/v14-inspect.test.ts": "e0c4995dd845e766fee931afd071f5d030516894957a04477e3fd58e58b70ab6",
+    "experimental/det-engine/v14-profiles.ts": "4cbc639cefe4703f712a42298685f79fb54e1c0565c89abe3fdb5706c9fd8def",
+    "experimental/det-engine/v14-relative-context.ts": "f8356e006a9fc72abdbdd66dd230a55ad24db5bdebdf011653713ff5b5bed2d5",
+    "experimental/det-engine/v14-science.ts": "fd637226901cfe0b786377d64f961b607c670e10f26d7e266a3861f8566eefd1",
+    "experimental/det-engine/v14-simulation.ts": "ce5735fa9c8b2f3bbbb769c9c055217d44ddd1548b87d13a4d1419980defc2c9",
+    "experimental/det-engine/v14-source-inspect.test.ts": "4a5f027dc4b3306a736951dfbf52a24a04ed634da5cb5236852848318090834c",
+    "experimental/det-engine/v14-sources.ts": "2bba5afa26f688bdae1eebfd3797bd6810f9b6698fc96fdd48df847467402952",
+    "experimental/det-engine/v14-state.ts": "aca34d0e6d95ec2aece61770f22e4691975152ff33ee25c464aecb2da8f115fa",
+    "experimental/det-engine/v14-study.test.ts": "73d9def7363d0879bf6d0ad56edc02db6801063b3bbe4cfe56c45c5896dcb0ae",
+    "experimental/det-engine/v14-study.ts": "5214837d31dc391ef97e46d77ccce45c5d67cec77ddf490f2258fd17d1d9003a",
+    "experimental/det-engine/v14-validation.ts": "92c441a5092f795a8ff338aaf47ea35bcad5916cc6a0bc67cffb4b640914e596"
+  },
+  "proof": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 2,
+      "elapsedMs": 41422
+    }
+  ],
+  "previousFullValidation": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 43843
+    },
+    {
+      "name": "node",
+      "args": [
+        "--test",
+        "scripts/det-engine/gates.test.mjs",
+        "scripts/det-engine/v2-diagnostic.test.mjs",
+        "scripts/det-engine/v2-supervisor.test.mjs",
+        "scripts/det-engine/v3-supervisor.test.mjs",
+        "scripts/det-engine/v4-supervisor.test.mjs",
+        "scripts/det-engine/v5-budget.test.mjs",
+        "scripts/det-engine/v5-evidence.test.mjs",
+        "scripts/det-engine/v6-budget.test.mjs",
+        "scripts/det-engine/v7-budget.test.mjs",
+        "experimental/det-engine/v8-causal-audit.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 2437
+    },
+    {
+      "name": "experimental",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 181458
+    },
+    {
+      "name": "historical",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 330282
+    }
+  ],
+  "protectedReferencesUnchanged": true
+}

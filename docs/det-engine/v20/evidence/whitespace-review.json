@@ -1,0 +1,17 @@
+{
+  "fullCheckExitCode": 2,
+  "diagnostics": [
+    "docs/det-engine/v20/evidence/ironman-attempt-1.txt:14: new blank line at EOF.",
+    "docs/det-engine/v20/evidence/physiology-attempt-1.txt:14: new blank line at EOF.",
+    "docs/det-engine/v20/evidence/physiology-attempt-2.txt:14: new blank line at EOF.",
+    "docs/det-engine/v20/evidence/regression-experimental.txt:14: new blank line at EOF.",
+    "docs/det-engine/v20/evidence/regression-historical.txt:14: new blank line at EOF.",
+    "docs/det-engine/v20/evidence/validation-1/build_studies.txt:14: new blank line at EOF.",
+    "docs/det-engine/v20/evidence/validation-1/replay_studies.txt:14: new blank line at EOF.",
+    "docs/det-engine/v20/evidence/validation-2/build_studies.txt:14: new blank line at EOF.",
+    "docs/det-engine/v20/evidence/validation-2/replay_studies.txt:14: new blank line at EOF."
+  ],
+  "rawTestLogsKeptUnmodified": true,
+  "codeAndReportsWithoutWhitespaceErrors": true,
+  "noFunctionalTestBypassed": true
+}

@@ -1,0 +1,7 @@
+/workspace/tfclab/scripts/det-engine/v18-independent-audit.py:66: SyntaxWarning: invalid escape sequence '\s'
+  if n['restPolicy']=='after_each':assert re.search('après chaque répétition,?\s+y compris la dernière',n['text'],re.I);a,b=seq(n['children']);return a*lo,b*hi
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 16.011s
+
+OK

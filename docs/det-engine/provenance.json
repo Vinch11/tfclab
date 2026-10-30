@@ -1,0 +1,9 @@
+{
+  "baseCommit": "3a2ba77a71b8177dc1ed841c488cd79b55f3eeb6",
+  "iteration1SourceSha256": "c8ad4494e80ebf58d1edf2a48a0ff3418905e73219a7f9515f5a297aedf167b2",
+  "finalSourceSha256": "b6b3fcbc4d1166da28a6c38b570754594b38fd5ccba537eb89f7e68d9ad19947",
+  "note": "Mesures effectu\u00e9es avant le commit des nouveaux fichiers ; SHA de base et empreintes de source distincts, aucune affirmation de deux commits moteur ant\u00e9rieurs. Premi\u00e8re instrumentation sans B13/B14/B15 final.",
+  "paidModelCalls": 0,
+  "athleteWrites": 0,
+  "deployments": 0
+}

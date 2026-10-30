@@ -1,0 +1,6 @@
+{
+  "authoredCodeAndDossiersExit": 0,
+  "rawArtifactsExit": 2,
+  "rawToolLogsRetainFinalBlankLines": true,
+  "rawCheckLog": "evidence/raw-artifact-whitespace-check.txt"
+}

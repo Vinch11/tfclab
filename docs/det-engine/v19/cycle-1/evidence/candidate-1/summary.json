@@ -1,0 +1,94 @@
+{
+  "version": "v19-library-reconstruction-1",
+  "cycle": 1,
+  "sourceRecords": 920,
+  "uniqueIds": 920,
+  "unchangedSourceClassifications": {
+    "complete": 75,
+    "partial": 287,
+    "ambiguous": 404,
+    "contradictory": 3,
+    "descriptive_non_metabolic": 151
+  },
+  "editorialCandidateInstances": 418,
+  "distinctIdsWithEditorialCandidates": 210,
+  "editorialCandidateClasses": {
+    "complete_timeline_candidate": 96,
+    "partial_candidate": 298,
+    "ambiguous_candidate": 0,
+    "contradictory_candidate": 24,
+    "non_metabolic_model": 0
+  },
+  "distinctIdsWithAtLeastOneCompleteEditorialCandidate": 51,
+  "sourceOrEditorialCompleteDistinctIds": 126,
+  "cohortWarning": "source completion and editorial candidate feasibility are separate; candidate instances never count as distinct original configurations",
+  "bySport": {
+    "bike": {
+      "total": 168,
+      "unchangedSourceComplete": 20,
+      "idsWithEditorialCandidates": 50,
+      "candidateInstances": 100,
+      "candidateCompleteInstances": 39,
+      "idsWithAtLeastOneCompleteCandidate": 21
+    },
+    "run": {
+      "total": 416,
+      "unchangedSourceComplete": 55,
+      "idsWithEditorialCandidates": 116,
+      "candidateInstances": 230,
+      "candidateCompleteInstances": 57,
+      "idsWithAtLeastOneCompleteCandidate": 30
+    },
+    "swim": {
+      "total": 119,
+      "unchangedSourceComplete": 0,
+      "idsWithEditorialCandidates": 43,
+      "candidateInstances": 86,
+      "candidateCompleteInstances": 0,
+      "idsWithAtLeastOneCompleteCandidate": 0
+    },
+    "brick": {
+      "total": 55,
+      "unchangedSourceComplete": 0,
+      "idsWithEditorialCandidates": 1,
+      "candidateInstances": 2,
+      "candidateCompleteInstances": 0,
+      "idsWithAtLeastOneCompleteCandidate": 0
+    },
+    "strength": {
+      "total": 127,
+      "unchangedSourceComplete": 0,
+      "idsWithEditorialCandidates": 0,
+      "candidateInstances": 0,
+      "candidateCompleteInstances": 0,
+      "idsWithAtLeastOneCompleteCandidate": 0
+    },
+    "trail": {
+      "total": 3,
+      "unchangedSourceComplete": 0,
+      "idsWithEditorialCandidates": 0,
+      "candidateInstances": 0,
+      "candidateCompleteInstances": 0,
+      "idsWithAtLeastOneCompleteCandidate": 0
+    },
+    "mixed": {
+      "total": 32,
+      "unchangedSourceComplete": 0,
+      "idsWithEditorialCandidates": 0,
+      "candidateInstances": 0,
+      "candidateCompleteInstances": 0,
+      "idsWithAtLeastOneCompleteCandidate": 0
+    }
+  },
+  "coachSourceViews": 920,
+  "candidateCoachViews": 418,
+  "candidateTextLocalContracts": 96,
+  "candidateStructuredLocalContracts": 2,
+  "sourceStructuredLocalContracts": 13,
+  "specificationTasks": 2142,
+  "scientificPromotions": 0,
+  "individualPrescriptionsApproved": 0,
+  "humanExpertReviews": 0,
+  "realNolioCalls": 0,
+  "protectedFiles": 3635
+}

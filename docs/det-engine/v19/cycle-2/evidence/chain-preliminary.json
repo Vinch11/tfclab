@@ -1,0 +1,1812 @@
+{
+  "syntheticOnly": true,
+  "automaticPrescription": false,
+  "scientificValidation": false,
+  "fieldTestSensitivity": [
+    {
+      "test": {
+        "athlete_id": "synthetic:v19",
+        "vlamax": 0.2,
+        "date": "2026-10-26",
+        "type": "sprint",
+        "name": "synthetic stored field-test estimate, not raw sensor acquisition"
+      },
+      "effective": {
+        "value": 0.2,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "synthetic stored field-test estimate, not raw sensor acquisition",
+          "date": "2026-10-26"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.2,
+          "high": 0.24
+        },
+        "variationWarning": false,
+        "rawValue": 0.2,
+        "v2": {
+          "raw": 0.2,
+          "effective": 0.2,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.2,
+            "high": 0.24
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.200 · Effectif: 0.20 ± 0.04 · Fiabilité: Modérée · Sources: synthetic stored field-test estimate, not raw sensor acquisition",
+          "calibrationLog": {
+            "date": "2026-10-28T21:44:37.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.2,
+            "effectiveValue": 0.2,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: synthetic stored field-test estimate, not raw sensor acquisition",
+            "sources": [
+              "synthetic stored field-test estimate, not raw sensor acquisition"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "limiters": [
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "catalogue": [
+        "SEILER_SWIM_Z1_VOLUME",
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "B_IM_RUN_NEG_SPLIT_LR",
+        "A_SWIM_END_CSS_PRO",
+        "SEILER_BIKE_Z1_LONG",
+        "B_IM_RUN_LATE_RACE_FRACTIONS",
+        "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "COGGAN_BIKE_FTP_RAMP_TEST",
+        "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+        "A_RUN_Z2_EASY",
+        "A_SWIM_PULL_LONG_DISTANCE",
+        "D_SWIM_TRI_REGEN_1000",
+        "C_STR_CIRCUIT_CARDIO_TRI",
+        "C_SWIM_TRI_SIGHTING_DRILLS",
+        "C_STR_RUN_DRILLS_PRO",
+        "C_SWIM_TECH_DRILLS",
+        "C_SWIM_TRI_CATCH_PULL",
+        "A_STR_AERO_STRENGTH",
+        "A_BIKE_LONG_IM_PRO",
+        "C_STR_ISOMETRIC_UPPER",
+        "A_STR_ENDURANCE_CIRCUIT",
+        "C_BRICK_TRANSITION_DRILL",
+        "V3_BIKE_CADENCE_DRILLS",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "C_STR_ANKLE_FOOT_COMPLEX",
+        "C_STR_RUN_FORM_STRIDES",
+        "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "C_STR_CYCLIST_NECK_BACK",
+        "C_BIKE_CADENCE_SKILLS_PRO",
+        "C_RUN_HILL_SKILLS",
+        "A_SWIM_CONTINUOUS_2K",
+        "C_SWIM_KICK_SET",
+        "V2_RUN_EDUCATIFS_TECHNIQUES",
+        "V2_STR_HANCHE_COUREUR",
+        "A_SWIM_PULL_ENDURANCE",
+        "V2_BIKE_SINGLE_LEG",
+        "RECOVERY_YOGA_MOBILITY_TRI",
+        "D_DELOAD_RUN",
+        "ECONOMY_RUN_FATIGUE_FORM",
+        "A_BIKE_Z2_LONG",
+        "D_SEMI_RECOVERY_30",
+        "TPL_IM_BIKE_FOUNDATION_4H30",
+        "D_RECOVERY_VAR_8_PRO",
+        "D_MOBILITY_HIPS_DEEP",
+        "C_STR_GLUTE_REACTIVATION",
+        "D_RECOVERY_VAR_7_PRO",
+        "D_MOBILITY_THORACIC",
+        "C_STR_HIP_MOBILITY_PRO",
+        "D_RECOVERY_VAR_10_PRO",
+        "D_RECOVERY_VAR_9_PRO",
+        "REST_ACTIVE_WALK",
+        "D_RECOVERY_VAR_6_PRO",
+        "D_RECOVERY_VAR_1_PRO",
+        "D_RUN_RECOVERY_30_PRO",
+        "ENR_RECUP_ACTIVE_MULTI",
+        "C_STR_SINGLE_LEG_RUNNER",
+        "C_STR_THORACIC_POSTURAL_RESET",
+        "D_MOBILITY_ROUTINE",
+        "A_RUN_EASY_STRIDES_PRO",
+        "D_RECOVERY_VAR_3_PRO",
+        "SEILER_RUN_BLACK_HOLE_AUDIT",
+        "BRICK_STAGE1_INTRO",
+        "RMT_INSPIRATORY_INTRO",
+        "C_SWIM_TRI_BILATERAL_BREATHING",
+        "V3_BIKE_RAMP_TEST",
+        "A_SWIM_TRI_OPEN_WATER_SIMU",
+        "V3_BIKE_FATMAX_LONG",
+        "C_STR_UPPER_BODY_TRI",
+        "C_SWIM_TRI_KICK_EFFICIENCY",
+        "BRICK_ACTIVATION_PRE_RACE",
+        "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+        "TPL_SEMI_VMA_COURTE_30_30",
+        "V2_BIKE_FATMAX_LONG",
+        "C_RESP_INSPIRATORY_MUSCLE",
+        "C_BIKE_FORCE",
+        "D_YOGA_POWER_LIGHT",
+        "D_YOGA_ATHLETE",
+        "TT_5K_TEST",
+        "RECOVERY_HRV_GUIDED_DAY",
+        "C_STR_TIBIAL_SHIN_SPLINTS",
+        "V3_BIKE_FORCE_SFR",
+        "BILLAT_RUN_ECONOMY_STRIDES",
+        "TPL_IM_BIKE_FORCE_K3",
+        "REST_FULL_DAY",
+        "V2_RECUP_VELO_REGENERATION",
+        "V2_RECUP_FOAM_ROLLING",
+        "FATMAX_BIKE_FATFLUSH",
+        "D_PRE_RACE_ACTIVATION_RUN",
+        "D_ACTIVATION_GLUTES",
+        "D_FOAM_ROLLING",
+        "D_BREATHWORK_NASAL_ENDURANCE",
+        "ECONOMY_RUN_POSE_DRILLS",
+        "BILLAT_RUN_TLIM_TEST",
+        "V3_TEST_COOPER",
+        "V3_TEST_LACTATE_STEP",
+        "C_10K_STRIDES_SPEED",
+        "C_SEMI_HILL_STRENGTH",
+        "C_MAR_HILL_STRENGTH",
+        "BFR_LEGS_RECOVERY_STRENGTH",
+        "RMT_EXPIRATORY_CORE",
+        "SEILER_RUN_Z1_EASY_LONG",
+        "A_SWIM_TRI_EASY_TECH_1500",
+        "C_STR_ISOMETRIC_LOWER",
+        "C_SWIM_CATCH_FOCUS",
+        "B_SWIM_TRI_NEGATIVE_SPLIT",
+        "C_SWIM_TECH_DRILLS_PRO",
+        "C_STR_KETTLEBELL_FLOW",
+        "C_SWIM_LEGS_ENDURANCE",
+        "D_SWIM_EASY_PRO",
+        "D_SWIM_REGEN",
+        "A_SWIM_AEROBIC",
+        "V2_SWIM_TECHNIQUE_CATCH",
+        "C_SWIM_BILATERAL_BREATH",
+        "OWS_NAVIGATION_SIGHTING",
+        "OWS_WETSUIT_SPECIFIC",
+        "C_SWIM_OPEN_WATER_SKILLS",
+        "C_SWIM_TURNS_STARTS",
+        "A_RUN_DURABILITY_LONG",
+        "C_STR_FULL_BODY_PRO",
+        "D_ACTIVATION_ANKLE_FOOT",
+        "D_RECOVERY_VAR_4_PRO",
+        "C_STR_ANKLE_PROPRIO_PRO",
+        "V2_RECUP_NAGE_DETENTE",
+        "C_STR_HIP_MOBILITY_DYNAMIC",
+        "V2_SWIM_TECHNIQUE_ROTATION",
+        "V3_RECUP_YOGA_ATHLETE",
+        "ENR_RECUP_MOBILITE_YOGA",
+        "C_STR_BEGINNER_FOUNDATION_FULL",
+        "C_STR_TOTAL_BODY_45",
+        "V3_RECUP_FOAM_ROLL",
+        "D_RECOVERY_VAR_2_PRO",
+        "D_SWIM_RECOVERY_EASY",
+        "A_STR_STABILITY_CORE",
+        "D_SWIM_TECHNIQUE_LIGHT",
+        "D_RECOVERY_VAR_5_PRO",
+        "A_IM_BIKE_STEADY_LONG",
+        "A_RUN_FARTLEK_LIBRE",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "V3_BIKE_Z2_PROGRESSIF",
+        "D_10K_RECOVERY_30",
+        "A_RUN_EASY_45_PRO",
+        "A_SWIM_AEROBIC_MULTI_NAGES",
+        "B_703_RUN_NEG_SPLIT",
+        "A_BIKE_END_90_PRO",
+        "A_10K_LONG_RUN_75",
+        "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "EXPE_HORS_VILLE_SL_DPLUS",
+        "B_TR_DESCENT_TOLERANCE_8x2",
+        "B_TR_HILL_REPS_SHORT",
+        "B_TR50_DESCENT_SPEED",
+        "URBAN_COTES_URBAINES_VMA",
+        "B_TR_FARTLEK_TRAIL_10x1_2",
+        "B_TR_DESCENTE_ECCENTRIC",
+        "B_TR_DESCENT_TOLERANCE",
+        "URBAN_ESCALIERS_PYRAMIDE",
+        "V3_TRAIL_ULTRA_NIGHT",
+        "EXPE_HORS_VILLE_NOCTURNE"
+      ],
+      "sourceTimedSubset": [
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "SEILER_BIKE_Z1_LONG",
+        "A_RUN_Z2_EASY",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "V3_BIKE_FATMAX_LONG",
+        "V2_BIKE_FATMAX_LONG",
+        "A_IM_BIKE_STEADY_LONG",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "A_RUN_EASY_45_PRO",
+        "V3_TRAIL_ULTRA_NIGHT"
+      ],
+      "editorialTimedOffersNotApproved": [
+        {
+          "legacyId": "C_BIKE_FORCE",
+          "candidateKeys": [
+            "C_BIKE_FORCE@v19:between_repetitions:4d3dfb406aa7",
+            "C_BIKE_FORCE@v19:after_each_repetition:8fcfca3d26f7"
+          ]
+        },
+        {
+          "legacyId": "TPL_IM_BIKE_FORCE_K3",
+          "candidateKeys": [
+            "TPL_IM_BIKE_FORCE_K3@v19:between_repetitions:5b73793b41e4",
+            "TPL_IM_BIKE_FORCE_K3@v19:after_each_repetition:d26722c67189"
+          ]
+        },
+        {
+          "legacyId": "C_10K_STRIDES_SPEED",
+          "candidateKeys": [
+            "C_10K_STRIDES_SPEED@v19:between_repetitions:7a0ecb43ba7e",
+            "C_10K_STRIDES_SPEED@v19:after_each_repetition:e3962bf257ff"
+          ]
+        }
+      ],
+      "doseAllocated": false,
+      "calendarConstructedFromTheseOffers": false
+    },
+    {
+      "test": {
+        "athlete_id": "synthetic:v19",
+        "vlamax": 0.9,
+        "date": "2026-10-26",
+        "type": "sprint",
+        "name": "synthetic stored field-test estimate, not raw sensor acquisition"
+      },
+      "effective": {
+        "value": 0.9,
+        "source": "test",
+        "confidence": 0.75,
+        "label": "VLamax (test terrain)",
+        "details": {
+          "testType": "sprint",
+          "testName": "synthetic stored field-test estimate, not raw sensor acquisition",
+          "date": "2026-10-26"
+        },
+        "isLocked": false,
+        "errorMargin": 0.04,
+        "range": {
+          "low": 0.86,
+          "high": 0.94
+        },
+        "variationWarning": false,
+        "rawValue": 0.9,
+        "v2": {
+          "raw": 0.9,
+          "effective": 0.9,
+          "source": "test_terrain",
+          "confidence": 0.75,
+          "errorMargin": 0.04,
+          "range": {
+            "low": 0.86,
+            "high": 0.94
+          },
+          "label": "VLamax (test terrain)",
+          "isLocked": false,
+          "variationWarning": false,
+          "sport": "velo",
+          "details": "Brut: 0.900 · Effectif: 0.90 ± 0.04 · Fiabilité: Modérée · Sources: synthetic stored field-test estimate, not raw sensor acquisition",
+          "calibrationLog": {
+            "date": "2026-10-28T21:44:37.000Z",
+            "source": "test_terrain",
+            "rawValue": 0.9,
+            "effectiveValue": 0.9,
+            "previousValue": null,
+            "variationPct": null,
+            "confidence": 0.75,
+            "errorMargin": 0.04,
+            "reason": "Test terrain: synthetic stored field-test estimate, not raw sensor acquisition",
+            "sources": [
+              "synthetic stored field-test estimate, not raw sensor acquisition"
+            ],
+            "smoothingApplied": false
+          }
+        }
+      },
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "catalogue": [
+        "B_IM_RUN_LATE_RACE_FRACTIONS",
+        "A_RUN_Z2_EASY",
+        "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "A_SWIM_PULL_LONG_DISTANCE",
+        "SEILER_SWIM_Z1_VOLUME",
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "C_SWIM_TRI_SIGHTING_DRILLS",
+        "B_IM_RUN_NEG_SPLIT_LR",
+        "C_SWIM_TECH_DRILLS",
+        "A_BIKE_LONG_IM_PRO",
+        "B_SWIM_TRI_NEGATIVE_SPLIT",
+        "V3_BIKE_CADENCE_DRILLS",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "SEILER_BIKE_Z1_LONG",
+        "SEILER_RUN_Z1_EASY_LONG",
+        "C_SWIM_KICK_SET",
+        "V2_RUN_EDUCATIFS_TECHNIQUES",
+        "V2_BIKE_SINGLE_LEG",
+        "ECONOMY_RUN_FATIGUE_FORM",
+        "A_BIKE_Z2_LONG",
+        "TPL_IM_BIKE_FOUNDATION_4H30",
+        "A_RUN_EASY_STRIDES_PRO",
+        "BRICK_STAGE1_INTRO",
+        "V3_BIKE_FATMAX_LONG",
+        "V3_BIKE_Z2_PROGRESSIF",
+        "V2_BIKE_FATMAX_LONG",
+        "C_BIKE_FORCE",
+        "SEILER_RUN_BLACK_HOLE_AUDIT",
+        "COGGAN_BIKE_FTP_RAMP_TEST",
+        "C_STR_CIRCUIT_CARDIO_RUN",
+        "V3_BIKE_FORCE_SFR",
+        "TPL_IM_BIKE_FORCE_K3",
+        "A_SWIM_END_CSS_PRO",
+        "V3_BIKE_RAMP_TEST",
+        "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+        "D_BIKE_REGEN_60_PRO",
+        "ECONOMY_RUN_POSE_DRILLS",
+        "D_SWIM_TRI_REGEN_1000",
+        "BILLAT_RUN_ECONOMY_STRIDES",
+        "C_STR_CIRCUIT_CARDIO_TRI",
+        "C_STR_RUN_DRILLS_PRO",
+        "A_STR_AERO_STRENGTH",
+        "C_STR_ISOMETRIC_UPPER",
+        "C_BRICK_TRANSITION_DRILL",
+        "C_STR_ANKLE_FOOT_COMPLEX",
+        "C_STR_RUN_FORM_STRIDES",
+        "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "C_STR_CYCLIST_NECK_BACK",
+        "C_BIKE_CADENCE_SKILLS_PRO",
+        "C_RUN_HILL_SKILLS",
+        "A_SWIM_CONTINUOUS_2K",
+        "V2_STR_HANCHE_COUREUR",
+        "A_SWIM_PULL_ENDURANCE",
+        "RECOVERY_YOGA_MOBILITY_TRI",
+        "D_DELOAD_RUN",
+        "D_SEMI_RECOVERY_30",
+        "D_RECOVERY_VAR_8_PRO",
+        "D_MOBILITY_HIPS_DEEP",
+        "BILLAT_RUN_TLIM_TEST",
+        "C_STR_GLUTE_REACTIVATION",
+        "D_RECOVERY_VAR_7_PRO",
+        "D_MOBILITY_THORACIC",
+        "C_STR_HIP_MOBILITY_PRO",
+        "D_RECOVERY_VAR_10_PRO",
+        "V3_TEST_COOPER",
+        "D_RECOVERY_VAR_9_PRO",
+        "REST_ACTIVE_WALK",
+        "D_RECOVERY_VAR_6_PRO",
+        "D_RECOVERY_VAR_1_PRO",
+        "D_RUN_RECOVERY_30_PRO",
+        "ENR_RECUP_ACTIVE_MULTI",
+        "C_STR_SINGLE_LEG_RUNNER",
+        "C_STR_THORACIC_POSTURAL_RESET",
+        "D_MOBILITY_ROUTINE",
+        "D_RECOVERY_VAR_3_PRO",
+        "C_10K_STRIDES_SPEED",
+        "RMT_INSPIRATORY_INTRO",
+        "C_SWIM_TRI_BILATERAL_BREATHING",
+        "A_SWIM_TRI_OPEN_WATER_SIMU",
+        "C_STR_UPPER_BODY_TRI",
+        "C_SWIM_TRI_KICK_EFFICIENCY",
+        "BRICK_ACTIVATION_PRE_RACE",
+        "D_SWIM_TRI_PRE_RACE_ACTIVATION",
+        "TPL_SEMI_VMA_COURTE_30_30",
+        "C_SWIM_TRI_DRAFTING_PACK",
+        "C_RESP_INSPIRATORY_MUSCLE",
+        "D_YOGA_POWER_LIGHT",
+        "D_YOGA_ATHLETE",
+        "TT_5K_TEST",
+        "RECOVERY_HRV_GUIDED_DAY",
+        "C_STR_TIBIAL_SHIN_SPLINTS",
+        "REST_FULL_DAY",
+        "V2_RECUP_FOAM_ROLLING",
+        "FATMAX_BIKE_FATFLUSH",
+        "D_PRE_RACE_ACTIVATION_RUN",
+        "D_ACTIVATION_GLUTES",
+        "D_FOAM_ROLLING",
+        "D_BREATHWORK_NASAL_ENDURANCE",
+        "V3_TEST_LACTATE_STEP",
+        "C_SEMI_HILL_STRENGTH",
+        "C_MAR_HILL_STRENGTH",
+        "BFR_LEGS_RECOVERY_STRENGTH",
+        "RMT_EXPIRATORY_CORE",
+        "V2_SWIM_TECHNIQUE_CATCH",
+        "OWS_WETSUIT_SPECIFIC",
+        "V2_SWIM_TECHNIQUE_ROTATION",
+        "C_BIKE_CADENCE",
+        "B_703_RUN_NEG_SPLIT",
+        "LYDIARD_RUN_AEROBIC_BASE_LONG",
+        "A_10K_EASY_60",
+        "A_SEMI_LONG_RUN_90",
+        "A_RUN_LONG_PROG_PRO",
+        "C_SWIM_TRI_CATCH_PULL",
+        "A_STR_ENDURANCE_CIRCUIT",
+        "A_SWIM_TRI_EASY_TECH_1500",
+        "C_STR_ISOMETRIC_LOWER",
+        "C_SWIM_CATCH_FOCUS",
+        "C_SWIM_TECH_DRILLS_PRO",
+        "C_STR_KETTLEBELL_FLOW",
+        "C_SWIM_LEGS_ENDURANCE",
+        "D_SWIM_EASY_PRO",
+        "D_SWIM_REGEN",
+        "A_SWIM_AEROBIC",
+        "C_SWIM_BILATERAL_BREATH",
+        "OWS_NAVIGATION_SIGHTING",
+        "C_SWIM_OPEN_WATER_SKILLS",
+        "C_SWIM_TURNS_STARTS",
+        "A_RUN_DURABILITY_LONG",
+        "C_STR_FULL_BODY_PRO",
+        "D_ACTIVATION_ANKLE_FOOT",
+        "D_RECOVERY_VAR_4_PRO",
+        "C_STR_ANKLE_PROPRIO_PRO",
+        "V2_RECUP_NAGE_DETENTE",
+        "C_STR_HIP_MOBILITY_DYNAMIC",
+        "V3_RECUP_YOGA_ATHLETE",
+        "ENR_RECUP_MOBILITE_YOGA",
+        "V3_RECUP_FOAM_ROLL",
+        "D_RECOVERY_VAR_2_PRO",
+        "D_SWIM_RECOVERY_EASY",
+        "A_STR_STABILITY_CORE",
+        "D_SWIM_TECHNIQUE_LIGHT",
+        "D_RECOVERY_VAR_5_PRO",
+        "A_IM_BIKE_STEADY_LONG",
+        "A_RUN_FARTLEK_LIBRE",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "D_10K_RECOVERY_30",
+        "A_RUN_EASY_45_PRO",
+        "A_SWIM_AEROBIC_MULTI_NAGES",
+        "EXPE_HORS_VILLE_SL_DPLUS",
+        "B_TR_DESCENT_TOLERANCE_8x2",
+        "B_TR_HILL_REPS_SHORT",
+        "B_TR50_DESCENT_SPEED",
+        "URBAN_COTES_URBAINES_VMA",
+        "B_TR_FARTLEK_TRAIL_10x1_2",
+        "B_TR_DESCENTE_ECCENTRIC",
+        "B_TR_DESCENT_TOLERANCE",
+        "URBAN_ESCALIERS_PYRAMIDE",
+        "V3_TRAIL_ULTRA_NIGHT",
+        "EXPE_HORS_VILLE_NOCTURNE"
+      ],
+      "sourceTimedSubset": [
+        "A_RUN_Z2_EASY",
+        "TPL_IM_RUN_LONGUE_DURABILITE",
+        "V3_BIKE_Z2_ENDURANCE_LONG",
+        "SEILER_BIKE_Z1_LONG",
+        "V3_BIKE_FATMAX_LONG",
+        "V2_BIKE_FATMAX_LONG",
+        "A_10K_EASY_60",
+        "A_SEMI_LONG_RUN_90",
+        "A_IM_BIKE_STEADY_LONG",
+        "D_IM_BRICK_REGEN",
+        "D_MAR_REGEN",
+        "A_RUN_EASY_45_PRO",
+        "V3_TRAIL_ULTRA_NIGHT"
+      ],
+      "editorialTimedOffersNotApproved": [
+        {
+          "legacyId": "C_BIKE_FORCE",
+          "candidateKeys": [
+            "C_BIKE_FORCE@v19:between_repetitions:4d3dfb406aa7",
+            "C_BIKE_FORCE@v19:after_each_repetition:8fcfca3d26f7"
+          ]
+        },
+        {
+          "legacyId": "TPL_IM_BIKE_FORCE_K3",
+          "candidateKeys": [
+            "TPL_IM_BIKE_FORCE_K3@v19:between_repetitions:5b73793b41e4",
+            "TPL_IM_BIKE_FORCE_K3@v19:after_each_repetition:d26722c67189"
+          ]
+        },
+        {
+          "legacyId": "C_10K_STRIDES_SPEED",
+          "candidateKeys": [
+            "C_10K_STRIDES_SPEED@v19:between_repetitions:7a0ecb43ba7e",
+            "C_10K_STRIDES_SPEED@v19:after_each_repetition:e3962bf257ff"
+          ]
+        }
+      ],
+      "doseAllocated": false,
+      "calendarConstructedFromTheseOffers": false
+    }
+  ],
+  "coachOpinion": {
+    "withoutOpinion": {
+      "legacyId": "A_RUN_Z2_EASY",
+      "reviewOfferCompatible": false,
+      "reasons": [
+        "declared_available_window_exceeded",
+        "current_individual_capacity_envelope_exceeded"
+      ],
+      "historical": {
+        "compatible": true,
+        "reasons": [],
+        "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+        "repairInsertionReference": {
+          "compatible": true,
+          "reasons": []
+        },
+        "confirmedPrerequisites": []
+      },
+      "levelBlocked": false,
+      "sourceMatches": true,
+      "explicitIntent": {
+        "primary": "moderate_lt1",
+        "rationale": "Bloc principal continu 20–70 min Z2 : endurance sous LT1 ; consignes techniques et éducatifs complémentaires, sans changer le stimulus."
+      },
+      "criteria": {
+        "objective": "marathon",
+        "phase": "base",
+        "weekType": "normal",
+        "minutes": 45,
+        "trainingLevel": "trained",
+        "trainingLevelSource": "manual",
+        "weeklyHours": 10
+      },
+      "timing": {
+        "sourceId": "A_RUN_Z2_EASY",
+        "sourceHash": "b672fe6111beef6983e9bde55991b3cdd13e91e204ad0f047cc0e242d1ce3366",
+        "originalRange": [
+          35,
+          90
+        ],
+        "allDeclaredParts": [
+          {
+            "part": "Warm-up",
+            "text": "10 min Z1–Z2 relâché",
+            "zones": [
+              "Z1",
+              "Z2"
+            ]
+          },
+          {
+            "part": "Main",
+            "text": "20–70 min Z2 (technique, relâchement)",
+            "zones": [
+              "Z2"
+            ]
+          },
+          {
+            "part": "Cool-down",
+            "text": "5 min Z1 + éducatifs 5 min (optionnel)",
+            "zones": [
+              "Z1"
+            ]
+          }
+        ],
+        "previousV13": {
+          "id": "A_RUN_Z2_EASY",
+          "sport": "course",
+          "title": "Endurance fondamentale, économie, récupération active",
+          "originalRange": [
+            35,
+            90
+          ],
+          "legacyLiteralProjection": {
+            "range": [
+              35,
+              90
+            ],
+            "proof": "literal variable main duration + explicit flank and optional minutes"
+          },
+          "legacyProjectionTrustedForFullSession": true,
+          "knownTimedBlocksRange": [
+            35,
+            90
+          ],
+          "knownMandatoryLowerMin": 35,
+          "fullRecipeTimeRange": [
+            35,
+            90
+          ],
+          "necessaryUsableSourceRange": [
+            35,
+            90
+          ],
+          "fatalDurationConflict": false,
+          "belowMandatory": false,
+          "outsideDemonstratedFullUpper": false,
+          "unattributed": null,
+          "status": "complete_literal_temporal_bounds_compatible",
+          "brick": null,
+          "customProof": null,
+          "originalPhases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "effectivePhases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "mainZoneMax": 2,
+          "zones": [
+            "Z1",
+            "Z2"
+          ],
+          "prerequisites": [],
+          "specialContext": null,
+          "sourceMetadataHash": "b672fe6111beef6983e9bde55991b3cdd13e91e204ad0f047cc0e242d1ce3366",
+          "fullSessionTimingAttested": true,
+          "notes": [
+            "no unstated warm-up, cool-down, transition or stroke pace assigned",
+            "a Main-only recipe lower bound is not a full-session upper bound",
+            "unsupported composite grammar remains unknown; old parser projection preserved"
+          ]
+        },
+        "declaredContentRange": [
+          40,
+          90
+        ],
+        "necessaryRange": [
+          40,
+          90
+        ],
+        "timingCompleteForDeclaredRecipe": true,
+        "proof": "warm10 + main20–70 + cool5 + optional drills5 retained; main is the only variable",
+        "individualFeasibilityAttested": false,
+        "sourceUnchanged": true,
+        "unknowns": [
+          "actual execution, symptoms and recovery not observed"
+        ]
+      },
+      "individualPrerequisitesConfirmed": false,
+      "automaticPrescription": false,
+      "scientificValidation": false,
+      "remainingConditions": [
+        "full_executable_timing_unresolved",
+        "individual_dose_tolerance_not_supplied",
+        "recovery_response_not_observed",
+        "source_reference_not_attributed",
+        "structured_prerequisites_unknown_free_text_preserved"
+      ],
+      "scope": "candidate for coach review; matching filters is not a validated or currently admissible sports prescription",
+      "witness": {
+        "seconds": 2700,
+        "assignment": [
+          {
+            "partIndex": 0,
+            "source": {
+              "partIndex": 0,
+              "start": 0,
+              "end": 6,
+              "literal": "10 min"
+            },
+            "seconds": 600,
+            "range": [
+              600,
+              600
+            ],
+            "nodeKind": "time"
+          },
+          {
+            "partIndex": 1,
+            "source": {
+              "partIndex": 1,
+              "start": 0,
+              "end": 9,
+              "literal": "20–70 min"
+            },
+            "seconds": 1500,
+            "range": [
+              1200,
+              4200
+            ],
+            "nodeKind": "time"
+          },
+          {
+            "partIndex": 2,
+            "source": {
+              "partIndex": 2,
+              "start": 0,
+              "end": 5,
+              "literal": "5 min"
+            },
+            "seconds": 300,
+            "range": [
+              300,
+              300
+            ],
+            "nodeKind": "time"
+          },
+          {
+            "partIndex": 2,
+            "optionalIncluded": true,
+            "source": {
+              "partIndex": 2,
+              "start": 11,
+              "end": 38,
+              "literal": "éducatifs 5 min (optionnel)"
+            }
+          },
+          {
+            "partIndex": 2,
+            "source": {
+              "partIndex": 2,
+              "start": 21,
+              "end": 26,
+              "literal": "5 min"
+            },
+            "seconds": 300,
+            "range": [
+              300,
+              300
+            ],
+            "nodeKind": "time"
+          }
+        ],
+        "sourceRangeOnly": true
+      },
+      "capacityState": "not_admissible",
+      "fatigueResistance": null,
+      "opinionApplicability": "not_supplied_or_invalid",
+      "opinionNotObservedAssimilation": true,
+      "missingOpinionBlocksFundamental": false,
+      "opinionMayClearCapacityGate": false,
+      "actualObservedRecovery": null,
+      "goalVariantStatus": "requires_goal_specific_source_resolution",
+      "currentIndividualPrescriptionApproved": false,
+      "referenceResolution": {
+        "status": "unknown",
+        "reason": "individual_anchor_and_provenance_required",
+        "value": null,
+        "domain": "moderate_lt1"
+      }
+    },
+    "withOpinion": {
+      "legacyId": "A_RUN_Z2_EASY",
+      "reviewOfferCompatible": false,
+      "reasons": [
+        "declared_available_window_exceeded",
+        "current_individual_capacity_envelope_exceeded"
+      ],
+      "historical": {
+        "compatible": true,
+        "reasons": [],
+        "source": "existing_catalogue_eligibility_plus_explicit_capability_contract",
+        "repairInsertionReference": {
+          "compatible": true,
+          "reasons": []
+        },
+        "confirmedPrerequisites": []
+      },
+      "levelBlocked": false,
+      "sourceMatches": true,
+      "explicitIntent": {
+        "primary": "moderate_lt1",
+        "rationale": "Bloc principal continu 20–70 min Z2 : endurance sous LT1 ; consignes techniques et éducatifs complémentaires, sans changer le stimulus."
+      },
+      "criteria": {
+        "objective": "marathon",
+        "phase": "base",
+        "weekType": "normal",
+        "minutes": 45,
+        "trainingLevel": "trained",
+        "trainingLevelSource": "manual",
+        "weeklyHours": 10
+      },
+      "timing": {
+        "sourceId": "A_RUN_Z2_EASY",
+        "sourceHash": "b672fe6111beef6983e9bde55991b3cdd13e91e204ad0f047cc0e242d1ce3366",
+        "originalRange": [
+          35,
+          90
+        ],
+        "allDeclaredParts": [
+          {
+            "part": "Warm-up",
+            "text": "10 min Z1–Z2 relâché",
+            "zones": [
+              "Z1",
+              "Z2"
+            ]
+          },
+          {
+            "part": "Main",
+            "text": "20–70 min Z2 (technique, relâchement)",
+            "zones": [
+              "Z2"
+            ]
+          },
+          {
+            "part": "Cool-down",
+            "text": "5 min Z1 + éducatifs 5 min (optionnel)",
+            "zones": [
+              "Z1"
+            ]
+          }
+        ],
+        "previousV13": {
+          "id": "A_RUN_Z2_EASY",
+          "sport": "course",
+          "title": "Endurance fondamentale, économie, récupération active",
+          "originalRange": [
+            35,
+            90
+          ],
+          "legacyLiteralProjection": {
+            "range": [
+              35,
+              90
+            ],
+            "proof": "literal variable main duration + explicit flank and optional minutes"
+          },
+          "legacyProjectionTrustedForFullSession": true,
+          "knownTimedBlocksRange": [
+            35,
+            90
+          ],
+          "knownMandatoryLowerMin": 35,
+          "fullRecipeTimeRange": [
+            35,
+            90
+          ],
+          "necessaryUsableSourceRange": [
+            35,
+            90
+          ],
+          "fatalDurationConflict": false,
+          "belowMandatory": false,
+          "outsideDemonstratedFullUpper": false,
+          "unattributed": null,
+          "status": "complete_literal_temporal_bounds_compatible",
+          "brick": null,
+          "customProof": null,
+          "originalPhases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "effectivePhases": [
+            "base",
+            "build",
+            "peak"
+          ],
+          "mainZoneMax": 2,
+          "zones": [
+            "Z1",
+            "Z2"
+          ],
+          "prerequisites": [],
+          "specialContext": null,
+          "sourceMetadataHash": "b672fe6111beef6983e9bde55991b3cdd13e91e204ad0f047cc0e242d1ce3366",
+          "fullSessionTimingAttested": true,
+          "notes": [
+            "no unstated warm-up, cool-down, transition or stroke pace assigned",
+            "a Main-only recipe lower bound is not a full-session upper bound",
+            "unsupported composite grammar remains unknown; old parser projection preserved"
+          ]
+        },
+        "declaredContentRange": [
+          40,
+          90
+        ],
+        "necessaryRange": [
+          40,
+          90
+        ],
+        "timingCompleteForDeclaredRecipe": true,
+        "proof": "warm10 + main20–70 + cool5 + optional drills5 retained; main is the only variable",
+        "individualFeasibilityAttested": false,
+        "sourceUnchanged": true,
+        "unknowns": [
+          "actual execution, symptoms and recovery not observed"
+        ]
+      },
+      "individualPrerequisitesConfirmed": false,
+      "automaticPrescription": false,
+      "scientificValidation": false,
+      "remainingConditions": [
+        "full_executable_timing_unresolved",
+        "individual_dose_tolerance_not_supplied",
+        "recovery_response_not_observed",
+        "source_reference_not_attributed",
+        "structured_prerequisites_unknown_free_text_preserved"
+      ],
+      "scope": "candidate for coach review; matching filters is not a validated or currently admissible sports prescription",
+      "witness": {
+        "seconds": 2700,
+        "assignment": [
+          {
+            "partIndex": 0,
+            "source": {
+              "partIndex": 0,
+              "start": 0,
+              "end": 6,
+              "literal": "10 min"
+            },
+            "seconds": 600,
+            "range": [
+              600,
+              600
+            ],
+            "nodeKind": "time"
+          },
+          {
+            "partIndex": 1,
+            "source": {
+              "partIndex": 1,
+              "start": 0,
+              "end": 9,
+              "literal": "20–70 min"
+            },
+            "seconds": 1500,
+            "range": [
+              1200,
+              4200
+            ],
+            "nodeKind": "time"
+          },
+          {
+            "partIndex": 2,
+            "source": {
+              "partIndex": 2,
+              "start": 0,
+              "end": 5,
+              "literal": "5 min"
+            },
+            "seconds": 300,
+            "range": [
+              300,
+              300
+            ],
+            "nodeKind": "time"
+          },
+          {
+            "partIndex": 2,
+            "optionalIncluded": true,
+            "source": {
+              "partIndex": 2,
+              "start": 11,
+              "end": 38,
+              "literal": "éducatifs 5 min (optionnel)"
+            }
+          },
+          {
+            "partIndex": 2,
+            "source": {
+              "partIndex": 2,
+              "start": 21,
+              "end": 26,
+              "literal": "5 min"
+            },
+            "seconds": 300,
+            "range": [
+              300,
+              300
+            ],
+            "nodeKind": "time"
+          }
+        ],
+        "sourceRangeOnly": true
+      },
+      "capacityState": "not_admissible",
+      "fatigueResistance": {
+        "kind": "coach_qualitative_opinion",
+        "assessment": "high",
+        "sport": "run",
+        "asOf": "2026-10-28",
+        "source": "synthetic coach",
+        "basis": "mock history, not observed assimilation",
+        "uncertainty": "actual response unknown"
+      },
+      "opinionApplicability": "declared_scope_only",
+      "opinionNotObservedAssimilation": true,
+      "missingOpinionBlocksFundamental": false,
+      "opinionMayClearCapacityGate": false,
+      "actualObservedRecovery": null,
+      "goalVariantStatus": "requires_goal_specific_source_resolution",
+      "currentIndividualPrescriptionApproved": false,
+      "referenceResolution": {
+        "status": "unknown",
+        "reason": "individual_anchor_and_provenance_required",
+        "value": null,
+        "domain": "moderate_lt1"
+      }
+    }
+  },
+  "archivedCalendarQualification": [
+    {
+      "id": "IM_aerobic_history",
+      "archivedMinutes": 480,
+      "archivedComplete": true,
+      "sessions": [
+        {
+          "dayIndex": 1,
+          "legacyId": "V3_BIKE_Z2_ENDURANCE_LONG",
+          "archivedDoseMinutes": 180,
+          "role": {
+            "id": "IM_aerobic_history:bike:0",
+            "sport": "bike",
+            "kind": "long",
+            "essential": true,
+            "min": 90,
+            "cap": 180,
+            "priority": 0,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "complete",
+          "sourceWitnessMinutes": 180,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 1,
+          "legacyId": "A_SWIM_CONTINUOUS_2K",
+          "archivedDoseMinutes": 40,
+          "role": {
+            "id": "IM_aerobic_history:swim:1",
+            "sport": "swim",
+            "kind": "endurance",
+            "essential": true,
+            "min": 0,
+            "cap": 75,
+            "priority": 11,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "partial",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 2,
+          "legacyId": "C_IM_AERO_HOLD",
+          "archivedDoseMinutes": 80,
+          "role": {
+            "id": "IM_aerobic_history:bike:1",
+            "sport": "bike",
+            "kind": "technical",
+            "essential": true,
+            "min": 0,
+            "cap": 120,
+            "priority": 2,
+            "domain": "moderate_lt1",
+            "adaptation": "aero-position skill/endurance, explicitly not autonomous long endurance"
+          },
+          "sourceClass": "ambiguous",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [
+            {
+              "key": "C_IM_AERO_HOLD@v19:between_repetitions:5a9daecc4fac",
+              "classification": "complete_timeline_candidate",
+              "witnessMinutes": 75,
+              "equalsArchivedDose": false
+            },
+            {
+              "key": "C_IM_AERO_HOLD@v19:after_each_repetition:18ae8b1932ab",
+              "classification": "complete_timeline_candidate",
+              "witnessMinutes": 80,
+              "equalsArchivedDose": true
+            }
+          ],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 3,
+          "legacyId": "A_RUN_Z2_EASY",
+          "archivedDoseMinutes": 70,
+          "role": {
+            "id": "IM_aerobic_history:run:0",
+            "sport": "run",
+            "kind": "long",
+            "essential": true,
+            "min": 60,
+            "cap": 75,
+            "priority": 10,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "complete",
+          "sourceWitnessMinutes": 40,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 4,
+          "legacyId": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+          "archivedDoseMinutes": 40,
+          "role": {
+            "id": "IM_aerobic_history:run:1",
+            "sport": "run",
+            "kind": "endurance",
+            "essential": true,
+            "min": 0,
+            "cap": 75,
+            "priority": 11,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "ambiguous",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 5,
+          "legacyId": "RECOVERY_YOGA_MOBILITY_TRI",
+          "archivedDoseMinutes": 30,
+          "role": {
+            "id": "IM_aerobic_history:strength:0",
+            "sport": "strength",
+            "kind": "skill",
+            "essential": true,
+            "min": 0,
+            "cap": 40,
+            "priority": 12,
+            "domain": "recovery",
+            "adaptation": "movement support, no force-dose efficacy claim"
+          },
+          "sourceClass": "descriptive_non_metabolic",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 6,
+          "legacyId": "A_SWIM_AEROBIC_MULTI_NAGES",
+          "archivedDoseMinutes": 40,
+          "role": {
+            "id": "IM_aerobic_history:swim:0",
+            "sport": "swim",
+            "kind": "endurance",
+            "essential": true,
+            "min": 0,
+            "cap": 75,
+            "priority": 11,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "ambiguous",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        }
+      ],
+      "legacyWeekMetrics": [
+        {
+          "weekNumber": 1,
+          "theme": "base",
+          "totalSessions": 8,
+          "activeSessions": 7,
+          "restDays": 1,
+          "sports": {
+            "Vélo": 2,
+            "Natation": 2,
+            "Course": 2,
+            "Renfo": 1
+          },
+          "keySessionsBySport": {
+            "Vélo": 1,
+            "Natation": 2,
+            "Course": 2
+          },
+          "intensityProfile": {
+            "lowPct": 100,
+            "midPct": 0,
+            "highPct": 0,
+            "unknownPct": 4
+          },
+          "isDeload": false,
+          "scheduledWeekType": "load",
+          "isContentOrScheduleDeload": false,
+          "isRaceWeek": false,
+          "isThresholdBlock": false,
+          "keySessions": 5,
+          "totalDurationMin": 480,
+          "keyDurationMin": 370,
+          "sessionsWithDuration": 7,
+          "longestSessionMinBySport": {
+            "Vélo": 180,
+            "Natation": 40,
+            "Course": 70,
+            "Renfo": 30
+          },
+          "durationMinBySport": {
+            "Vélo": 260,
+            "Natation": 80,
+            "Course": 110,
+            "Renfo": 30
+          }
+        }
+      ],
+      "issues": [
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "mercredi: attendu run+strength, observé bike",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "jeudi: attendu swim, observé run",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "vendredi: attendu qualité (isKeySession), observé séance non-clé",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "samedi: attendu brick, observé strength",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "dimanche: attendu run, observé swim",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "race_day",
+          "week": 1,
+          "severity": "error",
+          "message": "🏁 Jour de course absent — S1 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+          "control": "plan_validator_complete_context"
+        },
+        {
+          "code": "title_format",
+          "severity": "error",
+          "message": "Titre H1 non conforme au gabarit RÈGLE #0 : \"Préfixe expérimental semaine1\"",
+          "control": "plan_validator_complete_context"
+        },
+        {
+          "code": "key_session_self_declaration_mismatch",
+          "week": 1,
+          "severity": "warning",
+          "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Développement aérobie fondamental — sortie longue Z2\"",
+          "control": "plan_validator_complete_context"
+        },
+        {
+          "code": "key_session_self_declaration_mismatch",
+          "week": 1,
+          "severity": "warning",
+          "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+          "control": "plan_validator_complete_context"
+        },
+        {
+          "code": "calendar_coverage",
+          "severity": "error",
+          "message": "Contrat sportif existant non respecté : calendar_coverage",
+          "control": "sports_continuity_audit"
+        },
+        {
+          "code": "triathlon_discipline_continuity",
+          "severity": "error",
+          "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+          "control": "sports_continuity_audit"
+        },
+        {
+          "code": "triathlon_training_frequency",
+          "severity": "error",
+          "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+          "control": "sports_continuity_audit"
+        }
+      ],
+      "technical": {
+        "execution": "executed",
+        "valid": false,
+        "issues": [
+          "calendar_not_complete_and_unique"
+        ],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "scopeWarning": "Legacy whole-plan routines may infer a race week from this single-week prefix. Absence of a legacy intensity error is not evidence that base-phase intensity checks passed.",
+      "sourceAuditScope": "all original controls invoked on full seven-day microcycle in preparation context; full-plan errors retained, not a complete race plan",
+      "newDoseAllocated": false,
+      "scientificAdmission": false
+    },
+    {
+      "id": "IM_balanced_history",
+      "archivedMinutes": 480,
+      "archivedComplete": true,
+      "sessions": [
+        {
+          "dayIndex": 1,
+          "legacyId": "V3_BIKE_Z2_PROGRESSIF",
+          "archivedDoseMinutes": 120,
+          "role": {
+            "id": "IM_balanced_history:bike:0",
+            "sport": "bike",
+            "kind": "long",
+            "essential": true,
+            "min": 90,
+            "cap": 150,
+            "priority": 10,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "partial",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 1,
+          "legacyId": "A_SWIM_CONTINUOUS_2K",
+          "archivedDoseMinutes": 40,
+          "role": {
+            "id": "IM_balanced_history:swim:1",
+            "sport": "swim",
+            "kind": "endurance",
+            "essential": true,
+            "min": 0,
+            "cap": 75,
+            "priority": 11,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "partial",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 2,
+          "legacyId": "C_IM_AERO_HOLD",
+          "archivedDoseMinutes": 75,
+          "role": {
+            "id": "IM_balanced_history:bike:1",
+            "sport": "bike",
+            "kind": "technical",
+            "essential": true,
+            "min": 0,
+            "cap": 120,
+            "priority": 12,
+            "domain": "moderate_lt1",
+            "adaptation": "aero-position skill/endurance, explicitly not autonomous long endurance"
+          },
+          "sourceClass": "ambiguous",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [
+            {
+              "key": "C_IM_AERO_HOLD@v19:between_repetitions:5a9daecc4fac",
+              "classification": "complete_timeline_candidate",
+              "witnessMinutes": 75,
+              "equalsArchivedDose": true
+            },
+            {
+              "key": "C_IM_AERO_HOLD@v19:after_each_repetition:18ae8b1932ab",
+              "classification": "complete_timeline_candidate",
+              "witnessMinutes": 80,
+              "equalsArchivedDose": false
+            }
+          ],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 3,
+          "legacyId": "A_RUN_Z2_EASY",
+          "archivedDoseMinutes": 90,
+          "role": {
+            "id": "IM_balanced_history:run:0",
+            "sport": "run",
+            "kind": "long",
+            "essential": true,
+            "min": 60,
+            "cap": 90,
+            "priority": 0,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "complete",
+          "sourceWitnessMinutes": 40,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 4,
+          "legacyId": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+          "archivedDoseMinutes": 70,
+          "role": {
+            "id": "IM_balanced_history:run:1",
+            "sport": "run",
+            "kind": "endurance",
+            "essential": true,
+            "min": 0,
+            "cap": 75,
+            "priority": 1,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "ambiguous",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 5,
+          "legacyId": "RECOVERY_YOGA_MOBILITY_TRI",
+          "archivedDoseMinutes": 30,
+          "role": {
+            "id": "IM_balanced_history:strength:0",
+            "sport": "strength",
+            "kind": "skill",
+            "essential": true,
+            "min": 0,
+            "cap": 40,
+            "priority": 12,
+            "domain": "recovery",
+            "adaptation": "movement support, no force-dose efficacy claim"
+          },
+          "sourceClass": "descriptive_non_metabolic",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        },
+        {
+          "dayIndex": 6,
+          "legacyId": "A_SWIM_AEROBIC_MULTI_NAGES",
+          "archivedDoseMinutes": 55,
+          "role": {
+            "id": "IM_balanced_history:swim:0",
+            "sport": "swim",
+            "kind": "endurance",
+            "essential": true,
+            "min": 0,
+            "cap": 75,
+            "priority": 11,
+            "domain": "moderate_lt1",
+            "adaptation": "moderate aerobic endurance hypothesis in declared limiting-discipline context; no predicted VLamax change"
+          },
+          "sourceClass": "ambiguous",
+          "sourceWitnessMinutes": null,
+          "editorialCandidates": [],
+          "newCandidateApplied": false
+        }
+      ],
+      "legacyWeekMetrics": [
+        {
+          "weekNumber": 1,
+          "theme": "base",
+          "totalSessions": 8,
+          "activeSessions": 7,
+          "restDays": 1,
+          "sports": {
+            "Vélo": 2,
+            "Natation": 2,
+            "Course": 2,
+            "Renfo": 1
+          },
+          "keySessionsBySport": {
+            "Vélo": 1,
+            "Natation": 2,
+            "Course": 2
+          },
+          "intensityProfile": {
+            "lowPct": 100,
+            "midPct": 0,
+            "highPct": 0,
+            "unknownPct": 3
+          },
+          "isDeload": false,
+          "scheduledWeekType": "load",
+          "isContentOrScheduleDeload": false,
+          "isRaceWeek": false,
+          "isThresholdBlock": false,
+          "keySessions": 5,
+          "totalDurationMin": 480,
+          "keyDurationMin": 375,
+          "sessionsWithDuration": 7,
+          "longestSessionMinBySport": {
+            "Vélo": 120,
+            "Natation": 55,
+            "Course": 90,
+            "Renfo": 30
+          },
+          "durationMinBySport": {
+            "Vélo": 195,
+            "Natation": 95,
+            "Course": 160,
+            "Renfo": 30
+          }
+        }
+      ],
+      "issues": [
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "mercredi: attendu run+strength, observé bike",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "jeudi: attendu swim, observé run",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "vendredi: attendu qualité (isKeySession), observé séance non-clé",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "samedi: attendu brick, observé strength",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "layout_drift",
+          "week": 1,
+          "severity": "warning",
+          "message": "dimanche: attendu run, observé swim",
+          "control": "weekly_quotas"
+        },
+        {
+          "code": "race_day",
+          "week": 1,
+          "severity": "error",
+          "message": "🏁 Jour de course absent — S1 ne contient aucune séance \"Jour J\" ou \"🏁 COURSE OBJECTIF\"",
+          "control": "plan_validator_complete_context"
+        },
+        {
+          "code": "title_format",
+          "severity": "error",
+          "message": "Titre H1 non conforme au gabarit RÈGLE #0 : \"Préfixe expérimental semaine1\"",
+          "control": "plan_validator_complete_context"
+        },
+        {
+          "code": "key_session_self_declaration_mismatch",
+          "week": 1,
+          "severity": "warning",
+          "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Sortie Z2 progressive — montée en puissance graduelle\"",
+          "control": "plan_validator_complete_context"
+        },
+        {
+          "code": "key_session_self_declaration_mismatch",
+          "week": 1,
+          "severity": "warning",
+          "message": "S1: séance déclarée \"clé\" par l'IA (isKeySession:true) sans marqueur d'intensité détecté dans le texte — \"Endurance fondamentale, économie, récupération active\"",
+          "control": "plan_validator_complete_context"
+        },
+        {
+          "code": "calendar_coverage",
+          "severity": "error",
+          "message": "Contrat sportif existant non respecté : calendar_coverage",
+          "control": "sports_continuity_audit"
+        },
+        {
+          "code": "triathlon_discipline_continuity",
+          "severity": "error",
+          "message": "Contrat sportif existant non respecté : triathlon_discipline_continuity",
+          "control": "sports_continuity_audit"
+        },
+        {
+          "code": "triathlon_training_frequency",
+          "severity": "error",
+          "message": "Contrat sportif existant non respecté : triathlon_training_frequency",
+          "control": "sports_continuity_audit"
+        }
+      ],
+      "technical": {
+        "execution": "executed",
+        "valid": false,
+        "issues": [
+          "calendar_not_complete_and_unique"
+        ],
+        "source": "existing zPlanChunk + complete week/day/index and catalogue provenance audit"
+      },
+      "scopeWarning": "Legacy whole-plan routines may infer a race week from this single-week prefix. Absence of a legacy intensity error is not evidence that base-phase intensity checks passed.",
+      "sourceAuditScope": "all original controls invoked on full seven-day microcycle in preparation context; full-plan errors retained, not a complete race plan",
+      "newDoseAllocated": false,
+      "scientificAdmission": false
+    }
+  ],
+  "swimScenarios": [
+    {
+      "legacyId": "A_SWIM_TRI_OPEN_WATER_SIMU",
+      "input": {
+        "synthetic": true,
+        "provenance": "V19 new synthetic scenario",
+        "paceEvidence": "Mock task-specific open-water crawl exposure",
+        "meters": 2000,
+        "stroke": "crawl",
+        "paceStroke": "crawl",
+        "referenceKind": "declared_task_specific_pace",
+        "secondsPer100m": 120,
+        "windowMinutes": 45,
+        "openWaterAccess": true,
+        "coldWaterRestrictionCleared": true
+      },
+      "sourceInstructions": [
+        {
+          "part": "Main",
+          "text": "1500–2500m Z2 en eau libre. Pratiquer : visées tous les 8–10 coups, départs groupés, contournement bouées, drafting.",
+          "zones": [
+            "Z2"
+          ]
+        }
+      ],
+      "arithmeticSeconds": 2400,
+      "arithmeticFitsWindow": true,
+      "reasons": [],
+      "distanceTruncated": false,
+      "individualCapacityProven": false,
+      "sourceTimelinesAdded": 0,
+      "syntheticOnly": true,
+      "uncertainties": [
+        "open_water_conditions_and_navigation_variability",
+        "task_specific_pace_is_a_synthetic_declaration",
+        "recovery_and_whole_microcycle_not_attested"
+      ],
+      "structuredNolio": {
+        "payload": null,
+        "reason": "stroke_distance_open_water_machine_contract_not_demonstrated"
+      },
+      "automaticPrescription": false
+    },
+    {
+      "legacyId": "A_SWIM_TRI_OPEN_WATER_SIMU",
+      "input": {
+        "synthetic": true,
+        "provenance": "V19 new synthetic scenario",
+        "paceEvidence": "Mock task-specific open-water crawl exposure",
+        "meters": 2000,
+        "stroke": "crawl",
+        "paceStroke": "crawl",
+        "referenceKind": "declared_task_specific_pace",
+        "secondsPer100m": 120,
+        "windowMinutes": 30,
+        "openWaterAccess": true,
+        "coldWaterRestrictionCleared": true
+      },
+      "sourceInstructions": [
+        {
+          "part": "Main",
+          "text": "1500–2500m Z2 en eau libre. Pratiquer : visées tous les 8–10 coups, départs groupés, contournement bouées, drafting.",
+          "zones": [
+            "Z2"
+          ]
+        }
+      ],
+      "arithmeticSeconds": 2400,
+      "arithmeticFitsWindow": false,
+      "reasons": [
+        "window_insufficient_without_truncation"
+      ],
+      "distanceTruncated": false,
+      "individualCapacityProven": false,
+      "sourceTimelinesAdded": 0,
+      "syntheticOnly": true,
+      "uncertainties": [
+        "open_water_conditions_and_navigation_variability",
+        "task_specific_pace_is_a_synthetic_declaration",
+        "recovery_and_whole_microcycle_not_attested"
+      ],
+      "structuredNolio": {
+        "payload": null,
+        "reason": "stroke_distance_open_water_machine_contract_not_demonstrated"
+      },
+      "automaticPrescription": false
+    },
+    {
+      "legacyId": "A_SWIM_TRI_OPEN_WATER_SIMU",
+      "input": {
+        "synthetic": true,
+        "provenance": "V19 new synthetic scenario",
+        "paceEvidence": "Mock task-specific open-water crawl exposure",
+        "meters": 2000,
+        "stroke": "brasse",
+        "paceStroke": "crawl",
+        "referenceKind": "declared_task_specific_pace",
+        "secondsPer100m": 120,
+        "windowMinutes": 45,
+        "openWaterAccess": true,
+        "coldWaterRestrictionCleared": true
+      },
+      "sourceInstructions": [
+        {
+          "part": "Main",
+          "text": "1500–2500m Z2 en eau libre. Pratiquer : visées tous les 8–10 coups, départs groupés, contournement bouées, drafting.",
+          "zones": [
+            "Z2"
+          ]
+        }
+      ],
+      "arithmeticSeconds": 2400,
+      "arithmeticFitsWindow": false,
+      "reasons": [
+        "stroke_specific_reference_required"
+      ],
+      "distanceTruncated": false,
+      "individualCapacityProven": false,
+      "sourceTimelinesAdded": 0,
+      "syntheticOnly": true,
+      "uncertainties": [
+        "open_water_conditions_and_navigation_variability",
+        "task_specific_pace_is_a_synthetic_declaration",
+        "recovery_and_whole_microcycle_not_attested"
+      ],
+      "structuredNolio": {
+        "payload": null,
+        "reason": "stroke_distance_open_water_machine_contract_not_demonstrated"
+      },
+      "automaticPrescription": false
+    },
+    {
+      "legacyId": "A_SWIM_TRI_OPEN_WATER_SIMU",
+      "input": {
+        "synthetic": true,
+        "provenance": "V19 new synthetic scenario",
+        "paceEvidence": "",
+        "meters": 2000,
+        "stroke": "crawl",
+        "paceStroke": "crawl",
+        "referenceKind": "declared_task_specific_pace",
+        "secondsPer100m": 120,
+        "windowMinutes": 45,
+        "openWaterAccess": true,
+        "coldWaterRestrictionCleared": true
+      },
+      "sourceInstructions": [
+        {
+          "part": "Main",
+          "text": "1500–2500m Z2 en eau libre. Pratiquer : visées tous les 8–10 coups, départs groupés, contournement bouées, drafting.",
+          "zones": [
+            "Z2"
+          ]
+        }
+      ],
+      "arithmeticSeconds": 2400,
+      "arithmeticFitsWindow": false,
+      "reasons": [
+        "explicit_synthetic_evidence_required"
+      ],
+      "distanceTruncated": false,
+      "individualCapacityProven": false,
+      "sourceTimelinesAdded": 0,
+      "syntheticOnly": true,
+      "uncertainties": [
+        "open_water_conditions_and_navigation_variability",
+        "task_specific_pace_is_a_synthetic_declaration",
+        "recovery_and_whole_microcycle_not_attested"
+      ],
+      "structuredNolio": {
+        "payload": null,
+        "reason": "stroke_distance_open_water_machine_contract_not_demonstrated"
+      },
+      "automaticPrescription": false
+    }
+  ]
+}

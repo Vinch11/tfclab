@@ -1,0 +1,368 @@
+[
+  {
+    "id": "IM_reference",
+    "request": "IM_reference:run:1",
+    "initialAction": "substitute",
+    "before": {
+      "source": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+      "minutes": 40
+    },
+    "after": {
+      "source": "A_RUN_Z2_EASY",
+      "minutes": 35
+    },
+    "calendarErrors": [],
+    "sourceFrequencyPass": true,
+    "beforeHistoricalIssues": [
+      {
+        "code": "quota_floor_violation",
+        "week": 1,
+        "severity": "critical",
+        "message": "pas de SL v\u00e9lo (\u226590min) ni brick long (\u2265110min) en semaine load",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "quota_range_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "bike hors fourchette (0 \u2209 [2, 2])",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "quota_range_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "total 5 hors fourchette [7, 9]",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observ\u00e9 swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observ\u00e9 swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observ\u00e9 run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu qualit\u00e9 (isKeySession), observ\u00e9 s\u00e9ance non-cl\u00e9",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observ\u00e9 strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 1,
+        "severity": "error",
+        "message": "\ud83c\udfc1 Jour de course absent \u2014 S1 ne contient aucune s\u00e9ance \"Jour J\" ou \"\ud83c\udfc1 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "objective_sport_conflict",
+        "severity": "error",
+        "message": "Objectif \"IM\" (multi-discipline) attend V\u00e9lo (45-55% du plan), mais 0 s\u00e9ance de V\u00e9lo sur l'ensemble du plan, sans contrainte explicite le justifiant (contraintes renseign\u00e9es : \u00ab Profil synth\u00e9tique QA \u2014 aucune contrainte, disponibilit\u00e9 large. \u00bb) \u2014 anomalie de g\u00e9n\u00e9ration \u00e0 corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "title_format",
+        "severity": "error",
+        "message": "Titre H1 non conforme au gabarit R\u00c8GLE #0 : \"V9 one-week prefix, not a complete race plan\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: s\u00e9ance d\u00e9clar\u00e9e \"cl\u00e9\" par l'IA (isKeySession:true) sans marqueur d'intensit\u00e9 d\u00e9tect\u00e9 dans le texte \u2014 \"Endurance fondamentale, \u00e9conomie, r\u00e9cup\u00e9ration active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respect\u00e9 : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respect\u00e9 : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respect\u00e9 : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "afterHistoricalIssues": [
+      {
+        "code": "quota_floor_violation",
+        "week": 1,
+        "severity": "critical",
+        "message": "pas de SL v\u00e9lo (\u226590min) ni brick long (\u2265110min) en semaine load",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "quota_range_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "bike hors fourchette (0 \u2209 [2, 2])",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "quota_range_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "total 5 hors fourchette [7, 9]",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mardi: attendu bike+swim, observ\u00e9 swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "mercredi: attendu run+strength, observ\u00e9 swim",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "jeudi: attendu swim, observ\u00e9 run",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "vendredi: attendu qualit\u00e9 (isKeySession), observ\u00e9 s\u00e9ance non-cl\u00e9",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "layout_drift",
+        "week": 1,
+        "severity": "warning",
+        "message": "samedi: attendu brick, observ\u00e9 strength",
+        "control": "weekly_quotas"
+      },
+      {
+        "code": "race_day",
+        "week": 1,
+        "severity": "error",
+        "message": "\ud83c\udfc1 Jour de course absent \u2014 S1 ne contient aucune s\u00e9ance \"Jour J\" ou \"\ud83c\udfc1 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "objective_sport_conflict",
+        "severity": "error",
+        "message": "Objectif \"IM\" (multi-discipline) attend V\u00e9lo (45-55% du plan), mais 0 s\u00e9ance de V\u00e9lo sur l'ensemble du plan, sans contrainte explicite le justifiant (contraintes renseign\u00e9es : \u00ab Profil synth\u00e9tique QA \u2014 aucune contrainte, disponibilit\u00e9 large. \u00bb) \u2014 anomalie de g\u00e9n\u00e9ration \u00e0 corriger avant utilisation (pas de substitution silencieuse d'une autre discipline).",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "title_format",
+        "severity": "error",
+        "message": "Titre H1 non conforme au gabarit R\u00c8GLE #0 : \"V9 one-week prefix, not a complete race plan\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_session_self_declaration_mismatch",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: s\u00e9ance d\u00e9clar\u00e9e \"cl\u00e9\" par l'IA (isKeySession:true) sans marqueur d'intensit\u00e9 d\u00e9tect\u00e9 dans le texte \u2014 \"Endurance fondamentale, \u00e9conomie, r\u00e9cup\u00e9ration active\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "duplicate_catalog_id_unresolved",
+        "severity": "error",
+        "message": "S1 : catalogId \"A_RUN_Z2_EASY\" utilis\u00e9 2\u00d7 dans la m\u00eame semaine (post-mutations) \u2014 d\u00e9doublonnage d\u00e9fait apr\u00e8s coup.",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respect\u00e9 : calendar_coverage",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_discipline_continuity",
+        "severity": "error",
+        "message": "Contrat sportif existant non respect\u00e9 : triathlon_discipline_continuity",
+        "control": "sports_continuity_audit"
+      },
+      {
+        "code": "triathlon_training_frequency",
+        "severity": "error",
+        "message": "Contrat sportif existant non respect\u00e9 : triathlon_training_frequency",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "effectiveAction": "coach_review",
+    "noNewHistoricalCritical": false,
+    "passesExecutedNonRegression": false,
+    "applied": false,
+    "coachReviewRequired": true
+  },
+  {
+    "id": "Trail_known_history",
+    "request": "Trail_known_history:run:2",
+    "initialAction": "substitute",
+    "before": {
+      "source": "SEILER_RUN_Z1_EASY_LONG",
+      "minutes": 70
+    },
+    "after": {
+      "source": "A_RUN_Z2_EASY",
+      "minutes": 35
+    },
+    "calendarErrors": [],
+    "sourceFrequencyPass": true,
+    "beforeHistoricalIssues": [
+      {
+        "code": "race_day",
+        "week": 1,
+        "severity": "error",
+        "message": "\ud83c\udfc1 Jour de course absent \u2014 S1 ne contient aucune s\u00e9ance \"Jour J\" ou \"\ud83c\udfc1 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "race_day",
+        "week": 1,
+        "severity": "warning",
+        "message": "\u26a0\ufe0f Race Week sous-peupl\u00e9e \u2014 S1 : seulement 3 s\u00e9ance(s) r\u00e9elle(s) sur 4 attendues",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "session_density",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: 3 s\u00e9ances vs cible coach 5 (\u0394-2)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "lorang_categories",
+        "week": 1,
+        "severity": "error",
+        "message": "S1 : aucune s\u00e9ance Lorang A (HIT) ni B (seuil) \u2014 chaque semaine hors d\u00e9charge doit en contenir au moins 1",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "trail_dplus_presence",
+        "severity": "warning",
+        "message": "2/2 s\u00e9ances CAP/Trail sans D+ chiffr\u00e9 \u2014 chaque s\u00e9ance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "title_format",
+        "severity": "error",
+        "message": "Titre H1 non conforme au gabarit R\u00c8GLE #0 : \"V9 one-week prefix, not a complete race plan\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respect\u00e9 : calendar_coverage",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "afterHistoricalIssues": [
+      {
+        "code": "key_sessions",
+        "week": 1,
+        "severity": "error",
+        "message": "S1: Aucune s\u00e9ance cl\u00e9 d\u00e9tect\u00e9e (attendu: 2-4 s\u00e9ances d'intensit\u00e9/semaine)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "key_sessions_per_sport",
+        "week": 1,
+        "severity": "error",
+        "message": "S1: Course \u2014 2 s\u00e9ance(s) cette semaine, aucune class\u00e9e s\u00e9ance cl\u00e9 (toutes r\u00e9cup\u00e9ration/technique)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "race_day",
+        "week": 1,
+        "severity": "error",
+        "message": "\ud83c\udfc1 Jour de course absent \u2014 S1 ne contient aucune s\u00e9ance \"Jour J\" ou \"\ud83c\udfc1 COURSE OBJECTIF\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "race_day",
+        "week": 1,
+        "severity": "warning",
+        "message": "\u26a0\ufe0f Race Week sous-peupl\u00e9e \u2014 S1 : seulement 3 s\u00e9ance(s) r\u00e9elle(s) sur 4 attendues",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "session_density",
+        "week": 1,
+        "severity": "warning",
+        "message": "S1: 3 s\u00e9ances vs cible coach 5 (\u0394-2)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "lorang_categories",
+        "week": 1,
+        "severity": "error",
+        "message": "S1 : aucune s\u00e9ance Lorang A (HIT) ni B (seuil) \u2014 chaque semaine hors d\u00e9charge doit en contenir au moins 1",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "trail_dplus_presence",
+        "severity": "warning",
+        "message": "2/2 s\u00e9ances CAP/Trail sans D+ chiffr\u00e9 \u2014 chaque s\u00e9ance trail doit mentionner le D+ cible (OBLIGATOIRE, systemPrompt.ts)",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "title_format",
+        "severity": "error",
+        "message": "Titre H1 non conforme au gabarit R\u00c8GLE #0 : \"V9 one-week prefix, not a complete race plan\"",
+        "control": "plan_validator_complete_context"
+      },
+      {
+        "code": "duplicate_catalog_id_unresolved",
+        "severity": "error",
+        "message": "S1 : catalogId \"A_RUN_Z2_EASY\" utilis\u00e9 2\u00d7 dans la m\u00eame semaine (post-mutations) \u2014 d\u00e9doublonnage d\u00e9fait apr\u00e8s coup.",
+        "control": "final_B13_B14_B15"
+      },
+      {
+        "code": "calendar_coverage",
+        "severity": "error",
+        "message": "Contrat sportif existant non respect\u00e9 : calendar_coverage",
+        "control": "sports_continuity_audit"
+      }
+    ],
+    "effectiveAction": "coach_review",
+    "noNewHistoricalCritical": false,
+    "passesExecutedNonRegression": false,
+    "applied": false,
+    "coachReviewRequired": true
+  }
+]

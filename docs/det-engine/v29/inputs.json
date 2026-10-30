@@ -1,0 +1,141 @@
+{
+  "schema": "det-v29-registration-1",
+  "registeredAt": "2026-10-29T21:59:35.455297+00:00",
+  "clock": "2026-10-29T12:00:00Z",
+  "syntheticOnly": true,
+  "sourceArtifacts": {
+    "scenarios": {
+      "path": "docs/det-engine/v28/evidence/validation-3/build/scenarios.json.gz",
+      "sha256": "7ff8841a007a03f874b751e460ba4e7a6c033f93e58ef6bd17bbcc172362eae0"
+    },
+    "originals": {
+      "path": "docs/det-engine/v28/evidence/validation-3/build/originals.json.gz",
+      "sha256": "128b64a51393defc475eae194168608c94a22ca9097ea3a7a5b1e4057de558b5"
+    },
+    "phases": {
+      "path": "docs/det-engine/v28/evidence/validation-3/build/phases.json.gz",
+      "sha256": "49f699699539c2fd8668f8ac197cfbbb9c877a221eccc3f5cb7ed6f7f1f0efc4"
+    }
+  },
+  "subjectCaseId": "B_sustainability",
+  "parameterChangesAllowed": false,
+  "defaultReservationSemantics": "synthetic_upper_bound_complement_only",
+  "coachPoliciesApproved": false,
+  "noHistoricalMutation": true,
+  "negativeRequests": [
+    {
+      "id": "catch_pull_native35",
+      "scenarioId": "catch_pull_declared_timing",
+      "mode": "legacy_exact",
+      "minutes": 35
+    },
+    {
+      "id": "strength_native25",
+      "scenarioId": "strength_between_explicit",
+      "mode": "legacy_exact",
+      "minutes": 25
+    },
+    {
+      "id": "envelope_not_acknowledged",
+      "scenarioId": "catch_pull_declared_timing",
+      "mode": "synthetic_upper_bound",
+      "minutes": 55,
+      "acknowledged": false
+    }
+  ],
+  "clockTests": [
+    {
+      "id": "unknown",
+      "scenarioId": "strength_between_explicit",
+      "windows": null
+    },
+    {
+      "id": "separate",
+      "scenarioId": "strength_between_explicit",
+      "windows": {
+        "startSeconds": 32400,
+        "endSeconds": 34500,
+        "otherWindows": [
+          {
+            "id": "other_session",
+            "startSeconds": 36000,
+            "endSeconds": 39600
+          }
+        ]
+      }
+    },
+    {
+      "id": "overlap",
+      "scenarioId": "strength_between_explicit",
+      "windows": {
+        "startSeconds": 32400,
+        "endSeconds": 34500,
+        "otherWindows": [
+          {
+            "id": "other_session",
+            "startSeconds": 33600,
+            "endSeconds": 36000
+          }
+        ]
+      }
+    },
+    {
+      "id": "too_short_window",
+      "scenarioId": "strength_between_explicit",
+      "windows": {
+        "startSeconds": 32400,
+        "endSeconds": 33600,
+        "otherWindows": []
+      }
+    }
+  ],
+  "negativeCases": [
+    "total_mismatch",
+    "duplicate_event",
+    "missing_transition",
+    "missing_final_recovery",
+    "source_tamper",
+    "foreign_subject",
+    "foreign_parameters",
+    "missing_anchor",
+    "incompatible_variant",
+    "insufficient_capacity",
+    "adverse_recovery",
+    "block_budget_exceeded",
+    "rejected_block_cannot_be_inserted"
+  ],
+  "ledgerFixtures": {
+    "integrated": {
+      "events": [
+        {
+          "seconds": 600,
+          "kind": "continuous"
+        },
+        {
+          "seconds": 60,
+          "kind": "warmup",
+          "accounting": "included",
+          "parentIndex": 0,
+          "offsetSeconds": 0
+        },
+        {
+          "seconds": 60,
+          "kind": "cooldown",
+          "accounting": "included",
+          "parentIndex": 0,
+          "offsetSeconds": 540
+        }
+      ],
+      "totalSeconds": 600
+    },
+    "fractionalSeconds": {
+      "events": [
+        {
+          "seconds": 60.5,
+          "kind": "unsupported_subsecond"
+        }
+      ],
+      "totalSeconds": 60.5
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "pr": 420,
+  "draft": true,
+  "merged": false,
+  "branch": "experiment/det-engine",
+  "publishedCheckpoint": "03195f8e4f25c5705901232b2f611a4169bf3e00",
+  "metadataUpdateConfirmed": true,
+  "pushConfirmed": true,
+  "closureCommit": "subsequent documentation-only commit",
+  "status": "NO-GO"
+}

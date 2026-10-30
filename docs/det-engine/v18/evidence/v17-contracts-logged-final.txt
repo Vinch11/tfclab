@@ -1,0 +1,35 @@
+✔ all 920 canonical identities and sources remain unchanged (145.096255ms)
+✔ whole-library replay is identical without reconverting V16 (996.486592ms)
+✔ all five mutually exclusive classifications sum to 920 (0.630973ms)
+✔ literal hours, compound minutes/seconds and shared-unit ranges retain arithmetic (0.908101ms)
+✔ distance stays distance and never acquires a pace or elapsed duration (0.342747ms)
+✔ unqualified final recovery remains ambiguous with both known work/rest retained (0.174353ms)
+✔ closed repeat bodies include every recovery cycle and exact count (0.146902ms)
+✔ explicit optional drills remain included, without clipping the original source (3.632655ms)
+✔ explicit integrated peripherals are not counted twice (0.414616ms)
+✔ unknown warmup is not fabricated to fill an advertised sparse Main recipe (0.285982ms)
+✔ cognitive preparation is a duration-scope question rather than automatically a training-volume contradiction (0.999279ms)
+✔ complete named parts with an arithmetical mismatch are not rounded green (0.17151ms)
+✔ 55-minute active brick witness stays contradictory with unknown transition time (0.166481ms)
+✔ mixed swim/bike legs are explicit and never collapsed to one discipline (0.175264ms)
+✔ strength receives its exercise model and is not invalidated for unknown metabolic time (0.633526ms)
+✔ additional unquantified work cannot disappear behind the first duration (0.158619ms)
+✔ repeated source parameters are shared rather than silently giving different durations to each rep (0.190087ms)
+✔ no complete witness is presented as a physiological or expert approval (0.409488ms)
+✔ all 920 coach views retain every original source instruction and restriction (1630.836607ms)
+✔ altered IR cannot enter coach or Nolio output adapters (2.396459ms)
+✔ a real source recipe yields a faithful synthetic local structured contract (3.361727ms)
+✔ walking and non-metabolic substeps are not silently prescribed at running pace (3.056866ms)
+✔ source percentages and ambiguous multi-zone targets keep their structured refusals (1.634418ms)
+✔ missing anchor, wrong zone binding, real identity context and v2 are refused (2.417861ms)
+✔ all three output levels preserve replay and total encoded duration where admitted (6087.031479ms)
+✔ coach can display a calculable primary-domain target without changing dose or source instructions (2.201637ms)
+✔ unknown API versions never fall through to the v1 encoder (1.228657ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8906.117087

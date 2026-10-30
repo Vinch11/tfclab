@@ -1,0 +1,12 @@
+{
+  "draft": true,
+  "merged": false,
+  "head": "experiment/det-engine",
+  "head_sha": "85ce98c30ff3dede02a956299fc5db65c083b397",
+  "title": "DET-ENGINE AUTONOMOUS V6 \u2014 contradictions, r\u00e9parations et premiers ultras complets, NO-GO",
+  "base": "main",
+  "verifiedAtUnixSeconds": 1793173483.261048,
+  "prUrl": "https://github.com/Vinch11/tfclab/pull/420",
+  "checkpointOnly": true,
+  "closureCommitScope": "subsequent closure commit only V6 documentation, state and checksum manifest; source unchanged"
+}

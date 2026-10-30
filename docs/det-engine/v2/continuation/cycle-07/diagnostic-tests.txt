@@ -1,0 +1,18 @@
+✔ resource exhaustion is unknown, never impossible or catalogue insufficiency (1.074693ms)
+✔ catalogue-domain and budget contradictions are only local proofs (0.215175ms)
+✔ unsupported sport routes and static adapters are separated from software failure (0.160713ms)
+✔ a valid constructed candidate retains warnings without inventing a failure category (0.276848ms)
+✔ software metrics cannot absorb sporting errors or certify all rules (1.71481ms)
+✔ duplicate IDs and malformed evidence cannot bias denominators (0.368616ms)
+✔ the committed 600-case baseline is verified rather than inferred from prose (863.576009ms)
+✔ V2 repairs and recorded applicability are counted without conflating context and rule execution (1.456651ms)
+✔ legacy evidence never fabricates zero repairs or recorded applicability (0.478223ms)
+✔ the committed V2 cycle records measurable repair transitions (1274.779586ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2151.863811

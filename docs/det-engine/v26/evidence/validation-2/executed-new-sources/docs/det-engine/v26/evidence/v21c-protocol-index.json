@@ -1,0 +1,42 @@
+{
+  "source": "docs/det-engine/v21c/EXACT_PROTOCOL_COMPARISONS.csv",
+  "sourceSha256": "ae4c2e4c6449d464a9b1a81b88d7ca2ea943db0937a58ca435a2782cbf72ce3b",
+  "rows": [
+    {
+      "workoutId": "B_BIKE_VO2_3MIN",
+      "candidateKey": "B_BIKE_VO2_3MIN@v19:between_repetitions:1b764bed2bb4",
+      "candidateHash": "24c55d9b154777bc93253d21099d334175aabcd57edcfdd397e2754f748b7423",
+      "sourceRecipeHash": "15940d3765819760fbcb601a947f5235dfe84afac804d1bceee426507add9c12",
+      "studyKey": "acute_cycle_3_3",
+      "PMID": "34822448",
+      "DOI": "10.3390/metabo11110790",
+      "access": "full_main_text_and_xml_tables_examined",
+      "artifactHash": "1ac644ed8df8f228fa1d74fd3c60d97e054635f68be44a873cd6512746fe1351",
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/acute_cycle_3_3.response.gz",
+      "comparisonStatus": "conclusive_not_same_protocol",
+      "supportableClaim": "Higher work-phase cardiopulmonary responses and time above target for long intervals, broadly similar section-average VO2; lactate 6.2 versus 4.2 mmol/L; no chronic adaptation measured",
+      "unsupportedClaims": "[\"exact TFCL recipe dose\",\"optimal individual dose\",\"automatic final-rest choice\",\"automatic cross-sport or anchor transfer\"]",
+      "checks": "{\"same_sport\":true,\"work_matches\":true,\"repetitions_match\":true,\"intensity_anchor_matches\":null,\"recovery_anchor_matches\":null,\"recovery_duration_matches\":null,\"source_final_rest_known\":false,\"full_session_matches\":false,\"frequency_matches\":null,\"population_transfer_justified\":null}",
+      "additionalIndividualData": "{\"individualHistory\":null,\"capacityAtDose\":null,\"observedRecovery\":null,\"coachApproval\":null,\"missingEvidenceIsNotZero\":true,\"noNewUniversalQuantitativeQuestionnaire\":true}",
+      "exactDoseGate": "{\"literatureClaimCandidateAllowed\":false,\"reasons\":[\"NOT_ESTABLISHED:intensity_anchor_matches\",\"NOT_ESTABLISHED:recovery_anchor_matches\",\"NOT_ESTABLISHED:recovery_duration_matches\",\"NOT_ESTABLISHED:source_final_rest_known\",\"NOT_ESTABLISHED:full_session_matches\",\"NOT_ESTABLISHED:frequency_matches\",\"NOT_ESTABLISHED:population_transfer_justified\"],\"individualAdmissibility\":\"not_assessed_not_approved\",\"sportingHumanReview\":false,\"automaticPromotion\":false}"
+    },
+    {
+      "workoutId": "B_BIKE_VO2_3MIN",
+      "candidateKey": "B_BIKE_VO2_3MIN@v19:after_each_repetition:23bb55bfcb95",
+      "candidateHash": "87a8f64a659db2b34fa108706dffd4267ed207aa96d87eb6b9e478ad7810c14a",
+      "sourceRecipeHash": "15940d3765819760fbcb601a947f5235dfe84afac804d1bceee426507add9c12",
+      "studyKey": "acute_cycle_3_3",
+      "PMID": "34822448",
+      "DOI": "10.3390/metabo11110790",
+      "access": "full_main_text_and_xml_tables_examined",
+      "artifactHash": "1ac644ed8df8f228fa1d74fd3c60d97e054635f68be44a873cd6512746fe1351",
+      "artifact": "docs/det-engine/v21c/evidence/retrieval-1/acute_cycle_3_3.response.gz",
+      "comparisonStatus": "conclusive_not_same_protocol",
+      "supportableClaim": "Higher work-phase cardiopulmonary responses and time above target for long intervals, broadly similar section-average VO2; lactate 6.2 versus 4.2 mmol/L; no chronic adaptation measured",
+      "unsupportedClaims": "[\"exact TFCL recipe dose\",\"optimal individual dose\",\"automatic final-rest choice\",\"automatic cross-sport or anchor transfer\"]",
+      "checks": "{\"same_sport\":true,\"work_matches\":true,\"repetitions_match\":true,\"intensity_anchor_matches\":null,\"recovery_anchor_matches\":null,\"recovery_duration_matches\":null,\"source_final_rest_known\":false,\"full_session_matches\":false,\"frequency_matches\":null,\"population_transfer_justified\":null}",
+      "additionalIndividualData": "{\"individualHistory\":null,\"capacityAtDose\":null,\"observedRecovery\":null,\"coachApproval\":null,\"missingEvidenceIsNotZero\":true,\"noNewUniversalQuantitativeQuestionnaire\":true}",
+      "exactDoseGate": "{\"literatureClaimCandidateAllowed\":false,\"reasons\":[\"NOT_ESTABLISHED:intensity_anchor_matches\",\"NOT_ESTABLISHED:recovery_anchor_matches\",\"NOT_ESTABLISHED:recovery_duration_matches\",\"NOT_ESTABLISHED:source_final_rest_known\",\"NOT_ESTABLISHED:full_session_matches\",\"NOT_ESTABLISHED:frequency_matches\",\"NOT_ESTABLISHED:population_transfer_justified\"],\"individualAdmissibility\":\"not_assessed_not_approved\",\"sportingHumanReview\":false,\"automaticPromotion\":false}"
+    }
+  ]
+}

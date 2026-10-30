@@ -1,0 +1,118 @@
+{
+  "version": "det-v11-trail-evidence-1",
+  "priorArtifact": "docs/det-engine/v10/evidence/final/microcycles.json.gz",
+  "scope": "tracked workout catalogue and existing explicit synthetic V4 route evidence only; no athlete/Nolio access or new route fabrication",
+  "rows": [
+    {
+      "id": "A_RUN_Z2_EASY",
+      "sourceFound": true,
+      "title": "Endurance fondamentale, économie, récupération active",
+      "structuredFields": {},
+      "sourceDuration": [
+        35,
+        90
+      ],
+      "sourcePhases": [
+        "base",
+        "build",
+        "peak"
+      ],
+      "sourceTerrainText": [
+        "Toute l'année",
+        "Aucun (adapter volume si fatigue)",
+        "10 min Z1–Z2 relâché 20–70 min Z2 (technique, relâchement) 5 min Z1 + éducatifs 5 min (optionnel)"
+      ],
+      "existingRouteEvidence": null,
+      "dPlusExactM": null,
+      "dMinusExactM": null,
+      "verticalStatus": "unknown_both_components",
+      "eccentricExposureDose": null,
+      "requiredEvidence": [
+        "exact planned route or labelled route record linked to this dose/date",
+        "D+ and D− separately, units metres and provenance/method",
+        "terrain and technicality, slope/distribution if available",
+        "individual descent response and recovery; no acquired tolerance inferred"
+      ],
+      "noFlatTerrainInference": true
+    },
+    {
+      "id": "SEILER_RUN_Z1_EASY_LONG",
+      "sourceFound": true,
+      "title": "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+      "structuredFields": {},
+      "sourceDuration": [
+        70,
+        150
+      ],
+      "sourcePhases": [
+        "base",
+        "build",
+        "peak"
+      ],
+      "sourceTerrainText": [
+        "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler.",
+        "Dériver vers Z3 (erreur classique — 'black hole') · Terrain trop vallonné si difficile de rester en Z1-Z2",
+        "Intégré — les 10 premières minutes sont l'échauffement naturel. 60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine. Intégré — les 10 dernières minutes naturellement plus lentes."
+      ],
+      "existingRouteEvidence": null,
+      "dPlusExactM": null,
+      "dMinusExactM": null,
+      "verticalStatus": "unknown_both_components",
+      "eccentricExposureDose": null,
+      "requiredEvidence": [
+        "exact planned route or labelled route record linked to this dose/date",
+        "D+ and D− separately, units metres and provenance/method",
+        "terrain and technicality, slope/distribution if available",
+        "individual descent response and recovery; no acquired tolerance inferred"
+      ],
+      "noFlatTerrainInference": true
+    },
+    {
+      "id": "LYDIARD_RUN_AEROBIC_BASE_LONG",
+      "sourceFound": true,
+      "title": "Base aérobie Lydiard — sortie longue fondamentale pour construire le moteur aérobie (phase 1)",
+      "structuredFields": {},
+      "sourceDuration": [
+        90,
+        180
+      ],
+      "sourcePhases": [
+        "base",
+        "build",
+        "peak"
+      ],
+      "sourceTerrainText": [
+        "Base — pilier de la phase 1 Lydiard. 1x/semaine weekend. Volume progressif sur 16-24 semaines.",
+        "Dériver vers Z3 ou plus (détruit l'objectif) · Phase Build ou Peak (trop tard pour la base) · Terrain trop technique",
+        "Intégré — les 15 premières minutes sont l'échauffement naturel en Z1. 90-150 min en Z1-Z2 strict. PHILOSOPHIE LYDIARD : 'La course aérobie développe le cœur, les poumons, les muscles et le système vasculaire. Sans cette base, la vitesse n'a aucun fondement.' Allure : conversation complète possible. FC < 75% FCmax STRICTEMENT. Pour un coureur avec FCmax 185 : rester sous 139 bpm. Progression Lydiard sur 24 semaines : S1=90 min, S4=110 min, S8=130 min, S12=150 min, S16=165 min, S20=180 min. La DURÉE augmente, pas l'intensité. Lydiard prescrivait même des marches si la FC montait trop. Cette base développe : densité capillaire, densité mitochondriale, enzymes aérobies, économie de course, volume sanguin, efficacité cardiaque. Intégré — les 10 dernières minutes naturellement plus lentes. Étirements doux."
+      ],
+      "existingRouteEvidence": null,
+      "dPlusExactM": null,
+      "dMinusExactM": null,
+      "verticalStatus": "unknown_both_components",
+      "eccentricExposureDose": null,
+      "requiredEvidence": [
+        "exact planned route or labelled route record linked to this dose/date",
+        "D+ and D− separately, units metres and provenance/method",
+        "terrain and technicality, slope/distribution if available",
+        "individual descent response and recovery; no acquired tolerance inferred"
+      ],
+      "noFlatTerrainInference": true
+    }
+  ],
+  "knownLongRoute": {
+    "dPlusM": 850,
+    "dMinusM": 780,
+    "source": "explicit_synthetic_route_observation"
+  },
+  "knownTotalsAreNotCompleteTotals": {
+    "dPlusM": 850,
+    "dMinusM": 780
+  },
+  "attestation": "refused_incomplete_vertical_coverage",
+  "unknownCount": 3,
+  "science": [
+    "V8 B20: eccentric response cannot be inferred from absent D− or planned exposure"
+  ],
+  "expertReviewed": false
+}

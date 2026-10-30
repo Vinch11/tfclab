@@ -1,0 +1,55 @@
+{
+  "version": "det-v24-preregistered-3",
+  "registeredAt": "2026-10-29T15:06:06.891827+00:00",
+  "clock": "2026-10-29T12:00:00Z",
+  "baseline": "4ec5547875768f8430606401bb750445e381f71f",
+  "sourceInputs": {
+    "docs/det-engine/v22/inputs.json": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97",
+    "docs/det-engine/v23/inputs.json": "b566cf0e7db6bf82898f7accb63ba68e97a7bc7cbdec96fecdf41000b921dedc"
+  },
+  "cohort": "unchanged original 3 V22 + 5 V23 counterfactuals",
+  "models": [
+    {
+      "id": "pull_on_support_day",
+      "action": "from V23 rejected priority trial move catch-pull swim to the existing strength support day, preserving all doses and other placements",
+      "hypothesis": "protect both long ride and long run days; use a preexisting lower-duration support day rather than add training days",
+      "uncertainty": "consecutive technical swim days may suit some athletes only; no demonstrated superiority or extra capacity"
+    },
+    {
+      "id": "catch_on_support_day",
+      "action": "move catch-focus swim to support day and catch-pull to existing technical bike day",
+      "hypothesis": "alternative ordering of existing technical sessions; no role, dose, volume or intensity added",
+      "uncertainty": "technical order and proximity require coach review"
+    },
+    {
+      "id": "protect_peak_ride_only",
+      "action": "from the retained V23 original, move only catch-focus swim in the load week containing the greatest already planned long-bike duration to its existing support day; unchanged tie-break earliest week",
+      "hypothesis": "apply an eligible endurance priority at the greatest existing bike exposure without disrupting the other load weeks or introducing new repeated-title alerts",
+      "uncertainty": "a programming proposal; no claim of physiological superiority, source-specific tolerance or additional capacity"
+    },
+    {
+      "id": "space_peak_bike_block_and_long_run",
+      "action": "only in the load week with the longest already planned bike endurance session, exchange the existing easy-run and long-run days, preserving their complete source, dose and disciplines on each day",
+      "hypothesis": "defer the existing long run by one day after the existing two-day cycling block; retain a shorter already prescribed easy run between the cycling block and the long run, without declaring recovery obtained",
+      "uncertainty": "active easy running is not rest; core support now follows the long run, source explicitly permits fatigue but actual recovery and 95-minute capacity remain unresolved",
+      "notANewThreshold": "rank existing durations only; no universal required spacing or recovery duration asserted"
+    }
+  ],
+  "acceptance": "in addition to original code/week/severity/control counts, no new individual historical issue message, block error or individual refusal; all source, doses and holds unchanged",
+  "externalFixture424": {
+    "label": "separate PR424 QA case, never a replacement measurement for A",
+    "base": "B-MARATHON",
+    "runEconomyScore": 65,
+    "vlamaxRun": 0.5,
+    "runningEconomyCostMlKgKm": 200,
+    "vma": 18,
+    "paceThresholdSecPerKm": null
+  },
+  "externalStates": [
+    "corrected_candidate",
+    "uncertain",
+    "absent"
+  ],
+  "floorPolicy": "literal SEILER_RUN integrated source and Ironman 90-120 range may support a coach-only 90-minute proposal, never automatic waiver of unchanged 95-minute floor",
+  "previousModelsEvidence": "evidence/preregistered-models-1.json and preregistered-models-2.json; prior alternatives remain archived coach-only because full warning messages change"
+}

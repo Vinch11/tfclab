@@ -1,0 +1,14 @@
+{
+  "v2": {
+    "manifestSha256": "6d26774239072d07742433221af97f75ac0c2c62fab6f3be4b0fcd127701dd48",
+    "allEntriesVerified": true
+  },
+  "v3": {
+    "manifestSha256": "845729d03e5481f5d8a50dec6e829461af38765f78f0ec35d1bcc62ae2179180",
+    "allEntriesVerified": true
+  },
+  "v4": {
+    "manifestSha256": "01b80c01bf4b5ce1704a087c61a59960ef086b18532f429b8a6f9c1872989903",
+    "allEntriesVerified": true
+  }
+}

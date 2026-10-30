@@ -1,0 +1,16 @@
+{
+  "synthetic": true,
+  "apiVersion": "v1",
+  "dateStart": "2026-11-02",
+  "domainBindings": {
+    "Z1": "recovery",
+    "Z2": "moderate_lt1"
+  },
+  "domainBindingProvenance": "V19 explicitly synthetic coach encoding scenario, not inferred physiological intent",
+  "refs": {
+    "ftpWatts": 250,
+    "mlssSpeedKmh": 12,
+    "provenance": "V19 synthetic serialization anchors only"
+  },
+  "scope": "explicitly synthetic local serialization only; not a real athlete or a scientific optimum"
+}

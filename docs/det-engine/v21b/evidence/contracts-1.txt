@@ -1,0 +1,25 @@
+test_01_two_real_response_bound_context_packets (__main__.Contracts.test_01_two_real_response_bound_context_packets) ... ok
+test_02_no_forged_response_hash (__main__.Contracts.test_02_no_forged_response_hash) ... ok
+test_03_no_absent_response_hash (__main__.Contracts.test_03_no_absent_response_hash) ... ok
+test_04_no_swapped_response_body (__main__.Contracts.test_04_no_swapped_response_body) ... ok
+test_05_no_changed_citation (__main__.Contracts.test_05_no_changed_citation) ... ok
+test_06_no_uncompared_publication_substitution (__main__.Contracts.test_06_no_uncompared_publication_substitution) ... ok
+test_07_no_changed_claim (__main__.Contracts.test_07_no_changed_claim) ... ok
+test_08_no_title_only_attachment (__main__.Contracts.test_08_no_title_only_attachment) ... ok
+test_09_no_exact_dose_scope (__main__.Contracts.test_09_no_exact_dose_scope) ... ok
+test_10_no_false_full_text_access (__main__.Contracts.test_10_no_false_full_text_access) ... ok
+test_11_stale_workout_source_rejected (__main__.Contracts.test_11_stale_workout_source_rejected) ... ok
+test_12_no_unknown_variant_binding (__main__.Contracts.test_12_no_unknown_variant_binding) ... ok
+test_13_no_approval_or_automatic_promotion (__main__.Contracts.test_13_no_approval_or_automatic_promotion) ... ok
+test_14_eight_forbidden_inferences (__main__.Contracts.test_14_eight_forbidden_inferences) ... ok
+test_15_no_missing_or_implicit_inference_decision (__main__.Contracts.test_15_no_missing_or_implicit_inference_decision) ... ok
+test_16_920_default_coach_renders_unchanged (__main__.Contracts.test_16_920_default_coach_renders_unchanged) ... ok
+test_17_15_nolio_outputs_unchanged_with_context (__main__.Contracts.test_17_15_nolio_outputs_unchanged_with_context) ... ok
+test_18_96_doses_not_individually_verified (__main__.Contracts.test_18_96_doses_not_individually_verified) ... ok
+test_19_two_unresolved_intents_not_filled (__main__.Contracts.test_19_two_unresolved_intents_not_filled) ... ok
+test_20_mixed_units_or_tolerance_not_resolved_by_context (__main__.Contracts.test_20_mixed_units_or_tolerance_not_resolved_by_context) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 1.058s
+
+OK

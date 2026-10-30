@@ -1,0 +1,47 @@
+{
+  "version": "tfcl-scientific-integration-gates-v21b-2026-10-29",
+  "readOnly": true,
+  "mustNotAssumeExistingHashes": true,
+  "requiredJoinKeys": [
+    "legacyId",
+    "sourceEffectiveSha256",
+    "familyId"
+  ],
+  "variantJoinKeysIfUsed": [
+    "variantGoal",
+    "variantSourceHash"
+  ],
+  "doseClaimExtraKeys": [
+    "recipeContentSha256",
+    "doseAndRecoveryCompared"
+  ],
+  "immutableFlags": {
+    "automaticPromotion": false,
+    "individualAthleteApproved": false,
+    "prescriptionImpact": "none_research_annotation_only"
+  },
+  "globalBlockingRules": [
+    "no_matching_source_effective_hash",
+    "unverified_reference_claimed_as_verified",
+    "family_title_only_mapping",
+    "exact_dose_without_recipe_digest_and_protocol_comparison",
+    "FTP_equals_MLSS_or_CP_without_validated_method",
+    "VLamax_derived_from_field_estimate_as_lab_truth",
+    "recovery_target_or_end_rest_invented",
+    "swim_CSS_transferred_to_non_crawl",
+    "brick_transition_default_zero",
+    "durability_from_fresh_TTE",
+    "aero_4x15_auto_equivalent_to_6x10",
+    "heat_or_nutrition_risky_unreviewed",
+    "Nolio_export_contains_silent_target_loss",
+    "hydration_LCW_units_ambiguous"
+  ],
+  "safeContextProcess": "Treat family claims as research prompts. Generate V21A attachment packets only after source line hash plus family match, PICO verification, reviewer documented; no automatic promotion.",
+  "reviewStages": [
+    "family_context_researched",
+    "workout_mechanism_reviewed",
+    "exact_recipe_dose_compared",
+    "coach_approved",
+    "individually_admissible"
+  ]
+}

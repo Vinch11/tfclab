@@ -1,0 +1,6509 @@
+{
+  "profiles": [
+    {
+      "id": "IM_aerobic_history",
+      "athlete": {
+        "nom": "QA offline",
+        "sex": "male",
+        "age": 32,
+        "ftp": 299,
+        "weightKg": 72,
+        "vlamax": 0.35,
+        "vlamaxRun": 0.32,
+        "vo2max": 65,
+        "vma": 19.5,
+        "css": 90,
+        "fcMax": 190,
+        "tte": 45,
+        "pmax5s": 950,
+        "p30s": 620,
+        "p60s": 480,
+        "map5min": 380,
+        "paceThresholdSecPerKm": 210,
+        "runMLSSEffectivePct": 0.86,
+        "runMLSSEffectiveSource": "observed",
+        "runEconomyScore": 3
+      },
+      "config": {
+        "objective": "IM",
+        "raceName": "QA IM Test",
+        "raceGoals": [
+          {
+            "objective": "IM",
+            "raceDate": "2027-02-14",
+            "priority": "A"
+          }
+        ],
+        "planStartDate": "2026-10-26",
+        "weeksAvailable": 16,
+        "weeklyHours": 10,
+        "weeklyHoursSource": "coach",
+        "maxSessionsPerDay": 2,
+        "strengthSessionsPerWeek": 1,
+        "ambition": "finisher",
+        "ambitionMeta": {
+          "saisie": "finisher",
+          "effective": "finisher",
+          "saisieLabel": "Découverte",
+          "effectiveLabel": "Découverte",
+          "downgraded": false,
+          "trainingLevel": "trained",
+          "trainingLevelSource": "manual",
+          "diagnosticNote": null
+        },
+        "constraints": "Profil synthétique QA — aucune contrainte, disponibilité large.",
+        "identifiedLimiters": [
+          "## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)",
+          "Total : 1 limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n",
+          "### Limiteur #1 — VLamax (Impact: 32.9/100)",
+          "- Statut : 🔴 CRITIQUE",
+          "- Valeur actuelle : 0.35 vs cible : 0.26",
+          "- Catégorie séances clés : \"VLamax trop haute (LD)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+          "- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).",
+          "",
+          "## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS",
+          "- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.",
+          "- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).",
+          "- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.",
+          "- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.",
+          "- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.",
+          "\n## Synthèse TFCL™",
+          "🎯 LIMITEUR PRIMAIRE : Métabolisme glycolytique — VLamax trop haute : consommation glycogène excessive."
+        ],
+        "identifiedLimitersRaw": [
+          "VLamax"
+        ],
+        "chantierDurationWeeks": 5,
+        "fondationDurationWeeks": 4,
+        "injuryRisk": {
+          "run": {
+            "level": "FAIBLE",
+            "score": 20,
+            "why": "Risque CAP faible (20%). Les indicateurs sont dans les zones vertes pour IM. CAP normale autorisée.",
+            "guardrails": [
+              "Maintenir le monitoring habituel"
+            ]
+          },
+          "bike": {
+            "level": "MODERE",
+            "score": 48,
+            "why": "Risque Vélo modéré (48%). Facteurs à surveiller : VLamax Vélo, TTE effectif. Vigilance sur durées longues.",
+            "guardrails": [
+              "Surveiller tension tendineuse après sorties longues",
+              "Éviter accumulation force + durée dans la même semaine"
+            ]
+          }
+        },
+        "activeLevers": [
+          "Volume Z2 / Endurance",
+          "Force Max",
+          "SFR / Force Endurance",
+          "Train Low / Sleep Low"
+        ],
+        "prohibitions": [
+          "🚫 STRATÉGIE — Blocs VO2 lourds: Incompatible avec le travail de force max. Le travail de force max nécessite une récupération neuromusculaire incompatible avec les blocs VO2 intensifs. Séparer ces stimuli dans le temps."
+        ],
+        "adaptationProjections": [
+          {
+            "leverId": "volume_z2",
+            "leverLabel": "Volume Z2",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VO₂max",
+                "current": 65,
+                "projected": 66.95,
+                "deltaPct": 3,
+                "direction": "up"
+              },
+              {
+                "label": "VLamax",
+                "current": 0.35,
+                "projected": 0.33,
+                "deltaPct": -6.2,
+                "direction": "down"
+              },
+              {
+                "label": "FatMax",
+                "current": 77,
+                "projected": 82.52,
+                "deltaPct": 7.2,
+                "direction": "up"
+              },
+              {
+                "label": "LT2",
+                "current": 79.76923076923077,
+                "projected": 83.16,
+                "deltaPct": 4.3,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 48.03,
+                "deltaPct": 11.7,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.13,
+                "deltaPct": 4.3,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Ironman",
+                "improvementPct": 2.9
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 2.9
+              },
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 3
+              }
+            ],
+            "recommendation": "Volume Z2 : effet principal sur TTE et FatMax (+11.7%, +7.2%)."
+          },
+          {
+            "leverId": "threshold_work",
+            "leverLabel": "Travail Seuil",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VO₂max",
+                "current": 65,
+                "projected": 65.81,
+                "deltaPct": 1.3,
+                "direction": "up"
+              },
+              {
+                "label": "VLamax",
+                "current": 0.35,
+                "projected": 0.34,
+                "deltaPct": -2.5,
+                "direction": "down"
+              },
+              {
+                "label": "FatMax",
+                "current": 77,
+                "projected": 80.85,
+                "deltaPct": 5,
+                "direction": "up"
+              },
+              {
+                "label": "LT2",
+                "current": 79.76923076923077,
+                "projected": 83.45,
+                "deltaPct": 4.6,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 59.13,
+                "deltaPct": 37.5,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.08,
+                "deltaPct": 2.5,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Ironman",
+                "improvementPct": 3.2
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 3.7
+              },
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 4.3
+              }
+            ],
+            "recommendation": "Travail Seuil : effet principal sur TTE et FatMax (+37.5%, +5.0%)."
+          },
+          {
+            "leverId": "max_force",
+            "leverLabel": "Force Maximale",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VO₂max",
+                "current": 65,
+                "projected": 65.81,
+                "deltaPct": 1.3,
+                "direction": "up"
+              },
+              {
+                "label": "FatMax",
+                "current": 77,
+                "projected": 78.93,
+                "deltaPct": 2.5,
+                "direction": "up"
+              },
+              {
+                "label": "LT2",
+                "current": 79.76923076923077,
+                "projected": 83.45,
+                "deltaPct": 4.6,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 44.61,
+                "deltaPct": 3.8,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.41,
+                "deltaPct": 13.8,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Ironman",
+                "improvementPct": 1.7
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 1.8
+              },
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 2
+              }
+            ],
+            "recommendation": "Force Maximale : effet principal sur Économie et LT2 (+13.8%, +4.6%)."
+          }
+        ],
+        "recentLoad": {
+          "tss7d": 120,
+          "source": "SNAPSHOT",
+          "status": "low",
+          "label": "120 TSS/7j (Snapshot)",
+          "recommendation": "Augmenter progressivement le volume d'entraînement",
+          "target": {
+            "min": 400,
+            "opt": 550,
+            "max": 800
+          }
+        },
+        "_athleteSex": "M",
+        "volumeRamp": {
+          "trainingLevel": "trained",
+          "week1PctTarget": 0.6,
+          "rampWeeks": 4,
+          "week1HoursCap": 8,
+          "weeklyHoursTarget": 14,
+          "week1HoursMax": 8,
+          "weeklyIncreasePctMax": 0.1,
+          "recentLoadAdjustment": {
+            "effectiveLevel": "light",
+            "reason": "Charge récente réelle mesurée basse (120 TSS/7j (Snapshot)) pour un niveau déclaré \"trained\" — rampe calculée sur le palier \"light\" par prudence (pas de saut brutal de volume en S1-S2)."
+          }
+        },
+        "terrainAvailability": "plat",
+        "loadHistory": {
+          "recentWeeklyHours": 10,
+          "chronicWeeklyHours": 10,
+          "recentWeeksCount": 8
+        },
+        "strategyContext": {
+          "source": "lorang",
+          "primaryAction": "Focus Volume Z2 / Endurance",
+          "confidence": "high",
+          "levers": [
+            {
+              "id": "z2_volume",
+              "label": "Volume Z2 / Endurance",
+              "priority": 2,
+              "reason": "VLamax 35% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition finisher)",
+              "adaptations": [
+                "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+                "Garder de la variété : 1 séance intensité conservée/sem",
+                "Z2 avec finish tempo léger 15-20min (progressif)",
+                "Progression douce +5-8%/sem sur volume aérobie"
+              ]
+            },
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            },
+            {
+              "id": "sfr_force_endurance",
+              "label": "SFR / Force Endurance",
+              "priority": 2,
+              "reason": "VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition finisher)",
+              "adaptations": [
+                "Cadence 50–65 rpm (transition douce)",
+                "Zone tempo / Sweet Spot bas",
+                "Blocs de 5–10 min",
+                "1x/semaine max en phase Build"
+              ]
+            },
+            {
+              "id": "train_low",
+              "label": "Train Low / Sleep Low",
+              "priority": 3,
+              "reason": "Objectif longue distance — amélioration oxydation lipidique",
+              "adaptations": [
+                "Sorties à jeun ou glycogène réduit",
+                "Max 1–2x/semaine",
+                "Intensité Z1-Z2 uniquement",
+                "Ravitaillement normal post-séance"
+              ]
+            }
+          ],
+          "trainingFocus": {
+            "do": [
+              "Zone 2 stricte (60-70% FTP)",
+              "SFR / basse cadence",
+              "Séances low-carb occasionnelles",
+              "Volume aérobie > intensité"
+            ],
+            "avoid": [
+              "Intervalles courts haute intensité",
+              "Séances > seuil",
+              "Sprint et travail anaérobie"
+            ]
+          },
+          "recommendedWeekType": "endurance"
+        },
+        "physiologicalTrace": {
+          "version": 1,
+          "diagnostic": {
+            "executed": true,
+            "confidenceGlobal": 0.6050000000000002,
+            "dataCompleteness": 1,
+            "limiters": [
+              {
+                "metric": "VLamax",
+                "priority": 1,
+                "status": "limiting",
+                "value": 0.35,
+                "target": 0.26,
+                "weightedImpact": 32.88461538461537
+              }
+            ],
+            "uncertainty": [
+              "Confiance diagnostique limitée (61%)."
+            ]
+          },
+          "decision": {
+            "executed": true,
+            "source": "lorang",
+            "confidence": "high",
+            "primaryAction": "Focus Volume Z2 / Endurance",
+            "levers": [
+              {
+                "id": "z2_volume",
+                "label": "Volume Z2 / Endurance",
+                "priority": 2,
+                "reason": "VLamax 35% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition finisher)",
+                "adaptations": [
+                  "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+                  "Garder de la variété : 1 séance intensité conservée/sem",
+                  "Z2 avec finish tempo léger 15-20min (progressif)",
+                  "Progression douce +5-8%/sem sur volume aérobie"
+                ]
+              },
+              {
+                "id": "force_max",
+                "label": "Force Max",
+                "priority": 2,
+                "reason": "Économie faible — renforcement musculaire nécessaire",
+                "adaptations": [
+                  "Gym lourde 85–95% 1RM",
+                  "3–5 répétitions par série",
+                  "2–3 séries max",
+                  "1–2x/semaine (hors semaines de course)"
+                ]
+              },
+              {
+                "id": "sfr_force_endurance",
+                "label": "SFR / Force Endurance",
+                "priority": 2,
+                "reason": "VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition finisher)",
+                "adaptations": [
+                  "Cadence 50–65 rpm (transition douce)",
+                  "Zone tempo / Sweet Spot bas",
+                  "Blocs de 5–10 min",
+                  "1x/semaine max en phase Build"
+                ]
+              },
+              {
+                "id": "train_low",
+                "label": "Train Low / Sleep Low",
+                "priority": 3,
+                "reason": "Objectif longue distance — amélioration oxydation lipidique",
+                "adaptations": [
+                  "Sorties à jeun ou glycogène réduit",
+                  "Max 1–2x/semaine",
+                  "Intensité Z1-Z2 uniquement",
+                  "Ravitaillement normal post-séance"
+                ]
+              }
+            ],
+            "prohibitions": [
+              {
+                "id": "vo2_heavy_blocks",
+                "label": "Blocs VO2 lourds",
+                "reason": "Incompatible avec le travail de force max"
+              }
+            ],
+            "trainingFocus": {
+              "do": [
+                "Zone 2 stricte (60-70% FTP)",
+                "SFR / basse cadence",
+                "Séances low-carb occasionnelles",
+                "Volume aérobie > intensité"
+              ],
+              "avoid": [
+                "Intervalles courts haute intensité",
+                "Séances > seuil",
+                "Sprint et travail anaérobie"
+              ]
+            },
+            "weekType": "endurance"
+          },
+          "transmission": {
+            "identifiedLimitersRaw": {
+              "status": "consumed",
+              "origin": "diagnostic.limiter.gapAnalysis",
+              "consumers": [
+                "workoutCatalogBuilder.scoreWorkout",
+                "edge.buildStructuredDiagnosticBlock",
+                "server.reconciler"
+              ],
+              "detail": "Ordre transmis: VLamax"
+            },
+            "activeLevers": {
+              "status": "consumed",
+              "origin": "decision.strategy.levers",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+            },
+            "prohibitions": {
+              "status": "consumed",
+              "origin": "planConfigBuilder + decision.strategy.prohibitions",
+              "consumers": [
+                "workoutCatalogBuilder.prohibitions",
+                "edge.buildStructuredDiagnosticBlock"
+              ]
+            },
+            "strategyContext": {
+              "status": "consumed",
+              "origin": "decision.strategy (lorang)",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+            },
+            "prescriptionIntent": {
+              "status": "not_verified",
+              "origin": "plan final généré",
+              "consumers": [],
+              "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+            }
+          }
+        }
+      },
+      "quotas": {
+        "1": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 90,
+            "slLongRunMin": 60
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "base",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 110
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 60
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 1,
+            "maxMinutes": 480,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 1,
+            "globalWeek": 1,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 90,
+              "slLongRunMin": 60,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "2": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 100,
+            "slLongRunMin": 65
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "base",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 120
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 65
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 2,
+            "maxMinutes": 528,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 2,
+            "globalWeek": 2,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 100,
+              "slLongRunMin": 65,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "3": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 110,
+            "slLongRunMin": 75
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "base",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 130
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 75
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 3,
+            "maxMinutes": 580,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 3,
+            "globalWeek": 3,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 110,
+              "slLongRunMin": 75,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "4": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 1,
+              "max": 1
+            },
+            "run": {
+              "min": 1,
+              "max": 2
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 4,
+              "max": 6
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "pratique standard cycles 3:1"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 85,
+            "slLongRunMin": 55
+          },
+          "weekType": "recovery",
+          "downgraded": false,
+          "phase": "base",
+          "layout": {
+            "weekType": "recovery",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": []
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 105
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 55
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 1,
+              "run": 1,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 4,
+            "maxMinutes": 447,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 4,
+            "globalWeek": 4,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 85,
+              "slLongRunMin": 55,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "5": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 130,
+            "slLongRunMin": 90
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 150
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 90
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 5,
+            "maxMinutes": 702,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 5,
+            "globalWeek": 5,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 130,
+              "slLongRunMin": 90,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "6": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 145,
+            "slLongRunMin": 95
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 165
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 95
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 6,
+            "maxMinutes": 773,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 6,
+            "globalWeek": 6,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 145,
+              "slLongRunMin": 95,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "7": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 150,
+            "slLongRunMin": 100
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 170
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 100
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 7,
+            "maxMinutes": 800,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 7,
+            "globalWeek": 7,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "8": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 1,
+              "max": 1
+            },
+            "run": {
+              "min": 1,
+              "max": 2
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 4,
+              "max": 6
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "pratique standard cycles 3:1"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 105,
+            "slLongRunMin": 70
+          },
+          "weekType": "recovery",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "recovery",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": []
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 125
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 70
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 1,
+              "run": 1,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 8,
+            "maxMinutes": 560,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 8,
+            "globalWeek": 8,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "9": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 150,
+            "slLongRunMin": 100
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 170
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 100
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 9,
+            "maxMinutes": 800,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 9,
+            "globalWeek": 9,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "10": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 150,
+            "slLongRunMin": 100
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 170
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 100
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 10,
+            "maxMinutes": 800,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 10,
+            "globalWeek": 10,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "11": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 150,
+            "slLongRunMin": 100
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 170
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 100
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 11,
+            "maxMinutes": 800,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 11,
+            "globalWeek": 11,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "12": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 1,
+              "max": 1
+            },
+            "run": {
+              "min": 1,
+              "max": 2
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 4,
+              "max": 6
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "pratique standard cycles 3:1"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 105,
+            "slLongRunMin": 70
+          },
+          "weekType": "recovery",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "recovery",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": []
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 125
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 70
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 1,
+              "run": 1,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 12,
+            "maxMinutes": 560,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 12,
+            "globalWeek": 12,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "13": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 8
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "peer_reviewed",
+              "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": false,
+            "longRunWeekly": false,
+            "minStrengthPerWeek": 1
+          },
+          "weekType": "taper",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "taper",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": []
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 2,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 13,
+            "globalWeek": 13,
+            "rampConfigured": true,
+            "nominal": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "14": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 8
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "peer_reviewed",
+              "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": false,
+            "longRunWeekly": false,
+            "minStrengthPerWeek": 1
+          },
+          "weekType": "taper",
+          "downgraded": false,
+          "phase": "taper",
+          "layout": {
+            "weekType": "taper",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": []
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 2,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 14,
+            "globalWeek": 14,
+            "rampConfigured": true,
+            "nominal": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "15": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 8
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "peer_reviewed",
+              "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": false,
+            "longRunWeekly": false,
+            "minStrengthPerWeek": 1
+          },
+          "weekType": "taper",
+          "downgraded": false,
+          "phase": "taper",
+          "layout": {
+            "weekType": "taper",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": []
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 2,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 15,
+            "globalWeek": 15,
+            "rampConfigured": true,
+            "nominal": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "16": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 0,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 6,
+              "max": 8
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "peer_reviewed",
+              "ref": "Mujika 2003, Bosquet 2007 — volume réduit, fréquences propres à l'objectif maintenues, renforcement facultatif"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": false,
+            "longRunWeekly": false,
+            "minStrengthPerWeek": 0
+          },
+          "weekType": "race",
+          "downgraded": false,
+          "phase": "taper",
+          "layout": {
+            "weekType": "race",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": []
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isRaceEvent": true,
+                    "isKeySession": true
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 2,
+              "brick": 1,
+              "strength": 1
+            },
+            "requiredEvents": [
+              {
+                "dayName": "dimanche",
+                "sport": "brick"
+              }
+            ]
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 16,
+            "globalWeek": 16,
+            "rampConfigured": true,
+            "nominal": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 0
+            },
+            "individualized": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 0
+            }
+          }
+        }
+      },
+      "chunks": [
+        {
+          "start": 1,
+          "end": 5
+        },
+        {
+          "start": 6,
+          "end": 10
+        },
+        {
+          "start": 11,
+          "end": 15
+        },
+        {
+          "start": 16,
+          "end": 16
+        }
+      ]
+    },
+    {
+      "id": "IM_balanced_history",
+      "athlete": {
+        "nom": "QA offline",
+        "sex": "male",
+        "age": 35,
+        "ftp": 267,
+        "weightKg": null,
+        "vlamax": 0.55,
+        "vlamaxRun": 0.5,
+        "vo2max": null,
+        "vma": 18,
+        "css": null,
+        "fcMax": null,
+        "tte": 45,
+        "pmax5s": 950,
+        "p30s": 620,
+        "p60s": 480,
+        "map5min": null,
+        "paceThresholdSecPerKm": 227,
+        "runMLSSEffectivePct": 0.86,
+        "runMLSSEffectiveSource": "observed",
+        "runEconomyScore": 3
+      },
+      "config": {
+        "objective": "IM",
+        "raceName": "QA IM Test",
+        "raceGoals": [
+          {
+            "objective": "IM",
+            "raceDate": "2027-02-14",
+            "priority": "A"
+          }
+        ],
+        "planStartDate": "2026-10-26",
+        "weeksAvailable": 16,
+        "weeklyHours": 10,
+        "weeklyHoursSource": "coach",
+        "maxSessionsPerDay": 2,
+        "strengthSessionsPerWeek": 1,
+        "ambition": "finisher",
+        "ambitionMeta": {
+          "saisie": "finisher",
+          "effective": "finisher",
+          "saisieLabel": "Découverte",
+          "effectiveLabel": "Découverte",
+          "downgraded": false,
+          "trainingLevel": "trained",
+          "trainingLevelSource": "manual",
+          "diagnosticNote": null
+        },
+        "constraints": "Profil synthétique QA — aucune contrainte, disponibilité large.",
+        "identifiedLimiters": [
+          "## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)",
+          "Total : 1 limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n",
+          "### Limiteur #1 — VLamax (Impact: 106.0/100)",
+          "- Statut : 🔴 CRITIQUE",
+          "- Valeur actuelle : 0.55 vs cible : 0.26",
+          "- Catégorie séances clés : \"VLamax trop haute (LD)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+          "- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).",
+          "",
+          "## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS",
+          "- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.",
+          "- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).",
+          "- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.",
+          "- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.",
+          "- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.",
+          "\n## Synthèse TFCL™",
+          "🎯 LIMITEUR PRIMAIRE : Métabolisme glycolytique — VLamax trop haute : consommation glycogène excessive."
+        ],
+        "identifiedLimitersRaw": [
+          "VLamax"
+        ],
+        "chantierDurationWeeks": 5,
+        "fondationDurationWeeks": 4,
+        "injuryRisk": {
+          "run": {
+            "level": "MODERE",
+            "score": 28,
+            "why": "Risque CAP modéré (28%). Facteurs à surveiller : charge globale. Vigilance recommandée sur la densité de qualité.",
+            "guardrails": [
+              "Surveiller densité de qualité CAP",
+              "Privilégier Z2 sur sorties longues",
+              "Éviter triade long + seuil + vitesse dans la même semaine"
+            ]
+          },
+          "bike": {
+            "level": "MODERE",
+            "score": 48,
+            "why": "Risque Vélo modéré (48%). Facteurs à surveiller : VLamax Vélo, TTE effectif. Vigilance sur durées longues.",
+            "guardrails": [
+              "Surveiller tension tendineuse après sorties longues",
+              "Éviter accumulation force + durée dans la même semaine"
+            ]
+          }
+        },
+        "activeLevers": [
+          "Volume Z2 / Endurance",
+          "Force Max",
+          "SFR / Force Endurance",
+          "Train Low / Sleep Low"
+        ],
+        "prohibitions": [
+          "🚫 STRATÉGIE — Blocs VO2 lourds: Incompatible avec le travail de force max. Le travail de force max nécessite une récupération neuromusculaire incompatible avec les blocs VO2 intensifs. Séparer ces stimuli dans le temps."
+        ],
+        "adaptationProjections": [
+          {
+            "leverId": "volume_z2",
+            "leverLabel": "Volume Z2",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VLamax",
+                "current": 0.55,
+                "projected": 0.52,
+                "deltaPct": -6.2,
+                "direction": "down"
+              },
+              {
+                "label": "FatMax",
+                "current": 56,
+                "projected": 61.52,
+                "deltaPct": 9.9,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 48.03,
+                "deltaPct": 11.7,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.13,
+                "deltaPct": 4.3,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Ironman",
+                "improvementPct": 2.8
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 2.5
+              },
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 2.2
+              }
+            ],
+            "recommendation": "Volume Z2 : effet principal sur TTE et FatMax (+11.7%, +9.9%)."
+          },
+          {
+            "leverId": "threshold_work",
+            "leverLabel": "Travail Seuil",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "VLamax",
+                "current": 0.55,
+                "projected": 0.54,
+                "deltaPct": -2.5,
+                "direction": "down"
+              },
+              {
+                "label": "FatMax",
+                "current": 56,
+                "projected": 58.8,
+                "deltaPct": 5,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 59.13,
+                "deltaPct": 37.5,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.08,
+                "deltaPct": 2.5,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Ironman",
+                "improvementPct": 2.9
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 3.1
+              },
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 3.5
+              }
+            ],
+            "recommendation": "Travail Seuil : effet principal sur TTE et FatMax (+37.5%, +5.0%)."
+          },
+          {
+            "leverId": "max_force",
+            "leverLabel": "Force Maximale",
+            "impactScore": 100,
+            "impactLabel": "Impact majeur",
+            "metrics": [
+              {
+                "label": "FatMax",
+                "current": 56,
+                "projected": 57.4,
+                "deltaPct": 2.5,
+                "direction": "up"
+              },
+              {
+                "label": "TTE",
+                "current": 43,
+                "projected": 44.61,
+                "deltaPct": 3.8,
+                "direction": "up"
+              },
+              {
+                "label": "Économie",
+                "current": 3,
+                "projected": 3.41,
+                "deltaPct": 13.8,
+                "direction": "up"
+              }
+            ],
+            "performanceImpacts": [
+              {
+                "distance": "Ironman",
+                "improvementPct": 1.3
+              },
+              {
+                "distance": "Half Ironman",
+                "improvementPct": 1.3
+              },
+              {
+                "distance": "Triathlon M",
+                "improvementPct": 1.2
+              }
+            ],
+            "recommendation": "Force Maximale : effet principal sur Économie et TTE (+13.8%, +3.8%)."
+          }
+        ],
+        "recentLoad": {
+          "tss7d": 120,
+          "source": "SNAPSHOT",
+          "status": "low",
+          "label": "120 TSS/7j (Snapshot)",
+          "recommendation": "Augmenter progressivement le volume d'entraînement",
+          "target": {
+            "min": 400,
+            "opt": 550,
+            "max": 800
+          }
+        },
+        "_athleteSex": "M",
+        "volumeRamp": {
+          "trainingLevel": "trained",
+          "week1PctTarget": 0.6,
+          "rampWeeks": 4,
+          "week1HoursCap": 8,
+          "weeklyHoursTarget": 14,
+          "week1HoursMax": 8,
+          "weeklyIncreasePctMax": 0.1,
+          "recentLoadAdjustment": {
+            "effectiveLevel": "light",
+            "reason": "Charge récente réelle mesurée basse (120 TSS/7j (Snapshot)) pour un niveau déclaré \"trained\" — rampe calculée sur le palier \"light\" par prudence (pas de saut brutal de volume en S1-S2)."
+          }
+        },
+        "terrainAvailability": "plat",
+        "loadHistory": {
+          "recentWeeklyHours": 10,
+          "chronicWeeklyHours": 10,
+          "recentWeeksCount": 8
+        },
+        "strategyContext": {
+          "source": "lorang",
+          "primaryAction": "Focus Volume Z2 / Endurance",
+          "confidence": "high",
+          "levers": [
+            {
+              "id": "z2_volume",
+              "label": "Volume Z2 / Endurance",
+              "priority": 2,
+              "reason": "VLamax 112% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition finisher)",
+              "adaptations": [
+                "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+                "Garder de la variété : 1 séance intensité conservée/sem",
+                "Z2 avec finish tempo léger 15-20min (progressif)",
+                "Progression douce +5-8%/sem sur volume aérobie"
+              ]
+            },
+            {
+              "id": "force_max",
+              "label": "Force Max",
+              "priority": 2,
+              "reason": "Économie faible — renforcement musculaire nécessaire",
+              "adaptations": [
+                "Gym lourde 85–95% 1RM",
+                "3–5 répétitions par série",
+                "2–3 séries max",
+                "1–2x/semaine (hors semaines de course)"
+              ]
+            },
+            {
+              "id": "sfr_force_endurance",
+              "label": "SFR / Force Endurance",
+              "priority": 2,
+              "reason": "VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition finisher)",
+              "adaptations": [
+                "Cadence 50–65 rpm (transition douce)",
+                "Zone tempo / Sweet Spot bas",
+                "Blocs de 5–10 min",
+                "1x/semaine max en phase Build"
+              ]
+            },
+            {
+              "id": "train_low",
+              "label": "Train Low / Sleep Low",
+              "priority": 3,
+              "reason": "Objectif longue distance — amélioration oxydation lipidique",
+              "adaptations": [
+                "Sorties à jeun ou glycogène réduit",
+                "Max 1–2x/semaine",
+                "Intensité Z1-Z2 uniquement",
+                "Ravitaillement normal post-séance"
+              ]
+            }
+          ],
+          "trainingFocus": {
+            "do": [
+              "Zone 2 stricte (60-70% FTP)",
+              "SFR / basse cadence",
+              "Séances low-carb occasionnelles",
+              "Volume aérobie > intensité"
+            ],
+            "avoid": [
+              "Intervalles courts haute intensité",
+              "Séances > seuil",
+              "Sprint et travail anaérobie"
+            ]
+          },
+          "recommendedWeekType": "endurance"
+        },
+        "physiologicalTrace": {
+          "version": 1,
+          "diagnostic": {
+            "executed": true,
+            "confidenceGlobal": 0.5,
+            "dataCompleteness": 0.64,
+            "limiters": [
+              {
+                "metric": "VLamax",
+                "priority": 1,
+                "status": "limiting",
+                "value": 0.55,
+                "target": 0.26,
+                "weightedImpact": 105.96153846153847
+              }
+            ],
+            "uncertainty": [
+              "Données physiologiques incomplètes (64%).",
+              "Confiance diagnostique limitée (50%)."
+            ]
+          },
+          "decision": {
+            "executed": true,
+            "source": "lorang",
+            "confidence": "high",
+            "primaryAction": "Focus Volume Z2 / Endurance",
+            "levers": [
+              {
+                "id": "z2_volume",
+                "label": "Volume Z2 / Endurance",
+                "priority": 2,
+                "reason": "VLamax 112% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition finisher)",
+                "adaptations": [
+                  "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+                  "Garder de la variété : 1 séance intensité conservée/sem",
+                  "Z2 avec finish tempo léger 15-20min (progressif)",
+                  "Progression douce +5-8%/sem sur volume aérobie"
+                ]
+              },
+              {
+                "id": "force_max",
+                "label": "Force Max",
+                "priority": 2,
+                "reason": "Économie faible — renforcement musculaire nécessaire",
+                "adaptations": [
+                  "Gym lourde 85–95% 1RM",
+                  "3–5 répétitions par série",
+                  "2–3 séries max",
+                  "1–2x/semaine (hors semaines de course)"
+                ]
+              },
+              {
+                "id": "sfr_force_endurance",
+                "label": "SFR / Force Endurance",
+                "priority": 2,
+                "reason": "VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition finisher)",
+                "adaptations": [
+                  "Cadence 50–65 rpm (transition douce)",
+                  "Zone tempo / Sweet Spot bas",
+                  "Blocs de 5–10 min",
+                  "1x/semaine max en phase Build"
+                ]
+              },
+              {
+                "id": "train_low",
+                "label": "Train Low / Sleep Low",
+                "priority": 3,
+                "reason": "Objectif longue distance — amélioration oxydation lipidique",
+                "adaptations": [
+                  "Sorties à jeun ou glycogène réduit",
+                  "Max 1–2x/semaine",
+                  "Intensité Z1-Z2 uniquement",
+                  "Ravitaillement normal post-séance"
+                ]
+              }
+            ],
+            "prohibitions": [
+              {
+                "id": "vo2_heavy_blocks",
+                "label": "Blocs VO2 lourds",
+                "reason": "Incompatible avec le travail de force max"
+              }
+            ],
+            "trainingFocus": {
+              "do": [
+                "Zone 2 stricte (60-70% FTP)",
+                "SFR / basse cadence",
+                "Séances low-carb occasionnelles",
+                "Volume aérobie > intensité"
+              ],
+              "avoid": [
+                "Intervalles courts haute intensité",
+                "Séances > seuil",
+                "Sprint et travail anaérobie"
+              ]
+            },
+            "weekType": "endurance"
+          },
+          "transmission": {
+            "identifiedLimitersRaw": {
+              "status": "consumed",
+              "origin": "diagnostic.limiter.gapAnalysis",
+              "consumers": [
+                "workoutCatalogBuilder.scoreWorkout",
+                "edge.buildStructuredDiagnosticBlock",
+                "server.reconciler"
+              ],
+              "detail": "Ordre transmis: VLamax"
+            },
+            "activeLevers": {
+              "status": "consumed",
+              "origin": "decision.strategy.levers",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+            },
+            "prohibitions": {
+              "status": "consumed",
+              "origin": "planConfigBuilder + decision.strategy.prohibitions",
+              "consumers": [
+                "workoutCatalogBuilder.prohibitions",
+                "edge.buildStructuredDiagnosticBlock"
+              ]
+            },
+            "strategyContext": {
+              "status": "consumed",
+              "origin": "decision.strategy (lorang)",
+              "consumers": [
+                "edge.buildStructuredDiagnosticBlock"
+              ],
+              "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+            },
+            "prescriptionIntent": {
+              "status": "not_verified",
+              "origin": "plan final généré",
+              "consumers": [],
+              "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+            }
+          }
+        }
+      },
+      "quotas": {
+        "1": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 90,
+            "slLongRunMin": 60
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "base",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 110
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 60
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 1,
+            "maxMinutes": 480,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 1,
+            "globalWeek": 1,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 90,
+              "slLongRunMin": 60,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "2": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 100,
+            "slLongRunMin": 65
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "base",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 120
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 65
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 2,
+            "maxMinutes": 528,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 2,
+            "globalWeek": 2,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 100,
+              "slLongRunMin": 65,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "3": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 110,
+            "slLongRunMin": 75
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "base",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 130
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 75
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 3,
+            "maxMinutes": 580,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 3,
+            "globalWeek": 3,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 110,
+              "slLongRunMin": 75,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "4": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 1,
+              "max": 1
+            },
+            "run": {
+              "min": 1,
+              "max": 2
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 4,
+              "max": 6
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "pratique standard cycles 3:1"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 85,
+            "slLongRunMin": 55
+          },
+          "weekType": "recovery",
+          "downgraded": false,
+          "phase": "base",
+          "layout": {
+            "weekType": "recovery",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": []
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 105
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 55
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 1,
+              "run": 1,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 4,
+            "maxMinutes": 447,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 4,
+            "globalWeek": 4,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 85,
+              "slLongRunMin": 55,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "5": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 130,
+            "slLongRunMin": 90
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 150
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 90
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 5,
+            "maxMinutes": 702,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 5,
+            "globalWeek": 5,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 130,
+              "slLongRunMin": 90,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "6": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 145,
+            "slLongRunMin": 95
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 165
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 95
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 6,
+            "maxMinutes": 773,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 6,
+            "globalWeek": 6,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 145,
+              "slLongRunMin": 95,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "7": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 150,
+            "slLongRunMin": 100
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 170
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 100
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 7,
+            "maxMinutes": 800,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 7,
+            "globalWeek": 7,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "8": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 1,
+              "max": 1
+            },
+            "run": {
+              "min": 1,
+              "max": 2
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 4,
+              "max": 6
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "pratique standard cycles 3:1"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 105,
+            "slLongRunMin": 70
+          },
+          "weekType": "recovery",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "recovery",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": []
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 125
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 70
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 1,
+              "run": 1,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 8,
+            "maxMinutes": 560,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 8,
+            "globalWeek": 8,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "9": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 150,
+            "slLongRunMin": 100
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 170
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 100
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 9,
+            "maxMinutes": 800,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 9,
+            "globalWeek": 9,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "10": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 150,
+            "slLongRunMin": 100
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 170
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 100
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 10,
+            "maxMinutes": 800,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 10,
+            "globalWeek": 10,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "11": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 9
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 150,
+            "slLongRunMin": 100
+          },
+          "weekType": "load",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "load",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 170
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 100
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 3,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 11,
+            "maxMinutes": 800,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 11,
+            "globalWeek": 11,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 150,
+              "slLongRunMin": 100,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "12": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 1,
+              "max": 1
+            },
+            "run": {
+              "min": 1,
+              "max": 2
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 4,
+              "max": 6
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "elite_practice",
+              "ref": "pratique standard cycles 3:1"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": true,
+            "longRunWeekly": true,
+            "minStrengthPerWeek": 1,
+            "slLongRideMin": 105,
+            "slLongRunMin": 70
+          },
+          "weekType": "recovery",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "recovery",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": []
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 125
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isLongSession": true,
+                    "isKeySession": true,
+                    "minDurationMin": 70
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 1,
+              "run": 1,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "volumeBudget": {
+            "globalWeek": 12,
+            "maxMinutes": 560,
+            "weeklyIncreasePctMax": 0.1,
+            "referenceSource": "coach"
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 12,
+            "globalWeek": 12,
+            "rampConfigured": true,
+            "nominal": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "slLongRideMin": 105,
+              "slLongRunMin": 70,
+              "minSwimPerWeek": 2,
+              "longRideWeekly": true,
+              "longRunWeekly": true,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "13": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 8
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "peer_reviewed",
+              "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": false,
+            "longRunWeekly": false,
+            "minStrengthPerWeek": 1
+          },
+          "weekType": "taper",
+          "downgraded": false,
+          "phase": "build",
+          "layout": {
+            "weekType": "taper",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": []
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 2,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 13,
+            "globalWeek": 13,
+            "rampConfigured": true,
+            "nominal": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "14": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 8
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "peer_reviewed",
+              "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": false,
+            "longRunWeekly": false,
+            "minStrengthPerWeek": 1
+          },
+          "weekType": "taper",
+          "downgraded": false,
+          "phase": "taper",
+          "layout": {
+            "weekType": "taper",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": []
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 2,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 14,
+            "globalWeek": 14,
+            "rampConfigured": true,
+            "nominal": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "15": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 1,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 7,
+              "max": 8
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "peer_reviewed",
+              "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": false,
+            "longRunWeekly": false,
+            "minStrengthPerWeek": 1
+          },
+          "weekType": "taper",
+          "downgraded": false,
+          "phase": "taper",
+          "layout": {
+            "weekType": "taper",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isKeySession": true
+                  }
+                ]
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": []
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 2,
+              "brick": 1,
+              "strength": 1
+            }
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 15,
+            "globalWeek": 15,
+            "rampConfigured": true,
+            "nominal": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            },
+            "individualized": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 1
+            }
+          }
+        },
+        "16": {
+          "quota": {
+            "swim": {
+              "min": 2,
+              "max": 2
+            },
+            "bike": {
+              "min": 2,
+              "max": 2
+            },
+            "run": {
+              "min": 2,
+              "max": 3
+            },
+            "brick": {
+              "min": 0,
+              "max": 1
+            },
+            "strength": {
+              "min": 0,
+              "max": 1
+            },
+            "totalSessions": {
+              "min": 6,
+              "max": 8
+            },
+            "maxSessionsPerDay": 2,
+            "minFullRestDays": 1,
+            "source": {
+              "tier": "peer_reviewed",
+              "ref": "Mujika 2003, Bosquet 2007 — volume réduit, fréquences propres à l'objectif maintenues, renforcement facultatif"
+            }
+          },
+          "floors": {
+            "minSwimPerWeek": 2,
+            "longRideWeekly": false,
+            "longRunWeekly": false,
+            "minStrengthPerWeek": 0
+          },
+          "weekType": "race",
+          "downgraded": false,
+          "phase": "taper",
+          "layout": {
+            "weekType": "race",
+            "days": [
+              {
+                "dayName": "lundi",
+                "isRest": true,
+                "slots": []
+              },
+              {
+                "dayName": "mardi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  },
+                  {
+                    "sport": "bike",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "mercredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": true
+                  },
+                  {
+                    "sport": "strength"
+                  }
+                ]
+              },
+              {
+                "dayName": "jeudi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "run",
+                    "isActivation": true,
+                    "minDurationMin": 20,
+                    "maxDurationMin": 30
+                  }
+                ]
+              },
+              {
+                "dayName": "vendredi",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "swim",
+                    "isKeySession": false
+                  }
+                ]
+              },
+              {
+                "dayName": "samedi",
+                "isRest": false,
+                "slots": []
+              },
+              {
+                "dayName": "dimanche",
+                "isRest": false,
+                "slots": [
+                  {
+                    "sport": "brick",
+                    "isRaceEvent": true,
+                    "isKeySession": true
+                  }
+                ]
+              }
+            ],
+            "targetsBySport": {
+              "swim": 2,
+              "bike": 2,
+              "run": 2,
+              "brick": 1,
+              "strength": 1
+            },
+            "requiredEvents": [
+              {
+                "dayName": "dimanche",
+                "sport": "brick"
+              }
+            ]
+          },
+          "floorAudit": {
+            "version": 2,
+            "localWeek": 16,
+            "globalWeek": 16,
+            "rampConfigured": true,
+            "nominal": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 0
+            },
+            "individualized": {
+              "minSwimPerWeek": 2,
+              "longRideWeekly": false,
+              "longRunWeekly": false,
+              "minStrengthPerWeek": 0
+            }
+          }
+        }
+      },
+      "chunks": [
+        {
+          "start": 1,
+          "end": 5
+        },
+        {
+          "start": 6,
+          "end": 10
+        },
+        {
+          "start": 11,
+          "end": 15
+        },
+        {
+          "start": 16,
+          "end": 16
+        }
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "raw": {
+        "id": "C_IM_AERO_HOLD",
+        "cat": "C",
+        "sport": "cyclisme",
+        "objectif": "Tenue position aéro IM",
+        "necessite": "Recommandé",
+        "when": "Toute l'année IM",
+        "phase": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "avoid": "Douleur lombaire",
+        "durationMin": [
+          60,
+          120
+        ],
+        "metricKey": "puissance",
+        "sportKey": "cyclisme",
+        "structure": [
+          {
+            "part": "Main",
+            "text": "4x15' Z2 en position aéro r=5' Z1",
+            "zones": [
+              "Z2",
+              "Z1"
+            ]
+          }
+        ],
+        "variants": {
+          "ironman": "Essentiel",
+          "half": "utile",
+          "marathon": "—",
+          "semi": "—"
+        },
+        "goals": [
+          "ironman",
+          "half"
+        ]
+      },
+      "metadata": {
+        "variants": {
+          "ironman": "Essentiel",
+          "half": "utile",
+          "marathon": "—",
+          "semi": "—"
+        },
+        "metadataVersion": 1,
+        "complete": true,
+        "id": "C_IM_AERO_HOLD",
+        "sport": "cyclisme",
+        "title": "Tenue position aéro IM",
+        "objective": "Tenue position aéro IM",
+        "intentFamily": "endurance_fondamentale",
+        "goals": [
+          "ironman",
+          "half"
+        ],
+        "objectiveSpecific": true,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "durationMin": [
+          60,
+          120
+        ],
+        "mainZoneMax": 2,
+        "specialContext": null,
+        "prerequisiteKeys": [],
+        "necessity": "Recommandé",
+        "when": "Toute l'année IM",
+        "avoid": "Douleur lombaire",
+        "tags": [],
+        "structure": "Main: 4x15' Z2 en position aéro r=5' Z1",
+        "zones": [
+          "Z2",
+          "Z1"
+        ]
+      }
+    },
+    {
+      "raw": {
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "cat": "C",
+        "sport": "cyclisme",
+        "objectif": "Position aéro prolongée (confort + puissance en position)",
+        "necessite": "Recommandé",
+        "when": "Toute l'année IM / 70.3",
+        "phase": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "avoid": "Douleur cervicale/lombaire",
+        "durationMin": [
+          60,
+          120
+        ],
+        "metricKey": "puissance",
+        "sportKey": "cyclisme",
+        "structure": [
+          {
+            "part": "Main",
+            "text": "Z2 avec 6x10' en position aéro (sans surpuissance) r=5' position relâchée Z1.",
+            "zones": [
+              "Z2",
+              "Z1"
+            ]
+          }
+        ],
+        "variants": {
+          "ironman": "Prioritaire",
+          "half": "Très utile",
+          "marathon": "—",
+          "semi": "—",
+          "10k": "—"
+        },
+        "goals": [
+          "ironman",
+          "half"
+        ]
+      },
+      "metadata": {
+        "variants": {
+          "ironman": "Prioritaire",
+          "half": "Très utile",
+          "marathon": "—",
+          "semi": "—",
+          "10k": "—"
+        },
+        "metadataVersion": 1,
+        "complete": true,
+        "id": "C_BIKE_AERO_POSITION_DRILLS",
+        "sport": "cyclisme",
+        "title": "Position aéro prolongée (confort + puissance en position)",
+        "objective": "Position aéro prolongée (confort + puissance en position)",
+        "intentFamily": "endurance_fondamentale",
+        "goals": [
+          "ironman",
+          "half"
+        ],
+        "objectiveSpecific": true,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "durationMin": [
+          60,
+          120
+        ],
+        "mainZoneMax": 2,
+        "specialContext": null,
+        "prerequisiteKeys": [],
+        "necessity": "Recommandé",
+        "when": "Toute l'année IM / 70.3",
+        "avoid": "Douleur cervicale/lombaire",
+        "tags": [],
+        "structure": "Main: Z2 avec 6x10' en position aéro (sans surpuissance) r=5' position relâchée Z1.",
+        "zones": [
+          "Z2",
+          "Z1"
+        ]
+      }
+    },
+    {
+      "raw": {
+        "id": "C_BRICK_TRANSITION_DRILL",
+        "cat": "C",
+        "sport": "brick",
+        "objectif": "Technique de transition T2 – vitesse et automatismes",
+        "necessite": "Recommandé",
+        "when": "Phase peak, 1×/sem",
+        "phase": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "avoid": "Si pas d'accès zone de transition",
+        "durationMin": [
+          30,
+          45
+        ],
+        "metricKey": "cardiaque",
+        "sportKey": "brick",
+        "structure": [
+          {
+            "part": "Warm-up",
+            "text": "15min vélo Z2",
+            "zones": [
+              "Z2"
+            ]
+          },
+          {
+            "part": "Main",
+            "text": "5× transition drill: Vélo 3min Z3 → transition chrono → course 3min Z3. Focus: descendre du vélo, changer chaussures, trouver rythme course en <30s. Chronométrer chaque transition",
+            "zones": [
+              "Z3"
+            ]
+          },
+          {
+            "part": "Cool-down",
+            "text": "10min jogging Z1",
+            "zones": [
+              "Z1"
+            ]
+          }
+        ],
+        "variants": {
+          "half": "Transition en 20s objectif",
+          "ironman": "Focus confort + nutrition en transition"
+        },
+        "goals": [
+          "ironman",
+          "half"
+        ],
+        "tags": [
+          "brick",
+          "transition",
+          "technique"
+        ]
+      },
+      "metadata": {
+        "variants": {
+          "half": "Transition en 20s objectif",
+          "ironman": "Focus confort + nutrition en transition"
+        },
+        "metadataVersion": 1,
+        "complete": true,
+        "id": "C_BRICK_TRANSITION_DRILL",
+        "sport": "brick",
+        "title": "Technique de transition T2 – vitesse et automatismes",
+        "objective": "Technique de transition T2 – vitesse et automatismes",
+        "intentFamily": "technique",
+        "goals": [
+          "ironman",
+          "half"
+        ],
+        "objectiveSpecific": false,
+        "phases": [
+          "peak"
+        ],
+        "durationMin": [
+          30,
+          45
+        ],
+        "mainZoneMax": 3,
+        "specialContext": null,
+        "prerequisiteKeys": [],
+        "necessity": "Recommandé",
+        "when": "Phase peak, 1×/sem",
+        "avoid": "Si pas d'accès zone de transition",
+        "tags": [
+          "brick",
+          "transition",
+          "technique"
+        ],
+        "structure": "Warm-up: 15min vélo Z2 | Main: 5× transition drill: Vélo 3min Z3 → transition chrono → course 3min Z3. Focus: descendre du vélo, changer chaussures, trouver rythme course en <30s. Chronométrer chaque transition | Cool-down: 10min jogging Z1",
+        "zones": [
+          "Z2",
+          "Z3",
+          "Z1"
+        ]
+      }
+    },
+    {
+      "raw": {
+        "id": "A_SWIM_CONTINUOUS_2K",
+        "cat": "A",
+        "sport": "natation",
+        "objectif": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "necessite": "Obligatoire",
+        "when": "Base/Build",
+        "phase": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "avoid": "Si technique se dégrade après 1000m",
+        "durationMin": [
+          40,
+          55
+        ],
+        "metricKey": "allure",
+        "sportKey": "natation",
+        "structure": [
+          {
+            "part": "Warm-up",
+            "text": "400m facile multi-nages",
+            "zones": [
+              "Z1"
+            ]
+          },
+          {
+            "part": "Main",
+            "text": "2000m continu Z2 (splits réguliers, focus respiration bilatérale)",
+            "zones": [
+              "Z2"
+            ]
+          },
+          {
+            "part": "Cool-down",
+            "text": "200m dos facile",
+            "zones": [
+              "Z1"
+            ]
+          }
+        ],
+        "variants": {
+          "ironman": "Augmenter à 3000m",
+          "half": "2000m standard"
+        },
+        "goals": [
+          "ironman",
+          "half",
+          "sprint",
+          "olympic"
+        ],
+        "tags": [
+          "endurance",
+          "natation",
+          "continu"
+        ]
+      },
+      "metadata": {
+        "variants": {
+          "ironman": "Augmenter à 3000m",
+          "half": "2000m standard"
+        },
+        "metadataVersion": 1,
+        "complete": true,
+        "id": "A_SWIM_CONTINUOUS_2K",
+        "sport": "natation",
+        "title": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "objective": "Nage continue 2000m — endurance aérobie, régularité allure",
+        "intentFamily": "endurance_fondamentale",
+        "goals": [
+          "ironman",
+          "half",
+          "sprint",
+          "olympic"
+        ],
+        "objectiveSpecific": false,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "durationMin": [
+          40,
+          55
+        ],
+        "mainZoneMax": 2,
+        "specialContext": null,
+        "prerequisiteKeys": [],
+        "necessity": "Obligatoire",
+        "when": "Base/Build",
+        "avoid": "Si technique se dégrade après 1000m",
+        "tags": [
+          "endurance",
+          "natation",
+          "continu"
+        ],
+        "structure": "Warm-up: 400m facile multi-nages | Main: 2000m continu Z2 (splits réguliers, focus respiration bilatérale) | Cool-down: 200m dos facile",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      }
+    },
+    {
+      "raw": {
+        "id": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "cat": "A",
+        "sport": "natation",
+        "objectif": "Multi-nages aérobie — endurance globale, équilibre musculaire",
+        "necessite": "Optionnel",
+        "when": "Base/Build",
+        "phase": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "avoid": "Débutant (maîtriser crawl d'abord)",
+        "durationMin": [
+          40,
+          55
+        ],
+        "metricKey": "allure",
+        "sportKey": "natation",
+        "structure": [
+          {
+            "part": "Warm-up",
+            "text": "200m facile",
+            "zones": [
+              "Z1"
+            ]
+          },
+          {
+            "part": "Main",
+            "text": "8x(100m crawl + 50m dos + 50m brasse) Z2 r=15\"",
+            "zones": [
+              "Z2"
+            ]
+          },
+          {
+            "part": "Cool-down",
+            "text": "200m facile",
+            "zones": [
+              "Z1"
+            ]
+          }
+        ],
+        "variants": {
+          "ironman": "10 séries",
+          "half": "8 séries"
+        },
+        "goals": [
+          "ironman",
+          "half",
+          "sprint",
+          "olympic"
+        ],
+        "tags": [
+          "multi-nages",
+          "natation",
+          "aérobie",
+          "variété"
+        ]
+      },
+      "metadata": {
+        "variants": {
+          "ironman": "10 séries",
+          "half": "8 séries"
+        },
+        "metadataVersion": 1,
+        "complete": true,
+        "id": "A_SWIM_AEROBIC_MULTI_NAGES",
+        "sport": "natation",
+        "title": "Multi-nages aérobie — endurance globale, équilibre musculaire",
+        "objective": "Multi-nages aérobie — endurance globale, équilibre musculaire",
+        "intentFamily": "endurance_fondamentale",
+        "goals": [
+          "ironman",
+          "half",
+          "sprint",
+          "olympic"
+        ],
+        "objectiveSpecific": false,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "durationMin": [
+          40,
+          55
+        ],
+        "mainZoneMax": 2,
+        "specialContext": null,
+        "prerequisiteKeys": [],
+        "necessity": "Optionnel",
+        "when": "Base/Build",
+        "avoid": "Débutant (maîtriser crawl d'abord)",
+        "tags": [
+          "multi-nages",
+          "natation",
+          "aérobie",
+          "variété"
+        ],
+        "structure": "Warm-up: 200m facile | Main: 8x(100m crawl + 50m dos + 50m brasse) Z2 r=15\" | Cool-down: 200m facile",
+        "zones": [
+          "Z1",
+          "Z2"
+        ]
+      }
+    }
+  ]
+}

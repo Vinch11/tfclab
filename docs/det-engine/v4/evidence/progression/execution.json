@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "source": "e65030336b16fbdace809d8c6c7627c7d2e56a26e34967245cdbcf1f88ebe8dc",
+  "commands": [
+    {
+      "name": "progression",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-progression.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 1360
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-progression/progression.txt": "e38f342be8a5493bb45c228fce2b0ef2fd993b7bd42c6fb254655248d245b816"
+  },
+  "reservation": {
+    "id": "progression",
+    "startedAt": 1793136266444
+  }
+}

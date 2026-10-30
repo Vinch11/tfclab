@@ -1,0 +1,1008 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (../../tmp/det-v2-shadow-reproduction/vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+5:50:09 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab
+
+stdout | ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts > runs a complete deterministic search twice with identical sporting output
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=0 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=0 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=0 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=0 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=0 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=0 étape=phase_filter avant=297 après=131 retirées=166
+[catalog_pipeline] chunk=0 étape=beginner_intensity_filter avant=131 après=117 retirées=14
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=105/117 sport=course cat=C
+[catalog_pipeline] chunk=0 étape=score_filter_hardban avant=117 après=113 retirées=4
+[catalog_filtered] chunk=0 phases=[base] bySport=course=42/363 renforcement=4/6 strength=71/111 relaxed=[]
+[mapping_coverage] chunk=0 fiches_avec_contrainte_parsée=117 / total=117 (100%)
+[cap_state] chunk=0 cap=80 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=113
+[cap_default] value=80 raison="~17.6k chars sérialisés · +40=~26.4k chars · marge large sous 64k tokens edge"
+[cap_injection_v2] chunk=0 cap=85 socle_couverture=45 familles=[endurance_fondamentale,force,other,race_pace,recuperation,seuil,sprint,technique,test] remplissage=40 total=85 limiterCap=93 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=0 cap_actuel=85 ≤90=19.8k chars · ≤120=25.7k chars · ≤150=25.7k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 40 (base=40, build=39, peak=32, taper=14) — chunk=0
+[trail_probe_phase] phase=base entries=87 trail_entries=NONE
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=1 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=1 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=1 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=1 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=1 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=1 étape=phase_filter avant=297 après=265 retirées=32
+[catalog_pipeline] chunk=1 étape=beginner_intensity_filter avant=265 après=196 retirées=69
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=172/196 sport=course cat=C
+[catalog_pipeline] chunk=1 étape=score_filter_hardban avant=196 après=182 retirées=14
+[catalog_filtered] chunk=1 phases=[base,build] bySport=course=110/363 renforcement=6/6 strength=80/111 relaxed=[]
+[mapping_coverage] chunk=1 fiches_avec_contrainte_parsée=196 / total=196 (100%)
+[cap_state] chunk=1 cap=80 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=182
+[cap_default] value=80 raison="~17.6k chars sérialisés · +40=~26.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=1 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=1 cap=106 socle_couverture=66 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=43 total=109 limiterCap=114 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=1 cap_actuel=106 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 63 (base=18, build=63, peak=31, taper=6) — chunk=1
+[trail_probe_phase] phase=build entries=121 trail_entries=NONE
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=2 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=2 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=2 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=2 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=2 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=2 étape=phase_filter avant=297 après=258 retirées=39
+[catalog_pipeline] chunk=2 étape=beginner_intensity_filter avant=258 après=192 retirées=66
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=163/192 sport=course cat=C
+[catalog_pipeline] chunk=2 étape=score_filter_hardban avant=192 après=178 retirées=14
+[catalog_filtered] chunk=2 phases=[build] bySport=course=109/363 renforcement=6/6 strength=77/111 relaxed=[]
+[mapping_coverage] chunk=2 fiches_avec_contrainte_parsée=192 / total=192 (100%)
+[cap_state] chunk=2 cap=80 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=178
+[cap_default] value=80 raison="~17.6k chars sérialisés · +40=~26.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=2 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=2 cap=106 socle_couverture=66 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=41 total=107 limiterCap=114 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=2 cap_actuel=106 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 63 (base=18, build=63, peak=31, taper=7) — chunk=2
+[trail_probe_phase] phase=peak entries=120 trail_entries=NONE
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=3 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=3 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=3 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=3 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=3 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=3 étape=phase_filter avant=297 après=262 retirées=35
+[catalog_pipeline] chunk=3 étape=beginner_intensity_filter avant=262 après=196 retirées=66
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=167/196 sport=course cat=C
+[catalog_pipeline] chunk=3 étape=score_filter_hardban avant=196 après=182 retirées=14
+[catalog_filtered] chunk=3 phases=[build,taper] bySport=course=113/363 renforcement=6/6 strength=77/111 relaxed=[]
+[mapping_coverage] chunk=3 fiches_avec_contrainte_parsée=196 / total=196 (100%)
+[cap_state] chunk=3 cap=80 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=182
+[cap_default] value=80 raison="~17.6k chars sérialisés · +40=~26.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=3 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=3 cap=107 socle_couverture=67 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=41 total=108 limiterCap=115 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=3 cap_actuel=107 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 64 (base=18, build=62, peak=32, taper=9) — chunk=3
+[trail_probe_phase] phase=taper entries=126 trail_entries=NONE
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=0 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=0 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=0 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=0 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=0 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=0 étape=phase_filter avant=297 après=131 retirées=166
+[catalog_pipeline] chunk=0 étape=beginner_intensity_filter avant=131 après=117 retirées=14
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=105/117 sport=course cat=C
+[catalog_pipeline] chunk=0 étape=score_filter_hardban avant=117 après=113 retirées=4
+[catalog_filtered] chunk=0 phases=[base] bySport=course=42/363 renforcement=4/6 strength=71/111 relaxed=[]
+[mapping_coverage] chunk=0 fiches_avec_contrainte_parsée=117 / total=117 (100%)
+[cap_state] chunk=0 cap=130 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=113
+[cap_default] value=130 raison="~28.6k chars sérialisés · +40=~37.4k chars · marge large sous 64k tokens edge"
+[cap_injection_v2] chunk=0 cap=130 socle_couverture=45 familles=[endurance_fondamentale,force,other,race_pace,recuperation,seuil,sprint,technique,test] remplissage=41 total=86 limiterCap=138 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=0 cap_actuel=130 ≤90=19.8k chars · ≤120=25.7k chars · ≤150=25.7k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 41 (base=41, build=40, peak=33, taper=14) — chunk=0
+[trail_probe_client] chunk=0 entries=88 trail_entries=NONE sportFilter=[course,run,strength,renforcement] catalogObjective=10K
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=1 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=1 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=1 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=1 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=1 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=1 étape=phase_filter avant=297 après=265 retirées=32
+[catalog_pipeline] chunk=1 étape=beginner_intensity_filter avant=265 après=196 retirées=69
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=172/196 sport=course cat=C
+[catalog_pipeline] chunk=1 étape=score_filter_hardban avant=196 après=182 retirées=14
+[catalog_filtered] chunk=1 phases=[base,build] bySport=course=110/363 renforcement=6/6 strength=80/111 relaxed=[]
+[mapping_coverage] chunk=1 fiches_avec_contrainte_parsée=196 / total=196 (100%)
+[cap_state] chunk=1 cap=130 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=182
+[cap_default] value=130 raison="~28.6k chars sérialisés · +40=~37.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=1 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=1 cap=131 socle_couverture=66 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=44 total=110 limiterCap=139 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=1 cap_actuel=131 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 63 (base=20, build=63, peak=32, taper=8) — chunk=1
+[trail_probe_client] chunk=1 entries=121 trail_entries=NONE sportFilter=[course,run,strength,renforcement] catalogObjective=10K
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=2 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=2 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=2 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=2 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=2 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=2 étape=phase_filter avant=297 après=258 retirées=39
+[catalog_pipeline] chunk=2 étape=beginner_intensity_filter avant=258 après=192 retirées=66
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=163/192 sport=course cat=C
+[catalog_pipeline] chunk=2 étape=score_filter_hardban avant=192 après=178 retirées=14
+[catalog_filtered] chunk=2 phases=[build] bySport=course=109/363 renforcement=6/6 strength=77/111 relaxed=[]
+[mapping_coverage] chunk=2 fiches_avec_contrainte_parsée=192 / total=192 (100%)
+[cap_state] chunk=2 cap=130 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=178
+[cap_default] value=130 raison="~28.6k chars sérialisés · +40=~37.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=2 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=2 cap=131 socle_couverture=66 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=44 total=110 limiterCap=139 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=2 cap_actuel=131 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 63 (base=19, build=63, peak=32, taper=8) — chunk=2
+[trail_probe_client] chunk=2 entries=120 trail_entries=NONE sportFilter=[course,run,strength,renforcement] catalogObjective=10K
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=3 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=3 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=3 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=3 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=3 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=3 étape=phase_filter avant=297 après=262 retirées=35
+[catalog_pipeline] chunk=3 étape=beginner_intensity_filter avant=262 après=196 retirées=66
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=167/196 sport=course cat=C
+[catalog_pipeline] chunk=3 étape=score_filter_hardban avant=196 après=182 retirées=14
+[catalog_filtered] chunk=3 phases=[build,taper] bySport=course=113/363 renforcement=6/6 strength=77/111 relaxed=[]
+[mapping_coverage] chunk=3 fiches_avec_contrainte_parsée=196 / total=196 (100%)
+[cap_state] chunk=3 cap=130 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=182
+[cap_default] value=130 raison="~28.6k chars sérialisés · +40=~37.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=3 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=3 cap=132 socle_couverture=67 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=44 total=111 limiterCap=140 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=3 cap_actuel=132 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 64 (base=18, build=62, peak=32, taper=9) — chunk=3
+[trail_probe_client] chunk=3 entries=127 trail_entries=NONE sportFilter=[course,run,strength,renforcement] catalogObjective=10K
+[b5_union_source] phase_catalogs=4 chunk_catalogs=4 union_size=154
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 1,
+  floorAudit: {
+    version: 2,
+    localWeek: 1,
+    globalWeek: 1,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 35, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 35, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 2,
+  floorAudit: {
+    version: 2,
+    localWeek: 2,
+    globalWeek: 2,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 3,
+  floorAudit: {
+    version: 2,
+    localWeek: 3,
+    globalWeek: 3,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 4,
+  floorAudit: {
+    version: 2,
+    localWeek: 4,
+    globalWeek: 4,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 5,
+  floorAudit: {
+    version: 2,
+    localWeek: 5,
+    globalWeek: 5,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 6,
+  floorAudit: {
+    version: 2,
+    localWeek: 6,
+    globalWeek: 6,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 7,
+  floorAudit: {
+    version: 2,
+    localWeek: 7,
+    globalWeek: 7,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 8,
+  floorAudit: {
+    version: 2,
+    localWeek: 8,
+    globalWeek: 8,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 9,
+  floorAudit: {
+    version: 2,
+    localWeek: 9,
+    globalWeek: 9,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 10,
+  floorAudit: {
+    version: 2,
+    localWeek: 10,
+    globalWeek: 10,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 11,
+  floorAudit: {
+    version: 2,
+    localWeek: 11,
+    globalWeek: 11,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 12,
+  floorAudit: {
+    version: 2,
+    localWeek: 12,
+    globalWeek: 12,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 13,
+  floorAudit: {
+    version: 2,
+    localWeek: 13,
+    globalWeek: 13,
+    rampConfigured: true,
+    nominal: {
+      longRideWeekly: false,
+      longRunWeekly: false,
+      minStrengthPerWeek: 1
+    },
+    individualized: {
+      longRideWeekly: false,
+      longRunWeekly: false,
+      minStrengthPerWeek: 1
+    }
+  },
+  consumedFloors: {
+    longRideWeekly: false,
+    longRunWeekly: false,
+    minStrengthPerWeek: 1
+  }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 14,
+  floorAudit: {
+    version: 2,
+    localWeek: 14,
+    globalWeek: 14,
+    rampConfigured: true,
+    nominal: {
+      longRideWeekly: false,
+      longRunWeekly: false,
+      minStrengthPerWeek: 0
+    },
+    individualized: {
+      longRideWeekly: false,
+      longRunWeekly: false,
+      minStrengthPerWeek: 0
+    }
+  },
+  consumedFloors: {
+    longRideWeekly: false,
+    longRunWeekly: false,
+    minStrengthPerWeek: 0
+  }
+}
+[sl_floor_individualization] plancher sortie longue individualisé sur 12 semaine(s) :
+S1 (globale S1): planchers individualisés
+S2 (globale S2): planchers individualisés
+S3 (globale S3): planchers individualisés
+S4 (globale S4): planchers individualisés
+S5 (globale S5): planchers individualisés
+S6 (globale S6): planchers individualisés
+S7 (globale S7): planchers individualisés
+S8 (globale S8): planchers individualisés
+S9 (globale S9): planchers individualisés
+S10 (globale S10): planchers individualisés
+S11 (globale S11): planchers individualisés
+S12 (globale S12): planchers individualisés
+
+stderr | ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts > runs a complete deterministic search twice with identical sporting output
+[vlamax-resolver] sport=run — estimateur CAP insuffisant et vlamax_run manquant (Données insuffisantes)
+[catalog_filter_floor_bypassed_strict] sport=run chunk=0 phases=[base] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_filter_floor_bypassed_strict] sport=renforcement chunk=0 phases=[base] kept=4 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=taper count=14 diversity_target=25 chunk=0; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=1 phases=[base,build] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=18 diversity_target=25 chunk=1; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=6 diversity_target=25 chunk=1; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=2 phases=[build] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=18 diversity_target=25 chunk=2; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=7 diversity_target=25 chunk=2; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=3 phases=[build,taper] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=18 diversity_target=25 chunk=3; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=9 diversity_target=25 chunk=3; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=0 phases=[base] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_filter_floor_bypassed_strict] sport=renforcement chunk=0 phases=[base] kept=4 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=taper count=14 diversity_target=25 chunk=0; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=1 phases=[base,build] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=20 diversity_target=25 chunk=1; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=8 diversity_target=25 chunk=1; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=2 phases=[build] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=19 diversity_target=25 chunk=2; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=8 diversity_target=25 chunk=2; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=3 phases=[build,taper] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=18 diversity_target=25 chunk=3; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=9 diversity_target=25 chunk=3; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+
+stdout | ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts > refuses a real search when its node budget is exhausted
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=0 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=0 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=0 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=0 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=0 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=0 étape=phase_filter avant=297 après=131 retirées=166
+[catalog_pipeline] chunk=0 étape=beginner_intensity_filter avant=131 après=117 retirées=14
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=105/117 sport=course cat=C
+[catalog_pipeline] chunk=0 étape=score_filter_hardban avant=117 après=113 retirées=4
+[catalog_filtered] chunk=0 phases=[base] bySport=course=42/363 renforcement=4/6 strength=71/111 relaxed=[]
+[mapping_coverage] chunk=0 fiches_avec_contrainte_parsée=117 / total=117 (100%)
+[cap_state] chunk=0 cap=80 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=113
+[cap_default] value=80 raison="~17.6k chars sérialisés · +40=~26.4k chars · marge large sous 64k tokens edge"
+[cap_injection_v2] chunk=0 cap=85 socle_couverture=45 familles=[endurance_fondamentale,force,other,race_pace,recuperation,seuil,sprint,technique,test] remplissage=40 total=85 limiterCap=93 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=0 cap_actuel=85 ≤90=19.8k chars · ≤120=25.7k chars · ≤150=25.7k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 40 (base=40, build=39, peak=32, taper=14) — chunk=0
+[trail_probe_phase] phase=base entries=87 trail_entries=NONE
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=1 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=1 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=1 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=1 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=1 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=1 étape=phase_filter avant=297 après=265 retirées=32
+[catalog_pipeline] chunk=1 étape=beginner_intensity_filter avant=265 après=196 retirées=69
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=172/196 sport=course cat=C
+[catalog_pipeline] chunk=1 étape=score_filter_hardban avant=196 après=182 retirées=14
+[catalog_filtered] chunk=1 phases=[base,build] bySport=course=110/363 renforcement=6/6 strength=80/111 relaxed=[]
+[mapping_coverage] chunk=1 fiches_avec_contrainte_parsée=196 / total=196 (100%)
+[cap_state] chunk=1 cap=80 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=182
+[cap_default] value=80 raison="~17.6k chars sérialisés · +40=~26.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=1 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=1 cap=106 socle_couverture=66 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=43 total=109 limiterCap=114 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=1 cap_actuel=106 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 63 (base=18, build=63, peak=31, taper=6) — chunk=1
+[trail_probe_phase] phase=build entries=121 trail_entries=NONE
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=2 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=2 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=2 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=2 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=2 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=2 étape=phase_filter avant=297 après=258 retirées=39
+[catalog_pipeline] chunk=2 étape=beginner_intensity_filter avant=258 après=192 retirées=66
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=163/192 sport=course cat=C
+[catalog_pipeline] chunk=2 étape=score_filter_hardban avant=192 après=178 retirées=14
+[catalog_filtered] chunk=2 phases=[build] bySport=course=109/363 renforcement=6/6 strength=77/111 relaxed=[]
+[mapping_coverage] chunk=2 fiches_avec_contrainte_parsée=192 / total=192 (100%)
+[cap_state] chunk=2 cap=80 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=178
+[cap_default] value=80 raison="~17.6k chars sérialisés · +40=~26.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=2 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=2 cap=106 socle_couverture=66 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=41 total=107 limiterCap=114 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=2 cap_actuel=106 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 63 (base=18, build=63, peak=31, taper=7) — chunk=2
+[trail_probe_phase] phase=peak entries=120 trail_entries=NONE
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=3 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=3 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=3 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=3 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=3 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=3 étape=phase_filter avant=297 après=262 retirées=35
+[catalog_pipeline] chunk=3 étape=beginner_intensity_filter avant=262 après=196 retirées=66
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=167/196 sport=course cat=C
+[catalog_pipeline] chunk=3 étape=score_filter_hardban avant=196 après=182 retirées=14
+[catalog_filtered] chunk=3 phases=[build,taper] bySport=course=113/363 renforcement=6/6 strength=77/111 relaxed=[]
+[mapping_coverage] chunk=3 fiches_avec_contrainte_parsée=196 / total=196 (100%)
+[cap_state] chunk=3 cap=80 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=182
+[cap_default] value=80 raison="~17.6k chars sérialisés · +40=~26.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=3 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=3 cap=107 socle_couverture=67 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=41 total=108 limiterCap=115 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=3 cap_actuel=107 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 64 (base=18, build=62, peak=32, taper=9) — chunk=3
+[trail_probe_phase] phase=taper entries=126 trail_entries=NONE
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=0 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=0 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=0 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=0 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=0 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=0 étape=phase_filter avant=297 après=131 retirées=166
+[catalog_pipeline] chunk=0 étape=beginner_intensity_filter avant=131 après=117 retirées=14
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=105/117 sport=course cat=C
+[catalog_pipeline] chunk=0 étape=score_filter_hardban avant=117 après=113 retirées=4
+[catalog_filtered] chunk=0 phases=[base] bySport=course=42/363 renforcement=4/6 strength=71/111 relaxed=[]
+[mapping_coverage] chunk=0 fiches_avec_contrainte_parsée=117 / total=117 (100%)
+[cap_state] chunk=0 cap=130 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=113
+[cap_default] value=130 raison="~28.6k chars sérialisés · +40=~37.4k chars · marge large sous 64k tokens edge"
+[cap_injection_v2] chunk=0 cap=130 socle_couverture=45 familles=[endurance_fondamentale,force,other,race_pace,recuperation,seuil,sprint,technique,test] remplissage=41 total=86 limiterCap=138 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=0 cap_actuel=130 ≤90=19.8k chars · ≤120=25.7k chars · ≤150=25.7k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 41 (base=41, build=40, peak=33, taper=14) — chunk=0
+[trail_probe_client] chunk=0 entries=88 trail_entries=NONE sportFilter=[course,run,strength,renforcement] catalogObjective=10K
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=1 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=1 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=1 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=1 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=1 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=1 étape=phase_filter avant=297 après=265 retirées=32
+[catalog_pipeline] chunk=1 étape=beginner_intensity_filter avant=265 après=196 retirées=69
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=172/196 sport=course cat=C
+[catalog_pipeline] chunk=1 étape=score_filter_hardban avant=196 après=182 retirées=14
+[catalog_filtered] chunk=1 phases=[base,build] bySport=course=110/363 renforcement=6/6 strength=80/111 relaxed=[]
+[mapping_coverage] chunk=1 fiches_avec_contrainte_parsée=196 / total=196 (100%)
+[cap_state] chunk=1 cap=130 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=182
+[cap_default] value=130 raison="~28.6k chars sérialisés · +40=~37.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=1 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=1 cap=131 socle_couverture=66 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=44 total=110 limiterCap=139 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=1 cap_actuel=131 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 63 (base=20, build=63, peak=32, taper=8) — chunk=1
+[trail_probe_client] chunk=1 entries=121 trail_entries=NONE sportFilter=[course,run,strength,renforcement] catalogObjective=10K
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=2 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=2 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=2 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=2 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=2 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=2 étape=phase_filter avant=297 après=258 retirées=39
+[catalog_pipeline] chunk=2 étape=beginner_intensity_filter avant=258 après=192 retirées=66
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=163/192 sport=course cat=C
+[catalog_pipeline] chunk=2 étape=score_filter_hardban avant=192 après=178 retirées=14
+[catalog_filtered] chunk=2 phases=[build] bySport=course=109/363 renforcement=6/6 strength=77/111 relaxed=[]
+[mapping_coverage] chunk=2 fiches_avec_contrainte_parsée=192 / total=192 (100%)
+[cap_state] chunk=2 cap=130 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=178
+[cap_default] value=130 raison="~28.6k chars sérialisés · +40=~37.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=2 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=2 cap=131 socle_couverture=66 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=44 total=110 limiterCap=139 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=2 cap_actuel=131 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 63 (base=19, build=63, peak=32, taper=8) — chunk=2
+[trail_probe_client] chunk=2 entries=120 trail_entries=NONE sportFilter=[course,run,strength,renforcement] catalogObjective=10K
+[catalog_drop] id=B_SWIM_TRI_RACE_PACE_703 étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_drop] id=NORWEGIAN_SWIM_THRESHOLD étape=sport_filter raison=sport=natation ∉ [course,run,strength,renforcement]
+[catalog_pipeline] chunk=3 étape=sport_filter avant=817 après=480 retirées=337
+[catalog_pipeline] chunk=3 étape=exclude_id_patterns avant=480 après=310 retirées=170
+[catalog_pipeline] chunk=3 étape=exclude_tags avant=310 après=297 retirées=13
+[catalog_pipeline] chunk=3 étape=exclude_prev_chunk_ids avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=3 étape=prohibitions avant=297 après=297 retirées=0
+[catalog_pipeline] chunk=3 étape=phase_filter avant=297 après=262 retirées=35
+[catalog_pipeline] chunk=3 étape=beginner_intensity_filter avant=262 après=196 retirées=66
+[catalog_track] id=V3_TEST_HALF_MARATHON_TT survécu_filtres=oui score=9 rank=167/196 sport=course cat=C
+[catalog_pipeline] chunk=3 étape=score_filter_hardban avant=196 après=182 retirées=14
+[catalog_filtered] chunk=3 phases=[build,taper] bySport=course=113/363 renforcement=6/6 strength=77/111 relaxed=[]
+[mapping_coverage] chunk=3 fiches_avec_contrainte_parsée=196 / total=196 (100%)
+[cap_state] chunk=3 cap=130 socle_couverture=présent(2/sport×famille) tri=priorityScore_desc total_avant=182
+[cap_default] value=130 raison="~28.6k chars sérialisés · +40=~37.4k chars · marge large sous 64k tokens edge"
+[socle_limiter_boost] chunk=3 primary=tte secondary=- boost=race_pace+1 seuil+2
+[cap_injection_v2] chunk=3 cap=132 socle_couverture=67 familles=[endurance_fondamentale,fatmax,force,other,race_pace,recuperation,seuil,sprint,technique,test,vo2] remplissage=44 total=111 limiterCap=140 limiterFams=[seuil,race_pace]
+[cap_size_estimate] chunk=3 cap_actuel=132 ≤90=19.8k chars · ≤120=26.4k chars · ≤150=33.0k chars (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)
+[buildWorkoutCatalog] course pool = 64 (base=18, build=62, peak=32, taper=9) — chunk=3
+[trail_probe_client] chunk=3 entries=127 trail_entries=NONE sportFilter=[course,run,strength,renforcement] catalogObjective=10K
+[b5_union_source] phase_catalogs=4 chunk_catalogs=4 union_size=154
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 1,
+  floorAudit: {
+    version: 2,
+    localWeek: 1,
+    globalWeek: 1,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 35, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 35, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 2,
+  floorAudit: {
+    version: 2,
+    localWeek: 2,
+    globalWeek: 2,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 3,
+  floorAudit: {
+    version: 2,
+    localWeek: 3,
+    globalWeek: 3,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 4,
+  floorAudit: {
+    version: 2,
+    localWeek: 4,
+    globalWeek: 4,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 5,
+  floorAudit: {
+    version: 2,
+    localWeek: 5,
+    globalWeek: 5,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 6,
+  floorAudit: {
+    version: 2,
+    localWeek: 6,
+    globalWeek: 6,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 7,
+  floorAudit: {
+    version: 2,
+    localWeek: 7,
+    globalWeek: 7,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 8,
+  floorAudit: {
+    version: 2,
+    localWeek: 8,
+    globalWeek: 8,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 9,
+  floorAudit: {
+    version: 2,
+    localWeek: 9,
+    globalWeek: 9,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 10,
+  floorAudit: {
+    version: 2,
+    localWeek: 10,
+    globalWeek: 10,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 11,
+  floorAudit: {
+    version: 2,
+    localWeek: 11,
+    globalWeek: 11,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 60, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 12,
+  floorAudit: {
+    version: 2,
+    localWeek: 12,
+    globalWeek: 12,
+    rampConfigured: true,
+    nominal: { slLongRunMin: 40, longRunWeekly: true, minStrengthPerWeek: 1 },
+    individualized: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+  },
+  consumedFloors: { slLongRunMin: 30, longRunWeekly: true, minStrengthPerWeek: 1 }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 13,
+  floorAudit: {
+    version: 2,
+    localWeek: 13,
+    globalWeek: 13,
+    rampConfigured: true,
+    nominal: {
+      longRideWeekly: false,
+      longRunWeekly: false,
+      minStrengthPerWeek: 1
+    },
+    individualized: {
+      longRideWeekly: false,
+      longRunWeekly: false,
+      minStrengthPerWeek: 1
+    }
+  },
+  consumedFloors: {
+    longRideWeekly: false,
+    longRunWeekly: false,
+    minStrengthPerWeek: 1
+  }
+}
+[sl_floor_pipeline] {
+  stage: 'generation',
+  week: 14,
+  floorAudit: {
+    version: 2,
+    localWeek: 14,
+    globalWeek: 14,
+    rampConfigured: true,
+    nominal: {
+      longRideWeekly: false,
+      longRunWeekly: false,
+      minStrengthPerWeek: 0
+    },
+    individualized: {
+      longRideWeekly: false,
+      longRunWeekly: false,
+      minStrengthPerWeek: 0
+    }
+  },
+  consumedFloors: {
+    longRideWeekly: false,
+    longRunWeekly: false,
+    minStrengthPerWeek: 0
+  }
+}
+[sl_floor_individualization] plancher sortie longue individualisé sur 12 semaine(s) :
+S1 (globale S1): planchers individualisés
+S2 (globale S2): planchers individualisés
+S3 (globale S3): planchers individualisés
+S4 (globale S4): planchers individualisés
+S5 (globale S5): planchers individualisés
+S6 (globale S6): planchers individualisés
+S7 (globale S7): planchers individualisés
+S8 (globale S8): planchers individualisés
+S9 (globale S9): planchers individualisés
+S10 (globale S10): planchers individualisés
+S11 (globale S11): planchers individualisés
+S12 (globale S12): planchers individualisés
+
+stderr | ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts > refuses a real search when its node budget is exhausted
+[vlamax-resolver] sport=run — estimateur CAP insuffisant et vlamax_run manquant (Données insuffisantes)
+[catalog_filter_floor_bypassed_strict] sport=run chunk=0 phases=[base] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_filter_floor_bypassed_strict] sport=renforcement chunk=0 phases=[base] kept=4 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=taper count=14 diversity_target=25 chunk=0; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=1 phases=[base,build] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=18 diversity_target=25 chunk=1; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=6 diversity_target=25 chunk=1; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=2 phases=[build] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=18 diversity_target=25 chunk=2; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=7 diversity_target=25 chunk=2; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=3 phases=[build,taper] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=18 diversity_target=25 chunk=3; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=9 diversity_target=25 chunk=3; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=0 phases=[base] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_filter_floor_bypassed_strict] sport=renforcement chunk=0 phases=[base] kept=4 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=taper count=14 diversity_target=25 chunk=0; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=1 phases=[base,build] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=20 diversity_target=25 chunk=1; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=8 diversity_target=25 chunk=1; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=2 phases=[build] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=19 diversity_target=25 chunk=2; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=8 diversity_target=25 chunk=2; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_filter_floor_bypassed_strict] sport=run chunk=3 phases=[build,taper] kept=0 < floor=5 → strictPhaseFilter actif, PAS de réintégration (catalogue restreint volontairement plus mince)
+[catalog_diversity] selected_course_tag=base count=18 diversity_target=25 chunk=3; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+[catalog_diversity] selected_course_tag=taper count=9 diversity_target=25 chunk=3; risque de répétition, pas un quota hebdomadaire ni une attestation d’admissibilité.
+
+stdout | ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts
+🔧 [phase_widened] 139 fiche(s) élargies (endurance/technique)
+  [phase_widened] id=A_RUN_Z2_EASY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_AEROBIC ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_CADENCE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TECH_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=D_RUN_REGEN ancien=[taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=D_SWIM_REGEN ancien=[taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=A_IM_BIKE_STEADY_LONG ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_IM_AERO_HOLD ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_MAR_LONG_RUN ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_HIKE_RUN_DPLUS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_EASY_TECH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BACK_TO_BACK_1 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BACK_TO_BACK_2 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_PROGRESSIVE ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BIKE_SUPPORT ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR_DESCENT_TOLERANCE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_SKILLS_TECH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DOWNHILL_EASY_V39 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_POLES_SESSION ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_END_ROLLING_75 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_2H ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_3H ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_PROGRESSIVE_Z3_FINISH ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_STEADY_CLIMB_CONTINUOUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_FLAT_SUPPORT_END ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR_DESCENT_TOLERANCE_8x2 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_SKILLS_UPHILL_EFFICIENCY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PROPRIO_ANKLE_FOOT ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_PACK_SHORT_LONGRUN_2H ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PACK_LONG_DESC_SKILL ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_PACK_LONG_LONGRUN_3H ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DOWNHILL_EASY ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_10K_EASY_60 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_10K_LONG_RUN_75 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_SEMI_LONG_RUN_90 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR50_LONG_RUN_2H30 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR50_EASY_DPLUS_60 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR50_DESCENT_SPEED ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR50_TECH_APPUIS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_TRI_OPEN_WATER_SIMU ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_TRI_EASY_TECH_1500 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_SWIM_TRI_NEGATIVE_SPLIT ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_SIGHTING_DRILLS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_CATCH_PULL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_DRAFTING_PACK ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_BILATERAL_BREATHING ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_KICK_EFFICIENCY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_AERO_POSITION_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_PLYOMETRIC ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_UPPER_BODY_TRI ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_DURABILITY_LONG ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=HEAT_BIKE_ACCLIM_INTRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=HEAT_RUN_ACCLIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=OWS_WETSUIT_SPECIFIC ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=ECONOMY_RUN_FATIGUE_FORM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=LYDIARD_RUN_AEROBIC_BASE_LONG ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=LYDIARD_RUN_AEROBIC_BASE_MEDIUM ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=KENYAN_RUN_DOUBLE_DAY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_EASY_45_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_LONG_PROG_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_RUN_HILL_TECH_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_BIKE_END_90_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_BIKE_LONG_IM_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_CADENCE_SKILLS_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TECH_DRILLS_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DESC_TECH_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V1_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V2_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V3_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V4_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V5_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V6_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V7_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V8_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V9_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V10_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=TPL_IM_RUN_LONGUE_DURABILITE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_RUN_DESCENTE_TECHNIQUE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_TRAIL_LONGUE_DPLUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_HEAT_ACCLIM_Z2 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_ALTITUDE_EASY_RUN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_BACK_TO_BACK_SAM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_BACK_TO_BACK_DIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_MARCHE_COURSE_ALTERNE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_PROPRIOCEPTION ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_SWIM_TECHNIQUE_CATCH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_SWIM_TECHNIQUE_ROTATION ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_STR_HANCHE_COUREUR ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_BIKE_SINGLE_LEG ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_RUN_EDUCATIFS_TECHNIQUES ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_Z2_ENDURANCE_LONG ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_CADENCE_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_MTN_LONG_D_PLUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_B2B_WEEKEND ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_MARCHE_COURSE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_NIGHT ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_Z2_PROGRESSIF ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_MONTAGNE_BASE ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_ULTRA_BUILD ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_PEAK ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_B2B_SAM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_B2B_DIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_MARCHE_COURSE_ULTRA ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_EF_VALLON ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PLIO_TRAIL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_DOUBLE_TAPIS_AM_PM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_SL_OUTDOOR_VARIETE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_BATONS_TECHNIQUE_PARC ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_SL_DPLUS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_BACK_TO_BACK ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_NOCTURNE ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_BRICK_TRANSITION_DRILL ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_LEGS_ENDURANCE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_HEAT_ACCLIM_RUN ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=D_DELOAD_RUN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_CONTINUOUS_2K ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_CATCH_FOCUS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_BILATERAL_BREATH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_OPEN_WATER_SKILLS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TURNS_STARTS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_AEROBIC_MULTI_NAGES ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_PULL_LONG_DISTANCE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_BEGINNER_FOUNDATION_FULL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_IM_RUN_LATE_RACE_FRACTIONS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=B_IM_RUN_NEG_SPLIT_LR ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=B_703_RUN_NEG_SPLIT ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_WALK_RUN_1_2 ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_WALK_RUN_2_2 ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_CONTINUOUS_20_25 ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_CONTINUOUS_30_LONG ancien=[peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_TECHNIQUE_CADENCE_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_SWIM_INTRO_TECHNIQUE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_SWIM_CONTINUOUS_LOW_IMPACT ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_BIKE_INTRO_SPIN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_BIKE_CONTINUOUS_LOW_IMPACT ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_WALK_RUN_4_1 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_BREATHING_TECHNIQUE_INTRO ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_CONTINUOUS_20_PARK_VARIANT ancien=[peak,taper] nouveau=[base,build,peak,taper]
+✅ Pro Pack: 107 | Templates: 50 | Enriched: 56 | V2: 52 | V3: 67 | Trail: 68 | V4: 19 | V5: 11 | V6: 9 | FatMax: 14 | Recovery: 28 | Swim+: 17 | SwimV2: 18 | StrengthV2: 32 | Hedgehog: 4 | IM Run Durability: 6 | 70.3 Podium: 9 | LCW: 5 | Run Hills: 4 | Short Formats: 12 | Total: 920
+
+ ❯ ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts (5 tests | 2 failed | 3 skipped) 633ms
+   × runs a complete deterministic search twice with identical sporting output 386ms
+   × refuses a real search when its node budget is exhausted 245ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts > runs a complete deterministic search twice with identical sporting output
+ReferenceError: Cannot access 'options' before initialization
+ ❯ flatMap ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.ts:69:13
+     67|             // V1 dose remains unchanged by default; opt-in V2 admits …
+     68|             const doses:Array<{variantKey?:string;range:[number,number…
+     69|             if(options.executableVariants)for(const [variantKey,text] …
+       |             ^
+     70|               const range=executableCatalogueDurationRanges({...m,vari…
+     71|               if(!range)continue;
+ ❯ map ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.ts:66:12
+ ❯ constructDeterministicPlan ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.ts:62:27
+ ❯ ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts:18:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts > refuses a real search when its node budget is exhausted
+ReferenceError: Cannot access 'options' before initialization
+ ❯ flatMap ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.ts:69:13
+     67|             // V1 dose remains unchanged by default; opt-in V2 admits …
+     68|             const doses:Array<{variantKey?:string;range:[number,number…
+     69|             if(options.executableVariants)for(const [variantKey,text] …
+       |             ^
+     70|               const range=executableCatalogueDurationRanges({...m,vari…
+     71|               if(!range)continue;
+ ❯ map ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.ts:66:12
+ ❯ constructDeterministicPlan ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.ts:62:27
+ ❯ ../../tmp/det-v2-shadow-reproduction/experimental/det-engine/engine.test.ts:35:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 3 skipped (5)
+   Start at  17:50:09
+   Duration  3.89s (transform 2.22s, setup 74ms, import 2.79s, tests 633ms, environment 246ms)
+

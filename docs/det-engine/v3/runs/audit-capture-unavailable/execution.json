@@ -1,0 +1,34 @@
+{
+  "id": "v3-1-audit",
+  "key": "4c5f1c674383b51033ef2dcde7980aaa0ffd73f9b6d4a003dc37e09a16b4dbe1",
+  "kind": "audit",
+  "source": "41934a2bfb6a671b21d47d0f96d073d4628dc3ec50e81fc7f4f3b4ed5719fa97",
+  "out": "/tmp/det-v3-final-audit",
+  "input": null,
+  "status": "failed",
+  "startedAt": 1793132811354,
+  "completedAt": 1793132984165,
+  "commands": [
+    {
+      "name": "audit",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v3-quality.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": false,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "error": "EPERM",
+      "elapsedMs": 172810,
+      "timeoutMs": 900000
+    }
+  ],
+  "comparison": null,
+  "accepted": false,
+  "decision": "validation_failed_partial_not_retained"
+}

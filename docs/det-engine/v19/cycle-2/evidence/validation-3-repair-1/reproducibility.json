@@ -1,0 +1,7 @@
+{
+  "buildIdentical": true,
+  "independentReplayIdentical": true,
+  "chainReplayIdentical": true,
+  "engineSourceUnchangedFromPassedBase": true,
+  "maxFullAttemptsStill": 3
+}

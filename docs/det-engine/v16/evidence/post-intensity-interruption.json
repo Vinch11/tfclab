@@ -1,0 +1,5 @@
+{
+  "status": "exit_status_unknown",
+  "outputDirectory": "post-intensity-guard",
+  "reason": "Execution environment transiently unavailable; process handle not retained. Outputs preserved, not used as a successful process receipt."
+}

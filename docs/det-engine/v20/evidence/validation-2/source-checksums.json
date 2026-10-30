@@ -1,0 +1,17 @@
+{
+  "experimental/det-engine/v20-review.mjs": "da87834b7cf49cc4fa8d43dcc864590009386404f99c3fd311279bb3271beb42",
+  "experimental/det-engine/v20-nolio.mjs": "188c56975c4e71d0427542898d460cc33df6e2cbcb7ba82a39a7e20d32300376",
+  "experimental/det-engine/v20-physio.ts": "df55824124dbefd03a157215a1e7e5fe18aeb2dd7ccbf24241cb47888bb6ccdf",
+  "experimental/det-engine/v20-physio.test.ts": "39b161d37643d84d4c94f9bc0d785f5b66b5514b9a8232c75ee1fe61d56bd419",
+  "experimental/det-engine/v20-ironman.test.ts": "45e249f33b91e0d0374678b57f5e2a63acda7849d57e4bc98be3ff87032ccbee",
+  "experimental/det-engine/vitest.v20.config.ts": "c614d495cd55f95a9d2650e24175ba33dd5decd901ae88d91cbbc614b57be750",
+  "scripts/det-engine/v20-session.mjs": "9edf29c187bb086455bd48a5bddc57e4de4b27a3d47e54e261057d11be80ae7e",
+  "scripts/det-engine/v20-review-build.mjs": "213b7be5b083f3ce9a77870b468371d73bae00e4d455223ff960cf6c3ed2bdc4",
+  "scripts/det-engine/v20-nolio-build.mjs": "9d1f5371e7d4e1ae7b9f944eec59a8bd994b52a632755642b97dc3f808492c86",
+  "scripts/det-engine/v20-nolio.test.mjs": "50fa84c088fe3ebceb917585ddafed6f10d906a3dade211dd28371adae7fb978",
+  "scripts/det-engine/v20-independent.py": "b9456a7ace71a18cedcb00da9decd8bfb6539d4beff3b02e936a185af887dc7c",
+  "scripts/det-engine/v20-run.mjs": "87a93cb26b61ebda10c4f145f373a2878e3e7382183065dde81ade155237f908",
+  "docs/det-engine/v20/inputs.json": "233186287c641e4a09cde3c7724a6559037288e6d288bbb748a58c2fecd413d4",
+  "docs/det-engine/v20/inputs-physiology.json": "210a2d2354d59046f76960debd0a970938eaa9e85c3fef622c6f510289f7b89b",
+  "docs/det-engine/v20/inputs-domain-binding.json": "6f066e4b766305dde366ba98f4f767ad0257b9fab6840383527a3a10957ecebe"
+}

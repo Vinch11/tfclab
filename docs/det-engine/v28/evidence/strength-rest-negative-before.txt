@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/workspace/tfclab/scripts/det-engine/v28-rest-guard.py", line 8, in <module>
+    assert key in p and p[key]['status']=='known' and p[key]['value'] in ['between_only','after_each'],('UNDECLARED_STRENGTH_RECOVERY_OCCURRENCE',s['context']['scenarioId'],key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('UNDECLARED_STRENGTH_RECOVERY_OCCURRENCE', 'strength_explicit_tempo', 'strength.exercise_rest_policy')

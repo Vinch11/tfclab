@@ -1,0 +1,49 @@
+{
+  "cycle": 1,
+  "status": "completed_no_go",
+  "startedAt": "2026-10-28T23:04:37Z",
+  "deadline": "2026-10-29T00:04:37Z",
+  "purpose": "source audit, provenance-aware editorial candidate reconstruction, independent verification",
+  "active": null,
+  "steps": [
+    {
+      "step": "validation",
+      "status": "passed",
+      "evidence": "docs/det-engine/v19/cycle-1/evidence/validation-1",
+      "finishedAt": "2026-10-28T23:26:44.553Z"
+    },
+    {
+      "step": "validation",
+      "status": "passed",
+      "evidence": "docs/det-engine/v19/cycle-1/evidence/validation-2",
+      "finishedAt": "2026-10-28T23:41:38.660Z"
+    }
+  ],
+  "rejected": [
+    {
+      "cause": "V18 verifier path scope",
+      "evidence": "initial tool trace",
+      "resolution": "Expected old V18-only path guard refuses new V19 files; preserve 3635 baseline hashes with V19 guard; no old guard changed"
+    },
+    {
+      "cause": "strength JSON normalization",
+      "evidence": "evidence/contracts-attempt-1.txt",
+      "resolution": "Compare full serialized model; undefined regexp capture becomes explicit null in JSON, no data or sporting change"
+    },
+    {
+      "cause": "negated vertical exposure mistaken as exposure",
+      "evidence": "evidence/contracts-attempt-1.txt",
+      "resolution": "Do not turn \"sans D+\" into a required tolerance gate; contextual source clarification remains optional where not applicable"
+    }
+  ],
+  "validationAttempts": 2,
+  "validation": {
+    "status": "passed",
+    "evidence": "docs/det-engine/v19/cycle-1/evidence/validation-2",
+    "finishedAt": "2026-10-28T23:41:38.660Z"
+  },
+  "finishedAt": "2026-10-28T23:55:07.498Z",
+  "elapsedSeconds": 3030,
+  "closedWithinCycleBudget": true,
+  "remainingGlobalSeconds": 4169
+}

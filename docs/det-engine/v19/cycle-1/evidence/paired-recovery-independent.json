@@ -1,0 +1,278 @@
+{
+  "independentPythonArithmetic": true,
+  "pairsChecked": 45,
+  "witnesses": [
+    {
+      "legacyId": "B_BIKE_VO2_3MIN",
+      "betweenSeconds": 3630,
+      "afterSeconds": 3870,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_BIKE_THRESHOLD",
+      "betweenSeconds": 3900,
+      "afterSeconds": 4200,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "C_BIKE_FORCE",
+      "betweenSeconds": 4080,
+      "afterSeconds": 4260,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "C_IM_AERO_HOLD",
+      "betweenSeconds": 4500,
+      "afterSeconds": 4800,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_MAR_TEMPO_BLOCKS",
+      "betweenSeconds": 4200,
+      "afterSeconds": 4500,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_SEMI_RACE_PACE",
+      "betweenSeconds": 3540,
+      "afterSeconds": 3780,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_703_RUN_THRESHOLD",
+      "betweenSeconds": 3660,
+      "afterSeconds": 3840,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "C_TR_SKILLS_TECH",
+      "betweenSeconds": 2700,
+      "afterSeconds": 2760,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "A_TR_EASY_TRAIL_STRIDES",
+      "betweenSeconds": 3072,
+      "afterSeconds": 3132,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_TR_HILL_SPRINTS_10x10",
+      "betweenSeconds": 2680,
+      "afterSeconds": 2800,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_TR_TEMPO_VARIANT_2",
+      "betweenSeconds": 4440,
+      "afterSeconds": 4680,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_TR_PACK_SHORT_RACEWEEK_1",
+      "betweenSeconds": 3780,
+      "afterSeconds": 3960,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_10K_RACE_PACE_BLOCKS",
+      "betweenSeconds": 3660,
+      "afterSeconds": 3840,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_10K_TEMPO_20",
+      "betweenSeconds": 3180,
+      "afterSeconds": 3420,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "C_10K_STRIDES_SPEED",
+      "betweenSeconds": 2790,
+      "afterSeconds": 2850,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_SEMI_RACE_PACE_2x15",
+      "betweenSeconds": 3540,
+      "afterSeconds": 3780,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_TR50_RACE_EFFORT_5x5",
+      "betweenSeconds": 3720,
+      "afterSeconds": 3900,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_BIKE_SST_3x20",
+      "betweenSeconds": 5700,
+      "afterSeconds": 6000,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "C_BIKE_FORCE_LOW_CAD",
+      "betweenSeconds": 4800,
+      "afterSeconds": 5100,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_BIKE_OVERUNDER_EXTENDED",
+      "betweenSeconds": 4800,
+      "afterSeconds": 5100,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_BIKE_THRESHOLD_2x20",
+      "betweenSeconds": 4380,
+      "afterSeconds": 4860,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_RUN_CRUISE_INTERVALS",
+      "betweenSeconds": 3540,
+      "afterSeconds": 3600,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "D_TAPER_BIKE_OPENER",
+      "betweenSeconds": 3180,
+      "afterSeconds": 3360,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "D_TAPER_RUN_OPENER",
+      "betweenSeconds": 1980,
+      "afterSeconds": 2100,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "D_TAPER_SHAKEOUT",
+      "betweenSeconds": 1365,
+      "afterSeconds": 1425,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "COGGAN_BIKE_SST_EXTENDED",
+      "betweenSeconds": 4800,
+      "afterSeconds": 5100,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "B_RUN_TEMPO_CRUISE_PRO",
+      "betweenSeconds": 3660,
+      "afterSeconds": 3840,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_SEMI_VMA_MOYENNE_1MIN",
+      "betweenSeconds": 3540,
+      "afterSeconds": 3600,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_SEMI_FORCE_COTES_SPRINT",
+      "betweenSeconds": 3030,
+      "afterSeconds": 3150,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_SEMI_FORCE_COTES_VOLUME",
+      "betweenSeconds": 3330,
+      "afterSeconds": 3420,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_SEMI_SEUIL_INTRO",
+      "betweenSeconds": 3600,
+      "afterSeconds": 3720,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_SEMI_SEUIL_EXTENSIF",
+      "betweenSeconds": 3900,
+      "afterSeconds": 4050,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_MAR_TEMPO_SWEET_SPOT",
+      "betweenSeconds": 3840,
+      "afterSeconds": 4080,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_IM_BIKE_FORCE_K3",
+      "betweenSeconds": 5400,
+      "afterSeconds": 5700,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_703_RUN_TEMPO_2x20",
+      "betweenSeconds": 3900,
+      "afterSeconds": 4020,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_IM_RUN_SEUIL_EXTENSIF",
+      "betweenSeconds": 4380,
+      "afterSeconds": 4560,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "TPL_IM_RUN_TEMPO_SPECIFIQUE",
+      "betweenSeconds": 4860,
+      "afterSeconds": 5040,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "ENR_RUN_ALLURE_SEMI_BLOCS",
+      "betweenSeconds": 4560,
+      "afterSeconds": 4740,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "ENR_BIKE_SWEET_SPOT_PROGRESSIF",
+      "betweenSeconds": 6000,
+      "afterSeconds": 6300,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "ENR_BIKE_TEMPO_CADENCE_BASSE",
+      "betweenSeconds": 6000,
+      "afterSeconds": 6300,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "ENR_BIKE_GIMENEZ_TEST_FORMAT",
+      "betweenSeconds": 4260,
+      "afterSeconds": 4320,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "ENR_BIKE_RAMP_4x10",
+      "betweenSeconds": 4920,
+      "afterSeconds": 5160,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "V2_BIKE_SFR_CLASSIQUE",
+      "betweenSeconds": 5160,
+      "afterSeconds": 5400,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "V2_BIKE_GRIMPEUR_TEMPO",
+      "betweenSeconds": 5280,
+      "afterSeconds": 5760,
+      "sharedSourceParameters": true
+    },
+    {
+      "legacyId": "V2_BIKE_CADENCE_HAUTE",
+      "betweenSeconds": 4200,
+      "afterSeconds": 4380,
+      "sharedSourceParameters": true
+    }
+  ],
+  "candidateClassificationsChanged": 0,
+  "individualScientificApproval": false
+}

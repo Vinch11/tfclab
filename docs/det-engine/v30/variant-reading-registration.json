@@ -1,0 +1,20 @@
+{
+  "registeredAt": "2026-10-30T06:20:42.224745+00:00",
+  "hypothesis": "A pure literal distance goal variant can be checked against complete declared part distances without prescribing pace or duration. Unknown historical variant scope must remain unknown, not a new sporting incompatibility or an approval.",
+  "source": "D_SWIM_RECOVERY_EASY",
+  "literalVariant": "1200m",
+  "sourcePartLeadingDistances": [
+    200,
+    800,
+    200
+  ],
+  "mainComponents": [
+    200,
+    200,
+    200,
+    200
+  ],
+  "noDoseChange": true,
+  "noCSSMapping": true,
+  "sourceRunVariantScope": "Z2 stable45\u201375min could denote stable main block or full session; preserve ambiguity and native result"
+}

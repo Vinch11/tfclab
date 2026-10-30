@@ -1,0 +1,48 @@
+[
+  {
+    "candidateKey": "B_BIKE_THRESHOLD@v19:between_repetitions:f701ae86e1a5",
+    "sequence": 1,
+    "observation": {
+      "synthetic": true,
+      "candidateKey": "B_BIKE_THRESHOLD@v19:between_repetitions:f701ae86e1a5",
+      "sequence": 1,
+      "source": "V19 documented fictional coach report",
+      "quality": "usable",
+      "focus": "within_effort_target_not_held",
+      "targetsMet": false,
+      "recovered": "unknown"
+    },
+    "review": "coach_review",
+    "reason": "final_recovery_does_not_reduce_preceding_prescribed_work_or_add_between_effort_rest",
+    "proposedDose": null,
+    "calendarWrite": false,
+    "physiologyUpdated": false,
+    "scientificApproval": false,
+    "expertReviewed": false,
+    "historicalFeedbackController": "V9 feedback remains unchanged; no selected dose status is fabricated for this editorial candidate",
+    "requiresCoachReview": true
+  },
+  {
+    "candidateKey": "B_BIKE_THRESHOLD@v19:between_repetitions:f701ae86e1a5",
+    "sequence": 2,
+    "observation": {
+      "synthetic": true,
+      "candidateKey": "B_BIKE_THRESHOLD@v19:between_repetitions:f701ae86e1a5",
+      "sequence": 2,
+      "source": "V19 documented fictional coach report",
+      "quality": "usable",
+      "focus": "general",
+      "targetsMet": true,
+      "recovered": "yes"
+    },
+    "review": "coach_review",
+    "reason": "synthetic_tolerance_report_does_not_prove_acquired_adaptation_or_promote_editorial_recipe",
+    "proposedDose": null,
+    "calendarWrite": false,
+    "physiologyUpdated": false,
+    "scientificApproval": false,
+    "expertReviewed": false,
+    "historicalFeedbackController": "V9 feedback remains unchanged; no selected dose status is fabricated for this editorial candidate",
+    "requiresCoachReview": true
+  }
+]

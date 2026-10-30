@@ -1,0 +1,21 @@
+{
+  "experimental/det-engine/v19-budget.mjs": "9bf5ea0e415b08cda881f1c5b56bf16b20f9120c1ab427170d46262c635bac8f",
+  "experimental/det-engine/v19-dose-ledger.mjs": "3e4a7516b02b1adcad6c84a850d2e4181e27fc9d8c30d10cfcee0db8e0595c97",
+  "experimental/det-engine/v19-editorial.mjs": "10b06cb4f482161653fb89d5ab9ae83149947cf29af6d0651029fb89a0f43a06",
+  "experimental/det-engine/v19-editorial.ts": "8a325b663433782977099dcb3dd43afd4a8d67b56b3aa49653a6ce88b7fde17a",
+  "experimental/det-engine/v19-outputs.mjs": "d8184565fb38486a182dae459b4f8a7379b44b603a539406cfa8962b6d54b15e",
+  "experimental/det-engine/v19-reassessment.mjs": "9b4249be857eec6f0b6892326b85898e3e0a054fa52354fbc03d2da893618c8e",
+  "scripts/det-engine/v19-build.mjs": "42966bbc1328a2c1c418441d15ce1d2be1e99d23ea2efbafe129b9ce6640ead4",
+  "scripts/det-engine/v19-contracts.test.mjs": "85cf3016bb4e53a1f4fbbd5d3d8da0c7acea28911bc739f9dbb0a15bdf92f8ed",
+  "scripts/det-engine/v19-cycle.mjs": "91891a1da3c19b6b25a46ed1e64dc98afdc030278865f56e1155fe01b6f91bef",
+  "scripts/det-engine/v19-independent-audit.py": "f3808ac8b98b33687e9f0bae5065200a390464457bd158e96d3c344e3f27cb0e",
+  "scripts/det-engine/v19-independent-audit.test.py": "7ad7b12569ad560ecd2271aca351a93885b07fd66d509f2f9b5fe244e1d3a7d4",
+  "scripts/det-engine/v19-inventory.mjs": "b605ce38a0d5720b70fb9a2efc32159835fba45e72439b55a020970c9d5817f4",
+  "scripts/det-engine/v19-paired-study.mjs": "83104c5a9e8164029836e490da95d9f9c9dfc8c1278f7e21112834d6362e02fa",
+  "scripts/det-engine/v19-reassessment.test.mjs": "4c24fa4d07c6727ea9ed286b8402030385cce7c57e778c5b3cd74bca231ce447",
+  "scripts/det-engine/v19-report.mjs": "b391345a445799b732b2bf08e8ade77fd1c075df867a9852cbe8b13c2f95f2bb",
+  "scripts/det-engine/v19-run.mjs": "71044eaef4ec02a61feaa59593e91adfca3caefb25df9e9fdec77ae010973eb2",
+  "scripts/det-engine/v19-science-study.py": "b949ea215adca9c2117682bf37cbda3b03953afdd379fda360fbc9d8e9e21c1c",
+  "scripts/det-engine/v19-session.mjs": "5f038b4132142056b11e176e1a229b38e6db566e4ecd8e73a87edf188385b825",
+  "scripts/det-engine/v19-viewer.test.mjs": "7a1a914a04b7b2b1811a7b86e8e830c8d3956bc2cf485ce506512e4f0fa95dd9"
+}

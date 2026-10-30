@@ -1,0 +1,19 @@
+{
+  "allDataArtifactsIdenticalBetweenValidations": true,
+  "files": [
+    "independent.json",
+    "nolio/summary.json",
+    "nolio/fixtures.jsonl.gz",
+    "nolio/source-extraction.json",
+    "nolio/checksums.json",
+    "ironman/results.json",
+    "review/summary.json",
+    "review/scientific-review.jsonl.gz",
+    "review/review.jsonl.gz",
+    "review/checksums.json",
+    "physiology/results.json",
+    "physiology/registered-inputs.json"
+  ],
+  "change": "repetition contract test now uses lossless grouping of actual C_IM_AERO_HOLD 4x15 recipe; no synthetic dose manufactured",
+  "priorTestSourcePreserved": "evidence/nolio-contracts-before-real-recipe.mjs"
+}

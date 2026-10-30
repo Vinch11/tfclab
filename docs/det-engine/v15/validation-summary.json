@@ -1,0 +1,21 @@
+{
+  "version": "det-v15-1",
+  "executedV15": {
+    "types": "passed",
+    "reviewTestsPassed": 16,
+    "reviewTestsSkipped": 0,
+    "schemaTestPassed": 1,
+    "archivedVariantsAuditedBySchema": 6,
+    "proofIndependentProcesses": 2,
+    "proofArtifactsIdentical": 3,
+    "calendarsGenerated": 0,
+    "conditionsResolved": 0
+  },
+  "preservedV14NotRerun": {
+    "experimentalPassed": 132,
+    "historicalPassed": 2999,
+    "governancePassed": 62,
+    "source": "docs/det-engine/v14/validation-summary.json"
+  },
+  "coachValidationPerformed": false
+}

@@ -1,0 +1,33 @@
+✔ all 920 canonical identities and sources remain unchanged (133.240795ms)
+✔ whole-library replay is identical without reconverting V16 (780.27533ms)
+✔ all five mutually exclusive classifications sum to 920 (0.458243ms)
+✔ literal hours, compound minutes/seconds and shared-unit ranges retain arithmetic (0.903535ms)
+✔ distance stays distance and never acquires a pace or elapsed duration (0.288816ms)
+✔ unqualified final recovery remains ambiguous with both known work/rest retained (0.168745ms)
+✔ closed repeat bodies include every recovery cycle and exact count (0.135644ms)
+✔ explicit optional drills remain included, without clipping the original source (2.574458ms)
+✔ explicit integrated peripherals are not counted twice (0.282897ms)
+✔ unknown warmup is not fabricated to fill an advertised sparse Main recipe (0.260964ms)
+✔ cognitive preparation is a duration-scope question rather than automatically a training-volume contradiction (0.262046ms)
+✔ complete named parts with an arithmetical mismatch are not rounded green (0.196848ms)
+✔ 55-minute active brick witness stays contradictory with unknown transition time (0.14546ms)
+✔ mixed swim/bike legs are explicit and never collapsed to one discipline (0.155855ms)
+✔ strength receives its exercise model and is not invalidated for unknown metabolic time (0.53676ms)
+✔ additional unquantified work cannot disappear behind the first duration (0.175364ms)
+✔ repeated source parameters are shared rather than silently giving different durations to each rep (0.164108ms)
+✔ no complete witness is presented as a physiological or expert approval (0.270448ms)
+✔ all 920 coach views retain every original source instruction and restriction (1713.471566ms)
+✔ altered IR cannot enter coach or Nolio output adapters (4.71468ms)
+✔ a real source recipe yields a faithful synthetic local structured contract (5.459956ms)
+✔ walking and non-metabolic substeps are not silently prescribed at running pace (5.718947ms)
+✔ source percentages and ambiguous multi-zone targets keep their structured refusals (1.793358ms)
+✔ missing anchor, wrong zone binding, real identity context and v2 are refused (3.742452ms)
+✔ all three output levels preserve replay and total encoded duration where admitted (6249.588107ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8925.260159

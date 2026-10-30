@@ -1,0 +1,16 @@
+{
+  "pass": true,
+  "engineAndTestSourcePinsUnchanged": true,
+  "versionedAuxiliaryPathCorrectionsVerified": true,
+  "all15PreregisteredContractCasesUnchangedAcrossHardening": true,
+  "onlyMaterializedRegistryShapeChangedAfterFixtureFreeze": true,
+  "recoveryReferenceMatchesActualTFCLabFTP": 265,
+  "recoveryMicrocycleEvidenceMatchesExecutedFourWeekChecks": true,
+  "recoveryTargetMatchesActualV24Slot": true,
+  "previousToleranceIsExplicitSyntheticObservationNotInferredFromPlannedSession": true,
+  "eightV24ObjectsExactlyPreserved": true,
+  "requestedDossiers": 9,
+  "changedPathsAllV25": 100,
+  "individualDoseApprovals": 0,
+  "humanExpertReviews": 0
+}

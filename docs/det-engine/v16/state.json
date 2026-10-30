@@ -1,0 +1,118 @@
+{
+  "version": "det-v16",
+  "baseline": "e9fd91a6e9d4eb3cf2c59d708818e5901ae69d07",
+  "branch": "experiment/det-engine",
+  "status": "completed_no_go",
+  "startedAt": "2026-10-28T19:26:00Z",
+  "deadline": "2026-10-28T20:26:00Z",
+  "maxUnits": 10,
+  "maxNodeMemoryMB": 2048,
+  "maxStepSeconds": 180,
+  "noExternalCost": true,
+  "units": [
+    {
+      "id": 1,
+      "name": "inventory",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "evidence/final/manifest.json"
+    },
+    {
+      "id": 2,
+      "name": "schema",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "CANONICAL_SCHEMA_V2.json"
+    },
+    {
+      "id": 3,
+      "name": "conversion",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "evidence/final/canonical.jsonl.gz"
+    },
+    {
+      "id": 4,
+      "name": "quality_audit",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "evidence/quality-register.jsonl.gz"
+    },
+    {
+      "id": 5,
+      "name": "coach_render",
+      "status": "passed",
+      "attempts": 2,
+      "evidence": "evidence/final/coach-renders.jsonl.gz",
+      "followup": "Source-specific intensity guard reproduced a failing case, then 27 Node tests passed; no generic domain overwrites source percentages.",
+      "followupEvidence": "evidence/intensity-guard-validation.json"
+    },
+    {
+      "id": 6,
+      "name": "nolio_contract",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "evidence/nolio-source-contract.json"
+    },
+    {
+      "id": 7,
+      "name": "physiological_lineage",
+      "status": "passed",
+      "attempts": 2,
+      "lastDiagnostic": "Experimental study used a wrong diagnostic property name; corrected to actual effectifs field. Initial/refined logs retained.",
+      "evidence": "evidence/validate-3/current_v16_study.txt"
+    },
+    {
+      "id": 8,
+      "name": "validation_replay",
+      "status": "passed",
+      "attempts": 3,
+      "evidence": "docs/det-engine/v16/evidence/validate-3",
+      "finishedAt": "2026-10-28T19:56:34.847Z",
+      "rejectedAttempts": [
+        {
+          "attempt": 1,
+          "reason": "EPERM alongside exit0; rejected",
+          "evidence": "evidence/validate-1/failure.json"
+        },
+        {
+          "attempt": 2,
+          "reason": "180s whole research-suite timeout; V16 default5s also unsuitable",
+          "evidence": "evidence/validate-2/failure.json"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "dossier",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "docs/det-engine/v16/evidence/proof-1",
+      "finishedAt": "2026-10-28T19:58:29.742Z",
+      "dossierEvidence": "README.md",
+      "postGuardRecheck": "evidence/post-intensity-guard-verification.json"
+    },
+    {
+      "id": 10,
+      "name": "publication",
+      "status": "passed",
+      "attempts": 1,
+      "evidence": "evidence/pr-v16-checkpoint.json",
+      "finishedAt": "2026-10-28T20:14:13.531810+00:00"
+    }
+  ],
+  "automaticRestart": false,
+  "productionWrites": 0,
+  "realNolioRequests": 0,
+  "active": null,
+  "progress": {
+    "represented": 920,
+    "automaticPrescriptionApproved": 0,
+    "newFullPlans": 0,
+    "realNolioRequests": 0,
+    "scientificContractsPromoted": 0
+  },
+  "finishedAt": "2026-10-28T20:14:13.531810+00:00",
+  "elapsedSeconds": 2893,
+  "sourceCommit": "8091a13d2f2333ac674a9c14534a451d75e62d45"
+}

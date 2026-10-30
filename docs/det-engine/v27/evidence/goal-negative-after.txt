@@ -1,0 +1,1 @@
+All eligible alternatives preserve explicit source objective membership.

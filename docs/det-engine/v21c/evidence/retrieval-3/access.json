@@ -1,0 +1,30 @@
+[
+  {
+    "key": "posture_open_search",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE_ABS%3A%28bike-fit+OR+bike-fitting%29+AND+OPEN_ACCESS%3AY&format=json&resultType=core&pageSize=6",
+    "attemptedAt": "2026-10-29T12:41:23.637780+00:00",
+    "paidApi": false,
+    "httpStatus": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE_ABS%3A%28bike-fit+OR+bike-fitting%29+AND+OPEN_ACCESS%3AY&format=json&resultType=core&pageSize=6",
+    "responseSha256": "f8d08d4867331de240117196f4a25d7ff9551c8351ff34819602de38182d787f",
+    "bytes": 40232,
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-3/posture_open_search.response.gz",
+    "retrievedAt": "2026-10-29T12:41:25.071834+00:00",
+    "status": "response_retrieved_access_type_not_yet_assessed"
+  },
+  {
+    "key": "seiler_primary_search",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE%3A%22Adaptations+to+aerobic+interval+training%22&format=json&resultType=core&pageSize=6",
+    "attemptedAt": "2026-10-29T12:41:23.638551+00:00",
+    "paidApi": false,
+    "httpStatus": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "resolvedUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=TITLE%3A%22Adaptations+to+aerobic+interval+training%22&format=json&resultType=core&pageSize=6",
+    "responseSha256": "9c4beb3e6fd84dacf596a573e0423c6ee43352c1523d23143ec660568b68000b",
+    "bytes": 5586,
+    "artifact": "docs/det-engine/v21c/evidence/retrieval-3/seiler_primary_search.response.gz",
+    "retrievedAt": "2026-10-29T12:41:24.867741+00:00",
+    "status": "response_retrieved_access_type_not_yet_assessed"
+  }
+]

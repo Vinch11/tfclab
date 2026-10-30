@@ -1,0 +1,142 @@
+{
+  "version": "det-v21a-session-1",
+  "baseline": "f295567769af8edc558a24313fd2faa2756cc498",
+  "startedAt": "2026-10-29T08:50:27Z",
+  "hardDeadline": "2026-10-29T09:50:27Z",
+  "maxUnits": 10,
+  "budgetRenewal": false,
+  "automaticRestart": false,
+  "status": "completed_no_go",
+  "units": [
+    {
+      "unit": 1,
+      "name": "baseline_and_scope",
+      "status": "completed",
+      "evidence": [
+        "baseline-files.json"
+      ],
+      "completedAt": "2026-10-29T08:51:58.921355+00:00"
+    },
+    {
+      "unit": 2,
+      "name": "source_inventory_and_variant_preservation",
+      "status": "completed",
+      "evidence": [
+        "evidence/build-1/input-checksums.json",
+        "evidence/build-1/WORKOUT_FAMILY_MAPPING.jsonl.gz"
+      ],
+      "completedAt": "2026-10-29T08:57:54.948761+00:00"
+    },
+    {
+      "unit": 3,
+      "name": "family_routing_and_component_bias_review",
+      "status": "completed",
+      "evidence": [
+        "evidence/build-1",
+        "evidence/build-2"
+      ],
+      "completedAt": "2026-10-29T08:57:54.949376+00:00"
+    },
+    {
+      "unit": 4,
+      "name": "reference_inventory_and_verification_scopes",
+      "status": "completed",
+      "evidence": [
+        "evidence/final/REFERENCE_OCCURRENCES.jsonl.gz",
+        "evidence/final/existing-reference-contexts.json"
+      ],
+      "completedAt": "2026-10-29T09:01:41.267064+00:00"
+    },
+    {
+      "unit": 5,
+      "name": "plan_impact_stratification",
+      "status": "completed",
+      "evidence": [
+        "evidence/final/PLAN_USAGE.jsonl.gz",
+        "evidence/final/summary.json"
+      ],
+      "completedAt": "2026-10-29T09:01:41.267451+00:00"
+    },
+    {
+      "unit": 6,
+      "name": "research_questions_and_top_five_dossiers",
+      "status": "completed",
+      "evidence": [
+        "SCIENTIFIC_RESEARCH_QUESTIONS.md",
+        "TOP_5_RESEARCH_DOSSIERS.json"
+      ],
+      "completedAt": "2026-10-29T09:08:56.447451+00:00"
+    },
+    {
+      "unit": 7,
+      "name": "detached_evidence_contract",
+      "status": "completed",
+      "evidence": [
+        "EVIDENCE_INTEGRATION_SCHEMA.json",
+        "EVIDENCE_INTEGRATION_SCHEMA.md"
+      ],
+      "completedAt": "2026-10-29T09:08:56.447777+00:00"
+    },
+    {
+      "unit": 8,
+      "name": "independent_validation_and_replay",
+      "status": "completed",
+      "evidence": [
+        "evidence/independent-final.json",
+        "evidence/contracts-final.txt",
+        "evidence/live-library-proof.json",
+        "evidence/reproducibility.json",
+        "evidence/handoff-reproducibility.json"
+      ],
+      "completedAt": "2026-10-29T09:15:33.608015+00:00"
+    },
+    {
+      "unit": 9,
+      "name": "handoff_documents_and_readiness_report",
+      "status": "completed",
+      "evidence": [
+        "V21A_RESULTS.md",
+        "REPRISE.md",
+        "JOURNAL.md",
+        "evidence/dossier-review.json",
+        "evidence/handoff/summary.json"
+      ],
+      "completedAt": "2026-10-29T09:16:36.245384+00:00"
+    },
+    {
+      "unit": 10,
+      "name": "closure_push_and_draft_pr_delivery",
+      "status": "completed",
+      "startedAt": "2026-10-29T09:17:32.934860+00:00",
+      "evidence": [
+        "final-integrity.json",
+        "source-checksums.json",
+        "evidence/dossier-review.json"
+      ],
+      "completedAt": "2026-10-29T09:18:55.157765+00:00"
+    }
+  ],
+  "acceptedData": "evidence/accepted",
+  "classificationAttemptsPreserved": [
+    "build-1",
+    "build-2",
+    "build-3",
+    "final"
+  ],
+  "resources": {
+    "maxWallSeconds": 3600,
+    "maxUnits": 10,
+    "paidApiCalls": 0,
+    "automaticRestart": false,
+    "quotaMeterExposed": false
+  },
+  "finishedAt": "2026-10-29T09:18:55.157765+00:00",
+  "elapsedSeconds": 1708,
+  "closedWithinBudget": true,
+  "sourceCheckpointCommit": "d678b2b315f17187657468aa60cc57e8c81c7e05",
+  "delivery": {
+    "checkpointPushed": true,
+    "finalClosurePushAndPrVerification": "performed_after_closure_commit_in_same_unit",
+    "automaticContinuation": false
+  }
+}

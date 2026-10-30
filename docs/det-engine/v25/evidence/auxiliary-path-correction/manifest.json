@@ -1,0 +1,14 @@
+{
+  "scripts/det-engine/v25-independent.py": {
+    "originalSnapshot": "docs/det-engine/v25/evidence/auxiliary-path-correction/v25-independent.py.before.txt",
+    "originalSha256": "6c5a4c1314bb24d77af76792d74ec3bd32f1410f272087590f1327724dc04d6a",
+    "correctedSha256": "5d3316e197d25b84b80981c7845dc1bc08767fc19732d8945fbf1c307ec31293",
+    "scope": "post-validation auxiliary paths and versioned auxiliary-source verification only; TypeScript/runtime/test pins remain checked live"
+  },
+  "scripts/det-engine/v25-final-check.py": {
+    "originalSnapshot": "docs/det-engine/v25/evidence/auxiliary-path-correction/v25-final-check.py.before.txt",
+    "originalSha256": "623da0c437e9cf485ab3d70ba3491728889af37432c79d10a65f719e5eb25abc",
+    "correctedSha256": "2365540e9b43a13a94fc387b03fcc0dee3d83e7943a4d911f5409d247f429788",
+    "scope": "post-validation auxiliary paths and versioned auxiliary-source verification only; TypeScript/runtime/test pins remain checked live"
+  }
+}

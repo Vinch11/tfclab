@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "source": "aa65ffc73915dd72c32736e498d094addfa8ecb882160e7fc1ea75a0e869c6de",
+  "commands": [
+    {
+      "name": "ironman-matrix",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-ironman-matrix.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 245416
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-ironman-matrix-r2/candidate.json.gz": "6e9938adcbf4968ee6245d07a4290d6aeb871f6bdfa4f81a25d08e37a79a36b7",
+    "/tmp/det-v4-ironman-matrix-r2/ironman-matrix.txt": "43e06a006adf4b2ec3cc43f118c407bafe5ce94f1242e226fe82df0297707991",
+    "/tmp/det-v4-ironman-matrix-r2/replay.json.gz": "6e9938adcbf4968ee6245d07a4290d6aeb871f6bdfa4f81a25d08e37a79a36b7",
+    "/tmp/det-v4-ironman-matrix-r2/summary.json": "09655f462d11bd18a8fcbe4a31c3ae329812f877fd82d138684a4b82ed321884"
+  },
+  "reservation": {
+    "id": "ironman-matrix",
+    "startedAt": 1793137764410
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "experimental/det-engine/v23-capacity.ts": "6ae2014a9cd872435716a8562c5a9ddfa0a04f2d3f6d89a31e15d5902d047a55",
+  "experimental/det-engine/v23-cases.ts": "4610efe0607815a048a220f08ad847e24d5d58cca7bab243e1af518a0f833109",
+  "experimental/det-engine/v23-conflict.ts": "17f7842268b8ebfe3dc297d7e0ea17761bc66906d09d284602277cf197af62b8",
+  "experimental/det-engine/v23-contracts.test.ts": "3fc0d0d811fdb3dca5bfa3e912b6df3cabb2ea1f7e0e2e7b64048c00e2100635",
+  "experimental/det-engine/v23-prescription.ts": "eef2f8ed6815c8bbeb5f9a54f4b56fb8cf074e1a3fec7adeb25bd3d062c9ac35",
+  "experimental/det-engine/v23-programming.ts": "06582ffbd5cd3ce8d523100d48264295e591ea2097b665a2b9e74f26e3ef1288",
+  "experimental/det-engine/v23-scope.ts": "09ca8c70e6c07d5cbffb3e5cc7e1bad25845378251da838eb5251cf8b6615a74",
+  "experimental/det-engine/v23-study.test.ts": "ad14a5e372ab8587e5c5bdd0e5e0e46b38daa735f01d7dcd15715c2cffe6bf4f",
+  "experimental/det-engine/vitest.v23.config.ts": "169efa9a1756ea4250ab0d242f4c41a8e9f7e1f4ac620ccab95b6ad4ee0940bc",
+  "scripts/det-engine/v23-run.mjs": "fa2cfcdad7c2ddfb19a87230777d2fe4f26dac2457b359d01d1113d3553586c2",
+  "scripts/det-engine/v23-session.py": "1aa536f197340a0016c637dc079be54946b53a6d48be1f15968e77f5e1edefe6",
+  "experimental/det-engine/v14-calendar.ts": "1c06222303bd877b2261367a81184ba635ecb717c3c332d8e0a9d2a06e6b4795",
+  "experimental/det-engine/v22-prescription.ts": "16bb0941793881ff8499710d506b9dd5949b942692abc5ff7b6d68f205bcfd9a",
+  "docs/det-engine/v23/inputs.json": "b566cf0e7db6bf82898f7accb63ba68e97a7bc7cbdec96fecdf41000b921dedc",
+  "docs/det-engine/v22/inputs.json": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97"
+}

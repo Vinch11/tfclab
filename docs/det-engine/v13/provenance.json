@@ -1,0 +1,18 @@
+{
+  "version": "det-v13-1",
+  "baseline": "e014106819b84036970171586854a9ad3a5029b3",
+  "syntheticOnly": true,
+  "preservedFiles": 2381,
+  "scientificSources": [
+    "docs/det-engine/v8/SCIENTIFIC_EVIDENCE_MATRIX.md",
+    "docs/det-engine/v8/LORANG_METHODOLOGY.md"
+  ],
+  "interpretation": "arithmetic/source audit and necessary feasibility constraints only; no new optimal physiological dose formula",
+  "productionCatalogueChanged": false,
+  "historicalValidatorsChanged": false,
+  "realAthleteAccess": false,
+  "paidApiCalls": 0,
+  "complete16WeekPlans": 0,
+  "expertReviewedPlans": 0,
+  "historical600": "preserved; no regenerated case outcomes claimed"
+}

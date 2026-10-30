@@ -1,0 +1,47 @@
+{
+  "runs": [
+    {
+      "name": "types",
+      "ok": true,
+      "status": "passed",
+      "attempted": true,
+      "executionVerified": true,
+      "exitCode": 0
+    },
+    {
+      "name": "supervisor-tests",
+      "ok": true,
+      "status": "passed",
+      "attempted": true,
+      "executionVerified": true,
+      "exitCode": 0
+    },
+    {
+      "name": "diagnostic-tests",
+      "ok": true,
+      "status": "passed",
+      "attempted": true,
+      "executionVerified": true,
+      "exitCode": 0
+    },
+    {
+      "name": "engine-tests",
+      "ok": true,
+      "status": "passed",
+      "attempted": true,
+      "executionVerified": true,
+      "exitCode": 0
+    }
+  ],
+  "elapsedMs": 322979,
+  "policy": {
+    "maxCycles": 12,
+    "maxAttemptsPerCause": 3,
+    "maxGlobalWithoutImprovement": 2,
+    "maxDurationMs": 1800000,
+    "maxWorkers": 2,
+    "maxHeapMb": 2048,
+    "commandTimeoutMs": 900000,
+    "apiBudgetUsd": 0
+  }
+}

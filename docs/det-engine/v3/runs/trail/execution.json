@@ -1,0 +1,37 @@
+{
+  "id": "v3-4-trail",
+  "key": "a49707e7846712239ba2d1ecfb5d69e8d3ba341e01797f1d690e11588e01c546",
+  "kind": "trail",
+  "source": "d6c32cd46fffeb5f1f95a1637383aa0956d2f35172426d706d68db350a78c60c",
+  "out": "/tmp/det-v3-trail-verified",
+  "input": null,
+  "status": "passed",
+  "startedAt": 1793133573427,
+  "completedAt": 1793133599679,
+  "commands": [
+    {
+      "name": "trail",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v3-trail.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "signal": null,
+      "elapsedMs": 26251,
+      "timeoutMs": 900000
+    }
+  ],
+  "comparison": null,
+  "accepted": false,
+  "evidenceHashes": {
+    "/tmp/det-v3-trail-verified/summary.json": "9e2ac9868219b35785cac7b3eaab38ba4d2acbedec61ddce72a91c6c189c627d",
+    "/tmp/det-v3-trail-verified/envelopes.json.gz": "c68fa7198cf6d4e4868800cd623fc0164d955ea84a29cc988cbcadc7fb93f504"
+  },
+  "decision": "experimental_evaluation_only"
+}

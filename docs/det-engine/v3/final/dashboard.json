@@ -1,0 +1,2043 @@
+{
+  "version": "det-v3-dashboard-1",
+  "baselineVersion": "det-v2-plan-repair-08-9680f75bb5ea",
+  "candidateVersion": "det-v3-progression-1-strict-next-strict-next-strict-next-strict-next-strict-next",
+  "candidateSha256": "aa82d231e1bec457630eb2174cc5072b8020aabbfb4c9b78e3702346f755176e",
+  "before": {
+    "cases": 600,
+    "built": 167,
+    "withoutExecutedBlocking": 11,
+    "criticalOccurrencesOnBuilt": 1151,
+    "warningsOnBuilt": 7118,
+    "refused": 433,
+    "sportingRelevance": "not_attested",
+    "humanReviewRequired": 600
+  },
+  "after": {
+    "cases": 600,
+    "built": 167,
+    "withoutExecutedBlocking": 11,
+    "criticalOccurrencesOnBuilt": 1109,
+    "warningsOnBuilt": 7092,
+    "refused": 433,
+    "sportingRelevance": "not_attested",
+    "humanReviewRequired": 600
+  },
+  "legacyRepairReview": {
+    "total": 245,
+    "passRelativeGuard": 50,
+    "requireReview": 195,
+    "affectedCases": 91,
+    "noBlockingCandidatesWithFlaggedHistory": [
+      "Marathon:light:finisher:known_synthetic",
+      "Semi:untrained:age_group:known_synthetic",
+      "10K:untrained:competitor:known_synthetic",
+      "10K:trained:finisher:known_synthetic"
+    ],
+    "scientificApproval": "none",
+    "disposition": "V2 evidence immutable; flagged repairs are not approved sporting prescriptions"
+  },
+  "bySport": [
+    {
+      "key": "triathlon",
+      "cases": 240,
+      "built": 74,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 645,
+      "warningsOnBuilt": 4189,
+      "refused": 166,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 240
+    },
+    {
+      "key": "running",
+      "cases": 200,
+      "built": 93,
+      "withoutExecutedBlocking": 11,
+      "criticalOccurrencesOnBuilt": 464,
+      "warningsOnBuilt": 2903,
+      "refused": 107,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 200
+    },
+    {
+      "key": "trail",
+      "cases": 160,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 160,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 160
+    }
+  ],
+  "byObjectiveFormat": [
+    {
+      "key": "703 / continuous",
+      "cases": 40,
+      "built": 2,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 13,
+      "warningsOnBuilt": 73,
+      "refused": 38,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "IM / continuous",
+      "cases": 40,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 40,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "Sprint / continuous",
+      "cases": 40,
+      "built": 20,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 98,
+      "warningsOnBuilt": 640,
+      "refused": 20,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "Olympic / continuous",
+      "cases": 40,
+      "built": 12,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 91,
+      "warningsOnBuilt": 553,
+      "refused": 28,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "Marathon / continuous",
+      "cases": 40,
+      "built": 21,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 156,
+      "warningsOnBuilt": 977,
+      "refused": 19,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "Semi / continuous",
+      "cases": 40,
+      "built": 26,
+      "withoutExecutedBlocking": 6,
+      "criticalOccurrencesOnBuilt": 98,
+      "warningsOnBuilt": 634,
+      "refused": 14,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "5K / continuous",
+      "cases": 40,
+      "built": 23,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 83,
+      "warningsOnBuilt": 536,
+      "refused": 17,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "10K / continuous",
+      "cases": 40,
+      "built": 23,
+      "withoutExecutedBlocking": 3,
+      "criticalOccurrencesOnBuilt": 127,
+      "warningsOnBuilt": 756,
+      "refused": 17,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "StartToRun / continuous",
+      "cases": 40,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 40,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "Trail / continuous",
+      "cases": 40,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 40,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "TrailShort / continuous",
+      "cases": 40,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 40,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "TrailMountain / continuous",
+      "cases": 40,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 40,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "TrailUltra / continuous",
+      "cases": 40,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 40,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "703 / lcw_3day",
+      "cases": 40,
+      "built": 20,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 198,
+      "warningsOnBuilt": 1172,
+      "refused": 20,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    },
+    {
+      "key": "IM / lcw_3day",
+      "cases": 40,
+      "built": 20,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 245,
+      "warningsOnBuilt": 1751,
+      "refused": 20,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 40
+    }
+  ],
+  "byObjectiveAmbition": [
+    {
+      "key": "703 / finisher",
+      "cases": 16,
+      "built": 5,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 34,
+      "warningsOnBuilt": 260,
+      "refused": 11,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "703 / age_group",
+      "cases": 16,
+      "built": 7,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 65,
+      "warningsOnBuilt": 386,
+      "refused": 9,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "703 / competitor",
+      "cases": 16,
+      "built": 4,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 50,
+      "warningsOnBuilt": 280,
+      "refused": 12,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "703 / elite",
+      "cases": 16,
+      "built": 1,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 13,
+      "warningsOnBuilt": 63,
+      "refused": 15,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "703 / world_class",
+      "cases": 16,
+      "built": 5,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 49,
+      "warningsOnBuilt": 256,
+      "refused": 11,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "IM / finisher",
+      "cases": 16,
+      "built": 5,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 37,
+      "warningsOnBuilt": 370,
+      "refused": 11,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "IM / age_group",
+      "cases": 16,
+      "built": 5,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 63,
+      "warningsOnBuilt": 403,
+      "refused": 11,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "IM / competitor",
+      "cases": 16,
+      "built": 4,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 67,
+      "warningsOnBuilt": 361,
+      "refused": 12,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "IM / elite",
+      "cases": 16,
+      "built": 4,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 61,
+      "warningsOnBuilt": 449,
+      "refused": 12,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "IM / world_class",
+      "cases": 16,
+      "built": 2,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 17,
+      "warningsOnBuilt": 168,
+      "refused": 14,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 16
+    },
+    {
+      "key": "Sprint / finisher",
+      "cases": 8,
+      "built": 5,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 15,
+      "warningsOnBuilt": 132,
+      "refused": 3,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Sprint / age_group",
+      "cases": 8,
+      "built": 5,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 28,
+      "warningsOnBuilt": 175,
+      "refused": 3,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Sprint / competitor",
+      "cases": 8,
+      "built": 5,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 30,
+      "warningsOnBuilt": 157,
+      "refused": 3,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Sprint / elite",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 12,
+      "warningsOnBuilt": 97,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Sprint / world_class",
+      "cases": 8,
+      "built": 2,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 13,
+      "warningsOnBuilt": 79,
+      "refused": 6,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Olympic / finisher",
+      "cases": 8,
+      "built": 4,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 27,
+      "warningsOnBuilt": 194,
+      "refused": 4,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Olympic / age_group",
+      "cases": 8,
+      "built": 1,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 7,
+      "warningsOnBuilt": 32,
+      "refused": 7,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Olympic / competitor",
+      "cases": 8,
+      "built": 2,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 23,
+      "warningsOnBuilt": 122,
+      "refused": 6,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Olympic / elite",
+      "cases": 8,
+      "built": 2,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 12,
+      "warningsOnBuilt": 75,
+      "refused": 6,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Olympic / world_class",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 22,
+      "warningsOnBuilt": 130,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Marathon / finisher",
+      "cases": 8,
+      "built": 6,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 12,
+      "warningsOnBuilt": 245,
+      "refused": 2,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Marathon / age_group",
+      "cases": 8,
+      "built": 7,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 72,
+      "warningsOnBuilt": 364,
+      "refused": 1,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Marathon / competitor",
+      "cases": 8,
+      "built": 4,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 36,
+      "warningsOnBuilt": 183,
+      "refused": 4,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Marathon / elite",
+      "cases": 8,
+      "built": 2,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 16,
+      "warningsOnBuilt": 99,
+      "refused": 6,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Marathon / world_class",
+      "cases": 8,
+      "built": 2,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 20,
+      "warningsOnBuilt": 86,
+      "refused": 6,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Semi / finisher",
+      "cases": 8,
+      "built": 7,
+      "withoutExecutedBlocking": 3,
+      "criticalOccurrencesOnBuilt": 6,
+      "warningsOnBuilt": 127,
+      "refused": 1,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Semi / age_group",
+      "cases": 8,
+      "built": 8,
+      "withoutExecutedBlocking": 2,
+      "criticalOccurrencesOnBuilt": 34,
+      "warningsOnBuilt": 227,
+      "refused": 0,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Semi / competitor",
+      "cases": 8,
+      "built": 4,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 23,
+      "warningsOnBuilt": 104,
+      "refused": 4,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Semi / elite",
+      "cases": 8,
+      "built": 4,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 20,
+      "warningsOnBuilt": 90,
+      "refused": 4,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Semi / world_class",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 15,
+      "warningsOnBuilt": 86,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "5K / finisher",
+      "cases": 8,
+      "built": 7,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 8,
+      "warningsOnBuilt": 144,
+      "refused": 1,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "5K / age_group",
+      "cases": 8,
+      "built": 7,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 28,
+      "warningsOnBuilt": 178,
+      "refused": 1,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "5K / competitor",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 15,
+      "warningsOnBuilt": 75,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "5K / elite",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 22,
+      "warningsOnBuilt": 82,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "5K / world_class",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 10,
+      "warningsOnBuilt": 57,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "10K / finisher",
+      "cases": 8,
+      "built": 7,
+      "withoutExecutedBlocking": 2,
+      "criticalOccurrencesOnBuilt": 6,
+      "warningsOnBuilt": 202,
+      "refused": 1,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "10K / age_group",
+      "cases": 8,
+      "built": 7,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 60,
+      "warningsOnBuilt": 239,
+      "refused": 1,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "10K / competitor",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 17,
+      "warningsOnBuilt": 73,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "10K / elite",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 21,
+      "warningsOnBuilt": 124,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "10K / world_class",
+      "cases": 8,
+      "built": 3,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 23,
+      "warningsOnBuilt": 118,
+      "refused": 5,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "StartToRun / finisher",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "StartToRun / age_group",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "StartToRun / competitor",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "StartToRun / elite",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "StartToRun / world_class",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Trail / finisher",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Trail / age_group",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Trail / competitor",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Trail / elite",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "Trail / world_class",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailShort / finisher",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailShort / age_group",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailShort / competitor",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailShort / elite",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailShort / world_class",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailMountain / finisher",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailMountain / age_group",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailMountain / competitor",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailMountain / elite",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailMountain / world_class",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailUltra / finisher",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailUltra / age_group",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailUltra / competitor",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailUltra / elite",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    },
+    {
+      "key": "TrailUltra / world_class",
+      "cases": 8,
+      "built": 0,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 0,
+      "warningsOnBuilt": 0,
+      "refused": 8,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 8
+    }
+  ],
+  "byLevel": [
+    {
+      "key": "untrained",
+      "cases": 150,
+      "built": 43,
+      "withoutExecutedBlocking": 4,
+      "criticalOccurrencesOnBuilt": 177,
+      "warningsOnBuilt": 1600,
+      "refused": 107,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 150
+    },
+    {
+      "key": "light",
+      "cases": 150,
+      "built": 56,
+      "withoutExecutedBlocking": 2,
+      "criticalOccurrencesOnBuilt": 428,
+      "warningsOnBuilt": 2271,
+      "refused": 94,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 150
+    },
+    {
+      "key": "trained",
+      "cases": 150,
+      "built": 38,
+      "withoutExecutedBlocking": 3,
+      "criticalOccurrencesOnBuilt": 272,
+      "warningsOnBuilt": 1763,
+      "refused": 112,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 150
+    },
+    {
+      "key": "highly_trained",
+      "cases": 150,
+      "built": 30,
+      "withoutExecutedBlocking": 2,
+      "criticalOccurrencesOnBuilt": 232,
+      "warningsOnBuilt": 1458,
+      "refused": 120,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 150
+    }
+  ],
+  "byEffectiveAmbition": [
+    {
+      "key": "finisher",
+      "cases": 240,
+      "built": 82,
+      "withoutExecutedBlocking": 10,
+      "criticalOccurrencesOnBuilt": 295,
+      "warningsOnBuilt": 3003,
+      "refused": 158,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 240
+    },
+    {
+      "key": "age_group",
+      "cases": 180,
+      "built": 68,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 597,
+      "warningsOnBuilt": 2896,
+      "refused": 112,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 180
+    },
+    {
+      "key": "competitor",
+      "cases": 60,
+      "built": 8,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 107,
+      "warningsOnBuilt": 526,
+      "refused": 52,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 60
+    },
+    {
+      "key": "elite",
+      "cases": 90,
+      "built": 7,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 94,
+      "warningsOnBuilt": 544,
+      "refused": 83,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 90
+    },
+    {
+      "key": "world_class",
+      "cases": 30,
+      "built": 2,
+      "withoutExecutedBlocking": 0,
+      "criticalOccurrencesOnBuilt": 16,
+      "warningsOnBuilt": 123,
+      "refused": 28,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 30
+    }
+  ],
+  "byPhysiology": [
+    {
+      "key": "aerobic_dominant",
+      "cases": 120,
+      "built": 38,
+      "withoutExecutedBlocking": 2,
+      "criticalOccurrencesOnBuilt": 279,
+      "warningsOnBuilt": 1722,
+      "refused": 82,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 120
+    },
+    {
+      "key": "glycolytic_dominant",
+      "cases": 120,
+      "built": 28,
+      "withoutExecutedBlocking": 3,
+      "criticalOccurrencesOnBuilt": 176,
+      "warningsOnBuilt": 1047,
+      "refused": 92,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 120
+    },
+    {
+      "key": "balanced_typical",
+      "cases": 120,
+      "built": 29,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 198,
+      "warningsOnBuilt": 1318,
+      "refused": 91,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 120
+    },
+    {
+      "key": "atypical_extreme",
+      "cases": 120,
+      "built": 37,
+      "withoutExecutedBlocking": 1,
+      "criticalOccurrencesOnBuilt": 195,
+      "warningsOnBuilt": 1558,
+      "refused": 83,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 120
+    },
+    {
+      "key": "master_40plus",
+      "cases": 120,
+      "built": 35,
+      "withoutExecutedBlocking": 4,
+      "criticalOccurrencesOnBuilt": 261,
+      "warningsOnBuilt": 1447,
+      "refused": 85,
+      "sportingRelevance": "not_attested",
+      "humanReviewRequired": 120
+    }
+  ],
+  "ironman": {
+    "version": "det-v3-im-1",
+    "models": [
+      {
+        "model": "reference",
+        "cases": 40,
+        "built": 0,
+        "candidateContractConformant": 0,
+        "referenceContractConformant": 0,
+        "reasons": {
+          "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+          "empty_catalogue_domain_week_3": 8,
+          "empty_catalogue_domain_week_4": 1,
+          "empty_catalogue_domain_week_1": 22,
+          "no_catalogue_assignment_week_3": 1,
+          "existing_prevalidation_blocked": 3
+        },
+        "exactReplay": 40
+      },
+      {
+        "model": "phase_catalogue_dose",
+        "cases": 40,
+        "built": 13,
+        "candidateContractConformant": 0,
+        "referenceContractConformant": 0,
+        "reasons": {
+          "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+          "candidate": 13,
+          "empty_catalogue_domain_week_4": 10,
+          "no_catalogue_assignment_week_3": 1,
+          "empty_catalogue_domain_week_3": 5,
+          "search_budget_exhausted": 2,
+          "existing_prevalidation_blocked": 3,
+          "no_catalogue_assignment_week_11": 1
+        },
+        "exactReplay": 40
+      },
+      {
+        "model": "phase_component_consistent",
+        "cases": 40,
+        "built": 13,
+        "candidateContractConformant": 0,
+        "referenceContractConformant": 0,
+        "reasons": {
+          "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+          "candidate": 13,
+          "empty_catalogue_domain_week_4": 10,
+          "no_catalogue_assignment_week_3": 1,
+          "empty_catalogue_domain_week_3": 5,
+          "search_budget_exhausted": 2,
+          "existing_prevalidation_blocked": 3,
+          "no_catalogue_assignment_week_11": 1
+        },
+        "exactReplay": 40
+      },
+      {
+        "model": "phase_with_standalone_endurance",
+        "cases": 40,
+        "built": 13,
+        "candidateContractConformant": 0,
+        "referenceContractConformant": 0,
+        "reasons": {
+          "existing_prevalidation_blocked": 8,
+          "candidate": 13,
+          "minimum_catalogue_dose_exceeds_budget_week_1": 2,
+          "empty_catalogue_domain_week_4": 8,
+          "no_catalogue_assignment_week_3": 1,
+          "search_budget_exhausted": 3,
+          "empty_catalogue_domain_week_3": 4,
+          "no_catalogue_assignment_week_11": 1
+        },
+        "exactReplay": 40
+      },
+      {
+        "model": "phase_recovery_catalogue",
+        "cases": 40,
+        "built": 26,
+        "candidateContractConformant": 0,
+        "referenceContractConformant": 0,
+        "reasons": {
+          "minimum_catalogue_dose_exceeds_budget_week_1": 5,
+          "candidate": 26,
+          "no_catalogue_assignment_week_3": 1,
+          "no_catalogue_assignment_week_4": 1,
+          "search_budget_exhausted": 2,
+          "existing_prevalidation_blocked": 3,
+          "no_catalogue_assignment_week_11": 2
+        },
+        "exactReplay": 40
+      }
+    ],
+    "paidApiCalls": 0,
+    "scientificValidity": "not_attested"
+  },
+  "trail": {
+    "version": "det-v3-trail-1",
+    "originalCases": 160,
+    "original": [
+      {
+        "id": "Trail:untrained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:untrained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:light:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:trained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "Trail:highly_trained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:untrained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:light:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:trained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailShort:highly_trained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:untrained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:light:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:trained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailMountain:highly_trained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:untrained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:light:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:trained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:finisher:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:finisher:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:age_group:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:age_group:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:competitor:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:competitor:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:elite:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:elite:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:world_class:unknown",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      },
+      {
+        "id": "TrailUltra:highly_trained:world_class:known_synthetic",
+        "status": "refused",
+        "reason": "missing_explicit_distance_or_dplus"
+      }
+    ],
+    "syntheticEnvelopes": 36,
+    "completePlans": 0,
+    "exactReplay": 36,
+    "models": [
+      {
+        "model": "catalogue_evidence_only",
+        "envelopes": 12,
+        "weeks": 168,
+        "excludedFastDescentCards": 0
+      },
+      {
+        "model": "existing_dplus_envelope",
+        "envelopes": 12,
+        "weeks": 168,
+        "excludedFastDescentCards": 0
+      },
+      {
+        "model": "exposure_gated",
+        "envelopes": 12,
+        "weeks": 168,
+        "excludedFastDescentCards": 215
+      }
+    ],
+    "paidApiCalls": 0
+  }
+}

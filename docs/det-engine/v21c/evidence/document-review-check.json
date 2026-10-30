@@ -1,0 +1,9 @@
+{
+  "mandatoryDeliverables": 9,
+  "coachPacketsChecked": 51,
+  "allSourceInstructionsInNewDossiers": true,
+  "candidateHashesInDossiers": 96,
+  "rootCsvEqualReleaseArtifacts": true,
+  "relayInputManifestPass": true,
+  "humanSportingReviews": 0
+}

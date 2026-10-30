@@ -1,0 +1,60 @@
+✔ All 920 occurrences / IDs / 22 aggregation groups accounted for (1.465375ms)
+✔ All raw and effective source objects are preserved exactly, including Wbal and variants (247.562656ms)
+✔ All records validate against versioned runtime schema and preserve future unknown fields (25.32532ms)
+✔ Reconversion is idempotent across all 920 records (131.261066ms)
+✔ Missing duration remains null, never a zero or midpoint (3.875887ms)
+✔ Unknown schema version and forged resolved status fail closed (1.076116ms)
+✔ Tampered prescriptions or source fields cannot enter coach/Nolio adapters (5.350045ms)
+✔ Coach presentation retains all prescription fields of all 920 records; internal mapping remains canonical (442.614677ms)
+✔ HTML presentation escapes instructions rather than executing them (1.716875ms)
+✔ Repeated/composite protocols are not reduced to their first number (348.784619ms)
+✔ 833 single-discipline source cards yield explicit text-only local mock contracts; 87 multisports refuse (594.291273ms)
+✔ Every successful mock payload retains instructions, restrictions, legacy ID and chosen date (558.115403ms)
+✔ All text payloads serialize and replay identically with stable occurrence keys (1256.851815ms)
+✔ No complete source structured workout is claimed by the conservative parser (531.089037ms)
+✔ Text-only machine-structure loss requires explicit acknowledgement (0.965258ms)
+✔ Impossible/unknown budgets, impossible dates and absent mode are rejected (3.398635ms)
+✔ Real identity context and Nolio v2 cannot use synthetic v1 adapter (1.205451ms)
+✔ Local sender contract accepts explicit repeated DTO syntax and rejects nonfinite/negative units (0.638254ms)
+✔ Personalized display changes with a documented anchor without inventing dose or adaptation (1.021754ms)
+✔ Missing anchors and missing explicit intent are never reconstructed from training level or text (0.723483ms)
+✔ VO2 display requires the individual upper anchor, without a silent fallback (0.558244ms)
+✔ No conversion claims scientific validation or individual admission; unknown references remain unknown (0.570982ms)
+✔ JSON Schema is an explicit V2 external contract with required source evidence (0.076596ms)
+✔ The current sender source confirms numeric id_partner, calendar date and the six base payload fields (24.983203ms)
+✔ Coach view resolves intensity from documented anchors and hides internal Nolio mapping (1.709984ms)
+✔ Mixed rest/mobility/nutrition is not silently classified as brick; explicit bricks retain their gate (0.515279ms)
+✖ Source-specific percentage limits cannot be overwritten by a broader doctrine display range (1.535149ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 26
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4213.59401
+
+✖ failing tests:
+
+test at scripts/det-engine/v16-contracts.test.mjs:40:1
+✖ Source-specific percentage limits cannot be overwritten by a broader doctrine display range (1.535149ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'candidate_display'
+  - 'unknown'
+  
+      at TestContext.<anonymous> (file:///workspace/tfclab/scripts/det-engine/v16-contracts.test.mjs:40:268)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'candidate_display',
+    expected: 'unknown',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

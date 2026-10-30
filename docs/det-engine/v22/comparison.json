@@ -1,0 +1,115 @@
+[
+  {
+    "profile": "A_aerobic",
+    "rawPhysiologyUnchanged": true,
+    "initialStrictMesocycle": "refused",
+    "initialStrictReason": "distinct_catalogue_capacity_conflict",
+    "newFirstMicrocycle": "constructed",
+    "beforeProspectiveMinutes": [
+      510,
+      530,
+      580,
+      305
+    ],
+    "afterProspectiveMinutes": [
+      465,
+      485,
+      505,
+      285
+    ],
+    "nativeBudgets": [
+      480,
+      528,
+      580,
+      420
+    ],
+    "structuralCalendarComplete": true,
+    "status": "incomplete_or_refused",
+    "states": {
+      "conditional_pending_reassessment": 23,
+      "not_admissible": 7
+    },
+    "historicalBlockingBefore": 8,
+    "historicalBlockingAfter": 4,
+    "historicalWarningsBefore": 36,
+    "historicalWarningsAfter": 36,
+    "canonicalWitnessesAtReservedDose": 10,
+    "actualPrescriptionApproved": false,
+    "expertReviewed": false
+  },
+  {
+    "profile": "B_sustainability",
+    "rawPhysiologyUnchanged": true,
+    "initialStrictMesocycle": "refused",
+    "initialStrictReason": "distinct_catalogue_capacity_conflict",
+    "newFirstMicrocycle": "constructed",
+    "beforeProspectiveMinutes": [
+      510,
+      530,
+      580,
+      305
+    ],
+    "afterProspectiveMinutes": [
+      465,
+      485,
+      505,
+      285
+    ],
+    "nativeBudgets": [
+      480,
+      528,
+      580,
+      420
+    ],
+    "structuralCalendarComplete": true,
+    "status": "complete_conditional_candidate",
+    "states": {
+      "conditional_pending_reassessment": 30
+    },
+    "historicalBlockingBefore": 8,
+    "historicalBlockingAfter": 4,
+    "historicalWarningsBefore": 36,
+    "historicalWarningsAfter": 35,
+    "canonicalWitnessesAtReservedDose": 10,
+    "actualPrescriptionApproved": false,
+    "expertReviewed": false
+  },
+  {
+    "profile": "C_uncertain",
+    "rawPhysiologyUnchanged": true,
+    "initialStrictMesocycle": "refused",
+    "initialStrictReason": "distinct_catalogue_capacity_conflict",
+    "newFirstMicrocycle": "constructed",
+    "beforeProspectiveMinutes": [
+      500,
+      528,
+      560,
+      285
+    ],
+    "afterProspectiveMinutes": [
+      455,
+      465,
+      480,
+      265
+    ],
+    "nativeBudgets": [
+      480,
+      528,
+      580,
+      420
+    ],
+    "structuralCalendarComplete": true,
+    "status": "incomplete_or_refused",
+    "states": {
+      "not_admissible": 26,
+      "conditional_pending_reassessment": 4
+    },
+    "historicalBlockingBefore": 6,
+    "historicalBlockingAfter": 4,
+    "historicalWarningsBefore": 37,
+    "historicalWarningsAfter": 37,
+    "canonicalWitnessesAtReservedDose": 11,
+    "actualPrescriptionApproved": false,
+    "expertReviewed": false
+  }
+]

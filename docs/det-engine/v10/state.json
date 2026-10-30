@@ -1,0 +1,101 @@
+{
+  "version": "det-v10-1",
+  "baseline": "a73a6383ff2d56fd5ff9e86b207eff27dba4de41",
+  "startedAt": 1793187925,
+  "deadline": 1793191525,
+  "maxUnits": 10,
+  "status": "completed_no_go",
+  "activeUnit": null,
+  "units": [
+    {
+      "id": "baseline_audit",
+      "status": "passed",
+      "evidence": "baseline-files.json",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "frozen_profiles",
+      "status": "passed",
+      "evidence": "evidence/preregistration.json",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "allocation",
+      "status": "passed",
+      "evidence": "ALLOCATION_ENGINE.md",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "ironman",
+      "status": "passed",
+      "evidence": "IRONMAN_MICROCYCLES.md",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "trail",
+      "status": "passed",
+      "evidence": "TRAIL_SENSITIVITY.md",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "feedback",
+      "status": "passed",
+      "evidence": "FEEDBACK_REPAIR_RESULTS.md",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "comparison",
+      "status": "passed",
+      "evidence": "evidence/reproducibility.json",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "validation",
+      "status": "passed",
+      "attempts": [
+        {
+          "startedAt": 1793189681780,
+          "command": [
+            "scripts/det-engine/v10-validate.mjs"
+          ],
+          "status": "failed",
+          "completedAt": 1793189721891,
+          "exitCode": 1,
+          "output": "docs/det-engine/v10/evidence/validation-1.txt",
+          "sha256": "7a3946966329b4c98e991f58f9522a694ff6d064a52cccc25a1ab3c29cb5c14c"
+        },
+        {
+          "startedAt": 1793189925004,
+          "command": [
+            "scripts/det-engine/v10-validate.mjs"
+          ],
+          "status": "passed",
+          "completedAt": 1793190377655,
+          "exitCode": 0,
+          "output": "docs/det-engine/v10/evidence/validation-2.txt",
+          "sha256": "f488ef2c6bb464d280889f8e7d6a36df8565e3e7ab92e85d20de0910f19b9a61"
+        }
+      ],
+      "evidence": "validation-summary.json",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "documentation",
+      "status": "passed",
+      "evidence": "V10_RESULTS.md",
+      "meaning": "bounded work completed, not sporting approval"
+    },
+    {
+      "id": "publication",
+      "status": "passed",
+      "startedAt": 1793190722.948642,
+      "mode": "authorized_git_and_draft_pr_metadata",
+      "completedAt": 1793190895.1969943,
+      "evidence": "publication-proof.json"
+    }
+  ],
+  "completedAt": 1793190895.196997,
+  "elapsedSeconds": 2970.197,
+  "stopReason": "ten_named_units_completed",
+  "automaticRestart": false
+}

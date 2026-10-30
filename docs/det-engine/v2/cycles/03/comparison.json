@@ -1,0 +1,17 @@
+{
+  "coverageLost": [],
+  "coverageAdded": [],
+  "regressions": [],
+  "newlyExposed": [],
+  "unattributed": [],
+  "reproduced": true,
+  "noCriticalRegression": true,
+  "improvedConformance": 0,
+  "improvedConstruction": 0,
+  "improvedDefects": 0,
+  "defectReductions": [],
+  "improvement": false,
+  "scientificGoAttested": false,
+  "baselineHash": "c03a0d8314b04491722a26eb673c1c1dac341631273f7f888b1708cf1c6d19e1",
+  "candidateHash": "c03a0d8314b04491722a26eb673c1c1dac341631273f7f888b1708cf1c6d19e1"
+}

@@ -1,0 +1,11 @@
+{
+  "selectionArtifactsUnchanged": true,
+  "comparison": [
+    {
+      "file": "selection-sensitivity.json",
+      "sha256": "ba0d30a45147245445df644fcf35279a5d9b2428f4cc245bae1fb07eacb465f4",
+      "identical": true
+    }
+  ],
+  "scopeFieldAdded": "goal variant still requires separate source resolution; no current individual approval"
+}

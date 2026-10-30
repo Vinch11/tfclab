@@ -1,0 +1,2029 @@
+[
+  {
+    "caseUnchanged": {
+      "legacyId": "B_BIKE_VO2_3MIN",
+      "familyId": "vo2max",
+      "referenceId": "VO2-01",
+      "sourceReadPointers": [
+        "/original/effective/structure/0/text",
+        "/original/effective/structure/1/text",
+        "/original/effective/structure/2/text",
+        "/original/effective/physiology/rationale"
+      ],
+      "comparison": {
+        "source": "20 min progressive + 3×30 s Z5 r60 s; main 5–7×3 min Z5 r3 min Z1–Z2; 10 min cool-down. The final rest policies remain unresolved in the original and candidate in V19.",
+        "studyPopulation": "Narrative programming review with examples from several sports; no single intervention cohort or athlete-specific dose established.",
+        "studyProtocol": "Review of work/relief intensity and duration, modality, repetitions, series and between-series recovery, plus cardiopulmonary and non-cardiopulmonary loads.",
+        "studyComparator": "Programming configurations discussed in a narrative review, not a direct trial of this TFCL recipe.",
+        "studyResults": "Work/recovery configuration can alter acute physiological responses; cardiorespiratory response alone does not capture all loading.",
+        "differences": "No direct validation of 5–7×3 min, Z5 individual domain, 3-min recovery, final-rest occurrence, weekly frequency or VLamax-based restriction. Existing source restrictions remain unchanged.",
+        "individualDataMissing": [
+          "sport-specific upper-intensity anchor and uncertainty",
+          "actual recovery tolerance",
+          "microcycle interaction",
+          "observed response and reason for limiter priority"
+        ],
+        "doseAndRecoveryFullyMatched": false
+      },
+      "claim": "La configuration travail/récupération influence les réponses aiguës des intervalles ; ce contexte ne démontre ni l'optimalité ni l'admissibilité individuelle de cette recette.",
+      "finding": "supports_with_limits",
+      "scope": "family_context",
+      "doseStatus": "dose_not_individually_verified",
+      "referencePmid": "23539308"
+    },
+    "sourceEffectiveSha256": "1a0a9cefcb534eec2bb082c3624c5c3889429b03998ec64ed78aa2e72ac3c681",
+    "sourceRecipeSha256": "0a9480a6b0f5f6ae7f5e4241c63bcc03e5fc76040175c6ed3fa325fbe60dff63",
+    "actualSourceExcerpts": [
+      {
+        "pointer": "/original/effective/structure/0/text",
+        "text": "20 min progressif + 3x30s Z5 r=60s"
+      },
+      {
+        "pointer": "/original/effective/structure/1/text",
+        "text": "5–7x3 min Z5 r=3 min Z1–Z2"
+      },
+      {
+        "pointer": "/original/effective/structure/2/text",
+        "text": "10 min Z1"
+      },
+      {
+        "pointer": "/original/effective/physiology/rationale",
+        "text": "Répétitions de 3 min à puissance aérobie maximale."
+      }
+    ],
+    "candidateTimelines": [
+      {
+        "candidateKey": "B_BIKE_VO2_3MIN@v19:between_repetitions:1b764bed2bb4",
+        "dose": {
+          "seconds": 3630,
+          "assignment": [
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 0,
+                "end": 6,
+                "literal": "20 min"
+              },
+              "seconds": 1200,
+              "range": [
+                1200,
+                1200
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "repetitions": 3,
+              "source": {
+                "partIndex": 0,
+                "start": 20,
+                "end": 22,
+                "literal": "3x"
+              }
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 22,
+                "end": 25,
+                "literal": "30s"
+              },
+              "seconds": 30,
+              "range": [
+                30,
+                30
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 31,
+                "end": 34,
+                "literal": "60s"
+              },
+              "seconds": 60,
+              "range": [
+                60,
+                60
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 22,
+                "end": 25,
+                "literal": "30s"
+              },
+              "seconds": 30,
+              "range": [
+                30,
+                30
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 31,
+                "end": 34,
+                "literal": "60s"
+              },
+              "seconds": 60,
+              "range": [
+                60,
+                60
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 22,
+                "end": 25,
+                "literal": "30s"
+              },
+              "seconds": 30,
+              "range": [
+                30,
+                30
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "repetitions": 5,
+              "source": {
+                "partIndex": 1,
+                "start": 0,
+                "end": 4,
+                "literal": "5–7x"
+              }
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 2,
+              "source": {
+                "partIndex": 2,
+                "start": 0,
+                "end": 6,
+                "literal": "10 min"
+              },
+              "seconds": 600,
+              "range": [
+                600,
+                600
+              ],
+              "nodeKind": "time"
+            }
+          ],
+          "descriptiveLedger": {
+            "status": "descriptive_written_dose_only",
+            "rows": [
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 0,
+                  "end": 6,
+                  "literal": "20 min"
+                },
+                "seconds": 1200,
+                "role": "Warm-up",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2",
+                  "Z5"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 22,
+                  "end": 25,
+                  "literal": "30s"
+                },
+                "seconds": 30,
+                "role": "Warm-up",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 31,
+                  "end": 34,
+                  "literal": "60s"
+                },
+                "seconds": 60,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2",
+                  "Z5"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 22,
+                  "end": 25,
+                  "literal": "30s"
+                },
+                "seconds": 30,
+                "role": "Warm-up",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 31,
+                  "end": 34,
+                  "literal": "60s"
+                },
+                "seconds": 60,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2",
+                  "Z5"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 22,
+                  "end": 25,
+                  "literal": "30s"
+                },
+                "seconds": 30,
+                "role": "Warm-up",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 2,
+                  "start": 0,
+                  "end": 6,
+                  "literal": "10 min"
+                },
+                "seconds": 600,
+                "role": "Cool-down",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              }
+            ],
+            "seconds": 3630,
+            "recoverySeconds": 840,
+            "nonRecoverySeconds": 2790,
+            "sourceLabelsAreNotIndividualDomains": true,
+            "notEnduranceLongCredit": true
+          }
+        }
+      },
+      {
+        "candidateKey": "B_BIKE_VO2_3MIN@v19:after_each_repetition:23bb55bfcb95",
+        "dose": {
+          "seconds": 3870,
+          "assignment": [
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 0,
+                "end": 6,
+                "literal": "20 min"
+              },
+              "seconds": 1200,
+              "range": [
+                1200,
+                1200
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "repetitions": 3,
+              "source": {
+                "partIndex": 0,
+                "start": 20,
+                "end": 22,
+                "literal": "3x"
+              }
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 22,
+                "end": 25,
+                "literal": "30s"
+              },
+              "seconds": 30,
+              "range": [
+                30,
+                30
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 31,
+                "end": 34,
+                "literal": "60s"
+              },
+              "seconds": 60,
+              "range": [
+                60,
+                60
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 22,
+                "end": 25,
+                "literal": "30s"
+              },
+              "seconds": 30,
+              "range": [
+                30,
+                30
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 31,
+                "end": 34,
+                "literal": "60s"
+              },
+              "seconds": 60,
+              "range": [
+                60,
+                60
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 22,
+                "end": 25,
+                "literal": "30s"
+              },
+              "seconds": 30,
+              "range": [
+                30,
+                30
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 31,
+                "end": 34,
+                "literal": "60s"
+              },
+              "seconds": 60,
+              "range": [
+                60,
+                60
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "repetitions": 5,
+              "source": {
+                "partIndex": 1,
+                "start": 0,
+                "end": 4,
+                "literal": "5–7x"
+              }
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 4,
+                "end": 9,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 1,
+              "source": {
+                "partIndex": 1,
+                "start": 15,
+                "end": 20,
+                "literal": "3 min"
+              },
+              "seconds": 180,
+              "range": [
+                180,
+                180
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 2,
+              "source": {
+                "partIndex": 2,
+                "start": 0,
+                "end": 6,
+                "literal": "10 min"
+              },
+              "seconds": 600,
+              "range": [
+                600,
+                600
+              ],
+              "nodeKind": "time"
+            }
+          ],
+          "descriptiveLedger": {
+            "status": "descriptive_written_dose_only",
+            "rows": [
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 0,
+                  "end": 6,
+                  "literal": "20 min"
+                },
+                "seconds": 1200,
+                "role": "Warm-up",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2",
+                  "Z5"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 22,
+                  "end": 25,
+                  "literal": "30s"
+                },
+                "seconds": 30,
+                "role": "Warm-up",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 31,
+                  "end": 34,
+                  "literal": "60s"
+                },
+                "seconds": 60,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2",
+                  "Z5"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 22,
+                  "end": 25,
+                  "literal": "30s"
+                },
+                "seconds": 30,
+                "role": "Warm-up",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 31,
+                  "end": 34,
+                  "literal": "60s"
+                },
+                "seconds": 60,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2",
+                  "Z5"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 22,
+                  "end": 25,
+                  "literal": "30s"
+                },
+                "seconds": 30,
+                "role": "Warm-up",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 31,
+                  "end": 34,
+                  "literal": "60s"
+                },
+                "seconds": 60,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2",
+                  "Z5"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 4,
+                  "end": 9,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z5"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 1,
+                  "start": 15,
+                  "end": 20,
+                  "literal": "3 min"
+                },
+                "seconds": 180,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1",
+                  "Z2"
+                ],
+                "intensityAttribution": "ambiguous_or_unspecified_not_assigned_to_a_domain",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 2,
+                  "start": 0,
+                  "end": 6,
+                  "literal": "10 min"
+                },
+                "seconds": 600,
+                "role": "Cool-down",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              }
+            ],
+            "seconds": 3870,
+            "recoverySeconds": 1080,
+            "nonRecoverySeconds": 2790,
+            "sourceLabelsAreNotIndividualDomains": true,
+            "notEnduranceLongCredit": true
+          }
+        }
+      }
+    ],
+    "actualReferenceIdentity": {
+      "id": "23539308",
+      "source": "MED",
+      "title": "High-intensity interval training, solutions to the programming puzzle: Part I: cardiopulmonary emphasis.",
+      "authorString": "Buchheit M, Laursen PB.",
+      "doi": "10.1007/s40279-013-0029-x",
+      "pubYear": "2013",
+      "electronicPublicationDate": null,
+      "firstPublicationDate": "2013-05-01",
+      "pubTypeList": {
+        "pubType": [
+          "Review",
+          "Journal Article"
+        ]
+      },
+      "journalInfo": {
+        "issue": "5",
+        "volume": "43",
+        "journalIssueId": 2033656,
+        "dateOfPublication": "2013 May",
+        "monthOfPublication": 5,
+        "yearOfPublication": 2013,
+        "journal": {
+          "medlineAbbreviation": "Sports Med",
+          "title": "Sports medicine (Auckland, N.Z.)",
+          "essn": "1179-2035",
+          "issn": "0112-1642",
+          "isoabbreviation": "Sports Med",
+          "nlmid": "8412297"
+        },
+        "printPublicationDate": "2013-05-01"
+      }
+    },
+    "provenance": {
+      "status": "abstract_reviewed",
+      "reviewer": "Codex documentary review; not independent qualified coach approval",
+      "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+      "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+      "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+      "responseLocator": {
+        "medPmid": "23539308"
+      },
+      "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+      "fullTextReviewed": false,
+      "articleEfficacyOrDoseApproved": false
+    },
+    "exactDoseMatched": false,
+    "individualApproval": false,
+    "packetValidation": {
+      "transportAndProvenanceAdmissible": true,
+      "scope": "family_context",
+      "expertApproval": false,
+      "scientificTruthCertifiedByCode": false,
+      "doseStatus": "dose_not_individually_verified",
+      "prescriptionChanged": false
+    }
+  },
+  {
+    "caseUnchanged": {
+      "legacyId": "C_IM_AERO_HOLD",
+      "familyId": "technique",
+      "referenceId": "IM-03",
+      "sourceReadPointers": [
+        "/original/effective/structure/0/text"
+      ],
+      "comparison": {
+        "source": "4×15 min Z2 en position aéro, r5 min Z1; unknown original final-rest occurrence; candidate totals 75 or 80 min. Source avoid: lumbar pain. The archived 6×10 alternative has another continuous exposure.",
+        "studyPopulation": "20 cyclists; results about perceptions across tested positions, not an individual Ironman cohort tolerance certificate.",
+        "studyProtocol": "Three tests in randomized order, 45 min at 50% individual peak aerobic power, with different knee and trunk flexion combinations.",
+        "studyComparator": "Different bicycle positions at the experimental workload, not 4×15 versus 6×10 min bouts.",
+        "studyResults": "Perceptions of comfort, fatigue and pain varied across positions; upright trunk was more comfortable in the study's recreational context.",
+        "differences": "Study intensity is relative to peak aerobic power, not automatically Z2/FTP. No 15-min bout tolerance, recovery duration, aerodynamic gain or equivalence of interruptions is demonstrated.",
+        "individualDataMissing": [
+          "actual postural exposure and cervical/lumbar symptoms",
+          "bike-fit and position-specific power anchor",
+          "response to interruptions and full microcycle",
+          "future reassessment before any increase"
+        ],
+        "doseAndRecoveryFullyMatched": false
+      },
+      "claim": "La position sur le vélo peut modifier le confort, la fatigue et la douleur ressentis ; cette étude ne valide ni les blocs de 15 minutes ni leur équivalence aux blocs de 10 minutes.",
+      "finding": "supports_with_limits",
+      "scope": "family_context",
+      "doseStatus": "dose_not_individually_verified",
+      "referencePmid": "27490817"
+    },
+    "sourceEffectiveSha256": "a00c4816d6effeff0a9761f583e4e9c442e5a4bbe947f719afdd8763ac98af12",
+    "sourceRecipeSha256": "6f55c8d55589965e5cd7077f7c66955b058dae7f546f4425dbc97c2a1085da15",
+    "actualSourceExcerpts": [
+      {
+        "pointer": "/original/effective/structure/0/text",
+        "text": "4x15' Z2 en position aéro r=5' Z1"
+      }
+    ],
+    "candidateTimelines": [
+      {
+        "candidateKey": "C_IM_AERO_HOLD@v19:between_repetitions:5a9daecc4fac",
+        "dose": {
+          "seconds": 4500,
+          "assignment": [
+            {
+              "partIndex": 0,
+              "repetitions": 4,
+              "source": {
+                "partIndex": 0,
+                "start": 0,
+                "end": 2,
+                "literal": "4x"
+              }
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 2,
+                "end": 5,
+                "literal": "15'"
+              },
+              "seconds": 900,
+              "range": [
+                900,
+                900
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 28,
+                "end": 30,
+                "literal": "5'"
+              },
+              "seconds": 300,
+              "range": [
+                300,
+                300
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 2,
+                "end": 5,
+                "literal": "15'"
+              },
+              "seconds": 900,
+              "range": [
+                900,
+                900
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 28,
+                "end": 30,
+                "literal": "5'"
+              },
+              "seconds": 300,
+              "range": [
+                300,
+                300
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 2,
+                "end": 5,
+                "literal": "15'"
+              },
+              "seconds": 900,
+              "range": [
+                900,
+                900
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 28,
+                "end": 30,
+                "literal": "5'"
+              },
+              "seconds": 300,
+              "range": [
+                300,
+                300
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 2,
+                "end": 5,
+                "literal": "15'"
+              },
+              "seconds": 900,
+              "range": [
+                900,
+                900
+              ],
+              "nodeKind": "time"
+            }
+          ],
+          "descriptiveLedger": {
+            "status": "descriptive_written_dose_only",
+            "rows": [
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 2,
+                  "end": 5,
+                  "literal": "15'"
+                },
+                "seconds": 900,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z2"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 28,
+                  "end": 30,
+                  "literal": "5'"
+                },
+                "seconds": 300,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 2,
+                  "end": 5,
+                  "literal": "15'"
+                },
+                "seconds": 900,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z2"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 28,
+                  "end": 30,
+                  "literal": "5'"
+                },
+                "seconds": 300,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 2,
+                  "end": 5,
+                  "literal": "15'"
+                },
+                "seconds": 900,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z2"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 28,
+                  "end": 30,
+                  "literal": "5'"
+                },
+                "seconds": 300,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 2,
+                  "end": 5,
+                  "literal": "15'"
+                },
+                "seconds": 900,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z2"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              }
+            ],
+            "seconds": 4500,
+            "recoverySeconds": 900,
+            "nonRecoverySeconds": 3600,
+            "sourceLabelsAreNotIndividualDomains": true,
+            "notEnduranceLongCredit": true
+          }
+        }
+      },
+      {
+        "candidateKey": "C_IM_AERO_HOLD@v19:after_each_repetition:18ae8b1932ab",
+        "dose": {
+          "seconds": 4800,
+          "assignment": [
+            {
+              "partIndex": 0,
+              "repetitions": 4,
+              "source": {
+                "partIndex": 0,
+                "start": 0,
+                "end": 2,
+                "literal": "4x"
+              }
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 2,
+                "end": 5,
+                "literal": "15'"
+              },
+              "seconds": 900,
+              "range": [
+                900,
+                900
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 28,
+                "end": 30,
+                "literal": "5'"
+              },
+              "seconds": 300,
+              "range": [
+                300,
+                300
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 2,
+                "end": 5,
+                "literal": "15'"
+              },
+              "seconds": 900,
+              "range": [
+                900,
+                900
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 28,
+                "end": 30,
+                "literal": "5'"
+              },
+              "seconds": 300,
+              "range": [
+                300,
+                300
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 2,
+                "end": 5,
+                "literal": "15'"
+              },
+              "seconds": 900,
+              "range": [
+                900,
+                900
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 28,
+                "end": 30,
+                "literal": "5'"
+              },
+              "seconds": 300,
+              "range": [
+                300,
+                300
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 2,
+                "end": 5,
+                "literal": "15'"
+              },
+              "seconds": 900,
+              "range": [
+                900,
+                900
+              ],
+              "nodeKind": "time"
+            },
+            {
+              "partIndex": 0,
+              "source": {
+                "partIndex": 0,
+                "start": 28,
+                "end": 30,
+                "literal": "5'"
+              },
+              "seconds": 300,
+              "range": [
+                300,
+                300
+              ],
+              "nodeKind": "time"
+            }
+          ],
+          "descriptiveLedger": {
+            "status": "descriptive_written_dose_only",
+            "rows": [
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 2,
+                  "end": 5,
+                  "literal": "15'"
+                },
+                "seconds": 900,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z2"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 28,
+                  "end": 30,
+                  "literal": "5'"
+                },
+                "seconds": 300,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 2,
+                  "end": 5,
+                  "literal": "15'"
+                },
+                "seconds": 900,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z2"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 28,
+                  "end": 30,
+                  "literal": "5'"
+                },
+                "seconds": 300,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 2,
+                  "end": 5,
+                  "literal": "15'"
+                },
+                "seconds": 900,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z2"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 28,
+                  "end": 30,
+                  "literal": "5'"
+                },
+                "seconds": 300,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": true,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 2,
+                  "end": 5,
+                  "literal": "15'"
+                },
+                "seconds": 900,
+                "role": "Main",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z2"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": false,
+                "individualIntensityKnown": false
+              },
+              {
+                "source": {
+                  "partIndex": 0,
+                  "start": 28,
+                  "end": 30,
+                  "literal": "5'"
+                },
+                "seconds": 300,
+                "role": "rest",
+                "programmingSport": "bike",
+                "sourceNodeSport": "bike",
+                "executionMode": "source_unspecified",
+                "sourceZones": [
+                  "Z1"
+                ],
+                "intensityAttribution": "single_literal_source_label",
+                "recovery": true,
+                "individualIntensityKnown": false
+              }
+            ],
+            "seconds": 4800,
+            "recoverySeconds": 1200,
+            "nonRecoverySeconds": 3600,
+            "sourceLabelsAreNotIndividualDomains": true,
+            "notEnduranceLongCredit": true
+          }
+        }
+      }
+    ],
+    "actualReferenceIdentity": {
+      "id": "27490817",
+      "source": "MED",
+      "title": "Effect of bike-fit in the perception of comfort, fatigue and pain.",
+      "authorString": "Priego Quesada JI, Pérez-Soriano P, Lucas-Cuevas AG, Salvador Palmer R, Cibrián Ortiz de Anda RM.",
+      "doi": "10.1080/02640414.2016.1215496",
+      "pubYear": "2017",
+      "electronicPublicationDate": "2016-08-04",
+      "firstPublicationDate": "2016-08-04",
+      "pubTypeList": {
+        "pubType": [
+          "Journal Article"
+        ]
+      },
+      "journalInfo": {
+        "issue": "14",
+        "volume": "35",
+        "journalIssueId": 2549627,
+        "dateOfPublication": "2017 Jul",
+        "monthOfPublication": 7,
+        "yearOfPublication": 2017,
+        "journal": {
+          "medlineAbbreviation": "J Sports Sci",
+          "title": "Journal of sports sciences",
+          "essn": "1466-447X",
+          "issn": "0264-0414",
+          "isoabbreviation": "J Sports Sci",
+          "nlmid": "8405364"
+        },
+        "printPublicationDate": "2017-07-01"
+      }
+    },
+    "provenance": {
+      "status": "abstract_reviewed",
+      "reviewer": "Codex documentary review; not independent qualified coach approval",
+      "retrievalUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=SRC%3AMED+AND+%28EXT_ID%3A29663142+OR+EXT_ID%3A32744041+OR+EXT_ID%3A42683395+OR+EXT_ID%3A38627351+OR+EXT_ID%3A38165636+OR+EXT_ID%3A38268070+OR+EXT_ID%3A38678312+OR+EXT_ID%3A38717713+OR+EXT_ID%3A39888556+OR+EXT_ID%3A20861519+OR+EXT_ID%3A23539308+OR+EXT_ID%3A42237396+OR+EXT_ID%3A21487146+OR+EXT_ID%3A39196486+OR+EXT_ID%3A33886100+OR+EXT_ID%3A38871342+OR+EXT_ID%3A40150840+OR+EXT_ID%3A40640875+OR+EXT_ID%3A41171430+OR+EXT_ID%3A40338332+OR+EXT_ID%3A33137832+OR+EXT_ID%3A38555335+OR+EXT_ID%3A33037592+OR+EXT_ID%3A38921863+OR+EXT_ID%3A39992182+OR+EXT_ID%3A39526869+OR+EXT_ID%3A39044665+OR+EXT_ID%3A34372755+OR+EXT_ID%3A35871903+OR+EXT_ID%3A39313204+OR+EXT_ID%3A36589784+OR+EXT_ID%3A34025447+OR+EXT_ID%3A42646883+OR+EXT_ID%3A27490817+OR+EXT_ID%3A17762369+OR+EXT_ID%3A37163550+OR+EXT_ID%3A28332114+OR+EXT_ID%3A29453741+OR+EXT_ID%3A37449467+OR+EXT_ID%3A37752011+OR+EXT_ID%3A41759826+OR+EXT_ID%3A26002286+OR+EXT_ID%3A41015711+OR+EXT_ID%3A28985128+OR+EXT_ID%3A17277604+OR+EXT_ID%3A32502973%29&format=json&resultType=core&pageSize=100",
+      "retrievedAt": "2026-10-29T11:29:59.066044+00:00",
+      "responseSha256": "4b0cc6ee8839169e76dc167d19ac125abd500db8bb2bb61e77ed91bbd220f5ed",
+      "responseLocator": {
+        "medPmid": "27490817"
+      },
+      "rawResponseFile": "docs/det-engine/v21b/evidence/public-source-retrieval/response.json.gz",
+      "fullTextReviewed": false,
+      "articleEfficacyOrDoseApproved": false
+    },
+    "exactDoseMatched": false,
+    "individualApproval": false,
+    "packetValidation": {
+      "transportAndProvenanceAdmissible": true,
+      "scope": "family_context",
+      "expertApproval": false,
+      "scientificTruthCertifiedByCode": false,
+      "doseStatus": "dose_not_individually_verified",
+      "prescriptionChanged": false
+    }
+  }
+]

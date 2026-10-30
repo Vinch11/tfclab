@@ -1,0 +1,11 @@
+file:///workspace/tfclab/scripts/det-engine/v19-modal-resume.mjs:3
+let{cycle,dir,mission}=guard();const parent=dir+'/evidence/validation-3',out=dir+'/evidence/validation-3-repair-1';if(cycle.validationAttempts!==3||cycle.validation?.evidence!==parent||cycle.validation.status!=='failed'||cycle.active||cycle.diagnosticRepairUsed)throw Error('SINGLE_ISOLATED_REPAIR_PRECONDITIONS');if(!fs.readFileSync(parent+'/independent.txt','utf8').includes('StopIteration'))throw Error('DIFFERENT_FAILURE_REQUIRES_DIAGNOSIS');
+                                                                                                                                                                                                                                                                            ^
+
+Error: SINGLE_ISOLATED_REPAIR_PRECONDITIONS
+    at file:///workspace/tfclab/scripts/det-engine/v19-modal-resume.mjs:3:269
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.19.0

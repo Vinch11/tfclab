@@ -1,0 +1,19 @@
+{
+  "experimental/det-engine/v17-compiler.mjs": "d13cd13424d6a06d32b4644da98a78801fdd19ab3c0948eef55bef9f6a210133",
+  "experimental/det-engine/v17-ir.ts": "4b536d1104205e8f12931b5f2c8206571660fdba374284ba41acc5765755c0ac",
+  "experimental/det-engine/v17-outputs.mjs": "e882f429122fe96effe36f03713fcc0c5f92d99ae942cd80c4493001aba27455",
+  "experimental/det-engine/v17-selection.test.ts": "2e564ba858f51ddb659b6e3e5972d8d3a3438993b274db0876410004602cf889",
+  "experimental/det-engine/v17-selection.ts": "103b5c41cc7bc11f4f6a205322d0676b8e35a3390e48af39244e78d5811a2699",
+  "experimental/det-engine/vitest.v17.config.ts": "2759cc132e0b83f92b61447bdbb02e795997c7de1ebc93252f51335c672c6415",
+  "scripts/det-engine/v17-build.mjs": "8d6cf7c2efcb372005ad7a58cf28fb94651a1251980ecbed71643f1425997456",
+  "scripts/det-engine/v17-contracts.test.mjs": "ee5cc8937f08b1d69487e395a7e811ef39c9713a81e86f3f43716367d25e3ed8",
+  "scripts/det-engine/v17-independent-audit.py": "673d4cff6499195429adafc8c765ce7193e96f5daf999aa98b4559ee2d6156c4",
+  "scripts/det-engine/v17-independent-audit.test.py": "e917a36616b757ccea9df482ff67e352eb8bac78b235d8bdb60649cfc59b48bb",
+  "scripts/det-engine/v17-output-study.mjs": "81b2f2aac01980a1ff4c815f5be2d1686578c54a3fd5c6586eb9d1c2bbed5afb",
+  "scripts/det-engine/v17-overlays.mjs": "1d1fa8fccb2289006c9cbb5bc2bcd126369dbb656c71b5f5b9d449fa39a74cd5",
+  "scripts/det-engine/v17-qualify.py": "ca661ff2e4d406f0544bcd7e2a7b45151e800694d6afeabdf0b567b7636f26a5",
+  "scripts/det-engine/v17-report.py": "38d4f21ea9f43afecb8c1090dad7dc3ffe4774402432651f4be9f026a2b43249",
+  "scripts/det-engine/v17-run.mjs": "63245e62cb91a9defd4a9a36a2d6c1e50bb3186163a38edd75f9cf46a354aa6c",
+  "scripts/det-engine/v17-variant-audit.mjs": "05c2129c7b53b75158359657c7051718eeb6e9e0cae663fb02b0efda52593875",
+  "scripts/det-engine/v17-verify.py": "3e547ce5a14e91936ecb25a69b2ba73f16ee10883f26bb3b41d74b2a5501ecce"
+}

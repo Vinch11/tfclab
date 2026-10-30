@@ -1,0 +1,1 @@
+experimental/det-engine/vitest.v24.config.ts(3,664): error TS2550: Property 'replaceAll' does not exist on type 'string'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2021' or later.

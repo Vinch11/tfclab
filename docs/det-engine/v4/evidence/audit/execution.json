@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "source": "5efea40478251711791867e5bf35b43ace1748977b0d7be2c230c2cc5d396e7b",
+  "commands": [
+    {
+      "name": "audit",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "experimental/det-engine/v4-audit.test.ts",
+        "--maxWorkers=1"
+      ],
+      "ok": true,
+      "status": "passed",
+      "exitCode": 0,
+      "elapsedMs": 146341
+    }
+  ],
+  "artifacts": {
+    "/tmp/det-v4-audit/audit.json": "e68acac5c83bad230f4cb65d87278d7c0c78c875e40607fca37eec6d79753b87",
+    "/tmp/det-v4-audit/audit.txt": "322a1575599e785231f47a0d7269e1b5914eee021a659e911062c2df6cdea58d"
+  },
+  "reservation": {
+    "id": "audit",
+    "startedAt": 1793135977637
+  }
+}

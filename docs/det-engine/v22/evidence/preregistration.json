@@ -1,0 +1,9 @@
+{
+  "inputSha256": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97",
+  "recordedAt": "2026-10-29T13:23:34.567796+00:00",
+  "inputFileMtimeNs": 1793280064732342537,
+  "baselineFullInputsMtimeNs": 1793280069028698581,
+  "baselineOutputMtimeNs": 1793280071232753906,
+  "rawCasesNeverChangedAfterFirstRun": true,
+  "timestampClarification": "inputs.registeredAt is a declared nominal timestamp, not an observed timestamp. Filesystem timestamps and this record identify actual execution chronology. No physiological input corrected after output."
+}

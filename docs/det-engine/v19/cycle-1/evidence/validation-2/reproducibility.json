@@ -1,0 +1,46 @@
+{
+  "files": [
+    {
+      "file": "candidate-index.json",
+      "sha256": "12d562541ebcd5be98af90813ab55741710f7800bb15255213f18bce30ddea02",
+      "identical": true
+    },
+    {
+      "file": "catalogue.jsonl.gz",
+      "sha256": "2f7699b66ce381a44092b611aca0bd344e27b5951d6a98b44828d81e5d05baef",
+      "identical": true
+    },
+    {
+      "file": "checksums.json",
+      "sha256": "2fff363b141dfe063e0cb8eba5207e858572258c631dffcb7310cc5bab8343b9",
+      "identical": true
+    },
+    {
+      "file": "dose-ledgers.jsonl.gz",
+      "sha256": "77913c7e0be3e7618ac4b2fc6774785daa26836bb1baf7584d8685b1924ee49a",
+      "identical": true
+    },
+    {
+      "file": "outputs.jsonl.gz",
+      "sha256": "fd881e4432712f574d82fd0bf605a526c553341f19717dce87602d0c29a90d6a",
+      "identical": true
+    },
+    {
+      "file": "recovery-comparisons.json",
+      "sha256": "a5ce3b47d7d60f18561647172fba0d74af64b759a20ed48c8cf28f472fd1ef54",
+      "identical": true
+    },
+    {
+      "file": "serialization-context.json",
+      "sha256": "e4c75edd8517a415b7db42cb5ee3f4f21e0e2eab68a7ec96ffa0537046fd17a6",
+      "identical": true
+    },
+    {
+      "file": "summary.json",
+      "sha256": "c35a6193e22b39a513f8f8dd0100afd6a6d6efc5ca6a4b775594f44f04b37758",
+      "identical": true
+    }
+  ],
+  "independentReplayIdentical": true,
+  "sourcePinned": true
+}

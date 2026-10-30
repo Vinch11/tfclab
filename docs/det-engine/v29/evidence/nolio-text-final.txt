@@ -1,0 +1,1 @@
+PASS: explicit strength load, tempo, side and round survive the local text payload

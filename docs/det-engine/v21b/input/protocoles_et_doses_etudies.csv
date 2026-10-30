@@ -1,0 +1,14 @@
+reference_id,familyId,population_from_source,protocol_or_dose_observed,outcome,transfer_limit
+SWIM-01,swimming,11 nageurs nationaux masculins,"5×400m r60s; 10×200m r30s; 20×100m r15s, à vitesse critique","Réponses aiguës lactate, RPE et fréquence/longueur de nage",Non extrapolable à autre nage ou bénéfice chronique
+STR-01,strength,"894 coureurs, 38 études","6–40 semaines, 1–4 sessions/sem, programmes force lourde/combinée","Performance course, pas de bénéfice détecté VO2max/MMSS",Dose d’une recette particulière non extraite
+STR-02,economy,"652 coureurs, 31 études","6–24 semaines, 1–4 sessions/sem; lourde ≥80% 1RM parmi méthodes",Économie de course vitesse standardisée,Ne démontre pas une séance unique ni usage chez triathlètes
+TEC-01,technique,40 coureurs randomisés; 22 complets,Entraînement terrain ~6 mois ±feedback en temps réel,Pas différence de coût énergétique entre groupes,Attrition et type de feedback
+VO2-02,vo2max,"86 articles, 239 protocoles","Intervalles ≥2min, intensité variable; comparaisons protocoles",Temps aigu ≥90/95%VO2max,Ni adaptation chronique ni tolérance individuelle
+TRAIL-02,trail,10 coureuses entraînées,"Deux sessions séparées de 3 semaines; alternance -15% et plat, six fois 5min",Douleurs musculaires et marqueurs effort,D− individuel et récupération inconnus
+TRAIL-03,trail,12 adultes non entraînés,"Deux blocs 5 descentes, 15–30min, 60–65% VO2max","Courbature diminuée, fatigue neuromusc. non éliminée",Population et pente de tapis non transférables
+BRICK-02,bricks,38 triathlètes,Vélo 20km à 80/85/90% FTP; course 5km maximale,Performance du segment/course,Non extrapolable puissance Ironman 180km
+TAPER-01,taper,27 études compétiteurs,"Synthèse 2 semaines, réduction ~41–60% volume et maintien intensité/fréquence",Performance groupe,Pas protocole personnel automatique
+REC-02,recovery,26 essais RCT de HIIT,"Repos actif/passif entre efforts, protocoles divers",Performance mécanique répétée souvent favorable passif,Ne spécifie pas dernier repos fiche TFCL
+VLA-02,thresholds,13 hommes physiquement actifs,15s sprint répété sur 4 occasions; modèle estimation MLSS,"ICC 0,80 VLamax; larges limites d’accord MLSS",Fiabilité et validité à distinguer
+DUR-04,durability,20 cyclistes amateurs entraînés,1000kJ préalable à 80% puissance 20min initiale avant tests 5 et 20min,Déclin performance frais-fatigué,Protocole non universel et énergie relative change avec masse
+HEAT-01,heat_hypoxia,Consensus athlètes chaleur,Expositions répétées 1–2 semaines (conseil de consensus),Acclimatation et performance chaleur,Doses individuelles et risque non résolus

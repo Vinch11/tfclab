@@ -1,0 +1,3825 @@
+[
+  {
+    "id": "IM_aerobic",
+    "lim": [
+      "VLamax"
+    ],
+    "trace": {
+      "version": 1,
+      "diagnostic": {
+        "executed": true,
+        "confidenceGlobal": 0.6050000000000002,
+        "dataCompleteness": 1,
+        "limiters": [
+          {
+            "metric": "VLamax",
+            "priority": 1,
+            "status": "limiting",
+            "value": 0.35,
+            "target": 0.26,
+            "weightedImpact": 32.88461538461537
+          }
+        ],
+        "uncertainty": [
+          "Confiance diagnostique limitée (61%)."
+        ]
+      },
+      "decision": {
+        "executed": true,
+        "source": "lorang",
+        "confidence": "high",
+        "primaryAction": "Focus Volume Z2 / Endurance",
+        "levers": [
+          {
+            "id": "z2_volume",
+            "label": "Volume Z2 / Endurance",
+            "priority": 2,
+            "reason": "VLamax 35% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition finisher)",
+            "adaptations": [
+              "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+              "Garder de la variété : 1 séance intensité conservée/sem",
+              "Z2 avec finish tempo léger 15-20min (progressif)",
+              "Progression douce +5-8%/sem sur volume aérobie"
+            ]
+          },
+          {
+            "id": "force_max",
+            "label": "Force Max",
+            "priority": 2,
+            "reason": "Économie faible — renforcement musculaire nécessaire",
+            "adaptations": [
+              "Gym lourde 85–95% 1RM",
+              "3–5 répétitions par série",
+              "2–3 séries max",
+              "1–2x/semaine (hors semaines de course)"
+            ]
+          },
+          {
+            "id": "sfr_force_endurance",
+            "label": "SFR / Force Endurance",
+            "priority": 2,
+            "reason": "VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition finisher)",
+            "adaptations": [
+              "Cadence 50–65 rpm (transition douce)",
+              "Zone tempo / Sweet Spot bas",
+              "Blocs de 5–10 min",
+              "1x/semaine max en phase Build"
+            ]
+          },
+          {
+            "id": "train_low",
+            "label": "Train Low / Sleep Low",
+            "priority": 3,
+            "reason": "Objectif longue distance — amélioration oxydation lipidique",
+            "adaptations": [
+              "Sorties à jeun ou glycogène réduit",
+              "Max 1–2x/semaine",
+              "Intensité Z1-Z2 uniquement",
+              "Ravitaillement normal post-séance"
+            ]
+          }
+        ],
+        "prohibitions": [
+          {
+            "id": "vo2_heavy_blocks",
+            "label": "Blocs VO2 lourds",
+            "reason": "Incompatible avec le travail de force max"
+          }
+        ],
+        "trainingFocus": {
+          "do": [
+            "Zone 2 stricte (60-70% FTP)",
+            "SFR / basse cadence",
+            "Séances low-carb occasionnelles",
+            "Volume aérobie > intensité"
+          ],
+          "avoid": [
+            "Intervalles courts haute intensité",
+            "Séances > seuil",
+            "Sprint et travail anaérobie"
+          ]
+        },
+        "weekType": "endurance"
+      },
+      "transmission": {
+        "identifiedLimitersRaw": {
+          "status": "consumed",
+          "origin": "diagnostic.limiter.gapAnalysis",
+          "consumers": [
+            "workoutCatalogBuilder.scoreWorkout",
+            "edge.buildStructuredDiagnosticBlock",
+            "server.reconciler"
+          ],
+          "detail": "Ordre transmis: VLamax"
+        },
+        "activeLevers": {
+          "status": "consumed",
+          "origin": "decision.strategy.levers",
+          "consumers": [
+            "edge.buildStructuredDiagnosticBlock"
+          ],
+          "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+        },
+        "prohibitions": {
+          "status": "consumed",
+          "origin": "planConfigBuilder + decision.strategy.prohibitions",
+          "consumers": [
+            "workoutCatalogBuilder.prohibitions",
+            "edge.buildStructuredDiagnosticBlock"
+          ]
+        },
+        "strategyContext": {
+          "status": "consumed",
+          "origin": "decision.strategy (lorang)",
+          "consumers": [
+            "edge.buildStructuredDiagnosticBlock"
+          ],
+          "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+        },
+        "prescriptionIntent": {
+          "status": "not_verified",
+          "origin": "plan final généré",
+          "consumers": [],
+          "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+        }
+      }
+    },
+    "quota": {
+      "quota": {
+        "swim": {
+          "min": 2,
+          "max": 2
+        },
+        "bike": {
+          "min": 2,
+          "max": 2
+        },
+        "run": {
+          "min": 2,
+          "max": 3
+        },
+        "brick": {
+          "min": 0,
+          "max": 1
+        },
+        "strength": {
+          "min": 1,
+          "max": 1
+        },
+        "totalSessions": {
+          "min": 7,
+          "max": 9
+        },
+        "maxSessionsPerDay": 2,
+        "minFullRestDays": 1,
+        "source": {
+          "tier": "elite_practice",
+          "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+        }
+      },
+      "floors": {
+        "minSwimPerWeek": 2,
+        "longRideWeekly": true,
+        "longRunWeekly": true,
+        "minStrengthPerWeek": 1,
+        "slLongRideMin": 90,
+        "slLongRunMin": 60
+      },
+      "weekType": "load",
+      "downgraded": false,
+      "phase": "base",
+      "layout": {
+        "weekType": "load",
+        "days": [
+          {
+            "dayName": "lundi",
+            "isRest": true,
+            "slots": []
+          },
+          {
+            "dayName": "mardi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": true
+              },
+              {
+                "sport": "bike",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "mercredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              },
+              {
+                "sport": "strength"
+              }
+            ]
+          },
+          {
+            "dayName": "jeudi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": false
+              }
+            ]
+          },
+          {
+            "dayName": "vendredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "samedi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "brick",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 110
+              }
+            ]
+          },
+          {
+            "dayName": "dimanche",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 60
+              }
+            ]
+          }
+        ],
+        "targetsBySport": {
+          "swim": 2,
+          "bike": 2,
+          "run": 3,
+          "brick": 1,
+          "strength": 1
+        }
+      },
+      "volumeBudget": {
+        "globalWeek": 1,
+        "maxMinutes": 480,
+        "weeklyIncreasePctMax": 0.1,
+        "referenceSource": "coach"
+      },
+      "floorAudit": {
+        "version": 2,
+        "localWeek": 1,
+        "globalWeek": 1,
+        "rampConfigured": true,
+        "nominal": {
+          "slLongRideMin": 150,
+          "slLongRunMin": 100,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        },
+        "individualized": {
+          "slLongRideMin": 90,
+          "slLongRunMin": 60,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        }
+      }
+    },
+    "catalog": [
+      {
+        "id": "B_IM_RUN_LATE_RACE_FRACTIONS",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          90,
+          130
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_IM_RUN_LONG_DURABILITY_2H",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          105,
+          135
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_LCW_RUN_OFF_LEGS_SUN",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          60,
+          120
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": [
+          "b_lcw_bike_long_race_sat la veille"
+        ]
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          35,
+          90
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          40,
+          70
+        ],
+        "zone": 2,
+        "phases": [
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TPL_SWIM_CSS_LONG_REPS",
+        "intent": "seuil",
+        "sport": "natation",
+        "min": [
+          55,
+          70
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_SWIM_PULL_LONG_DISTANCE",
+        "intent": "technique",
+        "sport": "natation",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "SEILER_SWIM_Z1_VOLUME",
+        "intent": "seuil",
+        "sport": "natation",
+        "min": [
+          45,
+          75
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          90,
+          135
+        ],
+        "zone": 3,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_SWIM_TRI_SIGHTING_DRILLS",
+        "intent": "technique",
+        "sport": "natation",
+        "min": [
+          35,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "taper",
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          105,
+          130
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_SWIM_CSS_PYRAMID",
+        "intent": "seuil",
+        "sport": "natation",
+        "min": [
+          45,
+          60
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_SWIM_TECH_DRILLS",
+        "intent": "technique",
+        "sport": "natation",
+        "min": [
+          30,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_IM_RUN_FATIGUED_NEXT_DAY",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          75,
+          110
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_SWIM_DESCENDING_SET",
+        "intent": "other",
+        "sport": "natation",
+        "min": [
+          60,
+          80
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_BIKE_LONG_IM_PRO",
+        "intent": "endurance_fondamentale",
+        "sport": "cyclisme",
+        "min": [
+          150,
+          240
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_RUN_FARTLEK_60_PRO",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          50,
+          75
+        ],
+        "zone": 4,
+        "phases": [
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_LCW_BIKE_LONG_RACE_SAT",
+        "intent": "race_pace",
+        "sport": "cyclisme",
+        "min": [
+          150,
+          200
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_SWIM_TRI_NEGATIVE_SPLIT",
+        "intent": "technique",
+        "sport": "natation",
+        "min": [
+          50,
+          70
+        ],
+        "zone": 3,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_SWIM_ENDURANCE_3K",
+        "intent": "race_pace",
+        "sport": "natation",
+        "min": [
+          65,
+          85
+        ],
+        "zone": 3,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_BIKE_CADENCE_DRILLS",
+        "intent": "technique",
+        "sport": "cyclisme",
+        "min": [
+          60,
+          90
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "intent": "endurance_fondamentale",
+        "sport": "cyclisme",
+        "min": [
+          150,
+          300
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_LCW_SWIM_FRI_EVENING",
+        "intent": "race_pace",
+        "sport": "natation",
+        "min": [
+          45,
+          70
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "BILLAT_RUN_CRITICAL_VELOCITY",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          60,
+          75
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_703_RUN_RACE_PACE_LONG",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          90,
+          110
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "SEILER_BIKE_Z1_LONG",
+        "intent": "endurance_fondamentale",
+        "sport": "cyclisme",
+        "min": [
+          90,
+          210
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": [
+          "ventilateur"
+        ]
+      },
+      {
+        "id": "SEILER_RUN_Z1_EASY_LONG",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          70,
+          150
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_SWIM_THRESHOLD_400_200",
+        "intent": "seuil",
+        "sport": "natation",
+        "min": [
+          45,
+          60
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_IM_BRICK_LONG_MARATHON_PACE",
+        "intent": "race_pace",
+        "sport": "brick",
+        "min": [
+          300,
+          420
+        ],
+        "zone": 4,
+        "phases": [
+          "taper",
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_SWIM_KICK_SET",
+        "intent": "force",
+        "sport": "natation",
+        "min": [
+          30,
+          45
+        ],
+        "zone": 3,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_SWIM_PADDLES_PULL_FORCE",
+        "intent": "force",
+        "sport": "natation",
+        "min": [
+          60,
+          80
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_RUN_EDUCATIFS_TECHNIQUES",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "intent": "test",
+        "sport": "cyclisme",
+        "min": [
+          120,
+          180
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_BIKE_SINGLE_LEG",
+        "intent": "technique",
+        "sport": "cyclisme",
+        "min": [
+          50,
+          65
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ECONOMY_RUN_FATIGUE_FORM",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          75,
+          100
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_BIKE_Z2_LONG",
+        "intent": "endurance_fondamentale",
+        "sport": "cyclisme",
+        "min": [
+          90,
+          240
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_RUN_SORTIE_LONGUE_DEPLETION",
+        "intent": "fatmax",
+        "sport": "course",
+        "min": [
+          100,
+          130
+        ],
+        "zone": 2,
+        "phases": [
+          "build"
+        ],
+        "pre": [
+          "glucides"
+        ]
+      },
+      {
+        "id": "V3_RACESIM_SWIM_IM",
+        "intent": "race_pace",
+        "sport": "natation",
+        "min": [
+          75,
+          95
+        ],
+        "zone": 3,
+        "phases": [
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TPL_IM_BIKE_FOUNDATION_4H30",
+        "intent": "other",
+        "sport": "cyclisme",
+        "min": [
+          240,
+          300
+        ],
+        "zone": 3,
+        "phases": [
+          "base",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_IM_SWIM_PROGRESSIVE_3800",
+        "intent": "race_pace",
+        "sport": "natation",
+        "min": [
+          80,
+          105
+        ],
+        "zone": 3,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_BRICK_IM_LONG",
+        "intent": "brick",
+        "sport": "brick",
+        "min": [
+          210,
+          330
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_IM_BIKE_QUEEN_STAGE",
+        "intent": "other",
+        "sport": "cyclisme",
+        "min": [
+          270,
+          310
+        ],
+        "zone": 3,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TPL_IM_BIKE_RACE_SIM_6H",
+        "intent": "race_pace",
+        "sport": "cyclisme",
+        "min": [
+          330,
+          390
+        ],
+        "zone": 3,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_RUN_VMA_400",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          45,
+          75
+        ],
+        "zone": 6,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_703_RUN_OFF_BIKE_FAST_FINISH",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          75,
+          100
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "LYDIARD_RUN_TRACK_VMA",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          55,
+          70
+        ],
+        "zone": 6,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": [
+          "base aerobie et collines completes"
+        ]
+      },
+      {
+        "id": "A_RUN_EASY_STRIDES_PRO",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          45,
+          75
+        ],
+        "zone": 3,
+        "phases": [
+          "base",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_BRICK_SEUIL_LONG_BUILD_IM",
+        "intent": "seuil",
+        "sport": "brick",
+        "min": [
+          180,
+          240
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "BR_IM_V5_PRO",
+        "intent": "brick",
+        "sport": "brick",
+        "min": [
+          160,
+          210
+        ],
+        "zone": 0,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "BR_IM_V10_PRO",
+        "intent": "brick",
+        "sport": "brick",
+        "min": [
+          210,
+          210
+        ],
+        "zone": 0,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      }
+    ]
+  },
+  {
+    "id": "IM_glycolytic",
+    "trace": {
+      "version": 1,
+      "diagnostic": {
+        "executed": true,
+        "confidenceGlobal": 0.15,
+        "dataCompleteness": 0.57,
+        "limiters": [],
+        "uncertainty": [
+          "Données physiologiques incomplètes (57%).",
+          "Confiance diagnostique limitée (15%).",
+          "Aucun limiteur classable avec les données disponibles."
+        ]
+      },
+      "decision": {
+        "executed": true,
+        "source": "lorang",
+        "confidence": "high",
+        "primaryAction": "Focus Force Max",
+        "levers": [
+          {
+            "id": "force_max",
+            "label": "Force Max",
+            "priority": 2,
+            "reason": "Économie faible — renforcement musculaire nécessaire",
+            "adaptations": [
+              "Gym lourde 85–95% 1RM",
+              "3–5 répétitions par série",
+              "2–3 séries max",
+              "1–2x/semaine (hors semaines de course)"
+            ]
+          }
+        ],
+        "prohibitions": [
+          {
+            "id": "vo2_heavy_blocks",
+            "label": "Blocs VO2 lourds",
+            "reason": "Incompatible avec le travail de force max"
+          }
+        ],
+        "trainingFocus": {
+          "do": [
+            "Intervalles courts (30/30, 40/20)",
+            "2-3 séances VO2max / semaine",
+            "Côtes courtes explosives",
+            "Variété des stimuli"
+          ],
+          "avoid": [
+            "Trop de volume lent",
+            "Séances longues monotones",
+            "Zone 2 exclusive"
+          ]
+        },
+        "weekType": "vo2"
+      },
+      "transmission": {
+        "identifiedLimitersRaw": {
+          "status": "missing",
+          "origin": "diagnostic.limiter.gapAnalysis",
+          "consumers": []
+        },
+        "activeLevers": {
+          "status": "consumed",
+          "origin": "decision.strategy.levers",
+          "consumers": [
+            "edge.buildStructuredDiagnosticBlock"
+          ],
+          "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+        },
+        "prohibitions": {
+          "status": "consumed",
+          "origin": "planConfigBuilder + decision.strategy.prohibitions",
+          "consumers": [
+            "workoutCatalogBuilder.prohibitions",
+            "edge.buildStructuredDiagnosticBlock"
+          ]
+        },
+        "strategyContext": {
+          "status": "consumed",
+          "origin": "decision.strategy (lorang)",
+          "consumers": [
+            "edge.buildStructuredDiagnosticBlock"
+          ],
+          "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+        },
+        "prescriptionIntent": {
+          "status": "not_verified",
+          "origin": "plan final généré",
+          "consumers": [],
+          "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+        }
+      }
+    },
+    "quota": {
+      "quota": {
+        "swim": {
+          "min": 2,
+          "max": 2
+        },
+        "bike": {
+          "min": 2,
+          "max": 2
+        },
+        "run": {
+          "min": 2,
+          "max": 3
+        },
+        "brick": {
+          "min": 0,
+          "max": 1
+        },
+        "strength": {
+          "min": 1,
+          "max": 1
+        },
+        "totalSessions": {
+          "min": 7,
+          "max": 9
+        },
+        "maxSessionsPerDay": 2,
+        "minFullRestDays": 1,
+        "source": {
+          "tier": "elite_practice",
+          "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+        }
+      },
+      "floors": {
+        "minSwimPerWeek": 2,
+        "longRideWeekly": true,
+        "longRunWeekly": true,
+        "minStrengthPerWeek": 1,
+        "slLongRideMin": 90,
+        "slLongRunMin": 60
+      },
+      "weekType": "load",
+      "downgraded": false,
+      "phase": "base",
+      "layout": {
+        "weekType": "load",
+        "days": [
+          {
+            "dayName": "lundi",
+            "isRest": true,
+            "slots": []
+          },
+          {
+            "dayName": "mardi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": true
+              },
+              {
+                "sport": "bike",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "mercredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              },
+              {
+                "sport": "strength"
+              }
+            ]
+          },
+          {
+            "dayName": "jeudi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "swim",
+                "isKeySession": false
+              }
+            ]
+          },
+          {
+            "dayName": "vendredi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isKeySession": true
+              }
+            ]
+          },
+          {
+            "dayName": "samedi",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "brick",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 110
+              }
+            ]
+          },
+          {
+            "dayName": "dimanche",
+            "isRest": false,
+            "slots": [
+              {
+                "sport": "run",
+                "isLongSession": true,
+                "isKeySession": true,
+                "minDurationMin": 60
+              }
+            ]
+          }
+        ],
+        "targetsBySport": {
+          "swim": 2,
+          "bike": 2,
+          "run": 3,
+          "brick": 1,
+          "strength": 1
+        }
+      },
+      "volumeBudget": {
+        "globalWeek": 1,
+        "maxMinutes": 480,
+        "weeklyIncreasePctMax": 0.1,
+        "referenceSource": "coach"
+      },
+      "floorAudit": {
+        "version": 2,
+        "localWeek": 1,
+        "globalWeek": 1,
+        "rampConfigured": true,
+        "nominal": {
+          "slLongRideMin": 150,
+          "slLongRunMin": 100,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        },
+        "individualized": {
+          "slLongRideMin": 90,
+          "slLongRunMin": 60,
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1
+        }
+      }
+    },
+    "catalog": [
+      {
+        "id": "B_IM_RUN_LATE_RACE_FRACTIONS",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          90,
+          130
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_IM_RUN_LONG_DURABILITY_2H",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          105,
+          135
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_SWIM_TRI_LONG_3500",
+        "intent": "seuil",
+        "sport": "natation",
+        "min": [
+          65,
+          90
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_SWIM_TRI_END_2500",
+        "intent": "seuil",
+        "sport": "natation",
+        "min": [
+          50,
+          75
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_LCW_RUN_OFF_LEGS_SUN",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          60,
+          120
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": [
+          "b_lcw_bike_long_race_sat la veille"
+        ]
+      },
+      {
+        "id": "A_RUN_Z2_EASY",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          35,
+          90
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          40,
+          70
+        ],
+        "zone": 2,
+        "phases": [
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TPL_SWIM_CSS_LONG_REPS",
+        "intent": "seuil",
+        "sport": "natation",
+        "min": [
+          55,
+          70
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_SWIM_PULL_LONG_DISTANCE",
+        "intent": "technique",
+        "sport": "natation",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "SEILER_SWIM_Z1_VOLUME",
+        "intent": "seuil",
+        "sport": "natation",
+        "min": [
+          45,
+          75
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_SWIM_CORD_RESISTANCE",
+        "intent": "force",
+        "sport": "natation",
+        "min": [
+          20,
+          30
+        ],
+        "zone": 0,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_CIRCUIT_CARDIO_TRI",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 3,
+        "phases": [
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TPL_IM_RUN_LONGUE_DURABILITE",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          90,
+          135
+        ],
+        "zone": 3,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_SWIM_TRI_SIGHTING_DRILLS",
+        "intent": "technique",
+        "sport": "natation",
+        "min": [
+          35,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "taper",
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_IM_RUN_NEG_SPLIT_LR",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          105,
+          130
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_SWIM_TECH_DRILLS",
+        "intent": "technique",
+        "sport": "natation",
+        "min": [
+          30,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_IM_RUN_FATIGUED_NEXT_DAY",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          75,
+          110
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_SWIM_FARTLEK_MIX",
+        "intent": "other",
+        "sport": "natation",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_SWIM_DESCENDING_SET",
+        "intent": "other",
+        "sport": "natation",
+        "min": [
+          60,
+          80
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_SWIM_TRI_CATCH_PULL",
+        "intent": "technique",
+        "sport": "natation",
+        "min": [
+          35,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_STR_AERO_STRENGTH",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          45,
+          60
+        ],
+        "zone": 2,
+        "phases": [
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_BIKE_LONG_IM_PRO",
+        "intent": "endurance_fondamentale",
+        "sport": "cyclisme",
+        "min": [
+          150,
+          240
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_ISOMETRIC_UPPER",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          20,
+          30
+        ],
+        "zone": 0,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_STR_ENDURANCE_CIRCUIT",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_RUN_FARTLEK_60_PRO",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          50,
+          75
+        ],
+        "zone": 4,
+        "phases": [
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_LCW_BIKE_LONG_RACE_SAT",
+        "intent": "race_pace",
+        "sport": "cyclisme",
+        "min": [
+          150,
+          200
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_BRICK_TRANSITION_DRILL",
+        "intent": "technique",
+        "sport": "brick",
+        "min": [
+          30,
+          45
+        ],
+        "zone": 3,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_SWIM_TRI_REGEN_1000",
+        "intent": "recuperation",
+        "sport": "natation",
+        "min": [
+          20,
+          35
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_SWIM_ENDURANCE_3K",
+        "intent": "race_pace",
+        "sport": "natation",
+        "min": [
+          65,
+          85
+        ],
+        "zone": 3,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_BIKE_CADENCE_DRILLS",
+        "intent": "technique",
+        "sport": "cyclisme",
+        "min": [
+          60,
+          90
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_BIKE_Z2_ENDURANCE_LONG",
+        "intent": "endurance_fondamentale",
+        "sport": "cyclisme",
+        "min": [
+          150,
+          300
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "SEILER_RUN_Z1_RECOVERY_STRICT",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          30,
+          50
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_LCW_SWIM_FRI_EVENING",
+        "intent": "race_pace",
+        "sport": "natation",
+        "min": [
+          45,
+          70
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_CYCLIST_NECK_BACK",
+        "intent": "seuil",
+        "sport": "strength",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_BIKE_CADENCE_SKILLS_PRO",
+        "intent": "technique",
+        "sport": "cyclisme",
+        "min": [
+          45,
+          70
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_RUN_HILL_SKILLS",
+        "intent": "force",
+        "sport": "course",
+        "min": [
+          35,
+          60
+        ],
+        "zone": 3,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "BILLAT_RUN_CRITICAL_VELOCITY",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          60,
+          75
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_703_RUN_RACE_PACE_LONG",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          90,
+          110
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "SEILER_BIKE_Z1_LONG",
+        "intent": "endurance_fondamentale",
+        "sport": "cyclisme",
+        "min": [
+          90,
+          210
+        ],
+        "zone": 2,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": [
+          "ventilateur"
+        ]
+      },
+      {
+        "id": "C_STR_RUN_DRILLS_PRO",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          20,
+          30
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_SWIM_CONTINUOUS_2K",
+        "intent": "endurance_fondamentale",
+        "sport": "natation",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_IM_BRICK_LONG_MARATHON_PACE",
+        "intent": "race_pace",
+        "sport": "brick",
+        "min": [
+          300,
+          420
+        ],
+        "zone": 4,
+        "phases": [
+          "taper",
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_SWIM_KICK_SET",
+        "intent": "force",
+        "sport": "natation",
+        "min": [
+          30,
+          45
+        ],
+        "zone": 3,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_SWIM_PADDLES_PULL_FORCE",
+        "intent": "force",
+        "sport": "natation",
+        "min": [
+          60,
+          80
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_SWIM_KICK_SET",
+        "intent": "force",
+        "sport": "natation",
+        "min": [
+          45,
+          55
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_RUN_EDUCATIFS_TECHNIQUES",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_STR_HANCHE_COUREUR",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          20,
+          30
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_BIKE_DURABILITY_TEST",
+        "intent": "test",
+        "sport": "cyclisme",
+        "min": [
+          120,
+          180
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_BIKE_SINGLE_LEG",
+        "intent": "technique",
+        "sport": "cyclisme",
+        "min": [
+          50,
+          65
+        ],
+        "zone": 2,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "RECOVERY_YOGA_MOBILITY_TRI",
+        "intent": "technique",
+        "sport": "renforcement",
+        "min": [
+          30,
+          45
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      }
+    ]
+  },
+  {
+    "id": "Trail_known_history",
+    "lim": [
+      "TTE"
+    ],
+    "trace": {
+      "version": 1,
+      "diagnostic": {
+        "executed": true,
+        "confidenceGlobal": 0.5,
+        "dataCompleteness": 0.6,
+        "limiters": [
+          {
+            "metric": "TTE",
+            "priority": 1,
+            "status": "limiting",
+            "value": 45,
+            "target": 57,
+            "weightedImpact": 17.89473684210526
+          }
+        ],
+        "uncertainty": [
+          "Données physiologiques incomplètes (60%).",
+          "Confiance diagnostique limitée (50%)."
+        ]
+      },
+      "decision": {
+        "executed": true,
+        "source": "lorang",
+        "confidence": "moderate",
+        "primaryAction": "Focus Volume Z2 / Endurance",
+        "levers": [
+          {
+            "id": "z2_volume",
+            "label": "Volume Z2 / Endurance",
+            "priority": 1,
+            "reason": "TTE 21% sous la cible (45min vs 57min) — développer la durabilité",
+            "adaptations": [
+              "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+              "2×20-30min au seuil pour augmenter le TTE",
+              "Z2 + bloc tempo final 20-30min",
+              "Progression charge +10%/semaine max"
+            ]
+          },
+          {
+            "id": "force_max",
+            "label": "Force Max",
+            "priority": 2,
+            "reason": "Économie faible — renforcement musculaire nécessaire",
+            "adaptations": [
+              "Gym lourde 85–95% 1RM",
+              "3–5 répétitions par série",
+              "2–3 séries max",
+              "1–2x/semaine (hors semaines de course)"
+            ]
+          }
+        ],
+        "prohibitions": [
+          {
+            "id": "vo2_heavy_blocks",
+            "label": "Blocs VO2 lourds",
+            "reason": "Incompatible avec le travail de force max"
+          }
+        ],
+        "trainingFocus": {
+          "do": [],
+          "avoid": []
+        },
+        "weekType": "endurance"
+      },
+      "transmission": {
+        "identifiedLimitersRaw": {
+          "status": "consumed",
+          "origin": "diagnostic.limiter.gapAnalysis",
+          "consumers": [
+            "workoutCatalogBuilder.scoreWorkout",
+            "edge.buildStructuredDiagnosticBlock",
+            "server.reconciler"
+          ],
+          "detail": "Ordre transmis: TTE"
+        },
+        "activeLevers": {
+          "status": "consumed",
+          "origin": "decision.strategy.levers",
+          "consumers": [
+            "edge.buildStructuredDiagnosticBlock"
+          ],
+          "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+        },
+        "prohibitions": {
+          "status": "consumed",
+          "origin": "planConfigBuilder + decision.strategy.prohibitions",
+          "consumers": [
+            "workoutCatalogBuilder.prohibitions",
+            "edge.buildStructuredDiagnosticBlock"
+          ]
+        },
+        "strategyContext": {
+          "status": "consumed",
+          "origin": "decision.strategy (lorang)",
+          "consumers": [
+            "edge.buildStructuredDiagnosticBlock"
+          ],
+          "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+        },
+        "prescriptionIntent": {
+          "status": "not_verified",
+          "origin": "plan final généré",
+          "consumers": [],
+          "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+        }
+      }
+    },
+    "history": {
+      "recentWeeklyHours": 7,
+      "chronicWeeklyHours": 7,
+      "recentWeeksCount": 8
+    },
+    "catalog": [
+      {
+        "id": "V3_TRAIL_MTN_DESCENTE_TECH",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          50,
+          75
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_MONTEE_BATONS",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          60,
+          100
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_TRAIL_SEUIL_MONTEE",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          60,
+          80
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_TRAIL_SHORT_TEMPO_COTE",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          55,
+          75
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_TRAIL_LONGUE_DPLUS",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          150,
+          240
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_SEUIL_MONTEE",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          75,
+          120
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V3_PRO",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          140,
+          170
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V1_PRO",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          120,
+          150
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V4_PRO",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          150,
+          180
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_703_RUN_RACE_PACE_LONG",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          90,
+          110
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "URBAN_ESCALIERS_SEUIL_CONTINU",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          50,
+          70
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "EXPE_HORS_VILLE_VERTICAL_KM",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          90,
+          150
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_TRAIL_MTN_VMA_COTE",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          60,
+          80
+        ],
+        "zone": 6,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TRAIL_NORDIC_WALK_UPHILL",
+        "intent": "seuil",
+        "sport": "trail",
+        "min": [
+          90,
+          180
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": [
+          "batons"
+        ]
+      },
+      {
+        "id": "B_LCW_RUN_OFF_LEGS_SUN",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          60,
+          120
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": [
+          "b_lcw_bike_long_race_sat la veille"
+        ]
+      },
+      {
+        "id": "B_TR_HILL_TEMPO",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          60,
+          90
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "URBAN_PARKING_RAMPE_PYRAMIDE",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 5,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_RUN_HEDGEHOG_SEUIL",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          60,
+          75
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR50_LONG_RUN_2H30",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          130,
+          180
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_DPLUS_PRO",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          120,
+          210
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_RUN_DESCENDING_TEMPO",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          50,
+          65
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_UPHILL_TEMPO_2x20",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          70,
+          100
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V7_PRO",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          160,
+          200
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V6_PRO",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          150,
+          190
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_TR_RENFO_CIRCUIT_FATIGUE",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 0,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_TRAIL_FOOT_TECHNIQUE",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          30,
+          40
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_TRAIL_CORE_PRO",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_DESCENTE_RAPIDE",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          50,
+          80
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_STR_ESCALIERS_TRAIL",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_TRAIL_DESCENTE_COMPETITIVE",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          55,
+          70
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "URBAN_ESCALIERS_TEMPO_LONG",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          45,
+          75
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_TRAIL_HIKING_POWER",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          45,
+          60
+        ],
+        "zone": 0,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_TRAIL_LATERAL_STABILITY",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          30,
+          40
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_TR50_RECOVERY_WALK_RUN",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          25,
+          40
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_CALF_ISO_HEAVY",
+        "intent": "seuil",
+        "sport": "strength",
+        "min": [
+          30,
+          40
+        ],
+        "zone": 0,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TPL_SEMI_LONGUE_PYRAMIDE",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          90,
+          115
+        ],
+        "zone": 5,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_RUN_10K_INTERVALS_1000",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          50,
+          65
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "BILLAT_RUN_MLSS_LONG",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          65,
+          90
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_TR_PROPRIOCEPTION",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          25,
+          40
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "BILLAT_TRAIL_FARTLEK_HILL",
+        "intent": "vo2",
+        "sport": "trail",
+        "min": [
+          60,
+          90
+        ],
+        "zone": 6,
+        "phases": [
+          "build"
+        ],
+        "pre": [
+          "experience trail"
+        ]
+      },
+      {
+        "id": "BILLAT_RUN_CRITICAL_VELOCITY",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          60,
+          75
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "NORWEGIAN_RUN_THRESHOLD_LOW_AM",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          55,
+          75
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": [
+          "bloc_double_seuil",
+          "lactatemetre",
+          "lactatemetre ou fc seuil non calibree"
+        ]
+      },
+      {
+        "id": "URBAN_ESCALIERS_PYRAMIDE",
+        "intent": "force",
+        "sport": "course",
+        "min": [
+          40,
+          60
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_HILLREPS_8x2_PRO",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          50,
+          75
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_TRAIL_MARCHE_RAPIDE_COTES",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          60,
+          90
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_ECC_QUAD_PRO",
+        "intent": "test",
+        "sport": "strength",
+        "min": [
+          35,
+          50
+        ],
+        "zone": 0,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_CALF_HEAVY_PRO",
+        "intent": "seuil",
+        "sport": "strength",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_TR_RECOVERY_SOFT",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          25,
+          45
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_TR_RECOVERY_SOFT_30",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          25,
+          40
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_TR_MOBILITE_TRAIL",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          20,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      }
+    ]
+  },
+  {
+    "id": "Trail_unknown_history",
+    "lim": [
+      "TTE"
+    ],
+    "trace": {
+      "version": 1,
+      "diagnostic": {
+        "executed": true,
+        "confidenceGlobal": 0.5,
+        "dataCompleteness": 0.6,
+        "limiters": [
+          {
+            "metric": "TTE",
+            "priority": 1,
+            "status": "limiting",
+            "value": 45,
+            "target": 57,
+            "weightedImpact": 17.89473684210526
+          }
+        ],
+        "uncertainty": [
+          "Données physiologiques incomplètes (60%).",
+          "Confiance diagnostique limitée (50%)."
+        ]
+      },
+      "decision": {
+        "executed": true,
+        "source": "lorang",
+        "confidence": "moderate",
+        "primaryAction": "Focus Volume Z2 / Endurance",
+        "levers": [
+          {
+            "id": "z2_volume",
+            "label": "Volume Z2 / Endurance",
+            "priority": 1,
+            "reason": "TTE 21% sous la cible (45min vs 57min) — développer la durabilité",
+            "adaptations": [
+              "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+              "2×20-30min au seuil pour augmenter le TTE",
+              "Z2 + bloc tempo final 20-30min",
+              "Progression charge +10%/semaine max"
+            ]
+          },
+          {
+            "id": "force_max",
+            "label": "Force Max",
+            "priority": 2,
+            "reason": "Économie faible — renforcement musculaire nécessaire",
+            "adaptations": [
+              "Gym lourde 85–95% 1RM",
+              "3–5 répétitions par série",
+              "2–3 séries max",
+              "1–2x/semaine (hors semaines de course)"
+            ]
+          }
+        ],
+        "prohibitions": [
+          {
+            "id": "vo2_heavy_blocks",
+            "label": "Blocs VO2 lourds",
+            "reason": "Incompatible avec le travail de force max"
+          }
+        ],
+        "trainingFocus": {
+          "do": [],
+          "avoid": []
+        },
+        "weekType": "endurance"
+      },
+      "transmission": {
+        "identifiedLimitersRaw": {
+          "status": "consumed",
+          "origin": "diagnostic.limiter.gapAnalysis",
+          "consumers": [
+            "workoutCatalogBuilder.scoreWorkout",
+            "edge.buildStructuredDiagnosticBlock",
+            "server.reconciler"
+          ],
+          "detail": "Ordre transmis: TTE"
+        },
+        "activeLevers": {
+          "status": "consumed",
+          "origin": "decision.strategy.levers",
+          "consumers": [
+            "edge.buildStructuredDiagnosticBlock"
+          ],
+          "detail": "Les leviers guident le modèle dans le prompt; ils ne constituent pas encore un filtre déterministe du catalogue."
+        },
+        "prohibitions": {
+          "status": "consumed",
+          "origin": "planConfigBuilder + decision.strategy.prohibitions",
+          "consumers": [
+            "workoutCatalogBuilder.prohibitions",
+            "edge.buildStructuredDiagnosticBlock"
+          ]
+        },
+        "strategyContext": {
+          "status": "consumed",
+          "origin": "decision.strategy (lorang)",
+          "consumers": [
+            "edge.buildStructuredDiagnosticBlock"
+          ],
+          "detail": "Action, confiance, adaptations et focus sont transmis au générateur; le type de semaine reste une recommandation descriptive."
+        },
+        "prescriptionIntent": {
+          "status": "not_verified",
+          "origin": "plan final généré",
+          "consumers": [],
+          "detail": "Le catalogue et le prompt reçoivent le contexte causal, mais aucune preuve locale ne relie encore chaque séance finale à un levier précis."
+        }
+      }
+    },
+    "catalog": [
+      {
+        "id": "V3_TRAIL_MTN_DESCENTE_TECH",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          50,
+          75
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_MONTEE_BATONS",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          60,
+          100
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_TRAIL_SEUIL_MONTEE",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          60,
+          80
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_TRAIL_SHORT_TEMPO_COTE",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          55,
+          75
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_TRAIL_LONGUE_DPLUS",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          150,
+          240
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_SEUIL_MONTEE",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          75,
+          120
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V3_PRO",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          140,
+          170
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V1_PRO",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          120,
+          150
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V4_PRO",
+        "intent": "technique",
+        "sport": "course",
+        "min": [
+          150,
+          180
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_703_RUN_RACE_PACE_LONG",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          90,
+          110
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "URBAN_ESCALIERS_SEUIL_CONTINU",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          50,
+          70
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "EXPE_HORS_VILLE_VERTICAL_KM",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          90,
+          150
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_TRAIL_MTN_VMA_COTE",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          60,
+          80
+        ],
+        "zone": 6,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TRAIL_NORDIC_WALK_UPHILL",
+        "intent": "seuil",
+        "sport": "trail",
+        "min": [
+          90,
+          180
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": [
+          "batons"
+        ]
+      },
+      {
+        "id": "B_LCW_RUN_OFF_LEGS_SUN",
+        "intent": "test",
+        "sport": "course",
+        "min": [
+          60,
+          120
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": [
+          "b_lcw_bike_long_race_sat la veille"
+        ]
+      },
+      {
+        "id": "B_TR_HILL_TEMPO",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          60,
+          90
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "URBAN_PARKING_RAMPE_PYRAMIDE",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 5,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_RUN_HEDGEHOG_SEUIL",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          60,
+          75
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR50_LONG_RUN_2H30",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          130,
+          180
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_DPLUS_PRO",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          120,
+          210
+        ],
+        "zone": 2,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_RUN_DESCENDING_TEMPO",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          50,
+          65
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_UPHILL_TEMPO_2x20",
+        "intent": "seuil",
+        "sport": "course",
+        "min": [
+          70,
+          100
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V7_PRO",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          160,
+          200
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "A_TR_LONG_V6_PRO",
+        "intent": "endurance_fondamentale",
+        "sport": "course",
+        "min": [
+          150,
+          190
+        ],
+        "zone": 3,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_TR_RENFO_CIRCUIT_FATIGUE",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          40,
+          55
+        ],
+        "zone": 0,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_TRAIL_FOOT_TECHNIQUE",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          30,
+          40
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_TRAIL_CORE_PRO",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_DESCENTE_RAPIDE",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          50,
+          80
+        ],
+        "zone": 4,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_STR_ESCALIERS_TRAIL",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V2_TRAIL_DESCENTE_COMPETITIVE",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          55,
+          70
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "URBAN_ESCALIERS_TEMPO_LONG",
+        "intent": "vo2",
+        "sport": "course",
+        "min": [
+          45,
+          75
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_TRAIL_HIKING_POWER",
+        "intent": "force",
+        "sport": "strength",
+        "min": [
+          45,
+          60
+        ],
+        "zone": 0,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_TRAIL_LATERAL_STABILITY",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          30,
+          40
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_TR50_RECOVERY_WALK_RUN",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          25,
+          40
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_CALF_ISO_HEAVY",
+        "intent": "seuil",
+        "sport": "strength",
+        "min": [
+          30,
+          40
+        ],
+        "zone": 0,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "TPL_SEMI_LONGUE_PYRAMIDE",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          90,
+          115
+        ],
+        "zone": 5,
+        "phases": [
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "V3_RUN_10K_INTERVALS_1000",
+        "intent": "race_pace",
+        "sport": "course",
+        "min": [
+          50,
+          65
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "BILLAT_RUN_MLSS_LONG",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          65,
+          90
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_TR_PROPRIOCEPTION",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          25,
+          40
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak"
+        ],
+        "pre": []
+      },
+      {
+        "id": "BILLAT_TRAIL_FARTLEK_HILL",
+        "intent": "vo2",
+        "sport": "trail",
+        "min": [
+          60,
+          90
+        ],
+        "zone": 6,
+        "phases": [
+          "build"
+        ],
+        "pre": [
+          "experience trail"
+        ]
+      },
+      {
+        "id": "BILLAT_RUN_CRITICAL_VELOCITY",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          60,
+          75
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "NORWEGIAN_RUN_THRESHOLD_LOW_AM",
+        "intent": "sprint",
+        "sport": "course",
+        "min": [
+          55,
+          75
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": [
+          "bloc_double_seuil",
+          "lactatemetre",
+          "lactatemetre ou fc seuil non calibree"
+        ]
+      },
+      {
+        "id": "URBAN_ESCALIERS_PYRAMIDE",
+        "intent": "force",
+        "sport": "course",
+        "min": [
+          40,
+          60
+        ],
+        "zone": 4,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "B_TR_HILLREPS_8x2_PRO",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          50,
+          75
+        ],
+        "zone": 5,
+        "phases": [
+          "peak",
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "ENR_TRAIL_MARCHE_RAPIDE_COTES",
+        "intent": "other",
+        "sport": "course",
+        "min": [
+          60,
+          90
+        ],
+        "zone": 3,
+        "phases": [
+          "build"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_ECC_QUAD_PRO",
+        "intent": "test",
+        "sport": "strength",
+        "min": [
+          35,
+          50
+        ],
+        "zone": 0,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "C_STR_CALF_HEAVY_PRO",
+        "intent": "seuil",
+        "sport": "strength",
+        "min": [
+          25,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "build",
+          "base"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_TR_RECOVERY_SOFT",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          25,
+          45
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_TR_RECOVERY_SOFT_30",
+        "intent": "recuperation",
+        "sport": "course",
+        "min": [
+          25,
+          40
+        ],
+        "zone": 1,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      },
+      {
+        "id": "D_TR_MOBILITE_TRAIL",
+        "intent": "technique",
+        "sport": "strength",
+        "min": [
+          20,
+          35
+        ],
+        "zone": 0,
+        "phases": [
+          "base",
+          "build",
+          "peak",
+          "taper"
+        ],
+        "pre": []
+      }
+    ]
+  }
+]

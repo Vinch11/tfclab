@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-10-29T19:47:14Z",
+  "source": "GitHub connector get_pr_info; both heads unchanged",
+  "pullRequests": [
+    {
+      "number": 420,
+      "head": "experiment/det-engine",
+      "head_sha": "013489126054a94d4c5395e0b5e49d457d25ab47",
+      "draft": true,
+      "merged": false,
+      "title": "DET-ENGINE — dérogation coach 95→90 en opt-in expérimental — NO-GO"
+    },
+    {
+      "number": 425,
+      "head": "experiment/physiology-validation-v2",
+      "head_sha": "4d8c788fa94c870c6dd327583c1e256b32f2bdf8",
+      "draft": true,
+      "merged": false,
+      "title": "DRAFT — NO-GO — Physiological Validation V2.2 : revue des contrats et persistance"
+    }
+  ]
+}

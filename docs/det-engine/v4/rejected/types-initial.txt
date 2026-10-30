@@ -1,0 +1,3 @@
+experimental/det-engine/v4-progression.test.ts(12,41): error TS2352: Conversion of type '{ 1: { weekType: "load"; }; 2: { weekType: "recovery"; }; }' to type 'Record<number, WeekQuotaEntry>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property '1' is incompatible with index signature.
+    Type '{ weekType: "load"; }' is missing the following properties from type 'WeekQuotaEntry': quota, floors, downgraded

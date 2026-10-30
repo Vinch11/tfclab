@@ -1,0 +1,3196 @@
+[
+  {
+    "profile": "IM_aerobic_history",
+    "weeks": [
+      {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 90,
+          "slLongRunMin": 60
+        },
+        "nativeCeiling": 480,
+        "effectiveCeiling": 480,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 255,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S1:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S1:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S1:bike:0",
+            "min": 90,
+            "documentedCap": 180,
+            "compatibleSourceCount": 3,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S1:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S1:run:0",
+            "min": 60,
+            "documentedCap": 75,
+            "compatibleSourceCount": 3,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S1:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S1:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "phase": "base",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 100,
+          "slLongRunMin": 65
+        },
+        "nativeCeiling": 528,
+        "effectiveCeiling": 528,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 290,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S2:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S2:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S2:bike:0",
+            "min": 100,
+            "documentedCap": 180,
+            "compatibleSourceCount": 2,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S2:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S2:run:0",
+            "min": 65,
+            "documentedCap": 75,
+            "compatibleSourceCount": 3,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S2:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S2:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "phase": "base",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 110,
+          "slLongRunMin": 75
+        },
+        "nativeCeiling": 580,
+        "effectiveCeiling": 580,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 300,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S3:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S3:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S3:bike:0",
+            "min": 110,
+            "documentedCap": 180,
+            "compatibleSourceCount": 2,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S3:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S3:run:0",
+            "min": 75,
+            "documentedCap": 75,
+            "compatibleSourceCount": 2,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S3:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S3:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "phase": "base",
+        "type": "recovery",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 1,
+            "max": 1
+          },
+          "run": {
+            "min": 1,
+            "max": 2
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 4,
+            "max": 6
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "pratique standard cycles 3:1"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 85,
+          "slLongRunMin": 55
+        },
+        "nativeCeiling": 447,
+        "effectiveCeiling": 447,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 210,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S4:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S4:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S4:bike:0",
+            "min": 85,
+            "documentedCap": 180,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S4:run:0",
+            "min": 55,
+            "documentedCap": 75,
+            "compatibleSourceCount": 4,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S4:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 5,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 130,
+          "slLongRunMin": 90
+        },
+        "nativeCeiling": 702,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S5:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S5:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S5:bike:0",
+            "min": 130,
+            "documentedCap": 180,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S5:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S5:run:0",
+            "min": 90,
+            "documentedCap": 75,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 90,
+              "documentedCap": 75,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_aerobic_history:S5:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S5:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 6,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 145,
+          "slLongRunMin": 95
+        },
+        "nativeCeiling": 773,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S6:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S6:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S6:bike:0",
+            "min": 145,
+            "documentedCap": 180,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S6:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S6:run:0",
+            "min": 95,
+            "documentedCap": 75,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 95,
+              "documentedCap": 75,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_aerobic_history:S6:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S6:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 7,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 150,
+          "slLongRunMin": 100
+        },
+        "nativeCeiling": 800,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S7:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S7:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S7:bike:0",
+            "min": 150,
+            "documentedCap": 180,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S7:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S7:run:0",
+            "min": 100,
+            "documentedCap": 75,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 100,
+              "documentedCap": 75,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_aerobic_history:S7:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S7:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 8,
+        "phase": "build",
+        "type": "recovery",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 1,
+            "max": 1
+          },
+          "run": {
+            "min": 1,
+            "max": 2
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 4,
+            "max": 6
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "pratique standard cycles 3:1"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 105,
+          "slLongRunMin": 70
+        },
+        "nativeCeiling": 560,
+        "effectiveCeiling": 560,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S8:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 21,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S8:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 21,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S8:bike:0",
+            "min": 105,
+            "documentedCap": 180,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S8:run:0",
+            "min": 70,
+            "documentedCap": 75,
+            "compatibleSourceCount": 2,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S8:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 9,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 150,
+          "slLongRunMin": 100
+        },
+        "nativeCeiling": 800,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S9:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S9:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S9:bike:0",
+            "min": 150,
+            "documentedCap": 180,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S9:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S9:run:0",
+            "min": 100,
+            "documentedCap": 75,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 100,
+              "documentedCap": 75,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_aerobic_history:S9:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S9:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 10,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 150,
+          "slLongRunMin": 100
+        },
+        "nativeCeiling": 800,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S10:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S10:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S10:bike:0",
+            "min": 150,
+            "documentedCap": 180,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S10:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S10:run:0",
+            "min": 100,
+            "documentedCap": 75,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 100,
+              "documentedCap": 75,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_aerobic_history:S10:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S10:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 11,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 150,
+          "slLongRunMin": 100
+        },
+        "nativeCeiling": 800,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S11:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S11:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S11:bike:0",
+            "min": 150,
+            "documentedCap": 180,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S11:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S11:run:0",
+            "min": 100,
+            "documentedCap": 75,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 100,
+              "documentedCap": 75,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_aerobic_history:S11:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S11:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 12,
+        "phase": "build",
+        "type": "recovery",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 1,
+            "max": 1
+          },
+          "run": {
+            "min": 1,
+            "max": 2
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 4,
+            "max": 6
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "pratique standard cycles 3:1"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 105,
+          "slLongRunMin": 70
+        },
+        "nativeCeiling": 560,
+        "effectiveCeiling": 560,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S12:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 21,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S12:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 21,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S12:bike:0",
+            "min": 105,
+            "documentedCap": 180,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S12:run:0",
+            "min": 70,
+            "documentedCap": 75,
+            "compatibleSourceCount": 2,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S12:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 13,
+        "phase": "build",
+        "type": "taper",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 8
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "peer_reviewed",
+            "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": false,
+          "longRunWeekly": false,
+          "minStrengthPerWeek": 1
+        },
+        "nativeCeiling": null,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 140,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S13:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S13:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S13:bike:0",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S13:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S13:run:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S13:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S13:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 14,
+        "phase": "taper",
+        "type": "taper",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 8
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "peer_reviewed",
+            "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": false,
+          "longRunWeekly": false,
+          "minStrengthPerWeek": 1
+        },
+        "nativeCeiling": null,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S14:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S14:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S14:bike:0",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S14:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S14:run:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 11,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S14:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 11,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S14:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 0,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 15,
+        "phase": "taper",
+        "type": "taper",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 8
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "peer_reviewed",
+            "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": false,
+          "longRunWeekly": false,
+          "minStrengthPerWeek": 1
+        },
+        "nativeCeiling": null,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S15:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S15:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S15:bike:0",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S15:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S15:run:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 11,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S15:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 11,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S15:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 0,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 16,
+        "phase": "taper",
+        "type": "race",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 0,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 6,
+            "max": 8
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "peer_reviewed",
+            "ref": "Mujika 2003, Bosquet 2007 — volume réduit, fréquences propres à l'objectif maintenues, renforcement facultatif"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": false,
+          "longRunWeekly": false,
+          "minStrengthPerWeek": 0
+        },
+        "nativeCeiling": null,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 110,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_aerobic_history:S16:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S16:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S16:bike:0",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S16:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S16:run:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          },
+          {
+            "id": "IM_aerobic_history:S16:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "profile": "IM_balanced_history",
+    "weeks": [
+      {
+        "week": 1,
+        "phase": "base",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 90,
+          "slLongRunMin": 60
+        },
+        "nativeCeiling": 480,
+        "effectiveCeiling": 480,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 255,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S1:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S1:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S1:bike:0",
+            "min": 90,
+            "documentedCap": 150,
+            "compatibleSourceCount": 2,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S1:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S1:run:0",
+            "min": 60,
+            "documentedCap": 90,
+            "compatibleSourceCount": 4,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S1:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S1:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 2,
+        "phase": "base",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 100,
+          "slLongRunMin": 65
+        },
+        "nativeCeiling": 528,
+        "effectiveCeiling": 528,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 290,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S2:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S2:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S2:bike:0",
+            "min": 100,
+            "documentedCap": 150,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S2:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S2:run:0",
+            "min": 65,
+            "documentedCap": 90,
+            "compatibleSourceCount": 4,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S2:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S2:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 3,
+        "phase": "base",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 110,
+          "slLongRunMin": 75
+        },
+        "nativeCeiling": 580,
+        "effectiveCeiling": 580,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 300,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S3:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S3:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 24,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S3:bike:0",
+            "min": 110,
+            "documentedCap": 150,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S3:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S3:run:0",
+            "min": 75,
+            "documentedCap": 90,
+            "compatibleSourceCount": 3,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S3:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S3:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 4,
+        "phase": "base",
+        "type": "recovery",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 1,
+            "max": 1
+          },
+          "run": {
+            "min": 1,
+            "max": 2
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 4,
+            "max": 6
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "pratique standard cycles 3:1"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 85,
+          "slLongRunMin": 55
+        },
+        "nativeCeiling": 447,
+        "effectiveCeiling": 447,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 210,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S4:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S4:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S4:bike:0",
+            "min": 85,
+            "documentedCap": 150,
+            "compatibleSourceCount": 1,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S4:run:0",
+            "min": 55,
+            "documentedCap": 90,
+            "compatibleSourceCount": 5,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S4:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 5,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 130,
+          "slLongRunMin": 90
+        },
+        "nativeCeiling": 702,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S5:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S5:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S5:bike:0",
+            "min": 130,
+            "documentedCap": 150,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S5:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S5:run:0",
+            "min": 90,
+            "documentedCap": 90,
+            "compatibleSourceCount": 3,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S5:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S5:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 6,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 145,
+          "slLongRunMin": 95
+        },
+        "nativeCeiling": 773,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S6:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S6:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S6:bike:0",
+            "min": 145,
+            "documentedCap": 150,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S6:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S6:run:0",
+            "min": 95,
+            "documentedCap": 90,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 95,
+              "documentedCap": 90,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_balanced_history:S6:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S6:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 7,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 150,
+          "slLongRunMin": 100
+        },
+        "nativeCeiling": 800,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S7:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S7:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S7:bike:0",
+            "min": 150,
+            "documentedCap": 150,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S7:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S7:run:0",
+            "min": 100,
+            "documentedCap": 90,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 100,
+              "documentedCap": 90,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_balanced_history:S7:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S7:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 8,
+        "phase": "build",
+        "type": "recovery",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 1,
+            "max": 1
+          },
+          "run": {
+            "min": 1,
+            "max": 2
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 4,
+            "max": 6
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "pratique standard cycles 3:1"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 105,
+          "slLongRunMin": 70
+        },
+        "nativeCeiling": 560,
+        "effectiveCeiling": 560,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S8:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 21,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S8:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 21,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S8:bike:0",
+            "min": 105,
+            "documentedCap": 150,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S8:run:0",
+            "min": 70,
+            "documentedCap": 90,
+            "compatibleSourceCount": 2,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S8:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 9,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 150,
+          "slLongRunMin": 100
+        },
+        "nativeCeiling": 800,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S9:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S9:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S9:bike:0",
+            "min": 150,
+            "documentedCap": 150,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S9:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S9:run:0",
+            "min": 100,
+            "documentedCap": 90,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 100,
+              "documentedCap": 90,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_balanced_history:S9:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S9:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 10,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 150,
+          "slLongRunMin": 100
+        },
+        "nativeCeiling": 800,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S10:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S10:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S10:bike:0",
+            "min": 150,
+            "documentedCap": 150,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S10:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S10:run:0",
+            "min": 100,
+            "documentedCap": 90,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 100,
+              "documentedCap": 90,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_balanced_history:S10:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S10:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 11,
+        "phase": "build",
+        "type": "load",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 9
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 150,
+          "slLongRunMin": 100
+        },
+        "nativeCeiling": 800,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S11:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S11:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S11:bike:0",
+            "min": 150,
+            "documentedCap": 150,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S11:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S11:run:0",
+            "min": 100,
+            "documentedCap": 90,
+            "compatibleSourceCount": 0,
+            "witness": {
+              "classification": "current_individual_envelope_conflicts_with_programming_floor",
+              "floor": 100,
+              "documentedCap": 90,
+              "notAUniversalSafetyCeiling": true,
+              "newEvidenceRequired": true
+            }
+          },
+          {
+            "id": "IM_balanced_history:S11:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S11:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 12,
+        "phase": "build",
+        "type": "recovery",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 1,
+            "max": 1
+          },
+          "run": {
+            "min": 1,
+            "max": 2
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 4,
+            "max": 6
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "elite_practice",
+            "ref": "pratique standard cycles 3:1"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": true,
+          "longRunWeekly": true,
+          "minStrengthPerWeek": 1,
+          "slLongRideMin": 105,
+          "slLongRunMin": 70
+        },
+        "nativeCeiling": 560,
+        "effectiveCeiling": 560,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S12:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 21,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S12:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 21,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S12:bike:0",
+            "min": 105,
+            "documentedCap": 150,
+            "compatibleSourceCount": 0,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S12:run:0",
+            "min": 70,
+            "documentedCap": 90,
+            "compatibleSourceCount": 2,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S12:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 13,
+        "phase": "build",
+        "type": "taper",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 8
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "peer_reviewed",
+            "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": false,
+          "longRunWeekly": false,
+          "minStrengthPerWeek": 1
+        },
+        "nativeCeiling": null,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 140,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S13:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S13:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 23,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S13:bike:0",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S13:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S13:run:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S13:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 12,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S13:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 1,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 14,
+        "phase": "taper",
+        "type": "taper",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 8
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "peer_reviewed",
+            "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": false,
+          "longRunWeekly": false,
+          "minStrengthPerWeek": 1
+        },
+        "nativeCeiling": null,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S14:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S14:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S14:bike:0",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S14:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S14:run:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 11,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S14:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 11,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S14:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 0,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 15,
+        "phase": "taper",
+        "type": "taper",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 1,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 7,
+            "max": 8
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "peer_reviewed",
+            "ref": "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": false,
+          "longRunWeekly": false,
+          "minStrengthPerWeek": 1
+        },
+        "nativeCeiling": null,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": null,
+        "passesNecessaryChecks": false,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S15:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S15:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S15:bike:0",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S15:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S15:run:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 11,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S15:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 11,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S15:strength:0",
+            "min": 0,
+            "documentedCap": 40,
+            "compatibleSourceCount": 0,
+            "witness": null
+          }
+        ]
+      },
+      {
+        "week": 16,
+        "phase": "taper",
+        "type": "race",
+        "quota": {
+          "swim": {
+            "min": 2,
+            "max": 2
+          },
+          "bike": {
+            "min": 2,
+            "max": 2
+          },
+          "run": {
+            "min": 2,
+            "max": 3
+          },
+          "brick": {
+            "min": 0,
+            "max": 1
+          },
+          "strength": {
+            "min": 0,
+            "max": 1
+          },
+          "totalSessions": {
+            "min": 6,
+            "max": 8
+          },
+          "maxSessionsPerDay": 2,
+          "minFullRestDays": 1,
+          "source": {
+            "tier": "peer_reviewed",
+            "ref": "Mujika 2003, Bosquet 2007 — volume réduit, fréquences propres à l'objectif maintenues, renforcement facultatif"
+          }
+        },
+        "floors": {
+          "minSwimPerWeek": 2,
+          "longRideWeekly": false,
+          "longRunWeekly": false,
+          "minStrengthPerWeek": 0
+        },
+        "nativeCeiling": null,
+        "effectiveCeiling": 600,
+        "calendarCapacityNecessary": true,
+        "necessaryLowerBound": 110,
+        "passesNecessaryChecks": true,
+        "roles": [
+          {
+            "id": "IM_balanced_history:S16:swim:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S16:swim:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 10,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S16:bike:0",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S16:bike:1",
+            "min": 0,
+            "documentedCap": 120,
+            "compatibleSourceCount": 7,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S16:run:0",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          },
+          {
+            "id": "IM_balanced_history:S16:run:1",
+            "min": 0,
+            "documentedCap": 75,
+            "compatibleSourceCount": 14,
+            "witness": null
+          }
+        ]
+      }
+    ]
+  }
+]

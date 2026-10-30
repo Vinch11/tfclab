@@ -1,0 +1,66 @@
+{
+  "commands": [
+    {
+      "name": "types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "experimental/det-engine/tsconfig.json"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 49074
+    },
+    {
+      "name": "node",
+      "args": [
+        "--test",
+        "scripts/det-engine/gates.test.mjs",
+        "scripts/det-engine/v2-diagnostic.test.mjs",
+        "scripts/det-engine/v2-supervisor.test.mjs",
+        "scripts/det-engine/v3-supervisor.test.mjs",
+        "scripts/det-engine/v4-supervisor.test.mjs",
+        "scripts/det-engine/v5-budget.test.mjs",
+        "scripts/det-engine/v5-evidence.test.mjs",
+        "scripts/det-engine/v6-budget.test.mjs",
+        "scripts/det-engine/v7-budget.test.mjs",
+        "experimental/det-engine/v8-causal-audit.test.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 2195
+    },
+    {
+      "name": "experimental",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "experimental/det-engine/vitest.v3.config.ts",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 90826
+    },
+    {
+      "name": "historical",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--maxWorkers=1"
+      ],
+      "exitCode": 0,
+      "elapsedMs": 310508
+    }
+  ],
+  "nodePassed": 62,
+  "experimentalPassed": 88,
+  "experimentalSkipped": 39,
+  "v10TargetedPassed": 12,
+  "historicalPassed": 2999,
+  "historicalSkipped": 1,
+  "historicalTodo": 6,
+  "baselineArtifactsVerified": 103,
+  "independentReplay": "evidence/reproducibility.json",
+  "historicalValidatorsModified": false,
+  "scientificValidation": false
+}

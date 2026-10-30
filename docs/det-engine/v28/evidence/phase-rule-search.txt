@@ -1,0 +1,9 @@
+src/lib/plan/prepareGenerationContracts.ts:175:      // 1RM) et `SEILER_BIKE_Z1_LONG` (jusqu'à 210min) sont légitimement
+src/lib/workoutCatalogBuilder.ts:678:     * `SEILER_BIKE_Z1_LONG` jusqu'à 210min) : ces fiches ont `phase:["base",...]`
+src/lib/workoutCatalogBuilder.ts:1820:  lines.push("3. ⏱️ **Durée cible = valeur unique déjà résolue pour la phase en cours.** Prescris cette durée. Toute adaptation doit rester DANS les bornes min-max affichées et la variante numérique autorisée ; une tolérance de progression ne permet jamais de sortir de ces bornes. N'écris JAMAIS une plage large du type `2h-3h50` dans une séance : une séance = une durée précise.");
+supabase/functions/_shared/sessionCatalogueContract.ts:5:export interface ContractSession { title?: string; details?: string; sport?: string; catalogId?: string | null; custom?: boolean; durationMin?: number; zones?: string[]; variantKey?: string; }
+supabase/functions/_shared/sessionCatalogueContract.ts:34: const variant = session.variantKey ? variantRange(variants?.[session.variantKey]) : null;
+supabase/functions/_shared/sessionCatalogueContract.ts:35: if (session.variantKey && !variant) return { errors, unknown: [...unknown, "variant_not_executable"] };
+supabase/functions/_shared/sessionCatalogueContract.ts:36: if (session.variantKey && contract.objective && normalizeRepairGoal(session.variantKey) !== normalizeRepairGoal(contract.objective)) errors.push("variant_goal_mismatch");
+supabase/functions/_shared/sessionCatalogueContract.ts:43: const variantZones = variant ? [...(variants?.[session.variantKey!] ?? "").matchAll(/\bZ([1-7])/gi)].map(m => `Z${m[1]}`) : [];
+supabase/functions/_shared/sessionCatalogueContract.ts:50: const expectedIntent = variantZones.length ? classifyIntentEvidence(variants?.[session.variantKey!] ?? "", expected).family : metadata.intentFamily;
