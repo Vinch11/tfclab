@@ -22,6 +22,8 @@ export interface ExperimentalAssemblyContract {
   doseRange?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>[number,number]|null;
   /** Optional review-scoped deterministic tie-breaker; never skips any validation. */
   rankCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>number;
+  /** One V3 source cannot be used twice via two different composites in one week. */
+  consumedSourceIds?:(card:RepairWorkoutMetadata)=>readonly string[];
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
@@ -156,12 +158,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           const id=session.catalogId;
           const m=id?catalog.find(m=>m.id===id):undefined;
           if(m&&(weeklyUsage.get(id!)??0)>=Math.min(1,catalogueWeeklyUsageCapacity(m)))continue; // B13 forbids intra-week duplicate IDs.
+          const sourceKeys=m?(experimentalContract?.consumedSourceIds?.(m)??[]).map(src=>'v3-source:'+src):[];
+          if(sourceKeys.some(key=>(weeklyUsage.get(key)??0)>=1))continue;
           // Preserve the existing layout's 48h separation for quality of the same sport.
           const quality=m&&m.mainZoneMax>=3;
           if(quality&&chosen.some(s=>s.sport===session.sport&&Math.abs(s.dayIndex-session.dayIndex)<2&&(catalog.find(m=>m.id===s.catalogId)?.mainZoneMax??0)>=3))continue;
           chosen.push(session);if(id)weeklyUsage.set(id,(weeklyUsage.get(id)??0)+1);
+          for(const key of sourceKeys)weeklyUsage.set(key,(weeklyUsage.get(key)??0)+1);
           if(search(index+1,total+(session.durationMin??0)))return true;
           chosen.pop();if(id)weeklyUsage.set(id,weeklyUsage.get(id)!-1);
+          for(const key of sourceKeys)weeklyUsage.set(key,weeklyUsage.get(key)!-1);
           if(exhausted)return false;
         }
         return false;
