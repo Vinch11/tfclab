@@ -20,16 +20,16 @@ function i(id:string):WorkoutV2Input{
   };
 }
 describe("V2 exact duration fitter, isolated pilot",()=>{
-  it("fits a Foundation half brick to 100min without impersonating the V1 race-pace brick",()=>{
-    const a=fitWorkoutV2ToDuration("V2_BRICK_01",i("V2_BRICK_01"),6000);
-    const b=fitWorkoutV2ToDuration("V2_BRICK_01",i("V2_BRICK_01"),6000);
+  it("fits a source-bounded Foundation half brick to 82min without impersonating any V1 ID",()=>{
+    const a=fitWorkoutV2ToDuration("V2_BRICK_01",i("V2_BRICK_01"),4920);
+    const b=fitWorkoutV2ToDuration("V2_BRICK_01",i("V2_BRICK_01"),4920);
     expect(a).toEqual(b);
     expect(a.ok).toBe(true);
     if(a.ok===false)return;
-    expect(a.candidate.plannedDurationSec).toBe(6000);
+    expect(a.candidate.plannedDurationSec).toBe(4920);
     expect(a.candidate.status).toBe("coach_review_required");
-    expect(a.candidate.steps.reduce((n,s)=>n+s.durationSec,0)).toBe(6000);
-    expect(a.selected.bikeSec).toBe(4020);
+    expect(a.candidate.steps.reduce((n,s)=>n+s.durationSec,0)).toBe(4920);
+    expect(a.selected.bikeSec).toBe(3000);
     expect(a.candidate.steps.some(x=>x.sport==="run")).toBe(true);
     expect(a.candidate.steps.some(x=>x.sport==="bike")).toBe(true);
     const preview=previewV2InPlan(a.candidate,"samedi");
