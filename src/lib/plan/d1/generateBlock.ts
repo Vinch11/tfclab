@@ -1,7 +1,8 @@
+import { explainD1BrickContract } from './brickContract';
 import type { PlanAthleteData, PlanConfig } from '@/hooks/useAITrainingPlan';
 import { constructDeterministicPlan } from '../../../../experimental/det-engine/engine';
 
-export const D1_VERSION = 'd1-1';
+export const D1_VERSION = 'd1.1-1';
 export const D1_ENGINE_REFERENCE = '234112a1fa713b796d1f41faf14819d5ab6d0171';
 
 /** Narrow integration only. All existing sporting controls remain in the engine. */
@@ -24,6 +25,7 @@ export function generateD1Block(athlete: PlanAthleteData, config: PlanConfig) {
     version: D1_VERSION,
     engineReference: D1_ENGINE_REFERENCE,
     ...result,
+    brickContract: explainD1BrickContract(athlete,config),
     candidate: result.candidate ? { ...result.candidate, totalWeeks: 4, weeks: result.candidate.weeks.slice(0, 4) } : undefined,
     trace: result.trace.filter(t => t.week <= 4),
     validationScope: 'full_preparation_original_horizon_retained',

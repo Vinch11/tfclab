@@ -20,6 +20,13 @@ export default function D1BlockPanel({ athlete, config }: { athlete: PlanAthlete
     {result && <>
       <p role="status">{result.status === 'refused' ? `Refus : ${result.reason}` :
         result.constraintsSatisfied ? 'Candidat assemblé · prescription non attestée' : 'Candidat bloqué par les contrôles existants'}</p>
+      <details><summary>Contrat brick et décision coach en attente</summary>
+        <p>Aucune règle sportive modifiée. Le modèle paramétrable de base reste borné par sa source ; il ne remplit pas les créneaux incompatibles.</p>
+        <ul>{result.brickContract.map(contract => <li key={`${contract.week}-${contract.day}`}>
+          S{contract.week} · minimum vélo {contract.bikeFloorMinutes ?? 'inconnu'} min · minimum brick {contract.slotMinimumMinutes ?? 'inconnu'} min · source base {contract.sourceEnvelopeMinutes.join('–')} min.
+          {' '}{contract.reason}
+        </li>)}</ul>
+      </details>
       <p>Limiteurs : {result.limiterPriorities.join(', ') || 'inconnus'}</p>
       <ul>{result.issues.map((issue, index) => <li key={index}>{issue.severity} · {issue.code} · {issue.message}</li>)}</ul>
       {result.candidate?.weeks.map(week => <section key={week.weekNumber}>
