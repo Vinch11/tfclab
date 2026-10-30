@@ -14,7 +14,7 @@ import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { CoachOnlyGate } from "@/components/CoachOnlyGate";
-import { V3_ENGINE_IDS, type V3CoachPilotContext } from "@/lib/v3EngineBridge";
+import { V3_ENGINE_IDS, planContainsV3Candidate, type V3CoachPilotContext } from "@/lib/v3EngineBridge";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
@@ -2333,8 +2333,7 @@ export default function AITrainingPlanPage() {
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
     // Pilote V3 : aucun plan expérimental ne peut être persisté ni envoyé à Nolio.
-    if (parsedPlan.weeks?.some(week => week.sessions?.some(session =>
-      /V3P_(BIKE|RUN|SWIM|STRENGTH)_\d{3}/.test(JSON.stringify(session))))) {
+    if (planContainsV3Candidate(parsedPlan)) {
       toast.error("Plan V3 expérimental : sauvegarde et export automatique désactivés. Revue sportive requise.");
       return;
     }
