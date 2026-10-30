@@ -91,7 +91,41 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===b.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)||
             w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||a.catalogId!.localeCompare(b.catalogId!));
       });
-      if(options.some(domain=>!domain.length))return refuse(`empty_catalogue_domain_week_${w.week}`);
+      const emptyIndex=options.findIndex(domain=>domain.length===0);
+      if(emptyIndex>=0){
+        // Preserve the refusal; expose where each candidate disappears.
+        const {slot,dayIndex,dayName}=slots[emptyIndex];
+        const sportMatches=catalog.filter(m=>allowedIds.has(m.id)&&normalizeRepairSport(m.sport)===slot.sport);
+        const equivalent=sportMatches.filter(m=>
+          evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible);
+        const afterReview=equivalent.filter(m=>!experimentalContract?.filterCandidate||
+          experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}));
+        const afterDuration=afterReview.filter(m=>{
+          const range=experimentalContract?.doseRange?.(m,{...context,week:w.week,slot,dayIndex});
+          if(range===null)return false;
+          const chosen=Math.max(m.durationMin[0],slot.minDurationMin??0,range?.[0]??0);
+          return chosen<=Math.min(m.durationMin[1],slot.maxDurationMin??Infinity,range?.[1]??Infinity);
+        });
+        const samples=afterDuration.slice(0,4).map(m=>{
+          const range=experimentalContract?.doseRange?.(m,{...context,week:w.week,slot,dayIndex});
+          const duration=Math.max(m.durationMin[0],slot.minDurationMin??0,range?.[0]??0);
+          const session:ParsedSession={
+            weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,
+            sport:slot.sport,title:m.title,details:m.structure,catalogId:m.id,custom:false,
+            durationMin:duration,isRest:false,isKeySession:!!slot.isKeySession,
+            zones:m.mainZoneMax?['Z'+m.mainZoneMax]:m.zones,
+          };
+          return {id:m.id,checks:checkSessionCatalogue(session,{...context,catalog})};
+        });
+        result.issues.push({code:'det_empty_catalogue_slot',week:w.week,severity:'blocking',
+          message:JSON.stringify({day:dayName,sport:slot.sport,phase:w.phase,weekType:w.weekType,
+            minDurationMin:slot.minDurationMin??null,maxDurationMin:slot.maxDurationMin??null,
+            allInCatalog:catalog.filter(m=>normalizeRepairSport(m.sport)===slot.sport).length,
+            eligibleSportMatches:sportMatches.length,equivalent:equivalent.length,
+            afterReview:afterReview.length,afterDuration:afterDuration.length,
+            finalAdmissible:0,samples})});
+        return refuse('empty_catalogue_domain_week_'+w.week);
+      }
       // Fail early on exact lower bounds, rather than enumerating an impossible Cartesian product.
       const order=options.map((domain,i)=>({domain,slot:slots[i]})).sort((a,b)=>a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
       const minimumSuffix=Array(order.length+1).fill(0) as number[];
