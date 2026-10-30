@@ -48,9 +48,9 @@ const SOURCE = {
 } as const;
 function exactPinnedStage1Source(): boolean {
   const v1=WorkoutLibrary.find(x=>x.id===SOURCE.id);
-  if(!v1 || v1.sport!=="brick" || !v1.phase?.includes(SOURCE.phase) ||
+  if(!v1 || v1.sport!=="brick" || v1.phase?.length!==1 || v1.phase[0]!==SOURCE.phase ||
      v1.durationMin[0]!==SOURCE.totalMin[0] || v1.durationMin[1]!==SOURCE.totalMin[1] ||
-     !v1.variants?.half?.includes("Base")) return false;
+     v1.variants?.half!=="Base") return false;
   const bike=v1.structure.find(x=>x.part==="Bike");
   const run=v1.structure.find(x=>x.part==="Run");
   return bike?.text===SOURCE.bikeText && run?.text===SOURCE.runText &&
