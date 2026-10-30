@@ -1,0 +1,5491 @@
+{
+  "sport": "bike",
+  "count": 60,
+  "workouts": [
+    {
+      "id": "V3P_BIKE_041",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Aérobie découplage deux moitiés",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Comparer fréquence cardiaque et puissance sur deux blocs",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2520,
+            "base": 2520,
+            "max": 2520
+          },
+          "domain": "moderate_lt1",
+          "label": "Première moitié stable",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 420,
+            "base": 420,
+            "max": 420
+          },
+          "domain": "recovery",
+          "label": "Pause hydratation",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2520,
+            "base": 2520,
+            "max": 2520
+          },
+          "domain": "moderate_lt1",
+          "label": "Deuxième moitié, même puissance",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_042",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Aérobie sous LT1 à cadence spontanée",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Automatiser une cadence durable sans cible arbitraire",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 4680,
+            "base": 4680,
+            "max": 4680
+          },
+          "domain": "moderate_lt1",
+          "label": "Cadence libre sous LT1",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_043",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance sur relief avec plafonnement",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Réguler la puissance sans dérive en montée",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 180,
+          "label": "Parcours vallonné à plafond LT1",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 1080,
+                "base": 1080,
+                "max": 1080
+              },
+              "domain": "moderate_lt1",
+              "label": "Parcours vallonné à plafond LT1",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_044",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance nutrition à deux périodes",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tolérance digestive lors de deux périodes distinctes",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2880,
+            "base": 2880,
+            "max": 2880
+          },
+          "domain": "moderate_lt1",
+          "label": "Ravitaillement individualisé 1",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 360,
+            "base": 360,
+            "max": 360
+          },
+          "domain": "recovery",
+          "label": "Pause",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2880,
+            "base": 2880,
+            "max": 2880
+          },
+          "domain": "moderate_lt1",
+          "label": "Ravitaillement individualisé 2",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_045",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance après activation cadence courte",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Maintien effort aérobie après coordination",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 5,
+            "max": 6
+          },
+          "betweenSec": 60,
+          "label": "Cadence fluide",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "moderate_lt1",
+              "label": "Cadence fluide",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 3300,
+            "base": 3300,
+            "max": 3300
+          },
+          "domain": "moderate_lt1",
+          "label": "Endurance régulière",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_046",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance de durabilité longue",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Résistance à la dérive de puissance/RPE sur sortie longue",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 9000,
+            "base": 9000,
+            "max": 9000
+          },
+          "domain": "moderate_lt1",
+          "label": "Contrôle dérive et alimentation",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_047",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance sur home-trainer ventilé",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Maintenir effort et confort thermique en intérieur",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "Bloc LT1 en environnement ventilé",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 1680,
+                "base": 1680,
+                "max": 1680
+              },
+              "domain": "moderate_lt1",
+              "label": "Bloc LT1 en environnement ventilé",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_048",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance alternance cadence haute et normale",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Fluidité à puissance stable sous LT1",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 8,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 120,
+          "label": "Alternance technique",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 240,
+                "base": 240,
+                "max": 240
+              },
+              "domain": "moderate_lt1",
+              "label": "Cadence 95 rpm",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 360,
+                "base": 360,
+                "max": 360
+              },
+              "domain": "moderate_lt1",
+              "label": "Cadence spontanée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_049",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance reprise de position posturale",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Tenue du bassin et bras relâchés sur longue durée",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 8,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1800,
+            "base": 1800,
+            "max": 1800
+          },
+          "domain": "moderate_lt1",
+          "label": "Posture naturelle",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Relâchement",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1920,
+            "base": 1920,
+            "max": 1920
+          },
+          "domain": "moderate_lt1",
+          "label": "Posture contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_050",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance duo terrain plat et montée",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Conserver domaine modéré sur deux terrains",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2100,
+            "base": 2100,
+            "max": 2100
+          },
+          "domain": "moderate_lt1",
+          "label": "Plat régulier",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Récup",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1620,
+            "base": 1620,
+            "max": 1620
+          },
+          "domain": "moderate_lt1",
+          "label": "Montée à puissance plafonnée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_051",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo symétrique en escalier",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Progressivité tempo sur durées variables",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 360,
+            "base": 360,
+            "max": 360
+          },
+          "domain": "tempo",
+          "label": "Entrée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 120,
+            "base": 120,
+            "max": 120
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "tempo",
+          "label": "Montée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 180,
+            "base": 180,
+            "max": 180
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 840,
+            "base": 840,
+            "max": 840
+          },
+          "domain": "tempo",
+          "label": "Sommet",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 180,
+            "base": 180,
+            "max": 180
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "tempo",
+          "label": "Descente",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 120,
+            "base": 120,
+            "max": 120
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 360,
+            "base": 360,
+            "max": 360
+          },
+          "domain": "tempo",
+          "label": "Sortie",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_052",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo oscillation LT1",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Alterner domaine lourd et domaine modéré",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 0,
+          "label": "Oscillation",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 480,
+                "base": 480,
+                "max": 480
+              },
+              "domain": "tempo",
+              "label": "Tempo",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 360,
+                "base": 360,
+                "max": 360
+              },
+              "domain": "moderate_lt1",
+              "label": "Aérobie sous LT1",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_053",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo côte après pré-fatigue",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Contrôler tenue tempo après endurance",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2100,
+            "base": 2100,
+            "max": 2100
+          },
+          "domain": "moderate_lt1",
+          "label": "Endurance",
+          "role": "main"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "Côte à cadence naturelle",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 720,
+                "base": 720,
+                "max": 720
+              },
+              "domain": "tempo",
+              "label": "Côte à cadence naturelle",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_054",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo en ascensions longues",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Économie d'effort en pente prolongée",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 1,
+            "base": 2,
+            "max": 3
+          },
+          "betweenSec": 420,
+          "label": "Ascension contrôlée",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 1440,
+                "base": 1440,
+                "max": 1440
+              },
+              "domain": "tempo",
+              "label": "Ascension contrôlée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_055",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo continuum croissant",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tenue croissante dans un même domaine",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "moderate_lt1",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "tempo",
+          "label": "Tempo bas",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1080,
+            "base": 1080,
+            "max": 1080
+          },
+          "domain": "tempo",
+          "label": "Tempo haut sans franchir MLSS",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_056",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo encadré endurance",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Réintégrer l'endurance après charge lourde",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1500,
+            "base": 1500,
+            "max": 1500
+          },
+          "domain": "moderate_lt1",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1560,
+            "base": 1560,
+            "max": 1560
+          },
+          "domain": "tempo",
+          "label": "Tempo stable",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1500,
+            "base": 1500,
+            "max": 1500
+          },
+          "domain": "moderate_lt1",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_057",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo position aéro intermittente",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tolérance posturale à charge tempo",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 180,
+          "label": "Position intermittente",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 420,
+                "base": 420,
+                "max": 420
+              },
+              "domain": "tempo",
+              "label": "Position aéro",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "moderate_lt1",
+              "label": "Relevé",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_058",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo après fréquence de pédalage",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Transfert coordination-cadence vers tempo",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 60,
+          "label": "Cadence fluide",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 300,
+                "base": 300,
+                "max": 300
+              },
+              "domain": "moderate_lt1",
+              "label": "Cadence fluide",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1320,
+            "base": 1320,
+            "max": 1320
+          },
+          "domain": "tempo",
+          "label": "Tempo spontané",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_059",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo face au vent encadré",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Régularité contre résistance aérodynamique variable",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "moderate_lt1",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "Face au vent, rester stable",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 900,
+                "base": 900,
+                "max": 900
+              },
+              "domain": "tempo",
+              "label": "Face au vent, rester stable",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_060",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo final de durabilité",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tenue du tempo après volume de base",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 4320,
+            "base": 4320,
+            "max": 4320
+          },
+          "domain": "moderate_lt1",
+          "label": "Pré-fatigue",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1380,
+            "base": 1380,
+            "max": 1380
+          },
+          "domain": "tempo",
+          "label": "Bloc tempo final",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_061",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sous-seuil 2 blocs longs",
+      "primaryIntent": "mlss",
+      "primaryDomain": "sub_threshold",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Temps de travail sous MLSS sans dérive",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 1,
+            "base": 2,
+            "max": 3
+          },
+          "betweenSec": 300,
+          "label": "Sous-seuil long",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 1500,
+                "base": 1500,
+                "max": 1500
+              },
+              "domain": "sub_threshold",
+              "label": "Sous-seuil long",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_062",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sous-seuil pyramide à repos croissant",
+      "primaryIntent": "mlss",
+      "primaryDomain": "sub_threshold",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Contrôle sous-seuil à durée variée",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "sub_threshold",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 120,
+            "base": 120,
+            "max": 120
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "sub_threshold",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 180,
+            "base": 180,
+            "max": 180
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "sub_threshold",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "sub_threshold",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 120,
+            "base": 120,
+            "max": 120
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "sub_threshold",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_063",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sous-seuil alterné avec LT1",
+      "primaryIntent": "mlss",
+      "primaryDomain": "sub_threshold",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Retour aérobie au sein de séries de sous-seuil",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "Alternance sous-seuil",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 720,
+                "base": 720,
+                "max": 720
+              },
+              "domain": "sub_threshold",
+              "label": "Sous MLSS",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 240,
+                "base": 240,
+                "max": 240
+              },
+              "domain": "moderate_lt1",
+              "label": "Retour LT1",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_064",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sous-seuil fractionné HT",
+      "primaryIntent": "mlss",
+      "primaryDomain": "sub_threshold",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Soutien sous-seuil à cadence stable en intérieur",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "Sous-seuil régulier",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 900,
+                "base": 900,
+                "max": 900
+              },
+              "domain": "sub_threshold",
+              "label": "Sous-seuil régulier",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_065",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "MLSS repos court",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Maintien seuil malgré courtes pauses",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 5,
+            "max": 6
+          },
+          "betweenSec": 120,
+          "label": "Seuil fractionné",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 420,
+                "base": 420,
+                "max": 420
+              },
+              "domain": "mlss",
+              "label": "Seuil fractionné",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_066",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "MLSS repos long",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Accumulation avec récupération généreuse",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 420,
+          "label": "Seuil long",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 900,
+                "base": 900,
+                "max": 900
+              },
+              "domain": "mlss",
+              "label": "Seuil long",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_067",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "MLSS répétitions égales sous fatigue",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Répétabilité d'un stimulus au seuil",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 180,
+          "label": "Seuil régulier",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 540,
+                "base": 540,
+                "max": 540
+              },
+              "domain": "mlss",
+              "label": "Seuil régulier",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_068",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "MLSS ascensions de puissance",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Contrôle seuil en montée sans surintensité",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 300,
+          "label": "Montée au MLSS",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 660,
+                "base": 660,
+                "max": 660
+              },
+              "domain": "mlss",
+              "label": "Montée au MLSS",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_069",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "MLSS récupération décroissante",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tenir seuil avec densité qui augmente",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "mlss",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "mlss",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "mlss",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 180,
+            "base": 180,
+            "max": 180
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "mlss",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_070",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "MLSS après activation de vélocité",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Passage coordination vers maintien seuil",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 60,
+          "label": "Vélocité facile",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 120,
+                "base": 120,
+                "max": 120
+              },
+              "domain": "moderate_lt1",
+              "label": "Vélocité facile",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 1,
+            "base": 2,
+            "max": 3
+          },
+          "betweenSec": 360,
+          "label": "Seuil soutenu",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 1080,
+                "base": 1080,
+                "max": 1080
+              },
+              "domain": "mlss",
+              "label": "Seuil soutenu",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_071",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 6 fractions de deux minutes",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Sollicitation sévère répétée avec repos complet",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 5,
+            "base": 6,
+            "max": 7
+          },
+          "betweenSec": 120,
+          "label": "Effort VO2",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 120,
+                "base": 120,
+                "max": 120
+              },
+              "domain": "vo2max",
+              "label": "Effort VO2",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_072",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 3 efforts de cinq minutes",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Durabilité des longs efforts sévères",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 300,
+          "label": "VO2 long",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 300,
+                "base": 300,
+                "max": 300
+              },
+              "domain": "vo2max",
+              "label": "VO2 long",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_073",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 90 s récupération 150 s",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Accumulation de sollicitations sévères courtes",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 7,
+            "base": 8,
+            "max": 9
+          },
+          "betweenSec": 150,
+          "label": "VO2 90 secondes",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 90,
+                "base": 90,
+                "max": 90
+              },
+              "domain": "vo2max",
+              "label": "VO2 90 secondes",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_074",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 20/40 en deux séries",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Micro-intervalle à densité réduite",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 1,
+            "base": 2,
+            "max": 3
+          },
+          "betweenSec": 300,
+          "label": "Séries",
+          "steps": [
+            {
+              "kind": "repeat",
+              "count": {
+                "min": 9,
+                "base": 10,
+                "max": 11
+              },
+              "betweenSec": 0,
+              "label": "Alternance",
+              "steps": [
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 20,
+                    "base": 20,
+                    "max": 20
+                  },
+                  "domain": "vo2max",
+                  "label": "20 s fort",
+                  "role": "main"
+                },
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 40,
+                    "base": 40,
+                    "max": 40
+                  },
+                  "domain": "recovery",
+                  "label": "40 s faible",
+                  "role": "main"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_075",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 40/20 séries condensées",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Micro-intervalle à densité élevée",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 1,
+            "base": 2,
+            "max": 3
+          },
+          "betweenSec": 360,
+          "label": "Séries",
+          "steps": [
+            {
+              "kind": "repeat",
+              "count": {
+                "min": 7,
+                "base": 8,
+                "max": 9
+              },
+              "betweenSec": 0,
+              "label": "Alternance",
+              "steps": [
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 40,
+                    "base": 40,
+                    "max": 40
+                  },
+                  "domain": "vo2max",
+                  "label": "40 s fort",
+                  "role": "main"
+                },
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 20,
+                    "base": 20,
+                    "max": 20
+                  },
+                  "domain": "recovery",
+                  "label": "20 s facile",
+                  "role": "main"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_076",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 pyramide 1 2 3 2 1",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Contrôle d'effort sur durées progressives",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 60,
+            "base": 60,
+            "max": 60
+          },
+          "domain": "vo2max",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 120,
+            "base": 120,
+            "max": 120
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 120,
+            "base": 120,
+            "max": 120
+          },
+          "domain": "vo2max",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 180,
+            "base": 180,
+            "max": 180
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 180,
+            "base": 180,
+            "max": 180
+          },
+          "domain": "vo2max",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 180,
+            "base": 180,
+            "max": 180
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 120,
+            "base": 120,
+            "max": 120
+          },
+          "domain": "vo2max",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 120,
+            "base": 120,
+            "max": 120
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 60,
+            "base": 60,
+            "max": 60
+          },
+          "domain": "vo2max",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_077",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 deux rampes descendantes",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Distribution d'effort sévère par série",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 1,
+            "base": 2,
+            "max": 3
+          },
+          "betweenSec": 300,
+          "label": "Rampe descendante",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "vo2max",
+              "label": "Effort à intensité contrôlée",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 120,
+                "base": 120,
+                "max": 120
+              },
+              "domain": "recovery",
+              "label": "Effort à intensité contrôlée",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 120,
+                "base": 120,
+                "max": 120
+              },
+              "domain": "vo2max",
+              "label": "Effort à intensité contrôlée",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 120,
+                "base": 120,
+                "max": 120
+              },
+              "domain": "recovery",
+              "label": "Effort à intensité contrôlée",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 60,
+                "base": 60,
+                "max": 60
+              },
+              "domain": "vo2max",
+              "label": "Effort à intensité contrôlée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_078",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 cadence élevée sans couple excessif",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Tenue de puissance sévère à vitesse de pédalage fluide",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 5,
+            "max": 6
+          },
+          "betweenSec": 180,
+          "label": "VO2 cadence haute",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "vo2max",
+              "label": "VO2 cadence haute",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_079",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 en montée contrôlée",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Production aérobie sévère sur pente stable",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 240,
+          "label": "Côte VO2",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "vo2max",
+              "label": "Côte VO2",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_080",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 régulation RPE et contrôle a posteriori",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Autoréguler l'intensité sévère, sans viser un % FTP figé",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 5,
+            "max": 6
+          },
+          "betweenSec": 240,
+          "label": "VO2 contrôlé au ressenti",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 150,
+                "base": 150,
+                "max": 150
+              },
+              "domain": "vo2max",
+              "label": "VO2 contrôlé au ressenti",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_081",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Ironman départ prudent et puissance durable",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "im_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Gestion prudente en début d'effort IM",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2100,
+            "base": 2100,
+            "max": 2100
+          },
+          "domain": "moderate_lt1",
+          "label": "Départ modéré",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 5400,
+            "base": 5400,
+            "max": 5400
+          },
+          "domain": "im_pace",
+          "label": "Puissance Ironman",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "moderate_lt1",
+          "label": "Réduction finale",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_082",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Ironman stratégie nutrition longue",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "im_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Confort digestif et ravitaillement sur intensité IM",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "Puissance Ironman avec ravitaillement",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 2700,
+                "base": 2700,
+                "max": 2700
+              },
+              "domain": "im_pace",
+              "label": "Puissance Ironman avec ravitaillement",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_083",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Ironman effort après préfatigue",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "im_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tenue de puissance IM après base longue",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 5700,
+            "base": 5700,
+            "max": 5700
+          },
+          "domain": "moderate_lt1",
+          "label": "Préfatigue aérobie",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2700,
+            "base": 2700,
+            "max": 2700
+          },
+          "domain": "im_pace",
+          "label": "Bloc Ironman final",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_084",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "70.3 départ conservateur",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "703_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Pacing 70.3 en trois phases",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1500,
+            "base": 1500,
+            "max": 1500
+          },
+          "domain": "moderate_lt1",
+          "label": "Départ prudent",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1500,
+            "base": 1500,
+            "max": 1500
+          },
+          "domain": "703_pace",
+          "label": "Établir allure course",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "703_pace",
+          "label": "Maintenir effort",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_085",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "70.3 posture sous effort",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "703_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tolérance de posture prolongée en course",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 120,
+          "label": "Cycles course",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 840,
+                "base": 840,
+                "max": 840
+              },
+              "domain": "703_pace",
+              "label": "Position aéro",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "moderate_lt1",
+              "label": "Relâchement",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_086",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Olympique contrôle effort soutenable",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Régularité d'effort distance olympique",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "moderate_lt1",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "Puissance olympique individualisée",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 900,
+                "base": 900,
+                "max": 900
+              },
+              "domain": "tempo",
+              "label": "Puissance olympique individualisée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_087",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "CLM stabilité en position aéro",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Régulation de puissance et posture contre-la-montre",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "CLM en position aéro",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 960,
+                "base": 960,
+                "max": 960
+              },
+              "domain": "tempo",
+              "label": "CLM en position aéro",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_088",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "CLM relances brèves sans fatigue cumulée",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Gestion de relance autour d'effort stable",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 180,
+          "label": "CLM relances",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 480,
+                "base": 480,
+                "max": 480
+              },
+              "domain": "tempo",
+              "label": "CLM stable",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 20,
+                "base": 20,
+                "max": 20
+              },
+              "domain": "neuromuscular",
+              "label": "Relance très courte",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_089",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "70.3 en terrain vallonné plafonné",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "703_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Protection contre sur-régime en côte",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 300,
+          "label": "Circuit vallonné",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 720,
+                "base": 720,
+                "max": 720
+              },
+              "domain": "703_pace",
+              "label": "Montée plafonnée",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 480,
+                "base": 480,
+                "max": 480
+              },
+              "domain": "moderate_lt1",
+              "label": "Descente facile",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_090",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "70.3 ravitaillement entre blocs course",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "703_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Simulation contrôlée d'un segment 90 km",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Repère d'intensité personnel disponible et crédible"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "moderate_lt1",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 360,
+          "label": "Puissance course et nutrition",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 1500,
+                "base": 1500,
+                "max": 1500
+              },
+              "domain": "703_pace",
+              "label": "Puissance course et nutrition",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_091",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Décharge 25 min sans stimulus important",
+      "primaryIntent": "recovery",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Mouvement sans coût important",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 8,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1500,
+            "base": 1500,
+            "max": 1500
+          },
+          "domain": "recovery",
+          "label": "Décontraction",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_092",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Décharge cadence sans stress",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Agilité de pédalage sans intensité",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 8,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 120,
+          "label": "Cadence relâchée",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 120,
+                "base": 120,
+                "max": 120
+              },
+              "domain": "recovery",
+              "label": "Cadence relâchée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_093",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sprints assis sur home trainer",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": "neuromuscular",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Puissance brève contrôlée sans tirer le vélo",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 5,
+            "base": 6,
+            "max": 7
+          },
+          "betweenSec": 180,
+          "label": "Accélération 10s",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 10,
+                "base": 10,
+                "max": 10
+              },
+              "domain": "neuromuscular",
+              "label": "Accélération 10s",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_094",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sprints lancés avec amorce modérée",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": "neuromuscular",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Vitesse de jambes après élan maîtrisé",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 5,
+            "base": 6,
+            "max": 7
+          },
+          "betweenSec": 180,
+          "label": "Sprints lancés",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 30,
+                "base": 30,
+                "max": 30
+              },
+              "domain": "moderate_lt1",
+              "label": "Lancer",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 10,
+                "base": 10,
+                "max": 10
+              },
+              "domain": "neuromuscular",
+              "label": "Sprint 10s",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_095",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sprints côte modérée 15 s",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": "neuromuscular",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Recrutement bref à pente tolérée",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 5,
+            "max": 6
+          },
+          "betweenSec": 240,
+          "label": "Côte brève",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 15,
+                "base": 15,
+                "max": 15
+              },
+              "domain": "neuromuscular",
+              "label": "Côte brève",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_096",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sprints en petites séries séparées",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": "neuromuscular",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Répétition puissance courte avec récupération interséries",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 300,
+          "label": "Séries sprint",
+          "steps": [
+            {
+              "kind": "repeat",
+              "count": {
+                "min": 2,
+                "base": 3,
+                "max": 4
+              },
+              "betweenSec": 75,
+              "label": "Sprint 12 s",
+              "steps": [
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 12,
+                    "base": 12,
+                    "max": 12
+                  },
+                  "domain": "neuromuscular",
+                  "label": "Sprint 12 s",
+                  "role": "main"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_097",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Calibration cadence à watts égaux",
+      "primaryIntent": "test",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Comparer réponse physiologique à cadences distinctes",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Protocole documenté; ne jamais convertir le résultat automatiquement en seuil"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 180,
+          "label": "Puissance fixe, cadence différente",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 360,
+                "base": 360,
+                "max": 360
+              },
+              "domain": "moderate_lt1",
+              "label": "Puissance fixe, cadence différente",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_098",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Découplage contrôle aérobie 2×40",
+      "primaryIntent": "test",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Contrôler dérive FC/RPE sans déduire MLSS",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Protocole documenté; ne jamais convertir le résultat automatiquement en seuil"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2400,
+            "base": 2400,
+            "max": 2400
+          },
+          "domain": "moderate_lt1",
+          "label": "Référence",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 360,
+            "base": 360,
+            "max": 360
+          },
+          "domain": "recovery",
+          "label": "Hydratation",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2400,
+            "base": 2400,
+            "max": 2400
+          },
+          "domain": "moderate_lt1",
+          "label": "Comparaison",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_099",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Calibrage RPE trois paliers",
+      "primaryIntent": "test",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Repères de sensation sans fausse estimation de FTP",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Protocole documenté; ne jamais convertir le résultat automatiquement en seuil"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "moderate_lt1",
+          "label": "Palier modéré",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "tempo",
+          "label": "Tempo",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Effort à intensité contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "tempo",
+          "label": "Tempo répétition",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_100",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Test tolérance posturale aérobie",
+      "primaryIntent": "test",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Identifier confort en position aéro sans intensité",
+      "origin": "TFCLab original, non attribué à un entraîneur spécifique",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue inappropriée",
+        "Sécurité du terrain ou de l'équipement incompatible"
+      ],
+      "stopRule": "Arrêter si douleur, technique dégradée ou réponse physiologique incompatible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Protocole documenté; ne jamais convertir le résultat automatiquement en seuil"
+      ],
+      "methodology": "Dose individualisée; domaine physiologique issu de tfclDoctrine",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 240,
+          "label": "Position aéro confortable",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 720,
+                "base": 720,
+                "max": 720
+              },
+              "domain": "moderate_lt1",
+              "label": "Position aéro confortable",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    }
+  ]
+}
