@@ -20,6 +20,8 @@ export interface ExperimentalAssemblyContract {
   adapt:(preparation:ReturnType<typeof prepareGenerationContracts>,config:PlanConfig)=>void;
   filterCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>boolean;
   doseRange?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>[number,number]|null;
+  /** Optional review-scoped deterministic tie-breaker; never skips any validation. */
+  rankCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>number;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
@@ -85,6 +87,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const checked=checkSessionCatalogue(session,{...context,catalog});
             return checked.errors.length||checked.unknown.length?[]:[session];
           }).sort((a,b)=>(usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
+            (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===a.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)-
+            (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===b.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)||
             w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||a.catalogId!.localeCompare(b.catalogId!));
       });
       if(options.some(domain=>!domain.length))return refuse(`empty_catalogue_domain_week_${w.week}`);
