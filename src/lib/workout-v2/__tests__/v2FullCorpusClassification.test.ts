@@ -11,6 +11,12 @@ describe("D1.18 exhaustive initial 895 deficiencies",()=>{
   expect(Object.values(summary.counts).reduce((n,v)=>n+v,0)).toBe(920);
   expect(rows.every(r=>!!r.reason&&!r.autoApproved)).toBe(true);
   expect(rows.filter(r=>r.state==="ambiguous").every(r=>r.intent===null)).toBe(true);
+  // A passing mention of "cadence" or "économie" cannot create an intensity stimulus.
+  const endurance=rows.find(r=>r.id==="A_BIKE_Z2_LONG");
+  expect(endurance?.alternatives).not.toContain("neuromuscular");
+  expect(endurance?.alternatives).not.toContain("technique_economy");
+  const racePace=rows.find(r=>r.id==="A_IM_RUN_PACE");
+  expect(racePace?.alternatives).not.toContain("technique_economy");
   console.log("V2_FULL_CORPUS_SUMMARY="+JSON.stringify(summary));
   rows.filter(r=>r.state!=="documented").forEach(r=>console.log("V2_CORPUS_RECORD="+JSON.stringify(r)));
  },30000);
