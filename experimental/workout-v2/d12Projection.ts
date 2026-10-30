@@ -9,6 +9,7 @@ import type { WeeklySlotLayout, DaySlot, DayName, LayoutSport } from "@/engines/
 import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { constructDeterministicPlan, type ExperimentalAssemblyContract } from "./d1EngineReference";
 import { D12_PROFILES, type D12Profile } from "./d12CohortAudit";
+import { assessD15Candidate, type D15ReviewEvidence } from "./d15EvidenceSelection";
 export {D12_PROFILES};
 const DAYS:DayName[]=["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
 const ORDERS: Record<LayoutSport,DayName[]> = {
@@ -93,12 +94,13 @@ export interface D12ProjectionResult {
   weeklyPreview:Array<{week:number;volumeMin:number;bySport:Record<string,number>;sessions:Array<{day:string;sport:string;id:string|null;minutes:number;key:boolean}>}>;
   noLLM:true; canExport:false; canPersist:false;
   realPlanValidated:false; individualPrescriptionApproved:false;
+  reviewedSelections:Array<{week:number;day:string;id:string}>;
 }
 /** Re-run once for each unchanged D1 archetype, original 12-week context.
  * Intentional test-only stop after week 4; future event remains in context.
  * A candidate is never a deployable 4-week plan.
  */
-export function projectD12Profile(profile:D12Profile):D12ProjectionResult {
+export function projectD12Profile(profile:D12Profile,reviews:readonly D15ReviewEvidence[]=[]):D12ProjectionResult {
   const spec:PlanningCase={id:`D1_${profile}`,objective:"703",level:"trained",ambition:"age_group",
     load:"known_synthetic",physiology:profile,constraints:"unrestricted",duration:"native",intermediate:false};
   const {prepared}=preparePlanningCaseContext(spec);
@@ -129,6 +131,8 @@ export function projectD12Profile(profile:D12Profile):D12ProjectionResult {
       if(slot.sport!=="brick")return undefined as unknown as [number,number];
       return card.id==="BRICK_STAGE1_INTRO"?[60,90]:null;
     },
+    ...(reviews.length ? { preferReviewedCandidate:(card:Parameters<NonNullable<ExperimentalAssemblyContract["preferReviewedCandidate"]>>[0],context:Parameters<NonNullable<ExperimentalAssemblyContract["preferReviewedCandidate"]>>[1]) =>
+      assessD15Candidate(card,context,config.identifiedLimitersRaw??[],reviews).preferred } : {}),
   };
   try{
     const result=constructDeterministicPlan(structuredClone(prepared.athleteData),structuredClone(config),
@@ -148,11 +152,13 @@ export function projectD12Profile(profile:D12Profile):D12ProjectionResult {
       weeksConstructed:result.candidate?.weeks.length??0,
       slotsByWeek:transformedWeeks,issues,countCritical:criticalDetails.length,criticalDetails,weeklyPreview,
       noLLM:true,canExport:false,canPersist:false,
-      realPlanValidated:false,individualPrescriptionApproved:false};
+      realPlanValidated:false,individualPrescriptionApproved:false,
+      reviewedSelections:result.trace.filter(x=>x.reason.startsWith("Préférence expérimentale étayée"))
+        .map(x=>({week:x.week,day:x.day,id:x.id}))};
   }catch(e){
     return {profile,status:"experimental_exception",reason:e instanceof Error?e.message:String(e),
       weeksConstructed:0,slotsByWeek:transformedWeeks,issues:[],countCritical:0,criticalDetails:[],weeklyPreview:[],
       noLLM:true,canExport:false,canPersist:false,
-      realPlanValidated:false,individualPrescriptionApproved:false};
+      realPlanValidated:false,individualPrescriptionApproved:false,reviewedSelections:[]};
   }
 }
