@@ -3373,14 +3373,14 @@
       "id": "V3P_RUN_058",
       "version": "3.0.0-pilot",
       "sport": "run",
-      "title": "VO2 5×3 min inclinaison faible",
+      "title": "VO2 côte douce : effort puis relâchement de foulée",
       "primaryIntent": "vo2max",
       "primaryDomain": "vo2max",
       "phase": [
         "build"
       ],
       "minimumLevel": "trained",
-      "focus": "Maintenir effort sévère en faux plat ascendant",
+      "focus": "Préserver économie et relâchement juste après chaque montée sévère",
       "origin": "TFCLab — recette originale, données scientifiques utilisées pour des principes, pas pour une validation individuelle",
       "evidence": {
         "referenceIds": [
@@ -3418,12 +3418,12 @@
         {
           "kind": "repeat",
           "count": {
-            "min": 4,
-            "base": 5,
-            "max": 6
+            "min": 3,
+            "base": 4,
+            "max": 5
           },
           "betweenSec": 180,
-          "label": "Faux-plat régulier",
+          "label": "Côtes VO2 avec retour technique",
           "steps": [
             {
               "kind": "time",
@@ -3433,7 +3433,18 @@
                 "max": 180
               },
               "domain": "vo2max",
-              "label": "Faux-plat régulier",
+              "label": "3 min faux plat ascendant, allure adaptée",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 60,
+                "base": 60,
+                "max": 60
+              },
+              "domain": "recovery",
+              "label": "1 min relâchement en terrain facile",
               "role": "main"
             }
           ]
