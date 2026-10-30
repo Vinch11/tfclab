@@ -111,7 +111,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         // Preserve the refusal; expose where each candidate disappears.
         const {slot,dayIndex,dayName}=slots[emptyIndex];
         const sportMatches=catalog.filter(m=>allowedIds.has(m.id)&&normalizeRepairSport(m.sport)===slot.sport);
-        const equivalent=sportMatches.filter(m=>
+        const afterRaceDayContext=sportMatches.filter(m=>raceOnlySourceMatchesDay(m.when,dayIndex,raceDayIndex));
+        const equivalent=afterRaceDayContext.filter(m=>
           evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible);
         const afterReview=equivalent.filter(m=>!experimentalContract?.filterCandidate||
           experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}));
@@ -136,7 +137,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           message:JSON.stringify({day:dayName,sport:slot.sport,phase:w.phase,weekType:w.weekType,
             minDurationMin:slot.minDurationMin??null,maxDurationMin:slot.maxDurationMin??null,
             allInCatalog:catalog.filter(m=>normalizeRepairSport(m.sport)===slot.sport).length,
-            eligibleSportMatches:sportMatches.length,equivalent:equivalent.length,
+            eligibleSportMatches:sportMatches.length,afterRaceDayContext:afterRaceDayContext.length,
+            equivalent:equivalent.length,
             afterReview:afterReview.length,afterDuration:afterDuration.length,
             finalAdmissible:0,samples})});
         return refuse('empty_catalogue_domain_week_'+w.week);
