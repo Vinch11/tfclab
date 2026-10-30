@@ -59,7 +59,7 @@ export function auditD12Cohort(profile:D12Profile):D12CohortAudit {
     const slots=entry.layout.days.flatMap(d=>d.slots);
     const brick=slots.some(s=>s.sport==="brick"&&s.isLongSession);
     const effective=effectiveSessionQuota(entry.quota,slots.filter(s=>s.sport==="brick").length);
-    const original=slots.filter(s=>s.sport!=="rest").length;
+    const original=slots.length;
     const distinct=[...new Map([...Object.values(preparation.phaseRepairCatalogs).flat(),
       ...preparation.chunkRepairCatalogs.flat(),...preparation.chunkRegenRepairCatalogs.flat()]
       .map(m=>[m.id,m])).values()];
