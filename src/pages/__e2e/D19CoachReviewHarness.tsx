@@ -6,6 +6,8 @@
 import { useMemo, useState } from "react";
 import { composeD17Block, type D17Target } from "../../../experimental/workout-v2/d17BlockComposition";
 import { experimentD18Replacement, type D18Result } from "../../../experimental/workout-v2/d18ReplacementReview";
+import { examineD110TimeRatio } from "../../../experimental/workout-v2/d110TimeRatioFeasibility";
+import { attachD110SourceBrickProof } from "../../../experimental/workout-v2/d110V1BrickSourceProof";
 import { preparePlanningCaseContext, type PlanningCase } from "@/qa/sports-plan-lab/planningMatrix";
 import type { D12Profile } from "../../../experimental/workout-v2/d12CohortAudit";
 
@@ -34,6 +36,14 @@ export default function D19CoachReviewHarness() {
   const [result,setResult]=useState<D18Result|null>(null);
   const [running,setRunning]=useState(false);
   const view=useMemo(()=>composeD17Block(profile),[profile]);
+  const timeRatio=useMemo(()=>examineD110TimeRatio(view.calendar.filter(day=>day.week<=3)
+    .flatMap(day=>day.sessions.map(s=>({sport:s.sport,durationMin:s.minutes}))),3),[view]);
+  const sourceRatio=useMemo(()=>{
+    const inputs=view.calendar.filter(day=>day.week<=3).flatMap(day=>
+      day.sessions.map(s=>({sport:s.sport,id:s.id,minutes:s.minutes})));
+    const proof=attachD110SourceBrickProof(inputs);
+    return proof.ok?{ratio:examineD110TimeRatio(proof.sessions),bricks:proof.count}:null;
+  },[view]);
   const available=useMemo(()=>view.calendar.flatMap(day=>day.sessions.filter(s=>
     day.week<=3 && s.sport==="bike" && s.key && !!s.id && s.minutes>=50,
   ).map(s=>({day,session:s,key:`${day.week}|${day.day}|${s.id}|${s.minutes}`})))
@@ -96,6 +106,61 @@ export default function D19CoachReviewHarness() {
           <strong className="text-lg">{view.ratio.status==="non_conclusive"?"Non concluante":"Calculée"}</strong>
           <p className="mt-1 text-xs">Brick V1 non ventilé ; objectif de ratio non réinterprété.</p>
         </div>
+      </section>
+
+      <section className="rounded-xl bg-white p-5 shadow-sm" data-testid="d110-time-feasibility">
+        <h2 className="font-semibold">Répartition en minutes — hypothèse comparée (±3 points)</h2>
+        <p className="mt-2 text-sm text-slate-700">
+          Comparaison exploratoire aux plages historiques, non approuvée scientifiquement.
+          Les limites vélo/course couvrent toutes les ventilations mathématiquement possibles du brick V1,
+          sans inventer sa composition.
+        </p>
+        <p className="mt-3 text-sm font-bold" data-testid="d110-time-status">
+          {timeRatio.status==="incompatible_for_any_brick_allocation"
+            ?"Incompatible même en redistribuant toutes les minutes des bricks"
+            :timeRatio.status==="potentially_compatible_unverified_brick"
+              ?"Mathématiquement possible, mais bricks non ventilés : non concluant"
+              :timeRatio.status==="inconclusive_missing_time"
+                ?"Durée manquante : calcul non concluant"
+                :"Durées connues ; revue sportive et politique toujours requises"}
+        </p>
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {(["swim","bike","run"] as const).map(sport=>{
+            const bounds=timeRatio.percentageBounds[sport];
+            return <div key={sport} className="rounded border p-3 text-sm">
+              <strong>{sport==="swim"?"Natation":sport==="bike"?"Vélo":"Course"}</strong>
+              <div data-testid={`d110-bounds-${sport}`} className="mt-1">
+                {bounds?`${bounds[0].toFixed(1)}–${bounds[1].toFixed(1)} %`:"Inconnu"}
+              </div>
+              <p className="text-xs text-slate-600">Hypothèse de cible : {timeRatio.targets[sport].join("–")} %</p>
+            </div>;
+          })}
+        </div>
+        <div className="mt-4 border-t pt-3" data-testid="d110-source-ratio">
+          <h3 className="text-sm font-semibold">V1 Stage1 — ventilation de prescription démontrée par la fiche</h3>
+          {sourceRatio
+            ? <>
+              <p className="mt-1 text-xs text-slate-600">
+                {sourceRatio.bricks} bricks de 60 min ; structure historique inchangée :
+                45 min vélo + 15 min course par brick. Transition non minutée ;
+                ce calcul décrit la prescription, pas le temps réellement effectué.
+              </p>
+              <p className="mt-2 text-sm" data-testid="d110-source-status">
+                {sourceRatio.ratio.status==="fully_accounted_inside_bands"
+                  ?"Volumes prescrits dans les plages de temps nominales (hypothèse non approuvée)"
+                  :"Volumes prescrits hors des plages nominales (hypothèse non approuvée)"}
+              </p>
+              <p className="mt-1 text-sm" data-testid="d110-source-percentages">
+                Natation : {sourceRatio.ratio.percentageBounds.swim?.[0].toFixed(1)} % ;
+                vélo : {sourceRatio.ratio.percentageBounds.bike?.[0].toFixed(1)} % ;
+                course : {sourceRatio.ratio.percentageBounds.run?.[0].toFixed(1)} %
+              </p>
+            </>
+            : <p className="text-sm text-rose-800">Fiche ou durée historique non vérifiable : aucune ventilation déduite.</p>}
+        </div>
+        <p className="mt-3 text-xs text-rose-800">
+          Ces calculs ne modifient ni les quotas ni le validateur. NO-GO sport/production maintenu.
+        </p>
       </section>
 
       <section className="rounded-xl bg-white p-5 shadow-sm">
