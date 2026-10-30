@@ -20,6 +20,9 @@ describe("D1.2 unchanged three-profile cohort: native weeks 1–4",()=>{
       expect(w.eligibleSourcesBySport.swim).toBeGreaterThan(0);
       expect(w.eligibleSourcesBySport.bike).toBeGreaterThan(0);
       expect(w.eligibleSourcesBySport.run).toBeGreaterThan(0);
+      expect(typeof w.stage1BaseBrickEligible).toBe("boolean");
+      expect(typeof w.extraIndependentLongBikeEligible).toBe("boolean");
+      expect(w.separatedMinCatalogMinutes===null || w.separatedMinCatalogMinutes>=0).toBe(true);
     }
     console.log("D12_COHORT_DIAGNOSTIC="+JSON.stringify({
       profile: audit.profile,
@@ -30,6 +33,10 @@ describe("D1.2 unchanged three-profile cohort: native weeks 1–4",()=>{
         mismatch:w.nativeTotalPhysicalMismatch,brickFloor:w.longBrickFloorMin,
         longBikeFloor:w.longBikeFloorMin,minDose:w.minCatalogMinutesForOriginalSlots,
         maxBudget:w.volumeBudgetMaxMinutes,
+        stage1Source:w.stage1BaseBrickEligible,
+        independentBikeSource:w.extraIndependentLongBikeEligible,
+        splitMinimum:w.separatedMinCatalogMinutes,
+        splitMinimumOverBudget:w.separatedMinimumOverBudget,
         remaining:w.remainingAfterOriginalMinimumMinutes,
         sourceCounts:w.eligibleSourcesBySport,
         noSource:w.noEligibleSourceFor,
