@@ -42,7 +42,7 @@ footer{max-width:1480px;margin:auto;padding:0 20px 25px;font-size:13px;color:var
 <div class="muted small" id="count"></div><div class="list" id="catalogList"></div></section>
 <section class="panel" id="detailPanel">
 <h2>2. Séance et paramètres</h2><div id="detail"></div>
-<div id="swimControls"></div><div class="actions"><button id="reset" type="button">Réinitialiser les paramètres</button><button id="add" class="primary" type="button">Ajouter au brouillon coach</button><button id="copy" type="button">Copier la fiche</button><button id="print" type="button">Imprimer / PDF</button></div>
+<div id="swimControls"></div><div id="targetControls"></div><div class="actions"><button id="reset" type="button">Réinitialiser les paramètres</button><button id="add" class="primary" type="button">Ajouter au brouillon coach</button><button id="copy" type="button">Copier la fiche</button><button id="print" type="button">Imprimer / PDF</button></div>
 <textarea id="copyFallback" aria-label="Texte à copier manuellement"></textarea>
 <div class="notice" id="noticeText">Recette candidate non validée individuellement. Vérifier profil, fatigue, douleurs, charge de semaine, intensités et pertinence avant de la prescrire.</div>
 </section>
@@ -70,7 +70,7 @@ const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefi
 const append=(parent,...children)=>children.forEach(c=>parent.appendChild(c));
 const textTag=(label,val)=>{const d=node("span",label+": "+val,"pill");return d};
 const safeNumber=x=>Number.isFinite(x)&&x>0;
-let selected="V3P_BIKE_002", knobs={}, swimPaces={}, draft=[], serial=0;
+let selected="V3P_BIKE_002", knobs={}, swimPaces={}, intensityNotes={}, draft=[], serial=0;
 const fmtSec=s=>{if(!Number.isFinite(s))return"?";const x=Math.round(s);return Math.floor(x/60)+" min "+String(x%60).padStart(2,"0")+" s"};
 const fmtMin=s=>(s/60).toFixed(1).replace(".",",")+" min";
 function value(bound,override,label,integer){
@@ -110,6 +110,9 @@ function paceDomains(blocks){
  function visit(b){if(b.kind==="repeat")b.steps.forEach(visit);else if(b.kind==="distance"&&b.domain)found.add(b.domain)}
  blocks.forEach(visit);return [...found];
 }
+function allDomains(blocks){
+ const found=new Set();function visit(b){if(b.kind==="repeat")b.steps.forEach(visit);else if(b.domain)found.add(b.domain)}blocks.forEach(visit);return [...found];
+}
 function allParameters(blocks){
  const out=[];
  function visit(b,path){
@@ -134,12 +137,13 @@ function lineForBlock(b,path,params,indent){
  const descr=u==="seconds"?fmtSec(v):u==="meters"?v+" m":v+" répétitions"+(b.sides===2?" / côté":"");
  return[prefix+descr+" — "+b.label+(b.domain?" ["+(domainNames[b.domain]||b.domain)+"]":"")];
 }
-function makeText(w,params={},paces={}){
+function makeText(w,params={},paces={},targets={}){
  const info=evaluate(w,params,paces);
  const duration=info.seconds===null?"Durée impossible à calculer (allures manquantes : "+info.missing.join(", ")+")":
  (info.estimated?"Durée indicative, hors transitions : ":"Durée théorique : ")+fmtMin(info.seconds);
  return[w.title+" ["+w.id+"]",sportNames[w.sport]+" · "+w.primaryIntent,
  "Objectif : "+w.focus,"Phase(s) : "+w.phase.join(", "),"Niveau minimum : "+levelNames[w.minimumLevel],
+ "Repères d’intensité déclarés par le coach (non vérifiés scientifiquement) : "+(Object.entries(targets).filter(([k,v])=>v).map(([k,v])=>(domainNames[k]||k)+" = "+v).join(" ; ")||"aucun"),
  "",...w.blocks.flatMap((b,i)=>lineForBlock(b,String(i),params,0)),"",
  duration,info.distance?"Distance totale : "+info.distance+" m":"",
  "Contre-indications : "+w.contraindications.join(" ; "),"Conditions : "+w.prerequisites.join(" ; "),
@@ -158,7 +162,7 @@ function renderList(){
  matches.slice(0,150).forEach(w=>{
   const b=node("button",undefined,"sessionBtn"+(w.id===selected?" selected":""));
   b.type="button";b.append(node("strong",w.title),node("span",w.id+" · "+w.primaryIntent,"id"));
-  b.addEventListener("click",()=>{selected=w.id;knobs={};swimPaces={};renderList();renderDetail();});
+  b.addEventListener("click",()=>{selected=w.id;knobs={};swimPaces={};intensityNotes={};renderList();renderDetail();});
   box.appendChild(b);
  });
 }
@@ -213,11 +217,19 @@ function renderDetail(){
    swim.append(label,input);
   });
  }
+ const target=$("targetControls");target.replaceChildren();
+ target.append(node("h3","Repères du coach (facultatifs)"));
+ target.append(node("p","Indiquer une cible déjà justifiée par le profil (ex. 220 W ou 4:40/km). Aucune conversion automatique ni validation des intensités.","small"));
+ allDomains(w.blocks).forEach(d=>{
+  const label=node("label",(domainNames[d]||d)+" — cible manuelle"),input=node("input");
+  input.type="text";input.maxLength=120;input.placeholder="Valeur + unité, à vérifier";input.value=intensityNotes[d]||"";
+  input.addEventListener("change",()=>{intensityNotes[d]=input.value.trim();renderDetail()});target.append(label,input);
+ });
 }
 function addDraft(){
  const w=IDX.get(selected);let info;
  try{info=evaluate(w,knobs,swimPaces)}catch(e){alert(e.message);return}
- const copy={uid:"draft-"+(++serial),id:w.id,params:{...knobs},paces:{...swimPaces}};
+ const copy={uid:"draft-"+(++serial),id:w.id,params:{...knobs},paces:{...swimPaces},targets:{...intensityNotes}};
  draft.push(copy);renderDraft();
 }
 function renderDraft(){
@@ -245,7 +257,7 @@ function renderDraft(){
 }
 function draftText(){
  return ["TFCLab V3 — BROUILLON COACH NON VALIDÉ","Aucune vérification de microcycle ni autorisation d'envoyer à Nolio.","",
- ...draft.flatMap((d,i)=>{const w=IDX.get(d.id);return w?["========== "+(i+1)+" ==========",makeText(w,d.params,d.paces),""]:[]}),
+ ...draft.flatMap((d,i)=>{const w=IDX.get(d.id);return w?["========== "+(i+1)+" ==========",makeText(w,d.params,d.paces,d.targets),""]:[]}),
  "Important : revoir dose par sport, limiteurs, intensités, risques, jours de récupération, objectifs et niveau de charge.",
  "Ce document n'est pas un plan validé."].join("\n");
 }
@@ -262,8 +274,8 @@ function download(filename,data,mime){
  setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 $("search").oninput=renderList;["sport","intent","level","phase"].forEach(id=>$(id).onchange=renderList);
-$("reset").onclick=()=>{knobs={};swimPaces={};renderDetail()};
-$("add").onclick=addDraft;$("copy").onclick=()=>copyText(makeText(IDX.get(selected),knobs,swimPaces));
+$("reset").onclick=()=>{knobs={};swimPaces={};intensityNotes={};renderDetail()};
+$("add").onclick=addDraft;$("copy").onclick=()=>copyText(makeText(IDX.get(selected),knobs,swimPaces,intensityNotes));
 $("print").onclick=()=>window.print();
 $("export").onclick=()=>download("TFCLab_V3_brouillon_coach.json",JSON.stringify({
  format:"tfclab-v3-coach-draft",version:1,created:new Date().toISOString(),candidateOnly:true,
@@ -283,7 +295,8 @@ $("import").onchange=async e=>{
    const params={};for(const [k,v] of Object.entries(d.params)){if(!permitted.has(k)||!Number.isFinite(v))throw Error("Paramètre non autorisé");params[k]=v}
    const paces={};for(const [k,v] of Object.entries(d.paces)){if(!paceDomains(wk.blocks).includes(k)||!safeNumber(Number(v)))throw Error("Allure invalide");paces[k]=Number(v)}
    evaluate(wk,params,paces);
-   return {uid:"draft-"+(++serial),id:d.id,params,paces};
+   const targets={};for(const [k,v] of Object.entries(d.targets||{})){if(!allDomains(wk.blocks).includes(k)||typeof v!=="string"||v.length>120)throw Error("Repère invalid");targets[k]=v}
+   return {uid:"draft-"+(++serial),id:d.id,params,paces,targets};
  });
  draft=next;renderDraft();alert(next.length+" séance(s) restaurée(s), sans validation sportive");
  }catch(err){alert("Import refusé : "+(err.message||err))}
