@@ -61,7 +61,7 @@ function evaluate(block:V3Block,review:DetV3Review):{seconds:number|null;zones:s
  if(block.kind==='reps')return{seconds:null,zones:[],text:block.reps.base+' répétitions '+block.label+' (durée inconnue)',estimated:true};
  if(!block.domain)throw Error('v3_distance_missing_domain');
  const pace=review.swimPacesSecPer100m?.[block.domain];
- if(!Number.isFinite(pace)||!pace||pace<=0)return{seconds:null,zones:zone,text:block.meters.base+'m '+block.label+' (allure inconnue)',estimated:false};
+ if(typeof pace!=="number"||!Number.isFinite(pace)||pace<=0)return{seconds:null,zones:zone,text:block.meters.base+'m '+block.label+' (allure inconnue)',estimated:false};
  return{seconds:block.meters.base*pace/100,zones:zone,text:block.meters.base+'m '+block.label,estimated:false};
 }
 export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],review:readonly DetV3Review[]):DetV3ImportReport {
