@@ -26,6 +26,8 @@ function classify(c:LibraryWorkout):SourceAssessment{
  if(ev&&main.includes(ev.sourceMainExcerpt))return {...common,intent:ev.intent,alternatives:[],state:"reviewed_literal",reason:ev.reason,provenance:"reviewed_main_text"};
  if(!main.trim())return {...common,intent:null,alternatives:[],state:"insufficient",reason:"Main block missing",provenance:"none"};
  const text=main+" "+c.objectif;
+ // Secondary wording in objective is not a sufficient Main-block stimulus.
+ const actualMain=main;
  const isStrength=/strength|renforcement/i.test(c.sport);
  const isMixed=/mixed|brick/i.test(c.sport);
  const easy=zones.length>0&&zones.every(z=>z==="Z1"||z==="Z2");
@@ -39,10 +41,11 @@ function classify(c:LibraryWorkout):SourceAssessment{
  add(!isStrength&&re.threshold.test(text)&&high,"mlss");
  add(!isStrength&&re.vo2.test(text)&&high,"vo2max");
  add(!isStrength&&re.race.test(text),"race_specific");
- add(!isStrength&&re.neuromuscular.test(text),"neuromuscular");
- add(re.technique.test(text),"technique_economy");
+ add(!isStrength&&re.neuromuscular.test(actualMain)&&/strides|lignes? droites?|acc[eé]l[eé]rations?|sprints?/i.test(actualMain),"neuromuscular");
+ add(re.technique.test(actualMain)&&/(technique|[eé]ducatif|drills?|coordination)/i.test(actualMain),"technique_economy");
  add(isStrength&&re.mobility.test(text),"mobility_prevention");
  add(isStrength&&re.strength.test(text),"strength_endurance");
+ // Aerobic Z1/Z2 can be an easy-domain candidate only; never a measured LT1 guarantee.
  const unique=alt.length===1&&!["mlss","vo2max"].includes(alt[0]);
  return {...common,intent:unique?alt[0]:null,alternatives:alt,
   state:unique?"proposed":alt.length?"ambiguous":"insufficient",
