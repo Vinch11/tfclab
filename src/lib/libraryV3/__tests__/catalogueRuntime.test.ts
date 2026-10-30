@@ -178,7 +178,9 @@ describe("TFCLab V3 — deterministic bounded slot fitting (PREVIEW ONLY)", () =
   it("can fit 96 min threshold bike by selecting an allowed additional block, never changing its domain", () => {
     const w = byId("V3P_BIKE_008");
     const original = JSON.stringify(w);
-    const fitted = fitV3Duration(w, 96);
+    const implicit = fitV3Duration(w, 96);
+    expect(implicit.fitsSlot).toBe(false); // no extra threshold rep just to fill a slot
+    const fitted = fitV3Duration(w, 96, { allowWorksetChange: true });
     expect(fitted.code).toBe("FIT_WITHIN_DECLARED_BOUNDS");
     expect(fitted.fitsSlot).toBe(true);
     expect(fitted.computed.minutes).toBe(96);
