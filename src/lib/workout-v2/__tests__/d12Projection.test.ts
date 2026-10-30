@@ -20,6 +20,13 @@ describe("D1.2 experimental 28-day projection attempt (never approved)",()=>{
     expect(r.weeklyPreview.every(w=>w.sessions.length>0)).toBe(true);
     expect(r.weeklyPreview.map(w=>w.volumeMin)).toEqual([360,395,430,300]);
     expect(r.criticalDetails.some(x=>x.code==="load_pattern")).toBe(false);
+    // This is the FIRST FOUR weeks of a 12-week preparation, not race week 4.
+    // The actual declared competition is in week 12, so the original
+    // validator must report the absent future week as a WARNING, never
+    // invent a race-day ERROR in S4.
+    expect(r.criticalDetails.some(x=>x.code==="race_day")).toBe(false);
+    expect(r.issues.some(x=>x.code==="race_day"&&x.severity==="warning"&&x.week===12)).toBe(true);
+
     expect(before.status).toBe("candidate_for_coach_arbitration");
     // The test intentionally does NOT assert a success; full plan acceptance
     // requires unchanged sporting validation and an authorized policy.
