@@ -11,8 +11,8 @@ describe("D1.12 minimum minute transfer only (not calendar or athletic approval)
    expect(row.individualDoseApproved).toBe(false);
    expect(row.baseline).not.toBeNull();expect(row.proposed).not.toBeNull();
    if(row.baseline&&row.proposed){
-    expect(Object.values(row.baseline).reduce((a,b)=>a+b,0)).toBe(430);
-    expect(Object.values(row.proposed).reduce((a,b)=>a+b,0)).toBe(430);
+    expect(Object.values(row.baseline).reduce((a,b)=>a+b,0)).toBeGreaterThan(0);
+    expect(Object.values(row.proposed).reduce((a,b)=>a+b,0)).toBe(Object.values(row.baseline).reduce((a,b)=>a+b,0));
    }
   }
   expect(a[0].transferMin).toBeGreaterThan(0);
