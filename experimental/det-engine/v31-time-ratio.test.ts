@@ -22,10 +22,10 @@ describe('V31 planned-minute diagnostic, no legacy ratio waiver',()=>{
   const report=auditPlannedMinuteDistribution({
     title:'QA',phases:[],totalWeeks:1,
     weeks:[{weekNumber:1,theme:'base',phase:'base',sessions:[
-      {sport:'swim',title:'Nage',dayIndex:1,dayName:'mardi',isRest:false,durationMin:45},
-      {sport:'bike',title:'Vélo',dayIndex:2,dayName:'mercredi',isRest:false,durationMin:100},
-      {sport:'run',title:'Course',dayIndex:3,dayName:'jeudi',isRest:false,durationMin:60},
-      {sport:'brick',title:'Brique',dayIndex:5,dayName:'samedi',isRest:false,durationMin:120,catalogId:'LEGACY'},
+      {weekNumber:1,weekTheme:'base',phase:'base',sport:'swim',title:'Nage',details:'Planifié',dayIndex:1,dayName:'mardi',isRest:false,durationMin:45},
+      {weekNumber:1,weekTheme:'base',phase:'base',sport:'bike',title:'Vélo',details:'Planifié',dayIndex:2,dayName:'mercredi',isRest:false,durationMin:100},
+      {weekNumber:1,weekTheme:'base',phase:'base',sport:'run',title:'Course',details:'Planifié',dayIndex:3,dayName:'jeudi',isRest:false,durationMin:60},
+      {weekNumber:1,weekTheme:'base',phase:'base',sport:'brick',title:'Brique',details:'Non décomposé',dayIndex:5,dayName:'samedi',isRest:false,durationMin:120,catalogId:'LEGACY'},
     ]}],
   },{1:'load'});
   expect(report.knownMinutes).toEqual({swim:45,bike:100,run:60});
