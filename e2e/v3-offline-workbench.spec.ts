@@ -21,7 +21,7 @@ test.describe("V3 offline coach workbench — 400 usable manual drafts", () => {
     await count.fill("4");
     await count.press("Tab");
     await expect(page.locator("#detail")).toContainText("96,0 min");
-    const coachTarget = page.locator("#targetControls input[type=text]").first();
+    const coachTarget = page.locator("#targetControls input[type=text]").last();
     await coachTarget.fill("210-230 W (vérifié par le coach)");
     await coachTarget.press("Tab");
     await expect(page.locator("#detail")).toContainText("210-230 W");
