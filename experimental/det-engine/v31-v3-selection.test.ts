@@ -4,7 +4,7 @@ import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationF
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
 import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
-import { constructDeterministicPlan } from './engine';
+import { constructDeterministicPlan, raceOnlySourceMatchesDay } from './engine';
 import { V3_BASE_BRICK_ID } from './v31-v3-brick';
 
 const runnerIds=[
@@ -18,6 +18,14 @@ const makeReview=(id:string,objective:string):V3ReviewedSettings=>({
 });
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();vi.useRealTimers();});
 describe('DET V31 — actual deterministic selection, not mere catalogue visibility',()=>{
+ it('refuses race-day-only metadata outside the actual declared event day without disabling later checks',()=>{
+  expect(raceOnlySourceMatchesDay('Matin compétition (J)',2,null)).toBe(false);
+  expect(raceOnlySourceMatchesDay('Matin compétition (J)',3,5)).toBe(false);
+  expect(raceOnlySourceMatchesDay('Matin compétition (J)',5,5)).toBe(true);
+  expect(raceOnlySourceMatchesDay('Veille de course',4,5)).toBe(true);
+  expect(raceOnlySourceMatchesDay('Veille de course',3,5)).toBe(false);
+  expect(raceOnlySourceMatchesDay('Travail facile en base',2,null)).toBe(true);
+ });
  it('selects coach-reviewed V3 in a real 10K deterministic search without waiver of validation',()=>{
   vi.useFakeTimers({toFake:['Date']});
   vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
@@ -49,6 +57,7 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
   expect(selected.every(t=>t.duration===report.accepted.find(w=>w.id===t.id)!.durationMin[0])).toBe(true);
   expect(actual.candidate!.weeks.flatMap(w=>w.sessions)
     .filter(s=>admittedIds.has(s.catalogId??'')).every(s=>s.details&&s.durationMin&&s.zones?.length)).toBe(true);
+  expect(actual.issues.some(i=>i.code==='race_day_only_fiche_misplaced')).toBe(false);
   expect(actual.issues.some(i=>i.code==='experimental_contract_requires_review')).toBe(true);
   expect(actual.humanReviewRequired).toBe(true);
   expect(actual.sportingRelevance).toBe('not_attested');
