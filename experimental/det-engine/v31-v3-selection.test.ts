@@ -30,6 +30,11 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
   expect(admittedIds.size).toBeGreaterThan(5);
   const before=constructDeterministicPlan(prepared.athleteData,prepared.planConfig);
   expect(before.technicallyConstructed).toBe(true);
+  const emptyReview=buildDetV3ContractFromCatalogue([]);
+  const unreviewed=constructDeterministicPlan(prepared.athleteData,prepared.planConfig,
+    {maxNodes:20000,maxMilliseconds:5000},emptyReview.contract);
+  expect(unreviewed.candidate).toEqual(before.candidate);
+  expect(unreviewed.trace.every(t=>!t.id.startsWith('V3P_'))).toBe(true);
   expect(before.trace.every(t=>!admittedIds.has(t.id))).toBe(true);
   const actual=constructDeterministicPlan(prepared.athleteData,prepared.planConfig,
     {maxNodes:20000,maxMilliseconds:5000},contract);
