@@ -35,6 +35,10 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
     {maxNodes:20000,maxMilliseconds:5000},contract);
   expect(actual.technicallyConstructed).toBe(true);
   const selected=actual.trace.filter(t=>admittedIds.has(t.id));
+  console.info('DET_V31_SELECTION_10K',JSON.stringify({status:actual.status,reason:actual.reason,
+    technicallyConstructed:actual.technicallyConstructed,constraintsSatisfied:actual.constraintsSatisfied,
+    candidateCount:report.accepted.length,selectedV3:selected.map(t=>({id:t.id,week:t.week,day:t.day,duration:t.duration})),
+    blockingIssues:actual.issues.filter(i=>['blocking','error','critical'].includes(i.severity)).map(i=>i.code)}));
   expect(selected.length).toBeGreaterThan(0);
   expect(selected.every(t=>t.duration===report.accepted.find(w=>w.id===t.id)!.durationMin[0])).toBe(true);
   expect(actual.candidate!.weeks.flatMap(w=>w.sessions)
@@ -64,6 +68,11 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
    expect(eligible.length).toBeGreaterThan(0);
    const out=constructDeterministicPlan(fixture.athleteData,
      {...fixture.planConfig,_outputFormat:'json'}, {maxNodes:2500,maxMilliseconds:1500},contract);
+   console.info('DET_V31_TRIATHLON',JSON.stringify({fixture:fixtureId,objective,
+     prevalidationStatus:prevalidation.status,prevalidationV3Eligible:eligible.length,
+     prevalidationBlocking:prevalidation.issues.filter(i=>i.severity==='blocking').map(i=>i.code),
+     engineStatus:out.status,engineReason:out.reason,technicallyConstructed:out.technicallyConstructed,
+     constraintsSatisfied:out.constraintsSatisfied,selectedV3:out.trace.filter(t=>t.id.startsWith('V3P_')).map(t=>t.id)}));
    expect(out.humanReviewRequired).toBe(true);
    expect(out.sportingRelevance).toBe('not_attested');
    expect(out.issues.some(i=>i.code==='experimental_contract_requires_review') ||
