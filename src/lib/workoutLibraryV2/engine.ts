@@ -102,11 +102,12 @@ export function instantiateV2Workout(
     }
   }
   if (!isRecord(overrides)) reasons.push("overrides_invalid");
-  for (const key of Object.keys(overrides)) {
+  const safeOverrides = isRecord(overrides) ? overrides : {};
+  for (const key of Object.keys(safeOverrides)) {
     if (!(key in template.parameters)) reasons.push("unknown_parameter:" + key);
   }
   for (const [key, def] of Object.entries(template.parameters)) {
-    const v = Object.hasOwn(overrides, key) ? overrides[key] : def.default;
+    const v = Object.prototype.hasOwnProperty.call(safeOverrides, key) ? safeOverrides[key] : def.default;
     if (![def.min, def.max, def.step, def.default].every(Number.isSafeInteger) ||
       def.step <= 0 || def.min < 0 || def.max < def.min ||
       def.default < def.min || def.default > def.max ||
@@ -133,7 +134,7 @@ export function instantiateV2Workout(
     events.push(event);
   };
   const val = (key: string): number => {
-    if (!Object.hasOwn(resolved, key)) {
+    if (!Object.prototype.hasOwnProperty.call(resolved, key)) {
       reasons.push("missing_parameter_reference:" + key);
       return 0;
     }
