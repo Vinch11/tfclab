@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { brickBlueprints, previewV3Brick } from "../../../../scripts/library-v3/brickComposer";
 import { fitV3Duration } from "../../../../scripts/library-v3/durationFitter";
 import { previewV3Workout } from "../../../../scripts/library-v3/coachPreview";
 import {
@@ -203,5 +204,25 @@ describe("TFCLab V3 — deterministic bounded slot fitting (PREVIEW ONLY)", () =
     const result = fitV3Duration(byId("V3P_BIKE_008"), -1);
     expect(result.code).toBe("INVALID_TARGET");
     expect(result.fitsSlot).toBe(false);
+  });
+});
+
+describe("TFCLab V3 — 70.3/IM brick previews are explicit compositions, not live appointments", () => {
+  it("models eight separate candidates without counting bricks inside 400 workouts", () => {
+    expect(brickBlueprints).toHaveLength(8);
+    expect(v3PilotCatalogue.workouts).toHaveLength(400);
+    for (const blueprint of brickBlueprints) {
+      const preview = previewV3Brick(blueprint.id);
+      expect(preview.durationCalculated).toBe(true);
+      expect(preview.totalMinutes).toBeGreaterThanOrEqual(100);
+      expect(preview.totalMinutes).toBeCloseTo(
+        preview.bikeMinutes + preview.transitionMinutes + preview.runMinutes, 8,
+      );
+      expect(preview.automaticSelectionAllowed).toBe(false);
+      expect(preview.releaseDecision).toBe("NO_GO_SPORTING_AND_PERSISTENCE");
+    }
+  });
+  it("refuses an unknown brick without silently replacing its components", () => {
+    expect(() => previewV3Brick("V3B_UNKNOWN")).toThrow("V3_BRICK_UNKNOWN");
   });
 });
