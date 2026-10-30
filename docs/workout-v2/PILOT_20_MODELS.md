@@ -86,3 +86,23 @@ if (res.ok) console.log(res.candidate.steps, res.candidate.plannedDurationSec);
 **NO-GO pour intégration automatique dans TFCLab** tant que les étapes suivantes manquent : adaptation des sorties au schéma structuré de prescription/validation existant, preuve de qualité des séances dans le plan, comparaison des refus DET avant/après, revue sportive coach et qualification Nolio. Aucun masquage ni levée implicite des refus DET existants.
 
 > Une bibliothèque V2 intéressante n'est une amélioration produit que lorsqu'elle diminue les impossibilités imputables au catalogue, **sans introduire de prescription dangereuse ni dégrader les anciens plans**.
+
+
+## Lot complémentaire — patrimoine V1 et test de raccord réel
+
+- `experimental/workout-v2/v1Lineage.ts` : correspondance **explicite 20/20** avec des IDs V1 existants. La relation est `inspired_by_not_equivalent` pour les 20 : aucune dose, variante, phase ou permission V1 n'est héritée.
+- `experimental/workout-v2/fit.ts` : recherche déterministe bornée (3 000 variantes au plus) d'une durée **exacte** en ajustant uniquement les paramètres de structure explicitement déclarés (bloc continu, répétitions, fractions, longueur vélo du brick, etc.). Les intensités, les récupérations, le sport et les gardes sportifs ne sont jamais manipulés pour remplir du temps.
+- `experimental/workout-v2/planBridge.ts` : tentative de transformation d'un candidat V2 en **séance du schéma réel TFCLab** `zSession`. Une séance recalculée reste `custom=true` et `catalogId=null`, avec provenance V1 et consignes détaillées dans le texte. Jamais d'usurpation d'identifiant catalogue.
+- Le schéma actuel de plan stocke `durationMin` comme entier : les candidats non divisibles exactement par 60 secondes sont explicitement refusés par le bridge, **sans arrondi ni perte de structure**.
+- Les `exactSteps` V2 sont conservés **à part** du schéma V1. Pas de sauvegarde, validation sportive globale ou export Nolio revendiqué.
+- Tests : `src/lib/workout-v2/__tests__/v1Bridge.test.ts` (20 sources V1 réelles, vrai schéma, pertes de secondes, anciens conflits de phases) et `fit.test.ts` (créneau brick 100 min, déterminisme et refus de profils inadmissibles).
+
+### Sens précis de l'exemple « brick 100 minutes »
+
+Ce test vérifie qu'une **recette V2 candidate** peut remplir un créneau de 100 min via 67 min de vélo, 15 min de course, 10 min d'échauffement, 3 min de transition et 5 min de retour au calme. La séance produite **n'est ni la séance V1 `BRICK_IM_Z2_RUN`, ni la séance 70.3 race-pace incompatible**, et n'a aucune autorisation de substitution dans un calendrier réel. Le test ne démontre PAS que le refus sportif S2 de #427 est levé, ni que ce volume est adapté à un athlète précis.
+
+### Verdict séparé
+
+- **Terminé pour ce sous-lot technique :** correspondance avec V1, structure paramétrable, calcul de temps exact, refus du schéma incompatible, tests spécifiques — sous réserve de CI finale verte.
+- **Non réalisé :** activation dans `AITrainingPlanPage` ou DET-ENGINE #420, validation de plans complets, correction des refus de #427, raccord à la persistance ou aux exports Nolio/PDF, revue scientifique indépendante.
+- **GO opérationnel : NON.** L'absence de ces éléments interdit de parler d'une bibliothèque V2 « en place dans TFCLab ».
