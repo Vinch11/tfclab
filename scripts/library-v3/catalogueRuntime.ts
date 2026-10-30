@@ -166,12 +166,13 @@ export function evaluateV3Workout(
   const accumulation = mergeParts(workout.blocks.map((b, i) =>
     evaluateBlock(b, String(i), opts.swimPaces ?? {}, opts.overrides ?? {})
   ));
-  const status = accumulation.seconds === null ? "unresolved" : accumulation.estimated ? "estimated" : "confirmed";
+  const estimated = accumulation.estimated || workout.sport === "strength";
+  const status = accumulation.seconds === null ? "unresolved" : estimated ? "estimated" : "confirmed";
   return {
     seconds: accumulation.seconds,
     minutes: accumulation.seconds === null ? null : accumulation.seconds / 60,
     distanceM: accumulation.distanceM,
-    estimated: accumulation.estimated,
+    estimated,
     unknown: [...new Set(accumulation.unknown)],
     status,
   };
