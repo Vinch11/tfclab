@@ -189,6 +189,17 @@ export function buildDetV3ContractFromCatalogue(
         return /^V3P_(BIKE|RUN)_\d{3}$/.test(value)?[value]:[];
       }))];
     },
+    sourceRecoveryForId(id){
+      const meta=report.accepted.find(m=>m.id===id)||brickById.get(id);
+      if(!meta)return [];
+      const used=contract.consumedSourceIds?.(meta)??[];
+      return used.map(sourceId=>{
+        const source=v3FullCatalogue.workouts.find(w=>w.id===sourceId);
+        if(!source||!Number.isFinite(source.minimumRecoveryHours)||source.minimumRecoveryHours<0)
+          throw Error('v3_source_recovery_hours_untrusted:'+sourceId);
+        return {sourceId,sport:source.sport,hours:source.minimumRecoveryHours};
+      });
+    },
   };
   return {contract,report,brickReport,specificBrickReport,allBricks,auditErrors,sourceCounts:v3FullCatalogue.counts};
 }
