@@ -6,7 +6,7 @@
  * reviewed contract. This is an experimental ORDERING hint, never an override
  * of catalogue eligibility, recovery rules, quotas or downstream validation.
  */
-import type { RepairWorkoutMetadata } from "../../supabase/functions/_shared/repairSportingEquivalence";
+import { normalizeRepairSport, type RepairWorkoutMetadata } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import type { DaySlot } from "@/engines/plan/weeklySlotLayout";
 
 export type D15Target = "threshold" | "vo2";
@@ -59,13 +59,13 @@ export function assessD15Candidate(
 ): D15SelectionAssessment {
   const matching = reviews.filter(r =>
     r.cardId === card.id && r.week === context.week &&
-    r.dayIndex === context.dayIndex && r.sport === card.sport &&
+    r.dayIndex === context.dayIndex && r.sport === normalizeRepairSport(card.sport) &&
     r.phase === context.phase,
   );
   const reasons: string[] = [];
   if (!context.slot.isKeySession || context.weekType !== "load")
     reasons.push("not_load_key_slot");
-  if (card.sport !== context.slot.sport) reasons.push("sport_mismatch");
+  if (normalizeRepairSport(card.sport) !== context.slot.sport) reasons.push("sport_mismatch");
   if (matching.length !== 1) reasons.push(matching.length ? "ambiguous_review" : "review_missing");
   const review = matching.length === 1 ? matching[0] : null;
   if (review) {
