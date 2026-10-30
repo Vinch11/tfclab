@@ -39,7 +39,7 @@ describe("V2 exact duration fitter, isolated pilot",()=>{
       expect(preview.preview.planSession.catalogId).toBeNull();
       expect(preview.preview.canAutoInsert).toBe(false);
       expect(preview.preview.canExportNolio).toBe(false);
-      expect(preview.preview.sourceV1Id).toBe("BRICK_IM_Z2_RUN");
+      expect(preview.preview.sourceV1Id).toBe("BRICK_STAGE1_INTRO");
     }
   });
   it("fits 70min threshold bike without changing the requested intensity, goal or phase",()=>{
