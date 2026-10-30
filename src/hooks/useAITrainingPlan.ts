@@ -19,6 +19,7 @@ import { formatSLRepairDiagnostic } from "@/lib/plan/slRepairDiagnostics";
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { buildWorkoutCatalog } from "@/lib/workoutCatalogBuilder";
+import type { V3CoachPilotContext } from "@/lib/v3EngineBridge";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { PhaseTag } from "@/types/workoutLibrary";
 import { supabase } from "@/integrations/supabase/client";
@@ -1567,6 +1568,7 @@ export function useAITrainingPlan() {
   const generatePlanWindowed = useCallback(async (
     athleteData: PlanAthleteData,
     planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" },
+    v3CoachPilot?: V3CoachPilotContext,
   ): Promise<void> => {
     const totalWeeks = planConfig.weeksAvailable ?? 0;
     const { chunkSize } = computeChunkSizing(planConfig.objective || "", totalWeeks);
@@ -1575,7 +1577,9 @@ export function useAITrainingPlan() {
     if (planConfig._outputFormat !== "json" || totalChunksForPlan <= MAX_CHUNKS_PER_WINDOW) {
       // Plan assez court (ou chemin Markdown, non concerné par la coupure
       // serveur JSON) — comportement inchangé, une seule requête.
-      return generatePlan(athleteData, planConfig);
+      if (!v3CoachPilot) return generatePlan(athleteData, planConfig);
+      const base = await resolvePlanningOptions(athleteData, planConfig);
+      return generatePlan(athleteData, planConfig, { ...base, v3CoachPilot });
     }
 
     const windows = computeObjectiveAwareWindows(totalWeeks, chunkSize, planConfig.raceGoals, planConfig.planStartDate);
@@ -1584,7 +1588,10 @@ export function useAITrainingPlan() {
     batchInFlightRef.current=true;
     setIsBatchGenerating(true);
     try {
-      const scopeOptions=await resolvePlanningOptions(athleteData,planConfig);
+      const historicalScopeOptions=await resolvePlanningOptions(athleteData,planConfig);
+      const scopeOptions=v3CoachPilot
+        ? { ...historicalScopeOptions, v3CoachPilot }
+        : historicalScopeOptions;
       const scopePrevalidation=prevalidateGenerationScope(athleteData,planConfig,scopeOptions);
       setPrevalidation(scopePrevalidation);
       if(scopePrevalidation.status==="blocked") {
