@@ -104,6 +104,10 @@ describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
    expect(candidate.mainZoneMax).toBe(2);
    expect(real.report.sourceCount).toBe(400);
    expect(v3FullCatalogue.workouts).toHaveLength(400);
+   const fitted=buildDetV3ContractFromCatalogue([{...bike,targetDurationMin:65},run],[brick]);
+   expect(fitted.report.accepted.find(x=>x.id===bike.id)?.durationMin).toEqual([65,65]);
+   expect(fitted.brickReport.accepted[0].durationMin).toEqual([105,105]);
+   expect(fitted.brickReport.accepted[0].structure).toContain('Vélo 65 min');
    const badTransition=buildDetV3ContractFromCatalogue([bike,run],[{...brick,transitionSeconds:305}]);
    expect(badTransition.brickReport.accepted).toHaveLength(0);
    expect(badTransition.brickReport.rejected[0].reason).toContain('transition');
