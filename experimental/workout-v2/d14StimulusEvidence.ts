@@ -15,6 +15,8 @@ export interface D14StimulusSession {
     physiologicalTarget: "threshold" | "vo2" | "other";
     referenceVerified: boolean;
   }[] | null;
+  /** Explicitly reviewed individual intensity dose; timed segments alone are not enough. */
+  doseAdequacyReviewed?: boolean;
   limiterMatchVerified?: boolean;
   phaseCompatible?: boolean;
   readinessCompatible?: boolean;
@@ -51,6 +53,7 @@ export function auditD14KeyStimulus(
     ) === true,
   );
   const individuallySupported = structured.filter(s =>
+    s.doseAdequacyReviewed === true &&
     s.limiterMatchVerified === true &&
     s.phaseCompatible === true &&
     s.readinessCompatible === true,
