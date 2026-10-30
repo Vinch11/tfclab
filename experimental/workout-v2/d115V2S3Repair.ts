@@ -175,3 +175,20 @@ export function examineD115V2S3(profile:D12Profile):D115Report{
 export function examineD115ThreeProfiles():D115Report[]{
  return D12_PROFILES.map(examineD115V2S3);
 }
+
+/** D1.16: make the actual reason for an empty V2 dose domain inspectable.
+ * This is a read-only witness; a coach may NOT infer a sports clearance.
+ */
+export function explainD116S3Domains(){
+ return D12_PROFILES.map(profile=>{
+  const built=projectD12Profile(profile);
+  const week=built.weeklyPreview.find(w=>w.week===3);
+  if(built.status!=="candidate"||!week)throw Error("D116_NO_S3_REFERENCE");
+  const slots=week.sessions.map(slotDomain);
+  return {profile,week:3 as const,slots:slots.map(s=>({
+   day:s.day,sport:s.sport,id:s.id,key:s.key,minutes:s.original,
+   variants:s.options.length-1,
+   eligibleForDurationChange:s.options.length>1
+  })),mayExport:false as const,sportApproved:false as const};
+ });
+}
