@@ -1,0 +1,4326 @@
+{
+  "schemaVersion": "3.0.0-pilot",
+  "createdAt": "2026-10-30",
+  "status": "candidate_not_integrated",
+  "count": 48,
+  "counts": {
+    "bike": 12,
+    "run": 12,
+    "swim": 12,
+    "strength": 12
+  },
+  "notice": "Candidats originaux non validés individuellement, non disponibles pour la prescription automatique. Les références étayent un principe, jamais l'efficacité d'une recette isolée.",
+  "references": {
+    "TID2024": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38717713/",
+      "claim": "Comparaisons de répartitions d'intensité, sans validation des recettes individuelles"
+    },
+    "TID2025": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/39888556/",
+      "claim": "Comparaison des modèles polarisés et pyramidaux selon le niveau"
+    },
+    "BIKE2025": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/39788807/",
+      "claim": "Durée de l'intervention et répartition d'intensité chez cyclistes entraînés"
+    },
+    "SWIM2021": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/33952709/",
+      "claim": "Intensité et périodisation des nageurs entraînés selon distance"
+    },
+    "SWIM2026": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/41269307/",
+      "claim": "Revue spécialisée sprint natation; nécessitant validation d'interventions"
+    },
+    "STR2024": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/38627351/",
+      "claim": "Musculation combinée au travail d'endurance pour course"
+    },
+    "STR2025": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/40153564/",
+      "claim": "Umbrella review force et déterminants endurance, niveau de certitude variable"
+    }
+  },
+  "workouts": [
+    {
+      "id": "V3P_BIKE_001",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Récupération de décontraction",
+      "primaryIntent": "recovery",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Dérouler sans fatigue résiduelle",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 6,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1320,
+            "base": 1320,
+            "max": 1320
+          },
+          "domain": "recovery",
+          "label": "Pédalage libre, cadence confortable",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_002",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Endurance LT1 continue",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Stabilité métabolique sous LT1",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 3600,
+            "base": 3600,
+            "max": 3600
+          },
+          "domain": "moderate_lt1",
+          "label": "Endurance sous LT1, relief maîtrisé",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_003",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Durabilité aérobie avec contrôle final",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Maintenir le même effort sans dérive majeure",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [
+        "Durée longue déjà tolérée"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 4500,
+            "base": 4500,
+            "max": 4500
+          },
+          "domain": "moderate_lt1",
+          "label": "Première moitié régulière",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 3900,
+            "base": 3900,
+            "max": 3900
+          },
+          "domain": "moderate_lt1",
+          "label": "Seconde moitié : repérer dérive FC/RPE",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_004",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Progression aérobie vers LT1",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Augmenter la sollicitation sans franchir LT1",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Premier palier facile",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1500,
+            "base": 1500,
+            "max": 1500
+          },
+          "domain": "moderate_lt1",
+          "label": "Palier sous LT1",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "moderate_lt1",
+          "label": "Approche LT1 sans dépassement",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_005",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo continu contrôlé",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Soutien aérobie en domaine lourd",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1800,
+            "base": 1800,
+            "max": 1800
+          },
+          "domain": "tempo",
+          "label": "Tempo à cadence naturelle",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_006",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Tempo alterné et cadence libre",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Revenir en endurance entre blocs lourds",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 180,
+          "label": "Blocs tempo",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 720,
+                "base": 720,
+                "max": 720
+              },
+              "domain": "tempo",
+              "label": "Tempo régulier",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_007",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Sous-seuil extensif 4 blocs",
+      "primaryIntent": "mlss",
+      "primaryDomain": "sub_threshold",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Temps contrôlé sous MLSS",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 36,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1080,
+            "base": 1080,
+            "max": 1080
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 180,
+          "label": "Blocs sous-seuil",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 600,
+                "base": 600,
+                "max": 600
+              },
+              "domain": "sub_threshold",
+              "label": "Sous-seuil : respiration maîtrisée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_008",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "LT2/MLSS fractionné",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tolérance du travail proche MLSS",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 36,
+      "prerequisites": [
+        "Repère de seuil vérifié"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1080,
+            "base": 1080,
+            "max": 1080
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 360,
+          "label": "Seuil structuré",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 720,
+                "base": 720,
+                "max": 720
+              },
+              "domain": "mlss",
+              "label": "Au repère MLSS individuel",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_009",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Over-under sans confusion du seuil",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Oscillations autour du seuil et contrôle du dosage",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Capacité de répétition haute intensité",
+        "Repères de puissance individualisés"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 300,
+          "label": "Blocs mixtes",
+          "steps": [
+            {
+              "kind": "repeat",
+              "count": {
+                "min": 3,
+                "base": 3,
+                "max": 3
+              },
+              "betweenSec": 0,
+              "label": "Alternance interne",
+              "steps": [
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 120,
+                    "base": 120,
+                    "max": 120
+                  },
+                  "domain": "tempo",
+                  "label": "Sous le seuil",
+                  "role": "main"
+                },
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 60,
+                    "base": 60,
+                    "max": 60
+                  },
+                  "domain": "vo2max",
+                  "label": "Passage bref au-dessus du seuil",
+                  "role": "main"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_010",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "VO2 long 5×3 min",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Durée d'effort intense suffisamment longue",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 5,
+            "max": 6
+          },
+          "betweenSec": 180,
+          "label": "Efforts VO2 longs",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "vo2max",
+              "label": "Effort sévère contrôlé",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_011",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Micro-intervalles 30/30",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Accumuler des fractions brèves sans sprint maximal",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 300,
+          "label": "Séries 30/30",
+          "steps": [
+            {
+              "kind": "repeat",
+              "count": {
+                "min": 10,
+                "base": 10,
+                "max": 10
+              },
+              "betweenSec": 0,
+              "label": "Alternance",
+              "steps": [
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 30,
+                    "base": 30,
+                    "max": 30
+                  },
+                  "domain": "vo2max",
+                  "label": "Haute sollicitation",
+                  "role": "main"
+                },
+                {
+                  "kind": "time",
+                  "seconds": {
+                    "min": 30,
+                    "base": 30,
+                    "max": 30
+                  },
+                  "domain": "recovery",
+                  "label": "Relâchement",
+                  "role": "main"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_BIKE_012",
+      "version": "3.0.0-pilot",
+      "sport": "bike",
+      "title": "Spécifique 70.3 position aéro",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "703_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Stabilité effort, posture et apport glucidique",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "BIKE2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur lombaire/cervicale en position aéro",
+        "Sécurité routière incompatible"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [
+        "Position aéro tolérée",
+        "Nutrition expérimentée"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 300,
+          "label": "Blocs aéro spécifiques",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 1200,
+                "base": 1200,
+                "max": 1200
+              },
+              "domain": "703_pace",
+              "label": "Position aérodynamique; nutrition testée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_001",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Footing régénération courte",
+      "primaryIntent": "recovery",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Entretien sans charge additionnelle",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 6,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 360,
+            "base": 360,
+            "max": 360
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1440,
+            "base": 1440,
+            "max": 1440
+          },
+          "domain": "recovery",
+          "label": "Course douce ou marche-course",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_002",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Endurance sous LT1",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Économie d'effort, capacité aérobie",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 2400,
+            "base": 2400,
+            "max": 2400
+          },
+          "domain": "moderate_lt1",
+          "label": "Allure conversationnelle sous LT1",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_003",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Sortie longue mécanique maîtrisée",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Endurance et résistance mécanique sans intensité ajoutée",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur tendineuse/articulaire",
+        "Reprise récente après blessure"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [
+        "Historique de course longue"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 5100,
+            "base": 5100,
+            "max": 5100
+          },
+          "domain": "moderate_lt1",
+          "label": "Terrain régulier, ravitaillement adapté",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_004",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Progression facile au plafond LT1",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Gestion de l'allure sans travail au seuil",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Mise en route douce",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "moderate_lt1",
+          "label": "Rythme stable",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "moderate_lt1",
+          "label": "Approcher LT1 sans dépasser",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_005",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Économie de course par lignes droites",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": "neuromuscular",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Vitesse technique brève avec récupération complète",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "moderate_lt1",
+          "label": "Course souple",
+          "role": "main"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 6,
+            "max": 8
+          },
+          "betweenSec": 90,
+          "label": "Lignes droites",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 15,
+                "base": 15,
+                "max": 15
+              },
+              "domain": "neuromuscular",
+              "label": "Accélération progressive sans sprint maximal",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_006",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Côtes très courtes et récupération complète",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": "neuromuscular",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Coordination et force spécifique en montée",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Tolérance préalable aux côtes"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 6,
+            "base": 8,
+            "max": 10
+          },
+          "betweenSec": 120,
+          "label": "Côtes brèves",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 12,
+                "base": 12,
+                "max": 12
+              },
+              "domain": "neuromuscular",
+              "label": "Montée maîtrisée, retour marche",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_007",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Cruise intervals au sous-seuil",
+      "primaryIntent": "mlss",
+      "primaryDomain": "sub_threshold",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Volume de travail proche sous-seuil, non maximal",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 36,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 5,
+            "max": 6
+          },
+          "betweenSec": 60,
+          "label": "Répétitions sous-seuil",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 360,
+                "base": 360,
+                "max": 360
+              },
+              "domain": "sub_threshold",
+              "label": "Sous MLSS, technique relâchée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_008",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Seuil 3×10 min",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Stabilité d'allure à MLSS estimé",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Seuil correctement ancré"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 180,
+          "label": "Seuil fractionné",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 600,
+                "base": 600,
+                "max": 600
+              },
+              "domain": "mlss",
+              "label": "Au repère individuel LT2",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_009",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "VO2 5×3 min en temps",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Temps en domaine sévère sans vitesse forcée",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 5,
+            "max": 6
+          },
+          "betweenSec": 180,
+          "label": "Fractions VO2",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "vo2max",
+              "label": "Pilotage effort intense; ne pas viser un %VMA fixe",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_010",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Fartlek 1 min actif / 2 min facile",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Variations courtes contrôlées au terrain",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1080,
+            "base": 1080,
+            "max": 1080
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 6,
+            "base": 8,
+            "max": 10
+          },
+          "betweenSec": 0,
+          "label": "Alternance en boucle",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 60,
+                "base": 60,
+                "max": 60
+              },
+              "domain": "vo2max",
+              "label": "Segment fort",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 120,
+                "base": 120,
+                "max": 120
+              },
+              "domain": "recovery",
+              "label": "Retour facile",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_011",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Marathon : blocs allure spécifique",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "marathon_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Durabilité à allure course sans convertir en seuil",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Tolérance de charge longue",
+        "Allure cible réaliste"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 300,
+          "label": "Allure marathon",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 1080,
+                "base": 1080,
+                "max": 1080
+              },
+              "domain": "marathon_pace",
+              "label": "Allure cible vérifiée; nutrition",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_RUN_012",
+      "version": "3.0.0-pilot",
+      "sport": "run",
+      "title": "Semi : negative split spécifique",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "semi_pace",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Gestion progressive du domaine lourd en compétition",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "TID2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 1200,
+            "base": 1200,
+            "max": 1200
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "tempo",
+          "label": "Départ inférieur à allure semi",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "semi_pace",
+          "label": "Allure semi contrôlée",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "semi_pace",
+          "label": "Finir sans dégradation",
+          "role": "main"
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_001",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Technique alignement et position",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Réduction traînée, alignement",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 6,
+            "base": 8,
+            "max": 10
+          },
+          "betweenSec": 20,
+          "label": "50 m éducatifs position",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 50,
+                "base": 50,
+                "max": 50
+              },
+              "domain": "recovery",
+              "label": "Glisse et alignement",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 400,
+            "base": 400,
+            "max": 400
+          },
+          "domain": "moderate_lt1",
+          "label": "Nage intégrée souple",
+          "role": "main"
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 160,
+            "base": 160,
+            "max": 160
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_002",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Appuis et trajet de bras",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Contrôle d'appui sans surcharge d'épaule",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur épaule",
+        "Amplitude de traction mal contrôlée"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 8,
+            "base": 8,
+            "max": 8
+          },
+          "betweenSec": 20,
+          "label": "Éducatifs appuis",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 50,
+                "base": 50,
+                "max": 50
+              },
+              "domain": "recovery",
+              "label": "Un éducatif puis nage complète",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "moderate_lt1",
+          "label": "Transfert technique",
+          "role": "main"
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 160,
+            "base": 160,
+            "max": 160
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_003",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Respiration bilatérale intégrée",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Ventilation souple et symétrie sans apnée forcée",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Essoufflement",
+        "Ne pas retenir sa respiration"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 8,
+            "base": 10,
+            "max": 12
+          },
+          "betweenSec": 15,
+          "label": "50 m respiration maîtrisée",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 50,
+                "base": 50,
+                "max": 50
+              },
+              "domain": "recovery",
+              "label": "Respiration naturelle sur les deux côtés",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_004",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Propulsion et fréquence de nage",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Trouver fréquence efficace sans détériorer la technique",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 6,
+            "max": 8
+          },
+          "betweenSec": 25,
+          "label": "Séries technique-économie",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 100,
+                "base": 100,
+                "max": 100
+              },
+              "domain": "moderate_lt1",
+              "label": "Fréquence stable et distance par cycle",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_005",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Endurance 200 m réguliers",
+      "primaryIntent": "moderate_lt1",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Régularité des temps, endurance",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 6,
+            "base": 8,
+            "max": 10
+          },
+          "betweenSec": 25,
+          "label": "200 m aérobie",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 200,
+                "base": 200,
+                "max": 200
+              },
+              "domain": "moderate_lt1",
+              "label": "Répéter sans dérive technique",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_006",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Endurance 400 m avec visée",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "moderate_lt1",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Orientation eau libre intégrée en bassin",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 40,
+          "label": "400 m orientation",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 400,
+                "base": 400,
+                "max": 400
+              },
+              "domain": "moderate_lt1",
+              "label": "Visée simulée tous les cycles prescrits",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_007",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "CSS : répétitions de 100 m",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Régularité à vitesse proche CSS validée",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 36,
+      "prerequisites": [
+        "CSS mesurée et récente"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 8,
+            "base": 12,
+            "max": 16
+          },
+          "betweenSec": 20,
+          "label": "100 m proche CSS",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 100,
+                "base": 100,
+                "max": 100
+              },
+              "domain": "mlss",
+              "label": "Allure CSS mesurée, jamais inventée",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_008",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "CSS : progression 200 puis 100",
+      "primaryIntent": "mlss",
+      "primaryDomain": "mlss",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Tolérance au seuil et maintien technique",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 36,
+      "prerequisites": [
+        "CSS mesurée"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 3,
+            "max": 4
+          },
+          "betweenSec": 60,
+          "label": "Bloc 200 puis 2×100",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 200,
+                "base": 200,
+                "max": 200
+              },
+              "domain": "mlss",
+              "label": "200 m seuil régulier",
+              "role": "main"
+            },
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 100,
+                "base": 100,
+                "max": 100
+              },
+              "domain": "mlss",
+              "label": "100 m contrôle technique",
+              "role": "main"
+            },
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 100,
+                "base": 100,
+                "max": 100
+              },
+              "domain": "mlss",
+              "label": "100 m maintien",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_009",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "VO2 aquatique 8×100 m",
+      "primaryIntent": "vo2max",
+      "primaryDomain": "vo2max",
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "highly_trained",
+      "focus": "Répétitions soutenues techniquement stables",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021",
+          "SWIM2026"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Allure intense validée",
+        "Technique stable"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 400,
+            "base": 400,
+            "max": 400
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 6,
+            "base": 8,
+            "max": 10
+          },
+          "betweenSec": 45,
+          "label": "100 m intense",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 100,
+                "base": 100,
+                "max": 100
+              },
+              "domain": "vo2max",
+              "label": "Allure haute validée individuellement",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_010",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Sprint alactique 25 m repos long",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": "neuromuscular",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Vitesse et efficacité, faible densité",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2026"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 36,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 400,
+            "base": 400,
+            "max": 400
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 6,
+            "base": 10,
+            "max": 12
+          },
+          "betweenSec": 90,
+          "label": "25 m qualité",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 25,
+                "base": 25,
+                "max": 25
+              },
+              "domain": "neuromuscular",
+              "label": "Sprint court sans dégradation gestuelle",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 240,
+            "base": 240,
+            "max": 240
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_011",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Nage négative split 2×600",
+      "primaryIntent": "race_specific",
+      "primaryDomain": "tempo",
+      "phase": [
+        "build",
+        "peak"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Gestion d'effort progressive en nage prolongée",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 2,
+            "max": 3
+          },
+          "betweenSec": 60,
+          "label": "600 m progressif",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 300,
+                "base": 300,
+                "max": 300
+              },
+              "domain": "moderate_lt1",
+              "label": "Première moitié relâchée",
+              "role": "main"
+            },
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 300,
+                "base": 300,
+                "max": 300
+              },
+              "domain": "tempo",
+              "label": "Deuxième moitié plus soutenue",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 200,
+            "base": 200,
+            "max": 200
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_SWIM_012",
+      "version": "3.0.0-pilot",
+      "sport": "swim",
+      "title": "Récupération technique à faible densité",
+      "primaryIntent": "recovery",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Relâchement et repères aquatiques",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "SWIM2021"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 6,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 160,
+            "base": 160,
+            "max": 160
+          },
+          "domain": "recovery",
+          "label": "Échauffement et mise en route",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 6,
+            "max": 8
+          },
+          "betweenSec": 30,
+          "label": "50 m doux",
+          "steps": [
+            {
+              "kind": "distance",
+              "meters": {
+                "min": 50,
+                "base": 50,
+                "max": 50
+              },
+              "domain": "recovery",
+              "label": "Nage souple, battements doux",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "distance",
+          "meters": {
+            "min": 160,
+            "base": 160,
+            "max": 160
+          },
+          "domain": "recovery",
+          "label": "Retour facile et relâché",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_001",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Squat force maximale",
+      "primaryIntent": "max_strength",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Force dominante genou",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Technique squat validée"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 4,
+            "max": 5
+          },
+          "betweenSec": 180,
+          "label": "Squat lourd 4×4",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Squat RPE 7–8",
+              "reps": {
+                "min": 4,
+                "base": 4,
+                "max": 4
+              },
+              "secPerRep": 5,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 120,
+          "label": "Accessoire unilatéral",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Fente arrière",
+              "reps": {
+                "min": 6,
+                "base": 6,
+                "max": 6
+              },
+              "secPerRep": 5,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_002",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Charnière hanche force maximale",
+      "primaryIntent": "max_strength",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Force chaîne postérieure",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Technique et dos tolérants"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 4,
+            "max": 4
+          },
+          "betweenSec": 180,
+          "label": "Hinge dominant",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Soulevé de terre RPE 7–8",
+              "reps": {
+                "min": 4,
+                "base": 4,
+                "max": 4
+              },
+              "secPerRep": 6,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 120,
+          "label": "Hinge unilatéral",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Single-leg RDL",
+              "reps": {
+                "min": 6,
+                "base": 6,
+                "max": 6
+              },
+              "secPerRep": 5,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_003",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Split squat contrôle et force",
+      "primaryIntent": "max_strength",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Force unilatérale et stabilité frontal",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 36,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 120,
+          "label": "Split squat",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Split squat par côté",
+              "reps": {
+                "min": 6,
+                "base": 6,
+                "max": 6
+              },
+              "secPerRep": 5,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 90,
+          "label": "Montée step-up",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Step-up par côté",
+              "reps": {
+                "min": 7,
+                "base": 7,
+                "max": 7
+              },
+              "secPerRep": 4,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_004",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Mollet lourd genou tendu/fléchi",
+      "primaryIntent": "strength_endurance",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Force fléchisseurs plantaires",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Tendon d'Achille irrité, progression individualisée"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 36,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 4,
+            "max": 4
+          },
+          "betweenSec": 120,
+          "label": "Montées mollet tendu",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Mollet debout lourd",
+              "reps": {
+                "min": 6,
+                "base": 6,
+                "max": 6
+              },
+              "secPerRep": 5,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 90,
+          "label": "Mollet fléchi",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Soleus assis/à genou fléchi",
+              "reps": {
+                "min": 8,
+                "base": 8,
+                "max": 8
+              },
+              "secPerRep": 5,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_005",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Nordic ischios progressif",
+      "primaryIntent": "max_strength",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Force excentrique chaîne postérieure",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Préparation des ischios",
+        "Aucune douleur aiguë"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 720,
+            "base": 720,
+            "max": 720
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 150,
+          "label": "Nordic excentrique",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Nordic assisté, contrôle descente",
+              "reps": {
+                "min": 4,
+                "base": 4,
+                "max": 4
+              },
+              "secPerRep": 6,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 120,
+          "label": "Pont hanche",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Hip bridge lesté",
+              "reps": {
+                "min": 8,
+                "base": 8,
+                "max": 8
+              },
+              "secPerRep": 4,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_006",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Plyométrie réactive bas volume",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": null,
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Qualité contacts, pas fatigue métabolique",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Tolérance préalable aux impacts"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 120,
+          "label": "Pogo",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Pogo réactif",
+              "reps": {
+                "min": 12,
+                "base": 12,
+                "max": 12
+              },
+              "secPerRep": 1,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 120,
+          "label": "Sauts horizontaux contrôlés",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Sauts bonds",
+              "reps": {
+                "min": 5,
+                "base": 5,
+                "max": 5
+              },
+              "secPerRep": 2,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_007",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Puissance verticale sans échec",
+      "primaryIntent": "neuromuscular",
+      "primaryDomain": null,
+      "phase": [
+        "build"
+      ],
+      "minimumLevel": "trained",
+      "focus": "Expression de vitesse et qualité",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Technique atterrissage maîtrisée"
+      ],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 900,
+            "base": 900,
+            "max": 900
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 4,
+            "base": 4,
+            "max": 4
+          },
+          "betweenSec": 150,
+          "label": "Sauts sur box bas",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Box jump contrôlé",
+              "reps": {
+                "min": 4,
+                "base": 4,
+                "max": 4
+              },
+              "secPerRep": 4,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 150,
+          "label": "Med ball throw",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Lancer explosif",
+              "reps": {
+                "min": 5,
+                "base": 5,
+                "max": 5
+              },
+              "secPerRep": 3,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 420,
+            "base": 420,
+            "max": 420
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_008",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Tronc antirotation et stabilité",
+      "primaryIntent": "mobility_prevention",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Contrôle transverse et rotation",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 75,
+          "label": "Pallof press",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Pallof par côté",
+              "reps": {
+                "min": 10,
+                "base": 10,
+                "max": 10
+              },
+              "secPerRep": 3,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 75,
+          "label": "Bird dog",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Bird dog par côté",
+              "reps": {
+                "min": 8,
+                "base": 8,
+                "max": 8
+              },
+              "secPerRep": 4,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_009",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Tronc endurance latérale",
+      "primaryIntent": "strength_endurance",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Contrôle latéral bassin/tronc",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 60,
+          "label": "Side plank",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 30,
+                "base": 30,
+                "max": 30
+              },
+              "domain": null,
+              "label": "Planche latérale droite",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 30,
+                "base": 30,
+                "max": 30
+              },
+              "domain": null,
+              "label": "Planche latérale gauche",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 75,
+          "label": "Suitcase carry",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 45,
+                "base": 45,
+                "max": 45
+              },
+              "domain": null,
+              "label": "Marche charge à droite",
+              "role": "main"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 45,
+                "base": 45,
+                "max": 45
+              },
+              "domain": null,
+              "label": "Marche charge à gauche",
+              "role": "main"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_010",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Hanche et contrôle unipodal",
+      "primaryIntent": "mobility_prevention",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Stabilité hanche/pied et proprioception",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 600,
+            "base": 600,
+            "max": 600
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 90,
+          "label": "Hip airplane assisté",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Hip airplane par côté",
+              "reps": {
+                "min": 5,
+                "base": 5,
+                "max": 5
+              },
+              "secPerRep": 7,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 90,
+          "label": "Single leg reach",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Atteintes contrôlées",
+              "reps": {
+                "min": 8,
+                "base": 8,
+                "max": 8
+              },
+              "secPerRep": 4,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_011",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Épaule endurance stabilisatrice",
+      "primaryIntent": "mobility_prevention",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build"
+      ],
+      "minimumLevel": "light",
+      "focus": "Contrôle scapulaire et coiffe",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur d'épaule : avis clinique, ne pas forcer"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 12,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 480,
+            "base": 480,
+            "max": 480
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 75,
+          "label": "Rotation externe élastique",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Rotation externe par côté",
+              "reps": {
+                "min": 12,
+                "base": 12,
+                "max": 12
+              },
+              "secPerRep": 3,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 75,
+          "label": "Rowing scapulaire",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Rowing léger",
+              "reps": {
+                "min": 12,
+                "base": 12,
+                "max": 12
+              },
+              "secPerRep": 3,
+              "sides": 1,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    },
+    {
+      "id": "V3P_STRENGTH_012",
+      "version": "3.0.0-pilot",
+      "sport": "strength",
+      "title": "Mobilité active bas du corps",
+      "primaryIntent": "mobility_prevention",
+      "primaryDomain": null,
+      "phase": [
+        "base",
+        "build",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Amplitude active et récupération sans charge importante",
+      "origin": "TFCLab — composition originale informée par science et pratique; aucune attribution d'une séance exacte à un coach",
+      "evidence": {
+        "referenceIds": [
+          "STR2024",
+          "STR2025"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur ou fatigue incompatible",
+        "Récupération insuffisante"
+      ],
+      "stopRule": "Interrompre si technique, puissance/allure ou perception d'effort deviennent incompatibles avec l'objectif",
+      "minimumRecoveryHours": 6,
+      "prerequisites": [],
+      "methodology": "individualisation selon profil et charge qualitative",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 360,
+            "base": 360,
+            "max": 360
+          },
+          "domain": "recovery",
+          "label": "Échauffement progressif",
+          "role": "warmup"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 2,
+            "max": 2
+          },
+          "betweenSec": 45,
+          "label": "Rotation contrôlée",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "90/90 hanche par côté",
+              "reps": {
+                "min": 8,
+                "base": 8,
+                "max": 8
+              },
+              "secPerRep": 4,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 2,
+            "base": 2,
+            "max": 2
+          },
+          "betweenSec": 45,
+          "label": "Cheville et squat profond assisté",
+          "steps": [
+            {
+              "kind": "reps",
+              "label": "Mobilisation cheville par côté",
+              "reps": {
+                "min": 10,
+                "base": 10,
+                "max": 10
+              },
+              "secPerRep": 3,
+              "sides": 2,
+              "domain": null,
+              "role": "main",
+              "estimated": true
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 360,
+            "base": 360,
+            "max": 360
+          },
+          "domain": "recovery",
+          "label": "Retour au calme",
+          "role": "cooldown"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate"
+    }
+  ]
+}
