@@ -77,12 +77,19 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
      prevalidationStatus:prevalidation.status,prevalidationV3Eligible:eligible.length,
      prevalidationBlocking:prevalidation.issues.filter(i=>i.severity==='blocking').map(i=>i.code),
      engineStatus:out.status,engineReason:out.reason,technicallyConstructed:out.technicallyConstructed,
-     constraintsSatisfied:out.constraintsSatisfied,selectedV3:out.trace.filter(t=>t.id.startsWith('V3P_')).map(t=>t.id)}));
+     constraintsSatisfied:out.constraintsSatisfied,selectedV3:out.trace.filter(t=>t.id.startsWith('V3P_')).map(t=>t.id),
+     emptySlot:out.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message,
+     otherBlocking:out.issues.filter(i=>['blocking','error','critical'].includes(i.severity)&&i.code!=='det_empty_catalogue_slot').slice(0,8).map(i=>i.code)}));
    expect(out.humanReviewRequired).toBe(true);
    expect(out.sportingRelevance).toBe('not_attested');
    expect(out.issues.some(i=>i.code==='experimental_contract_requires_review') ||
           out.reason==='existing_prevalidation_blocked').toBe(true);
    if(out.reason)expect(out.status).toBe('refused');
+   if(out.reason?.startsWith('empty_catalogue_domain_week_')) {
+     const issue=out.issues.find(i=>i.code==='det_empty_catalogue_slot');
+     expect(issue?.severity).toBe('blocking');
+     expect(issue?.message).toContain('finalAdmissible');
+   }
    if(out.technicallyConstructed)expect(out.candidate?.weeks.length).toBe(fixture.planConfig.weeksAvailable);
   }
  });
