@@ -77,9 +77,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 780
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -88,9 +88,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1320,
+            "min": 1050,
             "base": 1320,
-            "max": 1320
+            "max": 1590
           },
           "domain": "recovery",
           "label": "Pédalage libre, cadence confortable",
@@ -99,9 +99,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -145,9 +145,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 420,
             "base": 720,
-            "max": 720
+            "max": 1020
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -156,9 +156,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 3600,
+            "min": 2880,
             "base": 3600,
-            "max": 3600
+            "max": 4320
           },
           "domain": "moderate_lt1",
           "label": "Endurance sous LT1, relief maîtrisé",
@@ -167,9 +167,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 660
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -215,9 +215,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 600,
             "base": 900,
-            "max": 900
+            "max": 1200
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -226,9 +226,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 4500,
+            "min": 3600,
             "base": 4500,
-            "max": 4500
+            "max": 5400
           },
           "domain": "moderate_lt1",
           "label": "Première moitié régulière",
@@ -237,9 +237,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 3900,
+            "min": 3120,
             "base": 3900,
-            "max": 3900
+            "max": 4680
           },
           "domain": "moderate_lt1",
           "label": "Seconde moitié : repérer dérive FC/RPE",
@@ -248,9 +248,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -294,9 +294,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 420,
             "base": 720,
-            "max": 720
+            "max": 1020
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -305,9 +305,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 960,
             "base": 1200,
-            "max": 1200
+            "max": 1440
           },
           "domain": "recovery",
           "label": "Premier palier facile",
@@ -316,9 +316,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1500,
+            "min": 1200,
             "base": 1500,
-            "max": 1500
+            "max": 1800
           },
           "domain": "moderate_lt1",
           "label": "Palier sous LT1",
@@ -327,9 +327,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 960,
             "base": 1200,
-            "max": 1200
+            "max": 1440
           },
           "domain": "moderate_lt1",
           "label": "Approche LT1 sans dépassement",
@@ -338,9 +338,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 660
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -383,9 +383,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 600,
             "base": 900,
-            "max": 900
+            "max": 1200
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -394,9 +394,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1800,
+            "min": 1500,
             "base": 1800,
-            "max": 1800
+            "max": 2100
           },
           "domain": "tempo",
           "label": "Tempo à cadence naturelle",
@@ -405,9 +405,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -450,9 +450,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 600,
             "base": 900,
-            "max": 900
+            "max": 1200
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -471,9 +471,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 720,
+                "min": 420,
                 "base": 720,
-                "max": 720
+                "max": 1020
               },
               "domain": "tempo",
               "label": "Tempo régulier",
@@ -484,9 +484,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -528,9 +528,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1080,
+            "min": 780,
             "base": 1080,
-            "max": 1080
+            "max": 1380
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -549,9 +549,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 600,
+                "min": 480,
                 "base": 600,
-                "max": 600
+                "max": 720
               },
               "domain": "sub_threshold",
               "label": "Sous-seuil : respiration maîtrisée",
@@ -562,9 +562,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -608,9 +608,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1080,
+            "min": 780,
             "base": 1080,
-            "max": 1080
+            "max": 1380
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -629,9 +629,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 720,
+                "min": 600,
                 "base": 720,
-                "max": 720
+                "max": 840
               },
               "domain": "mlss",
               "label": "Au repère MLSS individuel",
@@ -642,9 +642,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 540,
             "base": 720,
-            "max": 720
+            "max": 900
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -689,9 +689,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -746,9 +746,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 720,
             "base": 900,
-            "max": 900
+            "max": 1080
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -790,9 +790,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -824,9 +824,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 540,
             "base": 720,
-            "max": 720
+            "max": 900
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -868,9 +868,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -925,9 +925,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 540,
             "base": 720,
-            "max": 720
+            "max": 900
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -973,9 +973,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -994,9 +994,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 1200,
+                "min": 900,
                 "base": 1200,
-                "max": 1200
+                "max": 1500
               },
               "domain": "703_pace",
               "label": "Position aérodynamique; nutrition testée",
@@ -1007,9 +1007,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1054,9 +1054,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 360,
+            "min": 300,
             "base": 360,
-            "max": 360
+            "max": 660
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1065,9 +1065,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1440,
+            "min": 1140,
             "base": 1440,
-            "max": 1440
+            "max": 1740
           },
           "domain": "recovery",
           "label": "Course douce ou marche-course",
@@ -1076,9 +1076,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1121,9 +1121,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 300,
             "base": 600,
-            "max": 600
+            "max": 900
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1132,9 +1132,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2400,
+            "min": 1920,
             "base": 2400,
-            "max": 2400
+            "max": 2880
           },
           "domain": "moderate_lt1",
           "label": "Allure conversationnelle sous LT1",
@@ -1143,9 +1143,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1190,9 +1190,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 600,
             "base": 900,
-            "max": 900
+            "max": 1200
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1201,9 +1201,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 5100,
+            "min": 4080,
             "base": 5100,
-            "max": 5100
+            "max": 6120
           },
           "domain": "moderate_lt1",
           "label": "Terrain régulier, ravitaillement adapté",
@@ -1212,9 +1212,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 660
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1257,9 +1257,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 300,
             "base": 600,
-            "max": 600
+            "max": 900
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1268,9 +1268,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 720,
             "base": 900,
-            "max": 900
+            "max": 1080
           },
           "domain": "recovery",
           "label": "Mise en route douce",
@@ -1279,9 +1279,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 960,
             "base": 1200,
-            "max": 1200
+            "max": 1440
           },
           "domain": "moderate_lt1",
           "label": "Rythme stable",
@@ -1290,9 +1290,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 720,
             "base": 900,
-            "max": 900
+            "max": 1080
           },
           "domain": "moderate_lt1",
           "label": "Approcher LT1 sans dépasser",
@@ -1301,9 +1301,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1346,9 +1346,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1391,9 +1391,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 660
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1438,9 +1438,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1472,9 +1472,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1516,9 +1516,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1537,9 +1537,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 360,
+                "min": 240,
                 "base": 360,
-                "max": 360
+                "max": 480
               },
               "domain": "sub_threshold",
               "label": "Sous MLSS, technique relâchée",
@@ -1550,9 +1550,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1596,9 +1596,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1617,9 +1617,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 600,
+                "min": 480,
                 "base": 600,
-                "max": 600
+                "max": 720
               },
               "domain": "mlss",
               "label": "Au repère individuel LT2",
@@ -1630,9 +1630,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1674,9 +1674,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1708,9 +1708,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 540,
             "base": 720,
-            "max": 720
+            "max": 900
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1752,9 +1752,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1080,
+            "min": 780,
             "base": 1080,
-            "max": 1080
+            "max": 1380
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1797,9 +1797,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1845,9 +1845,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1866,9 +1866,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 1080,
+                "min": 780,
                 "base": 1080,
-                "max": 1080
+                "max": 1380
               },
               "domain": "marathon_pace",
               "label": "Allure cible vérifiée; nutrition",
@@ -1879,9 +1879,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -1924,9 +1924,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 900,
             "base": 1200,
-            "max": 1200
+            "max": 1500
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -1935,9 +1935,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 600,
             "base": 900,
-            "max": 900
+            "max": 1200
           },
           "domain": "tempo",
           "label": "Départ inférieur à allure semi",
@@ -1946,9 +1946,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 600,
             "base": 900,
-            "max": 900
+            "max": 1200
           },
           "domain": "semi_pace",
           "label": "Allure semi contrôlée",
@@ -1957,9 +1957,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 300,
             "base": 600,
-            "max": 600
+            "max": 900
           },
           "domain": "semi_pace",
           "label": "Finir sans dégradation",
@@ -1968,9 +1968,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 420,
             "base": 600,
-            "max": 600
+            "max": 780
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3026,9 +3026,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 420,
             "base": 720,
-            "max": 720
+            "max": 1020
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3048,9 +3048,9 @@
               "kind": "reps",
               "label": "Squat RPE 7–8",
               "reps": {
-                "min": 4,
+                "min": 3,
                 "base": 4,
-                "max": 4
+                "max": 5
               },
               "secPerRep": 5,
               "sides": 1,
@@ -3074,9 +3074,9 @@
               "kind": "reps",
               "label": "Fente arrière",
               "reps": {
-                "min": 6,
+                "min": 4,
                 "base": 6,
-                "max": 6
+                "max": 8
               },
               "secPerRep": 5,
               "sides": 2,
@@ -3089,9 +3089,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3137,9 +3137,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 420,
             "base": 720,
-            "max": 720
+            "max": 1020
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3159,9 +3159,9 @@
               "kind": "reps",
               "label": "Soulevé de terre RPE 7–8",
               "reps": {
-                "min": 4,
+                "min": 3,
                 "base": 4,
-                "max": 4
+                "max": 5
               },
               "secPerRep": 6,
               "sides": 1,
@@ -3185,9 +3185,9 @@
               "kind": "reps",
               "label": "Single-leg RDL",
               "reps": {
-                "min": 6,
+                "min": 4,
                 "base": 6,
-                "max": 6
+                "max": 8
               },
               "secPerRep": 5,
               "sides": 2,
@@ -3200,9 +3200,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3246,9 +3246,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 300,
             "base": 600,
-            "max": 600
+            "max": 900
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3268,9 +3268,9 @@
               "kind": "reps",
               "label": "Split squat par côté",
               "reps": {
-                "min": 6,
+                "min": 4,
                 "base": 6,
-                "max": 6
+                "max": 8
               },
               "secPerRep": 5,
               "sides": 2,
@@ -3294,9 +3294,9 @@
               "kind": "reps",
               "label": "Step-up par côté",
               "reps": {
-                "min": 7,
+                "min": 5,
                 "base": 7,
-                "max": 7
+                "max": 9
               },
               "secPerRep": 4,
               "sides": 2,
@@ -3309,9 +3309,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3354,9 +3354,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 300,
             "base": 600,
-            "max": 600
+            "max": 900
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3376,9 +3376,9 @@
               "kind": "reps",
               "label": "Mollet debout lourd",
               "reps": {
-                "min": 6,
+                "min": 4,
                 "base": 6,
-                "max": 6
+                "max": 8
               },
               "secPerRep": 5,
               "sides": 2,
@@ -3402,9 +3402,9 @@
               "kind": "reps",
               "label": "Soleus assis/à genou fléchi",
               "reps": {
-                "min": 8,
+                "min": 6,
                 "base": 8,
-                "max": 8
+                "max": 10
               },
               "secPerRep": 5,
               "sides": 2,
@@ -3417,9 +3417,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3466,9 +3466,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 720,
+            "min": 420,
             "base": 720,
-            "max": 720
+            "max": 1020
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3488,9 +3488,9 @@
               "kind": "reps",
               "label": "Nordic assisté, contrôle descente",
               "reps": {
-                "min": 4,
+                "min": 3,
                 "base": 4,
-                "max": 4
+                "max": 5
               },
               "secPerRep": 6,
               "sides": 1,
@@ -3514,9 +3514,9 @@
               "kind": "reps",
               "label": "Hip bridge lesté",
               "reps": {
-                "min": 8,
+                "min": 6,
                 "base": 8,
-                "max": 8
+                "max": 10
               },
               "secPerRep": 4,
               "sides": 1,
@@ -3529,9 +3529,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3576,9 +3576,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 600,
             "base": 900,
-            "max": 900
+            "max": 1200
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3598,9 +3598,9 @@
               "kind": "reps",
               "label": "Pogo réactif",
               "reps": {
-                "min": 12,
+                "min": 9,
                 "base": 12,
-                "max": 12
+                "max": 15
               },
               "secPerRep": 1,
               "sides": 1,
@@ -3624,9 +3624,9 @@
               "kind": "reps",
               "label": "Sauts bonds",
               "reps": {
-                "min": 5,
+                "min": 3,
                 "base": 5,
-                "max": 5
+                "max": 7
               },
               "secPerRep": 2,
               "sides": 1,
@@ -3639,9 +3639,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 660
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3686,9 +3686,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 900,
+            "min": 600,
             "base": 900,
-            "max": 900
+            "max": 1200
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3708,9 +3708,9 @@
               "kind": "reps",
               "label": "Box jump contrôlé",
               "reps": {
-                "min": 4,
+                "min": 3,
                 "base": 4,
-                "max": 4
+                "max": 5
               },
               "secPerRep": 4,
               "sides": 1,
@@ -3734,9 +3734,9 @@
               "kind": "reps",
               "label": "Lancer explosif",
               "reps": {
-                "min": 5,
+                "min": 3,
                 "base": 5,
-                "max": 5
+                "max": 7
               },
               "secPerRep": 3,
               "sides": 1,
@@ -3749,9 +3749,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 420,
+            "min": 240,
             "base": 420,
-            "max": 420
+            "max": 600
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3795,9 +3795,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 780
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3817,9 +3817,9 @@
               "kind": "reps",
               "label": "Pallof par côté",
               "reps": {
-                "min": 10,
+                "min": 7,
                 "base": 10,
-                "max": 10
+                "max": 13
               },
               "secPerRep": 3,
               "sides": 2,
@@ -3843,9 +3843,9 @@
               "kind": "reps",
               "label": "Bird dog par côté",
               "reps": {
-                "min": 8,
+                "min": 6,
                 "base": 8,
-                "max": 8
+                "max": 10
               },
               "secPerRep": 4,
               "sides": 2,
@@ -3858,9 +3858,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -3904,9 +3904,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 780
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -3983,9 +3983,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -4029,9 +4029,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 600,
+            "min": 300,
             "base": 600,
-            "max": 600
+            "max": 900
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -4051,9 +4051,9 @@
               "kind": "reps",
               "label": "Hip airplane par côté",
               "reps": {
-                "min": 5,
+                "min": 3,
                 "base": 5,
-                "max": 5
+                "max": 7
               },
               "secPerRep": 7,
               "sides": 2,
@@ -4077,9 +4077,9 @@
               "kind": "reps",
               "label": "Atteintes contrôlées",
               "reps": {
-                "min": 8,
+                "min": 6,
                 "base": 8,
-                "max": 8
+                "max": 10
               },
               "secPerRep": 4,
               "sides": 2,
@@ -4092,9 +4092,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -4137,9 +4137,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 480,
+            "min": 300,
             "base": 480,
-            "max": 480
+            "max": 780
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -4159,9 +4159,9 @@
               "kind": "reps",
               "label": "Rotation externe par côté",
               "reps": {
-                "min": 12,
+                "min": 9,
                 "base": 12,
-                "max": 12
+                "max": 15
               },
               "secPerRep": 3,
               "sides": 2,
@@ -4185,9 +4185,9 @@
               "kind": "reps",
               "label": "Rowing léger",
               "reps": {
-                "min": 12,
+                "min": 9,
                 "base": 12,
-                "max": 12
+                "max": 15
               },
               "secPerRep": 3,
               "sides": 1,
@@ -4200,9 +4200,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 300,
+            "min": 240,
             "base": 300,
-            "max": 300
+            "max": 480
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -4247,9 +4247,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 360,
+            "min": 300,
             "base": 360,
-            "max": 360
+            "max": 660
           },
           "domain": "recovery",
           "label": "Échauffement progressif",
@@ -4269,9 +4269,9 @@
               "kind": "reps",
               "label": "90/90 hanche par côté",
               "reps": {
-                "min": 8,
+                "min": 6,
                 "base": 8,
-                "max": 8
+                "max": 10
               },
               "secPerRep": 4,
               "sides": 2,
@@ -4295,9 +4295,9 @@
               "kind": "reps",
               "label": "Mobilisation cheville par côté",
               "reps": {
-                "min": 10,
+                "min": 7,
                 "base": 10,
-                "max": 10
+                "max": 13
               },
               "secPerRep": 3,
               "sides": 2,
@@ -4310,9 +4310,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 360,
+            "min": 240,
             "base": 360,
-            "max": 360
+            "max": 540
           },
           "domain": "recovery",
           "label": "Retour au calme",
@@ -4322,5 +4322,6 @@
       "automaticSelection": false,
       "status": "candidate"
     }
-  ]
+  ],
+  "parameterPolicy": "Only bounded repetition counts, exercise reps and designated timed blocks are adjustable. No cross-domain substitution, no arbitrary intensity increase and no automatic prescription."
 }
