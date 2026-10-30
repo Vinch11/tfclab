@@ -4568,6 +4568,7 @@ export default function AITrainingPlanPage() {
                       />
                       {/* Nolio sending panel is now rendered at the top of AIPlanViewer */}
                       <AIPlanViewer
+                        v3CoachPilot={v3CoachPilot}
                         plan={parsedPlan}
                         startDate={planStartDate}
                         raceGoals={[
