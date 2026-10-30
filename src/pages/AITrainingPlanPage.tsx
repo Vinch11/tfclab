@@ -21,7 +21,8 @@ import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/rest
  * Supports multi-athlete batch generation + comparison
  */
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { lazy, Suspense, useState, useMemo, useEffect, useCallback, useRef } from "react";
+const D1BlockPanel = lazy(() => import("@/components/D1BlockPanel"));
 import { useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { cn } from "@/lib/utils";
@@ -3293,6 +3294,11 @@ export default function AITrainingPlanPage() {
   return (
     <AppLayout title="Plan IA TFCL™" showBack>
       <div className="max-w-5xl mx-auto space-y-6 p-4">
+        {import.meta.env.VITE_TFCL_D1 === "true" && athleteContext && <Suspense fallback={<p>Chargement D1…</p>}><D1BlockPanel
+          key={currentAthlete?.id}
+          athlete={athleteContext.data}
+          config={buildConfigWithCoachOverrides(athleteContext.diagnostic)}
+        /></Suspense>}
         {/* Header */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

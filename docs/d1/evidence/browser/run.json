@@ -1,0 +1,25 @@
+{
+  "rows": [
+    {
+      "profile": "aerobic_dominant",
+      "days": 0,
+      "status": "Refus : empty_catalogue_domain_week_2",
+      "text": "Recette D1 · profils synthétiques\nProfil\naerobic_dominant\nglycolytic_dominant\nbalanced_typical\nBloc déterministe D1 · 4 semaines\n\n70.3 confirmé / age_group. Revue coach requise. Aucune séance autorisée à la prescription individuelle.\n\nGénérer le bloc sans IA\n\nRefus : empty_catalogue_domain_week_2\n\nLimiteurs : VLamax, TTE\n\nwarning · catalogue_slot_duration_unavailable ·\nwarning · catalogue_slot_duration_unavailable ·\nwarning · catalogue_slot_duration_unavailable ·\nNotes de revue coach\nSauvegarde indisponible : environnement de test autorisé non configuré\n\nPersistance et réouverture indépendante : NON TESTÉES. Les notes sont locales à cette vue."
+    },
+    {
+      "profile": "glycolytic_dominant",
+      "days": 0,
+      "status": "Refus : empty_catalogue_domain_week_2",
+      "text": "Recette D1 · profils synthétiques\nProfil\naerobic_dominant\nglycolytic_dominant\nbalanced_typical\nBloc déterministe D1 · 4 semaines\n\n70.3 confirmé / age_group. Revue coach requise. Aucune séance autorisée à la prescription individuelle.\n\nGénérer le bloc sans IA\n\nRefus : empty_catalogue_domain_week_2\n\nLimiteurs : TTE\n\nwarning · catalogue_slot_duration_unavailable ·\nwarning · catalogue_slot_duration_unavailable ·\nwarning · catalogue_slot_duration_unavailable ·\nNotes de revue coach\nSauvegarde indisponible : environnement de test autorisé non configuré\n\nPersistance et réouverture indépendante : NON TESTÉES. Les notes sont locales à cette vue."
+    },
+    {
+      "profile": "balanced_typical",
+      "days": 0,
+      "status": "Refus : empty_catalogue_domain_week_2",
+      "text": "Recette D1 · profils synthétiques\nProfil\naerobic_dominant\nglycolytic_dominant\nbalanced_typical\nBloc déterministe D1 · 4 semaines\n\n70.3 confirmé / age_group. Revue coach requise. Aucune séance autorisée à la prescription individuelle.\n\nGénérer le bloc sans IA\n\nRefus : empty_catalogue_domain_week_2\n\nLimiteurs : VLamax, TTE\n\nwarning · catalogue_slot_duration_unavailable ·\nwarning · catalogue_slot_duration_unavailable ·\nwarning · catalogue_slot_duration_unavailable ·\nNotes de revue coach\nSauvegarde indisponible : environnement de test autorisé non configuré\n\nPersistance et réouverture indépendante : NON TESTÉES. Les notes sont locales à cette vue."
+    }
+  ],
+  "externalRequests": [
+    "GET https://fonts.googleapis.com/css2"
+  ]
+}
