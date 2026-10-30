@@ -15,6 +15,7 @@ export interface D15SlotContext {
   dayIndex: number;
   phase?: string;
   weekType?: string;
+  prescribedDurationSec: number;
   slot: Pick<DaySlot, "sport" | "isKeySession">;
 }
 export interface D15ReviewEvidence {
@@ -27,6 +28,9 @@ export interface D15ReviewEvidence {
   limiter: string;
   target: D15Target;
   workSeconds: number;
+  /** Exactly the V1 fiche version and selected dose this review covered. */
+  reviewedStructure: string;
+  reviewedDurationSec: number;
   /** ALL fields must come from a separate explicit review; never inferred from an ID or title. */
   structuredSegmentsVerified: boolean;
   sportAnchorVerified: boolean;
@@ -45,7 +49,7 @@ export interface D15SelectionAssessment {
   mayAutoApprovePlan: false;
 }
 const TARGET_INTENT: Record<D15Target, string> = { threshold: "seuil", vo2: "vo2" };
-type Candidate = Pick<RepairWorkoutMetadata, "id" | "sport" | "intentFamily">;
+type Candidate = Pick<RepairWorkoutMetadata, "id" | "sport" | "intentFamily" | "structure" | "durationMin">;
 
 /**
  * The order of reviewed candidates is deliberately not interpreted as proof of
@@ -70,8 +74,14 @@ export function assessD15Candidate(
   const review = matching.length === 1 ? matching[0] : null;
   if (review) {
     if (!planLimiterOrder.includes(review.limiter)) reasons.push("limiter_not_in_plan");
+    if (card.structure !== review.reviewedStructure || !card.structure.trim()) reasons.push("stale_or_missing_structure_review");
+    if (!Number.isSafeInteger(context.prescribedDurationSec) || context.prescribedDurationSec <= 0 ||
+        context.prescribedDurationSec !== review.reviewedDurationSec ||
+        context.prescribedDurationSec < card.durationMin[0] * 60 ||
+        context.prescribedDurationSec > card.durationMin[1] * 60) reasons.push("duration_review_mismatch");
     if (card.intentFamily !== TARGET_INTENT[review.target]) reasons.push("intent_target_mismatch");
-    if (!Number.isSafeInteger(review.workSeconds) || review.workSeconds <= 0) reasons.push("target_work_duration_invalid");
+    if (!Number.isSafeInteger(review.workSeconds) || review.workSeconds <= 0 ||
+        review.workSeconds > context.prescribedDurationSec) reasons.push("target_work_duration_invalid");
     for (const key of [
       "structuredSegmentsVerified", "sportAnchorVerified", "limiterMatchReviewed",
       "doseReviewed", "phaseReviewed", "recoveryAndPainReviewed",
