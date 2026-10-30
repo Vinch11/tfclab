@@ -6,7 +6,7 @@ import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationF
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
 import { constructDeterministicPlan } from './engine';
-import { V3_BASE_BRICK_ID } from './v31-v3-brick';
+import { V3_BASE_BRICK_ID, type V3BaseBrickReview } from './v31-v3-brick';
 
 const review:V3ReviewedSettings={
   id:'V3P_BIKE_002',athleteLevel:'trained',athleteLevelSource:'manual',
@@ -85,7 +85,7 @@ describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
  it('composes an exact 120min base 70.3 brick only after both component reviews and a separate brick approval',()=>{
    const bike={...review,objective:'703'};
    const run={...review,id:'V3P_RUN_001',objective:'703'};
-   const brick={id:V3_BASE_BRICK_ID,objective:'703',individualCoachApproval:true as const,transitionSeconds:300};
+   const brick:V3BaseBrickReview={id:V3_BASE_BRICK_ID,objective:'703',individualCoachApproval:true,transitionSeconds:300};
    const missing=buildDetV3ContractFromCatalogue([bike],[brick]);
    expect(missing.brickReport.accepted).toHaveLength(0);
    expect(missing.brickReport.rejected[0].reason).toBe('brick_component_individual_review_missing');
