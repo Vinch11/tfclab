@@ -4,6 +4,7 @@ import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-
 import { evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
 import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationFixtures';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
+import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
 import { constructDeterministicPlan } from './engine';
 
 const review:V3ReviewedSettings={
@@ -81,6 +82,8 @@ describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
    expect(p.chunkRepairCatalogs.flat().some(w=>w.id===review.id)).toBe(false);
    contract.adapt(p,{...fixture.planConfig,_outputFormat:'json'});
    expect(p.chunkRepairCatalogs.flat().some(w=>w.id===review.id)).toBe(true);
+   const prevalidation=assessPreparedGeneration({...fixture.planConfig,_outputFormat:'json'},p);
+   expect(prevalidation.weeks.some(w=>w.eligible.some(e=>e.id===review.id))).toBe(true);
    expect(report.accepted).toHaveLength(1);
    const result=constructDeterministicPlan(fixture.athleteData,{
      ...fixture.planConfig,_outputFormat:'json'},{maxNodes:2000,maxMilliseconds:1000},contract);
