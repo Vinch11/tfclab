@@ -10,6 +10,7 @@ import { catalogueEligibility, executableCatalogueDurationRanges } from "../../s
 
 import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport, WorkoutPhysiology } from "@/types/workoutLibrary";
 import { WorkoutLibrary } from "./workoutLibrary";
+import { buildV3CoachPilotPool, type V3CoachPilotContext } from "./v3EngineBridge";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, HIGH_IMPACT_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
 import { ficheMainZoneMax, intensityFamily, ficheUnconfirmedContextReason, type UnconfirmedContextReason } from "./plan/planReconciler";
@@ -583,6 +584,8 @@ export function buildWorkoutCatalog(
   totalWeeks: number,
   options?: {
     sportFilter?: TrainingSport[];
+    /** Explicit per-ID coach-reviewed experiment. Default engine path remains historical-only. */
+    v3CoachPilot?: V3CoachPilotContext;
     limiters?: string[];
     /** Raw prohibition messages (from planConfigBuilder.buildProhibitions) — will be resolved to keys. */
     prohibitions?: string[];
@@ -778,7 +781,21 @@ export function buildWorkoutCatalog(
   // niveau indépendant est un seuil de VMA jamais transmis à ce pipeline —
   // transformer `trainingLevel` en preuve d'une VMA insuffisante serait une
   // estimation, pas une vérification (consigne coach explicite).
-  const SourceLibrary = WorkoutLibrary.filter(
+  const v3PilotCandidates = options?.v3CoachPilot
+    ? buildV3CoachPilotPool(options.v3CoachPilot).accepted.filter(w => {
+        // Coach-reviewed ID alone is not evidence that the athlete has the
+        // minimum training level. The coach must enter it manually in TFCLab.
+        const signal = options.beginnerIntensitySignal;
+        if (!signal || signal.trainingLevelSource !== "manual") return false;
+        const ranks: Record<string, number> = {
+          untrained: 0, light: 1, trained: 2, highly_trained: 3,
+        };
+        const athleteRank = ranks[signal.trainingLevel];
+        const minimumRank = ranks[w.prerequisites?.minimumTrainingLevel ?? "untrained"];
+        return athleteRank !== undefined && minimumRank !== undefined && athleteRank >= minimumRank;
+      })
+    : [];
+  const SourceLibrary = [...WorkoutLibrary, ...v3PilotCandidates].filter(
     w => s2rGoal === (w.goals || []).includes("start_to_run")
       && ficheContextAllowed(w)
       && !isRaceSimIncompatibleWithObjective(w.id, goals[0])
@@ -1117,7 +1134,8 @@ export function buildWorkoutCatalog(
       workout: w,
       score: (() => {
         const base = scoreWorkout(w, goals, phases, limiterKeys, options?.injuryRisk);
-        return base <= -1000 ? base : base - historyPenalty(w.id);
+        return base <= -1000 ? base : base - historyPenalty(w.id) +
+          (options?.v3CoachPilot && w.id.startsWith("V3P_") ? 120 : 0); // explicit coach pilot only; never bypass earlier hard exclusions
       })(),
     }))
     // P4 diversité : à score strictement égal, départage par hash(id, rotationSeed)
@@ -1647,7 +1665,9 @@ export function buildWorkoutCatalog(
     objectif: w.objectif,
     phase: w.phase || [],
     durationMin: w.durationMin,
-    canonicalDurationMin: resolveCanonicalDuration(w, chunkPhase),
+    canonicalDurationMin: w.id.startsWith("V3P_")
+      ? w.durationMin[0] // V3 has an exact chronology, never round 78 to 80
+      : resolveCanonicalDuration(w, chunkPhase),
     structure: condenseStructure(w),
     variants: pickVariant(w, goals),
     ...(w.physiology ? { physiology: w.physiology } : {}),
@@ -1729,7 +1749,9 @@ const _FICHES_BY_ID_FOR_PROMPT: Map<string, LibraryWorkout> = (() => {
   for (const w of WorkoutLibrary) m.set(w.id.toUpperCase(), w);
   return m;
 })();
-function ficheZoneCibleLabel(id: string): string {
+function ficheZoneCibleLabel(id: string, metadata?: RepairWorkoutMetadata): string {
+  if (metadata && typeof metadata.mainZoneMax === "number" && metadata.mainZoneMax > 0)
+    return "Z" + metadata.mainZoneMax;
   const w = _FICHES_BY_ID_FOR_PROMPT.get(id.toUpperCase());
   if (!w) return "—";
   let mx = 0;
@@ -1788,7 +1810,7 @@ export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string
         ? `${e.canonicalDurationMin} (${e.durationMin[0]}-${e.durationMin[1]})`
         : `${e.durationMin[0]}-${e.durationMin[1]}`;
       const struct = e.structure.replace(/\s*\|\s*/g, " / ").replace(/\s+/g, " ").trim();
-      const zoneCible = ficheZoneCibleLabel(e.id);
+      const zoneCible = ficheZoneCibleLabel(e.id, e.repairMetadata);
       const dPlus = e.dPlusTargetM
         ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
         : "—";

@@ -13,6 +13,8 @@ import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
+import { CoachOnlyGate } from "@/components/CoachOnlyGate";
+import { V3_ENGINE_IDS, planContainsV3Candidate, type V3CoachPilotContext } from "@/lib/v3EngineBridge";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
@@ -515,6 +517,16 @@ export default function AITrainingPlanPage() {
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
   const { prevalidation, prevalidateTrainingPlan, response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef, lastWeeklyQuotasRef, lastResponseRef } = useAITrainingPlan();
+  // DEV-ONLY V3 pilot: explicit per-session coach consent; never stored remotely.
+  // Production does not expose or activate experimental candidate recipes.
+  const [v3CoachPilotEnabled, setV3CoachPilotEnabled] = useState(false);
+  const [v3CoachPilotIdInput, setV3CoachPilotIdInput] = useState("");
+  const v3CoachPilot = useMemo<V3CoachPilotContext | undefined>(() => {
+    if (!import.meta.env.DEV || !v3CoachPilotEnabled) return undefined;
+    const ids = [...new Set(v3CoachPilotIdInput.split(/[\s,;]+/g).map(s => s.trim().toUpperCase()).filter(Boolean))];
+    if (!ids.length || ids.length > 20 || ids.some(id => !V3_ENGINE_IDS.has(id))) return undefined;
+    return { coachReviewedIds: new Set(ids), acknowledgedExperimentalRisk: true };
+  }, [v3CoachPilotEnabled, v3CoachPilotIdInput]);
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -1928,7 +1940,7 @@ export default function AITrainingPlanPage() {
       setShowSyncBanner(false);
     }
 
-    generatePlanWindowed(athleteContext.data, config);
+    generatePlanWindowed(athleteContext.data, config, v3CoachPilot);
   };
 
   // Pre-fill from auto diagnostic (metric names → Lorang categories, best-effort).
@@ -2004,8 +2016,8 @@ export default function AITrainingPlanPage() {
     setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objectiveOverride??objective)});
     if(payload.limiterOrder?.length)writeCommittedLimiterPolicy(localStorage,currentAthlete?.id,objectiveOverride??objective,{limiterOrder:payload.limiterOrder,excludedLimiterMetrics:payload.excludedLimiterMetrics??[],prohibitions:payload.prohibitions,metabolicProfile:payload.metabolicProfile,s2rStrength:payload.s2rStrength,sessionsPerWeek:payload.sessionsPerWeek});
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
-    generatePlanWindowed(athleteContext.data, config);
-  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective]);
+    generatePlanWindowed(athleteContext.data, config, v3CoachPilot);
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective, v3CoachPilot]);
 
   const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
     setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)});
@@ -2320,6 +2332,11 @@ export default function AITrainingPlanPage() {
 
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
+    // Pilote V3 : aucun plan expérimental ne peut être persisté ni envoyé à Nolio.
+    if (planContainsV3Candidate(parsedPlan)) {
+      toast.error("Plan V3 expérimental : sauvegarde et export automatique désactivés. Revue sportive requise.");
+      return;
+    }
 
     const currentPlanForChecks = parsedPlan as unknown as MergedPlan;
     // Read-only legacy check view; optional historical fields remain absent.
@@ -2440,7 +2457,7 @@ export default function AITrainingPlanPage() {
         validatorScore = vr.score;
         validatorGrade = vr.grade;
         validatorSummary = vr.summary as unknown as Record<string, unknown>;
-        criticalIssues = [...vr.issues.filter(i => i.severity === "error"), ...validateSessionCataloguePlan(parsedPlan, objective).filter(i => i.severity === "error")];
+        criticalIssues = [...vr.issues.filter(i => i.severity === "error"), ...validateSessionCataloguePlan(parsedPlan, objective, v3CoachPilot).filter(i => i.severity === "error")];
 
         // Audit "cohérence placement des séances" — constat n°2 : B11 (règles
         // de placement déclarées par chaque fiche catalogue, Quand/Éviter/
@@ -4550,6 +4567,7 @@ export default function AITrainingPlanPage() {
                       />
                       {/* Nolio sending panel is now rendered at the top of AIPlanViewer */}
                       <AIPlanViewer
+                        v3CoachPilot={v3CoachPilot}
                         plan={parsedPlan}
                         startDate={planStartDate}
                         raceGoals={[
@@ -4571,7 +4589,7 @@ export default function AITrainingPlanPage() {
                             catalogIdIssues: checkB5ToValidationIssues(checkB5(current, lastAllowedCatalogIdsRef.current.length ? lastAllowedCatalogIdsRef.current : undefined, objective)),
                             finalValidationIssues: [
                               ...(updated.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_")),
-                              ...validateSessionCataloguePlan(updated, objective),
+                              ...validateSessionCataloguePlan(updated, objective, v3CoachPilot),
                             ],
                           });
                           setIsSaved(false);
@@ -4709,6 +4727,36 @@ export default function AITrainingPlanPage() {
         defaultWeightKg={athleteContext?.data?.weightKg ?? null}
         onSubmit={handleProfilExpressSubmit}
       />
+      {import.meta.env.DEV && (
+        <CoachOnlyGate>
+          <Card className="border-amber-400/40">
+            <CardHeader><CardTitle>Laboratoire V3 — moteur réel (développement uniquement)</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Les 400 séances V3 sont candidates. Pour tester leur sélection dans les catalogues
+                du vrai générateur, inscris uniquement les IDs dont tu as personnellement revu la
+                structure, le niveau et les contre-indications. Sans validation explicite, la V3 reste exclue.
+                Natation sans allures et renforcement à durée estimée restent refusés par l'adaptateur.
+                Ce mode ne valide pas la qualité sportive d'un plan et n'autorise pas sa publication.
+              </p>
+              <div className="flex items-center gap-2">
+                <Checkbox id="v3-coach-pilot" checked={v3CoachPilotEnabled}
+                  onCheckedChange={checked => setV3CoachPilotEnabled(checked === true)} />
+                <Label htmlFor="v3-coach-pilot">J'active le pilote expérimental coach uniquement</Label>
+              </div>
+              <Label htmlFor="v3-coach-ids">IDs V3 relus individuellement (maximum 20)</Label>
+              <Input id="v3-coach-ids" value={v3CoachPilotIdInput}
+                onChange={e => setV3CoachPilotIdInput(e.target.value)}
+                placeholder="V3P_BIKE_008, V3P_RUN_002"
+                autoComplete="off" />
+              <p className="text-xs text-muted-foreground">
+                {v3CoachPilot ? v3CoachPilot.coachReviewedIds.size + " séance(s) autorisée(s) pour un test du moteur" :
+                  "Aucune séance V3 autorisée. Aucun changement de production."}
+              </p>
+            </CardContent>
+          </Card>
+        </CoachOnlyGate>
+      )}
       <CoachProfileForm
         open={coachFormOpen}
         onOpenChange={setCoachFormOpen}

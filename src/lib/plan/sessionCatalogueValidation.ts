@@ -1,12 +1,16 @@
 import { checkSessionCatalogue, type ContractSession } from "../../../supabase/functions/_shared/sessionCatalogueContract";
 import { WorkoutLibrary } from "../workoutLibrary";
+import { buildV3CoachPilotPool, type V3CoachPilotContext } from "../v3EngineBridge";
 import { buildRepairWorkoutMetadata } from "./repairCatalogMetadata";
 import { parseWhenPhases } from "./phaseNormalization";
 import { extractCatalogId } from "../catalogIdExtractor";
-const catalog = WorkoutLibrary.map(buildRepairWorkoutMetadata);
+const historicalCatalog = WorkoutLibrary.map(buildRepairWorkoutMetadata);
 interface PlanLike { weeklyQuotas?: Record<number, { weekType?: string; phase?: string }>; weeks: Array<{ weekNumber: number; phase: string; sessions: Array<ContractSession & { isRest?: boolean }> }>; }
 /** Validate the current prescription, never mutate it to make an ID fit. */
-export function validateSessionCataloguePlan(plan: PlanLike, objective?: string) {
+export function validateSessionCataloguePlan(plan: PlanLike, objective?: string, v3CoachPilot?: V3CoachPilotContext) {
+ const catalog = v3CoachPilot
+   ? [...historicalCatalog, ...buildV3CoachPilotPool(v3CoachPilot).accepted.map(buildRepairWorkoutMetadata)]
+   : historicalCatalog;
  return plan.weeks.flatMap(week => week.sessions.flatMap((session, index) => {
   if (session.isRest || session.sport === "rest") return [];
   const catalogId = extractCatalogId(session.title ?? "", session.details ?? "", session.catalogId);

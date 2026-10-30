@@ -4,6 +4,7 @@ import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
 import type { TrainingSport, PhaseTag } from "@/types/workoutLibrary";
 import { buildPeriodizationCalendar } from "./periodizationCalendar";
 import { getCatalogSportFilter, getCatalogExclusions } from "./catalogScope";
+import type { V3CoachPilotContext } from "@/lib/v3EngineBridge";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
 import { isTrailCatalogId } from "./trailMarkers";
 import { extractCatalogIdsFromDump } from "../../../supabase/functions/_shared/catalogueIds";
@@ -16,7 +17,7 @@ import { catalogueForWeek } from "../../../supabase/functions/_shared/sessionCat
 import { normalizeRepairSport } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { snapshotSLFloorAudit, traceSLFloorConsumer } from "./slFloorAudit";
 import type { WeekQuotaEntry } from "./validateWeeklyQuotas";
-export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number}={}) {
+export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number;v3CoachPilot?: V3CoachPilotContext}={}) {
  const totalWeeks=planConfig.weeksAvailable??0;
  if(!Number.isInteger(totalWeeks)||totalWeeks<=0)throw new Error("PREVALIDATION_INVALID_DURATION");
  const effTotalWeeks=planConfig.globalTotalWeeks??totalWeeks,weekOffset=planConfig.globalWeekOffset??0;
@@ -200,7 +201,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           pr.start,
           pr.end,
           effTotalWeeks,
-          { ...phaseOptions(pr.start, pr.end), strictPhaseFilter: true, maxItems: 80, chunkIndex: i, rotationIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
+          { ...phaseOptions(pr.start, pr.end), strictPhaseFilter: true, maxItems: 80, chunkIndex: i, rotationIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, v3CoachPilot: options.v3CoachPilot, ...regenGapPhaseOptions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         phaseRepairCatalogs[pr.phase] = catalog.map(entry => entry.repairMetadata);
@@ -260,7 +261,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
             cStart,
             cEnd,
             totalWeeks,
-            { ...phaseOptions(cStart + weekOffset, cEnd + weekOffset), strictPhaseFilter: true, maxItems: 130, chunkIndex: ci, rotationIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
+            { ...phaseOptions(cStart + weekOffset, cEnd + weekOffset), strictPhaseFilter: true, maxItems: 130, chunkIndex: ci, rotationIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, v3CoachPilot: options.v3CoachPilot, ...regenGapPhaseOptions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           chunkRepairCatalogs.push(chunkCatalog.map(entry => entry.repairMetadata));
@@ -282,7 +283,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
               cStart,
               cEnd,
               totalWeeks,
-              { maxItems: 60, chunkIndex: ci, rotationIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, phaseOverride: ["base"], strictPhaseFilter: true }
+              { maxItems: 60, chunkIndex: ci, rotationIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, v3CoachPilot: options.v3CoachPilot, phaseOverride: ["base"], strictPhaseFilter: true }
             );
             chunkRegenCatalogs.push(serializeCatalogForPrompt(regenCatalog));
             chunkRegenRepairCatalogs.push(regenCatalog.map(entry => entry.repairMetadata));

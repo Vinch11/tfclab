@@ -1,0 +1,40 @@
+name: V3 pilot — regenerate checked source declaration
+on:
+  push:
+    branches:
+      - design/scientific-session-library-v3
+    paths:
+      - ".github/workflows/v3-source-declaration.yml"
+      - "src/**"
+      - "supabase/functions/_shared/**"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  declare:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/design/scientific-session-library-v3'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/scientific-session-library-v3
+          persist-credentials: true
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Recompute truthful source declaration without deployment attestation
+        run: node scripts/preproduction/plan-release-source.mjs --write
+      - name: Commit declaration only if source fingerprint differs
+        run: |
+          set -euo pipefail
+          FILE=supabase/functions/_shared/planReleaseManifest.ts
+          if git diff --quiet -- "$FILE"; then
+            echo "Source declaration already current."
+            exit 0
+          fi
+          git config user.name "tfclab-v3-pilot-bot"
+          git config user.email "tfclab-v3-pilot-bot@users.noreply.github.com"
+          git add "$FILE"
+          git commit -m "chore(v3-pilot): refresh truthful source fingerprint (not deployment attestation)"
+          git push origin HEAD:refs/heads/design/scientific-session-library-v3
