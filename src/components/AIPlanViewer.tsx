@@ -945,6 +945,9 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     const updated = typeof next === "function" ? next(plan) : next;
     if (onPlanChange) onPlanChange(updated); else setLocalPlan(updated);
   }, [plan, onPlanChange]);
+  // V3 pilot prescriptions must never expose one-click/bulk real Nolio sending.
+  const hasV3PilotSessions = useMemo(() => plan.weeks.some(week => week.sessions.some(session =>
+    /V3P_(BIKE|RUN|SWIM|STRENGTH)_\d{3}/.test(JSON.stringify(session)))), [plan]);
   const currentCatalogueIssues = useMemo(() => validateSessionCataloguePlan(plan), [plan]);
   const hasCoachBudget = Object.values(plan.weeklyQuotas ?? {}).some(entry => !!entry.volumeBudget);
   // The same dose incident is shown once, freshly checked above, not as a stale quota snapshot.
@@ -1200,7 +1203,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   }, []);
 
   const nolioCtx: NolioCtx | null = useMemo(() => {
-    if (!athleteId || nolioId == null || !startDate) return null;
+    if (hasV3PilotSessions || !athleteId || nolioId == null || !startDate) return null;
     return {
       athleteId,
       nolioId,
@@ -1212,7 +1215,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       toggleSelected,
       setManySelected,
     };
-  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
+  }, [hasV3PilotSessions, athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
 
   // Bulk send state
   const [bulkStartDate, setBulkStartDate] = useState<string>(() => {
