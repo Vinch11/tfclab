@@ -147,7 +147,7 @@ export const WORKOUT_V2_MODELS: readonly WorkoutV2Model[] = [
 
   { ...common, id: "V2_BRICK_01", name: "Transition vélo-course aérobie", sport: "brick", goals: TRI, phases: MAIN, minTrainingLevel: "trained",
     intent: "mixed_specific", mode: "brick",
-    params: { warmupSec: p(0, 900, 600, 60), bikeSec: p(1800, 10800, 3600, 60), transitionSec: p(60, 600, 180, 30), runSec: p(300, 2400, 900, 60), cooldownSec: p(0, 900, 300, 60) },
+    params: { warmupSec: p(300, 600, 600, 60), bikeSec: p(2400, 3000, 2700, 60), transitionSec: p(60, 300, 120, 30), runSec: p(600, 900, 900, 60), cooldownSec: p(300, 300, 300, 60) },
     target: rpe(2, 4, "Vélo contrôlé"), secondTarget: rpe(2, 4, "Course facile et progressive"),
     evidence: [SESSIONS], coachNotes: "Deux sports et leurs références restent distincts ; contrôle de capacité de course post-vélo." },
   { ...common, id: "V2_BRICK_02", name: "Transition spécifique compétition", sport: "brick", goals: ["olympic", "half", "ironman"], phases: ["build", "peak"], minTrainingLevel: "highly_trained",
