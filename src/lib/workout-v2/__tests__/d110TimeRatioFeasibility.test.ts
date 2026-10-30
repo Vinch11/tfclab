@@ -1,5 +1,8 @@
 import {describe, expect, it} from "vitest";
 import {examineD110TimeRatio,examineD110ThreeProfiles} from "../../../../experimental/workout-v2/d110TimeRatioFeasibility";
+import {deriveD110PlannedStage1Brick,isD110Stage1SourceUnchanged,attachD110SourceBrickProof}
+  from "../../../../experimental/workout-v2/d110V1BrickSourceProof";
+import {WorkoutLibrary} from "@/lib/workoutLibrary";
 
 describe("D1.10: joint 70.3 time ratios without invented V1 brick allocation",()=>{
   it("proves incompatibility when bike and run cannot reach even 3-point tolerance",()=>{
@@ -86,6 +89,21 @@ describe("D1.10: joint 70.3 time ratios without invented V1 brick allocation",()
     expect(rows.map(r=>r.profile)).toEqual(["aerobic_dominant","glycolytic_dominant","balanced_typical"]);
     expect(rows.map(r=>r.nativeCriticalCount)).toEqual([3,4,4]);
     expect(rows.map(r=>r.nominal.percentageBounds.swim?.[0])).toEqual([16.9,17.6,17.9]);
+    expect(rows.map(x=>x.sourceStage1.status)).toEqual([
+      "verified_planned_components","verified_planned_components","verified_planned_components",
+    ]);
+    expect(rows.map(x=>x.sourceStage1.count)).toEqual([3,3,3]);
+    expect(rows.map(x=>x.sourceConditionedNominal?.status)).toEqual([
+      "fully_accounted_outside_bands","fully_accounted_outside_bands","fully_accounted_inside_bands",
+    ]);
+    expect(rows.map(x=>x.sourceConditionedPlus3?.status)).toEqual([
+      "fully_accounted_inside_bands","fully_accounted_inside_bands","fully_accounted_inside_bands",
+    ]);
+    expect(rows.map(x=>x.sourceConditionedNominal?.percentageBounds)).toEqual([
+      {swim:[16.9,16.9],bike:[51.6,51.6],run:[31.5,31.5]},
+      {swim:[17.6,17.6],bike:[52.7,52.7],run:[29.7,29.7]},
+      {swim:[17.9,17.9],bike:[48.2,48.2],run:[33.9,33.9]},
+    ]);
     for(const row of rows) {
       expect(row.nominal.denominatorSec).toBeGreaterThan(0);
       expect(row.nominal.evidenceReasons).toContain("brick_components_unverified");
@@ -103,6 +121,40 @@ describe("D1.10: joint 70.3 time ratios without invented V1 brick allocation",()
       minimumBrickAllocationSec:r.nominal.minimumUnknownAllocationSec,
       unknownBrickSec:r.nominal.unknownBrickSec,
       originalCritical:r.nativeCriticalCount,
+      sourceStage1:r.sourceStage1,
+      sourceConstrained:r.sourceConditionedNominal?.percentageBounds,
+      sourceConstrainedNominal:r.sourceConditionedNominal?.status,
+      sourceConstrainedWith3:r.sourceConditionedPlus3?.status,
     }))));
+  });
+});
+
+describe("D1.10b: V1 Stage1 source precision never invented",()=>{
+  it("derives a unique PLANNED split only for exactly 60min and unchanged V1 fields",()=>{
+    const source=WorkoutLibrary.find(w=>w.id==="BRICK_STAGE1_INTRO");
+    expect(source).toBeDefined();
+    expect(isD110Stage1SourceUnchanged(source)).toBe(true);
+    const result=deriveD110PlannedStage1Brick("BRICK_STAGE1_INTRO",60);
+    expect(result.ok).toBe(true);
+    if(result.ok){
+      expect(result.components).toEqual({bikeMin:45,runMin:15,transitionMin:0,verified:true});
+      expect(result.executionAttested).toBe(false);
+      expect(result.individualDoseApproved).toBe(false);
+    }
+    expect(deriveD110PlannedStage1Brick("BRICK_STAGE1_INTRO",70).ok).toBe(false);
+    expect(deriveD110PlannedStage1Brick("BRICK_STAGE2_BUILD",60).ok).toBe(false);
+  });
+  it("fail-closes on any tampering or unsupported historical source in an aggregate",()=>{
+    const source=WorkoutLibrary.find(w=>w.id==="BRICK_STAGE1_INTRO");
+    expect(source).toBeDefined();
+    if(!source)return;
+    const modified=structuredClone(source);
+    modified.structure[0].text="45–70' Z2 facile";
+    expect(isD110Stage1SourceUnchanged(modified)).toBe(false);
+    const combined=attachD110SourceBrickProof([
+      {sport:"swim",id:"B_SWIM",minutes:30},
+      {sport:"brick",id:"BRICK_STAGE2_BUILD",minutes:60},
+    ]);
+    expect(combined).toEqual({ok:false,reasons:["not_stage1_source"]});
   });
 });
