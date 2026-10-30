@@ -58,6 +58,8 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
   expect(actual.candidate!.weeks.flatMap(w=>w.sessions)
     .filter(s=>admittedIds.has(s.catalogId??'')).every(s=>s.details&&s.durationMin&&s.zones?.length)).toBe(true);
   expect(actual.issues.some(i=>i.code==='race_day_only_fiche_misplaced')).toBe(false);
+  expect(actual.issues.some(i=>i.code==='v3_recovery_hours_unverified')).toBe(false);
+  expect(actual.constraintsSatisfied).toBe(true);
   expect(actual.issues.some(i=>i.code==='experimental_contract_requires_review')).toBe(true);
   expect(actual.humanReviewRequired).toBe(true);
   expect(actual.sportingRelevance).toBe('not_attested');
