@@ -4,6 +4,7 @@
  */
 import {WorkoutLibrary} from "@/lib/workoutLibrary";
 import {WORKOUT_V2_EXTENDED_CANDIDATES} from "./v2RecoveryExtension";
+import {V2_REVIEWED_SOURCE_EVIDENCE} from "./v2ReviewedSourceEvidence";
 const normalizedSport:Readonly<Record<string,string>>={
   cyclisme:"bike",course:"run",natation:"swim",renforcement:"strength",
   strength:"strength",brick:"brick",trail:"trail",
@@ -11,15 +12,18 @@ const normalizedSport:Readonly<Record<string,string>>={
 export function proposeV2SourceFamilies(){
   return WorkoutLibrary.map(source=>{
     const physiology=source.physiology;
-    const intent=physiology?.primary;
-    const hasEvidence=!!intent && !!physiology?.rationale?.trim();
+    const reviewed=V2_REVIEWED_SOURCE_EVIDENCE[source.id];
+    const matchingSource=reviewed && source.structure.some(s=>s.part==="Main"&&s.text.includes(reviewed.sourceMainExcerpt));
+    const intent=physiology?.primary??(matchingSource?reviewed.intent:undefined);
+    const rationale=physiology?.rationale??(matchingSource?reviewed.reason:undefined);
+    const hasEvidence=!!intent && !!rationale?.trim();
     const sport=normalizedSport[String(source.sport)]??null;
     const matches=hasEvidence && sport
       ?WORKOUT_V2_EXTENDED_CANDIDATES.filter(m=>m.sport===sport&&m.intent===intent).map(m=>m.id)
       :[];
     return {
       sourceId:source.id,sourceSport:String(source.sport),v2Sport:sport,
-      sourceIntent:hasEvidence?intent:null,sourceRationale:hasEvidence?physiology!.rationale:null,
+      sourceIntent:hasEvidence?intent:null,sourceRationale:hasEvidence?rationale:null,
       candidateFamilyIds:matches,
       status:!hasEvidence?"needs_metadata" as const:
         !sport?"needs_sport_review" as const:
