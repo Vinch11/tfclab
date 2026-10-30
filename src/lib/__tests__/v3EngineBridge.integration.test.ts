@@ -11,6 +11,7 @@ const makeCatalog = (ids: Set<string>) =>
     sportFilter: ["cyclisme"],
     phaseOverride: ["build"],
     strictPhaseFilter: true,
+    beginnerIntensitySignal: { trainingLevel: "trained", trainingLevelSource: "manual" },
     excludeIdPatterns: noHistoric,
     maxItems: 20,
   });
@@ -43,6 +44,22 @@ describe("V3 -> REAL TFCLab workoutCatalogBuilder (isolated coach pilot)", () =>
       sportFilter: ["cyclisme"], phaseOverride: ["build"], maxItems: 30,
     });
     expect(defaultPool.some(e => e.id.startsWith("V3P_"))).toBe(false);
+  });
+
+  it("refuses a coach-reviewed V3 interval if level is lower or not manually verified", () => {
+    const common = {
+      v3CoachPilot: REVIEWED,
+      sportFilter: ["cyclisme" as const], phaseOverride: ["build" as const],
+      strictPhaseFilter: true, excludeIdPatterns: noHistoric,
+    };
+    const low = buildWorkoutCatalog("half", 3, 4, 12, {
+      ...common, beginnerIntensitySignal: { trainingLevel: "light", trainingLevelSource: "manual" },
+    });
+    expect(low.some(e => e.id === "V3P_BIKE_008")).toBe(false);
+    const unverified = buildWorkoutCatalog("half", 3, 4, 12, {
+      ...common, beginnerIntensitySignal: { trainingLevel: "trained", trainingLevelSource: "unknown" },
+    });
+    expect(unverified.some(e => e.id === "V3P_BIKE_008")).toBe(false);
   });
 
   it("does not fabricate swimming time or strength appointment minutes", () => {
