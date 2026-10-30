@@ -64,7 +64,7 @@ const intervals = (repLo: number, repHi: number, repDefault: number, workLo: num
   betweenSetsSec: p(0, 600, 300, 30),
   cooldownSec: p(300, 900, 600, 60),
 });
-const strength = (exercises: number, reps: number, rest: number) => ({
+const strength = (_exercises: number, reps: number, rest: number) => ({
   warmupSec: p(300, 900, 600, 60), sets: p(2, 4, 3),
   strengthReps: p(3, 12, reps), strengthTempoSec: p(2, 8, 4),
   strengthRestSec: p(15, 240, rest, 15),
@@ -97,7 +97,7 @@ export const WORKOUT_V2_MODELS: readonly WorkoutV2Model[] = [
     evidence: [HIIT, SESSIONS], coachNotes: "À réserver aux athlètes capables de supporter les impacts et répétitions rapides." },
   { ...common, id: "V2_RUN_06", name: "Lignes droites / coordination", sport: "run", goals: [...RUN, "sprint", "olympic", "half"], phases: MAIN, minTrainingLevel: "light",
     intent: "neuromuscular", mode: "intervals",
-    params: { ...intervals(4, 10, 6, 10, 30, 20, 90), sets: p(1, 1, 1), warmupSec: p(600, 1200, 900, 60) },
+    params: { ...intervals(4, 10, 6, 15, 30, 30, 90), sets: p(1, 1, 1), warmupSec: p(600, 1200, 900, 60) },
     target: rpe(6, 8, "Rapide mais relâché ; jamais sprint maximal improvisé"),
     evidence: [SESSIONS], coachNotes: "Technique prioritaire ; éviter si douleur ou fatigue neuromusculaire." },
 
@@ -156,7 +156,7 @@ export const WORKOUT_V2_MODELS: readonly WorkoutV2Model[] = [
     target: rpe(4, 6, "Vélo spécifique à étalonner"), secondTarget: rpe(4, 6, "Course spécifique à étalonner séparément"),
     evidence: [SESSIONS], coachNotes: "Aucune intensité course ou vélo universelle ; compatible seulement après revue des limites individuelles." },
 
-  { ...common, id: "V2_STRENGTH_01", name: "Force maximale : membres inférieurs", sport: "strength", goals: [...RUN_ALL, ...TRI], phases: BASE, minTrainingLevel: "trained",
+  { ...common, id: "V2_STRENGTH_01", name: "Force maximale : membres inférieurs", sport: "strength", goals: RUN_ALL, phases: BASE, minTrainingLevel: "trained",
     intent: "max_strength", mode: "strength",
     params: { ...strength(3, 5, 150), strengthReps: p(3, 6, 5) },
     exercises: ["Squat ou variante adaptée", "Hinge / soulevé de terre adapté", "Montée sur pointe / soléaire"],
