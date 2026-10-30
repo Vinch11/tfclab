@@ -10,6 +10,7 @@ import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { constructDeterministicPlan, type ExperimentalAssemblyContract } from "./d1EngineReference";
 import { D12_PROFILES, type D12Profile } from "./d12CohortAudit";
 import { assessD15Candidate, type D15ReviewEvidence } from "./d15EvidenceSelection";
+import type { ParsedPlan } from "@/lib/aiPlanParser";
 export {D12_PROFILES};
 const DAYS:DayName[]=["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
 const ORDERS: Record<LayoutSport,DayName[]> = {
@@ -95,12 +96,14 @@ export interface D12ProjectionResult {
   noLLM:true; canExport:false; canPersist:false;
   realPlanValidated:false; individualPrescriptionApproved:false;
   reviewedSelections:Array<{week:number;day:string;id:string}>;
+  /** D1.8: explicit isolated capture of the REAL experimental D1 candidate, never production. */
+  candidatePlan?:ParsedPlan;
 }
 /** Re-run once for each unchanged D1 archetype, original 12-week context.
  * Intentional test-only stop after week 4; future event remains in context.
  * A candidate is never a deployable 4-week plan.
  */
-export function projectD12Profile(profile:D12Profile,reviews:readonly D15ReviewEvidence[]=[]):D12ProjectionResult {
+export function projectD12Profile(profile:D12Profile,reviews:readonly D15ReviewEvidence[]=[],captureCandidate=false):D12ProjectionResult {
   const spec:PlanningCase={id:`D1_${profile}`,objective:"703",level:"trained",ambition:"age_group",
     load:"known_synthetic",physiology:profile,constraints:"unrestricted",duration:"native",intermediate:false};
   const {prepared}=preparePlanningCaseContext(spec);
@@ -154,7 +157,8 @@ export function projectD12Profile(profile:D12Profile,reviews:readonly D15ReviewE
       noLLM:true,canExport:false,canPersist:false,
       realPlanValidated:false,individualPrescriptionApproved:false,
       reviewedSelections:result.trace.filter(x=>x.reason.startsWith("Préférence expérimentale étayée"))
-        .map(x=>({week:x.week,day:x.day,id:x.id}))};
+        .map(x=>({week:x.week,day:x.day,id:x.id})),
+      ...(captureCandidate&&result.candidate?{candidatePlan:structuredClone(result.candidate)}:{})};
   }catch(e){
     return {profile,status:"experimental_exception",reason:e instanceof Error?e.message:String(e),
       weeksConstructed:0,slotsByWeek:transformedWeeks,issues:[],countCritical:0,criticalDetails:[],weeklyPreview:[],
