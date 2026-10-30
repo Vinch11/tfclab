@@ -73,9 +73,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 300,
+            "min": 250,
             "base": 300,
-            "max": 300
+            "max": 350
           },
           "domain": "moderate_lt1",
           "label": "Nage intégrée",
@@ -94,7 +94,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_022",
@@ -188,7 +189,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_023",
@@ -261,9 +263,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 300,
+            "min": 250,
             "base": 300,
-            "max": 300
+            "max": 350
           },
           "domain": "moderate_lt1",
           "label": "Nage de transfert",
@@ -282,7 +284,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_024",
@@ -355,9 +358,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Nage pleine",
@@ -376,7 +379,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_025",
@@ -470,7 +474,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_026",
@@ -553,7 +558,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_027",
@@ -636,7 +642,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_028",
@@ -719,7 +726,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_029",
@@ -792,9 +800,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 300,
+            "min": 250,
             "base": 300,
-            "max": 300
+            "max": 350
           },
           "domain": "moderate_lt1",
           "label": "Intégration douce",
@@ -813,7 +821,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_030",
@@ -896,7 +905,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_031",
@@ -990,7 +1000,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_032",
@@ -1095,7 +1106,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_033",
@@ -1178,7 +1190,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_034",
@@ -1272,7 +1285,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_035",
@@ -1366,7 +1380,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_036",
@@ -1460,7 +1475,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_037",
@@ -1554,7 +1570,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_038",
@@ -1637,7 +1654,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_039",
@@ -1687,9 +1705,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Préfatigue douce",
@@ -1731,7 +1749,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_040",
@@ -1823,7 +1842,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_041",
@@ -1873,9 +1893,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 1200,
+            "min": 950,
             "base": 1200,
-            "max": 1200
+            "max": 1450
           },
           "domain": "moderate_lt1",
           "label": "Nage régulière",
@@ -1894,7 +1914,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_042",
@@ -1954,9 +1975,9 @@
             {
               "kind": "distance",
               "meters": {
-                "min": 400,
+                "min": 300,
                 "base": 400,
-                "max": 400
+                "max": 500
               },
               "domain": "moderate_lt1",
               "label": "Maintenir technique",
@@ -1977,7 +1998,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_043",
@@ -2037,9 +2059,9 @@
             {
               "kind": "distance",
               "meters": {
-                "min": 600,
+                "min": 500,
                 "base": 600,
-                "max": 600
+                "max": 700
               },
               "domain": "moderate_lt1",
               "label": "Économie de nage",
@@ -2060,7 +2082,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_044",
@@ -2120,9 +2143,9 @@
             {
               "kind": "distance",
               "meters": {
-                "min": 800,
+                "min": 650,
                 "base": 800,
-                "max": 800
+                "max": 950
               },
               "domain": "moderate_lt1",
               "label": "Allure stable de fond",
@@ -2143,7 +2166,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_045",
@@ -2193,9 +2217,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 1800,
+            "min": 1450,
             "base": 1800,
-            "max": 1800
+            "max": 2150
           },
           "domain": "moderate_lt1",
           "label": "Continu sans seuil",
@@ -2214,7 +2238,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_046",
@@ -2286,9 +2311,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Contrôle technique en nage complète",
@@ -2308,9 +2333,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 600,
+            "min": 500,
             "base": 600,
-            "max": 600
+            "max": 700
           },
           "domain": "moderate_lt1",
           "label": "Contrôle technique en nage complète",
@@ -2330,9 +2355,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Contrôle technique en nage complète",
@@ -2373,7 +2398,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_047",
@@ -2433,9 +2459,9 @@
             {
               "kind": "distance",
               "meters": {
-                "min": 300,
+                "min": 250,
                 "base": 300,
-                "max": 300
+                "max": 350
               },
               "domain": "moderate_lt1",
               "label": "Effort de fond",
@@ -2467,7 +2493,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_048",
@@ -2550,7 +2577,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_049",
@@ -2611,9 +2639,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 700,
+            "min": 550,
             "base": 700,
-            "max": 700
+            "max": 850
           },
           "domain": "moderate_lt1",
           "label": "Endurance régulière",
@@ -2622,9 +2650,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Stabilité finale",
@@ -2643,7 +2671,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_050",
@@ -2737,7 +2766,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_051",
@@ -2818,7 +2848,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_052",
@@ -2899,7 +2930,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_053",
@@ -2947,9 +2979,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Contrôle technique en nage complète",
@@ -2969,9 +3001,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 500,
+            "min": 400,
             "base": 500,
-            "max": 500
+            "max": 600
           },
           "domain": "moderate_lt1",
           "label": "Contrôle technique en nage complète",
@@ -2991,9 +3023,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 600,
+            "min": 500,
             "base": 600,
-            "max": 600
+            "max": 700
           },
           "domain": "moderate_lt1",
           "label": "Contrôle technique en nage complète",
@@ -3013,9 +3045,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Contrôle technique en nage complète",
@@ -3034,7 +3066,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_054",
@@ -3092,9 +3125,9 @@
             {
               "kind": "distance",
               "meters": {
-                "min": 800,
+                "min": 650,
                 "base": 800,
-                "max": 800
+                "max": 950
               },
               "domain": "moderate_lt1",
               "label": "Allure Ironman estimée, stable",
@@ -3115,7 +3148,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_055",
@@ -3207,7 +3241,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_056",
@@ -3299,7 +3334,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_057",
@@ -3382,7 +3418,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_058",
@@ -3440,9 +3477,9 @@
             {
               "kind": "distance",
               "meters": {
-                "min": 300,
+                "min": 250,
                 "base": 300,
-                "max": 300
+                "max": 350
               },
               "domain": "moderate_lt1",
               "label": "Dans les pieds avec marge sécuritaire",
@@ -3463,7 +3500,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_059",
@@ -3523,9 +3561,9 @@
             {
               "kind": "distance",
               "meters": {
-                "min": 500,
+                "min": 400,
                 "base": 500,
-                "max": 500
+                "max": 600
               },
               "domain": "moderate_lt1",
               "label": "Parcours balisé sous surveillance",
@@ -3546,7 +3584,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_060",
@@ -3594,9 +3633,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Départ doux",
@@ -3637,7 +3676,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_061",
@@ -3720,7 +3760,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_062",
@@ -3803,7 +3844,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_063",
@@ -3886,7 +3928,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_064",
@@ -3969,7 +4012,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_065",
@@ -4128,7 +4172,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_066",
@@ -4223,7 +4268,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_067",
@@ -4273,9 +4319,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 600,
+            "min": 500,
             "base": 600,
-            "max": 600
+            "max": 700
           },
           "domain": "moderate_lt1",
           "label": "Précharge aérobie",
@@ -4317,7 +4363,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_068",
@@ -4400,7 +4447,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_069",
@@ -4494,7 +4542,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_070",
@@ -4577,7 +4626,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_071",
@@ -4660,7 +4710,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_072",
@@ -4743,7 +4794,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_073",
@@ -4826,7 +4878,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_074",
@@ -4921,7 +4974,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_075",
@@ -5080,7 +5134,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_076",
@@ -5163,7 +5218,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_077",
@@ -5246,7 +5302,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_078",
@@ -5340,7 +5397,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_079",
@@ -5434,7 +5492,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_080",
@@ -5529,7 +5588,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_081",
@@ -5624,7 +5684,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_082",
@@ -5707,7 +5768,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_083",
@@ -5790,7 +5852,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_084",
@@ -5873,7 +5936,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_085",
@@ -5956,7 +6020,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_086",
@@ -6048,7 +6113,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_087",
@@ -6119,7 +6185,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_088",
@@ -6202,7 +6269,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_089",
@@ -6283,7 +6351,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_090",
@@ -6366,7 +6435,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_091",
@@ -6435,7 +6505,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_092",
@@ -6504,7 +6575,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_093",
@@ -6585,7 +6657,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_094",
@@ -6633,9 +6706,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Cycles, fréquence, RPE et temps à noter",
@@ -6654,7 +6727,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_095",
@@ -6735,7 +6809,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_096",
@@ -6785,9 +6860,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 700,
+            "min": 550,
             "base": 700,
-            "max": 700
+            "max": 850
           },
           "domain": "moderate_lt1",
           "label": "Précharge aisée",
@@ -6829,7 +6904,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_097",
@@ -6921,7 +6997,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_098",
@@ -6981,9 +7058,9 @@
             {
               "kind": "distance",
               "meters": {
-                "min": 300,
+                "min": 250,
                 "base": 300,
-                "max": 300
+                "max": 350
               },
               "domain": "moderate_lt1",
               "label": "Endurance",
@@ -7015,7 +7092,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_099",
@@ -7065,9 +7143,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 400,
+            "min": 300,
             "base": 400,
-            "max": 400
+            "max": 500
           },
           "domain": "moderate_lt1",
           "label": "Visée et sécurité",
@@ -7087,9 +7165,9 @@
         {
           "kind": "distance",
           "meters": {
-            "min": 350,
+            "min": 300,
             "base": 350,
-            "max": 350
+            "max": 400
           },
           "domain": "moderate_lt1",
           "label": "Allure et repérage",
@@ -7108,7 +7186,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_SWIM_100",
@@ -7191,7 +7270,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     }
   ]
 }
