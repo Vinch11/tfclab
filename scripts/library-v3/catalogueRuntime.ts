@@ -5,6 +5,10 @@
  */
 import type { DoctrineDomainId } from "../../src/lib/zones/tfclDoctrine";
 import rawCatalogue from "./v3PilotCatalogue.json";
+import bikeExpansion from "./v3BikeExpansion.json";
+import runExpansion from "./v3RunExpansion.json";
+import swimExpansion from "./v3SwimExpansion.json";
+import strengthExpansion from "./v3StrengthExpansion.json";
 
 export type V3Sport = "bike" | "run" | "swim" | "strength";
 export type V3Intent = "recovery" | "moderate_lt1" | "mlss" | "vo2max" | "neuromuscular"
@@ -63,7 +67,21 @@ export interface V3Catalogue {
   references: Record<string, { url: string; claim: string }>;
   workouts: V3Workout[];
 }
-export const v3PilotCatalogue: V3Catalogue = rawCatalogue as V3Catalogue;
+/**
+ * All expansion files are candidates only, grouped by sport to keep the
+ * authoring diff reviewable. No changes to the production WorkoutLibrary.
+ */
+const draftExpansions = [bikeExpansion, runExpansion, swimExpansion, strengthExpansion] as const;
+export const v3PilotCatalogue: V3Catalogue = {
+  ...(rawCatalogue as unknown as V3Catalogue),
+  count: 400,
+  counts: { bike: 100, run: 100, swim: 100, strength: 100 },
+  workouts: [
+    ...(rawCatalogue.workouts as unknown as V3Workout[]),
+    ...draftExpansions.flatMap(exp => exp.workouts as unknown as V3Workout[]),
+  ],
+};
+export const v3FullCatalogue = v3PilotCatalogue;
 
 /** Each pace is personally supplied in sec/100m for the corresponding domain. */
 export type Paces = Partial<Record<DoctrineDomainId, number>>;
