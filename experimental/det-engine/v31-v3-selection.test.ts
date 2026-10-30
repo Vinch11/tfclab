@@ -101,6 +101,15 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
       .slice(0,15).map(i=>({code:i.code,week:i.week,message:i.message?.slice(0,180)})),
     selectedBricks:after.trace.filter(t=>t.id===V3_BASE_BRICK_ID).map(t=>({week:t.week,day:t.day,duration:t.duration})),
   }));
+  console.info('DET_V31_703_WEEK_AUDIT',JSON.stringify({
+    config:{objective:config.objective,planStartDate:config.planStartDate,
+      raceDate:config.raceDate,raceGoals:config.raceGoals,deloadCadenceWeeks:config.deloadCadenceWeeks},
+    weeks:after.candidate?.weeks.filter(w=>[4,5,6,7,8,9,12].includes(w.weekNumber))
+      .map(w=>({week:w.weekNumber,phase:w.phase,weekType:preparation.weeklyQuotas[w.weekNumber]?.weekType,
+        sessions:w.sessions.filter(x=>!x.isRest).map(x=>({
+          id:x.catalogId,sport:x.sport,day:x.dayName,duration:x.durationMin,
+          title:x.title,zones:x.zones,details:(x.details??'').slice(0,120)}))})),
+  }));
   if(after.reason==='empty_catalogue_domain_week_1')
     expect(after.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message)
       .not.toContain('"sport":"brick"');
