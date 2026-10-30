@@ -22,7 +22,7 @@ export type D115Result =
     editedPlan:ParsedPlan;changes:Changed[];
     beforeRatio:D110Decision;afterRatio:D110Decision;nativeBefore:D18Issue[];nativeAfter:D18Issue[];
     introducedCritical:D18Issue[];remainingCritical:D18Issue[];
-    originalCalendarUnchanged:true;structuredV2NotEquivalentToV1:true;
+    daysAndSessionCountsPreserved:true;structuredV2NotEquivalentToV1:true;
     syntheticReadinessOnly:true; sportsApproved:false;canPublish:false;canPersist:false;canExport:false};
 const blocked=(profile:D12Profile,reason:string):D115Result=>({
  status:"blocked",profile,reasons:[reason],sportsApproved:false,
@@ -107,7 +107,7 @@ export function examineD115V2S3Copy(profile:D12Profile):D115Result{
     changes,beforeRatio:before,afterRatio:after,
     nativeBefore,nativeAfter,remainingCritical:critical(nativeAfter),
     introducedCritical:critical(nativeAfter).filter(i=>!known.has(issueKey(i))),
-    originalCalendarUnchanged:true,structuredV2NotEquivalentToV1:true,
+    daysAndSessionCountsPreserved:true,structuredV2NotEquivalentToV1:true,
     syntheticReadinessOnly:true,sportsApproved:false,canPublish:false,
     canPersist:false,canExport:false};
   }
