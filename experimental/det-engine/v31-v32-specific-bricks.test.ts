@@ -47,6 +47,9 @@ describe('V32 — no invented conversion of historical 70.3 bricks',()=>{
   expect(p.allBricks).toHaveLength(4);
   expect(p.contract.consumedSourceIds?.(p.specificBrickReport.accepted[0]))
     .toEqual(['V3P_BIKE_090','V3P_RUN_041']);
+  expect(p.contract.sourceRecoveryForId?.('V3B_703_BUILD_180'))
+    .toEqual([{sourceId:'V3P_BIKE_090',sport:'bike',hours:24},
+      {sourceId:'V3P_RUN_041',sport:'run',hours:36}]);
   expect(p.contract.consumedSourceIds?.(p.specificBrickReport.accepted[1]))
     .toEqual(['V3P_BIKE_057','V3P_RUN_041']);
   expect(p.contract.consumedSourceIds?.(p.specificBrickReport.accepted[2]))
@@ -116,6 +119,9 @@ describe('V32 — no invented conversion of historical 70.3 bricks',()=>{
       blocking:after.issues.filter(i=>['blocking','error','critical'].includes(i.severity))
         .slice(0,12).map(i=>({code:i.code,week:i.week}))},
   }));
+  expect(after.issues.some(i=>i.code==='v3_recovery_hours_unverified')).toBe(true);
+  expect(after.issues.filter(i=>i.code==='v3_recovery_hours_unverified')
+    .some(i=>i.message?.includes('V3P_RUN_041')&&i.message.includes('36h'))).toBe(true);
   expect(after.humanReviewRequired).toBe(true);
   expect(after.sportingRelevance).toBe('not_attested');
   expect(afterBridge.allBricks.length).toBe(4);
