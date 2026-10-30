@@ -116,7 +116,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin!,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé.'});}
-      plan.weeks.push({weekNumber:w.week,theme:w.phase??'',phase:w.phase??'',sessions:chosen});
+      plan.weeks.push({weekNumber:w.week,theme:entry.weekType==='recovery'?`Semaine de récupération — ${w.phase??'base'}`:(w.phase??''),phase:w.phase??'',sessions:chosen});
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
