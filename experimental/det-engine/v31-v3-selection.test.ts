@@ -13,7 +13,7 @@ const runnerIds=[
 ] as const;
 const makeReview=(id:string,objective:string):V3ReviewedSettings=>({
   id,objective,athleteLevel:'light',athleteLevelSource:'manual',
-  allPrerequisitesChecked:true,individualCoachApproval:true,
+  allPrerequisitesChecked:true,individualCoachApproval:true,preferReviewedV3:true,
 });
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();vi.useRealTimers();});
 describe('DET V31 — actual deterministic selection, not mere catalogue visibility',()=>{
