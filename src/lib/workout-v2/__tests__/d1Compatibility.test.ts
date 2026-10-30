@@ -20,14 +20,18 @@ describe("D1: V2 fitting must not change proven Stage 1 and slot contracts",()=>
     expect(diagnostic.map(x=>x.totalConflict)).toEqual([false,true,true,false]);
     expect(diagnostic.every(x=>x.outcome==="refused")).toBe(true);
   });
-  it("the new 100min V2 fit is EXACT but ineligible under BOTH S2 source and bike floor",()=>{
+  it("a 100min D1 brick is refused by the Stage1 fitter BEFORE schema or sport validation",()=>{
     const fit=fitWorkoutV2ToDuration("V2_BRICK_01",params,100*60);
-    expect(fit.ok).toBe(true);
-    if(fit.ok===false)return;
-    expect(fit.candidate.plannedDurationSec).toBe(6000);
-    const review=reviewD1BrickCandidate(fit.candidate,D1_BASE_SLOT_CONTRACTS[1]);
+    expect(fit).toMatchObject({ok:false,reasons:["no_exact_recipe_within_declared_knobs"]});
+    // Even deliberately forged candidate lengths are rejected by independent V1 and D1 guards.
+    const valid=fitWorkoutV2ToDuration("V2_BRICK_01",params,82*60);
+    expect(valid.ok).toBe(true);
+    if(valid.ok===false)return;
+    const modified=valid.candidate.steps.map(step => step.label==="Vélo" ? {...step,durationSec:step.durationSec+1080} : step);
+    const forged={...valid.candidate,steps:modified,plannedDurationSec:100*60};
+    const review=reviewD1BrickCandidate(forged,D1_BASE_SLOT_CONTRACTS[1]);
     expect(review.status).toBe("refused");
-    expect(review.bikeExerciseSec/60).toBe(77); // 10min bike warmup + 67min bike main
+    expect(review.bikeExerciseSec/60).toBe(78);
     expect(review.elapsedSec/60).toBe(100);
     expect(review.reasons).toEqual(expect.arrayContaining([
       "stage1_source_total_out_of_bounds",
@@ -37,18 +41,15 @@ describe("D1: V2 fitting must not change proven Stage 1 and slot contracts",()=>
     expect(review.canAutoInsert).toBe(false);
     expect(review.individualPrescriptionApproved).toBe(false);
   });
-  it("no candidate fitted to the four D1 minimums is permitted to masquerade as source-approved",()=>{
+  it("no D1 week minimum can be fitted from the actual Stage1 source bounds",()=>{
     for(const slot of D1_BASE_SLOT_CONTRACTS){
       const fit=fitWorkoutV2ToDuration("V2_BRICK_01",params,slot.minBrickElapsedSec);
-      expect(fit.ok,`S${slot.week}`).toBe(true);
-      if(fit.ok===false)continue;
-      const reviewed=reviewD1BrickCandidate(fit.candidate,slot);
-      expect(reviewed.status,`S${slot.week}`).toBe("refused");
-      expect(reviewed.reasons.length).toBeGreaterThan(0);
+      expect(fit.ok,`S${slot.week}`).toBe(false);
+      if(fit.ok===false)expect(fit.reasons).toContain("no_exact_recipe_within_declared_knobs");
     }
   });
   it("a source-compatible 83min short brick still correctly fails D1 long-bike floor",()=>{
-    const compiled=instantiateWorkoutV2("V2_BRICK_01",{...params,parameters:{bikeSec:3000}});
+    const compiled=instantiateWorkoutV2("V2_BRICK_01",{...params,parameters:{bikeSec:3000,transitionSec:180}});
     expect(compiled.ok).toBe(true);
     if(compiled.ok===false)return;
     expect(compiled.candidate.plannedDurationSec/60).toBe(83);
@@ -70,7 +71,7 @@ describe("D1: V2 fitting must not change proven Stage 1 and slot contracts",()=>
     expect(gate.reasons).toContain("d1_contract_not_pinned");
   });
   it("tampered lineage, objective or candidate schedule cannot unlock the D1 gate",()=>{
-    const fit=fitWorkoutV2ToDuration("V2_BRICK_01",params,90*60);
+    const fit=fitWorkoutV2ToDuration("V2_BRICK_01",params,82*60);
     expect(fit.ok).toBe(true);
     if(fit.ok===false)return;
     const original=fit.candidate;
