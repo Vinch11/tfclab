@@ -20,6 +20,8 @@ export interface ExperimentalAssemblyContract {
   adapt:(preparation:ReturnType<typeof prepareGenerationContracts>,config:PlanConfig)=>void;
   filterCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>boolean;
   doseRange?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>[number,number]|null;
+  /** D1.5 opt-in, reviewed candidate priority ONLY; the domain and all safeguards are unchanged. */
+  preferReviewedCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number;prescribedDurationSec:number})=>boolean;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
@@ -108,8 +110,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               isRest:false,isKeySession:!!slot.isKeySession,zones:m.mainZoneMax?[`Z${m.mainZoneMax}`]:m.zones};
             const checked=checkSessionCatalogue(session,{...context,catalog});
             return checked.errors.length||checked.unknown.length?[]:[session];
-          }).sort((a,b)=>(usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
-            w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||a.catalogId!.localeCompare(b.catalogId!));
+          }).sort((a,b)=>{
+            const preferred=(s:ParsedSession)=>{
+              if(!slot.isKeySession || w.weekType!=="load" || !experimentalContract?.preferReviewedCandidate || !s.catalogId)return 0;
+              const card=catalog.find(m=>m.id===s.catalogId);
+              return card && experimentalContract.preferReviewedCandidate(card,{...context,week:w.week,slot,dayIndex,prescribedDurationSec:(s.durationMin??0)*60}) === true ? 1 : 0;
+            };
+            return preferred(b)-preferred(a) ||
+              (usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
+              w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||a.catalogId!.localeCompare(b.catalogId!);
+          });
       });
       if(options.some(domain=>!domain.length))return refuse(`empty_catalogue_domain_week_${w.week}`);
       // Fail early on exact lower bounds, rather than enumerating an impossible Cartesian product.
@@ -138,7 +148,15 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(!search(0,0))return refuse(exhausted?'search_budget_exhausted':`no_catalogue_assignment_week_${w.week}`);
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
-      for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin!,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé.'});}
+      for(const s of chosen)if(s.catalogId){
+        usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);
+        const matchingSlot=slots.find(x=>x.dayIndex===s.dayIndex&&x.slot.sport===s.sport);
+        const selectedCard=catalog.find(m=>m.id===s.catalogId)!;
+        const reviewed=!!matchingSlot?.slot.isKeySession&&w.weekType==='load'&&
+          experimentalContract?.preferReviewedCandidate?.(selectedCard,{...context,week:w.week,slot:matchingSlot.slot,dayIndex:s.dayIndex,prescribedDurationSec:(s.durationMin??0)*60})===true;
+        result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin!,intent:selectedCard.intentFamily,
+          reason:reviewed?'Préférence expérimentale étayée par revue explicite de la dose, du limiteur et de la sécurité ; validation sportive finale toujours obligatoire.':'Admissibilité catalogue et contraintes natives ; départage par usage puis ordre du catalogue, sans preuve de bénéfice individuel.'});
+      }
       plan.weeks.push({weekNumber:w.week,theme:entry.weekType==='recovery'?`Semaine de récupération — ${w.phase??'base'}`:(w.phase??''),phase:w.phase??'',sessions:chosen});
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
