@@ -1,6 +1,7 @@
 /**
  * Preview-only bounded session fitting. It never changes the physiological
  * domain, inserts sessions, or makes a candidate coach/production-approved.
+ * Changing the number of work sets requires an explicit coach-preview flag.
  * The weekly planner MUST separately validate load, phase, limiters & recovery.
  */
 import {
@@ -35,13 +36,13 @@ function discrete(min: number, base: number, max: number, step: number, limit = 
   for (let i = 0; i <= count; i += stride) out.add(Math.min(max, min + i * step));
   return [...out].filter(v => Number.isFinite(v) && v >= min && v <= max).sort((a, b) => a - b);
 }
-function collect(blocks: V3Block[], prefix = ""): Knob[] {
+function collect(blocks: V3Block[], prefix = "", allowWorksetChange = false): Knob[] {
   return blocks.flatMap((block, i): Knob[] => {
     const path = prefix ? prefix + "." + i : String(i);
     if (block.kind === "repeat") return [
-      ...(block.count.max > block.count.min ? [{ path: path + ".count", kind: "count" as const,
-        priority: 3, values: discrete(block.count.min, block.count.base, block.count.max, 1) }] : []),
-      ...collect(block.steps, path),
+      ...(allowWorksetChange && block.count.max > block.count.min ? [{ path: path + ".count", kind: "count" as const,
+        priority: -1, values: discrete(block.count.min, block.count.base, block.count.max, 1) }] : []),
+      ...collect(block.steps, path, allowWorksetChange),
     ];
     if (block.kind === "time" && block.seconds!.max > block.seconds!.min) {
       const isEasy = block.domain === "recovery" || block.domain === "moderate_lt1";
@@ -61,7 +62,7 @@ function collect(blocks: V3Block[], prefix = ""): Knob[] {
 export function fitV3Duration(
   workout: V3Workout,
   targetMin: number,
-  options: { swimPaces?: Paces; toleranceSeconds?: number } = {},
+  options: { swimPaces?: Paces; toleranceSeconds?: number; allowWorksetChange?: boolean } = {},
 ): V3Fit {
   const original = evaluateV3Workout(workout, { swimPaces: options.swimPaces });
   const skeleton: V3Fit = {
@@ -77,7 +78,7 @@ export function fitV3Duration(
   if (original.status === "estimated")
     return { ...skeleton, code: "STRENGTH_DURATION_ONLY_ESTIMATED" };
   const target = targetMin * 60;
-  const knobs = collect(workout.blocks).sort((a, b) => a.priority - b.priority || a.path.localeCompare(b.path));
+  const knobs = collect(workout.blocks, "", options.allowWorksetChange === true).sort((a, b) => a.priority - b.priority || a.path.localeCompare(b.path));
   let best: Overrides = {}, result = original;
   let delta = Math.abs((original.seconds ?? Infinity) - target);
   // Repeat coordinate descent; a change is committed only if it makes the
