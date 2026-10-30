@@ -1796,7 +1796,7 @@ export function serializeCatalogForPrompt(catalog: PromptCatalogEntry[]): string
         ? `${e.canonicalDurationMin} (${e.durationMin[0]}-${e.durationMin[1]})`
         : `${e.durationMin[0]}-${e.durationMin[1]}`;
       const struct = e.structure.replace(/\s*\|\s*/g, " / ").replace(/\s+/g, " ").trim();
-      const zoneCible = ficheZoneCibleLabel(e.id);
+      const zoneCible = ficheZoneCibleLabel(e.id, e.repairMetadata);
       const dPlus = e.dPlusTargetM
         ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
         : "—";
