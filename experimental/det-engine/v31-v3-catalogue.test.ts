@@ -67,6 +67,19 @@ describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
    const strength=buildDetV3ContractFromCatalogue([{...review,id:'V3P_STRENGTH_001'}]);
    expect(strength.report.accepted).toHaveLength(0);
  });
+ it('refuses incompatible race-pace physiological anchors even after a synthetic coach review',()=>{
+   const cases=[
+     {id:'V3P_BIKE_082',objective:'703'},
+     {id:'V3P_BIKE_012',objective:'IM'},
+     {id:'V3P_RUN_011',objective:'703'},
+   ];
+   for(const spec of cases){
+     const a=buildDetV3ContractFromCatalogue([{...review,...spec,athleteLevel:'trained'}]);
+     expect(a.report.accepted).toHaveLength(0);
+     expect(a.report.rejected.find(x=>x.id===spec.id)?.reason)
+       .toBe('race_specific_anchor_incompatible_with_objective');
+   }
+ });
  it('refuses manual increases to threshold workload without an explicit coach authorization',()=>{
    const highIntensity={...review,id:'V3P_BIKE_008'};
    for(const overrides of [{'1.count':4},{'1.0.seconds':840}]) {
