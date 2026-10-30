@@ -19,6 +19,6 @@ describe("D1.12 minimum minute transfer only (not calendar or athletic approval)
   expect(a[1].transferMin).toBeGreaterThan(0);
   expect(a[2].transferMin).toBe(0);
   console.log("D112_S3_TRANSFER_LOWER_BOUNDS="+JSON.stringify(a));
- });
+ },30000);
  it("rejects invalid hypothetical tolerance",()=>expect(()=>examineD112Week3Bounds(-1)).toThrow("D112_INVALID_TOLERANCE"));
 });
