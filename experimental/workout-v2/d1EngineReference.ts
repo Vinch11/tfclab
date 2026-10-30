@@ -14,7 +14,7 @@ import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 
-export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
+export interface SearchLimits { maxNodes: number; maxMilliseconds: number; experimentalFirstWeeks?: number; }
 export interface ExperimentalAssemblyContract {
   id:string;
   adapt:(preparation:ReturnType<typeof prepareGenerationContracts>,config:PlanConfig)=>void;
@@ -57,6 +57,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     let exhausted=false;
     let previousLoad:number|undefined;
     for(const w of report.weeks) {
+      if(limits.experimentalFirstWeeks!==undefined && w.week>limits.experimentalFirstWeeks)break;
       const entry=preparation.weeklyQuotas[w.week];
       const layout=entry.layout!;
       const catalog=[...new Map([...Object.values(preparation.phaseRepairCatalogs).flat(),...preparation.chunkRepairCatalogs.flat(),...preparation.chunkRegenRepairCatalogs.flat()].map(m=>[m.id,m])).values()];
@@ -130,7 +131,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   result.issues.push(...validation.issues.map(i=>({code:i.rule,week:i.week,severity:i.severity,message:i.message})));
   const final=computeFinalValidationIssues(result.candidate!,[],{objective:config.objective??'',ambition:config.ambition??'finisher',vmaKmh:athlete.vma,thresholdPaceSecPerKm:athlete.paceThresholdSecPerKm});
   result.issues.push(...final.issues.map(i=>({code:i.rule,severity:i.severity,message:i.message})));
-  result.technicallyConstructed=result.candidate!.weeks.length===config.weeksAvailable;
+  result.technicallyConstructed=result.candidate!.weeks.length===(limits.experimentalFirstWeeks??config.weeksAvailable);
   result.constraintsSatisfied=!result.issues.some(i=>['error','critical','blocking'].includes(i.severity));
   result.status='candidate';
   return result;
