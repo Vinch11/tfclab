@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-30T06:44:56Z",
+  "pullRequests": [
+    {
+      "number": 420,
+      "head": "experiment/det-engine",
+      "headSha": "234112a1fa713b796d1f41faf14819d5ab6d0171",
+      "draft": true,
+      "merged": false
+    },
+    {
+      "number": 425,
+      "head": "experiment/physiology-validation-v2",
+      "headSha": "18c20998eed1539f5c5fc2f8831d41245b237fe5",
+      "draft": true,
+      "merged": false
+    }
+  ],
+  "physiologyImported": false
+}

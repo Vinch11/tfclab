@@ -1,0 +1,80 @@
+{
+  "schema": "det-v30-independent-1",
+  "passed": true,
+  "baselineFilesUnchanged": 5609,
+  "originalCasesUnchanged": 8,
+  "originalBSlotsUnchanged": 30,
+  "A_runRefusals": 7,
+  "C_refusals": 26,
+  "candidateSessions": 30,
+  "nativeExecutionSources": 1,
+  "nativeTechnicallyExecutableSessions": 3,
+  "newTechnicallyExecutableSessions": 0,
+  "newOriginalInsertions": 0,
+  "individualApprovals": 0,
+  "newIndividualParameters": 0,
+  "historicalVariantCompatibleSessions": 19,
+  "literalDistanceCandidateResolutions": 1,
+  "policyDependentGenericBaseSessions": 4,
+  "proposedVariantCompatibleSessions": 24,
+  "proposedReservationMinutes": [
+    480,
+    500,
+    515,
+    285
+  ],
+  "nativeExerciseBudgetMinutes": [
+    480,
+    528,
+    580,
+    420
+  ],
+  "allAeroInterpretationsNowFitSlots": 3,
+  "swimExecutionTimesResolvedForB": 0,
+  "strengthExecutionTimesResolvedForB": 0,
+  "wholeSportingBlockApproved": false,
+  "rawHistoricalDiagnosticsExactlyPreserved": true,
+  "historicalBErrors": 5,
+  "historicalBWarnings": 34,
+  "newTests": 18,
+  "nonRegressionTests": 469,
+  "unchangedSkips": 5,
+  "independentMutantsRejected": [
+    {
+      "mutation": "invent_swim_pace",
+      "rejected": true
+    },
+    {
+      "mutation": "general_5min_margin",
+      "rejected": true
+    },
+    {
+      "mutation": "coach_policy_fiction",
+      "rejected": true
+    },
+    {
+      "mutation": "source_truncated",
+      "rejected": true
+    },
+    {
+      "mutation": "strict_Z1_dilution",
+      "rejected": true
+    }
+  ],
+  "logicalReplay": {
+    "originals.json.gz": "5db1d4f061c27c2a84d42426e89459f14900bd075886b09e89e3eb85b2c744de",
+    "baseline.json.gz": "cc59cc8c520f6d01e18f42dd6de2d7a59f5678e9ba0c02cbe368b727d6876a44",
+    "proposed.json.gz": "09e56591e9be6cfda64fb3a8cfa90695673e57bce8a7f99c3031bcdd5997352b",
+    "alternatives.json.gz": "6f7257d0477c9dc4151c872a14b4b19b1cff570fede58ef8eb155c6def685cec",
+    "legacyDiagnostics.json.gz": "8e47663771716043d98ff14273e515204a37d0271420a2f1feb4677527fe703d",
+    "stress.json.gz": "524a3f3d5a88ca31a826c2857fb99c0d3317d47ef7976fce2f9717ee656f3e3d",
+    "phases.json.gz": "e68a6be2ec00d9444985981a300e6e01c02486b74902fae07fcbfbc366b771b3",
+    "longPolicies.json.gz": "06672062d268f28ef220d7647e0c264165d9e8854c45c07925f231ef161d4512"
+  },
+  "ids": 920,
+  "variants": 2425,
+  "archivedConfigurationsPreservedNotRerun": 600,
+  "nolioFixturesPreserved": 15,
+  "newNolioCalls": 0,
+  "verifierSha256": "93120f8afd61e5032285c847e83439093a9b5c868a98046fcd64a9937c96070c"
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "name": "build",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v30.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 12714,
+    "logBytes": 832,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "replay",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v30.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 12716,
+    "logBytes": 832,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "v29_non_regression",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v29.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 31379,
+    "logBytes": 833,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "v28_non_regression",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v28.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 20492,
+    "logBytes": 833,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "v27_non_regression",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v27.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 19851,
+    "logBytes": 833,
+    "outputCapturedDirectly": true
+  },
+  {
+    "name": "v26_non_regression",
+    "args": [
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--config",
+      "experimental/det-engine/vitest.v26.config.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 35603,
+    "logBytes": 834,
+    "outputCapturedDirectly": true
+  }
+]

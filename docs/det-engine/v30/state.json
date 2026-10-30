@@ -1,0 +1,67 @@
+{
+  "schema": "det-v30-state-1",
+  "status": "running",
+  "firstObservedAt": "2026-10-30T06:06:20+00:00",
+  "deadline": "2026-10-30T07:06:00+00:00",
+  "maxUnits": 10,
+  "maxValidationAttempts": 3,
+  "validationAttempts": 2,
+  "automaticRestart": false,
+  "baseline": "234112a1fa713b796d1f41faf14819d5ab6d0171",
+  "observedPhysiologySha": "18c20998eed1539f5c5fc2f8831d41245b237fe5",
+  "units": [
+    {
+      "unit": 1,
+      "purpose": "Verify heads, preserve baseline, register limited programming hypotheses",
+      "status": "complete"
+    },
+    {
+      "unit": 2,
+      "purpose": "Implement explicit phase recipe policy comparison without authorization",
+      "status": "complete"
+    },
+    {
+      "unit": 3,
+      "purpose": "Construct explicit source-bounded coach review reservations and whole-block proposal without athlete-parameter transfer",
+      "status": "complete"
+    },
+    {
+      "unit": 4,
+      "purpose": "Distinguish unresolved variant scope from incompatibility; verify literal recovery distance and bounded existing alternatives",
+      "status": "complete"
+    },
+    {
+      "unit": 5,
+      "purpose": "Validate whole-block review windows, historical stress projection and refusal/control scenarios",
+      "status": "complete"
+    },
+    {
+      "unit": 6,
+      "purpose": "Frozen build/replay and unchanged V22\u2013V29 multiobjective regression through native test suites",
+      "status": "complete"
+    },
+    {
+      "unit": 7,
+      "purpose": "Independent full-plan arithmetic and source/intensity comparison; coach-readable30-session dossier",
+      "status": "complete"
+    },
+    {
+      "unit": 8,
+      "purpose": "Check final documentation, unchanged archive boundaries and release provenance",
+      "status": "complete"
+    },
+    {
+      "unit": 9,
+      "purpose": "Commit and publish V30 additions and update draft PR420 with honest coach-candidate results",
+      "status": "in_progress"
+    }
+  ],
+  "rejectedDevelopment": [
+    "development-1: unresolved variant scope was incorrectly represented as incompatibility; no prior historical rule changed",
+    "development-2: new conservative distance helper accepted an unsupported nested repetition; negative test rejected it before retention"
+  ],
+  "rejectedValidation": [
+    "validation-1: independent comparison showed native strict Z1 decision was not passed into V27 intensity resolver; candidate never retained; stopped before further acceptance"
+  ],
+  "acceptedEvidence": "evidence/validation-2"
+}
