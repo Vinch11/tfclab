@@ -5,6 +5,7 @@ import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContract
 import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
 import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
 import { constructDeterministicPlan } from './engine';
+import { V3_BASE_BRICK_ID } from './v31-v3-brick';
 
 const runnerIds=[
   'V3P_RUN_001', 'V3P_RUN_002', 'V3P_RUN_013', 'V3P_RUN_021',
@@ -52,6 +53,46 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
   expect(actual.humanReviewRequired).toBe(true);
   expect(actual.sportingRelevance).toBe('not_attested');
   expect(network).not.toHaveBeenCalled();
+ });
+ it('replaces the exact missing 105min 70.3 base brick domain with a reviewed 120min composition',()=>{
+  vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN');});
+  const fixture=preparePrevalidationFixture('B-70.3');
+  const config={...fixture.planConfig,_outputFormat:'json' as const};
+  const reviews=[
+    makeReview('V3P_BIKE_002','703'),
+    makeReview('V3P_RUN_001','703'),
+  ];
+  const beforeContract=buildDetV3ContractFromCatalogue(reviews);
+  const before=constructDeterministicPlan(fixture.athleteData,config,
+    {maxNodes:2500,maxMilliseconds:1500},beforeContract.contract);
+  expect(before.reason).toBe('empty_catalogue_domain_week_1');
+  expect(before.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message)
+    .toContain('"sport":"brick"');
+  const afterContract=buildDetV3ContractFromCatalogue(reviews,[{
+    id:V3_BASE_BRICK_ID,objective:'703',individualCoachApproval:true,
+    transitionSeconds:300,preferReviewedV3:true,
+  }]);
+  expect(afterContract.brickReport.accepted.map(x=>x.id)).toEqual([V3_BASE_BRICK_ID]);
+  const preparation=prepareGenerationContracts(fixture.athleteData,config,{rotationSeed:0});
+  afterContract.contract.adapt(preparation,config);
+  const prevalidation=assessPreparedGeneration(config,preparation);
+  expect(prevalidation.weeks[0].eligible.some(x=>x.id===V3_BASE_BRICK_ID)).toBe(true);
+  const after=constructDeterministicPlan(fixture.athleteData,config,
+    {maxNodes:2500,maxMilliseconds:1500},afterContract.contract);
+  console.info('DET_V31_703_BRICK_REPAIR',JSON.stringify({
+    originalReason:before.reason,originalSlot:before.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message,
+    brickId:V3_BASE_BRICK_ID,brickDurationMin:120,
+    candidateEligibleWeek1:prevalidation.weeks[0].eligible.some(x=>x.id===V3_BASE_BRICK_ID),
+    newStatus:after.status,newReason:after.reason,
+    nextEmptySlot:after.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message,
+    constructed:after.technicallyConstructed,conformant:after.constraintsSatisfied,
+    selectedBricks:after.trace.filter(t=>t.id===V3_BASE_BRICK_ID).map(t=>({week:t.week,day:t.day,duration:t.duration})),
+  }));
+  if(after.reason==='empty_catalogue_domain_week_1')
+    expect(after.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message)
+      .not.toContain('"sport":"brick"');
+  expect(after.humanReviewRequired).toBe(true);
+  expect(after.sportingRelevance).toBe('not_attested');
  });
  it('tests triathlon 70.3 and Ironman prevalidation separately without upgrading a rejected plan',()=>{
   vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN');});
