@@ -103,7 +103,7 @@ export interface D12ProjectionResult {
  * Intentional test-only stop after week 4; future event remains in context.
  * A candidate is never a deployable 4-week plan.
  */
-export function projectD12Profile(profile:D12Profile,reviews:readonly D15ReviewEvidence[]=[],captureCandidate=false):D12ProjectionResult {
+export function projectD12Profile(profile:D12Profile,reviews:readonly D15ReviewEvidence[]=[],captureCandidate=false,requireReviewedQualityWeekly=false):D12ProjectionResult {
   const spec:PlanningCase={id:`D1_${profile}`,objective:"703",level:"trained",ambition:"age_group",
     load:"known_synthetic",physiology:profile,constraints:"unrestricted",duration:"native",intermediate:false};
   const {prepared}=preparePlanningCaseContext(spec);
@@ -111,6 +111,7 @@ export function projectD12Profile(profile:D12Profile,reviews:readonly D15ReviewE
   const transformedWeeks: number[]=[];
   const contract:ExperimentalAssemblyContract={
     id:"EXPERIMENTAL_D12_SEPARATE_BRICK_NOT_APPROVED",
+    ...(requireReviewedQualityWeekly ? { requireReviewedQualityWeekly:true } : {}),
     adapt(preparation){
       for(let week=1;week<=4;week++){
         const original=preparation.weeklyQuotas[week];
