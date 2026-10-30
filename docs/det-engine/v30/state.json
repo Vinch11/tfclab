@@ -1,6 +1,6 @@
 {
   "schema": "det-v30-state-1",
-  "status": "running",
+  "status": "closed_no_go",
   "firstObservedAt": "2026-10-30T06:06:20+00:00",
   "deadline": "2026-10-30T07:06:00+00:00",
   "maxUnits": 10,
@@ -53,7 +53,12 @@
     {
       "unit": 9,
       "purpose": "Commit and publish V30 additions and update draft PR420 with honest coach-candidate results",
-      "status": "in_progress"
+      "status": "complete"
+    },
+    {
+      "unit": 10,
+      "purpose": "Verify draft PR publication, close bounded supervisor state and persist resume receipts",
+      "status": "complete"
     }
   ],
   "rejectedDevelopment": [
@@ -63,5 +68,10 @@
   "rejectedValidation": [
     "validation-1: independent comparison showed native strict Z1 decision was not passed into V27 intensity resolver; candidate never retained; stopped before further acceptance"
   ],
-  "acceptedEvidence": "evidence/validation-2"
+  "acceptedEvidence": "evidence/validation-2",
+  "closedAt": "2026-10-30T06:50:17.203956+00:00",
+  "elapsedSeconds": 2637.203956,
+  "implementationCommit": "180d7fc564837b77333ac64dad89872fe8eb720d",
+  "stopReason": "Authorized V30 coach-candidate work complete; prescription and policy approvals remain unestablished",
+  "creditQuotaAccessible": false
 }
