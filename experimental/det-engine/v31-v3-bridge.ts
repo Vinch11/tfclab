@@ -2,8 +2,8 @@
  * V31 isolated bridge: V3 structured candidates -> true DET-ENGINE
  * ExperimentalAssemblyContract. NO AI, Nolio, Supabase, or production mutation.
  *
- * The source V3 catalogue is supplied explicitly by the caller; the current
- * DET-ENGINE repository does not yet contain the 400 source recipes.
+ * The source V3 catalogue is supplied explicitly by the caller; the V31
+ * catalogue loader imports the 400 source recipes from the isolated V3 branch.
  */
 import type { ExperimentalAssemblyContract } from './engine';
 import type { RepairWorkoutMetadata } from '../../supabase/functions/_shared/repairSportingEquivalence';
@@ -132,5 +132,12 @@ export function buildDetV3Contract(cards:readonly V3SourceCard[],reviews:readonl
       entry.durationMin[0]>=0 && entry.durationMin[0]<=entry.durationMin[1];
   },
   doseRange(card){return approved.has(card.id)?approved.get(card.id)!.durationMin:card.durationMin;},
+  rankCandidate(card,ctx){
+   if(!approved.has(card.id))return 0;
+   // Do not prefer an easy recovery card for a non-long key intensity slot.
+   if(ctx.slot.isKeySession && !ctx.slot.isLongSession && card.mainZoneMax<3)return 0;
+   // Coach-reviewed V3 cards are tie-break candidates, never eligibility waivers.
+   return -1;
+  },
  }};
 }
