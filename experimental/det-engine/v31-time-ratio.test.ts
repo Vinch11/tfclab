@@ -30,6 +30,7 @@ describe('V31 planned-minute diagnostic, no legacy ratio waiver',()=>{
   },{1:'load'});
   expect(report.knownMinutes).toEqual({swim:45,bike:100,run:60});
   expect(report.unresolvedBrickMinutes).toBe(120);
+  expect(report.unresolvedBricks).toEqual([{week:1,id:'LEGACY',minutes:120}]);
   expect(report.knownTotalMinutes).toBe(205);
   expect(report.conservativeBounds.swim.minPct).toBeLessThan(report.conservativeBounds.swim.maxPct);
   expect(report.conservativeBounds.bike.maxPct).toBeGreaterThan(report.conservativeBounds.bike.minPct);
@@ -39,7 +40,7 @@ describe('V31 planned-minute diagnostic, no legacy ratio waiver',()=>{
   vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN');});
   const fixture=preparePrevalidationFixture('B-70.3');
   const cfg={...fixture.planConfig,_outputFormat:'json' as const};
-  const {contract}=buildDetV3ContractFromCatalogue([
+  const {contract,allBricks}=buildDetV3ContractFromCatalogue([
     {id:'V3P_BIKE_002',athleteLevel:'light',athleteLevelSource:'manual',
       objective:'703',allPrerequisitesChecked:true,individualCoachApproval:true,
       targetDurationMin:65},
@@ -52,7 +53,7 @@ describe('V31 planned-minute diagnostic, no legacy ratio waiver',()=>{
   expect(out.technicallyConstructed).toBe(true);
   const prep=prepareGenerationContracts(fixture.athleteData,cfg,{rotationSeed:0});
   const types=Object.fromEntries(Object.entries(prep.weeklyQuotas).map(([w,q])=>[Number(w),q.weekType]));
-  const audit=auditPlannedMinuteDistribution(out.candidate!,types);
+  const audit=auditPlannedMinuteDistribution(out.candidate!,types,allBricks);
   console.info('DET_V31_703_TIME_RATIO_DIAGNOSTIC',JSON.stringify({
     knownMinutes:audit.knownMinutes,unresolvedBrickMinutes:audit.unresolvedBrickMinutes,
     verifiedTransitionMinutes:audit.verifiedTransitionMinutes,
