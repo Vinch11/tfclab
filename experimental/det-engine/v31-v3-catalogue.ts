@@ -69,7 +69,7 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
   const result=evaluateV3Workout(configured,{swimPaces:settings.swimPacesSecPer100m});
   if(result.status==='estimated')throw Error('v3_timing_is_only_estimated');
   if(result.status==='unresolved')throw Error('v3_timing_unresolved');
-  if(!Number.isSafeInteger(result.seconds)||result.seconds!<=0||result.seconds!%60!==0)
+  if(result.seconds===null||!Number.isSafeInteger(result.seconds)||result.seconds<=0||result.seconds%60!==0)
     throw Error('v3_fractional_minute_not_supported');
   return configured;
 }
@@ -89,6 +89,8 @@ export function buildDetV3ContractFromCatalogue(reviews:readonly V3ReviewedSetti
     if(reviewMap.has(review.id))throw Error('v3_duplicate_review_id');
     reviewMap.set(review.id,review);
   }
+  for(const id of reviewMap.keys())if(!v3FullCatalogue.workouts.some(w=>w.id===id))
+    throw Error('v3_unknown_reviewed_recipe:'+id);
   const faulty=new Map<string,string>();
   const qualifiedReviews:DetV3Review[]=[];
   const cards:V3Workout[]=v3FullCatalogue.workouts.map(w=>{
