@@ -27,3 +27,15 @@ describe("D1.11 per-week 70.3 duration evidence, experimental only",()=>{
   }))));
  });
 });
+
+describe("D1.11 historical blocker ledger",()=>{
+ it("pins exact unsupported weeks without relaxing native Lorang checks",()=>{
+  const rows=examineD111WeeklyProfiles();
+  const outside=rows.filter(r=>r.plus3?.status==="fully_accounted_outside_bands")
+    .map(r=>r.profile+":"+r.week);
+  expect(outside).toEqual(["aerobic_dominant:3","glycolytic_dominant:3"]);
+  const native=rows.filter(r=>r.originalCriticalCodes.includes("lorang_categories"));
+  expect(native).toHaveLength(8);
+  expect(rows.every(r=>r.sportApproved===false&&r.canExport===false)).toBe(true);
+ });
+});
