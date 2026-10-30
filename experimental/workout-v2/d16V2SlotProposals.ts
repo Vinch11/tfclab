@@ -51,7 +51,7 @@ export interface D16Request {
   phase: PhaseTag;
   level: WorkoutTrainingLevel;
   slot: D16Slot;
-  profileLimters: readonly string[];
+  profileLimiters: readonly string[];
   coachRequest: D16CoachRequest | null;
   anchors: WorkoutV2Input["anchors"];
   provenance: D16Provenance;
@@ -100,7 +100,7 @@ export function proposeD16V2ForSlot(input: D16Request): D16Result {
   if (slot.minDurationSec !== undefined && slot.durationSec < slot.minDurationSec) errors.push("slot_minimum_unmet");
   if (slot.maxDurationSec !== undefined && slot.durationSec > slot.maxDurationSec) errors.push("slot_maximum_exceeded");
   if (!request?.coachFocusReviewed || !request.justification.trim()) errors.push("coach_focus_missing");
-  if (!request?.limiter || !input.profileLimters.includes(request.limiter)) errors.push("limiter_not_in_profile");
+  if (!request?.limiter || !input.profileLimiters.includes(request.limiter)) errors.push("limiter_not_in_profile");
   if (!input.provenance.anchorEvidenceId?.trim() || input.provenance.verifiedForProvisionalTarget !== true)
     errors.push("anchor_provenance_unverified");
   if (input.readiness !== "ready" || input.pain || input.recoveryConcern)
