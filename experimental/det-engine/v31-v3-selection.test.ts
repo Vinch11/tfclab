@@ -68,7 +68,9 @@ describe('DET V31 — actual deterministic selection, not mere catalogue visibil
   expect(before.reason).toBe('empty_catalogue_domain_week_1');
   expect(before.issues.find(i=>i.code==='det_empty_catalogue_slot')?.message)
     .toContain('"sport":"brick"');
-  const afterContract=buildDetV3ContractFromCatalogue(reviews,[{
+  const afterContract=buildDetV3ContractFromCatalogue([
+    {...reviews[0],targetDurationMin:65},reviews[1],
+  ],[{
     id:V3_BASE_BRICK_ID,objective:'703',individualCoachApproval:true,
     transitionSeconds:300,preferReviewedV3:true,
   }]);
