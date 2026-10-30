@@ -65,7 +65,7 @@ export interface V2Event {
 }
 export type V2InstantiatedWorkout =
   | { status: "blocked"; templateId: string; reasons: string[]; warnings: string[];
-      events: []; totalSeconds: 0; parameters: Record<string, number>; approval: "never_automatic" }
+      events: V2Event[]; totalSeconds: 0; parameters: Record<string, number>; approval: "never_automatic" }
   | { status: "candidate"; templateId: string; reasons: []; warnings: string[];
       events: V2Event[]; totalSeconds: number; parameters: Record<string, number>; approval: "never_automatic" };
 
