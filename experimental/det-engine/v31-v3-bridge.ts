@@ -87,7 +87,7 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    if(seconds<=0||!Number.isSafeInteger(seconds)||seconds%60!==0){refuse('non_integer_minute_execution');continue;}
    const sport={bike:'bike',run:'run',swim:'swim',strength:'strength'}[card.sport];
    const zones=[...new Set(steps.flatMap(b=>b.zones))];
-   const main=card.blocks.filter(b=>b.kind==='repeat'||b.kind!=='repeat'&&b.role==='main').map(b=>evaluate(b,approval));
+   const main=card.blocks.filter(b=>b.kind==='repeat'||b.role==='main').map(b=>evaluate(b,approval));
    const mainZones=[...new Set(main.flatMap(b=>b.zones))];
    const mainZoneMax=Math.max(0,...mainZones.map(z=>Number(z.replace('Z',''))));
    const family=FAMILIES[card.primaryIntent];
