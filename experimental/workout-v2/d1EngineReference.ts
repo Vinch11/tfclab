@@ -21,7 +21,7 @@ export interface ExperimentalAssemblyContract {
   filterCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>boolean;
   doseRange?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>[number,number]|null;
   /** D1.5 opt-in, reviewed candidate priority ONLY; the domain and all safeguards are unchanged. */
-  preferReviewedCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>boolean;
+  preferReviewedCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number;prescribedDurationSec:number})=>boolean;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
@@ -114,7 +114,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const preferred=(s:ParsedSession)=>{
               if(!slot.isKeySession || w.weekType!=="load" || !experimentalContract?.preferReviewedCandidate || !s.catalogId)return 0;
               const card=catalog.find(m=>m.id===s.catalogId);
-              return card && experimentalContract.preferReviewedCandidate(card,{...context,week:w.week,slot,dayIndex}) === true ? 1 : 0;
+              return card && experimentalContract.preferReviewedCandidate(card,{...context,week:w.week,slot,dayIndex,prescribedDurationSec:(s.durationMin??0)*60}) === true ? 1 : 0;
             };
             return preferred(b)-preferred(a) ||
               (usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
@@ -153,7 +153,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         const matchingSlot=slots.find(x=>x.dayIndex===s.dayIndex&&x.slot.sport===s.sport);
         const selectedCard=catalog.find(m=>m.id===s.catalogId)!;
         const reviewed=!!matchingSlot?.slot.isKeySession&&w.weekType==='load'&&
-          experimentalContract?.preferReviewedCandidate?.(selectedCard,{...context,week:w.week,slot:matchingSlot.slot,dayIndex:s.dayIndex})===true;
+          experimentalContract?.preferReviewedCandidate?.(selectedCard,{...context,week:w.week,slot:matchingSlot.slot,dayIndex:s.dayIndex,prescribedDurationSec:(s.durationMin??0)*60})===true;
         result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin!,intent:selectedCard.intentFamily,
           reason:reviewed?'Préférence expérimentale étayée par revue explicite de la dose, du limiteur et de la sécurité ; validation sportive finale toujours obligatoire.':'Admissibilité catalogue et contraintes natives ; départage par usage puis ordre du catalogue, sans preuve de bénéfice individuel.'});
       }
