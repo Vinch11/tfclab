@@ -42,7 +42,7 @@ describe("TFCLab Workout Library V2 isolated pilot", () => {
     const bad = instantiateWorkoutV2(m.id, { ...input(m), goal: "ironman", phase: "base",
       level: "untrained", readiness: "uncertain", pain: true, recoveryConcern: true });
     expect(bad.ok).toBe(false);
-    if (!bad.ok) expect(bad.reasons).toEqual(expect.arrayContaining([
+    if (bad.ok === false) expect(bad.reasons).toEqual(expect.arrayContaining([
       "goal_incompatible", "phase_incompatible", "training_level_incompatible",
       "readiness_not_confirmed", "pain_present", "recovery_concern",
     ]));
@@ -57,7 +57,7 @@ describe("TFCLab Workout Library V2 isolated pilot", () => {
     const m = WORKOUT_V2_MODELS.find(m => m.id === "V2_RUN_05")!;
     const missing = instantiateWorkoutV2(m.id, { ...input(m), anchors: {} });
     expect(missing.ok).toBe(false);
-    if (!missing.ok) expect(missing.reasons).toContain("anchor_vmaKmh_missing_or_unverified");
+    if (missing.ok === false) expect(missing.reasons).toContain("anchor_vmaKmh_missing_or_unverified");
     const incorrect: AthleteAnchor = { value: 16, sport: "bike", verified: true };
     expect(instantiateWorkoutV2(m.id, { ...input(m), anchors: { vmaKmh: incorrect } }).ok).toBe(false);
     const drill = WORKOUT_V2_MODELS.find(m => m.id === "V2_SWIM_03")!;
