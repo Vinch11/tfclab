@@ -63,7 +63,7 @@ function sameActiveSessions(actual:ParsedPlan, expected:ReturnType<typeof compos
   return true;
 }
 /** EXACT original checker calls; no rules or severity removed. */
-function nativeChecks(plan:ParsedPlan, profile:D12Profile):D18Issue[] {
+export function nativeChecks(plan:ParsedPlan, profile:D12Profile):D18Issue[] {
   const {prepared}=preparePlanningCaseContext(spec(profile));
   const athlete=prepared.athleteData;
   const config={...prepared.planConfig,planStartDate:"2026-10-26"};
