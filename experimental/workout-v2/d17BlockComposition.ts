@@ -14,7 +14,6 @@ import { proposeD16V2ForSlot, type D16CoachRequest, type D16Provenance, type D16
 const DAYS = ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"] as const satisfies readonly DayLower[];
 type Sport = "swim" | "bike" | "run" | "brick" | "strength";
 const SPORTS: readonly Sport[] = ["swim","bike","run","brick","strength"];
-const DAY_INDEX = new Map<string,number>(DAYS.map((day,i)=>[day,i]));
 export interface D17Target {
   week:number;
   day:DayLower;
